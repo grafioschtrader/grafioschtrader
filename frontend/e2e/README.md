@@ -1,5 +1,36 @@
 # Frontend E2E suites
 
+## Language-model keys (240-*)
+
+`240-ai-providers.spec.ts` drives Settings → Language-model keys as `e2euser`: `TenantAIProviderDialogComponent`,
+its table and the edit dialog `TenantAIProviderEditComponent`. All three run with the `OnPush` default, so the spec
+waits on what only an asynchronous answer puts on screen — the provider options, the model placeholder of the chosen
+provider, the submit button re-enabled after the server rejects the model name, the table and its selection buttons
+after a save and a delete. The e2e database allows `anthropic,openai,gemini` (`gt.ai.tenant.providers`), all of which
+need a key, so the "no key" path is not reachable here.
+
+The spec owns the Anthropic and OpenAI rows of `e2euser`'s tenant and deletes them through REST at the start. It never
+presses "Test key", which would send the fake key to the provider. Two traps: the edit dialog is appended to the body,
+so it is found by its key hint, not inside `tenant-ai-provider-edit`; and reloading after a save keeps the row
+selected, so a second click on it would deselect it. Run with
+`npx playwright test e2e/240-ai-providers.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## HTTP authentication (235-* and lib/005-*)
+
+`235-auth-http-interceptor.spec.ts` and `lib/005-auth-http-interceptor.spec.ts` run the shared scenarios in
+`lib/auth-http-interceptor.scenarios.ts` against each host. They cover registration and token verification,
+authenticated JSON create/update/delete, login with a stale session token, public metadata reads, a download,
+the multipart boundary of an upload, and one toast per failed request including both logout error classes.
+The error-class responses are injected through Playwright routing; the other requests reach the test backend.
+
+The registration scenario owns only `auth-http-interceptor@test.local`. Before and after the test it reconciles
+and deletes that account through REST, including completing an interrupted verification/tenant setup. Existing
+fixture accounts are used for login and read-only administration. The upload deliberately lacks the export marker,
+so it exercises the real validation failure without importing or replacing any GTNet data.
+
+Run each file separately with `--no-deps` against its `e2e` stack. For an isolated application stack, set both
+`E2E_BACKEND_URL` and `E2E_FRONTEND_URL` and configure that frontend's proxy to target the test backend.
+
 ## Watchlist indicators (230-*)
 
 `230-watchlist-indicators.spec.ts` uses the `alledit` account, an owned `Indicator E2E` watchlist and the definitions in
@@ -1084,6 +1115,18 @@ GTNET_SKIP_BOOTSTRAP=true \
 npx playwright test e2e/gtnet-app/075-exchange-kind-approval.spec.ts --config=playwright.gtnet-app.config.ts
 ```
 
+### Table and form notification (035-*)
+
+`035-task-monitor-notification.spec.ts` uses the batch processing monitor of `grafiosch-host` as `admin` to check the
+change notification of the library building blocks: a column toggled in the column visibility dialog disappears and
+reappears while the dialog is still open, the active border moves when the main tree is clicked, and the task create
+dialog shows its required messages and enables submit only for a valid form. It saves nothing; the column choice it
+toggles is restored before the test ends and repaired at the start. Library tasks carry no entity configuration, so
+the create dialog shows only the task and the start time, which is prefilled. The monitor table has no selector of its
+own (a routed component), the admin's locale may be German after `020-nickname-lang-edit`, and a sort badge follows
+the header text. Run with
+`npx playwright test --config=playwright.lib.config.ts e2e/lib/035-task-monitor-notification.spec.ts --project=lib-e2e --no-deps`.
+
 ### Users of the library suite
 
 Same `e2e` property convention as this suite, against
@@ -1093,7 +1136,8 @@ users with JDBC any more, so **the backend suite has to run before the browser s
 for you. Specs address users by nickname, never by id.
 
 The numbering convention above applies here as well. `010-mail.spec.ts` covers reusable mail, `020-nickname-lang-edit`
-updates the profile targets stored in `users.json`, and `030-password-edit` changes the configured user's password.
+updates the profile targets stored in `users.json`, `030-password-edit` changes the configured user's password, and
+`035-task-monitor-notification` checks the change notification of tables and forms.
 
 The setup is **re-runnable**: a user that can already sign in is left alone, and one without a tenant only gets the
 tenant step, so the suite can be executed repeatedly against a populated `grafiosch_t`. Note that the login probe it

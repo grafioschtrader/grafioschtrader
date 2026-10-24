@@ -1,12 +1,22 @@
 package grafioschtrader.priceupdate.intraday;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.ConcurrencyFailureException;
 
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.ThreadHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.DownloadLink;
@@ -30,6 +40,7 @@ import grafioschtrader.service.GlobalparametersService;
  * <li><strong>Retry Logic</strong>: Implements sophisticated retry mechanisms with configurable limits and automatic
  * counter management</li>
  * <li><strong>Delayed Update Control</strong>: Respects data provider delay requirements and timeout constraints</li>
+ * <li><strong>Batch Requests</strong>: Asks connectors that support it for several instruments with one request</li>
  * <li><strong>Secure Link Generation</strong>: Creates download links with proper API key protection and routing</li>
  * <li><strong>Entity-Specific Processing</strong>: Handles both Security and Currencypair entities with appropriate
  * connector methods</li>
@@ -70,39 +81,165 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   @Override
   public S updateLastPriceSecurityCurrency(S securitycurrency, final short maxIntraRetry,
       final int scIntradayUpdateTimeout) {
-    final IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
-        securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.FS_INTRA);
-
-    if (feedConnector != null && (securitycurrency.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
-        && securitycurrency.isActiveForIntradayUpdate(java.time.LocalDate.now())
-        && allowDelayedIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout)
-        && claimIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout)) {
-      final IntradayFields previousFields = IntradayFields.of(securitycurrency);
-      // Every connector writes only the fields it happens to parse, so a field it does not deliver would otherwise
-      // keep the value of the connector used before it, forever. Clearing them first makes the saved row show exactly
-      // what this connector delivered.
-      clearDerivedIntradayFields(securitycurrency);
+    final IFeedConnector feedConnector = getIntraConnector(securitycurrency);
+    if (isDue(securitycurrency, feedConnector, maxIntraRetry, scIntradayUpdateTimeout)) {
+      final IntradayFields previousFields = prepare(securitycurrency);
+      boolean updated = false;
       try {
         intraEntityAccess.updateIntraSecurityCurrency(securitycurrency, feedConnector);
-        securitycurrency.setRetryIntraLoad((short) 0);
         markGenericEndpointUsed(feedConnector, securitycurrency);
+        updated = true;
       } catch (final Exception e) {
         log.error("Last price update failed securitycurrency={}", securitycurrency.toString(), e);
-        // Some connectors set the timestamp before they parse the price. Without restoring the previous state a failed
-        // fetch would persist a fresh timestamp next to an old price, and the instrument would look up to date.
-        previousFields.restore(securitycurrency);
-        securitycurrency.setRetryIntraLoad((short) (securitycurrency.getRetryIntraLoad() + 1));
       }
-      try {
-        securitycurrency = jpaRepository.save(securitycurrency);
-      } catch (final ConcurrencyFailureException ex) {
-        // The last price is non critical and is refreshed within minutes, so a lost race is not worth a stack trace.
-        // Losing it means another writer is updating the very same row right now, either holding the row lock
-        // (CannotAcquireLockException) or having bumped the version first (ObjectOptimisticLockingFailureException).
-        log.warn("Intraday price save skipped, row was concurrently updated: securitycurrency={}", securitycurrency);
-      } catch (final Exception ex) {
-        log.error("Save failed for securitycurrency={}", securitycurrency, ex);
+      securitycurrency = finish(securitycurrency, previousFields, updated);
+    }
+    return securitycurrency;
+  }
+
+  /**
+   * Updates the instruments of a list, asking a connector with {@link IFeedConnector#getIntradayBatchSize()} greater
+   * than 1 for several instruments per request. Without such a connector in the list this is exactly the behaviour of
+   * the base class. Otherwise the due instruments of each batch connector are claimed first and then grouped into
+   * requests of at most its batch size, while all others go through the single-instrument path. Requests run in
+   * parallel like the single updates do, and every instrument is still saved in its own transaction.
+   *
+   * @return the instruments in input order, updated where an update was due
+   */
+  @Override
+  public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, final short maxIntraRetry,
+      boolean singleThread) {
+    if (securtycurrencies.stream().noneMatch(sc -> isBatchConnector(getIntraConnector(sc)))) {
+      return super.updateLastPriceOfSecuritycurrency(securtycurrencies, maxIntraRetry, singleThread);
+    }
+    final int scIntradayUpdateTimeout = globalparametersService.getSecurityCurrencyIntradayUpdateTimeout();
+    final Map<S, S> updated = Collections.synchronizedMap(new IdentityHashMap<>());
+    final List<Runnable> units = new ArrayList<>();
+    final List<S> batchCandidates = new ArrayList<>();
+    for (S securitycurrency : securtycurrencies) {
+      if (isBatchConnector(getIntraConnector(securitycurrency))) {
+        batchCandidates.add(securitycurrency);
+      } else {
+        units.add(() -> updated.put(securitycurrency,
+            updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry, scIntradayUpdateTimeout)));
       }
+    }
+    // Claiming is a statement per instrument, so it runs in parallel as well; the filter keeps the input order.
+    final List<S> due = new ArrayList<>();
+    execute(
+        () -> due.addAll(stream(batchCandidates, singleThread)
+            .filter(sc -> isDue(sc, getIntraConnector(sc), maxIntraRetry, scIntradayUpdateTimeout)).toList()),
+        singleThread);
+    createBatchUnits(due, updated, units);
+    execute(() -> stream(units, singleThread).forEach(Runnable::run), singleThread);
+    return securtycurrencies.stream().map(sc -> updated.getOrDefault(sc, sc)).collect(Collectors.toList());
+  }
+
+  /**
+   * Groups the due instruments by connector and adds one work unit per request of at most the connector's batch size.
+   */
+  private void createBatchUnits(final List<S> due, final Map<S, S> updated, final List<Runnable> units) {
+    final Map<IFeedConnector, List<S>> byConnector = new LinkedHashMap<>();
+    due.forEach(sc -> byConnector.computeIfAbsent(getIntraConnector(sc), _ -> new ArrayList<>()).add(sc));
+    byConnector.forEach((feedConnector, instruments) -> {
+      final int batchSize = feedConnector.getIntradayBatchSize();
+      for (int i = 0; i < instruments.size(); i += batchSize) {
+        final List<S> batch = new ArrayList<>(instruments.subList(i, Math.min(i + batchSize, instruments.size())));
+        units.add(() -> updateBatch(feedConnector, batch, updated));
+      }
+    });
+  }
+
+  /**
+   * Asks the connector for all instruments of one batch with a single request. A failed request fails every instrument
+   * of the batch; an instrument missing from the answer fails alone.
+   */
+  private void updateBatch(final IFeedConnector feedConnector, final List<S> batch, final Map<S, S> updated) {
+    final List<IntradayFields> previousFields = batch.stream().map(this::prepare).toList();
+    final Set<S> failed = Collections.newSetFromMap(new IdentityHashMap<>());
+    try {
+      failed.addAll(intraEntityAccess.updateIntraSecurityCurrencies(batch, feedConnector));
+      failed.forEach(
+          sc -> log.warn("Last price missing in batch answer of {}: securitycurrency={}", feedConnector.getID(), sc));
+    } catch (final Exception e) {
+      log.error("Last price update failed for a batch of {} instruments of {}", batch.size(), feedConnector.getID(), e);
+      failed.addAll(batch);
+    }
+    for (int i = 0; i < batch.size(); i++) {
+      final S securitycurrency = batch.get(i);
+      updated.put(securitycurrency,
+          finish(securitycurrency, previousFields.get(i), !failed.contains(securitycurrency)));
+    }
+  }
+
+  private void execute(final Runnable task, final boolean singleThread) {
+    if (singleThread) {
+      task.run();
+    } else {
+      ThreadHelper.executeForkJoinPool(task, GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
+    }
+  }
+
+  private static <T> Stream<T> stream(final List<T> items, final boolean singleThread) {
+    return singleThread ? items.stream() : items.parallelStream();
+  }
+
+  private IFeedConnector getIntraConnector(final S securitycurrency) {
+    return ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, securitycurrency.getIdConnectorIntra(),
+        IFeedConnector.FeedSupport.FS_INTRA);
+  }
+
+  private static boolean isBatchConnector(final IFeedConnector feedConnector) {
+    return feedConnector != null && feedConnector.getIntradayBatchSize() > 1;
+  }
+
+  /**
+   * Decides whether the instrument is asked for a new price now, and if so claims it against concurrent writers.
+   */
+  private boolean isDue(final S securitycurrency, final IFeedConnector feedConnector, final short maxIntraRetry,
+      final int scIntradayUpdateTimeout) {
+    return feedConnector != null && (securitycurrency.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
+        && securitycurrency.isActiveForIntradayUpdate(java.time.LocalDate.now())
+        && allowDelayedIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout)
+        && claimIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout);
+  }
+
+  /**
+   * Remembers the intraday state before the connector is asked and clears the fields describing the running session.
+   * Every connector writes only the fields it happens to parse, so a field it does not deliver would otherwise keep the
+   * value of the connector used before it, forever. Clearing them first makes the saved row show exactly what this
+   * connector delivered.
+   */
+  private IntradayFields prepare(final S securitycurrency) {
+    final IntradayFields previousFields = IntradayFields.of(securitycurrency);
+    clearDerivedIntradayFields(securitycurrency);
+    return previousFields;
+  }
+
+  /**
+   * Sets the retry counter according to the outcome and saves the instrument in its own transaction.
+   *
+   * @param updated true if the connector delivered a price for this instrument
+   * @return the saved instrument, or the unsaved one if the save failed
+   */
+  private S finish(S securitycurrency, final IntradayFields previousFields, final boolean updated) {
+    if (updated) {
+      securitycurrency.setRetryIntraLoad((short) 0);
+    } else {
+      // Some connectors set the timestamp before they parse the price. Without restoring the previous state a failed
+      // fetch would persist a fresh timestamp next to an old price, and the instrument would look up to date.
+      previousFields.restore(securitycurrency);
+      securitycurrency.setRetryIntraLoad((short) (securitycurrency.getRetryIntraLoad() + 1));
+    }
+    try {
+      securitycurrency = jpaRepository.save(securitycurrency);
+    } catch (final ConcurrencyFailureException ex) {
+      // The last price is non critical and is refreshed within minutes, so a lost race is not worth a stack trace.
+      // Losing it means another writer is updating the very same row right now, either holding the row lock
+      // (CannotAcquireLockException) or having bumped the version first (ObjectOptimisticLockingFailureException).
+      log.warn("Intraday price save skipped, row was concurrently updated: securitycurrency={}", securitycurrency);
+    } catch (final Exception ex) {
+      log.error("Save failed for securitycurrency={}", securitycurrency, ex);
     }
     return securitycurrency;
   }

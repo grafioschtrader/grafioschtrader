@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { Router } from '@angular/router';
-import { TimeSeriesParam } from '../component/time.series.chart.component';
+import { TimeSeriesParam } from '../model/time.series.param';
 import { BaseSettings } from '../../lib/base.settings';
 import { TransactionReceiptService } from '../../transaction/service/transaction.receipt.service';
 

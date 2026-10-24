@@ -2,7 +2,7 @@ import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { HistoryquoteLegacy } from '../../entities/historyquote.legacy';
-import { HistoryquoteLegacySecurityCurrency } from '../../historyquote/component/historyquote-legacy-edit.component';
+import { HistoryquoteLegacySecurityCurrency } from '../../historyquote/model/historyquote.legacy.security.currency';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import { Currencypair } from '../../entities/currencypair';

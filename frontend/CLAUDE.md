@@ -37,6 +37,41 @@ The frontend should only contain:
 - Matching/comparison algorithms
 - Business rule enforcement beyond simple validation
 
+## Change detection
+
+Angular 22 makes `OnPush` the component default, and GT is moving there module by module. The reusable library
+notifies Angular of every change it makes, so a new component never needs `Eager`.
+
+- **New components declare no `changeDetection`** — the `OnPush` default applies. `src/change-detection.ratchet.spec.ts`
+  fails `npm test` for any file with `ChangeDetectionStrategy.Eager` (or `Default`) that is not listed in
+  `src/eager-allowlist.txt`. The list only shrinks: converting a component removes its line in the same commit, and a
+  line whose file no longer declares `Eager` fails the test as well.
+- **Template state written asynchronously is a signal** — in an HTTP or translation callback, a timer, a
+  `valueChanges` subscription or a menu command. Derived state is a `computed`, not a second mutable copy. A signal is
+  changed only with a new reference: `list.update((l) => [...l, x])`, never `update((l) => { l.push(x); return l; })`.
+  For state still held outside signals, dialogs call `viewChanged()` (edit base classes, `PasswordBaseComponent`) and
+  tables call `notifyViewChanged()` (`ShowRecordConfigBase`).
+- **`FieldConfig` display properties may be assigned freely** (`invisible`, `disabled`, `placeholder`,
+  `valueKeyHtmlOptions`, `labelKey`, `errors`, …). `TranslateHelper.prepareFieldsAndErrors` and `DynamicFormComponent`
+  instrument every field through `FormNotifier`, so an assignment notifies the form. Arrays are replaced, not mutated:
+  `fc.valueKeyHtmlOptions = [...options, extra]`, never `push`/`splice`. An error rule is added with
+  `DynamicFieldHelper.addErrorRule(translateService, fieldConfig, rule)`, which also shows a late-arriving text.
+  Changing controls with `emitEvent: false` from application code needs a `viewChanged()`.
+- **Subscriptions are tied to their real lifetime**: `this.untilDialogClosed()` for a subscription created in
+  `initialize()` of an edit dialog (ended when the dialog hides or shows anew), `takeUntilDestroyed(this.destroyRef)`
+  for the component lifetime outside an injection context. The edit base classes and `PasswordBaseComponent` provide
+  `destroyRef`; do not declare your own.
+- **New CRUD tables extend `TableCrudSupportMenuSignal`** (`lib/datashowbase/table.crud.support.menu.signal.ts`):
+  `entityList`, `selectedEntity`, `visibleDialog` and `contextMenuItems` are signals. Reference: `TenantAIProviderTableComponent`.
+- **Function inputs bind stable members, never `.bind(this)`** — `[valueGetterFn]="valueGetter"`,
+  `[customSortFn]="customSorter"`, and a `readonly` arrow-function member for every other callback input. A
+  `.bind(this)` creates a new function on every check. Table hosts also get `[fieldsRevision]="fieldsRevision()"`, so
+  in-place column changes (translations, widths, visibility, frozen columns) re-render them.
+- `ActivePanelService.isActivated()` and `topMenuItems` are signals, so the active border and the menubar follow every
+  activation without `registerPanel` / `callMeDeactivate`.
+- View synchronisation after a render uses `afterNextRender(..., { injector })`, not `setTimeout`; `setTimeout`
+  remains for a real delay or debounce.
+
 ## Component Separation: Form Inputs + Table
 
 **CRITICAL**: Never combine form inputs (dropdowns, checkboxes, etc.) and a data table into a single monolithic component. Always split them:
@@ -63,13 +98,13 @@ Child: @Input() data changes → ngOnChanges → createTranslatedValueStore(data
 
 Components that use Optimus UI tables (`p-table`) or trees (`p-tree`, `p-treeTable`) **MUST** extend one of the following base classes:
 
-| Base Class                | Use Case                                                                                                                  |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `ShowRecordConfigBase`    | Single record display or simple dialog tables without sorting/filtering needs                                             |
-| `TableConfigBase`         | **Standalone table view components** - tables with filtering, sorting, column visibility, user settings persistence       |
-| `TableEditConfigBase`     | **Editable table components** using `EditableTableComponent` - provides `addEditColumnFeqH()`, sorting, translated values |
-| `TableCrudSupportMenu`    | Full CRUD tables with context menus, dialogs, and entity management                                                       |
-| `TableTreetableTotalBase` | Tables or tree-tables with total/subtotal calculations                                                                    |
+| Base Class                   | Use Case                                                                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ShowRecordConfigBase`       | Single record display or simple dialog tables without sorting/filtering needs                                                              |
+| `TableConfigBase`            | **Standalone table view components** - tables with filtering, sorting, column visibility, user settings persistence                        |
+| `TableEditConfigBase`        | **Editable table components** using `EditableTableComponent` - provides `addEditColumnFeqH()`, sorting, translated values                  |
+| `TableCrudSupportMenuSignal` | Full CRUD tables with context menus, dialogs, and entity management — **every new CRUD table** (`TableCrudSupportMenu` is its predecessor) |
+| `TableTreetableTotalBase`    | Tables or tree-tables with total/subtotal calculations                                                                                     |
 
 **IMPORTANT**: Standalone table view components (e.g., `*TableComponent`) should extend at least `TableConfigBase`, not `ShowRecordConfigBase`. Use `ShowRecordConfigBase` only for single record displays or simple embedded tables in dialogs where filtering/sorting is not needed.
 
@@ -132,18 +167,23 @@ ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'meanError', 'MEAN_ERR
 
 ### Using ConfigurableTableComponent
 
-When using `ConfigurableTableComponent`, **always** bind the `valueGetterFn`:
+When using `ConfigurableTableComponent`, **always** bind the `valueGetterFn` and the `fieldsRevision`:
 
 ```html
 <configurable-table
   [data]="dataList"
   [fields]="fields"
-  [valueGetterFn]="getValueByPath.bind(this)"
+  [fieldsRevision]="fieldsRevision()"
+  [valueGetterFn]="valueGetter"
   [baseLocale]="baseLocale">
 </configurable-table>
 ```
 
-**CRITICAL**: The `[valueGetterFn]="getValueByPath.bind(this)"` binding is **required** for NLS translations to work in table columns. Without this binding:
+`valueGetter` is a stable member of `ShowRecordConfigBase` that calls `getValueByPath`, so overrides keep working.
+`fieldsRevision` re-renders the table after its columns changed in place (header translations, widths, column
+visibility, frozen columns).
+
+**CRITICAL**: The `[valueGetterFn]="valueGetter"` binding is **required** for NLS translations to work in table columns. Without this binding:
 
 - Columns with `translateValues: TranslateValue.NORMAL` will not display translated values
 - The table will show raw enum/status values instead of localized text
@@ -155,14 +195,15 @@ When using `ConfigurableTableComponent`, **always** bind the `valueGetterFn`:
 <configurable-table
   [data]="dataList"
   [fields]="fields"
-  [customSortFn]="customSort.bind(this)"
+  [fieldsRevision]="fieldsRevision()"
+  [customSortFn]="customSorter"
   [multiSortMeta]="multiSortMeta"
-  [valueGetterFn]="getValueByPath.bind(this)"
+  [valueGetterFn]="valueGetter"
   [baseLocale]="baseLocale">
 </configurable-table>
 ```
 
-The `customSort` method is provided by `TableConfigBase`. Initialize default sort order in `ngOnInit()`:
+`customSorter` is the stable member of `TableConfigBase` that calls `customSort`. Initialize default sort order in `ngOnInit()`:
 
 ```typescript
 this.multiSortMeta.push({ field: 'myDateField', order: -1 }); // -1 = descending
@@ -247,6 +288,28 @@ ngOnChanges(changes: SimpleChanges): void {
 }
 ```
 
+A new component makes the flag unnecessary with a signal input: the columns are defined in the constructor, and an
+`effect` prepares the rows whenever the input changes. A component effect runs before the component's template, so the
+ordering of `ngOnChanges` and `ngOnInit` no longer matters.
+
+```typescript
+readonly data = input<MyRow[]>([]);
+
+constructor(...) {
+  super(...);
+  // ... columns ...
+  this.prepareTableAndTranslate();
+  effect(() => {
+    const data = this.data();
+    untracked(() => {
+      this.createTranslatedValueStoreAndFilterField(data);
+      this.prepareFilter(data);
+    });
+  });
+}
+// template: <configurable-table [data]="data()" [fields]="fields" [fieldsRevision]="fieldsRevision()" ...>
+```
+
 ### Using EditableTableComponent
 
 **CRITICAL**: Components that use `EditableTableComponent` **MUST** be implemented as a **separate component** extending `TableEditConfigBase`. Do NOT embed `EditableTableComponent` directly in a dialog component or any component that does not extend a table base class. Without the proper base class:
@@ -255,7 +318,7 @@ ngOnChanges(changes: SimpleChanges): void {
 - **Translated enum values will not sort correctly** — the base class `getValueByPath()` resolves translated values for sorting
 - **`createTranslatedValueStoreAndFilterField()` is unavailable** — enum columns will show raw keys instead of translated text
 
-**Required pattern**: Create a standalone component that extends `TableEditConfigBase`, define columns with `addEditColumnFeqH()`, and bind `[customSortFn]="customSort.bind(this)"` and `[valueGetterFn]="getValueByPath.bind(this)"`:
+**Required pattern**: Create a standalone component that extends `TableEditConfigBase`, define columns with `addEditColumnFeqH()`, and bind `[customSortFn]="customSorter"`, `[valueGetterFn]="valueGetter"` and `[fieldsRevision]="fieldsRevision()"`:
 
 ```typescript
 @Component({
@@ -265,11 +328,12 @@ ngOnChanges(changes: SimpleChanges): void {
       #entityTable
       [data]="items"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="id"
       [batchMode]="true"
       [startInEditMode]="true"
-      [valueGetterFn]="getValueByPath.bind(this)"
-      [customSortFn]="customSort.bind(this)"
+      [valueGetterFn]="valueGetter"
+      [customSortFn]="customSorter"
       [baseLocale]="baseLocale">
     </editable-table>
   `,
@@ -421,8 +485,13 @@ FormBase (abstract)
 - `@Input() visibleDialog: boolean` - Dialog visibility control
 - `@Output() closeDialog: EventEmitter<ProcessedActionData>` - Close event
 - `@ViewChild(DynamicFormComponent) form` - Form access
-- `onShow(event)` / `onHide(event)` - Lifecycle handlers
+- `onShow(event)` / `onHide(event)` - Lifecycle handlers; each starts a new dialog session
+- `untilDialogClosed()` - Operator ending a subscription with the dialog session
+- `destroyRef` / `viewChanged()` - Component lifetime and the mark-for-check fallback for own template fields
 - `helpLink()` - Context-sensitive help
+
+`SimpleDynamicEditBase` provides the same `destroyRef`, `untilDialogClosed()` and `viewChanged()`; its session lasts
+until the dialog is destroyed, because a dynamic dialog is created for every opening.
 
 **Required Implementation**:
 
@@ -597,22 +666,29 @@ Dialog components displaying tables should extend `ShowRecordConfigBase`:
   template: `
     <p-dialog (onShow)="onShow()">
       <configurable-table
-        [data]="items"
+        [data]="items()"
         [fields]="fields"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [fieldsRevision]="fieldsRevision()"
+        [valueGetterFn]="valueGetter"
         [baseLocale]="baseLocale">
       </configurable-table>
     </p-dialog>
   `
 })
 export class MyTableDialogComponent extends ShowRecordConfigBase {
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
+  readonly items = signal<MyItem[]>([]);
+
+  constructor(
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    private myService: MyService
+  ) {
     super(translateService, gps);
     this.addColumnFeqH(DataType.String, 'name', true, false);
   }
 
   onShow(): void {
-    this.loadData();
+    this.myService.getItems().subscribe((items) => this.items.set(items));
     this.translateHeadersAndColumns();
   }
 }
@@ -648,14 +724,16 @@ private disableAndClearField(fieldName: string): void {
 
 1. **Subscribe before `setDefaultValuesAndEnableSubmit()`** — subscriptions must be in place before the form is initialized
 2. **Call the update method initially** — pass the entity's existing value (for edit mode) or `undefined` (for create mode) to set the correct initial state
-3. **No explicit cleanup needed** — the dialog component is recreated each time it opens, so subscriptions are naturally garbage-collected
+3. **Tie the subscription to the dialog session** with `this.untilDialogClosed()` — `initialize()` runs on every
+   opening, and a dialog that stays mounted between openings would otherwise collect one subscription per opening
 
 ```typescript
 protected override initialize(): void {
   // 1. Set dropdown options
   // 2. Subscribe to valueChanges + call initial state
-  this.configObject.myField.formControl.valueChanges.subscribe(value =>
-    this.updateMyFieldDependencies(value));
+  this.configObject.myField.formControl.valueChanges
+    .pipe(this.untilDialogClosed())
+    .subscribe((value) => this.updateMyFieldDependencies(value));
   this.updateMyFieldDependencies(this.entity?.myField);
 
   // 3. Enable form
@@ -685,7 +763,7 @@ private updateResponseFormatDependencies(format: string): void {
 Guard child subscriptions so they only apply when the parent is in the correct state:
 
 ```typescript
-this.configObject.childField.formControl.valueChanges.subscribe((value) => {
+this.configObject.childField.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((value) => {
   if (this.configObject.parentField.formControl.value === 'EXPECTED_VALUE') {
     this.updateChildDependencies(value);
   }
@@ -911,6 +989,43 @@ export class MyDialogComponent extends SimpleEditBase implements OnInit {
 }
 ```
 
+## HTTP authentication
+
+Both hosts register `authInterceptor` from `lib/login/service/auth.http.interceptor.ts` with
+`provideHttpClient(withXhr(), withInterceptors([authInterceptor]), withInterceptorsFromDi())`.
+New `HttpClient` and `httpResource` calls rely on it for `x-auth-token` and `x-time-zone`. It only adds missing
+headers to same-origin `/api/` requests, resolved against `document.baseURI`; explicit caller headers take precedence.
+`BaseService` helpers supply media headers only. Multipart requests must leave `Content-Type` to the browser.
+
+Public endpoints (login, registration, token verification, release notes, translations, locales, password requirements
+and user form definitions) set `context: new HttpContext().set(SKIP_AUTH_HEADERS, true)` even if a session token exists.
+Keep `withXhr()` for upload progress. Error toasts and logout mapping stay in `BaseAuthService`, outside the interceptor.
+
+## Lazy Loading and Bundle Size
+
+The application bootstraps standalone (`src/main.ts` → `bootstrapApplication(AppComponent, appConfig)`, providers in
+`src/app/app.config.ts`) and loads its feature code on first use. Keep it that way:
+
+- **Feature routes use `loadComponent`.** Only login, registration, token verification, the tenant page and
+  `SplitLayoutComponent` are eager in `app.routes.ts`. `AuthenticatedPreloadingStrategy` preloads the feature chunks
+  in the background once a user is logged in; a chunk that fails to load (typically a tab older than the last
+  deployment) shows the `MSG_LOAD_NEW_VERSION` toast through `handleLazyLoadNavigationError`.
+- **No eagerly loaded file holds a value import of a component.** That covers `app.config.ts`, initializers,
+  services, main-tree contributors, dialog handlers, settings menu extensions and the shell components. One such
+  import pulls the component and everything behind it back into the start bundle. Use `import type` for types, and
+  move a plain class the shell needs out of the component file into a model file (as with `TimeSeriesParam` and
+  `HistoryquoteSecurityCurrency`).
+- **Dialogs reached from the shell are passed as a `DialogComponentLoader`** (`lib/maintree/handler/lazy-dialog.ts`):
+  `MainTreeCallbacks.handleEdit`, `EntityPrepareRegistry.registerEntityHandler` and the `DASHBOARD_RENDERERS` map.
+  A service or menu entry opening a dialog itself imports it on the spot:
+  `import('../component/x-dialog.component').then((m) => this.dialogService.open(m.XDialogComponent, {...}))`.
+- **Charts obtain Plotly from `PlotlyLoaderService.load()`** (`shared/chart/plotly.loader.ts`), which loads the full
+  `plotly.min.js` as a lazy chunk once. Never `declare let Plotly`, never put Plotly back into the `scripts` of
+  `angular.json`. Keep the loaded instance in a field for `resize` / `purge`, so cleanup never triggers the import,
+  and drop a draw whose data was replaced while the library loaded.
+- **The `initial` budget in `angular.json` is the regression guard** (2.75 MB warning, 3.25 MB error). When a build
+  exceeds it, find the new static import edge with `ng build --stats-json` instead of raising the budget.
+
 ## The standalone Grafiosch host (`src/grafiosch-host`)
 
 Angular project `grafiosch-host` (`npm run start:grafiosch`, port 4201) is a second application built from
@@ -925,15 +1040,15 @@ does not exercise yet:
 | `AfterLoginHandler`                                                                            | `grafiosch-after-login.handler.ts`                                                                                                                                                                                                                                  |
 | `MAIN_TREE_CONTRIBUTOR` (multi)                                                                | `grafiosch-basedata-main-tree.contributor.ts` + `grafiosch-main-tree.contributor.ts` (shared helpers in `grafiosch-tree-contributor.base.ts`) — at least one, or `/mainview` shows an empty tree; the host binds two so the merge in `MainTreeService` is exercised |
 | `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE`                                                     | the library `TaskTypeBase`; no extended task types here                                                                                                                                                                                                             |
-| `PERSONAL_DATA_ZIP_NAME`                                                                       | optional — the library default `personalData.zip` is used; GT overrides it in `app.module.ts` with `gtPersonalData.zip`                                                                                                                                             |
+| `PERSONAL_DATA_ZIP_NAME`                                                                       | optional — the library default `personalData.zip` is used; GT overrides it in `app.config.ts` with `gtPersonalData.zip`                                                                                                                                             |
 | The tenant page                                                                                | `grafiosch-tenant-edit.component.ts` — `TenantBase` is extended per application                                                                                                                                                                                     |
 | Route table, Optimus `MessageService`, `provideZoneChangeDetection()`, the NLS app initializer | `main.ts`                                                                                                                                                                                                                                                           |
 
 Two traps worth knowing:
 
-- **`provideZoneChangeDetection()` is required.** Angular 22 bootstraps zoneless, and the library components assume
-  zone change detection: `RegisterComponent` assigns `applicationInfo` in an HTTP callback and expects the `@if`
-  around `<dynamic-form>` to have rendered by the time `preparePasswordFields()` reaches `formControl`.
+- **`provideZoneChangeDetection()` is required.** Angular 22 bootstraps zoneless, and most library components are
+  still `Eager` and rely on zone.js starting a check after their HTTP callbacks and timers. The host can drop it only
+  once every component its routes reach notifies its changes (see "Change detection").
 - **The library services are not `providedIn: 'root'`.** Every host lists the ones its routes reach, including those
   only the shell needs (`ManageClientService` and `UserDataService` for the menu bar, `DataChangedService` and
   `TreeNavigationStateService` for the main tree). A missing entry surfaces late, as NG0201 while rendering
@@ -1029,7 +1144,7 @@ size between the languages.
 ### If the server is unreachable
 
 Since the backend is the only source of texts, a failed load means there is nothing to render. The
-application initializer in `app.module.ts` therefore stops the bootstrap and shows the bilingual
+application initializer in `app.config.ts` therefore stops the bootstrap and shows the bilingual
 overlay from `nls.bootstrap.failure.ts` instead of painting raw keys everywhere.
 
 ## IGlobalMenuAttach Interface Pattern
@@ -1057,7 +1172,7 @@ Components extending `TableEditConfigBase` must:
 @Component({...})
 export class MyTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
 
-  contextMenuItems: MenuItem[] = [];
+  readonly contextMenuItems = signal<MenuItem[]>([]);
 
   constructor(
     private activePanelService: ActivePanelService,
@@ -1092,15 +1207,14 @@ export class MyTableComponent extends TableEditConfigBase implements OnInit, IGl
     this.resetMenu();
   }
 
-  // Prepare menu items
+  // Prepare menu items, untranslated
   prepareEditMenu(): MenuItem[] {
-    const menuItems: MenuItem[] = [];
-    menuItems.push({
-      label: 'CREATE|ENTITY_NAME' + BaseSettings.DIALOG_MENU_SUFFIX,
-      command: () => this.handleCreate()
-    });
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
-    return menuItems;
+    return [
+      {
+        label: 'CREATE|ENTITY_NAME' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.handleCreate()
+      }
+    ];
   }
 
   /**
@@ -1109,14 +1223,17 @@ export class MyTableComponent extends TableEditConfigBase implements OnInit, IGl
    * menu items in both context menu AND main application menu bar.
    */
   private resetMenu(): void {
-    this.contextMenuItems = this.prepareEditMenu();
-    this.activePanelService.activatePanel(this, {
-      showMenu: null,
-      editMenu: this.contextMenuItems
+    // translateMenuItems$ emits a translated copy once, so the menu is published as a new array
+    TranslateHelper.translateMenuItems$(this.prepareEditMenu(), this.translateService).subscribe((menuItems) => {
+      this.contextMenuItems.set(menuItems);
+      this.activePanelService.activatePanel(this, { showMenu: null, editMenu: menuItems });
     });
   }
 }
 ```
+
+`isActivated()` reads a signal of `ActivePanelService`, so the active border of every panel follows an activation in
+another part of the page without further notification. The template binds the menu as `contextMenuItems()`.
 
 ### Why This Pattern Is Required
 

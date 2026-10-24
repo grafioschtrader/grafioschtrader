@@ -11,6 +11,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-pinputtextarea',
   template: `
+    @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <textarea
         pTextarea

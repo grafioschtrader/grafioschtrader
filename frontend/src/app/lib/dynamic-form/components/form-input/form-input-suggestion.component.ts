@@ -9,6 +9,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-input-suggestion',
   template: `
+    @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-autoComplete
         #input

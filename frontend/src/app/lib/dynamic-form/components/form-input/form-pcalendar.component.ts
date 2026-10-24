@@ -12,6 +12,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-pcalendar',
   template: `
+    @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-datepicker
         [id]="config.field"

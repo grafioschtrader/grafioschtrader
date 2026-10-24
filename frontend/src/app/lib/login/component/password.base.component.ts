@@ -4,7 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { ErrorMessageRules, RuleEvent } from '../../dynamic-form/error/error.message.rules';
 import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
 import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { Directive, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, DestroyRef, Directive, inject, Injector, ViewChild } from '@angular/core';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { equalTo } from '../../validator/validator';
 import { FieldDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
@@ -31,6 +31,17 @@ export abstract class PasswordBaseComponent {
   configObject: { [name: string]: FieldConfig };
   protected passwordRegexProperties: PasswordRegexProperties;
 
+  /** Lifetime of the component, for subscriptions created outside an injection context */
+  protected readonly destroyRef = inject(DestroyRef);
+
+  protected readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  /** Injector for afterNextRender, which is called from callbacks outside an injection context */
+  protected readonly injector = inject(Injector);
+
+  /** Validator added by {@link setValidators} per field, so a repeated call replaces it instead of adding another */
+  private addedValidators: { [field: string]: ValidatorFn } = {};
+
   protected constructor(
     protected gps: GlobalparameterService,
     protected translateService: TranslateService
@@ -55,11 +66,27 @@ export abstract class PasswordBaseComponent {
     );
   }
 
-  private setValidators(targetField: string, validators: ValidatorFn, error: ErrorMessageRules) {
-    this.configObject[targetField].validation.push(validators);
-    this.configObject[targetField].errors.push(error);
-    this.configObject[targetField].formControl.setValidators(this.configObject[targetField].validation);
-    this.configObject[targetField].formControl.updateValueAndValidity();
+  /**
+   * Marks this component for check. Needed when it writes its own template fields from an asynchronous callback and
+   * has not moved them to signals yet; changes of a FieldConfig notify the form by themselves.
+   */
+  protected viewChanged(): void {
+    this.changeDetectorRef.markForCheck();
+  }
+
+  /**
+   * Adds the validator and its error rule to a field. Calling it again for the same field replaces both, so preparing
+   * the password fields a second time does not duplicate the rules.
+   */
+  private setValidators(targetField: string, validator: ValidatorFn, error: ErrorMessageRules) {
+    const fieldConfig = this.configObject[targetField];
+    const previous = this.addedValidators[targetField];
+    fieldConfig.validation = [...(fieldConfig.validation ?? []).filter((v) => v !== previous), validator];
+    this.addedValidators[targetField] = validator;
+    fieldConfig.errors = [...(fieldConfig.errors ?? []).filter((e) => e.name !== error.name), error];
+    fieldConfig.formControl.setValidators(fieldConfig.validation);
+    fieldConfig.formControl.updateValueAndValidity();
+    fieldConfig.baseInputComponent?.reEvaluateRequired();
   }
 
   protected init(fdias: FieldDescriptorInputAndShow[], newPassword: boolean): void {

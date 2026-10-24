@@ -392,7 +392,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   /**
    * Called when a tree node is selected. Marks received messages as read and updates context menu.
    */
-  onSelectionChange(node: TreeNode): void {
+  onSelectionChange(selection: TreeNode | TreeNode[]): void {
+    const node = Helper.singleSelection(selection);
     // Update context menu items based on new selection
     this.setMenuItemsToActivePanel();
 

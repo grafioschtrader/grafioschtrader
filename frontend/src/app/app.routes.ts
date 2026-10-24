@@ -1,101 +1,23 @@
-import { WatchlistIndicatorComponent } from './watchlist/component/watchlist.indicator.component';
-import { CorrelationChartComponent } from './correlation/component/correlation-chart.component';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { DASHBOARD_ROUTES } from './lib/dashboard/dashboard.routes';
-import { HistoryquoteHostComponent } from './historyquote/component/historyquote-host.component';
 import { AppSettings } from './shared/app.settings';
-import { PortfolioCashaccountSummaryComponent } from './portfolio/component/portfolio.cashaccount.summary.component';
-import { SecurityaccountSummariesComponent } from './securityaccount/component/securityaccount.summaries.component';
-import { SecurityaccountSummaryComponent } from './securityaccount/component/securityaccount.summary.component';
 import { SplitLayoutComponent } from './lib/layout/component/split.layout.component';
-import { SecurityaccountEmptyComponent } from './securityaccount/component/securityaccount.empty.component';
-import { AssetclassTableComponent } from './assetclass/component/assetclass.table.component';
-import { StockexchangeTableComponent } from './stockexchange/component/stockexchange.table.component';
-import { StockexchangeTabMenuComponent } from './stockexchange/component/stockexchange-tabmenu.component';
-import { TradingCalendarRuleSetTableComponent } from './stockexchange/component/trading-calendar-rule-set-table.component';
 import { RegisterComponent } from './lib/login/component/register.component';
 import { TenantEditFullPageComponent } from './tenant/component/tenant.edit.full.page.component';
-import { WatchlistTabMenuComponent } from './watchlist/component/watchlist.tab.menu.component';
-import { WatchlistPerformanceComponent } from './watchlist/component/watchlist.performance.component';
-import { TimeSeriesChartComponent } from './historyquote/component/time.series.chart.component';
-import { SeasonalityComponent } from './historyquote/component/seasonality.component';
-import { TenantDividendsChartComponent } from './tenant/component/tenant-dividends-chart.component';
-import { TenantHoldingsChartComponent } from './tenant/component/tenant-holdings-chart.component';
-import { ChartGeneralPurposeComponent } from './shared/chart/component/chart.general.purpose.component';
 import { RegistrationTokenVerifyComponent } from './lib/login/component/registration.token.verify.component';
-import { CorrelationComponent } from './correlation/component/correlation.component';
-import { TradingPlatformPlanTableComponent } from './tradingplatform/component/trading.platform.plan.table.component';
-import { GenericConnectorComponent } from './genericconnector/component/generic-connector.component';
-import { TenantDividendsComponent } from './tenant/component/tenant.dividends.component';
-import { TenantTransactionCostComponent } from './tenant/component/tenant.transaction.cost.component';
-import { TenantTransactionCostTabMenuComponent } from './tenant/component/tenant-transaction-cost-tab-menu.component';
-import { FeeModelComparisonComponent } from './tenant/component/fee-model-comparison.component';
-import { TenantSummariesAssetclassComponent } from './tenant/component/tenant.summaries.assetclass.component';
-import { TenantSummariesCashaccountComponent } from './tenant/component/tenant.summaries.cashaccount.component';
-import { TenantSummariesSecurityaccountComponent } from './tenant/component/tenant.summaries.securityaccount.component';
-import { TenantTabMenuComponent } from './tenant/component/tenant.tab.menu.component';
-import { PortfolioTabMenuComponent } from './portfolio/component/portfolio.tab.menu.component';
-import { TenantTransactionTableComponent } from './tenant/component/tenant.transaction.table.component';
-import { PortfolioTransactionTableComponent } from './portfolio/component/portfolio.transaction.table.component';
-import { CashaccountEditComponent } from './cashaccount/component/cashaccount-edit.component';
-import { SecurityaccountTabMenuComponent } from './securityaccount/component/securityaccount.tab.menu.component';
-import { SecurityaccountImportTabMenuComponent } from './imptransaction/component/securityaccount-import-tab-menu.component';
 import { LoginComponent } from './lib/login/component/login.component';
-import { McpOAuthAuthorizeComponent } from './mcp/component/mcp-oauth-authorize.component';
-import { SecurityaccountImportTransactionComponent } from './imptransaction/component/securityaccount.import.transaction.component';
-import { ImportTransactionTemplateComponent } from './imptranstemplate/component/import.transaction.template.component';
-import { BankruptSecurityTableComponent } from './bankruptsecurity/component/bankrupt-security-table.component';
-import { RiskFreeRateMappingTableComponent } from './riskfreeratemapping/component/risk.free.rate.mapping.table.component';
-import { ProposeChangeTabMenuComponent } from './lib/proposechange/component/propose.change.tab.menu.component';
-import { RequestForYouTableComponent } from './lib/proposechange/component/request.for.you.table.component';
-import { YourProposalTableComponent } from './lib/proposechange/component/your.proposal.table.component';
-import { AlgoStandaloneAlertComponent } from './algo/component/algo-standalone-alert.component';
-import { AlgoSimulationRunComponent } from './algo/component/algo-simulation-run.component';
-import { AlgoSimulationRunSettingsComponent } from './algo/component/algo-simulation-run-settings.component';
-import { SimulationRunTabMenuComponent } from './algo/component/simulation-run-tab-menu.component';
-import { AlgoTopDataViewComponent } from './algo/component/algo.top.data.view.component';
-import { EntityLimitTableComponent } from './lib/entitylimit/component/entity.limit.table.component';
-import { UserTableComponent } from './lib/user/component/user.table.component';
-import { TradingCalendarGlobalComponent } from './tradingcalendar/component/trading.calendar.global.component';
-import { TenantPerformanceTabMenuComponent } from './tenant/component/tenant.performance.tab.menu.component';
-import { PerformancePeriodComponent } from './performanceperiod/component/performance.period.component';
-import { TenantPerformanceEodMissingComponent } from './tenant/component/tenant.performance.eod.missing.component';
-import { SecurityHistoryquoteQualityTreetableComponent } from './securitycurrency/component/security.historyquote.quality.treetable.component';
-import { WatchlistPriceFeedComponent } from './watchlist/component/watchlist.price.feed.component';
-import { WatchlistDividendSplitFeedComponent } from './watchlist/component/watchlist.dividend.split.feed.component';
-import { GlobalSettingsTableComponent } from './lib/globalsettings/global.settings.table.component';
-import { TaskDataChangeTableComponent } from './lib/taskdatamonitor/component/task.data.change.table.component';
-import { TaskDataChangeTabMenuComponent } from './lib/taskdatamonitor/component/task-data-change-tab-menu.component';
-import { ConnectorApiKeyTableComponent } from './lib/connectorapikey/component/connector.api.key.table.component';
-import { GTNetSetupTableComponent } from './lib/gnet/component/gtnet.setup.table.component';
-import { GTNetTabMenuComponent } from './lib/gnet/component/gtnet-tabmenu.component';
-import { GTNetAdminMessagesComponent } from './lib/gnet/component/gtnet-admin-messages.component';
-import { GTNetExchangeLogTabMenuComponent } from './lib/gnet/component/gtnet-exchange-log-tabmenu.component';
-import { GTNetExchangeLogComponent } from './lib/gnet/component/gtnet-exchange-log.component';
-import { GTNetMessageAnswerTableComponent } from './lib/gnet/component/gtnet-message-answer-table.component';
-import { GTNetExchangeTabMenuComponent } from './gtnet/component/gtnet-exchange-tabmenu.component';
-import { GTNetExchangeSecuritiesComponent } from './gtnet/component/gtnet-exchange-securities.component';
-import { GTNetExchangeCurrencypairsComponent } from './gtnet/component/gtnet-exchange-currencypairs.component';
-import { SendRecvTreetableComponent } from './lib/mail/component/send.recv.treetable.component';
 import { adminGuard, authGuard } from './lib/services/guards.definition';
-import { SendRecvForwardTabMenuComponent } from './lib/mail/component/send.recv.forward.tab.menu.component';
-import { UDFMetadataSecurityTableComponent } from './udfmetasecurity/components/udf.metadata.security.table.component';
-import { WatchlistUdfComponent } from './watchlist/component/watchlist.udf.component';
-import { UDFMetadataGeneralTableComponent } from './lib/udfmeta/components/udf.metadata.general.table.component';
-import { StandingOrderCashaccountTableComponent } from './standingorder/component/standing-order-cashaccount-table.component';
-import { StandingOrderSecurityTableComponent } from './standingorder/component/standing-order-security-table.component';
-import { StandingOrderTabMenuComponent } from './standingorder/component/standing-order-tab-menu.component';
 import { BaseSettings } from './lib/base.settings';
-import { TaxDataTreetableComponent } from './taxdata/component/tax-data-treetable.component';
-import { MailForwardSettingTableEditComponent } from './lib/mail/component/mail.forward.setting.table.edit.component';
-import { GTNetSecurityImportComponent } from './shared/gtnet/component/gtnet-security-import.component';
-import { SecurityActionTreetableComponent } from './securityaction/component/security-action-treetable.component';
 
-const APP_ROUTES: Routes = [
+export const APP_ROUTES: Routes = [
   { path: '', redirectTo: '/' + BaseSettings.LOGIN_KEY, pathMatch: 'full' },
   { path: BaseSettings.LOGIN_KEY, component: LoginComponent },
   // OAuth authorization endpoint of the MCP server; it sends the user through the login itself when necessary
-  { path: 'oauth/authorize', component: McpOAuthAuthorizeComponent },
+  {
+    path: 'oauth/authorize',
+    loadComponent: () =>
+      import('./mcp/component/mcp-oauth-authorize.component').then((m) => m.McpOAuthAuthorizeComponent)
+  },
   { path: BaseSettings.REGISTER_KEY, component: RegisterComponent },
   { path: AppSettings.TOKEN_VERIFY_KEY, component: RegistrationTokenVerifyComponent },
   { path: BaseSettings.TENANT_KEY, component: TenantEditFullPageComponent, canActivate: [authGuard] },
@@ -108,61 +30,122 @@ const APP_ROUTES: Routes = [
       {
         //   path: AppSettings.TENANT_TAB_MENU_KEY + '/:id', component: TenantTabMenuComponent, canActivate: [authGuard],
         path: AppSettings.TENANT_TAB_MENU_KEY,
-        component: TenantTabMenuComponent,
+        loadComponent: () =>
+          import('./tenant/component/tenant.tab.menu.component').then((m) => m.TenantTabMenuComponent),
         canActivate: [authGuard],
         children: [
-          { path: AppSettings.PORTFOLIO_KEY, component: TenantSummariesCashaccountComponent, canActivate: [authGuard] },
+          {
+            path: AppSettings.PORTFOLIO_KEY,
+            loadComponent: () =>
+              import('./tenant/component/tenant.summaries.cashaccount.component').then(
+                (m) => m.TenantSummariesCashaccountComponent
+              ),
+            canActivate: [authGuard]
+          },
           {
             path: AppSettings.PERFORMANCE_TAB_KEY,
-            component: TenantPerformanceTabMenuComponent,
+            loadComponent: () =>
+              import('./tenant/component/tenant.performance.tab.menu.component').then(
+                (m) => m.TenantPerformanceTabMenuComponent
+              ),
             canActivate: [authGuard],
             children: [
-              { path: AppSettings.PERFORMANCE_KEY, component: PerformancePeriodComponent, canActivate: [authGuard] },
+              {
+                path: AppSettings.PERFORMANCE_KEY,
+                loadComponent: () =>
+                  import('./performanceperiod/component/performance.period.component').then(
+                    (m) => m.PerformancePeriodComponent
+                  ),
+                canActivate: [authGuard]
+              },
               {
                 path: AppSettings.EOD_DATA_QUALITY_KEY,
-                component: TenantPerformanceEodMissingComponent,
+                loadComponent: () =>
+                  import('./tenant/component/tenant.performance.eod.missing.component').then(
+                    (m) => m.TenantPerformanceEodMissingComponent
+                  ),
                 canActivate: [authGuard]
               }
             ]
           },
-          { path: AppSettings.DEPOT_KEY, component: TenantSummariesSecurityaccountComponent, canActivate: [authGuard] },
-          { path: AppSettings.DEPOT_CASH_KEY, component: TenantSummariesAssetclassComponent, canActivate: [authGuard] },
-          { path: AppSettings.DIVIDENDS_ROUTER_KEY, component: TenantDividendsComponent, canActivate: [authGuard] },
+          {
+            path: AppSettings.DEPOT_KEY,
+            loadComponent: () =>
+              import('./tenant/component/tenant.summaries.securityaccount.component').then(
+                (m) => m.TenantSummariesSecurityaccountComponent
+              ),
+            canActivate: [authGuard]
+          },
+          {
+            path: AppSettings.DEPOT_CASH_KEY,
+            loadComponent: () =>
+              import('./tenant/component/tenant.summaries.assetclass.component').then(
+                (m) => m.TenantSummariesAssetclassComponent
+              ),
+            canActivate: [authGuard]
+          },
+          {
+            path: AppSettings.DIVIDENDS_ROUTER_KEY,
+            loadComponent: () =>
+              import('./tenant/component/tenant.dividends.component').then((m) => m.TenantDividendsComponent),
+            canActivate: [authGuard]
+          },
           {
             path: AppSettings.TENANT_TRANSACTION,
-            component: TenantTransactionTableComponent,
+            loadComponent: () =>
+              import('./tenant/component/tenant.transaction.table.component').then(
+                (m) => m.TenantTransactionTableComponent
+              ),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.TRANSACTION_COST_KEY,
-            component: TenantTransactionCostTabMenuComponent,
+            loadComponent: () =>
+              import('./tenant/component/tenant-transaction-cost-tab-menu.component').then(
+                (m) => m.TenantTransactionCostTabMenuComponent
+              ),
             canActivate: [authGuard],
             children: [
               {
                 path: AppSettings.TRANSACTION_COST_SUMMARY_KEY,
-                component: TenantTransactionCostComponent,
+                loadComponent: () =>
+                  import('./tenant/component/tenant.transaction.cost.component').then(
+                    (m) => m.TenantTransactionCostComponent
+                  ),
                 canActivate: [authGuard]
               },
               {
                 path: AppSettings.FEE_MODEL_COMPARISON_KEY,
-                component: FeeModelComparisonComponent,
+                loadComponent: () =>
+                  import('./tenant/component/fee-model-comparison.component').then(
+                    (m) => m.FeeModelComparisonComponent
+                  ),
                 canActivate: [authGuard]
               }
             ]
           },
           {
             path: AppSettings.STANDING_ORDER_TAB_KEY,
-            component: StandingOrderTabMenuComponent,
+            loadComponent: () =>
+              import('./standingorder/component/standing-order-tab-menu.component').then(
+                (m) => m.StandingOrderTabMenuComponent
+              ),
             canActivate: [authGuard],
             children: [
               {
                 path: AppSettings.TENANT_STANDING_ORDER_CASHACCOUNT,
-                component: StandingOrderCashaccountTableComponent,
+                loadComponent: () =>
+                  import('./standingorder/component/standing-order-cashaccount-table.component').then(
+                    (m) => m.StandingOrderCashaccountTableComponent
+                  ),
                 canActivate: [authGuard]
               },
               {
                 path: AppSettings.TENANT_STANDING_ORDER_SECURITY,
-                component: StandingOrderSecurityTableComponent,
+                loadComponent: () =>
+                  import('./standingorder/component/standing-order-security-table.component').then(
+                    (m) => m.StandingOrderSecurityTableComponent
+                  ),
                 canActivate: [authGuard]
               }
             ]
@@ -171,22 +154,32 @@ const APP_ROUTES: Routes = [
       },
       {
         path: AppSettings.PORTFOLIO_TAB_MENU_KEY + '/:id',
-        component: PortfolioTabMenuComponent,
+        loadComponent: () =>
+          import('./portfolio/component/portfolio.tab.menu.component').then((m) => m.PortfolioTabMenuComponent),
         canActivate: [authGuard],
         children: [
           {
             path: AppSettings.PORTFOLIO_SUMMARY_KEY + '/:id',
-            component: PortfolioCashaccountSummaryComponent,
+            loadComponent: () =>
+              import('./portfolio/component/portfolio.cashaccount.summary.component').then(
+                (m) => m.PortfolioCashaccountSummaryComponent
+              ),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.PERFORMANCE_KEY + '/:id',
-            component: PerformancePeriodComponent,
+            loadComponent: () =>
+              import('./performanceperiod/component/performance.period.component').then(
+                (m) => m.PerformancePeriodComponent
+              ),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.PORTFOLIO_TRANSACTION_KEY + '/:id',
-            component: PortfolioTransactionTableComponent,
+            loadComponent: () =>
+              import('./portfolio/component/portfolio.transaction.table.component').then(
+                (m) => m.PortfolioTransactionTableComponent
+              ),
             canActivate: [authGuard]
           }
         ]
@@ -194,43 +187,65 @@ const APP_ROUTES: Routes = [
 
       {
         path: AppSettings.CASHACCOUNT_DETAIL_ROUTE_KEY + ':id',
-        component: CashaccountEditComponent,
+        loadComponent: () =>
+          import('./cashaccount/component/cashaccount-edit.component').then((m) => m.CashaccountEditComponent),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.SECURITYACCOUNT_EMPTY_ROUTE_KEY + '/:id',
-        component: SecurityaccountEmptyComponent,
+        loadComponent: () =>
+          import('./securityaccount/component/securityaccount.empty.component').then(
+            (m) => m.SecurityaccountEmptyComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.SECURITYACCOUNT_SUMMARIES_ROUTE_KEY + '/:id',
-        component: SecurityaccountSummariesComponent,
+        loadComponent: () =>
+          import('./securityaccount/component/securityaccount.summaries.component').then(
+            (m) => m.SecurityaccountSummariesComponent
+          ),
         canActivate: [authGuard]
       },
 
       {
         path: AppSettings.SECURITYACCOUNT_TAB_MENU_KEY + '/:id',
-        component: SecurityaccountTabMenuComponent,
+        loadComponent: () =>
+          import('./securityaccount/component/securityaccount.tab.menu.component').then(
+            (m) => m.SecurityaccountTabMenuComponent
+          ),
         canActivate: [authGuard],
         children: [
           {
             path: AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY + '/:id',
-            component: SecurityaccountSummaryComponent,
+            loadComponent: () =>
+              import('./securityaccount/component/securityaccount.summary.component').then(
+                (m) => m.SecurityaccountSummaryComponent
+              ),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY + '/:id',
-            component: SecurityaccountImportTabMenuComponent,
+            loadComponent: () =>
+              import('./imptransaction/component/securityaccount-import-tab-menu.component').then(
+                (m) => m.SecurityaccountImportTabMenuComponent
+              ),
             canActivate: [authGuard],
             children: [
               {
                 path: AppSettings.SECURITYACCOUNT_IMPORT_KEY + '/:id',
-                component: SecurityaccountImportTransactionComponent,
+                loadComponent: () =>
+                  import('./imptransaction/component/securityaccount.import.transaction.component').then(
+                    (m) => m.SecurityaccountImportTransactionComponent
+                  ),
                 canActivate: [authGuard]
               },
               {
                 path: AppSettings.SECURITYACCOUNT_GTNET_IMPORT_KEY + '/:id',
-                component: GTNetSecurityImportComponent,
+                loadComponent: () =>
+                  import('./shared/gtnet/component/gtnet-security-import.component').then(
+                    (m) => m.GTNetSecurityImportComponent
+                  ),
                 canActivate: [authGuard]
               }
             ]
@@ -240,17 +255,26 @@ const APP_ROUTES: Routes = [
 
       {
         path: AppSettings.PROPOSE_CHANGE_TAB_MENU_KEY,
-        component: ProposeChangeTabMenuComponent,
+        loadComponent: () =>
+          import('./lib/proposechange/component/propose.change.tab.menu.component').then(
+            (m) => m.ProposeChangeTabMenuComponent
+          ),
         canActivate: [authGuard],
         children: [
           {
             path: BaseSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY,
-            component: RequestForYouTableComponent,
+            loadComponent: () =>
+              import('./lib/proposechange/component/request.for.you.table.component').then(
+                (m) => m.RequestForYouTableComponent
+              ),
             canActivate: [authGuard]
           },
           {
             path: BaseSettings.PROPOSE_CHANGE_YOUR_PROPOSAL_KEY,
-            component: YourProposalTableComponent,
+            loadComponent: () =>
+              import('./lib/proposechange/component/your.proposal.table.component').then(
+                (m) => m.YourProposalTableComponent
+              ),
             canActivate: [authGuard]
           }
         ]
@@ -258,211 +282,313 @@ const APP_ROUTES: Routes = [
 
       {
         path: AppSettings.CHART_GENERAL_PURPOSE + '/' + AppSettings.CORRELATION_CHART,
-        component: CorrelationChartComponent,
+        loadComponent: () =>
+          import('./correlation/component/correlation-chart.component').then((m) => m.CorrelationChartComponent),
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
 
       {
         path: AppSettings.CHART_GENERAL_PURPOSE + '/:id',
-        component: ChartGeneralPurposeComponent,
+        loadComponent: () =>
+          import('./shared/chart/component/chart.general.purpose.component').then(
+            (m) => m.ChartGeneralPurposeComponent
+          ),
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
 
       {
         path: AppSettings.TIME_SERIE_QUOTES,
-        component: TimeSeriesChartComponent,
+        loadComponent: () =>
+          import('./historyquote/component/time.series.chart.component').then((m) => m.TimeSeriesChartComponent),
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
       {
         path: AppSettings.HISTORYQUOTE_P_KEY,
-        component: HistoryquoteHostComponent,
+        loadComponent: () =>
+          import('./historyquote/component/historyquote-host.component').then((m) => m.HistoryquoteHostComponent),
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
       {
         path: AppSettings.SEASONALITY,
-        component: SeasonalityComponent,
+        loadComponent: () =>
+          import('./historyquote/component/seasonality.component').then((m) => m.SeasonalityComponent),
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
       {
         path: AppSettings.TENANT_DIVIDENDS_CHART,
-        component: TenantDividendsChartComponent,
+        loadComponent: () =>
+          import('./tenant/component/tenant-dividends-chart.component').then((m) => m.TenantDividendsChartComponent),
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
       {
         path: AppSettings.DEPOT_CASH_CHART,
-        component: TenantHoldingsChartComponent,
+        loadComponent: () =>
+          import('./tenant/component/tenant-holdings-chart.component').then((m) => m.TenantHoldingsChartComponent),
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
-      { path: AppSettings.ALGO_OVERVIEW_KEY, component: AlgoStandaloneAlertComponent, canActivate: [authGuard] },
-      { path: AppSettings.ALGO_TOP_KEY + '/:id', component: AlgoTopDataViewComponent, canActivate: [authGuard] },
+      {
+        path: AppSettings.ALGO_OVERVIEW_KEY,
+        loadComponent: () =>
+          import('./algo/component/algo-standalone-alert.component').then((m) => m.AlgoStandaloneAlertComponent),
+        canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.ALGO_TOP_KEY + '/:id',
+        loadComponent: () =>
+          import('./algo/component/algo.top.data.view.component').then((m) => m.AlgoTopDataViewComponent),
+        canActivate: [authGuard]
+      },
       {
         path: AppSettings.SIMULATION_RUN_TAB_MENU_KEY + '/:id',
-        component: SimulationRunTabMenuComponent,
+        loadComponent: () =>
+          import('./algo/component/simulation-run-tab-menu.component').then((m) => m.SimulationRunTabMenuComponent),
         canActivate: [authGuard],
         children: [
           {
             path: AppSettings.SIMULATION_RUN_KEY + '/:id',
-            component: AlgoSimulationRunComponent,
+            loadComponent: () =>
+              import('./algo/component/algo-simulation-run.component').then((m) => m.AlgoSimulationRunComponent),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.SIMULATION_RUN_SETTINGS_KEY + '/:id',
-            component: AlgoSimulationRunSettingsComponent,
+            loadComponent: () =>
+              import('./algo/component/algo-simulation-run-settings.component').then(
+                (m) => m.AlgoSimulationRunSettingsComponent
+              ),
             canActivate: [authGuard]
           }
         ]
       },
-      { path: AppSettings.WATCHLIST_KEY + '/:id', component: CorrelationComponent, canActivate: [authGuard] },
+      {
+        path: AppSettings.WATCHLIST_KEY + '/:id',
+        loadComponent: () =>
+          import('./correlation/component/correlation.component').then((m) => m.CorrelationComponent),
+        canActivate: [authGuard]
+      },
       {
         path: AppSettings.WATCHLIST_TAB_MENU_KEY + '/:id',
-        component: WatchlistTabMenuComponent,
+        loadComponent: () =>
+          import('./watchlist/component/watchlist.tab.menu.component').then((m) => m.WatchlistTabMenuComponent),
         canActivate: [authGuard],
         children: [
           {
             path: AppSettings.WATCHLIST_PERFORMANCE_KEY + '/:id',
-            component: WatchlistPerformanceComponent,
+            loadComponent: () =>
+              import('./watchlist/component/watchlist.performance.component').then(
+                (m) => m.WatchlistPerformanceComponent
+              ),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.WATCHLIST_PRICE_FEED_KEY + '/:id',
-            component: WatchlistPriceFeedComponent,
+            loadComponent: () =>
+              import('./watchlist/component/watchlist.price.feed.component').then((m) => m.WatchlistPriceFeedComponent),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.WATCHLIST_INDICATOR_KEY + '/:id',
-            component: WatchlistIndicatorComponent,
+            loadComponent: () =>
+              import('./watchlist/component/watchlist.indicator.component').then((m) => m.WatchlistIndicatorComponent),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.WATCHLIST_UDF_KEY + '/:id',
-            component: WatchlistUdfComponent,
+            loadComponent: () =>
+              import('./watchlist/component/watchlist.udf.component').then((m) => m.WatchlistUdfComponent),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_KEY + '/:id',
-            component: WatchlistDividendSplitFeedComponent,
+            loadComponent: () =>
+              import('./watchlist/component/watchlist.dividend.split.feed.component').then(
+                (m) => m.WatchlistDividendSplitFeedComponent
+              ),
             canActivate: [authGuard]
           }
         ]
       },
       // Base data
-      { path: AppSettings.ASSETCLASS_KEY, component: AssetclassTableComponent, canActivate: [authGuard] },
+      {
+        path: AppSettings.ASSETCLASS_KEY,
+        loadComponent: () =>
+          import('./assetclass/component/assetclass.table.component').then((m) => m.AssetclassTableComponent),
+        canActivate: [authGuard]
+      },
       {
         path: AppSettings.STOCKEXCHANGE_KEY,
-        component: StockexchangeTabMenuComponent,
+        loadComponent: () =>
+          import('./stockexchange/component/stockexchange-tabmenu.component').then(
+            (m) => m.StockexchangeTabMenuComponent
+          ),
         canActivate: [authGuard],
         children: [
           {
             path: AppSettings.STOCKEXCHANGE_TAB_EXCHANGES_KEY,
-            component: StockexchangeTableComponent,
+            loadComponent: () =>
+              import('./stockexchange/component/stockexchange.table.component').then(
+                (m) => m.StockexchangeTableComponent
+              ),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.STOCKEXCHANGE_TAB_RULE_SETS_KEY,
-            component: TradingCalendarRuleSetTableComponent,
+            loadComponent: () =>
+              import('./stockexchange/component/trading-calendar-rule-set-table.component').then(
+                (m) => m.TradingCalendarRuleSetTableComponent
+              ),
             canActivate: [authGuard]
           }
         ]
       },
       {
         path: AppSettings.TRADING_PLATFORM_PLAN_KEY,
-        component: TradingPlatformPlanTableComponent,
+        loadComponent: () =>
+          import('./tradingplatform/component/trading.platform.plan.table.component').then(
+            (m) => m.TradingPlatformPlanTableComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.GENERIC_CONNECTOR_KEY,
-        component: GenericConnectorComponent,
+        loadComponent: () =>
+          import('./genericconnector/component/generic-connector.component').then((m) => m.GenericConnectorComponent),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.IMP_TRANS_TEMPLATE_KEY,
-        component: ImportTransactionTemplateComponent,
+        loadComponent: () =>
+          import('./imptranstemplate/component/import.transaction.template.component').then(
+            (m) => m.ImportTransactionTemplateComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.RISK_FREE_RATE_MAPPING_KEY,
-        component: RiskFreeRateMappingTableComponent,
+        loadComponent: () =>
+          import('./riskfreeratemapping/component/risk.free.rate.mapping.table.component').then(
+            (m) => m.RiskFreeRateMappingTableComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.BANKRUPT_SECURITY_KEY,
-        component: BankruptSecurityTableComponent,
+        loadComponent: () =>
+          import('./bankruptsecurity/component/bankrupt-security-table.component').then(
+            (m) => m.BankruptSecurityTableComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: BaseSettings.UDF_METADATA_GENERAL_KEY,
-        component: UDFMetadataGeneralTableComponent,
+        loadComponent: () =>
+          import('./lib/udfmeta/components/udf.metadata.general.table.component').then(
+            (m) => m.UDFMetadataGeneralTableComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.UDF_METADATA_SECURITY_KEY,
-        component: UDFMetadataSecurityTableComponent,
+        loadComponent: () =>
+          import('./udfmetasecurity/components/udf.metadata.security.table.component').then(
+            (m) => m.UDFMetadataSecurityTableComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.GT_NET_SECURITY_IMPORT_KEY,
-        component: GTNetSecurityImportComponent,
+        loadComponent: () =>
+          import('./shared/gtnet/component/gtnet-security-import.component').then(
+            (m) => m.GTNetSecurityImportComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.SECURITY_ACTION_KEY,
-        component: SecurityActionTreetableComponent,
+        loadComponent: () =>
+          import('./securityaction/component/security-action-treetable.component').then(
+            (m) => m.SecurityActionTreetableComponent
+          ),
         canActivate: [authGuard]
       },
       // Admin data
       {
         path: AppSettings.USER_MESSAGE_KEY,
-        component: SendRecvForwardTabMenuComponent,
+        loadComponent: () =>
+          import('./lib/mail/component/send.recv.forward.tab.menu.component').then(
+            (m) => m.SendRecvForwardTabMenuComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.USER_MESSAGE_KEY,
-        component: SendRecvForwardTabMenuComponent,
+        loadComponent: () =>
+          import('./lib/mail/component/send.recv.forward.tab.menu.component').then(
+            (m) => m.SendRecvForwardTabMenuComponent
+          ),
         canActivate: [authGuard],
         children: [
-          { path: BaseSettings.MAIL_SEND_RECV_KEY, component: SendRecvTreetableComponent, canActivate: [authGuard] },
+          {
+            path: BaseSettings.MAIL_SEND_RECV_KEY,
+            loadComponent: () =>
+              import('./lib/mail/component/send.recv.treetable.component').then((m) => m.SendRecvTreetableComponent),
+            canActivate: [authGuard]
+          },
           {
             path: BaseSettings.MAIL_SETTING_FORWARD_KEY,
-            component: MailForwardSettingTableEditComponent,
+            loadComponent: () =>
+              import('./lib/mail/component/mail.forward.setting.table.edit.component').then(
+                (m) => m.MailForwardSettingTableEditComponent
+              ),
             canActivate: [authGuard]
           }
         ]
       },
       {
         path: AppSettings.TRADING_CALENDAR_GLOBAL_KEY,
-        component: TradingCalendarGlobalComponent,
+        loadComponent: () =>
+          import('./tradingcalendar/component/trading.calendar.global.component').then(
+            (m) => m.TradingCalendarGlobalComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.SECURITY_HISTORY_QUALITY_KEY,
-        component: SecurityHistoryquoteQualityTreetableComponent,
+        loadComponent: () =>
+          import('./securitycurrency/component/security.historyquote.quality.treetable.component').then(
+            (m) => m.SecurityHistoryquoteQualityTreetableComponent
+          ),
         canActivate: [authGuard]
       },
       {
         path: BaseSettings.GLOBAL_SETTINGS_KEY,
-        component: GlobalSettingsTableComponent,
+        loadComponent: () =>
+          import('./lib/globalsettings/global.settings.table.component').then((m) => m.GlobalSettingsTableComponent),
         canActivate: [authGuard]
       },
       {
         path: AppSettings.GT_NET_TAB_MENU_KEY,
-        component: GTNetTabMenuComponent,
+        loadComponent: () =>
+          import('./lib/gnet/component/gtnet-tabmenu.component').then((m) => m.GTNetTabMenuComponent),
         canActivate: [authGuard],
         children: [
           {
             path: BaseSettings.GT_NET_SETUP_KEY,
-            component: GTNetSetupTableComponent,
+            loadComponent: () =>
+              import('./lib/gnet/component/gtnet.setup.table.component').then((m) => m.GTNetSetupTableComponent),
             canActivate: [authGuard]
           },
           {
             path: BaseSettings.GT_NET_ADMIN_MESSAGES_KEY,
-            component: GTNetAdminMessagesComponent,
+            loadComponent: () =>
+              import('./lib/gnet/component/gtnet-admin-messages.component').then((m) => m.GTNetAdminMessagesComponent),
             canActivate: [authGuard]
           }
         ]
@@ -471,53 +597,99 @@ const APP_ROUTES: Routes = [
         // The auto-answer rules publish the terms on which this instance admits a peer, so reading them is restricted
         // to administrators on the backend as well; without adminGuard a normal user would reach a screen that 403s.
         path: BaseSettings.GT_NET_MESSAGE_ANSWER_KEY,
-        component: GTNetMessageAnswerTableComponent,
+        loadComponent: () =>
+          import('./lib/gnet/component/gtnet-message-answer-table.component').then(
+            (m) => m.GTNetMessageAnswerTableComponent
+          ),
         canActivate: [adminGuard]
       },
       {
         path: BaseSettings.GT_NET_EXCHANGE_LOG_KEY,
-        component: GTNetExchangeLogTabMenuComponent,
+        loadComponent: () =>
+          import('./lib/gnet/component/gtnet-exchange-log-tabmenu.component').then(
+            (m) => m.GTNetExchangeLogTabMenuComponent
+          ),
         canActivate: [authGuard],
         children: [
           {
             path: ':entityKind',
-            component: GTNetExchangeLogComponent,
+            loadComponent: () =>
+              import('./lib/gnet/component/gtnet-exchange-log.component').then((m) => m.GTNetExchangeLogComponent),
             canActivate: [authGuard]
           }
         ]
       },
       {
         path: AppSettings.GT_NET_EXCHANGE_KEY,
-        component: GTNetExchangeTabMenuComponent,
+        loadComponent: () =>
+          import('./gtnet/component/gtnet-exchange-tabmenu.component').then((m) => m.GTNetExchangeTabMenuComponent),
         canActivate: [authGuard],
         children: [
           {
             path: AppSettings.GT_NET_EXCHANGE_SECURITIES_KEY,
-            component: GTNetExchangeSecuritiesComponent,
+            loadComponent: () =>
+              import('./gtnet/component/gtnet-exchange-securities.component').then(
+                (m) => m.GTNetExchangeSecuritiesComponent
+              ),
             canActivate: [authGuard]
           },
           {
             path: AppSettings.GT_NET_EXCHANGE_CURRENCYPAIRS_KEY,
-            component: GTNetExchangeCurrencypairsComponent,
+            loadComponent: () =>
+              import('./gtnet/component/gtnet-exchange-currencypairs.component').then(
+                (m) => m.GTNetExchangeCurrencypairsComponent
+              ),
             canActivate: [authGuard]
           }
         ]
       },
       {
         path: BaseSettings.TASK_DATA_CHANGE_MONITOR_KEY,
-        component: TaskDataChangeTabMenuComponent,
+        loadComponent: () =>
+          import('./lib/taskdatamonitor/component/task-data-change-tab-menu.component').then(
+            (m) => m.TaskDataChangeTabMenuComponent
+          ),
         canActivate: [authGuard],
-        children: [{ path: ':queue', component: TaskDataChangeTableComponent, canActivate: [authGuard] }]
+        children: [
+          {
+            path: ':queue',
+            loadComponent: () =>
+              import('./lib/taskdatamonitor/component/task.data.change.table.component').then(
+                (m) => m.TaskDataChangeTableComponent
+              ),
+            canActivate: [authGuard]
+          }
+        ]
       },
 
-      { path: AppSettings.TAX_DATA_KEY, component: TaxDataTreetableComponent, canActivate: [authGuard] },
-      { path: BaseSettings.CONNECTOR_API_KEY_KEY, component: ConnectorApiKeyTableComponent, canActivate: [adminGuard] },
-      { path: BaseSettings.USER_ADMIN_KEY, component: UserTableComponent, canActivate: [adminGuard] },
-      { path: BaseSettings.ENTITY_LIMIT_KEY, component: EntityLimitTableComponent, canActivate: [adminGuard] }
+      {
+        path: AppSettings.TAX_DATA_KEY,
+        loadComponent: () =>
+          import('./taxdata/component/tax-data-treetable.component').then((m) => m.TaxDataTreetableComponent),
+        canActivate: [authGuard]
+      },
+      {
+        path: BaseSettings.CONNECTOR_API_KEY_KEY,
+        loadComponent: () =>
+          import('./lib/connectorapikey/component/connector.api.key.table.component').then(
+            (m) => m.ConnectorApiKeyTableComponent
+          ),
+        canActivate: [adminGuard]
+      },
+      {
+        path: BaseSettings.USER_ADMIN_KEY,
+        loadComponent: () => import('./lib/user/component/user.table.component').then((m) => m.UserTableComponent),
+        canActivate: [adminGuard]
+      },
+      {
+        path: BaseSettings.ENTITY_LIMIT_KEY,
+        loadComponent: () =>
+          import('./lib/entitylimit/component/entity.limit.table.component').then((m) => m.EntityLimitTableComponent),
+        canActivate: [adminGuard]
+      }
     ]
   }
 
   // otherwise redirect to home
   // { path: '**', redirectTo: '' }
 ];
-export const routing = RouterModule.forRoot(APP_ROUTES);

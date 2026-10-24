@@ -17,6 +17,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { AlertNotification } from '../service/algo-alert.service';
+import { Helper } from '../../lib/helper/helper';
 
 /**
  * The recorded notification deliveries of the alert diagnostics. The parent loads every notification of the tenant;
@@ -108,8 +109,8 @@ export class AlgoAlertNotificationTableComponent extends TableConfigBase impleme
     }
   }
 
-  onSelectionChange(notifications: AlertNotification[]): void {
-    this.selectedNotifications = notifications ?? [];
+  onSelectionChange(selection: AlertNotification | AlertNotification[]): void {
+    this.selectedNotifications = Helper.multipleSelection(selection);
     this.resetMenu();
   }
 

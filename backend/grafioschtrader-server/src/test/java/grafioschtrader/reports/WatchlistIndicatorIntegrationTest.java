@@ -262,7 +262,8 @@ class WatchlistIndicatorIntegrationTest {
         long count = sql.chars().filter(c -> c == '?').count();
         for (int i = 1; i <= count; i++)
           query.setParameter(i, tenant);
-        assertThat(query.getResultList()).anyMatch(row -> ((Number) ((Object[]) row)[0]).intValue() == benchmark);
+        List<?> rows = query.getResultList();
+        assertThat(rows).anyMatch(row -> ((Number) ((Object[]) row)[0]).intValue() == benchmark);
       }
     });
     var projected = history.findNewestDateCloseHighLowByIds(List.of(benchmark), LocalDate.now()).stream()

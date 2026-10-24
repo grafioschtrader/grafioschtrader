@@ -149,9 +149,14 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
     return connectorApiKey == null ? null : connectorApiKey.getApiKey();
   }
 
+  /** Whether download links must be hidden from non-administrators because they contain the API key. */
+  public boolean hasApiKeyInDownloadLink() {
+    return true;
+  }
+
   public ISubscriptionType getSubscriptionType() {
     getConnectorApiKey();
-    return connectorApiKey.getSubscriptionType();
+    return connectorApiKey == null ? null : connectorApiKey.getSubscriptionType();
   }
 
   /**

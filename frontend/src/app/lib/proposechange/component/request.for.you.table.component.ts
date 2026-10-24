@@ -147,11 +147,36 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
       // Subscribe to the preparation observable (handles both sync and async cases)
       prepareObservable.subscribe(() => {
         // After preparation is complete, load the edit component dynamically
-        if (entityMapping.visibleDialog && entityMapping.editComponentType) {
-          this.loadEditComponent(proposeChangeEntityWithEntity, entityMapping);
+        if (entityMapping.visibleDialog && entityMapping.loadEditComponent) {
+          this.resolveEditComponentType(entityMapping).then(() =>
+            this.loadEditComponent(proposeChangeEntityWithEntity, entityMapping)
+          );
         }
       });
     }
+  }
+
+  /**
+   * Loads the edit component of the mapping on first use and keeps its class for later openings. A failed import is
+   * reported as a toast; the returned promise then stays pending, so no dialog is created.
+   *
+   * @param entityMapping - The entity mapping whose edit component is needed
+   * @returns Promise that resolves once editComponentType is set
+   * @protected
+   */
+  protected resolveEditComponentType(entityMapping: EntityMapping): Promise<void> {
+    if (entityMapping.editComponentType) {
+      return Promise.resolve();
+    }
+    return entityMapping.loadEditComponent().then(
+      (componentType) => {
+        entityMapping.editComponentType = componentType;
+      },
+      () => {
+        this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MSG_LOAD_NEW_VERSION');
+        return new Promise<void>(() => {});
+      }
+    );
   }
 
   /**
@@ -336,11 +361,11 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     // Lazy initialization of entity mapping
     if (!this.entityMappingArr[entityType]) {
       const prepareHandler = this.entityPrepareRegistry.getPrepareHandler(entityType);
-      const editComponent = this.entityPrepareRegistry.getEditComponent(entityType);
+      const loadEditComponent = this.entityPrepareRegistry.getEditComponentLoader(entityType);
 
-      if (prepareHandler && editComponent) {
+      if (prepareHandler && loadEditComponent) {
         this.entityMappingArr[entityType] = new EntityMapping(prepareHandler);
-        this.entityMappingArr[entityType].editComponentType = editComponent;
+        this.entityMappingArr[entityType].loadEditComponent = loadEditComponent;
       } else {
         console.warn(`No handler or component registered for entity type: ${entityType}`);
         return undefined;
@@ -358,11 +383,11 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
       // Ensure redirect mapping exists
       if (!this.entityMappingArr[redirectEntityType]) {
         const prepareHandler = this.entityPrepareRegistry.getPrepareHandler(redirectEntityType);
-        const editComponent = this.entityPrepareRegistry.getEditComponent(redirectEntityType);
+        const loadEditComponent = this.entityPrepareRegistry.getEditComponentLoader(redirectEntityType);
 
-        if (prepareHandler && editComponent) {
+        if (prepareHandler && loadEditComponent) {
           this.entityMappingArr[redirectEntityType] = new EntityMapping(prepareHandler);
-          this.entityMappingArr[redirectEntityType].editComponentType = editComponent;
+          this.entityMappingArr[redirectEntityType].loadEditComponent = loadEditComponent;
         }
       }
       return this.entityMappingArr[redirectEntityType];

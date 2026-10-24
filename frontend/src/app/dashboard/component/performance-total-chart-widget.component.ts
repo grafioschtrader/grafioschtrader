@@ -2,11 +2,13 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  inject,
   Input,
   NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
+  signal,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
@@ -28,9 +30,8 @@ import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
+import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { PerformanceTotalChart, PerformanceTotalChartPoint } from '../model/performance.total.chart';
-
-declare let Plotly: any;
 
 /** Line colors in a fixed order, the same first two slots the other charts of GT use. */
 const TOTAL_COLOR = '#2a78d6';
@@ -56,6 +57,7 @@ const INVESTED_COLOR = '#eb6834';
   standalone: true,
   imports: [TranslateModule, DynamicFormModule],
   template: `
+    @let shown = chart();
     <div class="total-chart" [class.total-chart-maximized]="maximized">
       <dynamic-form
         [config]="config"
@@ -63,18 +65,18 @@ const INVESTED_COLOR = '#eb6834';
         [translateService]="translateService"
         #form="dynamicForm">
       </dynamic-form>
-      @if (chart?.reasonKey) {
-        <small class="d-block">{{ chart.reasonKey | translate }}</small>
+      @if (shown?.reasonKey) {
+        <small class="d-block">{{ shown.reasonKey | translate }}</small>
       }
-      <div #plot class="total-chart-plot" [hidden]="!chart || !!chart.reasonKey"></div>
-      @if (chart && !chart.reasonKey) {
+      <div #plot class="total-chart-plot" [hidden]="!shown || !!shown.reasonKey"></div>
+      @if (shown && !shown.reasonKey) {
         <small class="d-block">
-          {{ 'DASHBOARD_TOTAL_CHART_NEWEST' | translate }}: {{ getValueByPath(chart, newestDateField) }}
-          @if (chart.recalcPending) {
+          {{ 'DASHBOARD_TOTAL_CHART_NEWEST' | translate }}: {{ getValueByPath(shown, newestDateField) }}
+          @if (shown.recalcPending) {
             · {{ 'DASHBOARD_TOTAL_CHART_RECALC' | translate }}
           }
-          @if (chart.sampling !== 'DAY') {
-            · {{ 'DASHBOARD_TOTAL_CHART_' + chart.sampling | translate }}
+          @if (shown.sampling !== 'DAY') {
+            · {{ 'DASHBOARD_TOTAL_CHART_' + shown.sampling | translate }}
           }
         </small>
       }
@@ -112,7 +114,7 @@ export class PerformanceTotalChartWidgetComponent
 
   @ViewChild('plot') plotElement: ElementRef<HTMLDivElement>;
 
-  chart: PerformanceTotalChart;
+  readonly chart = signal<PerformanceTotalChart>(undefined);
   config: FieldConfig[];
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig = { labelColumns: 3, nonModal: true };
@@ -125,6 +127,10 @@ export class PerformanceTotalChartWidgetComponent
   private settingsSubscription: Subscription;
   private resizeObserver: ResizeObserver;
   private viewReady = false;
+  private destroyed = false;
+  private readonly plotlyLoader = inject(PlotlyLoaderService);
+  /** Set once the chart has loaded the library; cleanup never triggers the import. */
+  private plotly: PlotlyInstance;
 
   constructor(
     public override translateService: TranslateService,
@@ -144,7 +150,7 @@ export class PerformanceTotalChartWidgetComponent
       })
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    this.plotlyConfig = { ...PlotlyLocales.setPlotyLocales(Plotly, gps), responsive: false, displaylogo: false };
+    this.plotlyConfig = { ...PlotlyLocales.setPlotyLocales(gps), responsive: false, displaylogo: false };
     this.translateService
       .get(['TOTAL_BALANCE', 'INVESTED_CAPITAL', 'DIFFERENCE'])
       .subscribe((texts) => (this.texts = texts));
@@ -189,10 +195,11 @@ export class PerformanceTotalChartWidgetComponent
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.settingsSubscription?.unsubscribe();
     this.resizeObserver?.disconnect();
     if (this.plotElement) {
-      Plotly.purge(this.plotElement.nativeElement);
+      this.plotly?.purge(this.plotElement.nativeElement);
     }
   }
 
@@ -222,7 +229,6 @@ export class PerformanceTotalChartWidgetComponent
   }
 
   private show(chart: PerformanceTotalChart): void {
-    this.chart = chart;
     if (chart) {
       this.amountField.fixedCurrency = chart.currency;
       this.configObject.range.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
@@ -231,14 +237,15 @@ export class PerformanceTotalChartWidgetComponent
         false
       );
     }
+    this.chart.set(chart);
     this.showChosenSettings();
     this.drawPlot();
   }
 
   /** Lets the selects agree with the chart on screen without asking for it again, also after a dashboard refresh. */
   private showChosenSettings(): void {
-    this.configObject.idPortfolio.formControl?.setValue(this.chart?.idPortfolio ?? '', { emitEvent: false });
-    this.configObject.range.formControl?.setValue(this.chart?.range ?? null, { emitEvent: false });
+    this.configObject.idPortfolio.formControl?.setValue(this.chart()?.idPortfolio ?? '', { emitEvent: false });
+    this.configObject.range.formControl?.setValue(this.chart()?.range ?? null, { emitEvent: false });
   }
 
   private drawPlot(): void {
@@ -246,18 +253,30 @@ export class PerformanceTotalChartWidgetComponent
       return;
     }
     const element = this.plotElement.nativeElement;
-    if (!this.chart || this.chart.reasonKey || !this.chart.points.length) {
-      Plotly.purge(element);
+    const chart = this.chart();
+    if (!chart || chart.reasonKey || !chart.points.length) {
+      this.plotly?.purge(element);
       return;
     }
     // Wait until the plot element is no longer hidden, otherwise Plotly measures a zero size.
-    setTimeout(() => Plotly.react(element, this.traces(this.chart.points), this.layout(), this.plotlyConfig));
+    setTimeout(() =>
+      this.plotlyLoader.load().then(
+        (plotly) => {
+          // A newer result replaces the pending one, so only the latest chart is drawn
+          if (!this.destroyed && chart === this.chart()) {
+            this.plotly = plotly;
+            plotly.react(element, this.traces(chart.points), this.layout(), this.plotlyConfig);
+          }
+        },
+        () => {}
+      )
+    );
   }
 
   private resizePlot(): void {
     const element = this.plotElement?.nativeElement as any;
     if (element?.data && element.offsetParent) {
-      Plotly.Plots.resize(element);
+      this.plotly?.Plots.resize(element);
     }
   }
 
@@ -301,7 +320,7 @@ export class PerformanceTotalChartWidgetComponent
   }
 
   private formatAmount(value: number): string {
-    return this.getValueByPath({ value }, this.amountField) + ' ' + this.chart.currency;
+    return this.getValueByPath({ value }, this.amountField) + ' ' + this.chart().currency;
   }
 
   /**
@@ -326,7 +345,7 @@ export class PerformanceTotalChartWidgetComponent
       // Plotly's own tick format, as in the period performance chart: large values are shortened, 200'000 to 200k.
       // The currency is the axis title, so the ticks stay short.
       yaxis: {
-        title: { text: this.chart.currency, standoff: 8 },
+        title: { text: this.chart().currency, standoff: 8 },
         gridcolor: grid,
         linecolor: grid,
         automargin: true

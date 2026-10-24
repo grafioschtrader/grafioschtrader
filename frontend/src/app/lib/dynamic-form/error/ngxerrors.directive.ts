@@ -1,29 +1,27 @@
-import { AfterViewInit, Directive, Input, OnChanges, OnDestroy } from '@angular/core';
-import { AbstractControl, FormGroupDirective } from '@angular/forms';
+import { Directive, Input, OnChanges, OnDestroy } from '@angular/core';
+import { AbstractControl } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { ErrorDetails, ErrorOptions } from './ngxerrors';
+import { ErrorOptions } from './ngxerrors';
 import { toArray } from './toArray';
 
+/**
+ * Container of the error messages of one control. The control is published through {@link control$}, so each
+ * contained ngxError directive follows the events of the current control, also when the form replaces the control of
+ * a form group.
+ */
 @Directive({
   selector: '[ngxErrors]',
   exportAs: 'ngxErrors',
   standalone: true
 })
-export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
-  //  @Input('ngxErrors') controlName: string;
-
+export class NgxErrorsDirective implements OnChanges, OnDestroy {
   @Input('ngxErrors') control: AbstractControl;
 
-  subject = new BehaviorSubject<ErrorDetails>(null);
-
-  // control: AbstractControl;
-
-  ready = false;
-
-  constructor(private form: FormGroupDirective) {}
+  /** The current control; emits on every replacement */
+  readonly control$ = new BehaviorSubject<AbstractControl>(null);
 
   get errors() {
-    return this.ready ? this.control.errors : null;
+    return this.control ? this.control.errors : null;
   }
 
   get hasErrors() {
@@ -39,30 +37,21 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
   }
 
   getError(name: string) {
-    if (!this.ready) {
-      return;
+    return this.control?.getError(name);
+  }
+
+  ngOnChanges(): void {
+    if (this.control$.value !== this.control) {
+      this.control$.next(this.control);
     }
-    return this.control.getError(name);
-  }
-
-  ngOnChanges() {
-    // this.control = this.form.control.get(this.control);
-  }
-
-  ngAfterViewInit() {
-    setTimeout(() => {
-      // this.form.valueChanges.subscribe(data => {
-      this.checkStatus();
-      this.control.statusChanges.subscribe(this.checkStatus.bind(this));
-    });
   }
 
   ngOnDestroy(): void {
-    this.subject.unsubscribe();
+    this.control$.complete();
   }
 
   private checkPropState(prop: string, field: string, conditions: ErrorOptions): boolean {
-    if (!this.ready) {
+    if (!this.control) {
       return null;
     }
     const controlPropsState = !conditions || toArray(conditions).every((condition: string) => this.control[condition]);
@@ -70,17 +59,5 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
       return this.control[prop] && controlPropsState;
     }
     return prop === 'valid' ? !this.control.hasError(field) : this.control.hasError(field) && controlPropsState;
-  }
-
-  private checkStatus() {
-    const control = this.control;
-    const errors = control.errors;
-    this.ready = true;
-    if (!errors) {
-      return;
-    }
-    for (const errorName of Object.keys(errors)) {
-      this.subject.next({ control, errorName });
-    }
   }
 }

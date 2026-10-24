@@ -2,6 +2,7 @@ import {
   Component,
   ContentChild,
   EventEmitter,
+  input,
   Input,
   OnChanges,
   OnInit,
@@ -138,7 +139,7 @@ export interface ValidationErrorEvent<T> {
         [stripedRows]="stripedRows"
         [showGridlines]="showGridlines"
         editMode="row"
-        [(expandedRowKeys)]="expandedRowKeys"
+        [expandedRowKeys]="expandedRowKeys"
         (onRowExpand)="onRowExpand($event)"
         (onRowCollapse)="onRowCollapse($event)"
         (onRowSelect)="onRowSelect($event)"
@@ -467,6 +468,12 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   /** Array of column configurations defining table structure */
   @Input() fields: ColumnConfig[] = [];
+
+  /**
+   * Revision of the column configuration, bound as [fieldsRevision]="fieldsRevision()" of the owning table base. A
+   * new value re-renders the table after the columns were changed in place, also when it runs OnPush.
+   */
+  readonly fieldsRevision = input(0);
 
   /** Property name used as the unique identifier for each row (required) */
   @Input() dataKey: string;

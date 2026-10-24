@@ -58,6 +58,12 @@ they hold credentials; `backend/*/pom.xml.versionsBackup` is ignored as well.
 
    `V2__testdata.sql` is a **Git LFS** object (~160 MB). Never hand-patch it; fix the generator and add a follow-up
    migration instead.
+
+   The interim test migrations above `V4__seed_entity_limits.sql` in that directory existed only to carry the
+   schema changes of this release cycle into `grafioschtrader_t`. The new `V1`/`V2` snapshot contains them, so
+   `git rm` them in the release commit after confirming with a `grep` on `V1__schema.sql` that their tables and
+   columns are there. `V3` and `V4` stay. The next interim migration continues above the highest number ever used,
+   never at `V5` again: a database that recorded a higher version silently skips a lower new one.
 2. **By hand**: `"version"` in `frontend/package.json` **and** both `"version"` fields at the top of
    `frontend/package-lock.json`. The lockfile is tracked; the web image, `angular.yml` and `gtupfrontend.sh`
    install with `npm ci` and break on a mismatch.

@@ -6,6 +6,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 @Component({
   selector: 'form-file-upload',
   template: `
+    @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <input
         class="form-control-file-input"

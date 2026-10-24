@@ -5,7 +5,8 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild
+  ViewChild,
+  inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -23,11 +24,10 @@ import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { ViewSizeChangedService } from '../../lib/layout/service/view.size.changed.service';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
+import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 import { CorrelationChartInput, CorrelationChartService } from '../service/correlation-chart.service';
 import { buildCorrelationFigure, CorrelationChartType } from './correlation-chart';
-
-declare let Plotly: any;
 
 /** Selectable rolling correlations with daily percentage price developments in a shared Plotly figure. */
 @Component({
@@ -91,6 +91,9 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   missingCloses = false;
   private ready = false;
   private destroyed = false;
+  private readonly plotlyLoader = inject(PlotlyLoaderService);
+  /** Set once the first chart has loaded the library; cleanup never triggers the import. */
+  private plotly: PlotlyInstance;
   private renderVersion = 0;
   private plotlyConfig: any;
   private subscriptions: Subscription[] = [];
@@ -110,7 +113,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   ngOnInit(): void {
     this.activePanelService.registerPanel(this);
     this.chartService.shown = true;
-    this.plotlyConfig = { ...PlotlyLocales.setPlotyLocales(Plotly, this.gps), displaylogo: false, responsive: true };
+    this.plotlyConfig = { ...PlotlyLocales.setPlotyLocales(this.gps), displaylogo: false, responsive: true };
     this.config = [DynamicFieldHelper.createFieldSelectStringHeqF('chartType', true, { usedLayoutColumns: 6 })];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     const types = Object.values(CorrelationChartType);
@@ -127,7 +130,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
       }),
       this.viewSizeChangedService.viewSizeChanged$.subscribe(() => {
         if (!this.noData && this.chartElement.nativeElement.data) {
-          Plotly.Plots.resize(this.chartElement.nativeElement);
+          this.plotly?.Plots.resize(this.chartElement.nativeElement);
         }
       })
     );
@@ -169,7 +172,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
     this.destroyed = true;
     this.renderVersion++;
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
-    Plotly.purge(this.chartElement.nativeElement);
+    this.plotly?.purge(this.chartElement.nativeElement);
     this.chartService.shown = false;
     this.activePanelService.destroyPanel(this);
   }
@@ -189,24 +192,30 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
     this.noData = !figure?.data.length;
     this.missingCloses = !!figure?.missingCloses;
     if (this.noData) {
-      Plotly.purge(this.chartElement.nativeElement);
+      this.plotly?.purge(this.chartElement.nativeElement);
       return;
     }
     PlotlyHelper.translateLayout(this.translateService, figure.layout);
     // Allow Angular to unhide the plot before Plotly measures its container.
-    setTimeout(() => {
-      if (this.destroyed || version !== this.renderVersion) {
-        return;
-      }
-      Plotly.react(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig).then(() => {
-        if (
-          !this.destroyed &&
-          version === this.renderVersion &&
-          this.chartElement.nativeElement.querySelector('g.legend')
-        ) {
-          PlotlyHelper.attachTooltip(Plotly, figure.legendTooltipMap, this.chartElement);
-        }
-      });
-    });
+    setTimeout(() =>
+      this.plotlyLoader.load().then(
+        (plotly) => {
+          if (this.destroyed || version !== this.renderVersion) {
+            return;
+          }
+          this.plotly = plotly;
+          plotly.react(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig).then(() => {
+            if (
+              !this.destroyed &&
+              version === this.renderVersion &&
+              this.chartElement.nativeElement.querySelector('g.legend')
+            ) {
+              PlotlyHelper.attachTooltip(figure.legendTooltipMap, this.chartElement);
+            }
+          });
+        },
+        () => {}
+      )
+    );
   }
 }

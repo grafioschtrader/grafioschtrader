@@ -1,4 +1,4 @@
-import { Injector } from '@angular/core';
+import { ChangeDetectorRef, inject, Injector, signal, untracked } from '@angular/core';
 import { DataType } from '../dynamic-form/models/data.type';
 import { ColumnConfig, OptionalParams } from './column.config';
 import { BaseLocale } from '../dynamic-form/models/base.locale';
@@ -33,6 +33,21 @@ export abstract class ShowRecordConfigBase {
    * This is the primary configuration store for all table/record display functionality.
    */
   fields: ColumnConfig[] = [];
+
+  protected readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  /**
+   * Raised whenever the column configuration changed in place — translated headers and tooltips, widths, visibility,
+   * frozen columns, filter row. Templates pass it to the table hosts as [fieldsRevision]="fieldsRevision()", which
+   * recompute what depends on the mutable ColumnConfig state.
+   */
+  readonly fieldsRevision = signal(0);
+
+  /**
+   * Stable value getter for the valueGetterFn input of the table hosts. It calls getValueByPath, so overrides in
+   * subclasses keep working; unlike getValueByPath.bind(this) it is the same function on every check.
+   */
+  readonly valueGetter = (dataobject: any, field: ColumnConfig) => this.getValueByPath(dataobject, field);
 
   /**
    * Creates a new show record configuration base.
@@ -250,7 +265,6 @@ export abstract class ShowRecordConfigBase {
       cc.filterValues = optionalParams.filterValues;
       cc.headerTranslated = optionalParams.headerTranslated;
       cc.export = optionalParams.export;
-      cc.frozenColumn = optionalParams.frozenColumn;
       cc.userValue = optionalParams.userValue;
       cc.fieldsetName = optionalParams.fieldsetName;
       cc.cec = optionalParams.cec;
@@ -391,6 +405,7 @@ export abstract class ShowRecordConfigBase {
    */
   createTranslatedValueStore(data: any[]): void {
     TranslateHelper.createTranslatedValueStore(this.translateService, this.fields, data);
+    this.notifyViewChanged();
   }
 
   /**
@@ -423,6 +438,15 @@ export abstract class ShowRecordConfigBase {
   }
 
   /**
+   * Tells the views that the column configuration changed in place: raises {@link fieldsRevision} and marks this
+   * component for check.
+   */
+  notifyViewChanged(): void {
+    untracked(() => this.fieldsRevision.update((r) => r + 1));
+    this.changeDetectorRef.markForCheck();
+  }
+
+  /**
    * Translates header keys to localized header text.
    * Internal method that processes header translation for column configurations.
    *
@@ -433,8 +457,8 @@ export abstract class ShowRecordConfigBase {
   protected translateHeaders(translateHeaderKeys: string[], columConfig: ColumnConfig[]): void {
     const groupKeys = columConfig.map((f) => f.headerGroupKey).filter((k) => !!k);
     const allKeys = [...new Set([...translateHeaderKeys.filter((thk) => !!thk), ...groupKeys])];
-    this.translateService.get(allKeys).subscribe((allTranslatedTexts: any) =>
-      columConfig.map((field) => {
+    this.translateService.get(allKeys).subscribe((allTranslatedTexts: any) => {
+      columConfig.forEach((field) => {
         field.headerTranslated =
           (field.headerPrefix == null ? '' : field.headerSuffix + ' ') +
           allTranslatedTexts[field.headerKey] +
@@ -442,8 +466,9 @@ export abstract class ShowRecordConfigBase {
         if (field.headerGroupKey) {
           field.headerGroupTranslated = allTranslatedTexts[field.headerGroupKey];
         }
-      })
-    );
+      });
+      this.notifyViewChanged();
+    });
   }
 
   /**
@@ -456,13 +481,16 @@ export abstract class ShowRecordConfigBase {
    */
   protected translateHeadersTooltips(translateHeaderKeys: string[], columConfig: ColumnConfig[]): void {
     const tSuffix = '_TOOLTIP';
-    this.translateService.get(translateHeaderKeys.map((thtk) => thtk + tSuffix)).subscribe((allTranslatedTexts: any) =>
-      columConfig.map((field) => {
-        const key = field.headerKey + tSuffix;
-        field.headerTooltipTranslated =
-          allTranslatedTexts[key] !== key ? allTranslatedTexts[key] : field.headerTooltipTranslated;
-      })
-    );
+    this.translateService
+      .get(translateHeaderKeys.map((thtk) => thtk + tSuffix))
+      .subscribe((allTranslatedTexts: any) => {
+        columConfig.forEach((field) => {
+          const key = field.headerKey + tSuffix;
+          field.headerTooltipTranslated =
+            allTranslatedTexts[key] !== key ? allTranslatedTexts[key] : field.headerTooltipTranslated;
+        });
+        this.notifyViewChanged();
+      });
   }
 
   /**
@@ -477,9 +505,10 @@ export abstract class ShowRecordConfigBase {
       if (columConfig.columnGroupConfigs) {
         columConfig.columnGroupConfigs.forEach((cc) => {
           if (cc.textValueKey) {
-            this.translateService
-              .get(cc.textValueKey)
-              .subscribe((translatedText) => (cc.textValueTranslated = translatedText));
+            this.translateService.get(cc.textValueKey).subscribe((translatedText) => {
+              cc.textValueTranslated = translatedText;
+              this.notifyViewChanged();
+            });
           }
         });
       }

@@ -385,6 +385,12 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
+  public List<Currencypair> updateIntraSecurityCurrencies(final List<Currencypair> currencypairs,
+      final IFeedConnector feedConnector) throws Exception {
+    return feedConnector.updateCurrencyPairsLastPrice(currencypairs);
+  }
+
+  @Override
   public SecurityCurrencypairJpaRepository<Currencypair> getJpaRepository() {
     return currencypairJpaRepository;
   }

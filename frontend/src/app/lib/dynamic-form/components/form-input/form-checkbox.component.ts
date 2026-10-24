@@ -8,6 +8,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-checkbox',
   template: `
+    @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <input
         class="form-check-input"

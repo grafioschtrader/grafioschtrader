@@ -51,6 +51,9 @@ class SecurityActionTransactionLimitTest {
     security.setIdSecuritycurrency(10);
     SecurityAction action = new SecurityAction();
     action.setSecurityOld(security);
+    Security successor = new Security();
+    successor.setIdSecuritycurrency(11);
+    action.setSecurityNew(successor);
     action.setActionDate(date);
     when(actions.findById(1)).thenReturn(Optional.of(action));
     when(accounts.findByIdSecuritycashAccountAndIdTenant(20, 7)).thenReturn(new Securityaccount());
@@ -63,7 +66,7 @@ class SecurityActionTransactionLimitTest {
     doThrow(limit).when(transactions).throwWhenTransactionLimitReached(7, 4);
     assertThatThrownBy(() -> service.applySecurityAction(1)).isSameAs(limit);
     verify(applications, never()).save(any());
-    verify(transactions, never()).reassignTransactionsToNewSecurity(any(), any(), any(), any(), any());
+    verify(transactions, never()).reassignTransactionsToNewSecurity(any(), any(), any(), any(), any(), any());
     verify(transactions, never()).save(any());
   }
 

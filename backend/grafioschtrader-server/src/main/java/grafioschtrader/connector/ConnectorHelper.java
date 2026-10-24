@@ -85,8 +85,9 @@ public class ConnectorHelper {
    * The access control logic follows these rules:
    * </p>
    * <ul>
-   * <li><strong>API Key Connectors:</strong> Require administrator privileges due to sensitive API key data</li>
-   * <li><strong>Regular Connectors:</strong> Accessible to all authenticated users</li>
+   * <li><strong>Links containing API keys:</strong> Require administrator privileges</li>
+   * <li><strong>Links without credentials:</strong> Accessible to all authenticated users, including connectors that
+   * authenticate their backend requests through headers</li>
    * </ul>
    *
    * <p>
@@ -101,8 +102,8 @@ public class ConnectorHelper {
   public static boolean canAccessConnectorApiKey(final IFeedConnector feedConnector) {
     // it is not possible to get the security context in other thread!
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return UserAccessHelper.isAdmin(user) && feedConnector instanceof BaseFeedApiKeyConnector
-        || !(feedConnector instanceof BaseFeedApiKeyConnector);
+    return !(feedConnector instanceof BaseFeedApiKeyConnector apiConnector) || !apiConnector.hasApiKeyInDownloadLink()
+        || UserAccessHelper.isAdmin(user);
   }
 
   /**

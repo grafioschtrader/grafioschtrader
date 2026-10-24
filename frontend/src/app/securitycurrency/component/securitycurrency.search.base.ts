@@ -172,8 +172,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   }
 
   private setValueKeyHtmlOptions(fieldConfig: FieldConfig, values: ValueKeyHtmlSelectOptions[]): void {
-    fieldConfig.valueKeyHtmlOptions = values;
-    fieldConfig.valueKeyHtmlOptions.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
+    fieldConfig.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', ''), ...values];
   }
 
   private valueChangedOnForm(): void {

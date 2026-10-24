@@ -1,5 +1,6 @@
 import { TranslateLoader } from '@ngx-translate/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { SKIP_AUTH_HEADERS } from '../login/service/auth.http.interceptor';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
 import deepmerge from 'deepmerge';
@@ -27,7 +28,9 @@ export class MultiTranslateHttpLoader implements TranslateLoader {
   public getTranslation(language: string): Observable<any> {
     const requests = this.resources.map((resource) => {
       const path = resource.prefix + language + resource.suffix;
-      const request = this.http.get<Record<string, any>>(path);
+      const request = this.http.get<Record<string, any>>(path, {
+        context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+      });
       return resource.mandatory
         ? request.pipe(retry({ count: 2, delay: 1500 }))
         : request.pipe(

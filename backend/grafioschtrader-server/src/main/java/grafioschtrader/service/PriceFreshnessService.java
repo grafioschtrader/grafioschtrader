@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.dto.IStockexchangeTradingDate;
+import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 
@@ -97,21 +98,73 @@ public class PriceFreshnessService {
    *         {@link #MAX_STALE_TRADING_SESSIONS}; null when the age cannot be told
    */
   public Integer sessionsBehind(final List<LocalDate> sessionsDesc, final LocalDate priceDate, final LocalDate today) {
-    if (priceDate == null || sessionsDesc == null || sessionsDesc.isEmpty()) {
+    return sessionsMissed(sessionsDesc, priceDate, today.minusDays(1));
+  }
+
+  /**
+   * Counts the sessions after the given date up to and including the last session that should already be covered.
+   *
+   * @param sessionsDesc   sessions of the exchange, newest first, as returned by {@link #loadSessions}
+   * @param lastDate       the newest day for which a price exists, may be null; a day in the future yields zero
+   * @param untilInclusive the newest session whose price is expected, may be null
+   * @return the number of sessions in between, capped at {@link #MAX_STALE_TRADING_SESSIONS}; null when one of the
+   *         arguments is missing
+   */
+  public Integer sessionsMissed(final List<LocalDate> sessionsDesc, final LocalDate lastDate,
+      final LocalDate untilInclusive) {
+    if (lastDate == null || untilInclusive == null || sessionsDesc == null || sessionsDesc.isEmpty()) {
       return null;
     }
-    int behind = 0;
+    int missed = 0;
     for (LocalDate session : sessionsDesc) {
-      if (!session.isBefore(today)) {
+      if (session.isAfter(untilInclusive)) {
         continue;
       }
-      if (!session.isAfter(priceDate)) {
+      if (!session.isAfter(lastDate)) {
         break;
       }
-      if (++behind >= MAX_STALE_TRADING_SESSIONS) {
+      if (++missed >= MAX_STALE_TRADING_SESSIONS) {
         break;
       }
     }
-    return behind;
+    return missed;
+  }
+
+  /**
+   * Determines the newest session of an exchange whose historical closing price should already be stored. That is
+   * decided by the last direct price update of the exchange and not by the clock: between the close of a session and the
+   * next end of day load, the session is legitimately missing.
+   *
+   * @param sessionsDesc  sessions of the exchange, newest first, as returned by {@link #loadSessions}
+   * @param stockexchange the exchange of the instrument
+   * @param activeToDate  the last trading day of the instrument, no session after it is expected; may be null
+   * @return the newest covered session, or null when none of the loaded window is covered, which is also the case for
+   *         an instrument that stopped trading before the window
+   */
+  public LocalDate expectedEodSession(final List<LocalDate> sessionsDesc, final Stockexchange stockexchange,
+      final LocalDate activeToDate) {
+    if (sessionsDesc == null) {
+      return null;
+    }
+    for (LocalDate session : sessionsDesc) {
+      if ((activeToDate == null || !session.isAfter(activeToDate))
+          && stockexchange.isSessionCoveredByLastPriceUpdate(session)) {
+        return session;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Determines the newest session of the worldwide calendar whose historical closing price should already be stored.
+   * Currency pairs have no exchange recording when their end of day load ran. Their historical prices are loaded once a
+   * night, so the last completed session may still be pending and only the one before it is expected.
+   *
+   * @param globalSessionsDesc the possible trading days, newest first, as returned by {@link #loadGlobalSessions}
+   * @param today              the current day
+   * @return the second newest completed session, or null when the window does not contain two
+   */
+  public LocalDate expectedGlobalEodSession(final List<LocalDate> globalSessionsDesc, final LocalDate today) {
+    return globalSessionsDesc.stream().filter(session -> session.isBefore(today)).skip(1).findFirst().orElse(null);
   }
 }

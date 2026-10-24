@@ -1,5 +1,7 @@
 package grafioschtrader.priceupdate.intraday;
 
+import java.util.List;
+
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Securitycurrency;
 
@@ -68,4 +70,17 @@ public interface IIntradayEntityAccess<S extends Securitycurrency<S>> {
    *                   other technical problems during the update process
    */
   void updateIntraSecurityCurrency(final S securitycurrency, final IFeedConnector feedConnector) throws Exception;
+
+  /**
+   * Updates the intraday price information of several entities with one request of a connector whose
+   * {@link IFeedConnector#getIntradayBatchSize()} is greater than 1. Like the single variant it only changes the
+   * entities; persisting them is left to the orchestration layer.
+   *
+   * @param securitycurrencies the entities to update, at most the batch size of the connector
+   * @param feedConnector      the connector configured for all of these entities
+   * @return the entities the answer held no usable price for
+   * @throws Exception if the request as a whole failed, which fails every entity of the batch
+   */
+  List<S> updateIntraSecurityCurrencies(final List<S> securitycurrencies, final IFeedConnector feedConnector)
+      throws Exception;
 }

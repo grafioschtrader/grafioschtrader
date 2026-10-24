@@ -40,6 +40,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-inputnumber',
   template: `
+    @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-inputNumber
         [inputStyleClass]="'text-end ' + (isRequired && !config.readonly ? 'required-input' : '')"

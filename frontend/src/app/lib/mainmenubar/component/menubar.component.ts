@@ -34,7 +34,7 @@ import { GlobalSessionNames } from '../../global.session.names';
  */
 @Component({
   selector: 'menubar',
-  template: ` <p-menubar [model]="this.activePanelService.topMenuItems"></p-menubar> `,
+  template: ` <p-menubar [model]="activePanelService.topMenuItems()"></p-menubar> `,
   standalone: true,
   imports: [MenubarModule],
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -60,7 +60,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
     @Inject(PERSONAL_DATA_ZIP_NAME) private personalDataZipName: string,
     @Optional() @Inject(SETTINGS_MENU_EXTENSIONS) private settingsExtensions: SettingsMenuExtension[]
   ) {
-    this.activePanelService.topMenuItems = this.menuItems;
+    this.activePanelService.topMenuItems.set(this.menuItems);
   }
 
   ngOnInit() {
@@ -141,6 +141,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
       };
     }
     this.addManageClientMenu();
+    this.refreshTopMenu();
     this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(() =>
       this.toggleMainTree(true)
     );
@@ -238,7 +239,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
   /** Publishes a fresh array reference so the Optimus menubar picks up structural changes. */
   private refreshTopMenu(): void {
     this.menuItems = this.menuItems.slice();
-    this.activePanelService.topMenuItems = this.menuItems;
+    this.activePanelService.topMenuItems.set(this.menuItems);
   }
 
   private openCreateClientDialog(): void {

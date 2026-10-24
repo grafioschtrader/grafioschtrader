@@ -1,4 +1,14 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+  signal
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../service/log-in.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -31,12 +41,12 @@ import { PasswordEditComponent } from './password-edit.component';
   template: `
     <div class="container">
       <div class="login jumbotron-replacement mx-auto">
-        @if (successLastRegistration) {
+        @if (successLastRegistration()) {
           <div class="alert alert-success" role="alert">
-            {{ successLastRegistration | translate }}
+            {{ successLastRegistration() | translate }}
           </div>
         }
-        <application-info [applicationInfo]="applicationInfo"></application-info>
+        <application-info [applicationInfo]="applicationInfo()"></application-info>
         @if (formConfig) {
           <h2>{{ 'SIGN_IN' | translate }}</h2>
           <dynamic-form
@@ -47,9 +57,9 @@ import { PasswordEditComponent } from './password-edit.component';
             (submitBt)="submit($event)">
           </dynamic-form>
         }
-        @if (releaseNotes && releaseNotes.length > 0) {
+        @if (releaseNotes().length > 0) {
           <p-card class="mt-2 d-block" header="{{ 'RELEASE_NOTE' | translate }}">
-            @for (note of releaseNotes; track note.idReleaseNote) {
+            @for (note of releaseNotes(); track note.idReleaseNote) {
               <div class="mb-3">
                 <h4>{{ note.version }}</h4>
                 {{ note.note }}
@@ -67,8 +77,8 @@ import { PasswordEditComponent } from './password-edit.component';
       </div>
     </div>
 
-    @if (visiblePasswordDialog) {
-      <password-edit [forcePasswordChange]="true" [visibleDialog]="visiblePasswordDialog"> </password-edit>
+    @if (visiblePasswordDialog()) {
+      <password-edit [forcePasswordChange]="true" [visibleDialog]="visiblePasswordDialog()"> </password-edit>
     }
   `,
   providers: [DialogService],
@@ -78,11 +88,12 @@ import { PasswordEditComponent } from './password-edit.component';
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
-  applicationInfo: ApplicationInfo;
-  releaseNotes: ReleaseNote[] = [];
+  readonly applicationInfo = signal<ApplicationInfo>(undefined);
+  readonly releaseNotes = signal<ReleaseNote[]>([]);
   queryParams: any;
-  successLastRegistration: string;
-  visiblePasswordDialog = false;
+  readonly successLastRegistration = signal<string>(undefined);
+  readonly visiblePasswordDialog = signal(false);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private router: Router,
@@ -102,17 +113,19 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
       this.actuatorService.applicationInfo(),
       this.gps.getUserFormDefinitions(),
       this.releaseNoteService.getTopReleaseNotes()
-    ]).subscribe({
-      next: (
-        data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[], releaseNotes: ReleaseNote[]]
-      ) => {
-        this.applicationInfo = data[0];
-        sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
-        this.loginFormDefinition(data[1]);
-        this.releaseNotes = data[2];
-      },
-      error: (err) => (this.applicationInfo = null)
-    });
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (
+          data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[], releaseNotes: ReleaseNote[]]
+        ) => {
+          this.applicationInfo.set(data[0]);
+          sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
+          this.loginFormDefinition(data[1]);
+          this.releaseNotes.set(data[2] ?? []);
+        },
+        error: () => this.applicationInfo.set(null)
+      });
   }
 
   submit(value: { [name: string]: any }): void {
@@ -156,7 +169,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
 
   private navigateToMainView(passwordRegexOk: boolean): void {
     if (!passwordRegexOk) {
-      this.visiblePasswordDialog = true;
+      this.visiblePasswordDialog.set(true);
       this.configObject.submit.disabled = false;
       this.configObject.password.formControl.setValue('');
     } else {
@@ -172,7 +185,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.queryParams.unsubscribe();
+    this.queryParams?.unsubscribe();
   }
 
   helpLink(): void {
@@ -186,12 +199,12 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
       nonModal: true,
       language: AppHelper.getNonUserDefinedLanguage(this.translateService.currentLang)
     };
-    this.applicationInfo.users;
     this.config = [];
     this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'email', fdias));
     this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'password', fdias));
 
-    if (this.applicationInfo.users.active < this.applicationInfo.users.allowed) {
+    const users = this.applicationInfo().users;
+    if (users.active < users.allowed) {
       this.config.push(
         DynamicFieldHelper.createFunctionButton('REGISTRATION', (e) =>
           this.router.navigate([`/${BaseSettings.REGISTER_KEY}`])
@@ -199,8 +212,8 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
       );
     }
     this.config.push(DynamicFieldHelper.createSubmitButton('SIGN_IN'));
-    this.queryParams = this.activatedRoute.params.subscribe(
-      (params) => (this.successLastRegistration = params['success'])
+    this.queryParams = this.activatedRoute.params.subscribe((params) =>
+      this.successLastRegistration.set(params['success'])
     );
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }

@@ -234,6 +234,8 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * @param newSecurityId the new security ID to assign
    * @param appId         the SecurityActionApplication ID to tag reassigned transactions
    * @param fromDate      the action date (exclusive) after which transactions are reassigned
+   * @param excludedIds   transactions that stay with the old security, e.g. a sale that already carried out the ISIN
+   *                      change after the action date; must not be empty, pass {@code List.of(-1)} for none
    * @return number of rows updated
    */
   @Transactional
@@ -241,7 +243,8 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   @Query(nativeQuery = true)
   int reassignTransactionsToNewSecurity(@Param("idTenant") Integer idTenant,
       @Param("oldSecurityId") Integer oldSecurityId, @Param("newSecurityId") Integer newSecurityId,
-      @Param("appId") Integer appId, @Param("fromDate") LocalDate fromDate);
+      @Param("appId") Integer appId, @Param("fromDate") LocalDate fromDate,
+      @Param("excludedIds") List<Integer> excludedIds);
 
   /**
    * Reverts reassigned transactions back to the old security during ISIN change reversal. Only reverts

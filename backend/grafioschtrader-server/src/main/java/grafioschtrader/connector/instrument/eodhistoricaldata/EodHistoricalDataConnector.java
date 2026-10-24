@@ -5,19 +5,24 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Semaphore;
+import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
 
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
@@ -41,7 +46,9 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.types.CreateType;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -63,6 +70,8 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
   private static final ObjectMapper objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
+
+  private static final int INTRADAY_BATCH_SIZE = 15;
 
   private final Semaphore semaphoreLastPrice = new Semaphore(5);
 
@@ -92,8 +101,8 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   /**
    * The EODHD symbol is ticker plus exchange code, e.g. {@code SAP.XETRA}. Master data of the EODHD search carries it;
    * for a listing another provider found it is built from the exchange ticker and the {@code eodhd} code of the MIC in
-   * {@code mic_provider_map}, with {@code -} for a dot or blank in the ticker ({@code BRK-B.US}). All four feeds use the
-   * same symbol.
+   * {@code mic_provider_map}, with {@code -} for a dot or blank in the ticker ({@code BRK-B.US}). All four feeds use
+   * the same symbol.
    */
   @Override
   public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
@@ -260,6 +269,91 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
     return 900;
   }
 
+  /** EODHD recommends no more than 15 to 20 tickers per real-time request. */
+  @Override
+  public int getIntradayBatchSize() {
+    return INTRADAY_BATCH_SIZE;
+  }
+
+  @Override
+  public List<Security> updateSecuritiesLastPrice(final List<Security> securities) throws Exception {
+    return updateLastPrices(securities, Security::getUrlIntraExtend, FeedConnectorHelper::getMinorUnitDivider);
+  }
+
+  @Override
+  public List<Currencypair> updateCurrencyPairsLastPrice(final List<Currencypair> currencypairs) throws Exception {
+    return updateLastPrices(currencypairs, this::getCurrencyPairSymbol, _ -> 1.0);
+  }
+
+  /**
+   * Requests the real-time quotes of all instruments with one call: the first symbol is the path, the others go into
+   * the {@code s} parameter. One permit of the semaphore covers the whole request.
+   *
+   * @return the instruments without symbol or without usable quote in the answer
+   */
+  private <T extends Securitycurrency<T>> List<T> updateLastPrices(final List<T> instruments,
+      final Function<T, String> symbolOf, final ToDoubleFunction<T> divider) throws Exception {
+    final List<T> missing = new ArrayList<>();
+    final Map<String, List<T>> bySymbol = new LinkedHashMap<>();
+    for (final T instrument : instruments) {
+      final String symbol = symbolOf.apply(instrument);
+      if (symbol == null || symbol.isBlank()) {
+        missing.add(instrument);
+      } else {
+        bySymbol.computeIfAbsent(symbol.toUpperCase(Locale.ROOT), _ -> new ArrayList<>()).add(instrument);
+      }
+    }
+    if (!bySymbol.isEmpty()) {
+      final String body;
+      semaphoreLastPrice.acquire();
+      try {
+        body = FeedConnectorHelper.getByHttpClient(getBatchIntradayDownloadLink(bySymbol.keySet()), 10).body();
+      } finally {
+        semaphoreLastPrice.release();
+      }
+      missing.addAll(applyQuotes(body, bySymbol, divider, getIntradayDelayedSeconds()));
+    }
+    return missing;
+  }
+
+  private String getBatchIntradayDownloadLink(final Collection<String> symbols) {
+    final List<String> encoded = symbols.stream().map(s -> URLEncoder.encode(s, StandardCharsets.UTF_8)).toList();
+    final String others = encoded.size() > 1 ? "s=" + String.join(",", encoded.subList(1, encoded.size())) + "&" : "";
+    return DOMAIN_NAME_API + "real-time/" + encoded.getFirst() + "?" + others + JSON_PARAM + getApiKeyString();
+  }
+
+  /**
+   * Applies a real-time answer to the instruments. The answer is an array with one element per ticker, or a single
+   * object when only one ticker was requested. Elements are matched by their {@code code}, not by position, and are
+   * converted one by one, so that an element with {@code "NA"} values of an unknown ticker leaves only its own
+   * instruments without price.
+   *
+   * @param body         the response body of the real-time request
+   * @param bySymbol     the instruments by upper-case EODHD symbol; several instruments may share one symbol
+   * @param divider      the divider of each instrument, e.g. 100 for a price quoted in pence
+   * @param delaySeconds the delay subtracted from the current time for the quote timestamp
+   * @return the instruments the answer held no usable quote for
+   */
+  static <T extends Securitycurrency<T>> List<T> applyQuotes(final String body, final Map<String, List<T>> bySymbol,
+      final ToDoubleFunction<T> divider, final int delaySeconds) {
+    final JsonNode root = objectMapper.readTree(body);
+    final Iterable<JsonNode> nodes = root.isArray() ? root : List.of(root);
+    final Map<String, List<T>> open = new LinkedHashMap<>(bySymbol);
+    for (final JsonNode node : nodes) {
+      final Quote quote;
+      try {
+        quote = objectMapper.treeToValue(node, Quote.class);
+      } catch (final JacksonException e) {
+        continue;
+      }
+      final List<T> matched = quote.code == null ? null : open.remove(quote.code.toUpperCase(Locale.ROOT));
+      if (matched != null) {
+        matched.forEach(sc -> quote.setValues(sc, divider.applyAsDouble(sc), delaySeconds));
+      }
+    }
+    return open.values().stream().flatMap(List::stream).toList();
+  }
+
   private String getSecurityCurrencyIntradayDownloadLink(final String ticker) {
     return DOMAIN_NAME_API + "real-time/" + ticker.toUpperCase() + "?" + JSON_PARAM + getApiKeyString();
   }
@@ -314,7 +408,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   }
 
   private static class Quote {
-    // public String code;
+    public String code;
     // public long timestamp;
     // public int gmtoffset;
     public double open;

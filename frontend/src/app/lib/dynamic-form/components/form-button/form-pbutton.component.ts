@@ -4,6 +4,7 @@ import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { FieldFormFormGroupConfig } from '../../models/field.form.form.group.config';
 import { FieldConfig } from '../../models/field.config';
 import { FormConfig } from '../../models/form.config';
+import { FormNotifier } from '../../models/form.notifier';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
@@ -18,6 +19,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 @Component({
   selector: 'form-pbutton',
   template: `
+    @let rev = notifier?.revision();
     @if (!config.buttonFN) {
       <button
         pButton
@@ -68,4 +70,9 @@ export class FormPButtonComponent implements FieldFormFormGroupConfig {
   config: FieldConfig;
   formConfig: FormConfig;
   group: UntypedFormGroup;
+
+  /** Change notification of the form this field belongs to; the template reads its revision. */
+  get notifier(): FormNotifier {
+    return FormNotifier.of(this.config);
+  }
 }

@@ -6,6 +6,7 @@ import { TriStateCheckboxComponent } from './tri-state-checkbox';
 @Component({
   selector: 'form-tri-state-checkbox',
   template: `
+    @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <tri-state-checkbox [id]="config.field" [formControlName]="config.field" #input></tri-state-checkbox>
     </ng-container>

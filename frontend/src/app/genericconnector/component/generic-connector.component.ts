@@ -122,7 +122,7 @@ import { AppSettings } from '../../shared/app.settings';
         [visibleDialog]="visibleTestDialog"
         [endpoint]="selectedEndpoint"
         [connectorDef]="selectedEntity"
-        (closeDialog)="handleCloseTestDialog($event)">
+        (closeDialog)="handleCloseTestDialog()">
       </generic-connector-test-dialog>
     }
   `,

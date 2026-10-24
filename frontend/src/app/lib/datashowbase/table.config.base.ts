@@ -8,7 +8,7 @@ import { ColumnConfig } from './column.config';
 import { TableTreetableTotalBase } from './table.treetable.total.base';
 import { BaseSettings } from '../base.settings';
 import { GlobalparameterService } from '../services/globalparameter.service';
-import { ColumnVisibilityDialogComponent } from './column-visibility-dialog.component';
+import { ColumnVisibilityDialogComponent, ColumnVisibilityOwner } from './column-visibility-dialog.component';
 
 /**
  * Abstract base class for displaying data in Optimus table format with comprehensive
@@ -52,6 +52,19 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   protected filterRowToggleable = false;
 
+  /**
+   * Number of leading visible columns that stay in place while the table is scrolled horizontally. The view hands it to
+   * ConfigurableTableComponent, for example [frozenColumnCount]="frozenColumnCount". Only tables which set
+   * {@link frozenColumnsSelectable} offer it in the column visibility dialog and save it.
+   */
+  frozenColumnCount = 0;
+
+  /**
+   * Opt-in for the slider of the column visibility dialog that sets {@link frozenColumnCount}. Only a table bound to
+   * a scrollable ConfigurableTableComponent can make use of it.
+   */
+  protected frozenColumnsSelectable = false;
+
   /** Backup array for restoring column visibility states */
   private visibleRestore: boolean[] = [];
 
@@ -61,6 +74,15 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * destroyed, which a page reload never does.
    */
   private tableDefinitionKey: string = null;
+
+  /**
+   * Stable sort callback for the customSortFn input of the table hosts. It calls customSort, so overrides in
+   * subclasses keep working; unlike customSort.bind(this) it is the same function on every check.
+   */
+  readonly customSorter = (event: SortEvent) => this.customSort(event);
+
+  /** Group fields with their colspan, computed once per column layout instead of while the template renders */
+  private groupFieldsCache: { fields: ColumnConfig[]; length: number; groupFields: ColumnConfig[] } = null;
 
   /**
    * Creates a new table configuration base.
@@ -99,6 +121,19 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @returns Array of column configurations with properly calculated colspan values
    */
   get groupFields(): ColumnConfig[] {
+    const cache = this.groupFieldsCache;
+    if (!cache || cache.fields !== this.fields || cache.length !== this.fields.length) {
+      this.groupFieldsCache = {
+        fields: this.fields,
+        length: this.fields.length,
+        groupFields: this.computeGroupFields()
+      };
+    }
+    return this.groupFieldsCache.groupFields;
+  }
+
+  /** Collects the group fields and adjusts their colspan to the position of the next grouped column. */
+  private computeGroupFields(): ColumnConfig[] {
     const groupFields: ColumnConfig[] = [];
     for (let i = 0; i < this.fields.length; i++) {
       groupFields.push(this.fields[i]);
@@ -140,6 +175,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     if (this.filterRowToggleable) {
       this.usersettingsService.saveSingleValue(key + '.filterrow', this.showFilterRow);
     }
+    if (this.frozenColumnsSelectable) {
+      this.usersettingsService.saveSingleValue(key + '.frozen', this.frozenColumnCount);
+    }
   }
 
   /**
@@ -167,6 +205,12 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     if (this.filterRowToggleable) {
       this.showFilterRow = this.usersettingsService.readSingleValue(key + '.filterrow') === true;
     }
+    if (this.frozenColumnsSelectable) {
+      const storedFrozen = this.usersettingsService.readSingleValue(key + '.frozen');
+      this.frozenColumnCount =
+        storedFrozen > 0 ? Math.min(storedFrozen, ColumnVisibilityDialogComponent.MAX_FROZEN_COLUMNS) : 0;
+    }
+    this.notifyViewChanged();
   }
 
   /**
@@ -270,6 +314,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   onColResize(event) {
     const columnConfig = this.getColumnConfigByHeaderTranslated(event.element.innerText.trim());
     columnConfig.width = event.element.style.width;
+    this.notifyViewChanged();
   }
 
   /**
@@ -381,13 +426,15 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   hideShowColumnByFileHeader(fileHeader: string, visible: boolean) {
     this.fields.filter((field) => field.headerKey === fileHeader).forEach((field) => (field.visible = visible));
+    this.notifyViewChanged();
   }
 
   /**
    * Opens a dialog for toggling column visibility.
    * The dialog shows checkboxes for all columns with changeVisibility enabled.
    * Changes are applied in real-time as checkboxes are toggled and saved when the dialog closes, provided the table
-   * reads its settings through readTableDefinition.
+   * reads its settings through readTableDefinition. A table that set {@link frozenColumnsSelectable} additionally gets
+   * a slider for the number of columns fixed on the left.
    */
   openColumnVisibilityDialog(): void {
     if (!this.injector) {
@@ -405,7 +452,11 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
           closable: true,
           closeOnEscape: true,
           position: 'right',
-          data: { fields: this.fields }
+          data: {
+            fields: this.fields,
+            frozenColumns: this.frozenColumnsSelectable ? this : null,
+            owner: this satisfies ColumnVisibilityOwner
+          }
         })
         .onClose.subscribe(() => this.tableDefinitionKey && this.writeTableDefinition(this.tableDefinitionKey));
     });
@@ -436,6 +487,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   toggleFilterRow(): void {
     this.showFilterRow = !this.showFilterRow;
+    this.notifyViewChanged();
   }
 
   /**

@@ -8,6 +8,7 @@ import {
   MainTreeCallbacks
 } from '../contributor/main-tree-contributor.interface';
 import { ProcessedActionData } from '../../types/processed.action.data';
+import { DialogComponentLoader } from '../handler/lazy-dialog';
 
 /**
  * Main service for managing the navigation tree.
@@ -58,7 +59,12 @@ export class MainTreeService {
 
   // Component callbacks - set by the component
   private componentCallbacks: {
-    handleEdit?: (componentType: any, parentObject: any, data: any, titleKey: string) => Observable<any>;
+    handleEdit?: (
+      loadComponent: DialogComponentLoader,
+      parentObject: any,
+      data: any,
+      titleKey: string
+    ) => Observable<any>;
     handleTenantEdit?: (data: any, onlyCurrency: boolean) => Observable<any>;
     navigateToNode?: (data: any) => void;
     refreshTree?: () => void;
@@ -78,8 +84,8 @@ export class MainTreeService {
    */
   private initializeContributorCallbacks(): void {
     const callbacks: MainTreeCallbacks = {
-      handleEdit: (componentType: any, parentObject: any, data: any, titleKey: string) =>
-        this.componentCallbacks.handleEdit?.(componentType, parentObject, data, titleKey) || of(null),
+      handleEdit: (loadComponent: DialogComponentLoader, parentObject: any, data: any, titleKey: string) =>
+        this.componentCallbacks.handleEdit?.(loadComponent, parentObject, data, titleKey) || of(null),
       handleTenantEdit: (data: any, onlyCurrency: boolean) =>
         this.componentCallbacks.handleTenantEdit?.(data, onlyCurrency) || of(null),
       navigateToNode: (data: any) => this.componentCallbacks.navigateToNode?.(data),
@@ -96,7 +102,12 @@ export class MainTreeService {
    * This is called by MainTreeComponent during initialization.
    */
   setComponentCallbacks(callbacks: {
-    handleEdit: (componentType: any, parentObject: any, data: any, titleKey: string) => Observable<any>;
+    handleEdit: (
+      loadComponent: DialogComponentLoader,
+      parentObject: any,
+      data: any,
+      titleKey: string
+    ) => Observable<any>;
     handleTenantEdit: (data: any, onlyCurrency: boolean) => Observable<any>;
     navigateToNode: (data: any) => void;
     refreshTree: () => void;

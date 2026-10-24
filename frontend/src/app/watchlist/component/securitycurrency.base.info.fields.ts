@@ -22,8 +22,11 @@ import { WatchlistService } from '../service/watchlist.service';
  */
 @Directive()
 export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigBase {
-  /** The security or currency pair to display information for */
-  @Input() securitycurrency: Security | CurrencypairWatchlist;
+  /**
+   * The security or currency pair to display information for. A watchlist delivers its currency pairs as
+   * CurrencypairWatchlist, which the derived classes tell apart with instanceof.
+   */
+  @Input() securitycurrency: Security | Currencypair;
 
   /** Prefix for accessing securitycurrency properties in field paths */
   readonly SECURITYCURRENCY = 'securitycurrency.';

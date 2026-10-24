@@ -11,6 +11,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-input-select',
   template: `
+    @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <select
         #input

@@ -51,7 +51,7 @@ enum NodeLevel {
         [fields]="fields"
         dataKey="nodeKey"
         sortField="name"
-        [(selection)]="selectedNodes"
+        [(selection)]="tableSelection"
         (nodeSelect)="onNodeSelect($event)"
         (nodeUnselect)="onNodeUnselect($event)"
         [contextMenuItems]="contextMenuItems"
@@ -94,7 +94,8 @@ enum NodeLevel {
 })
 export class TaxDataTreetableComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
   treeNodes: TreeNode[] = [];
-  selectedNodes: TreeNode[] = [];
+  /** Row highlighted by the single-selection tree table. */
+  tableSelection: TreeNode = null;
   contextMenuItems: MenuItem[];
   fileUploadParam: FileUploadParam;
   visibleUploadFileDialog = false;
@@ -373,7 +374,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
    */
   private clearSelectionAndReload(): void {
     this.selectedNode = null;
-    this.selectedNodes = [];
+    this.tableSelection = null;
     this.resetMenu();
     this.readData();
   }

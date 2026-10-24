@@ -23,6 +23,8 @@ export interface SecurityActionApplication {
   idTransactionBuy: number;
   appliedTime: string;
   reversed: boolean;
+  /** Securities accounts in which the ISIN change had already been carried out; only set when applying it */
+  alreadyPerformedCount?: number;
 }
 
 export interface SecurityTransfer {

@@ -23,7 +23,17 @@
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": false,
     "strictInputAccessModifiers": true,
-    "strictTemplates": false
+    "strictTemplates": true,
+    "extendedDiagnostics": {
+      "checks": {
+        "interpolatedSignalNotInvoked": "error",
+        "uninvokedFunctionInTextInterpolation": "error",
+        "uninvokedFunctionInEventBinding": "error",
+        // The dynamic-form templates read their FormNotifier with "@let rev = notifier.revision();" only to subscribe
+        // the view to the signal; the value itself is never used.
+        "unusedLetDeclaration": "suppress"
+      }
+    }
   },
   "files": []
 }

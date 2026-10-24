@@ -5,7 +5,10 @@ import { ProposeTransientTransfer } from '../entities/propose.transient.transfer
 import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
 import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { TranslateService } from '@ngx-translate/core';
-import { Directive, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, DestroyRef, Directive, inject, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MonoTypeOperatorFunction, Subscription } from 'rxjs';
+import { untilSessionEnds } from './dialog.session';
 import { AuditHelper } from '../helper/audit.helper';
 import { InfoLevelType } from '../message/info.leve.type';
 import { ProcessedActionData } from '../types/processed.action.data';
@@ -34,6 +37,17 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
    */
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
+  /** Lifetime of the component, for subscriptions created outside an injection context */
+  protected readonly destroyRef = inject(DestroyRef);
+
+  protected readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  /**
+   * Subscriptions of the dialog session. A dynamic dialog is created for every opening, so the session lasts until
+   * the component is destroyed unless a subclass renews it.
+   */
+  private dialogSession = new Subscription();
+
   /**
    * Constructor for SimpleDynamicEditBase.
    *
@@ -56,6 +70,7 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
     public serviceEntityUpdate: ServiceEntityUpdate<T>
   ) {
     super();
+    this.destroyRef.onDestroy(() => this.dialogSession.unsubscribe());
   }
 
   /**
@@ -68,23 +83,49 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
   submit(value: { [name: string]: any }): void {
     const entityNew: T = this.getNewOrExistingInstanceBeforeSave(value);
     AuditHelper.disableRejectFieldButton(this.configObject, true);
-    this.serviceEntityUpdate.update(entityNew).subscribe({
-      next: (returnEntity) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-          i18nRecord: this.dynamicDialogConfig.header
-        });
-        this.dynamicDialogRef.close(
-          new ProcessedActionData(ProcessedAction.CREATED, plainToClassFromExist(entityNew, returnEntity))
-        );
-      },
-      error: (transformedError: TransformedError) => {
-        if (transformedError.errorClass && transformedError.errorClass instanceof LimitEntityTransactionError) {
-          this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.NO_CHANGE, null, transformedError));
+    this.serviceEntityUpdate
+      .update(entityNew)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (returnEntity) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: this.dynamicDialogConfig.header
+          });
+          this.dynamicDialogRef.close(
+            new ProcessedActionData(ProcessedAction.CREATED, plainToClassFromExist(entityNew, returnEntity))
+          );
+          this.viewChanged();
+        },
+        error: (transformedError: TransformedError) => {
+          if (transformedError.errorClass && transformedError.errorClass instanceof LimitEntityTransactionError) {
+            this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.NO_CHANGE, null, transformedError));
+          }
+          this.configObject.submit.disabled = false;
+          AuditHelper.disableRejectFieldButton(this.configObject, false);
+          this.viewChanged();
         }
-        this.configObject.submit.disabled = false;
-        AuditHelper.disableRejectFieldButton(this.configObject, false);
-      }
-    });
+      });
+  }
+
+  /**
+   * Ties an observable to the dialog session: it completes when the session is renewed or the dialog is destroyed.
+   */
+  protected untilDialogClosed<T>(): MonoTypeOperatorFunction<T> {
+    return untilSessionEnds<T>(this.dialogSession);
+  }
+
+  /** Ends the subscriptions of the current dialog session and opens a new one, for a dialog that re-initializes. */
+  protected renewDialogSession(): void {
+    this.dialogSession.unsubscribe();
+    this.dialogSession = new Subscription();
+  }
+
+  /**
+   * Marks this dialog for check. Needed by a dialog that writes its own template fields from an asynchronous callback
+   * and has not moved them to signals yet; changes of a FieldConfig notify the form by themselves.
+   */
+  protected viewChanged(): void {
+    this.changeDetectorRef.markForCheck();
   }
 
   /**

@@ -3,9 +3,8 @@ import { DialogModule } from '@openng/optimus-ui/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { HistoryquoteLegacy } from '../../entities/historyquote.legacy';
+import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy.security.currency';
 import { Securitycurrency } from '../../entities/securitycurrency';
-import { Security } from '../../entities/security';
-import { Currencypair } from '../../entities/currencypair';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { HistoryquoteLegacyService } from '../service/historyquote.legacy.service';
@@ -16,23 +15,6 @@ import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 import { HistoryquoteEditBase } from './historyquote-edit.base';
-
-/**
- * Call parameter for {@link HistoryquoteLegacyEditComponent}: the archived row being edited together with its owning
- * security or currency pair (the auditable parent used for rights/propose-change decisions).
- */
-export class HistoryquoteLegacySecurityCurrency {
-  constructor(
-    public historyquoteLegacy: HistoryquoteLegacy,
-    public securitycurrency: Securitycurrency
-  ) {}
-
-  get showName(): string {
-    return this.securitycurrency.hasOwnProperty('name')
-      ? (<Security>this.securitycurrency).name
-      : (<Currencypair>this.securitycurrency).fromCurrency + '/' + (<Currencypair>this.securitycurrency).toCurrency;
-  }
-}
 
 /**
  * Edit an archived {@code historyquote_legacy} row. The trading date and the archival transferDate are read-only;

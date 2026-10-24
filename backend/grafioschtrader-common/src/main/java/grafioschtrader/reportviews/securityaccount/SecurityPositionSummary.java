@@ -437,8 +437,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     double openWinLose = 0d;
     marginGainLossBySettlementCurrency = new HashMap<>();
     for (TransactionsMarginOpenUnits tmou : transactionsMarginOpenUnitsMap.values()) {
-      // TODO fix transaction cost
       if (!tmou.markForRemove) {
+        // No closing costs are deducted, because the disposal cost estimate does not cover margin instruments
         double gainLoss = tmou.calcGainLossOnPositionClose(price, 0);
         openWinLose += gainLoss;
         marginGainLossBySettlementCurrency.merge(tmou.openTransaction.getCashaccount().getCurrency(),

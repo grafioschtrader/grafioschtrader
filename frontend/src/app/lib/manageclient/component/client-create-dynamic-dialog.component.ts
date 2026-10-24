@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { combineLatest } from 'rxjs';
 import { DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
@@ -50,13 +51,21 @@ export class ClientCreateDynamicDialogComponent extends PasswordBaseComponent im
   }
 
   ngOnInit(): void {
-    combineLatest([this.gps.getUserFormDefinitions(), this.gps.getPasswordRegexProperties()]).subscribe(
-      (data: [FieldDescriptorInputAndShow[], PasswordRegexProperties]) => {
+    combineLatest([this.gps.getUserFormDefinitions(), this.gps.getPasswordRegexProperties()])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: [FieldDescriptorInputAndShow[], PasswordRegexProperties]) => {
         this.passwordRegexProperties = data[1];
         this.buildForm(data[0]);
-        setTimeout(() => this.preparePasswordFields());
-      }
-    );
+        // The form appears with formConfig; its controls and inputs exist after that render
+        this.viewChanged();
+        afterNextRender(
+          () => {
+            this.preparePasswordFields();
+            this.configObject.email.elementRef?.nativeElement.focus();
+          },
+          { injector: this.injector }
+        );
+      });
   }
 
   submit(value: { [name: string]: any }): void {
@@ -99,6 +108,5 @@ export class ClientCreateDynamicDialogComponent extends PasswordBaseComponent im
       DynamicFieldHelper.createSubmitButton('CREATE_CLIENT')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    setTimeout(() => this.configObject.email.elementRef.nativeElement.focus());
   }
 }

@@ -1,4 +1,5 @@
-import { Injectable, Type } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { DialogComponentLoader } from '../../maintree/handler/lazy-dialog';
 import { PrepareCallParam } from '../component/general.entity.prepare.edit';
 
 /**
@@ -23,7 +24,7 @@ export class EntityPrepareRegistry {
    * Map of entity type identifiers to their corresponding edit component types.
    * These components are dynamically loaded when an entity needs to be edited.
    */
-  private editComponents = new Map<string, Type<any>>();
+  private editComponents = new Map<string, DialogComponentLoader>();
 
   /**
    * Registers a handler and edit component for a specific entity type.
@@ -32,11 +33,16 @@ export class EntityPrepareRegistry {
    *
    * @param entityType - Unique identifier for the entity type (e.g., "Assetclass", "Security")
    * @param prepareHandler - Handler that prepares entities of this type for editing
-   * @param editComponent - Component type used to edit entities of this type
+   * @param loadEditComponent - Dynamic import of the component used to edit entities of this type; the component is
+   *   loaded when a proposal of this type is opened for the first time
    */
-  registerEntityHandler(entityType: string, prepareHandler: PrepareCallParam<any>, editComponent: Type<any>): void {
+  registerEntityHandler(
+    entityType: string,
+    prepareHandler: PrepareCallParam<any>,
+    loadEditComponent: DialogComponentLoader
+  ): void {
     this.prepareHandlers.set(entityType, prepareHandler);
-    this.editComponents.set(entityType, editComponent);
+    this.editComponents.set(entityType, loadEditComponent);
   }
 
   /**
@@ -50,12 +56,12 @@ export class EntityPrepareRegistry {
   }
 
   /**
-   * Retrieves the edit component type for a specific entity type.
+   * Retrieves the loader of the edit component for a specific entity type.
    *
    * @param entityType - The entity type identifier
-   * @returns The registered component type, or undefined if not registered
+   * @returns The registered dynamic import, or undefined if not registered
    */
-  getEditComponent(entityType: string): Type<any> | undefined {
+  getEditComponentLoader(entityType: string): DialogComponentLoader | undefined {
     return this.editComponents.get(entityType);
   }
 

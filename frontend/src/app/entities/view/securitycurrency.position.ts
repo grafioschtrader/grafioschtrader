@@ -20,7 +20,7 @@ export class SecuritycurrencyPosition<T extends Securitycurrency> {
   public historicalUrl: string;
   public intradayUrl: string;
   public dividendUrl: string;
-  public splitUrl: String;
+  public splitUrl: string;
   public isUsedElsewhere: boolean;
   public watchlistSecurityHasEver: boolean;
   public youngestHistoryDate: Date;
@@ -28,6 +28,11 @@ export class SecuritycurrencyPosition<T extends Securitycurrency> {
   public oldestHistoryDate: Date;
   /** Completed trading sessions of the exchange that went by without the shown price being renewed. */
   public staleTradingSessions: number;
+  /**
+   * Trading sessions after youngestHistoryDate whose closing price should already be stored, because the last end of
+   * day load of the exchange ran after them. Null when the instrument has no historical data source.
+   */
+  public missingEodSessions: number;
   /** Where the shown last price comes from. */
   public lastpriceOrigin: LastpriceOrigin;
   /** Dividends were requested, but this distributing security has none in the period: total return = price return. */

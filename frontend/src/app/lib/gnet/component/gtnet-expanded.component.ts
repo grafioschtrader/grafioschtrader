@@ -135,8 +135,8 @@ export class GTNetExpandedComponent {
   @Input() maintenanceWindowCount = 0;
   @Input() messageAttemptCount = 0;
   @Input() canAdministerGTNet = false;
-  @Input() incomingPendingIds: number[] = [];
-  @Input() outgoingPendingIds: number[] = [];
+  @Input() incomingPendingIds: Set<number> = new Set();
+  @Input() outgoingPendingIds: Set<number> = new Set();
   @Input() formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
   /** True while the parent is still fetching the lazily loaded panels. */
   @Input() loading = false;
@@ -182,8 +182,8 @@ export class GTNetExpandedComponent {
    *
    * @param panels the values of the panels which are now open
    */
-  onPanelsChange(panels: string | string[]): void {
-    this.openPanels = Array.isArray(panels) ? panels : [panels];
+  onPanelsChange(panels: string | number | string[] | number[]): void {
+    this.openPanels = (Array.isArray(panels) ? panels : [panels]).map(String);
     this.openPanelsChange.emit(this.openPanels);
   }
 

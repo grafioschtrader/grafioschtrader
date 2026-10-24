@@ -13,6 +13,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-input-multi-select',
   template: `
+    @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-multiSelect
         [ngStyle]="{ width: config.inputWidth + 1 + 'em' }"

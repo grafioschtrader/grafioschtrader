@@ -15,7 +15,7 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
   Object = Object;
 
   /** Private cache for grouped field configurations */
-  _fieldSetGroups: { [fieldSetName: string]: ColumnConfig };
+  _fieldSetGroups: { [fieldSetName: string]: ColumnConfig[] };
 
   /**
    * Creates a new single record configuration.
@@ -42,14 +42,14 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
    * const groups = this.fieldSetGroups;
    * ```
    */
-  get fieldSetGroups(): { [fieldSetName: string]: ColumnConfig } {
+  get fieldSetGroups(): { [fieldSetName: string]: ColumnConfig[] } {
     this._fieldSetGroups = this._fieldSetGroups || this.group(this.fields, 'fieldsetName');
     return this._fieldSetGroups;
   }
 
   getFieldsForFieldSet(fieldSetName: string): ColumnConfig[] {
     const groups = this.fieldSetGroups;
-    return (groups[fieldSetName] || []) as ColumnConfig[];
+    return groups[fieldSetName] || [];
   }
 
   /**

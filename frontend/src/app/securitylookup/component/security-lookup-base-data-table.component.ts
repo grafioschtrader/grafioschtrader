@@ -21,6 +21,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { SecurityLookupCandidate } from '../model/security-lookup';
+import { Helper } from '../../lib/helper/helper';
 
 /**
  * First table of the security lookup dialog: one row per listing found by the data providers. A row expands to the
@@ -206,7 +207,8 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase implem
    *
    * @param candidate - The chosen listing, or null when the selection is removed
    */
-  onSelectionChange(candidate: SecurityLookupCandidate): void {
+  onSelectionChange(selection: SecurityLookupCandidate | SecurityLookupCandidate[]): void {
+    const candidate = Helper.singleSelection(selection);
     this.selectedCandidate = candidate;
     this.candidateSelected.emit(candidate);
   }

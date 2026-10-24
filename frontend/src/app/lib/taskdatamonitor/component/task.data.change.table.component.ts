@@ -305,10 +305,10 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     }
     combineLatest([
       this.taskDataChangeService.getAllTaskDataChange(idTasks),
-      this.taskExtendService.supportAdditionalToolTipData() ? this.taskExtendService.getAdditionalData() : of([])
+      this.hasAdditionalToolTipData() ? this.taskExtendService.getAdditionalData() : of([])
     ]).subscribe(([taskDataChanges, additionalData]: [TaskDataChange[], any]) => {
       this.taskDataChangeList = taskDataChanges;
-      if (this.taskExtendService.supportAdditionalToolTipData()) {
+      if (this.hasAdditionalToolTipData()) {
         this.additionalData = additionalData;
       }
       this.prepareTableAndTranslate();
@@ -374,13 +374,18 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
   getTooltipValueByPath(dataobject: any, field: ColumnConfig) {
     let toolTip = null;
-    if (this.taskExtendService.supportAdditionalToolTipData()) {
+    if (this.hasAdditionalToolTipData()) {
       toolTip = this.taskExtendService.getToolTipByPath(dataobject, field, this.additionalData);
     }
     if (toolTip === null) {
       toolTip = this.getValueByPathWithField(dataobject, field, field.fieldTranslated || field.field);
     }
     return toolTip;
+  }
+
+  /** A host without task extensions provides TASK_EXTENDED_SERVICE as null, as grafiosch-host does. */
+  private hasAdditionalToolTipData(): boolean {
+    return !!this.taskExtendService?.supportAdditionalToolTipData();
   }
 
   private copyTaskDataChange(taskDataChange: TaskDataChange): void {

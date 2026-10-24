@@ -116,8 +116,8 @@ export class WatchlistPriceFeedExpandedComponent implements OnInit {
    *
    * @param panels the values of the panels which are now open
    */
-  onPanelsChange(panels: string | string[]): void {
-    this.openPanels = Array.isArray(panels) ? panels : [panels];
+  onPanelsChange(panels: string | number | string[] | number[]): void {
+    this.openPanels = (Array.isArray(panels) ? panels : [panels]).map(String);
     this.panelStateService.setOpenPanels(this.position.securitycurrency.idSecuritycurrency, this.openPanels);
   }
 }

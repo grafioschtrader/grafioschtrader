@@ -4,7 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { UserChartShapeService } from '../service/user.chart.shape.service';
 
-declare let Plotly: any;
+import type { PlotlyInstance } from '../../shared/chart/plotly.loader';
 
 /**
  * Owns the freehand drawings a user places on a time series chart: lines, paths, circles and rectangles
@@ -34,6 +34,8 @@ export class ChartShapeController {
   private shapeSave$ = new Subject<{ idSecuritycurrency: number; shapes: any[] }>();
   private shapeSaveSubscription: Subscription;
   private chartNativeElement: any;
+  /** The loaded Plotly library, handed over by the chart before it builds the mode bar. */
+  private plotly: PlotlyInstance;
   /** Instrument the shapes belong to, null while more than one instrument is charted. */
   private idSecuritycurrency: number = null;
 
@@ -152,12 +154,16 @@ export class ChartShapeController {
    *
    * @returns mode bar button definitions, ready to be appended to modeBarButtonsToAdd
    */
+  public setPlotly(plotly: PlotlyInstance): void {
+    this.plotly = plotly;
+  }
+
   public getModeBarButtons(): any[] {
     return [
       {
         name: 'undo',
         title: 'Undo',
-        icon: Plotly.Icons.undo,
+        icon: this.plotly.Icons.undo,
         click: () => this.undoShapes()
       },
       {
@@ -230,7 +236,7 @@ export class ChartShapeController {
   private applyShapesFromHistory(): void {
     this.isProgrammaticRelayout = true;
     const shapes = JSON.parse(JSON.stringify(this.shapeHistory[this.shapeHistoryIndex]));
-    Plotly.relayout(this.chartNativeElement, { shapes });
+    this.plotly.relayout(this.chartNativeElement, { shapes });
   }
 
   /**
@@ -247,7 +253,7 @@ export class ChartShapeController {
         header: translations['DELETE_ALL_SHAPES'],
         message: translations['DELETE_ALL_SHAPES_CONFIRM'],
         accept: () => {
-          Plotly.relayout(this.chartNativeElement, { shapes: [] });
+          this.plotly.relayout(this.chartNativeElement, { shapes: [] });
         }
       });
     });

@@ -19,6 +19,7 @@
     [formLocale]="formLocale"
     [scrollHeight]="'flex'"
     [scrollable]="true"
+    [frozenColumnCount]="frozenColumnCount"
     [stripedRows]="true"
     [showGridlines]="true"
     [loading]="loading"
@@ -86,10 +87,7 @@
 
     <!-- Custom link icon cell template -->
     <ng-template #linkIconCell let-row let-field="field">
-      <svg-icon
-        [name]="'link' + (field.field.match(fieldNumberRegex) % 4)"
-        [svgStyle]="{ 'width.px':24, 'height.px':14 }">
-      </svg-icon>
+      <svg-icon [name]="getLinkIconName(field)" [svgStyle]="{ 'width.px':24, 'height.px':14 }"> </svg-icon>
     </ng-template>
   </configurable-table>
 </div>

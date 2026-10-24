@@ -3,7 +3,6 @@ import { Directive, Injector, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { UserSettingsService } from '../services/user.settings.service';
 import { AppHelper } from '../helper/app.helper';
-import { InfoLevelType } from '../message/info.leve.type';
 import { MessageToastService } from '../message/message.toast.service';
 import { BaseID } from '../entities/base.id';
 import { ProcessedAction } from '../types/processed.action';
@@ -14,22 +13,18 @@ import { DeleteService } from './delete.service';
 import { GlobalparameterService } from '../services/globalparameter.service';
 import { AuditHelper } from '../helper/audit.helper';
 import { TranslateHelper } from '../helper/translate.helper';
-import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { DynamicDialogs } from '../dynamicdialog/component/dynamic.dialogs';
-import saveAs from '../filesaver/filesaver';
-import { BaseSettings } from '../base.settings';
+import {
+  ALLOW_ALL_CRUD_OPERATIONS,
+  confirmAndDeleteEntity,
+  createCrudMenuItems,
+  CrudMenuOptions,
+  downloadCsv,
+  openLimitRequestOnLimitError
+} from './table.crud.support.menu.helper';
 
-export enum CrudMenuOptions {
-  Allow_Create,
-  Allow_Edit,
-  Allow_Delete,
-  /**
-   *  Avoid to add this menu directly
-   */
-  ParentControl
-}
+export { CrudMenuOptions } from './table.crud.support.menu.helper';
 
 /**
  * Abstract base class providing comprehensive CRUD (Create, Read, Update, Delete) operations
@@ -54,11 +49,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    * Predefined configuration allowing all CRUD operations.
    * Convenience constant for the common situation where all operations are permitted.
    */
-  public static readonly ALLOW_ALL_CRUD_OPERATIONS = [
-    CrudMenuOptions.Allow_Create,
-    CrudMenuOptions.Allow_Edit,
-    CrudMenuOptions.Allow_Delete
-  ];
+  public static readonly ALLOW_ALL_CRUD_OPERATIONS = ALLOW_ALL_CRUD_OPERATIONS;
 
   /** Array containing all entities currently displayed in the table */
   entityList: T[] = [];
@@ -140,25 +131,20 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    * @param entity - Entity to delete
    */
   handleDeleteEntity(entity: T) {
-    AppHelper.confirmationDialog(
-      this.translateService,
-      this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|' + this.entityNameUpper,
+    confirmAndDeleteEntity(
+      {
+        translateService: this.translateService,
+        confirmationService: this.confirmationService,
+        deleteService: this.deleteService,
+        messageToastService: this.messageToastService
+      },
+      this.entityNameUpper,
+      () => this.beforeDelete(entity)[this.entityKeyName],
       () => {
-        entity = this.beforeDelete(entity);
-        // An error branch is required: the toast is written by BaseAuthService.handleError, but without it the
-        // rejected observable is rethrown as an unhandled error and the menu keeps offering the failed action.
-        this.deleteService.deleteEntity(entity[this.entityKeyName]).subscribe({
-          next: () => {
-            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-              i18nRecord: this.entityNameUpper
-            });
-            this.resetMenu(null);
-            this.readData();
-          },
-          error: () => this.resetMenu(null)
-        });
-      }
+        this.resetMenu(null);
+        this.readData();
+      },
+      () => this.resetMenu(null)
     );
   }
 
@@ -178,17 +164,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
   }
 
   protected checkLimitError(processedActionData: ProcessedActionData): void {
-    if (
-      processedActionData.transformedError &&
-      processedActionData.transformedError.errorClass &&
-      processedActionData.transformedError.errorClass instanceof LimitEntityTransactionError
-    ) {
-      DynamicDialogs.getOpenedLimitTransactionRequestDynamicComponent(
-        this.translateService,
-        this.dialogService,
-        this.entityName
-      );
-    }
+    openLimitRequestOnLimitError(processedActionData, this.translateService, this.dialogService, this.entityName);
   }
 
   /**
@@ -247,20 +223,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    * @param data - Array of data objects to export
    */
   downloadCSvFile(data: any[]) {
-    const lineSeparator = navigator.appVersion.indexOf('Win') !== -1 ? '\r\n' : '\n';
-    const replacer = (key, value) => (value === null ? undefined : value); // specify how you want to handle null values here
-    const header: string[] = [];
-    Object.keys(data[0]).filter((name) => {
-      const columnConfig = this.getColumnConfigByField(name);
-      if (columnConfig && columnConfig.export) {
-        header.push(name);
-      }
-    });
-    const csv = data.map((row) => header.map((fieldName) => JSON.stringify(row[fieldName], replacer)).join(';'));
-    csv.unshift(header.join(';'));
-    const csvArray = csv.join(lineSeparator);
-    const blob = new Blob([csvArray], { type: 'text/csv' });
-    saveAs(blob, this.entityName.toLocaleLowerCase() + '.csv');
+    downloadCsv(data, (field) => this.getColumnConfigByField(field), this.entityName);
   }
 
   /**
@@ -315,32 +278,20 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    * @returns Array of menu items for CRUD operations
    */
   protected getEditMenuItems(entity: T): MenuItem[] {
-    const menuItems: MenuItem[] = [];
-    // A read-only user (managed client account, or advisor in a READ-level tenant) cannot create/update/delete tenant
-    // data, so these actions are not shown at all rather than shown disabled. The backend enforces this regardless.
-    const readOnly = this.gps.isReadOnlyUser();
-    if (!readOnly && this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Create) >= 0) {
-      menuItems.push({
-        label: 'CREATE|' + this.entityNameUpper + BaseSettings.DIALOG_MENU_SUFFIX,
-        command: (event) => this.handleEditEntity(null),
-        disabled: !this.hasRightsForCreateEntity(entity)
-      });
-    }
+    const menuItems = createCrudMenuItems<T>(
+      {
+        crudMenuOptions: this.crudMenuOptions,
+        entityNameUpper: this.entityNameUpper,
+        readOnly: this.gps.isReadOnlyUser(),
+        onEdit: (e) => this.handleEditEntity(e),
+        onDelete: (e) => this.handleDeleteEntity(e),
+        canCreate: (e) => this.hasRightsForCreateEntity(e),
+        canUpdate: (e) => this.hasRightsForUpdateEntity(e),
+        canDelete: (e) => this.hasRightsForDeleteEntity(e)
+      },
+      entity
+    );
     if (entity) {
-      if (!readOnly && this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Edit) >= 0) {
-        menuItems.push({
-          label: 'EDIT_RECORD|' + this.entityNameUpper + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: (event) => this.handleEditEntity(entity),
-          disabled: !this.hasRightsForUpdateEntity(entity)
-        });
-      }
-      if (!readOnly && this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Delete) >= 0) {
-        menuItems.push({
-          label: 'DELETE_RECORD|' + this.entityNameUpper,
-          command: (event) => this.handleDeleteEntity(entity),
-          disabled: !this.hasRightsForDeleteEntity(entity)
-        });
-      }
       this.addCustomMenusToSelectedEntity(entity, menuItems);
     }
     return menuItems;

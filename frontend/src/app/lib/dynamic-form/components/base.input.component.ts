@@ -4,6 +4,7 @@ import { FieldConfig } from '../models/field.config';
 import { FormConfig } from '../models/form.config';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import { DataType } from '../models/data.type';
+import { FormNotifier } from '../models/form.notifier';
 
 @Directive()
 export abstract class BaseInputComponent implements FieldFormFormGroupConfig, OnInit, AfterViewInit {
@@ -18,6 +19,11 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
   group: UntypedFormGroup;
 
   isRequired = false;
+
+  /** Change notification of the form this field belongs to; the template reads its revision. */
+  get notifier(): FormNotifier {
+    return FormNotifier.of(this.config);
+  }
 
   ngOnInit(): void {
     this.reEvaluateRequired();

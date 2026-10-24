@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  inject,
   OnDestroy,
   OnInit,
   ViewChild
@@ -26,10 +27,9 @@ import { ViewSizeChangedService } from '../../lib/layout/service/view.size.chang
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppSettings } from '../../shared/app.settings';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
+import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { HoldingsChartInput, TenantHoldingsChartService } from '../service/tenant.holdings.chart.service';
 import { HoldingsTreemapChart } from './holdings.treemap.chart';
-
-declare let Plotly: any;
 
 /**
  * The charts the user can choose from. The keys are also their translation keys.
@@ -94,6 +94,12 @@ export class TenantHoldingsChartComponent
   private chartInput: HoldingsChartInput;
   private formReady = false;
   private plotlyConfig: any;
+  private readonly plotlyLoader = inject(PlotlyLoaderService);
+  /** Set once the first chart has loaded the library; cleanup never triggers the import. */
+  private plotly: PlotlyInstance;
+  private destroyed = false;
+  /** Raised by every draw, so a draw still waiting for the library is dropped when a newer one follows. */
+  private drawVersion = 0;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -109,7 +115,7 @@ export class TenantHoldingsChartComponent
   }
 
   ngOnInit(): void {
-    this.plotlyConfig = PlotlyLocales.setPlotyLocales(Plotly, this.gps);
+    this.plotlyConfig = PlotlyLocales.setPlotyLocales(this.gps);
     this.plotlyConfig.displaylogo = false;
     this.plotlyConfig.responsive = true;
     this.createInputFormDefinition();
@@ -157,8 +163,9 @@ export class TenantHoldingsChartComponent
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.subscriptions.forEach((s) => s.unsubscribe());
-    Plotly.purge(this.chartElement.nativeElement);
+    this.plotly?.purge(this.chartElement.nativeElement);
     this.activePanelService.destroyPanel(this);
   }
 
@@ -182,10 +189,21 @@ export class TenantHoldingsChartComponent
       return;
     }
     const figure = this.buildFigure(this.configObject.chartType.formControl.value);
-    Plotly.purge(this.chartElement.nativeElement);
+    this.plotly?.purge(this.chartElement.nativeElement);
     if (figure) {
+      const version = ++this.drawVersion;
       // Wait until the chart element is no longer hidden, otherwise Plotly measures a zero size.
-      setTimeout(() => Plotly.newPlot(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig));
+      setTimeout(() =>
+        this.plotlyLoader.load().then(
+          (plotly) => {
+            if (!this.destroyed && version === this.drawVersion) {
+              this.plotly = plotly;
+              plotly.newPlot(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig);
+            }
+          },
+          () => {}
+        )
+      );
     }
   }
 
@@ -216,7 +234,7 @@ export class TenantHoldingsChartComponent
 
   private resizeChart(): void {
     if (!this.noDataTextKey && this.chartElement.nativeElement.data) {
-      Plotly.Plots.resize(this.chartElement.nativeElement);
+      this.plotly?.Plots.resize(this.chartElement.nativeElement);
     }
   }
 }

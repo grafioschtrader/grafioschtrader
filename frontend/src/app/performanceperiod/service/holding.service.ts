@@ -134,7 +134,8 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
 export class PerformanceWindowDef {
   dateFrom: Date;
   dateTo: Date;
-  periodSplit: WeekYear;
+  /** Name of a {@link WeekYear} constant, as the period-split select delivers it and the REST path expects it. */
+  periodSplit: string;
 
   constructor(public idPortfolio: number) {}
 }

@@ -254,8 +254,11 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       fractionDigitsField: 'securitycurrency.priceFractionDigits'
     });
     // Tells which day a price taken from the historical data belongs to. Hidden by default, it only matters for an
-    // instrument whose intraday feed no longer delivers.
-    this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', false, true);
+    // instrument whose intraday feed no longer delivers. Reddens with the sessions the historical data source missed,
+    // coloured by priceCellStyle of the base class.
+    this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', false, true, {
+      cellTooltipFN: this.priceCellTooltip.bind(this)
+    });
 
     this.prepareTableAndTranslate();
     this.createPositionHeaderFields();

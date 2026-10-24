@@ -1358,17 +1358,12 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
       // Add gtDate error rule with formatted date
       const formattedDate = moment(effectiveClosedUntil).format(this.gps.getDateFormat());
-      const gtDateError = {
+      DynamicFieldHelper.addErrorRule(this.translateService, fieldConfig, {
         name: 'gtDate',
         keyi18n: 'gtDate',
         param1: formattedDate,
-        rules: [RuleEvent.DIRTY, RuleEvent.TOUCHED],
-        text: null
-      };
-      fieldConfig.errors.push(gtDateError);
-
-      // Translate the new error message
-      this.translateService.get('gtDate', { param1: formattedDate }).subscribe((text) => (gtDateError.text = text));
+        rules: [RuleEvent.DIRTY, RuleEvent.TOUCHED]
+      });
     } else {
       // Only required validator when no closedUntil restriction
       formControl.setValidators([Validators.required]);

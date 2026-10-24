@@ -1,6 +1,6 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { ChangeDetectionStrategy, Component, Input, OnInit, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -50,7 +50,6 @@ export class WatchlistIndicatorColumnEditComponent
 {
   @Input() callParam: any;
   private benchmark: number;
-  private readonly destroyRef = inject(DestroyRef);
   constructor(
     translate: TranslateService,
     gps: GlobalparameterService,

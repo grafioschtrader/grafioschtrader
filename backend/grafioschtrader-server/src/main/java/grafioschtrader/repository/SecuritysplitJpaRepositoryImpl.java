@@ -193,6 +193,10 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
       try {
         IFeedConnector connector = ConnectorHelper.getConnectorByConnectorId(feedConnectors,
             security.getIdConnectorSplit(), IFeedConnector.FeedSupport.FS_SPLIT);
+        if (connector == null) {
+          throw new IllegalStateException("Split connector " + security.getIdConnectorSplit()
+              + " is unavailable. Check the connector API key configuration.");
+        }
         List<Securitysplit> securitysplitsRead = connector.getSplitHistory(security,
             LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), getSplitToDate());
         updateSplitData(security, securitysplitsRead, requestedSplitdate);

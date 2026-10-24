@@ -1,5 +1,16 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { AbstractControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { merge, Subscription } from 'rxjs';
+import { FormNotifier } from '../../models/form.notifier';
 import { FieldConfig } from '../../models/field.config';
 import { InputType } from '../../models/input.type';
 import { Helper } from '../../../helper/helper';
@@ -22,6 +33,7 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
   exportAs: 'dynamicForm',
   selector: 'dynamic-form',
   template: `
+    @let rev = notifier.revision();
     <div #actualTarget class="container-fluid dynamic-form-container">
       <form [formGroup]="form" (ngSubmit)="handleSubmit($event)">
         @if (showWithFieldset) {
@@ -87,7 +99,7 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
-export class DynamicFormComponent implements OnChanges, OnInit {
+export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
   @Input() formConfig: FormConfig;
   @Input() config: FieldFormGroup[] = [];
   @Input() formGroupDefinition: FormGroupDefinition;
@@ -99,6 +111,15 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 
   fieldsetConfigs: FieldsetConfig[];
   showWithFieldset: boolean;
+
+  /**
+   * Change notification of this form, shared with every FieldConfig of its configuration. Every template of the form
+   * reads its revision, so the form re-renders on a configuration or control change even below OnPush components.
+   */
+  notifier = new FormNotifier();
+
+  /** Events of the current group and its controls; replaced whenever a new group is built. */
+  private controlEventsSubscription: Subscription;
 
   constructor(private _formBuilder: UntypedFormBuilder) {}
 
@@ -153,18 +174,40 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   }
 
   ngOnInit() {
+    this.notifier = FormNotifier.instrument(this.config, this.notifier);
     if (this.form && this.config.length > 0) {
-      this.form = this.createGroupAndControl();
-
-      this.fieldsetConfigs = this.createFieldsetConfigs();
-      this.showWithFieldset = this.hasFieldset();
+      this.buildForm();
     }
   }
 
   ngOnChanges(): void {
+    this.notifier = FormNotifier.instrument(this.config, this.notifier);
+    this.buildForm();
+  }
+
+  ngOnDestroy(): void {
+    this.controlEventsSubscription?.unsubscribe();
+  }
+
+  /**
+   * Builds the group of the current configuration and observes it. Every event of the group or of one of its
+   * controls notifies the form; the controls are observed one by one, because the events of a group do not report
+   * every transition of its children, for example a second child becoming touched.
+   */
+  private buildForm(): void {
     this.form = this.createGroupAndControl();
     this.fieldsetConfigs = this.createFieldsetConfigs();
     this.showWithFieldset = this.hasFieldset();
+    this.controlEventsSubscription?.unsubscribe();
+    const controls: AbstractControl[] = [
+      this.form,
+      ...this.formGroups.map((formGroupDefinition) => formGroupDefinition.formControl),
+      ...this.controlsFlatten.map((fieldConfig) => fieldConfig.formControl)
+    ].filter((control) => !!control);
+    this.controlEventsSubscription = merge(...controls.map((control) => control.events)).subscribe(() =>
+      this.notifier.notify()
+    );
+    this.notifier.notify();
   }
 
   /**
@@ -237,6 +280,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 
       config.formControl.setValue(value);
     });
+    this.notifier.notify();
   }
 
   cleanMaskAndTransferValuesToBusinessObject(targetObject: any, createProperty: boolean = false): void {
@@ -250,6 +294,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
       this.submitButton.disabled = false;
     }
     this.setDefaultValues();
+    this.notifier.notify();
   }
 
   setDefaultValues() {
@@ -270,6 +315,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
     event.stopPropagation();
 
     this.submitBt.emit(this.form.value);
+    this.notifier.notify();
   }
 
   setDisableAll(disable: boolean) {
@@ -280,20 +326,21 @@ export class DynamicFormComponent implements OnChanges, OnInit {
       }
       fieldConfig.disabled = disable;
     });
+    this.notifier.notify();
   }
 
   setDisabled(name: string, disable: boolean) {
     if (this.form.controls[name]) {
       const method = disable ? 'disable' : 'enable';
       this.form.controls[name][method]();
-      return;
+    } else {
+      FormHelper.getFieldConfigs(this.config).forEach((item) => {
+        if (item.field === name) {
+          item.disabled = disable;
+        }
+      });
     }
-
-    FormHelper.getFieldConfigs(this.config).forEach((item) => {
-      if (item.field === name) {
-        item.disabled = disable;
-      }
-    });
+    this.notifier.notify();
   }
 
   setValue(name: string, value: any) {

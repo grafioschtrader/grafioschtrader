@@ -136,6 +136,34 @@ public class ConnectorProbe {
   }
 
   /**
+   * Tells whether a history connector delivers closing prices from a given day on, e.g. from the first trading day of
+   * the successor of an ISIN change. It requests the {@value #HISTORY_DAYS} days starting on that day, cut off at the
+   * reference day. Unlike {@link #probe} it never throws and reports a failed request as false.
+   *
+   * @param connector    the connector
+   * @param draft        transient security from {@link #draftSecurity}; its history URL extension is set
+   * @param urlExtension URL extension derived by the connector; null when the connector needs none
+   * @param from         first day the prices are required for
+   * @param today        reference day, the end of the requested period at the latest
+   * @return true when at least one closing price lies in the requested period
+   */
+  public boolean deliversHistoryFrom(IFeedConnector connector, Security draft, String urlExtension, LocalDate from,
+      LocalDate today) {
+    setUrlExtension(draft, FeedSupport.FS_HISTORY, urlExtension);
+    LocalDate to = from.plusDays(HISTORY_DAYS).isAfter(today) ? today : from.plusDays(HISTORY_DAYS);
+    try {
+      List<Historyquote> quotes = connector.getEodSecurityHistory(draft, from, to);
+      return quotes != null && !quotes.isEmpty();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (Exception e) {
+      log.debug("History of {} from {} failed: {}", connector.getID(), from, e.toString());
+      return false;
+    }
+  }
+
+  /**
    * Creates the result of a probe that did not deliver data.
    *
    * @param connector    the connector

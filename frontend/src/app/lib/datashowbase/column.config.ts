@@ -171,9 +171,6 @@ export interface ColumnConfig extends BaseFieldDefinition {
   /** If true this field will be exported when export functionality is available  */
   export?: boolean;
 
-  /** Whether this column should remain fixed during horizontal scrolling */
-  frozenColumn?: boolean;
-
   /**
    * This value can, of course, also be set by the system and not just by the user.
    * This makes it an additional attribute to the clearly specified attributes.
@@ -250,9 +247,6 @@ export interface OptionalParams {
 
   /** Include in data exports */
   export?: boolean;
-
-  /** Fix column during scrolling */
-  frozenColumn?: boolean;
 
   /** User-defined value */
   userValue?: any;

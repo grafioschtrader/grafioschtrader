@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.instrument.lookup.SuccessorSecurityProposer;
 import grafioschtrader.repository.CashaccountJpaRepository;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
@@ -46,6 +48,7 @@ import grafioschtrader.repository.SecurityTransferJpaRepository;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
+import grafioschtrader.service.IsinChangePairDetector.PerformedPair;
 import grafioschtrader.types.TaskTypeExtended;
 import grafioschtrader.types.TransactionType;
 import jakarta.persistence.EntityManager;
@@ -127,11 +130,19 @@ public class SecurityActionService {
 
   /**
    * Admin creates an ISIN change event. Validates the old ISIN exists. If the new ISIN already exists, references the
-   * existing security; otherwise copies the old security to create a new one with the new ISIN. Counts affected tenants
-   * and sends internal mail notifications.
+   * existing security; otherwise it creates the successor through the normal save path of a security, so that its
+   * connectors are checked and its prices, dividends and splits are loaded by the usual tasks. The successor is the
+   * proposal of {@link SuccessorSecurityProposer}, built from the security lookup for the new ISIN, or, without one, a
+   * copy of the old security. Counts affected tenants and sends internal mail notifications.
+   *
+   * @param action   the ISIN change as the administrator entered it
+   * @param proposal the successor proposed from the lookup; empty when the old security is to be copied. It is ignored
+   *                 when a security with the new ISIN already exists.
+   * @return the saved ISIN change
+   * @throws Exception when the successor cannot be saved, e.g. because a connector check fails
    */
   @Transactional
-  public SecurityAction createSecurityAction(SecurityAction action) {
+  public SecurityAction createSecurityAction(SecurityAction action, Optional<Security> proposal) throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
     List<Security> oldSecurities = securityJpaRepository.findByIsin(action.getIsinOld());
@@ -152,9 +163,9 @@ public class SecurityActionService {
     if (!existingNew.isEmpty()) {
       securityNew = existingNew.get(0);
     } else {
-      securityNew = copySecurityWithNewIsin(securityOld, action.getIsinNew(), action.getActionDate());
-      securityNew = securityJpaRepository.save(securityNew);
-      securityJpaRepository.reloadAsyncFullHistoryquote(securityNew);
+      securityNew = proposal
+          .orElseGet(() -> copySecurityWithNewIsin(securityOld, action.getIsinNew(), action.getActionDate()));
+      securityNew = securityJpaRepository.saveOnlyAttributes(securityNew, null, Set.of());
     }
 
     action.setSecurityOld(securityOld);
@@ -207,6 +218,13 @@ public class SecurityActionService {
    * event of this ISIN change are removed by {@link #removeRedundantSuccessorSplits}.
    * </p>
    * <p>
+   * A securities account in which the tenant has already carried out the ISIN change receives no second pair; see
+   * {@link IsinChangePairDetector}. A pair the system created in an application whose records were lost is taken over
+   * by this application and priced again, see {@link #adoptSystemPair}. A pair the user entered stays untouched and
+   * is not tagged, so reversing the application leaves it in place. The returned application carries the number of
+   * such accounts.
+   * </p>
+   * <p>
    * <b>Why direct save() instead of saveOnlyAttributes():</b> The SELL/BUY pair is saved via
    * {@code transactionJpaRepository.save()} intentionally, bypassing the business rule checks in
    * {@code TransactionJpaRepositoryImpl}. After the bulk reassignment of post-action-date transactions (including
@@ -241,96 +259,49 @@ public class SecurityActionService {
       throw new GeneralNotTranslatedWithArgumentsException("gt.simulation.opening.protected", null);
     }
 
-    Map<Integer, Double> unitsByAccount = allTenantTransactions.stream()
-        .filter(t -> !t.getTransactionDate().isAfter(action.getActionDate()))
-        .filter(t -> t.getIdSecurityaccount() != null)
-        .collect(Collectors.groupingBy(Transaction::getIdSecurityaccount, Collectors.summingDouble(t -> {
-          if (t.getTransactionType() == TransactionType.ACCUMULATE) {
-            return t.getUnits();
-          } else if (t.getTransactionType() == TransactionType.REDUCE) {
-            return -t.getUnits();
-          }
-          return 0.0;
-        })));
+    List<PerformedPair> performedPairs = IsinChangePairDetector.detect(action, allTenantTransactions,
+        transactionJpaRepository.findByIdTenantAndIdSecurity(idTenant,
+            action.getSecurityNew().getIdSecuritycurrency()));
+    Set<Integer> performedAccounts = performedPairs.stream().map(pair -> pair.sell().getIdSecurityaccount())
+        .collect(Collectors.toSet());
+    Map<Integer, Double> unitsByAccount = remainingUnitsByAccount(allTenantTransactions, action.getActionDate(),
+        performedAccounts);
 
-    int rows = 2 * (int) unitsByAccount.entrySet().stream().filter(entry -> entry.getValue() > 0).filter(
-        entry -> securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(entry.getKey(), idTenant) != null)
+    int rows = 2 * (int) unitsByAccount.keySet().stream()
+        .filter(idSecurityaccount -> securityaccountJpaRepository
+            .findByIdSecuritycashAccountAndIdTenant(idSecurityaccount, idTenant) != null)
         .count();
     transactionJpaRepository.throwWhenTransactionLimitReached(idTenant, rows);
 
-    // Get closing price on action date, in the share basis that was traded on that day
-    double closePrice = getAsTradedClose(action.getSecurityOld().getIdSecuritycurrency(), action.getActionDate(),
-        "action.date", "gt.security.action.no.price.on.date");
+    // Closing price on action date, in the share basis that was traded on that day; only needed for a new pair
+    double closePrice = unitsByAccount.isEmpty() ? 0
+        : getAsTradedClose(action.getSecurityOld().getIdSecuritycurrency(), action.getActionDate(), "action.date",
+            "gt.security.action.no.price.on.date");
 
     // The successor may have inherited the corporate event of this ISIN change as a split of its own
     removeRedundantSuccessorSplits(action.getSecurityNew());
 
     // Save the application record first to get its ID for tagging transactions
-    SecurityActionApplication application = existing.orElse(new SecurityActionApplication());
-    application.setSecurityAction(action);
-    application.setIdTenant(idTenant);
-    application.setAppliedTime(LocalDateTime.now());
-    application.setReversed(false);
-    application = securityActionApplicationJpaRepository.save(application);
+    SecurityActionApplication application = securityActionApplicationJpaRepository
+        .save(prepareApplication(existing, action, idTenant));
+    Integer appId = application.getIdSecurityActionApp();
 
     // Step 1: Bulk reassign all transactions after the action date to the new security. The action date itself stays
-    // with the old security, because the SELL/BUY pair below is priced with its close of that very day.
+    // with the old security, because the SELL/BUY pair below is priced with its close of that very day. A sale that
+    // already carried out the ISIN change stays with the old security, even when it is dated after the action date.
+    List<Integer> excludedIds = performedPairs.stream().map(pair -> pair.sell().getIdTransaction()).toList();
     transactionJpaRepository.reassignTransactionsToNewSecurity(idTenant,
-        action.getSecurityOld().getIdSecuritycurrency(), action.getSecurityNew().getIdSecuritycurrency(),
-        application.getIdSecurityActionApp(), action.getActionDate());
+        action.getSecurityOld().getIdSecuritycurrency(), action.getSecurityNew().getIdSecuritycurrency(), appId,
+        action.getActionDate(), excludedIds.isEmpty() ? List.of(-1) : excludedIds);
     entityManager.flush();
     entityManager.clear();
 
-    Integer firstSellId = null;
-    Integer firstBuyId = null;
-
-    // Steps 3-5: Create SELL/BUY pairs for each security account with positive units
-    for (Map.Entry<Integer, Double> entry : unitsByAccount.entrySet()) {
-      double units = entry.getValue();
-      if (units <= 0) {
-        continue;
-      }
-      Integer idSecurityaccount = entry.getKey();
-
-      Securityaccount securityaccount = securityaccountJpaRepository
-          .findByIdSecuritycashAccountAndIdTenant(idSecurityaccount, idTenant);
-      if (securityaccount == null) {
-        continue;
-      }
-
-      // Calculate buy-side units and price, applying split ratio if present
-      double buyUnits = units;
-      double buyPrice = closePrice;
-      if (action.getFromFactor() != null && action.getToFactor() != null) {
-        buyUnits = units * action.getToFactor() / (double) action.getFromFactor();
-        buyPrice = closePrice * action.getFromFactor() / (double) action.getToFactor();
-      }
-
-      // Create SELL transaction (old security) — uses direct save(), see class Javadoc for rationale
-      Transaction sellTx = createSecurityTransaction(idTenant, idSecurityaccount, securityaccount,
-          action.getSecurityOld(), units, closePrice, TransactionType.REDUCE, action.getActionDate(),
-          application.getIdSecurityActionApp());
-      sellTx = transactionJpaRepository.save(sellTx);
-
-      // Create BUY transaction (new security, with adjusted units/price if split)
-      Transaction buyTx = createSecurityTransaction(idTenant, idSecurityaccount, securityaccount,
-          action.getSecurityNew(), buyUnits, buyPrice, TransactionType.ACCUMULATE, action.getActionDate(),
-          application.getIdSecurityActionApp());
-      buyTx.setConnectedIdTransaction(sellTx.getIdTransaction());
-      buyTx = transactionJpaRepository.save(buyTx);
-
-      sellTx.setConnectedIdTransaction(buyTx.getIdTransaction());
-      transactionJpaRepository.save(sellTx);
-
-      if (firstSellId == null) {
-        firstSellId = sellTx.getIdTransaction();
-        firstBuyId = buyTx.getIdTransaction();
-      }
-    }
-
-    application.setIdTransactionSell(firstSellId);
-    application.setIdTransactionBuy(firstBuyId);
+    // Steps 2-5: Take over the pairs the system created before, then create the pairs that are still missing
+    Transaction[] firstPair = bookPairs(action, idTenant, performedPairs, unitsByAccount, closePrice, appId);
+    application.setIdTransactionSell(firstPair == null ? null : firstPair[0].getIdTransaction());
+    application.setIdTransactionBuy(firstPair == null ? null : firstPair[1].getIdTransaction());
     application = securityActionApplicationJpaRepository.save(application);
+    application.setAlreadyPerformedCount(performedPairs.size());
 
     action.setAppliedCount(action.getAppliedCount() + 1);
     securityActionJpaRepository.save(action);
@@ -340,6 +311,113 @@ public class SecurityActionService {
         TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant, Tenant.class.getSimpleName()));
 
     return application;
+  }
+
+  private SecurityActionApplication prepareApplication(Optional<SecurityActionApplication> existing,
+      SecurityAction action, Integer idTenant) {
+    SecurityActionApplication application = existing.orElse(new SecurityActionApplication());
+    application.setSecurityAction(action);
+    application.setIdTenant(idTenant);
+    application.setAppliedTime(LocalDateTime.now());
+    application.setReversed(false);
+    return application;
+  }
+
+  /**
+   * Takes over the pairs an earlier application created and books the pairs that are still missing.
+   *
+   * @return sale and purchase of the first pair taken over or created, null when there is none
+   */
+  private Transaction[] bookPairs(SecurityAction action, Integer idTenant, List<PerformedPair> performedPairs,
+      Map<Integer, Double> unitsByAccount, double closePrice, Integer appId) {
+    Transaction[] firstPair = null;
+    for (PerformedPair pair : performedPairs) {
+      if (pair.systemCreated()) {
+        Transaction[] adopted = adoptSystemPair(pair, action, appId);
+        firstPair = firstPair == null ? adopted : firstPair;
+      }
+    }
+    for (Map.Entry<Integer, Double> entry : unitsByAccount.entrySet()) {
+      Transaction[] created = createPair(action, idTenant, entry.getKey(), entry.getValue(), closePrice, appId);
+      firstPair = firstPair == null ? created : firstPair;
+    }
+    return firstPair;
+  }
+
+  /**
+   * Units of the old security per securities account at the end of the action date, keeping only the accounts that
+   * still hold a position and in which the ISIN change has not been carried out already.
+   */
+  private Map<Integer, Double> remainingUnitsByAccount(List<Transaction> transactions, LocalDate actionDate,
+      Set<Integer> performedAccounts) {
+    Map<Integer, Double> unitsByAccount = transactions.stream()
+        .filter(t -> !t.getTransactionDate().isAfter(actionDate))
+        .filter(t -> t.getIdSecurityaccount() != null && !performedAccounts.contains(t.getIdSecurityaccount()))
+        .collect(Collectors.groupingBy(Transaction::getIdSecurityaccount, Collectors.summingDouble(t -> {
+          if (t.getTransactionType() == TransactionType.ACCUMULATE) {
+            return t.getUnits();
+          } else if (t.getTransactionType() == TransactionType.REDUCE) {
+            return -t.getUnits();
+          }
+          return 0.0;
+        })));
+    unitsByAccount.values().removeIf(units -> units <= 0);
+    return unitsByAccount;
+  }
+
+  /**
+   * Creates the SELL/BUY pair of one securities account. It uses direct save(), see the Javadoc of
+   * {@link #applySecurityAction} for the rationale.
+   *
+   * @return sale and purchase, or null when the securities account does not belong to the tenant
+   */
+  private Transaction[] createPair(SecurityAction action, Integer idTenant, Integer idSecurityaccount, double units,
+      double closePrice, Integer appId) {
+    Securityaccount securityaccount = securityaccountJpaRepository
+        .findByIdSecuritycashAccountAndIdTenant(idSecurityaccount, idTenant);
+    if (securityaccount == null) {
+      return null;
+    }
+    // Calculate buy-side units and price, applying split ratio if present
+    double buyUnits = units;
+    double buyPrice = closePrice;
+    if (action.getFromFactor() != null && action.getToFactor() != null) {
+      buyUnits = units * action.getToFactor() / (double) action.getFromFactor();
+      buyPrice = closePrice * action.getFromFactor() / (double) action.getToFactor();
+    }
+    Transaction sellTx = transactionJpaRepository.save(createSecurityTransaction(idTenant, idSecurityaccount,
+        securityaccount, action.getSecurityOld(), units, closePrice, TransactionType.REDUCE, action.getActionDate(),
+        appId));
+    Transaction buyTx = createSecurityTransaction(idTenant, idSecurityaccount, securityaccount,
+        action.getSecurityNew(), buyUnits, buyPrice, TransactionType.ACCUMULATE, action.getActionDate(), appId);
+    buyTx.setConnectedIdTransaction(sellTx.getIdTransaction());
+    buyTx = transactionJpaRepository.save(buyTx);
+    sellTx.setConnectedIdTransaction(buyTx.getIdTransaction());
+    transactionJpaRepository.save(sellTx);
+    return new Transaction[] { sellTx, buyTx };
+  }
+
+  /**
+   * Takes over a pair an earlier application of this ISIN change created and whose records were lost. The pair is
+   * tagged with the application, so that reversing it deletes the pair, and it is priced again like a new pair: the
+   * sale with the closing price of its day in the share basis traded on that day, the purchase with the same amount.
+   * Older applications priced it with the split-adjusted close.
+   *
+   * @return sale and purchase as saved
+   */
+  private Transaction[] adoptSystemPair(PerformedPair pair, SecurityAction action, Integer appId) {
+    Transaction sellTx = transactionJpaRepository.findById(pair.sell().getIdTransaction()).orElseThrow();
+    Transaction buyTx = transactionJpaRepository.findById(pair.buy().getIdTransaction()).orElseThrow();
+    double sellPrice = getAsTradedClose(action.getSecurityOld().getIdSecuritycurrency(), sellTx.getTransactionDate(),
+        "action.date", "gt.security.action.no.price.on.date");
+    double amount = sellTx.getUnits() * sellPrice;
+    sellTx.setQuotation(sellPrice);
+    sellTx.setCashaccountAmount(amount);
+    sellTx.setIdSecurityActionApp(appId);
+    buyTx.setQuotation(amount / buyTx.getUnits());
+    buyTx.setCashaccountAmount(-amount);
+    buyTx.setIdSecurityActionApp(appId);
+    return new Transaction[] { transactionJpaRepository.save(sellTx), transactionJpaRepository.save(buyTx) };
   }
 
   /**
@@ -685,10 +763,15 @@ public class SecurityActionService {
     }
   }
 
+  /**
+   * Copies the old security as successor when the security lookup proposed none. Connectors and URL extensions are
+   * those of the old security.
+   */
   private Security copySecurityWithNewIsin(Security source, String newIsin, LocalDate actionDate) {
     Security copy = new Security();
     copy.setIsin(newIsin);
-    copy.setName(source.getName() + " (new ISIN)");
+    copy.setName(SuccessorSecurityProposer.successorName(source.getName()));
+    copy.setIssuerCountry(source.getIssuerCountry());
     copy.setCurrency(source.getCurrency());
     copy.setAssetClass(source.getAssetClass());
     copy.setStockexchange(source.getStockexchange());
@@ -701,8 +784,11 @@ public class SecurityActionService {
     copy.setIdConnectorHistory(source.getIdConnectorHistory());
     copy.setIdConnectorIntra(source.getIdConnectorIntra());
     copy.setIdConnectorDividend(source.getIdConnectorDividend());
+    copy.setIdConnectorSplit(source.getIdConnectorSplit());
     copy.setUrlHistoryExtend(source.getUrlHistoryExtend());
     copy.setUrlIntraExtend(source.getUrlIntraExtend());
+    copy.setUrlDividendExtend(source.getUrlDividendExtend());
+    copy.setUrlSplitExtend(source.getUrlSplitExtend());
     copy.setStockexchangeLink(source.getStockexchangeLink());
     copy.setProductLink(source.getProductLink());
     return copy;

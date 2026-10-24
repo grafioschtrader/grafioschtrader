@@ -48,10 +48,8 @@ import {
 } from '../../lib/generaldialog/model/file.upload.param';
 import { UploadFileDialogComponent } from '../../lib/generaldialog/component/upload-file-dialog.component';
 import { HistoryquoteLegacyApplySplitDialogComponent } from './historyquote-legacy-apply-split-dialog.component';
-import {
-  HistoryquoteLegacyEditComponent,
-  HistoryquoteLegacySecurityCurrency
-} from './historyquote-legacy-edit.component';
+import { HistoryquoteLegacyEditComponent } from './historyquote-legacy-edit.component';
+import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy.security.currency';
 
 /**
  * Displays archived {@code historyquote_legacy} rows for one security. Hosted by

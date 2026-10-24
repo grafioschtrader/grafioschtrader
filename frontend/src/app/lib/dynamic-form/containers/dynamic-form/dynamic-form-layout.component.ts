@@ -7,6 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-field.directive';
 import { ErrorMessageComponent } from './error-message.compoent';
+import { FormNotifier } from '../../models/form.notifier';
 
 /**
  * It handles one input with its label.
@@ -44,6 +45,7 @@ import { ErrorMessageComponent } from './error-message.compoent';
     `
   ],
   template: `
+    @let rev = notifier?.revision();
     @if (formConfig.fieldHeaders && formConfig.fieldHeaders[config.field]) {
       <div class="row">
         <div class="col-md-12">
@@ -97,6 +99,11 @@ export class DynamicFormLayoutComponent {
   @Input() config: FieldConfig;
   @Input() formConfig: FormConfig;
   @Input() group: UntypedFormGroup;
+
+  /** Change notification of the form this field belongs to; the template reads its revision. */
+  get notifier(): FormNotifier {
+    return FormNotifier.of(this.config);
+  }
 
   onHelpClick(event) {
     this.config.labelShowText = this.config.labelShowText ? null : this.config.labelHelpText;

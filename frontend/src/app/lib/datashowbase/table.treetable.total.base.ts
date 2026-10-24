@@ -374,6 +374,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
         field.filterValues = valueLabelHtmlSelectOptions;
       }
     });
+    this.notifyViewChanged();
   }
 
   /**

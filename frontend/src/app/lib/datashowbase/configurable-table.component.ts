@@ -1,9 +1,16 @@
 import {
+  AfterViewChecked,
   Component,
   ContentChild,
+  DoCheck,
+  ElementRef,
   EventEmitter,
+  inject,
+  input,
   Input,
+  NgZone,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -109,6 +116,40 @@ export interface CellMark {
     MultiSelectModule
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
+  // Rules for the columns fixed by frozenColumnCount. The theme defines the sticky position only for a scrollable table,
+  // these rules hold for every table. A body cell takes the opaque background of its row and is stacked above the cells
+  // scrolling underneath, so their text stays hidden; a selected row may have a translucent background and gets the
+  // normal row colour below it. The sticky header and footer are lifted above the fixed body cells, otherwise these
+  // would cover them on vertical scrolling. The global rule giving every header cell z-index 0 is outweighed by tr >.
+  styles: [
+    `
+      .p-datatable-frozen-column {
+        position: sticky;
+      }
+      tr > th.p-datatable-frozen-column {
+        z-index: 1;
+      }
+      td.p-datatable-frozen-column {
+        z-index: 1;
+        background: inherit;
+      }
+      :host ::ng-deep .p-datatable-thead,
+      :host ::ng-deep .p-datatable-tfoot {
+        z-index: 2;
+      }
+      tr.p-datatable-row-selected > td.p-datatable-frozen-column {
+        background:
+          linear-gradient(var(--p-datatable-row-selected-background), var(--p-datatable-row-selected-background)),
+          var(--p-datatable-row-background);
+      }
+      tr.gt-footer-row > td.p-datatable-frozen-column {
+        background: var(--p-datatable-footer-cell-background);
+      }
+      .gt-frozen-last {
+        border-inline-end: 2px solid var(--p-datatable-body-cell-border-color);
+      }
+    `
+  ],
   template: `
     <div #cmDiv (click)="onComponentClick($event)" [ngClass]="containerClass" [class]="customClass">
       <p-table
@@ -134,7 +175,7 @@ export interface CellMark {
         [loading]="loading"
         [stripedRows]="stripedRows"
         [showGridlines]="showGridlines"
-        [(expandedRowKeys)]="expandedRowKeys"
+        [expandedRowKeys]="expandedRowKeys"
         (onRowExpand)="onRowExpand($event)"
         (onRowCollapse)="onRowCollapse($event)"
         (onRowSelect)="rowSelect.emit($event)"
@@ -152,17 +193,29 @@ export interface CellMark {
             <!-- Row 1: Group headers + ungrouped columns (with rowspan=2) -->
             <tr>
               @if (expandable) {
-                <th [rowSpan]="2" [style.width.px]="expansionColumnWidth"></th>
+                <th
+                  [rowSpan]="2"
+                  [style.width.px]="expansionColumnWidth"
+                  [class.p-datatable-frozen-column]="expansionFrozenSlot >= 0"
+                  [style.left]="frozenLeft(expansionFrozenSlot)"></th>
               }
               @if (selectionMode === 'multiple') {
-                <th [rowSpan]="2" [style.width.em]="2.25">
+                <th
+                  [rowSpan]="2"
+                  [style.width.em]="2.25"
+                  [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
+                  [style.left]="frozenLeft(selectionFrozenSlot)">
                   <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                 </th>
               }
               @for (item of headerGroupRow; track $index) {
                 @if (item.type === 'single') {
+                  @let slot = frozenSlot(item.field);
                   <th
                     [rowSpan]="2"
+                    [class.p-datatable-frozen-column]="slot >= 0"
+                    [class.gt-frozen-last]="slot === lastFrozenSlot"
+                    [style.left]="frozenLeft(slot)"
                     [pSortableColumn]="item.field.field"
                     [pTooltip]="item.field.headerTooltipTranslated"
                     [style.max-width.px]="item.field.width"
@@ -198,16 +251,26 @@ export interface CellMark {
             <!-- Standard single-row header (unchanged) -->
             <tr>
               @if (expandable) {
-                <th [style.width.px]="expansionColumnWidth"></th>
+                <th
+                  [style.width.px]="expansionColumnWidth"
+                  [class.p-datatable-frozen-column]="expansionFrozenSlot >= 0"
+                  [style.left]="frozenLeft(expansionFrozenSlot)"></th>
               }
               @if (selectionMode === 'multiple') {
-                <th [style.width.em]="2.25">
+                <th
+                  [style.width.em]="2.25"
+                  [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
+                  [style.left]="frozenLeft(selectionFrozenSlot)">
                   <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                 </th>
               }
               @for (field of columns; track field.field) {
                 @if (field.visible) {
+                  @let slot = frozenSlot(field);
                   <th
+                    [class.p-datatable-frozen-column]="slot >= 0"
+                    [class.gt-frozen-last]="slot === lastFrozenSlot"
+                    [style.left]="frozenLeft(slot)"
                     [pSortableColumn]="field.field"
                     [pTooltip]="field.headerTooltipTranslated"
                     [style.max-width.px]="field.width"
@@ -227,12 +290,18 @@ export interface CellMark {
             <tr>
               <!-- Empty cell for expansion column -->
               @if (expandable) {
-                <th [style.width.px]="expansionColumnWidth"></th>
+                <th
+                  [style.width.px]="expansionColumnWidth"
+                  [class.p-datatable-frozen-column]="expansionFrozenSlot >= 0"
+                  [style.left]="frozenLeft(expansionFrozenSlot)"></th>
               }
 
               <!-- Empty cell for multi-select checkbox column -->
               @if (selectionMode === 'multiple') {
-                <th [style.width.em]="2.25"></th>
+                <th
+                  [style.width.em]="2.25"
+                  [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
+                  [style.left]="frozenLeft(selectionFrozenSlot)"></th>
               }
 
               <!-- Filter cells -->
@@ -240,8 +309,12 @@ export interface CellMark {
                 @if (field.visible) {
                   <!-- The width has to be constrained like on the header and the body cell, otherwise a filter control
                        widens its column to fit the longest option label and the column's width is without effect. -->
+                  @let slot = frozenSlot(field);
                   <th
                     style="overflow:visible;"
+                    [class.p-datatable-frozen-column]="slot >= 0"
+                    [class.gt-frozen-last]="slot === lastFrozenSlot"
+                    [style.left]="frozenLeft(slot)"
                     [style.max-width.px]="field.width"
                     [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
                     @switch (field.filterType) {
@@ -342,7 +415,10 @@ export interface CellMark {
             [ngClass]="getRowClass(rowData)">
             <!-- Expansion toggle cell -->
             @if (expandable) {
-              <td [style.width.px]="expansionColumnWidth">
+              <td
+                [style.width.px]="expansionColumnWidth"
+                [class.p-datatable-frozen-column]="expansionFrozenSlot >= 0"
+                [style.left]="frozenLeft(expansionFrozenSlot)">
                 @if (canExpand(rowData)) {
                   <a [pRowToggler]="rowData" href="#" (click)="$event.preventDefault()">
                     <i [ngClass]="expanded ? expandedIcon : collapsedIcon"></i>
@@ -353,7 +429,9 @@ export interface CellMark {
 
             <!-- Multi-select checkbox cell -->
             @if (selectionMode === 'multiple') {
-              <td>
+              <td
+                [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
+                [style.left]="frozenLeft(selectionFrozenSlot)">
                 <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
               </td>
             }
@@ -361,7 +439,11 @@ export interface CellMark {
             <!-- Dynamic data cells -->
             @for (field of columns; track field.field) {
               @if (field.visible) {
+                @let slot = frozenSlot(field);
                 <td
+                  [class.p-datatable-frozen-column]="slot >= 0"
+                  [class.gt-frozen-last]="slot === lastFrozenSlot"
+                  [style.left]="frozenLeft(slot)"
                   [ngStyle]="getMergedCellStyle(rowData, field)"
                   [style.max-width.px]="field.width"
                   [ngClass]="getCellClass(field)">
@@ -467,17 +549,27 @@ export interface CellMark {
         <!-- Footer template -->
         @if (footerValueFn) {
           <ng-template pTemplate="footer">
-            <tr>
+            <tr class="gt-footer-row">
               @if (expandable) {
-                <td [class]="footerCellClass"></td>
+                <td
+                  [class]="footerCellClass"
+                  [class.p-datatable-frozen-column]="expansionFrozenSlot >= 0"
+                  [style.left]="frozenLeft(expansionFrozenSlot)"></td>
               }
               @if (selectionMode === 'multiple') {
-                <td [class]="footerCellClass"></td>
+                <td
+                  [class]="footerCellClass"
+                  [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
+                  [style.left]="frozenLeft(selectionFrozenSlot)"></td>
               }
               @for (field of fields; track field.field) {
                 @if (field.visible) {
+                  @let slot = frozenSlot(field);
                   <td
                     [class]="footerCellClass"
+                    [class.p-datatable-frozen-column]="slot >= 0"
+                    [class.gt-frozen-last]="slot === lastFrozenSlot"
+                    [style.left]="frozenLeft(slot)"
                     [ngClass]="getCellClass(field)"
                     [style.max-width.px]="field.width"
                     [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
@@ -497,7 +589,7 @@ export interface CellMark {
     </div>
   `
 })
-export class ConfigurableTableComponent<T = any> implements OnChanges {
+export class ConfigurableTableComponent<T = any> implements OnChanges, DoCheck, AfterViewChecked, OnDestroy {
   // ============================================================================
   // Data and Column Configuration
   // ============================================================================
@@ -522,6 +614,13 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * Uses ColumnConfig from lib/datashowbase for consistent column definitions.
    */
   @Input() fields: ColumnConfig[] = [];
+
+  /**
+   * Revision of the column configuration, bound as [fieldsRevision]="fieldsRevision()" of the owning table base. A
+   * new value recomputes what depends on the mutable column state — frozen slots and header groups — and re-renders
+   * the table, also when it runs OnPush.
+   */
+  readonly fieldsRevision = input(0);
 
   /**
    * Property name used as the unique identifier for each row.
@@ -934,13 +1033,43 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   @Output() componentClick = new EventEmitter<any>();
 
   // ============================================================================
-  // Multi-select Configuration
+  // Frozen Columns
   // ============================================================================
 
   /**
-   * When true and selectionMode='multiple', the checkbox column is frozen (sticky).
+   * Number of leading visible columns that stay in place while the table is scrolled horizontally. The expansion and
+   * the checkbox column are fixed along with them. Fixing stops at the first column of a header group, a group header
+   * spanning fixed and moving columns could not stay in place.
+   *
+   * The cells only get a CSS class and a left offset. The offsets are measured once from the header cells and again
+   * when one of these cells changes its width, which a single ResizeObserver reports. A directive per cell, as the
+   * pFrozenColumn of Optimus UI, would observe and measure every cell of the table and makes a large table slow.
    */
-  @Input() freezeSelectionColumn = false;
+  @Input() frozenColumnCount = 0;
+
+  /** Frozen slot of each fixed data column, the expansion and checkbox columns take the first slots */
+  private frozenSlotByField = new Map<string, number>();
+
+  /** Frozen slot of the expansion column, -1 when it is not fixed */
+  expansionFrozenSlot = -1;
+
+  /** Frozen slot of the checkbox column, -1 when it is not fixed */
+  selectionFrozenSlot = -1;
+
+  /** Slot of the rightmost fixed column, which draws the separating border, -1 when nothing is fixed */
+  lastFrozenSlot = -1;
+
+  /** Visible columns and settings the frozen slots were assigned for, an empty string when nothing is fixed */
+  private frozenSignature = '';
+
+  /** Set when the frozen slots changed and the header cells have to be observed anew once rendered */
+  private frozenObserveRequired = false;
+
+  private frozenResizeObserver: ResizeObserver = null;
+
+  private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
+
+  private readonly ngZone = inject(NgZone);
 
   // ============================================================================
   // Header Group Support
@@ -964,9 +1093,153 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * Currently monitors fields changes to ensure proper column updates.
    */
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['fields'] || changes['data']) {
+    if (changes['fields'] || changes['data'] || changes['fieldsRevision']) {
       this.computeHeaderGroups();
     }
+    if (changes['fieldsRevision'] || changes['frozenColumnCount'] || changes['fields']) {
+      this.updateFrozenSlots();
+    }
+  }
+
+  /**
+   * Assigns the frozen slots anew when the number of fixed columns or the visible columns changed. A table bound to
+   * fieldsRevision is updated through ngOnChanges; the check remains for tables that do not bind it yet, because the
+   * column visibility dialog changes the fields in place.
+   */
+  ngDoCheck(): void {
+    this.updateFrozenSlots();
+  }
+
+  /** Recomputes the frozen slots when the number of fixed columns or the set of visible columns changed. */
+  private updateFrozenSlots(): void {
+    const count = Math.max(0, Math.min(this.frozenColumnCount ?? 0, this.fields.length));
+    const signature = count === 0 ? '' : this.createFrozenSignature(count);
+    if (signature !== this.frozenSignature) {
+      this.frozenSignature = signature;
+      this.assignFrozenSlots(count);
+      this.frozenObserveRequired = true;
+    }
+  }
+
+  /**
+   * Measures and observes the header cells of the fixed columns once they are rendered for the current frozen slots.
+   * As long as the header row is not rendered yet, the next check tries again.
+   */
+  ngAfterViewChecked(): void {
+    if (this.frozenObserveRequired) {
+      this.frozenObserveRequired = !this.observeFrozenHeaderCells();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.frozenResizeObserver?.disconnect();
+  }
+
+  /**
+   * Returns the frozen slot of a data column.
+   *
+   * @param field - Column configuration
+   * @returns The slot, or -1 when the column moves with the scrolling
+   */
+  frozenSlot(field: ColumnConfig): number {
+    return this.frozenSlotByField.get(field.field) ?? -1;
+  }
+
+  /**
+   * Returns the left offset of a fixed column as reference to the CSS variable the measurement sets on the host.
+   *
+   * @param slot - Frozen slot of the column
+   * @returns The CSS value for left, or null for a column that is not fixed
+   */
+  frozenLeft(slot: number): string | null {
+    return slot >= 0 ? `var(--gt-frozen-left-${slot}, 0px)` : null;
+  }
+
+  /**
+   * Describes everything the frozen slots depend on, so that a change of it can be detected cheaply.
+   *
+   * @param count - Number of data columns to fix
+   * @returns The signature
+   */
+  private createFrozenSignature(count: number): string {
+    let signature = `${count}|${this.expandable}|${this.selectionMode}`;
+    for (const field of this.fields) {
+      if (field.visible) {
+        signature += '|' + field.field + (field.headerGroupKey ? '#' : '');
+      }
+    }
+    return signature;
+  }
+
+  /**
+   * Gives the expansion column, the checkbox column and the first visible data columns up to the given number their
+   * frozen slots, numbered from the left. Nothing is fixed when the first visible column already belongs to a group.
+   *
+   * @param count - Number of data columns to fix
+   */
+  private assignFrozenSlots(count: number): void {
+    this.frozenSlotByField.clear();
+    const leadSlots = (this.expandable ? 1 : 0) + (this.selectionMode === 'multiple' ? 1 : 0);
+    let slot = leadSlots;
+    for (const field of this.fields) {
+      if (slot - leadSlots >= count || (field.visible && field.headerGroupKey)) {
+        break;
+      }
+      if (field.visible) {
+        this.frozenSlotByField.set(field.field, slot++);
+      }
+    }
+    const fixed = slot > leadSlots;
+    this.expansionFrozenSlot = fixed && this.expandable ? 0 : -1;
+    this.selectionFrozenSlot = fixed && this.selectionMode === 'multiple' ? leadSlots - 1 : -1;
+    this.lastFrozenSlot = fixed ? slot - 1 : -1;
+  }
+
+  /**
+   * Measures the fixed columns right away and observes their header cells, so that they are measured again whenever
+   * one of them changes its width, for example after new data, a filter or a resized window.
+   *
+   * @returns False when the header row holds fewer cells than there are fixed columns, it is not rendered yet
+   */
+  private observeFrozenHeaderCells(): boolean {
+    this.frozenResizeObserver?.disconnect();
+    if (this.lastFrozenSlot < 0) {
+      return true;
+    }
+    const cells = this.getFrozenHeaderCells();
+    if (cells.length <= this.lastFrozenSlot) {
+      return false;
+    }
+    this.measureFrozenColumns();
+    this.ngZone.runOutsideAngular(() => {
+      this.frozenResizeObserver ??= new ResizeObserver(() => this.measureFrozenColumns());
+      cells.forEach((cell) => this.frozenResizeObserver.observe(cell));
+    });
+    return true;
+  }
+
+  /**
+   * Sets the left offset of each fixed column as CSS variable on the host element. The offset is the sum of the widths
+   * of the fixed columns to its left. Writing variables instead of bound values needs no change detection.
+   */
+  private measureFrozenColumns(): void {
+    const host = this.elementRef.nativeElement;
+    let left = 0;
+    this.getFrozenHeaderCells().forEach((cell, slot) => {
+      host.style.setProperty(`--gt-frozen-left-${slot}`, left + 'px');
+      left += cell.getBoundingClientRect().width;
+    });
+  }
+
+  /**
+   * Returns the cells of the first header row that belong to fixed columns. In this row the cells follow the frozen
+   * slots one to one, also with header groups, because fixed columns never belong to a group.
+   *
+   * @returns The header cells in slot order
+   */
+  private getFrozenHeaderCells(): HTMLElement[] {
+    const headerRow = this.elementRef.nativeElement.querySelector('thead > tr');
+    return headerRow ? (Array.from(headerRow.children).slice(0, this.lastFrozenSlot + 1) as HTMLElement[]) : [];
   }
 
   /**
@@ -1103,6 +1376,11 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
     const customStyle = this.cellStyleFn(row, field);
     if (!customStyle) {
       return widthStyle;
+    }
+    if (customStyle['background-color'] && this.frozenSlotByField.has(field.field)) {
+      // A fixed cell must stay opaque, so a translucent background colour is laid over the row background instead.
+      const { 'background-color': tint, ...rest } = customStyle;
+      return { ...widthStyle, ...rest, 'box-shadow': `inset 0 0 0 100vmax ${tint}` };
     }
     return { ...widthStyle, ...customStyle };
   }

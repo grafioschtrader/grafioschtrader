@@ -454,6 +454,28 @@ public class Stockexchange extends Auditable implements Serializable {
     return LocalDateTime.of(previousDay, timeClose);
   }
 
+  /**
+   * Tells whether the closing price of a session should already be stored, because the last direct price update of
+   * this exchange ran late enough after that session. The background update waits
+   * {@link GlobalConstants#WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES} after the close before it asks the data sources,
+   * so a run that came earlier is not taken as proof that the session was delivered.
+   *
+   * @param session the trading day of this exchange
+   * @return true when the last price update ran at least the waiting time after the close of the session, false when
+   *         it ran earlier or never
+   */
+  @JsonIgnore
+  public boolean isSessionCoveredByLastPriceUpdate(LocalDate session) {
+    if (lastDirectPriceUpdate == null) {
+      return false;
+    }
+    ZoneId zoneLocal = ZoneId.of(timeZone);
+    LocalDateTime ldpuLocal = lastDirectPriceUpdate.atZone(ZoneOffset.UTC).withZoneSameInstant(zoneLocal)
+        .toLocalDateTime();
+    return !LocalDateTime.of(session, timeClose).plusMinutes(GlobalConstants.WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES)
+        .isAfter(ldpuLocal);
+  }
+
   @JsonIgnore
   public int getTimeDifferenceFromUTCInSeconds() {
     ZoneId zoneId = ZoneId.of(timeZone);

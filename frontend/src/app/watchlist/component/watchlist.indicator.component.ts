@@ -129,7 +129,10 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
       maxFractionDigits: gps.getMaxFractionDigits(),
       cellTooltipFN: this.priceCellTooltip.bind(this)
     });
-    this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', true, true);
+    // Reddens with the sessions the historical data source missed, coloured by priceCellStyle of the base class.
+    this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', true, true, {
+      cellTooltipFN: this.priceCellTooltip.bind(this)
+    });
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
   }

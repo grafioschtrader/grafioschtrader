@@ -248,7 +248,7 @@ function portable(structure, database) {
     .replace(/^\/\*!40\d{3} SET (?:@OLD_\w+=@@\w+|\w+=@OLD_\w+)[^\n]*\n/gm, '')
     .replace(/\/\*!50017 DEFINER=`[^`]*`@`[^`]*`\s*\*\/\s*/g, '')
     .replace(/ DEFINER=`[^`]*`@`[^`]*`/g, '')
-    .replace(new RegExp('`' + database + '`\\.', 'g'), '')
+    .replaceAll('`' + database + '`.', '')
     .replace(/ AUTO_INCREMENT=\d+/g, '');
   if (/@OLD_/.test(result)) {
     fail('A session header or footer line of mysqldump survived the clean-up');

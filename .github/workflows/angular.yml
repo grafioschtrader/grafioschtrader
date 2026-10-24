@@ -6,6 +6,9 @@ on:
     branches:
     - master   
 name: Build Angular
+# The release action replaces the asset of the "Latest" release, which needs write access to the contents
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -1,9 +1,20 @@
 import { ProcessedActionData } from '../types/processed.action.data';
 import { ProcessedAction } from '../types/processed.action';
 import { GlobalparameterService } from '../services/globalparameter.service';
-import { Directive, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  DestroyRef,
+  Directive,
+  EventEmitter,
+  inject,
+  Input,
+  Output,
+  ViewChild
+} from '@angular/core';
+import { MonoTypeOperatorFunction, Subscription } from 'rxjs';
 import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { FormBase } from './form.base';
+import { untilSessionEnds } from './dialog.session';
 
 /**
  * Base class for simple editing fields of object in a dialog.
@@ -19,15 +30,31 @@ export abstract class SimpleEditBase extends FormBase {
   // Access child components
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
+  /** Lifetime of the component, for subscriptions created outside an injection context */
+  protected readonly destroyRef = inject(DestroyRef);
+
+  protected readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  /**
+   * Subscriptions of the current dialog session, from one onShow to the following onHide. Replaced at the start of
+   * every onShow and in onHide, closed when the component is destroyed.
+   */
+  private dialogSession = new Subscription();
+
   constructor(
     protected helpId: string,
     public gps: GlobalparameterService
   ) {
     super();
+    this.destroyRef.onDestroy(() => this.dialogSession.unsubscribe());
   }
 
   public onShow(event) {
-    setTimeout(() => this.initialize());
+    this.renewDialogSession();
+    setTimeout(() => {
+      this.initialize();
+      this.viewChanged();
+    });
   }
 
   helpLink(): void {
@@ -35,11 +62,34 @@ export abstract class SimpleEditBase extends FormBase {
   }
 
   onHide(event): void {
+    this.renewDialogSession();
     // Only emit when visibleDialog is still true (user initiated close).
     // Prevents double emission when parent sets visibleDialog to false.
     if (this.visibleDialog) {
       this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
     }
+  }
+
+  /**
+   * Ties an observable to the current dialog session: it completes when the dialog is hidden, shown anew or destroyed.
+   * Used for valueChanges subscriptions created in initialize(), which would otherwise pile up with every opening.
+   */
+  protected untilDialogClosed<T>(): MonoTypeOperatorFunction<T> {
+    return untilSessionEnds<T>(this.dialogSession);
+  }
+
+  /**
+   * Marks this dialog for check. Needed by a dialog that writes its own template fields from an asynchronous callback
+   * and has not moved them to signals yet; changes of a FieldConfig notify the form by themselves.
+   */
+  protected viewChanged(): void {
+    this.changeDetectorRef.markForCheck();
+  }
+
+  /** Ends the subscriptions of the current dialog session and opens a new one. */
+  protected renewDialogSession(): void {
+    this.dialogSession.unsubscribe();
+    this.dialogSession = new Subscription();
   }
 
   protected abstract initialize(): void;

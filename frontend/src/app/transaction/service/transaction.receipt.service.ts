@@ -2,15 +2,13 @@ import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 
-import {
-  TransactionReceiptDialogComponent,
-  TransactionReceiptDialogData
-} from '../component/transaction-receipt-dialog.component';
+import type { TransactionReceiptDialogData } from '../component/transaction-receipt-dialog.component';
 
 /**
  * Opens the transaction receipt dialog for a security. Kept as a small service so menu providers like
  * TimeSeriesQuotesService, which cannot host a dialog in a template, can trigger the dialog programmatically
- * through the Optimus DialogService.
+ * through the Optimus DialogService. The dialog is loaded on first use, so it stays out of the bundle of the application
+ * shell.
  */
 @Injectable()
 export class TransactionReceiptService {
@@ -28,13 +26,15 @@ export class TransactionReceiptService {
    */
   openDialog(idSecuritycurrency: number, idPortfolio: number, idSecurityaccount: number): void {
     const data: TransactionReceiptDialogData = { idSecuritycurrency, idPortfolio, idSecurityaccount };
-    this.dialogService.open(TransactionReceiptDialogComponent, {
-      header: this.translateService.instant('TRANSACTION_RECEIPTS'),
-      data,
-      width: '850px',
-      modal: true,
-      closable: true,
-      closeOnEscape: true
-    });
+    import('../component/transaction-receipt-dialog.component').then((m) =>
+      this.dialogService.open(m.TransactionReceiptDialogComponent, {
+        header: this.translateService.instant('TRANSACTION_RECEIPTS'),
+        data,
+        width: '850px',
+        modal: true,
+        closable: true,
+        closeOnEscape: true
+      })
+    );
   }
 }

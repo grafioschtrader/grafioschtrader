@@ -13,21 +13,10 @@ import { HistoryquotePrepareEdit } from './historyquote.prepare.edit';
 import { HistoryquoteLegacyPrepareEdit } from './historyquote.legacy.prepare.edit';
 import { GeneralEntityPrepareEdit } from '../../lib/proposechange/component/general.entity.prepare.edit';
 import { TradingCalendarRuleSet } from '../../entities/trading.calendar.rule.set';
-import { TradingCalendarRuleSetEditComponent } from '../../stockexchange/component/trading-calendar-rule-set-edit.component';
 import { Currencypair } from '../../entities/currencypair';
 import { Security } from '../../entities/security';
 import { TradingPlatformPlan } from '../../entities/tradingplatformplan';
 import { AppSettings } from '../app.settings';
-import { AssetclassEditComponent } from '../../assetclass/component/assetclass-edit.component';
-import { StockexchangeEditComponent } from '../../stockexchange/component/stockexchange-edit.component';
-import { ImportTransactionEditPlatformComponent } from '../../imptranstemplate/component/import-transaction-edit-platform.component';
-import { ImportTransactionEditTemplateComponent } from '../../imptranstemplate/component/import-transaction-edit-template.component';
-import { CurrencypairEditComponent } from '../../shared/securitycurrency/currencypair-edit.component';
-import { SecurityEditComponent } from '../../shared/securitycurrency/security-edit.component';
-import { SecurityDerivedEditComponent } from '../../securitycurrency/component/security-derived-edit.component';
-import { TradingPlatformPlanEditComponent } from '../../tradingplatform/component/trading-platform-plan-edit.component';
-import { HistoryquoteEditComponent } from '../../historyquote/component/historyquote-edit.component';
-import { HistoryquoteLegacyEditComponent } from '../../historyquote/component/historyquote-legacy-edit.component';
 
 /**
  * Sets up entity handlers for the propose change workflow.
@@ -55,80 +44,89 @@ export function setupProposeChangeEntityHandlers(
   gps: GlobalparameterService
 ): void {
   // Register Assetclass
-  registry.registerEntityHandler(
-    AppSettings.ASSETCLASS,
-    new AssetclassPrepareEdit(assetclassService),
-    AssetclassEditComponent
+  registry.registerEntityHandler(AppSettings.ASSETCLASS, new AssetclassPrepareEdit(assetclassService), () =>
+    import('../../assetclass/component/assetclass-edit.component').then((m) => m.AssetclassEditComponent)
   );
 
   // Register Stockexchange
   registry.registerEntityHandler(
     AppSettings.STOCKEXCHANGE,
     new StockexchangePrepareEdit(stockexchangeService, gps),
-    StockexchangeEditComponent
+    () => import('../../stockexchange/component/stockexchange-edit.component').then((m) => m.StockexchangeEditComponent)
   );
 
   // Register ImportTransactionPlatform
   registry.registerEntityHandler(
     AppSettings.IMPORT_TRANSACTION_PLATFORM,
     new ImportTransactionPlatformPrepareEdit(importTransactionPlatformService),
-    ImportTransactionEditPlatformComponent
+    () =>
+      import('../../imptranstemplate/component/import-transaction-edit-platform.component').then(
+        (m) => m.ImportTransactionEditPlatformComponent
+      )
   );
 
   // Register ImportTransactionTemplate (uses same prepare handler as platform)
   registry.registerEntityHandler(
     AppSettings.IMPORT_TRANSACTION_TEMPLATE,
     new ImportTransactionPlatformPrepareEdit(importTransactionPlatformService),
-    ImportTransactionEditTemplateComponent
+    () =>
+      import('../../imptranstemplate/component/import-transaction-edit-template.component').then(
+        (m) => m.ImportTransactionEditTemplateComponent
+      )
   );
 
   // Register Currencypair
-  registry.registerEntityHandler(
-    AppSettings.CURRENCYPAIR,
-    new GeneralEntityPrepareEdit(Currencypair),
-    CurrencypairEditComponent
+  registry.registerEntityHandler(AppSettings.CURRENCYPAIR, new GeneralEntityPrepareEdit(Currencypair), () =>
+    import('../../shared/securitycurrency/currencypair-edit.component').then((m) => m.CurrencypairEditComponent)
   );
 
   // Register Security
   const securityDerivedMapping = 'SecurityDerived';
-  registry.registerEntityHandler(
-    AppSettings.SECURITY,
-    new SecurityPrepareEdit(securityDerivedMapping),
-    SecurityEditComponent
+  registry.registerEntityHandler(AppSettings.SECURITY, new SecurityPrepareEdit(securityDerivedMapping), () =>
+    import('../../shared/securitycurrency/security-edit.component').then((m) => m.SecurityEditComponent)
   );
 
   // Register SecurityDerived (for derived securities like CFDs, futures)
-  registry.registerEntityHandler(
-    securityDerivedMapping,
-    new GeneralEntityPrepareEdit(Security),
-    SecurityDerivedEditComponent
+  registry.registerEntityHandler(securityDerivedMapping, new GeneralEntityPrepareEdit(Security), () =>
+    import('../../securitycurrency/component/security-derived-edit.component').then(
+      (m) => m.SecurityDerivedEditComponent
+    )
   );
 
   // Register TradingPlatformPlan
   registry.registerEntityHandler(
     AppSettings.TRADING_PLATFORM_PLAN,
     new GeneralEntityPrepareEdit(TradingPlatformPlan),
-    TradingPlatformPlanEditComponent
+    () =>
+      import('../../tradingplatform/component/trading-platform-plan-edit.component').then(
+        (m) => m.TradingPlatformPlanEditComponent
+      )
   );
 
   // Register TradingCalendarRuleSet
   registry.registerEntityHandler(
     AppSettings.TRADING_CALENDAR_RULE_SET,
     new GeneralEntityPrepareEdit(TradingCalendarRuleSet),
-    TradingCalendarRuleSetEditComponent
+    () =>
+      import('../../stockexchange/component/trading-calendar-rule-set-edit.component').then(
+        (m) => m.TradingCalendarRuleSetEditComponent
+      )
   );
 
   // Register Historyquote
   registry.registerEntityHandler(
     AppSettings.HISTORYQUOTE,
     new HistoryquotePrepareEdit(securityService, currencypairService),
-    HistoryquoteEditComponent
+    () => import('../../historyquote/component/historyquote-edit.component').then((m) => m.HistoryquoteEditComponent)
   );
 
   // Register HistoryquoteLegacy (archived shadow rows)
   registry.registerEntityHandler(
     AppSettings.HISTORYQUOTE_LEGACY,
     new HistoryquoteLegacyPrepareEdit(securityService, currencypairService),
-    HistoryquoteLegacyEditComponent
+    () =>
+      import('../../historyquote/component/historyquote-legacy-edit.component').then(
+        (m) => m.HistoryquoteLegacyEditComponent
+      )
   );
 }

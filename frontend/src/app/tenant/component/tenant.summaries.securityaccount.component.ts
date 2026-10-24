@@ -30,6 +30,8 @@ import { TransactionSecurityTableComponent } from '../../transaction/component/t
 import { TransactionSecurityMarginTreetableComponent } from '../../transaction/component/transaction-security-margin-treetable.component';
 import { TransactionCashaccountTableComponent } from '../../transaction/component/transaction-cashaccount-table.component';
 import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { NgxFileDropModule } from 'ngx-file-drop';
 
 /**
  * It is the summary for all security accounts with its securities of a for a certain tenant.
@@ -48,6 +50,8 @@ import { TransactionSecurityEditComponent } from '../../transaction/component/tr
     SelectModule,
     TooltipModule,
     ContextMenuModule,
+    NgxFileDropModule,
+    AngularSvgIconModule,
     TransactionSecurityTableComponent,
     TransactionSecurityMarginTreetableComponent,
     TransactionCashaccountTableComponent,

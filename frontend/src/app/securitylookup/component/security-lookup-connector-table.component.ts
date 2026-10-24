@@ -20,6 +20,7 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { ConnectorAlternative } from '../model/security-lookup';
 import { isUsableAlternative, LookupFeed } from '../model/security-lookup-selection';
+import { Helper } from '../../lib/helper/helper';
 
 /**
  * One of the four connector tables of the security lookup dialog (history, intraday, dividend, split). Each row is a
@@ -164,7 +165,8 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase imple
    *
    * @param alternative - The chosen connector, or null when the selection is removed
    */
-  onSelectionChange(alternative: ConnectorAlternative): void {
+  onSelectionChange(selection: ConnectorAlternative | ConnectorAlternative[]): void {
+    const alternative = Helper.singleSelection(selection);
     this.selectedAlternative = alternative;
     this.alternativeSelected.emit(alternative);
   }

@@ -1,11 +1,11 @@
-import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Validators } from '@angular/forms';
-import { Subscription } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { ClassDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -19,7 +19,6 @@ import { TenantAIProviderService } from '../service/tenant-ai-provider.service';
 @Component({
   selector: 'tenant-ai-provider-edit',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule],
   template: `<p-dialog
     [header]="'TENANT_AI_PROVIDER' | translate"
@@ -38,12 +37,11 @@ import { TenantAIProviderService } from '../service/tenant-ai-provider.service';
       (submitBt)="submit($event)"></dynamic-form>
   </p-dialog>`
 })
-export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAIProvider> implements OnInit, OnDestroy {
+export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAIProvider> implements OnInit {
   @Input() entity: TenantAIProvider;
   @Input() options: TenantAIProviderOptions;
   @Input() formDefinition: ClassDescriptorInputAndShow;
   @Input() existingProviders: string[];
-  private providerSubscription: Subscription;
 
   constructor(
     translate: TranslateService,
@@ -76,33 +74,30 @@ export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAI
     if (this.entity) {
       this.configObject.provider.formControl.disable();
     }
-    this.providerSubscription?.unsubscribe();
-    this.providerSubscription = this.configObject.provider.formControl.valueChanges.subscribe((p) =>
-      this.updateKeyInput(p)
-    );
+    this.configObject.provider.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((p) => this.updateKeyInput(p));
     this.updateKeyInput(this.entity?.provider);
   }
   private updateKeyInput(provider: string): void {
     const key = this.configObject.apiKey;
     const needsKey = this.options.keyProviders.includes(provider);
+    const required = !this.entity && needsKey;
     key.invisible = !needsKey;
-    key.formControl.setValidators(
-      !this.entity && needsKey ? [Validators.required, Validators.maxLength(256)] : [Validators.maxLength(256)]
-    );
     if (!needsKey) {
       key.formControl.setValue(null);
     }
-    key.formControl.updateValueAndValidity();
+    DynamicFieldHelper.resetValidator(
+      key,
+      required ? [Validators.required, Validators.maxLength(256)] : [Validators.maxLength(256)],
+      (key.errors ?? []).filter((e) => e.name !== 'required')
+    );
+    if (required) {
+      DynamicFieldHelper.addErrorRule(this.translateService, key, { ...DynamicFieldHelper.RULE_REQUIRED_TOUCHED });
+    }
     this.configObject.model.placeholder = this.options.defaultModels[provider] || '';
   }
   protected override getNewOrExistingInstanceBeforeSave(_: { [name: string]: any }): TenantAIProvider {
     return this.copyFormToPrivateBusinessObject(new TenantAIProvider(), this.entity);
-  }
-  override onHide(event: any): void {
-    this.providerSubscription?.unsubscribe();
-    super.onHide(event);
-  }
-  ngOnDestroy(): void {
-    this.providerSubscription?.unsubscribe();
   }
 }

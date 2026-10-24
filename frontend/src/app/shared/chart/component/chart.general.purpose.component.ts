@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivePanelService } from '../../../lib/mainmenubar/service/active.panel.service';
 import { ActivatedRoute } from '@angular/router';
@@ -8,10 +8,9 @@ import { Subscription } from 'rxjs';
 import { ChartDataService } from '../service/chart.data.service';
 import { ChartData, PlotlyHelper } from '../plotly.helper';
 import { PlotlyLocales } from '../../plotlylocale/plotly.locales';
+import { PlotlyInstance, PlotlyLoaderService } from '../plotly.loader';
 import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
 import { NgClass } from '@angular/common';
-
-declare let Plotly: any;
 
 /**
  * This general purpose chart does not have a certain layout, it can be a pie or other type of chart. After the
@@ -38,6 +37,8 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   private subscriptionChartDataChanged: Subscription;
   private routeSubscribe: Subscription;
   private chartData: ChartData;
+  private readonly plotlyLoader = inject(PlotlyLoaderService);
+  private destroyed = false;
 
   constructor(
     private gps: GlobalparameterService,
@@ -50,7 +51,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
 
   ngOnInit(): void {
     this.activePanelService.registerPanel(this);
-    const config = PlotlyLocales.setPlotyLocales(Plotly, this.gps);
+    const config = PlotlyLocales.setPlotyLocales(this.gps);
     config.displaylogo = false;
 
     this.subscriptionChartDataChanged = this.chartDataService.chartDataChanged$.subscribe((chartData: ChartData) => {
@@ -88,6 +89,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
     this.subscriptionChartDataChanged && this.subscriptionChartDataChanged.unsubscribe();
     this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
@@ -95,20 +97,32 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
     this.activePanelService.destroyPanel(this);
   }
 
+  /**
+   * Draws the current chart data once Plotly is loaded. Data that was replaced while the library loaded is not drawn,
+   * and nothing is drawn into a destroyed component.
+   */
   private plotOrRePlot(): void {
-    // Plotly.Plots.resize(this.el.nativeElement));
-    Plotly.purge(this.chartElement.nativeElement);
+    const chartData = this.chartData;
+    this.plotlyLoader.load().then(
+      (plotly) => {
+        if (!this.destroyed && chartData === this.chartData) {
+          this.plot(plotly);
+        }
+      },
+      () => {}
+    );
+  }
+
+  private plot(plotly: PlotlyInstance): void {
+    plotly.purge(this.chartElement.nativeElement);
 
     if (this.chartData.legendTooltipMap) {
-      Plotly.newPlot(
-        this.chartElement.nativeElement,
-        this.chartData.data,
-        this.chartData.layout,
-        this.chartData.options
-      ).then(this.attachTooltip.bind(this));
+      plotly
+        .newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout, this.chartData.options)
+        .then(this.attachTooltip.bind(this));
       this.chartElement.nativeElement.on('plotly_afterplot', this.attachTooltip.bind(this));
     } else {
-      Plotly.newPlot(
+      plotly.newPlot(
         this.chartElement.nativeElement,
         this.chartData.data,
         this.chartData.layout,
@@ -121,6 +135,6 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   }
 
   private attachTooltip(): void {
-    PlotlyHelper.attachTooltip(Plotly, this.chartData.legendTooltipMap, this.chartElement);
+    PlotlyHelper.attachTooltip(this.chartData.legendTooltipMap, this.chartElement);
   }
 }

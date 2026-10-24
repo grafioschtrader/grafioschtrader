@@ -128,7 +128,7 @@ Angular 22 application organized by functional modules:
 - **shared** - Common services, pipes, dialogs, helpers
 
 **Main files**:
-- `frontend/src/app/app.module.ts` - Root module
+- `frontend/src/app/app.config.ts` - Application providers (standalone bootstrap in `frontend/src/main.ts`)
 - `frontend/src/app/app.routes.ts` - Routing configuration
 - `frontend/src/environments/` - Environment configs
 

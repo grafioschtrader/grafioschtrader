@@ -1,3 +1,4 @@
+import { Directive } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -17,6 +18,7 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
  * and instrument type relationships. Handles dynamic updates of special instrument options when asset class
  * selections change, ensuring only valid instrument combinations are available.
  */
+@Directive()
 export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBase<T> {
   /** Map of asset class types to their valid special investment instruments */
   protected assetclassSpezInstMap: { [key in AssetclassType]: SpecialInvestmentInstruments[] };

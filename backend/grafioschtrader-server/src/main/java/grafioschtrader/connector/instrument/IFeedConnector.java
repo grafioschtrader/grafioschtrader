@@ -310,6 +310,42 @@ public interface IFeedConnector {
   void updateSecurityLastPrice(Security security) throws Exception;
 
   /**
+   * Returns the largest number of instruments one intraday request of this provider may carry. A connector returning
+   * more than 1 must implement {@link #updateSecuritiesLastPrice(List)} and
+   * {@link #updateCurrencyPairsLastPrice(List)}; the intraday update then groups its instruments into requests of at
+   * most this size instead of one per instrument.
+   *
+   * @return the batch size, 1 when only the single-instrument methods are supported
+   */
+  default int getIntradayBatchSize() {
+    return 1;
+  }
+
+  /**
+   * Updates the latest intraday price of several securities with one provider request. Only called when
+   * {@link #getIntradayBatchSize()} is greater than 1, with at most that many securities.
+   *
+   * @param securities the securities to update, all configured with this connector
+   * @return the securities the answer held no usable price for; they count as failed, the others as updated
+   * @throws Exception if the request as a whole failed, which fails every security of the batch
+   */
+  default List<Security> updateSecuritiesLastPrice(List<Security> securities) throws Exception {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Updates the latest exchange rate of several currency pairs with one provider request. Only called when
+   * {@link #getIntradayBatchSize()} is greater than 1, with at most that many currency pairs.
+   *
+   * @param currencypairs the currency pairs to update, all configured with this connector
+   * @return the currency pairs the answer held no usable rate for; they count as failed, the others as updated
+   * @throws Exception if the request as a whole failed, which fails every currency pair of the batch
+   */
+  default List<Currencypair> updateCurrencyPairsLastPrice(List<Currencypair> currencypairs) throws Exception {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
    * Returns the delay in seconds for intraday data provided by this connector. Real-time data has 0 delay, while
    * delayed feeds may have 15-20 minute delays.
    *

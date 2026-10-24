@@ -41,9 +41,9 @@ import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
-import grafioschtrader.connector.yahoo.YahooHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
+import grafioschtrader.connector.yahoo.YahooHelper;
 import grafioschtrader.dto.AnnualisedPerformance;
 import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SeasonalReturnsResult;
@@ -421,6 +421,11 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     if (security.getIdConnectorSplit() != null) {
       IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
           security.getIdConnectorSplit(), IFeedConnector.FeedSupport.FS_SPLIT);
+      // A configured source can become unavailable after its API key is removed.
+      if (feedConnector == null) {
+        urlHolder.setSplitUrl(null);
+        return;
+      }
       urlHolder.setSplitUrl(ConnectorHelper.canAccessConnectorApiKey(feedConnector)
           ? feedConnector.getSplitHistoricalDownloadLink(security)
           : getDownlinkDivSplitWithApiKey(security, false));
@@ -529,6 +534,12 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   public void updateIntraSecurityCurrency(final Security securitycurrency, final IFeedConnector feedConcector)
       throws Exception {
     feedConcector.updateSecurityLastPrice(securitycurrency);
+  }
+
+  @Override
+  public List<Security> updateIntraSecurityCurrencies(final List<Security> securities,
+      final IFeedConnector feedConnector) throws Exception {
+    return feedConnector.updateSecuritiesLastPrice(securities);
   }
 
   protected IIntradayLoad<Security> getIntradayLoad(Security security) {
@@ -815,6 +826,10 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       FeedSupport fd = IFeedConnector.FeedSupport.FS_SPLIT;
       IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, security.getIdConnectorSplit(),
           fd);
+      if (fc == null) {
+        throw new DataViolationException("id.connector.split", "gt.connector.subscription.failure",
+            new Object[] { security.getIdConnectorSplit(), fd.name() });
+      }
       validateConnectorSupports(security, fc, fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(security, fd);
     }

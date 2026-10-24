@@ -44,6 +44,7 @@ import { TransactionSecurityTableComponent } from '../../transaction/component/t
 import { TransactionSecurityMarginTreetableComponent } from '../../transaction/component/transaction-security-margin-treetable.component';
 import { TransactionCashaccountTableComponent } from '../../transaction/component/transaction-cashaccount-table.component';
 import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 /**
  * It is the summary for a single security account with its securities.
@@ -61,6 +62,7 @@ import { TransactionSecurityEditComponent } from '../../transaction/component/tr
     SelectModule,
     TooltipModule,
     ContextMenuModule,
+    AngularSvgIconModule,
     NgxFileDropModule,
     TransactionSecurityTableComponent,
     TransactionSecurityMarginTreetableComponent,
@@ -71,9 +73,6 @@ import { TransactionSecurityEditComponent } from '../../transaction/component/tr
 export class SecurityaccountSummaryComponent extends SecurityaccountTable implements OnInit, OnDestroy {
   private routeSubscribe: Subscription;
   private idSecurityaccount: number;
-
-  /** Drop-zone choice: when true (and the tenant GT platform is configured) dropped PDFs use the GT templates. */
-  useGtPlatformDrop = false;
 
   constructor(
     private ngZone: NgZone,
@@ -149,12 +148,12 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   }
 
   /** True when the securities account is mapped to its own import platform. */
-  get accountHasOwnPlatform(): boolean {
+  override get accountHasOwnPlatform(): boolean {
     return !!this.securityAccount?.tradingPlatformPlan?.importTransactionPlatform;
   }
 
   /** True when the tenant has configured a Grafioschtrader import platform. */
-  get gtPlatformConfigured(): boolean {
+  override get gtPlatformConfigured(): boolean {
     return this.injector.get(GlobalparameterGTService).getTenantGtImportPlatformId() != null;
   }
 
@@ -162,15 +161,11 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
    * The drop zone is shown when the account has its own import platform or the tenant provides a Grafioschtrader
    * import platform (so GT receipt PDFs can be dropped even onto accounts without their own platform mapping).
    */
-  get showDropZone(): boolean {
+  override get showDropZone(): boolean {
     return this.accountHasOwnPlatform || this.gtPlatformConfigured;
   }
 
-  onDropUseGtPlatformToggle(event: Event): void {
-    this.useGtPlatformDrop = (event.target as HTMLInputElement).checked;
-  }
-
-  public dropped(files: NgxFileDropEntry[]): void {
+  public override dropped(files: NgxFileDropEntry[]): void {
     AppHelper.processDroppedFiles(files, this.messageToastService, 'pdf', this.uploadTransactionFiles.bind(this));
   }
 

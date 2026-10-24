@@ -251,6 +251,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       this.singleMultiSelection = [];
     }
     this.filterRowToggleable = true;
+    this.frozenColumnsSelectable = true;
     this.multiSortMeta.push({ field: 'securitycurrency.name', order: 1 });
   }
 
@@ -388,6 +389,17 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   }
 
   /**
+   * Icon of a link column in the shared watchlist template: the trailing number of the field name selects one of the
+   * four link icons, a field name without a number the first.
+   *
+   * @param field - Column configuration of the link column
+   * @returns Name of the svg icon
+   */
+  getLinkIconName(field: ColumnConfig): string {
+    return 'link' + (Number(field.field.match(/\d+$/)?.[0] ?? 0) % 4);
+  }
+
+  /**
    * Gets the appropriate icon for a security or currency pair instrument.
    *
    * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Position containing the instrument to get icon for
@@ -456,6 +468,10 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * which is the history the data source never delivered. A history reaching further back than that day is no feed
    * problem but a hint at a wrong trading start date, so it gets the same flat yellow and no ramp.
    *
+   * The youngest stored price turns increasingly red with the number of sessions whose closing price should already
+   * have been loaded. The backend decides that from the last end of day load of the exchange, so the time between a
+   * close and the next load never colours a cell.
+   *
    * The template is shared by all watchlist types, so every column but these is left alone.
    *
    * @param position - Row of the table
@@ -467,12 +483,10 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     field: ColumnConfig
   ): { [key: string]: string } | null {
     if (field.field === 'securitycurrency.sTimestamp') {
-      const sessions = Math.min(position.staleTradingSessions ?? 0, WatchlistTable.MAX_STALE_TRADING_SESSIONS);
-      return sessions > 0
-        ? {
-            'background-color': `rgba(220, 38, 38, ${(0.08 + (0.37 * (sessions - 1)) / (WatchlistTable.MAX_STALE_TRADING_SESSIONS - 1)).toFixed(3)})`
-          }
-        : null;
+      return WatchlistTable.redRamp(position.staleTradingSessions ?? 0, WatchlistTable.MAX_STALE_TRADING_SESSIONS);
+    }
+    if (field.field === 'youngestHistoryDate') {
+      return WatchlistTable.redRamp(position.missingEodSessions ?? 0, WatchlistTable.MAX_STALE_TRADING_SESSIONS);
     }
     if (field.field === 'securitycurrency.sLast' && position.lastpriceOrigin === LastpriceOrigin.HISTORY_INTERPOLATED) {
       return { 'background-color': 'rgba(234, 179, 8, 0.30)' };
@@ -485,12 +499,24 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       if (days < 0) {
         return { 'background-color': 'rgba(234, 179, 8, 0.30)' };
       }
-      const cappedDays = Math.min(days, WatchlistTable.MAX_HISTORY_START_GAP_DAYS);
-      return {
-        'background-color': `rgba(220, 38, 38, ${(0.08 + (0.37 * (cappedDays - 1)) / (WatchlistTable.MAX_HISTORY_START_GAP_DAYS - 1)).toFixed(3)})`
-      };
+      return WatchlistTable.redRamp(days, WatchlistTable.MAX_HISTORY_START_GAP_DAYS);
     }
     return null;
+  }
+
+  /**
+   * Red background whose strength grows linearly from a light tint at 1 to the strongest tint at the maximum.
+   *
+   * @param value - Measured deviation, zero or less needs no colour
+   * @param max - Deviation from which on the colour no longer grows
+   * @returns Style object for the cell, or null when the value needs no colour
+   */
+  private static redRamp(value: number, max: number): { [key: string]: string } | null {
+    if (value <= 0) {
+      return null;
+    }
+    const capped = Math.min(value, max);
+    return { 'background-color': `rgba(220, 38, 38, ${(0.08 + (0.37 * (capped - 1)) / (max - 1)).toFixed(3)})` };
   }
 
   /**
@@ -531,6 +557,9 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
         return this.translateService.instant('OLDEST_EOD_BEFORE_ACTIVE_TOOLTIP', { days: Math.abs(days) });
       }
       return value;
+    }
+    if (field.field === 'youngestHistoryDate' && position.missingEodSessions > 0) {
+      return this.translateService.instant('YOUNGEST_EOD_STALE_TOOLTIP', { sessions: position.missingEodSessions });
     }
     if (field.field === 'securitycurrency.sTimestamp' && position.staleTradingSessions > 0) {
       return this.translateService.instant('PRICE_STALE_TOOLTIP', { sessions: position.staleTradingSessions });
@@ -940,7 +969,6 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   protected addBaseColumns(): void {
     this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false, {
       width: 200,
-      frozenColumn: false,
       templateName: BaseSettings.OWNER_TEMPLATE,
       filterType: FilterType.likeDataType
     });

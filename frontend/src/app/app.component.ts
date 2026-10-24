@@ -1,4 +1,6 @@
 import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { MessageToastComponent } from './lib/message/message.toast.component';
 import { TranslateService } from '@ngx-translate/core';
 import { LoginService } from './lib/login/service/log-in.service';
 import { Optimus } from '@openng/optimus-ui/config';
@@ -129,7 +131,7 @@ const MyPreset = definePreset(Aura, {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+  imports: [RouterOutlet, MessageToastComponent]
 })
 export class AppComponent implements OnDestroy {
   private readonly subscription: Subscription;

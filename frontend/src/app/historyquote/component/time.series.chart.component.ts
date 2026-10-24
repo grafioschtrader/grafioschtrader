@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   CrossRateRequest,
@@ -16,6 +16,7 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
+import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { combineLatest, forkJoin, Observable, Subscription } from 'rxjs';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 import { TransactionType } from '../../shared/types/transaction.type';
@@ -57,8 +58,7 @@ import { UserChartShapeService } from '../service/user.chart.shape.service';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 import { ChartCurrencyNormalizer } from './chart.currency.normalizer';
 import { ChartShapeController } from './chart.shape.controller';
-
-declare let Plotly: any;
+import { TimeSeriesParam } from '../model/time.series.param';
 
 interface Traces {
   [key: string]: Data;
@@ -229,6 +229,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private currencyNormalizer = new ChartCurrencyNormalizer();
   /** Owns the freehand drawings on the chart together with their history and their persistence. */
   private shapeController: ChartShapeController;
+  private readonly plotlyLoader = inject(PlotlyLoaderService);
+  /** Set once the first chart has loaded the library; indicator toggles and cleanup never trigger the import. */
+  private plotly: PlotlyInstance;
+  private destroyed = false;
+  /** Raised by every plot, so a plot still waiting for the library is dropped when a newer one follows. */
+  private plotVersion = 0;
 
   constructor(
     private messageToastService: MessageToastService,
@@ -298,6 +304,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.subscriptionLatest && this.subscriptionLatest.unsubscribe();
     this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
     this.shapeController.destroy();
@@ -581,8 +588,20 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
    * @param shapes the drawings to place in the layout
    */
   private plotWithShapes(element: any, traces: any[], shapes: any[]): void {
-    this.plot(element, traces, this.getLayout(this.getHoldingLayout(), shapes));
-    this.redoTaAfterDateChange();
+    const layout = this.getLayout(this.getHoldingLayout(), shapes);
+    const version = ++this.plotVersion;
+    this.plotlyLoader.load().then(
+      (plotly) => {
+        if (this.destroyed || version !== this.plotVersion) {
+          return;
+        }
+        this.plotly = plotly;
+        this.shapeController.setPlotly(plotly);
+        this.plot(element, traces, layout);
+        this.redoTaAfterDateChange();
+      },
+      () => {}
+    );
   }
 
   private getHoldingLayout() {
@@ -1246,7 +1265,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       iDef.menuItem.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
       iDef.shown = false;
       const traceIndices: number[] = iDef.taTraceIndicatorDataList.map((taT) => taT.traceIndex).reverse();
-      Plotly.deleteTraces(this.chartElement.nativeElement, traceIndices);
+      this.plotly?.deleteTraces(this.chartElement.nativeElement, traceIndices);
       iDef.taTraceIndicatorDataList.forEach((taT) => (taT.traceIndex = undefined));
       this.adjustTATraceIndices(traceIndices);
     }
@@ -1298,7 +1317,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           );
       }
 
-      Plotly.addTraces(this.chartElement.nativeElement, trace);
+      this.plotly?.addTraces(this.chartElement.nativeElement, trace);
       taTraceIndicatorData.traceIndex = this.chartElement.nativeElement.data.length - 1;
     });
   }
@@ -1404,7 +1423,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private plot(element: any, traces: any, layout: any): void {
-    const config = PlotlyLocales.setPlotyLocales(Plotly, this.gps);
+    const config = PlotlyLocales.setPlotyLocales(this.gps);
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
     config.modeBarButtonsToAdd = [
       'drawline',
@@ -1416,15 +1435,15 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       ...this.shapeController.getModeBarButtons()
     ];
     config.displaylogo = false;
-    Plotly.purge(this.chartElement.nativeElement);
-    Plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
+    this.plotly.purge(this.chartElement.nativeElement);
+    this.plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
     element.on('plotly_afterplot', this.attachTooltip.bind(this));
     element.on('plotly_relayout', () => this.shapeController.onRelayout());
 
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
       this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe((changedViewSizeType) =>
-        Plotly.Plots.resize(element)
+        this.plotly.Plots.resize(element)
       );
     }
   }
@@ -1443,7 +1462,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private attachTooltip(): void {
-    PlotlyHelper.attachTooltip(Plotly, this.legendTooltipMap, this.chartElement);
+    PlotlyHelper.attachTooltip(this.legendTooltipMap, this.chartElement);
   }
 
   private getLayout(holdingLayout, shapes: any[] = []): any {
@@ -1567,16 +1586,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     PlotlyHelper.translateLayout(this.translateService, layout);
     return layout;
   }
-}
-
-export class TimeSeriesParam {
-  constructor(
-    public idSecuritycurrency: number,
-    public currencySecurity: string,
-    public idPortfolio: number,
-    public idSecurityaccount: number,
-    fileGaps = true
-  ) {}
 }
 
 class LoadedData {

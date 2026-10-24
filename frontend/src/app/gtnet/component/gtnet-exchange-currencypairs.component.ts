@@ -29,6 +29,7 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
 import { GTNetSupplierDetailTableComponent } from './gtnet-supplier-detail-table.component';
 import { GTNetExchangeCheckboxesComponent, CheckboxToggleEvent } from './gtnet-exchange-checkboxes.component';
 import { HelpIds } from '../../lib/help/help.ids';
+import { Helper } from '../../lib/helper/helper';
 
 /**
  * Component for configuring GTNet exchange settings for currency pairs.
@@ -310,8 +311,8 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   /**
    * Wrapper for selection change to call resetMenu
    */
-  onSelectionChange(entity: Currencypair): void {
-    this.resetMenu(entity);
+  onSelectionChange(selection: Currencypair | Currencypair[]): void {
+    this.resetMenu(Helper.singleSelection(selection));
   }
 
   /**

@@ -217,8 +217,12 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
       filterType: FilterType.likeDataType,
       cellTooltipFN: this.priceCellTooltip.bind(this)
     });
+    // Reddens with the sessions whose closing price should already have been loaded after the last end of day load of
+    // the exchange, which tells that the historical data source stopped delivering. Coloured by priceCellStyle of the
+    // base class.
     this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', true, true, {
-      filterType: FilterType.likeDataType
+      filterType: FilterType.likeDataType,
+      cellTooltipFN: this.priceCellTooltip.bind(this)
     });
     this.addColumn(
       DataType.NumericInteger,

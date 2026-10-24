@@ -21,10 +21,14 @@ import { BaseSettings } from '../../lib/base.settings';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { BusinessHelper } from '../../shared/helper/business.helper';
-import { WatchlistEditDynamicComponent } from '../component/watchlist.edit.dynamic.component';
 import { WatchlistMoveStatus } from '../model/watchlist.move.status';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
 import { ProcessedAction } from '../../lib/types/processed.action';
+import { DialogComponentLoader } from '../../lib/maintree/handler/lazy-dialog';
+
+// Dialogs are loaded on first use, so they stay out of the bundle of the application shell.
+const loadWatchlistEditDynamic: DialogComponentLoader = () =>
+  import('../component/watchlist.edit.dynamic.component').then((m) => m.WatchlistEditDynamicComponent);
 
 /**
  * Contributor for Watchlist-related nodes in the main navigation tree.
@@ -139,7 +143,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
               BusinessHelper.isLimitCheckOk(this.tenantLimits[TenantLimitTypes.MAX_WATCHLIST], this.messageToastService)
             ) {
               this.callbacks
-                ?.handleEdit(WatchlistEditDynamicComponent, parentNodeData, null, AppSettings.WATCHLIST.toUpperCase())
+                ?.handleEdit(loadWatchlistEditDynamic, parentNodeData, null, AppSettings.WATCHLIST.toUpperCase())
                 ?.subscribe((result) => {
                   if (result) {
                     this.callbacks?.refreshTree();
@@ -156,7 +160,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
           command: () =>
             this.callbacks
               ?.handleEdit(
-                WatchlistEditDynamicComponent,
+                loadWatchlistEditDynamic,
                 parentNodeData,
                 selectedNodeData,
                 AppSettings.WATCHLIST.toUpperCase()

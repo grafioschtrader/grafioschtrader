@@ -3,6 +3,8 @@ import { FieldFormGroup, FormGroupDefinition } from '../dynamic-form/models/form
 import { FieldConfig } from '../dynamic-form/models/field.config';
 import { FormHelper } from '../dynamic-form/components/FormHelper';
 import { MenuItem } from '@openng/optimus-ui/api';
+import { defaultIfEmpty, forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
+import { FormNotifier } from '../dynamic-form/models/form.notifier';
 import { ColumnConfig, TranslateValue } from '../datashowbase/column.config';
 import { Helper } from './helper';
 import { BaseSettings } from '../base.settings';
@@ -61,6 +63,7 @@ export class TranslateHelper {
     translateService: TranslateService,
     fieldFormGroup: FieldFormGroup[]
   ): { [name: string]: FieldConfig } {
+    FormNotifier.instrument(fieldFormGroup);
     const fieldConfigs = FormHelper.flattenConfigMap(fieldFormGroup);
 
     // Fix für Object.assign Spread-Problem
@@ -161,7 +164,11 @@ export class TranslateHelper {
             param1: error.param1,
             param2: error.param2
           })
-          .subscribe((text) => (error.text = text))
+          .subscribe((text) => {
+            error.text = text;
+            // The text sits below the errors property, so the form is notified explicitly
+            FormNotifier.notifyOf(fieldConfig);
+          })
       );
   }
 
@@ -187,22 +194,81 @@ export class TranslateHelper {
    * ```
    */
   public static translateMenuItems(menuItems: MenuItem[], translateService: TranslateService, translateParam = true) {
+    TranslateHelper.collectMenuItemTranslations(menuItems, translateService, translateParam).forEach((translation) =>
+      translation.subscribe()
+    );
+  }
+
+  /**
+   * Translates a menu tree like {@link translateMenuItems}, but leaves the passed items untouched. The returned
+   * observable emits once, after every label and tooltip of the tree is resolved, a copy of the tree made of new
+   * MenuItem objects, and completes. Signal holders of a menu model set it from this emission, so the menu is
+   * published with a new reference and already translated.
+   *
+   * @param menuItems Array of menu items to translate; null or undefined emits null
+   * @param translateService Angular's translation service
+   * @param translateParam Whether to translate the parameter part of split labels (default: true)
+   * @returns Observable emitting the translated copy once
+   */
+  public static translateMenuItems$(
+    menuItems: MenuItem[],
+    translateService: TranslateService,
+    translateParam = true
+  ): Observable<MenuItem[]> {
+    if (!menuItems) {
+      return of(null);
+    }
+    return of(null).pipe(
+      map(() => TranslateHelper.copyMenuItems(menuItems)),
+      switchMap((copy) =>
+        forkJoin(TranslateHelper.collectMenuItemTranslations(copy, translateService, translateParam)).pipe(
+          defaultIfEmpty(null),
+          map(() => copy)
+        )
+      )
+    );
+  }
+
+  /** Copies a menu tree into new MenuItem objects; commands and other functions are shared, not copied. */
+  private static copyMenuItems(menuItems: MenuItem[]): MenuItem[] {
+    return menuItems.map((menuItem) => ({
+      ...menuItem,
+      ...(menuItem.tooltipOptions ? { tooltipOptions: { ...menuItem.tooltipOptions } } : {}),
+      ...(menuItem.items ? { items: TranslateHelper.copyMenuItems(<MenuItem[]>menuItem.items) } : {})
+    }));
+  }
+
+  /**
+   * Prepares the translation of a menu tree in place and returns one cold observable per text to translate. Each one
+   * writes its text into the item when subscribed and completes afterwards.
+   */
+  private static collectMenuItemTranslations(
+    menuItems: MenuItem[],
+    translateService: TranslateService,
+    translateParam: boolean
+  ): Observable<void>[] {
+    const translations: Observable<void>[] = [];
     menuItems.forEach((menuItem: MenuItem) => {
       if (menuItem.label) {
         if (menuItem.label.startsWith('_')) {
           menuItem.label = menuItem.label.slice(1);
           menuItem.tooltipOptions = { tooltipLabel: TranslateHelper.cutOffDialogDots(menuItem.label) + '_TITLE' };
         }
-        TranslateHelper.translateMenuItem(menuItem, 'label', translateService, translateParam);
+        translations.push(TranslateHelper.translateMenuItem(menuItem, 'label', translateService, translateParam));
         if (menuItem.tooltipOptions) {
-          TranslateHelper.translateMenuItem(menuItem.tooltipOptions, 'tooltipLabel', translateService, translateParam);
+          translations.push(
+            TranslateHelper.translateMenuItem(menuItem.tooltipOptions, 'tooltipLabel', translateService, translateParam)
+          );
         }
         if (menuItem.items) {
           // For child menu
-          this.translateMenuItems(<MenuItem[]>menuItem.items, translateService, translateParam);
+          translations.push(
+            ...this.collectMenuItemTranslations(<MenuItem[]>menuItem.items, translateService, translateParam)
+          );
         }
       }
     });
+    return translations;
   }
 
   /**
@@ -376,41 +442,37 @@ export class TranslateHelper {
     targetProperty: string,
     translateService: TranslateService,
     translateParam: boolean
-  ): void {
-    if (menuItem[targetProperty] && menuItem[targetProperty].toUpperCase() === menuItem[targetProperty]) {
+  ): Observable<void> {
+    if (!menuItem[targetProperty] || menuItem[targetProperty].toUpperCase() !== menuItem[targetProperty]) {
       // Translate only once
-      const dialogMenuItem = menuItem[targetProperty].endsWith(BaseSettings.DIALOG_MENU_SUFFIX);
-      if (dialogMenuItem) {
-        menuItem[targetProperty] = TranslateHelper.cutOffDialogDots(menuItem[targetProperty]);
-      }
-      if (menuItem[targetProperty].indexOf('|') >= 0) {
-        const labelWord: string[] = menuItem[targetProperty].split('|');
-
-        if (translateParam) {
-          translateService
-            .get(labelWord[1])
-            .subscribe((param) =>
-              translateService
-                .get(labelWord[0], { i18nRecord: param })
-                .subscribe(
-                  (message) =>
-                    (menuItem[targetProperty] = message + (dialogMenuItem ? BaseSettings.DIALOG_MENU_SUFFIX : ''))
-                )
-            );
-        } else {
-          translateService
-            .get(labelWord[0], { i18nRecord: labelWord[1] })
-            .subscribe((message) => (menuItem[targetProperty] = message));
-        }
-      } else {
-        translateService
-          .get(menuItem[targetProperty])
-          .subscribe(
-            (translated) =>
-              (menuItem[targetProperty] = translated + (dialogMenuItem ? BaseSettings.DIALOG_MENU_SUFFIX : ''))
-          );
-      }
+      return of(undefined);
     }
+    const dialogMenuItem = menuItem[targetProperty].endsWith(BaseSettings.DIALOG_MENU_SUFFIX);
+    if (dialogMenuItem) {
+      menuItem[targetProperty] = TranslateHelper.cutOffDialogDots(menuItem[targetProperty]);
+    }
+    const dialogSuffix = dialogMenuItem ? BaseSettings.DIALOG_MENU_SUFFIX : '';
+    const write = (text: string): void => {
+      menuItem[targetProperty] = text;
+    };
+    if (menuItem[targetProperty].indexOf('|') >= 0) {
+      const labelWord: string[] = menuItem[targetProperty].split('|');
+      if (translateParam) {
+        return translateService.get(labelWord[1]).pipe(
+          switchMap((param) => translateService.get(labelWord[0], { i18nRecord: param })),
+          tap((message) => write(message + dialogSuffix)),
+          map(() => undefined)
+        );
+      }
+      return translateService.get(labelWord[0], { i18nRecord: labelWord[1] }).pipe(
+        tap((message) => write(message)),
+        map(() => undefined)
+      );
+    }
+    return translateService.get(menuItem[targetProperty]).pipe(
+      tap((translated) => write(translated + dialogSuffix)),
+      map(() => undefined)
+    );
   }
 
   /**

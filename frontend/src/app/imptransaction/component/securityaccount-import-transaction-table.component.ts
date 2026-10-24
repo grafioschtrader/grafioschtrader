@@ -35,6 +35,7 @@ import { TemplateFormCheckDialogResultFailedComponent } from '../../imptranstemp
 import { SecurityaccountImportExtendedInfoFilenameComponent } from './securityaccount-import-extended-info-filename.component';
 import { SecurityaccountImportExtendedInfoComponent } from './securityaccount-import-extended-info.component';
 import { SecurityaccountImportSetCashaccountDialogComponent } from './securityaccount-import-set-cashaccount-dialog.component';
+import { Helper } from '../../lib/helper/helper';
 
 /**
  * This table is controlled by a master data selection view.
@@ -314,8 +315,8 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
    *
    * @param selectedEntities - The rows selected now
    */
-  onSelectionChange(selectedEntities: CombineTemplateAndImpTransPos[]): void {
-    this.selectedEntities = selectedEntities;
+  onSelectionChange(selection: CombineTemplateAndImpTransPos | CombineTemplateAndImpTransPos[]): void {
+    this.selectedEntities = Helper.multipleSelection(selection);
     this.parentChildRowSelection?.rowSelectionChanged(this.entityList, null);
   }
 

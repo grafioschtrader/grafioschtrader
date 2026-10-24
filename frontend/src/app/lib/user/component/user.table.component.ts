@@ -79,7 +79,7 @@ import { BaseSettings } from '../../base.settings';
     @if (visibleEditLimitDialog) {
       <entity-limit-edit
         [visibleDialog]="visibleEditLimitDialog"
-        [user]="selectedEntity"
+        [idUser]="selectedEntity?.idUser"
         (closeDialog)="handleEditLimitCloseDialog($event)">
       </entity-limit-edit>
     }

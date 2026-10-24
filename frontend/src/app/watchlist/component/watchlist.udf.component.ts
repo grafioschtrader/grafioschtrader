@@ -122,9 +122,6 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
   /** List of field descriptors for security and general UDF metadata */
   private readonly fdSecurityList: FieldDescriptorInputAndShowExtendedSecurity[];
 
-  /** Regular expression to extract trailing numbers from field names */
-  fieldNumberRegex = /\d+$/;
-
   /**
    * Creates a new WatchlistUdfComponent instance with all required services and dependencies.
    *

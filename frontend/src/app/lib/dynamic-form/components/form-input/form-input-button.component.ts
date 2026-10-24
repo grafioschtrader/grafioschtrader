@@ -14,6 +14,7 @@ import { UpperCaseDirective } from './upper-case.directive';
 @Component({
   selector: 'form-input-button',
   template: `
+    @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-inputgroup>
         <input

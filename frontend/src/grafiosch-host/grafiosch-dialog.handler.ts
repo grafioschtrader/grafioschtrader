@@ -1,8 +1,11 @@
-import { Injectable, Type } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { Observable, of } from 'rxjs';
 
 import { DialogHandler } from '../app/lib/maintree/handler/dialog-handler.interface';
+import { DialogComponentLoader, openLazyDialog } from '../app/lib/maintree/handler/lazy-dialog';
+import { MessageToastService } from '../app/lib/message/message.toast.service';
+import { InfoLevelType } from '../app/lib/message/info.leve.type';
 
 /**
  * The {@code DIALOG_HANDLER} implementation of this host. The main tree calls it whenever a node wants to open an edit
@@ -14,17 +17,30 @@ import { DialogHandler } from '../app/lib/maintree/handler/dialog-handler.interf
  */
 @Injectable()
 export class GrafioschDialogHandler implements DialogHandler {
-  constructor(private dialogService: DialogService) {}
+  constructor(
+    private dialogService: DialogService,
+    private messageToastService: MessageToastService
+  ) {}
 
-  openEditDialog(componentType: Type<any>, parentObject: any, data: any, titleKey: string): Observable<any> {
-    return this.dialogService.open(componentType, {
-      data: { callParam: { parentObject, thisObject: data } },
-      header: titleKey,
-      modal: true,
-      closable: true,
-      closeOnEscape: true,
-      width: '50vw'
-    }).onClose;
+  openEditDialog(
+    loadComponent: DialogComponentLoader,
+    parentObject: any,
+    data: any,
+    titleKey: string
+  ): Observable<any> {
+    return openLazyDialog(
+      loadComponent,
+      (componentType) =>
+        this.dialogService.open(componentType, {
+          data: { callParam: { parentObject, thisObject: data } },
+          header: titleKey,
+          modal: true,
+          closable: true,
+          closeOnEscape: true,
+          width: '50vw'
+        }).onClose,
+      () => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MSG_LOAD_NEW_VERSION')
+    );
   }
 
   openTenantDialog(data: any, onlyCurrency: boolean): Observable<any> {

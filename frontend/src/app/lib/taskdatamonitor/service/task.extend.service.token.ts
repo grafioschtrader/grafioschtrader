@@ -7,6 +7,6 @@ import { ITaskExtendService } from '../component/itask.extend.service';
  * the concrete implementation (e.g., SecurityService in Grafioschtrader).
  *
  * This follows the Dependency Inversion Principle: lib depends on abstraction,
- * app provides the implementation.
+ * app provides the implementation. A host without such extensions provides null.
  */
 export const TASK_EXTENDED_SERVICE = new InjectionToken<ITaskExtendService>('TaskExtendService');

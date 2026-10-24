@@ -43,13 +43,10 @@
               "src/app/lib/styles.css"
             ],
             "scripts": [
-              "node_modules/moment/min/moment.min.js",
-              "node_modules/deepmerge/dist/umd.js",
               "node_modules/split.js/dist/split.js",
-              "node_modules/plotly.js/dist/plotly.min.js",
               "node_modules/reflect-metadata/Reflect.js"
             ],
-            "allowedCommonJsDependencies": ["moment", "deepmerge", "angular2-uuid"],
+            "allowedCommonJsDependencies": ["moment", "deepmerge", "angular2-uuid", "plotly.js"],
             "browser": "src/main.ts"
           },
           "configurations": {
@@ -57,8 +54,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "10mb",
-                  "maximumError": "15mb"
+                  "maximumWarning": "2.75mb",
+                  "maximumError": "3.25mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -147,8 +144,6 @@
               "src/grafiosch-host/styles.css"
             ],
             "scripts": [
-              "node_modules/moment/min/moment.min.js",
-              "node_modules/deepmerge/dist/umd.js",
               "node_modules/split.js/dist/split.js",
               "node_modules/reflect-metadata/Reflect.js"
             ],

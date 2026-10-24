@@ -13,6 +13,7 @@ import { TransformedError } from '../login/service/transformed.error';
 import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
 import { plainToClassFromExist } from 'class-transformer';
 import { Directive } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EditHelper } from './edit.helper';
 
 /**
@@ -55,23 +56,29 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
     const entityNew: T = this.getNewOrExistingInstanceBeforeSave(value);
     AuditHelper.disableRejectFieldButton(this.configObject, true);
     this.activateWaitStateInButton();
-    this.serviceEntityUpdate.update(entityNew).subscribe({
-      next: (returnEntity) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-          i18nRecord: this.i18nRecord
-        });
-        this.closeDialog.emit(
-          new ProcessedActionData(ProcessedAction.CREATED, plainToClassFromExist(entityNew, returnEntity))
-        );
-      },
-      error: (transformedError: TransformedError) => {
-        if (transformedError.errorClass && transformedError.errorClass instanceof LimitEntityTransactionError) {
-          this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE, null, transformedError));
+    // Bound to the component, not to the dialog session: closing the dialog does not cancel a save in progress.
+    this.serviceEntityUpdate
+      .update(entityNew)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (returnEntity) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: this.i18nRecord
+          });
+          this.closeDialog.emit(
+            new ProcessedActionData(ProcessedAction.CREATED, plainToClassFromExist(entityNew, returnEntity))
+          );
+          this.viewChanged();
+        },
+        error: (transformedError: TransformedError) => {
+          if (transformedError.errorClass && transformedError.errorClass instanceof LimitEntityTransactionError) {
+            this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE, null, transformedError));
+          }
+          this.configObject.submit.disabled = false;
+          AuditHelper.disableRejectFieldButton(this.configObject, false);
+          this.viewChanged();
         }
-        this.configObject.submit.disabled = false;
-        AuditHelper.disableRejectFieldButton(this.configObject, false);
-      }
-    });
+      });
   }
 
   /**

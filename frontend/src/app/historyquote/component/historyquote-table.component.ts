@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Historyquote } from '../../entities/historyquote';
+import { HistoryquoteSecurityCurrency } from '../model/historyquote.security.currency';
 import { HistoryquoteService } from '../service/historyquote.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
@@ -32,12 +33,10 @@ import {
   HistoryquoteFillGapsBounds
 } from '../../securitycurrency/model/historyquote.quality.group';
 import { HelpIds } from '../../lib/help/help.ids';
-import { TimeSeriesParam } from './time.series.chart.component';
+import { TimeSeriesParam } from '../model/time.series.param';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { HistoryquoteTableBase } from './historyquote-table.base';
-import { Securitycurrency } from '../../entities/securitycurrency';
 import { Security } from '../../entities/security';
-import { Currencypair } from '../../entities/currencypair';
 import { plainToClass } from 'class-transformer';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -456,18 +455,5 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
-  }
-}
-
-export class HistoryquoteSecurityCurrency {
-  constructor(
-    public historyquote: Historyquote,
-    public securitycurrency: Securitycurrency
-  ) {}
-
-  get showName(): string {
-    return this.securitycurrency.hasOwnProperty('name')
-      ? (<Security>this.securitycurrency).name
-      : (<Currencypair>this.securitycurrency).fromCurrency + '/' + (<Currencypair>this.securitycurrency).toCurrency;
   }
 }

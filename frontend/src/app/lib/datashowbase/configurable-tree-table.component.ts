@@ -2,6 +2,7 @@ import {
   Component,
   ContentChild,
   EventEmitter,
+  input,
   Input,
   Output,
   TemplateRef,
@@ -112,7 +113,7 @@ export interface TreeTableCellEditEvent {
         [dataKey]="dataKey"
         [selectionMode]="selectionMode"
         [(selection)]="selection"
-        (selectionChange)="selectionChange.emit($event)"
+        (selectionChange)="onTreeSelectionChange($event)"
         (onNodeSelect)="nodeSelect.emit($event)"
         (onNodeUnselect)="nodeUnselect.emit($event)"
         (onNodeExpand)="nodeExpand.emit($event)"
@@ -320,6 +321,12 @@ export class ConfigurableTreeTableComponent {
   /** Array of column configurations defining tree table structure. */
   @Input() fields: ColumnConfig[] = [];
 
+  /**
+   * Revision of the column configuration, bound as [fieldsRevision]="fieldsRevision()" of the owning table base. A
+   * new value re-renders the table after the columns were changed in place, also when it runs OnPush.
+   */
+  readonly fieldsRevision = input(0);
+
   /** Property name used as the unique identifier for each node. */
   @Input() dataKey: string;
 
@@ -335,6 +342,16 @@ export class ConfigurableTreeTableComponent {
 
   /** Emits when selection changes. Used for two-way binding with [(selection)]. */
   @Output() selectionChange = new EventEmitter<TreeNode | null>();
+
+  /**
+   * Forwards the selection of the inner tree table, which types it for every selection mode, as the one node this
+   * single-selection table can hold.
+   *
+   * @param selection - Selection reported by p-treeTable
+   */
+  onTreeSelectionChange(selection: TreeNode | TreeNode[] | null): void {
+    this.selectionChange.emit(Helper.singleSelection(selection));
+  }
 
   /** Emits when a tree node is selected (user action). */
   @Output() nodeSelect = new EventEmitter<any>();

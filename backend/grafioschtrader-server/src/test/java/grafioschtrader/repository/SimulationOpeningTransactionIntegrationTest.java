@@ -303,7 +303,7 @@ class SimulationOpeningTransactionIntegrationTest {
     em.persist(application);
     em.flush();
     assertThat(transactions.reassignTransactionsToNewSecurity(tenantId, security.getId(), successor.getId(),
-        application.getId(), DATE.minusDays(1))).isEqualTo(1);
+        application.getId(), DATE.minusDays(1), List.of(-1))).isEqualTo(1);
     em.clear();
     assertThat(em.find(Transaction.class, opening.getId()).getSecurity().getId()).isEqualTo(security.getId());
     assertThat(em.find(Transaction.class, ordinary.getId()).getSecurity().getId()).isEqualTo(successor.getId());

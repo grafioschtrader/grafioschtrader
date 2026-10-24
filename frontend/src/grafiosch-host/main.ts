@@ -1,7 +1,10 @@
-import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { authInterceptor } from '../app/lib/login/service/auth.http.interceptor';
 import { importProvidersFrom, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter, Routes } from '@angular/router';
+import { provideRouter, Routes, withNavigationErrorHandler, withPreloading } from '@angular/router';
+import { AuthenticatedPreloadingStrategy } from '../app/lib/login/service/authenticated-preloading.strategy';
+import { handleLazyLoadNavigationError } from '../app/lib/login/service/lazy-load-failure';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { ConfirmationService, FilterService, MessageService } from '@openng/optimus-ui/api';
@@ -227,14 +230,17 @@ const translateLoader = (http: HttpClient) =>
 
 bootstrapApplication(GrafioschAppComponent, {
   providers: [
-    // Angular 22 bootstraps zoneless unless this is provided, and the library components rely on zone change
-    // detection: RegisterComponent assigns applicationInfo in an HTTP callback and expects the @if around
-    // <dynamic-form> to have rendered by the time preparePasswordFields() reaches formControl. Without NgZone that
-    // never happens, the resulting exception is routed to the subscribe error handler, applicationInfo is reset to
-    // null and the page shows nothing but "server unavailable". The main application passes the same provider.
+    // Angular 22 bootstraps zoneless unless this is provided. Most library components are still Eager and rely on
+    // zone.js starting a check after their HTTP callbacks and timers, so without NgZone their views would stay stale.
+    // The main application passes the same provider.
     provideZoneChangeDetection(),
-    provideHttpClient(withXhr(), withInterceptorsFromDi()),
-    provideRouter(routes),
+    provideHttpClient(withXhr(), withInterceptors([authInterceptor]), withInterceptorsFromDi()),
+    provideRouter(
+      routes,
+      withPreloading(AuthenticatedPreloadingStrategy),
+      withNavigationErrorHandler(handleLazyLoadNavigationError)
+    ),
+    AuthenticatedPreloadingStrategy,
     importProvidersFrom(
       AngularSvgIconModule.forRoot(),
       TranslateModule.forRoot({

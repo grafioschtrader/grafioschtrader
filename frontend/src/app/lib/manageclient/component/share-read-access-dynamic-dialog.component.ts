@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { combineLatest } from 'rxjs';
 import { DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
@@ -58,22 +59,27 @@ export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent
   }
 
   ngOnInit(): void {
-    combineLatest([this.gps.getUserFormDefinitions(), this.gps.getPasswordRegexProperties()]).subscribe(
-      (data: [FieldDescriptorInputAndShow[], PasswordRegexProperties]) => {
+    combineLatest([this.gps.getUserFormDefinitions(), this.gps.getPasswordRegexProperties()])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: [FieldDescriptorInputAndShow[], PasswordRegexProperties]) => {
         this.passwordRegexProperties = data[1];
         this.buildForm(data[0]);
-        setTimeout(() => {
-          this.preparePasswordFields();
-          this.resetToEmailEntry(true);
-          // Editing the e-mail after a check re-opens the check so the grant always reflects a checked address.
-          this.configObject.email.formControl.valueChanges.subscribe(() => {
-            if (this.checked) {
-              this.resetToEmailEntry(false);
-            }
-          });
-        });
-      }
-    );
+        // The form appears with formConfig; its controls and inputs exist after that render
+        this.viewChanged();
+        afterNextRender(
+          () => {
+            this.preparePasswordFields();
+            this.resetToEmailEntry(true);
+            // Editing the e-mail after a check re-opens the check so the grant always reflects a checked address.
+            this.configObject.email.formControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+              if (this.checked) {
+                this.resetToEmailEntry(false);
+              }
+            });
+          },
+          { injector: this.injector }
+        );
+      });
   }
 
   submit(value: { [name: string]: any }): void {

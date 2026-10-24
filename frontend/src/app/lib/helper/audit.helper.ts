@@ -441,12 +441,15 @@ export class AuditHelper {
   ) {
     if (textKey) {
       form.formConfig.fieldHeaders = form.formConfig.fieldHeaders || {};
-      translateService
-        .get(textKey)
-        .subscribe((text) => (form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = text));
+      translateService.get(textKey).subscribe((text) => {
+        form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = text;
+        // The form configuration is not instrumented, so the form is notified explicitly
+        form.notifier.notify();
+      });
     } else {
       if (form.formConfig.fieldHeaders && form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT]) {
         form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = null;
+        form.notifier.notify();
       }
     }
   }

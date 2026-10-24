@@ -1,4 +1,5 @@
-<a target="_blank" href="//divvydiary.com">DivvyDiary</a> liefert die Dividendenhistorie von Aktien und börsengehandelten Fonds.<br>
-Hier ist keine Eingabe erforderlich. Weder ein API-Schlüssel noch eine URL-Erweiterung wird benötigt: Das Instrument wird über seine ISIN angesprochen, diese muss deshalb auf dem Instrument erfasst sein.<br>
-Diese Datenquelle kann nur für Dividenden gewählt werden, sie liefert weder Kurse noch Splits. Ein Aktiensplit hat keine Auswirkung auf die hier gelieferten Dividendenzahlungen.<br>
-Es werden sowohl das Ex-Datum als auch das Zahlungsdatum geliefert.
+<a target="_blank" href="//divvydiary.com">DivvyDiary</a> liefert Dividenden- und Splithistorien von Aktien und börsengehandelten Fonds.<br>
+Eine URL-Erweiterung ist nicht erforderlich: Das Instrument wird über seine ISIN angesprochen, diese muss auf dem Instrument erfasst sein.<br>
+Dividenden werden immer ohne API-Schlüssel abgerufen, auch wenn ein Schlüssel für Splits hinterlegt ist. Es werden sowohl das Ex-Datum als auch das Zahlungsdatum geliefert.<br>
+Die Splithistorie benötigt einen API-Schlüssel. Ein Administrator muss den DivvyDiary-Schlüssel der Instanz unter Konnektor-API-Schlüssel erfassen; danach ist DivvyDiary als Splitquelle auswählbar. Nur Splitabrufe senden diesen Schlüssel.<br>
+Diese Quelle liefert keine Kurse. Bestehende Instrumente werden nicht automatisch umgestellt.

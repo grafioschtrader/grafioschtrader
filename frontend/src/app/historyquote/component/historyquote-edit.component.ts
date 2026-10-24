@@ -4,7 +4,7 @@ import { Securitycurrency } from '../../entities/securitycurrency';
 import { HistoryquoteService } from '../service/historyquote.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { HistoryquoteSecurityCurrency } from './historyquote-table.component';
+import { HistoryquoteSecurityCurrency } from '../model/historyquote.security.currency';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';

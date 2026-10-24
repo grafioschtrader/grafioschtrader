@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  inject,
   OnDestroy,
   OnInit,
   ViewChild
@@ -27,6 +28,7 @@ import { AppHelpIds } from '../../shared/help/help.ids';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { AppSettings } from '../../shared/app.settings';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
+import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
 import {
   IncomeAssetclass,
@@ -35,8 +37,6 @@ import {
 } from '../../entities/view/securitydividends/security.dividends.chart';
 import { IdsAccounts } from '../model/ids.accounts';
 import { TenantDividendsChartService } from '../service/tenant.dividends.chart.service';
-
-declare let Plotly: any;
 
 /**
  * The charts the user can choose from. The keys are also their translation keys.
@@ -149,6 +149,12 @@ export class TenantDividendsChartComponent
   private idsAccounts: IdsAccounts;
   private formReady = false;
   private plotlyConfig: any;
+  private readonly plotlyLoader = inject(PlotlyLoaderService);
+  /** Set once the first chart has loaded the library; cleanup never triggers the import. */
+  private plotly: PlotlyInstance;
+  private destroyed = false;
+  /** Raised by every draw, so a draw still waiting for the library is dropped when a newer one follows. */
+  private drawVersion = 0;
   private monthNames: string[];
   private subscriptions: Subscription[] = [];
 
@@ -168,7 +174,7 @@ export class TenantDividendsChartComponent
   }
 
   ngOnInit(): void {
-    this.plotlyConfig = PlotlyLocales.setPlotyLocales(Plotly, this.gps);
+    this.plotlyConfig = PlotlyLocales.setPlotyLocales(this.gps);
     this.plotlyConfig.displaylogo = false;
     this.plotlyConfig.responsive = true;
     this.createInputFormDefinition();
@@ -220,8 +226,9 @@ export class TenantDividendsChartComponent
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.subscriptions.forEach((s) => s.unsubscribe());
-    Plotly.purge(this.chartElement.nativeElement);
+    this.plotly?.purge(this.chartElement.nativeElement);
     this.activePanelService.destroyPanel(this);
   }
 
@@ -282,16 +289,27 @@ export class TenantDividendsChartComponent
     this.chartNeedsYear = CHART_NEEDS_YEAR[chartType];
     const figure = this.buildFigure(chartType, this.selectedYear);
     this.noDataTextKey = figure ? null : CHART_NEEDS_YEAR[chartType] ? 'NO_INCOME_IN_YEAR' : 'NO_DATA_AVAILABLE';
-    Plotly.purge(this.chartElement.nativeElement);
+    this.plotly?.purge(this.chartElement.nativeElement);
     if (figure) {
+      const version = ++this.drawVersion;
       // Wait until the chart element is no longer hidden, otherwise Plotly measures a zero size.
-      setTimeout(() => Plotly.newPlot(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig));
+      setTimeout(() =>
+        this.plotlyLoader.load().then(
+          (plotly) => {
+            if (!this.destroyed && version === this.drawVersion) {
+              this.plotly = plotly;
+              plotly.newPlot(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig);
+            }
+          },
+          () => {}
+        )
+      );
     }
   }
 
   private resizeChart(): void {
     if (!this.noDataTextKey && this.chartElement.nativeElement.data) {
-      Plotly.Plots.resize(this.chartElement.nativeElement);
+      this.plotly?.Plots.resize(this.chartElement.nativeElement);
     }
   }
 

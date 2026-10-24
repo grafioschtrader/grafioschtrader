@@ -1,8 +1,11 @@
 package grafioschtrader.rest;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,10 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.User;
 import grafioschtrader.dto.SecurityActionTreeData;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityAction;
 import grafioschtrader.entities.SecurityActionApplication;
 import grafioschtrader.entities.SecurityTransfer;
+import grafioschtrader.instrument.lookup.SuccessorSecurityProposer;
 import grafioschtrader.service.SecurityActionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,6 +36,9 @@ public class SecurityActionResource {
   @Autowired
   private SecurityActionService securityActionService;
 
+  @Autowired
+  private SuccessorSecurityProposer successorSecurityProposer;
+
   @Operation(summary = "Returns tree data for the SecurityAction TreeTable")
   @GetMapping("/tree")
   public ResponseEntity<SecurityActionTreeData> getTree() {
@@ -38,13 +47,18 @@ public class SecurityActionResource {
 
   /**
    * Creates an ISIN change event. Restricted to an administrator: the operation creates the successor instrument as
-   * shared data outside the generic create path, and it mails every tenant holding the predecessor.
+   * shared data outside the generic create path, and it mails every tenant holding the predecessor. A missing successor
+   * is first proposed from the security lookup for the new ISIN; that asks external providers and may take tens of
+   * seconds, so it runs here, before the transaction that saves the change.
    */
   @Operation(summary = "Admin creates an ISIN change event")
   @PreAuthorize("hasRole('ADMIN')")
   @PostMapping
-  public ResponseEntity<SecurityAction> createSecurityAction(@RequestBody SecurityAction securityAction) {
-    return ResponseEntity.ok(securityActionService.createSecurityAction(securityAction));
+  public ResponseEntity<SecurityAction> createSecurityAction(@RequestBody SecurityAction securityAction)
+      throws Exception {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    Optional<Security> proposal = successorSecurityProposer.propose(securityAction, user.createAndGetJavaLocale());
+    return ResponseEntity.ok(securityActionService.createSecurityAction(securityAction, proposal));
   }
 
   /**

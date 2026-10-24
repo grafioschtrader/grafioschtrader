@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { TimeSeriesParam } from './time.series.chart.component';
+import { TimeSeriesParam } from '../model/time.series.param';
 import { HistoryquoteTableComponent } from './historyquote-table.component';
 import { HistoryquoteLegacyComponent } from './historyquote-legacy.component';
 

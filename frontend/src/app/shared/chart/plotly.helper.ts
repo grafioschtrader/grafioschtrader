@@ -3,8 +3,6 @@ import { Helper } from '../../lib/helper/helper';
 import { ElementRef } from '@angular/core';
 import tippy from 'tippy.js';
 
-declare let Plotly: any;
-
 export interface ChartData {
   data: any;
   layout: any;
@@ -15,9 +13,8 @@ export interface ChartData {
 
 /**
  * Minimal shape of a Plotly legend layout object, limited to the properties Grafioschtrader sets.
- * Declared locally rather than imported from 'plotly.js': the library is loaded as a global UMD
- * script and consumed through `declare let Plotly: any`, so this single type is the only reason a
- * module import would exist at all.
+ * Declared locally, so that the many callers building chart layouts need no import of the plotly.js type
+ * declarations.
  */
 export interface PlotlyLegend {
   xanchor: 'auto' | 'left' | 'center' | 'right';
@@ -140,11 +137,7 @@ export class PlotlyHelper {
     }
   }
 
-  public static attachTooltip(
-    plotly: any,
-    legendTooltipMap = new Map<string, string>(),
-    chartElement: ElementRef
-  ): void {
+  public static attachTooltip(legendTooltipMap = new Map<string, string>(), chartElement: ElementRef): void {
     const legendLayer = chartElement.nativeElement.querySelector('g.legend');
     const items: any[] = legendLayer.querySelectorAll('g.traces');
 

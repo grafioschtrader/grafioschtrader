@@ -1,13 +1,18 @@
 import { TranslateService } from '@ngx-translate/core';
 import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { DynamicDialogHelper } from '../../lib/dynamicdialog/component/dynamicDialogHelper';
-import { TenantEditDynamicComponent } from '../../tenant/component/tenant.edit.dynamic.component';
 import { Tenant } from '../../entities/tenant';
 import { Type } from '@angular/core';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
+import { DialogComponentLoader } from '../../lib/maintree/handler/lazy-dialog';
 
 export class MainTreeDynamicDialogs {
+  /** Loads the tenant dialog on first use, so it stays out of the bundle of the application shell. */
+  public static readonly TENANT_EDIT_LOADER: DialogComponentLoader = () =>
+    import('../../tenant/component/tenant.edit.dynamic.component').then((m) => m.TenantEditDynamicComponent);
+
   public static getTenantEditDialogComponent(
+    tenantEditComponent: Type<unknown>,
     translateService: TranslateService,
     dialogService: DialogService,
     tenant: Tenant,
@@ -16,7 +21,7 @@ export class MainTreeDynamicDialogs {
     const dynamicDialogHelper = new DynamicDialogHelper(
       translateService,
       dialogService,
-      TenantEditDynamicComponent,
+      tenantEditComponent,
       onlyCurrency ? 'TENANT_CHANGE_CURRENCY' : 'TENANT'
     );
     return dynamicDialogHelper.openDynamicDialog(400, { tenant: tenant, onlyCurrency: onlyCurrency });

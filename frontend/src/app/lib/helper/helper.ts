@@ -223,4 +223,25 @@ export abstract class Helper {
     }
     return result;
   }
+
+  /**
+   * Reduces the selection emitted by a table to the one row of a single-selection table. The Optimus table types its
+   * selection for every selection mode, so a table in single mode still reports `T | T[]`.
+   *
+   * @param selection - Selection as emitted by the table
+   * @returns The selected row, or null when nothing is selected
+   */
+  public static singleSelection<T>(selection: T | T[] | null | undefined): T | null {
+    return Array.isArray(selection) ? (selection[0] ?? null) : (selection ?? null);
+  }
+
+  /**
+   * Normalises the selection emitted by a multiple-selection table to an array.
+   *
+   * @param selection - Selection as emitted by the table
+   * @returns The selected rows, empty when nothing is selected
+   */
+  public static multipleSelection<T>(selection: T | T[] | null | undefined): T[] {
+    return selection == null ? [] : Array.isArray(selection) ? selection : [selection];
+  }
 }

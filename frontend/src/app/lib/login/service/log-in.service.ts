@@ -8,7 +8,8 @@ import { Router } from '@angular/router';
 import { ChangePasswordDTO } from '../model/change.password.dto';
 import { GlobalSessionNames } from '../../global.session.names';
 import { catchError } from 'rxjs/operators';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpHeaders } from '@angular/common/http';
+import { SKIP_AUTH_HEADERS } from './auth.http.interceptor';
 import { BaseAuthService } from './base.auth.service';
 import { UserOwnProjection } from '../../entities/projection/user.own.projection';
 import { SuccessfullyChanged } from '../model/successfully.changed';
@@ -49,7 +50,11 @@ export class LoginService extends BaseAuthService<User> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' });
 
     return this.httpClient
-      .post('/api/login', loginRequest, { headers, observe: 'response' })
+      .post('/api/login', loginRequest, {
+        headers,
+        observe: 'response',
+        context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+      })
       .pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -138,6 +143,14 @@ export class LoginService extends BaseAuthService<User> {
   }
 
   update(user: User): Observable<User> {
+    if (user.idUser == null) {
+      return this.httpClient
+        .post<User>(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}`, user, {
+          ...this.getHeaders(),
+          context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+        })
+        .pipe(catchError(this.handleError.bind(this)));
+    }
     return this.updateEntity(user, user.idUser, BaseSettings.USER_KEY);
   }
 
@@ -172,6 +185,7 @@ export class LoginService extends BaseAuthService<User> {
   getTokenVerified(token: string): Observable<string> {
     const options: any = this.getHeaders();
     options.responseType = 'text';
+    options.context = new HttpContext().set(SKIP_AUTH_HEADERS, true);
     return <Observable<string>>(
       this.httpClient
         .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/tokenverify/${token}`, options)

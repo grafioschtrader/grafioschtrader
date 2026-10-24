@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, Type, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
@@ -20,6 +20,7 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { ConfirmDialogModule } from '@openng/optimus-ui/confirmdialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { SharedModule } from '@openng/optimus-ui/api';
+import { DialogComponentLoader } from '../handler/lazy-dialog';
 
 /**
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
@@ -71,8 +72,8 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   ) {
     // Setup component callbacks for the service
     this.mainTreeService.setComponentCallbacks({
-      handleEdit: (componentType: Type<any>, parentObject: any, data: any, titleKey: string) =>
-        this.dialogHandler.openEditDialog(componentType, parentObject, data, titleKey),
+      handleEdit: (loadComponent: DialogComponentLoader, parentObject: any, data: any, titleKey: string) =>
+        this.dialogHandler.openEditDialog(loadComponent, parentObject, data, titleKey),
       handleTenantEdit: (data: any, onlyCurrency: boolean) => this.dialogHandler.openTenantDialog(data, onlyCurrency),
       navigateToNode: (data: TypeNodeData) => this.navigateRoute(data),
       refreshTree: () => this.refreshTree()

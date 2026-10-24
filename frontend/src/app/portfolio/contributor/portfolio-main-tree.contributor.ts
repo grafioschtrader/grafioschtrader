@@ -24,9 +24,19 @@ import { BaseSettings } from '../../lib/base.settings';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { PortfolioEditDynamicComponent } from '../component/portfolio.edit.dynamic.component';
-import { SecurityaccountEditDynamicComponent } from '../../securityaccount/component/securityaccount.edit.dynamic.component';
-import { FeeModelEditComponent } from '../../tradingplatform/component/fee-model-edit.component';
+import { DialogComponentLoader } from '../../lib/maintree/handler/lazy-dialog';
+
+// Dialogs are loaded on first use, so they stay out of the bundle of the application shell.
+const loadFeeModelEdit: DialogComponentLoader = () =>
+  import('../../tradingplatform/component/fee-model-edit.component').then((m) => m.FeeModelEditComponent);
+
+const loadPortfolioEditDynamic: DialogComponentLoader = () =>
+  import('../component/portfolio.edit.dynamic.component').then((m) => m.PortfolioEditDynamicComponent);
+
+const loadSecurityaccountEditDynamic: DialogComponentLoader = () =>
+  import('../../securityaccount/component/securityaccount.edit.dynamic.component').then(
+    (m) => m.SecurityaccountEditDynamicComponent
+  );
 
 /**
  * Contributor for Portfolio-related nodes in the main navigation tree.
@@ -142,7 +152,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
               BusinessHelper.isLimitCheckOk(this.tenantLimits[TenantLimitTypes.MAX_PORTFOLIO], this.messageToastService)
             ) {
               this.callbacks
-                ?.handleEdit(PortfolioEditDynamicComponent, selectedNodeData, null, AppSettings.PORTFOLIO.toUpperCase())
+                ?.handleEdit(loadPortfolioEditDynamic, selectedNodeData, null, AppSettings.PORTFOLIO.toUpperCase())
                 ?.subscribe((result) => {
                   if (result) {
                     this.callbacks?.refreshTree();
@@ -159,7 +169,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
           command: () =>
             this.callbacks
               ?.handleEdit(
-                PortfolioEditDynamicComponent,
+                loadPortfolioEditDynamic,
                 parentNodeData,
                 selectedNodeData,
                 AppSettings.PORTFOLIO.toUpperCase()
@@ -191,7 +201,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
             ) {
               this.callbacks
                 ?.handleEdit(
-                  SecurityaccountEditDynamicComponent,
+                  loadSecurityaccountEditDynamic,
                   selectedNodeData,
                   null,
                   AppSettings.SECURITYACCOUNT.toUpperCase()
@@ -212,7 +222,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
           command: () =>
             this.callbacks
               ?.handleEdit(
-                SecurityaccountEditDynamicComponent,
+                loadSecurityaccountEditDynamic,
                 parentNodeData,
                 selectedNodeData,
                 AppSettings.SECURITYACCOUNT.toUpperCase()
@@ -227,7 +237,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
           label: 'EDIT_FEE_MODEL' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: () =>
             this.callbacks
-              ?.handleEdit(FeeModelEditComponent, parentNodeData, selectedNodeData, 'FEE_MODEL_YAML')
+              ?.handleEdit(loadFeeModelEdit, parentNodeData, selectedNodeData, 'FEE_MODEL_YAML')
               ?.subscribe((result) => {
                 if (result) {
                   this.callbacks?.refreshTree();

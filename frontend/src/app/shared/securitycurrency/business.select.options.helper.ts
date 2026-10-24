@@ -19,12 +19,10 @@ export class BusinessSelectOptionsHelper {
    * @param fieldConfig The input field which is shown
    */
   public static securityCreateValueKeyHtmlSelectOptions(securities: Security[], fieldConfig: FieldConfig) {
-    fieldConfig.valueKeyHtmlOptions = [];
-    securities.forEach((security) => {
-      fieldConfig.valueKeyHtmlOptions.push(
+    fieldConfig.valueKeyHtmlOptions = securities.map(
+      (security) =>
         new ValueKeyHtmlSelectOptions(security.idSecuritycurrency, security.name + ' / ' + security.currency)
-      );
-    });
+    );
   }
 
   public static securitiesEnableDisableOptionsByActiveDate(
@@ -37,6 +35,8 @@ export class BusinessSelectOptionsHelper {
       const security = securities.find((s) => s.idSecuritycurrency === vkho.key);
       vkho.disabled = !(activeDate >= security.activeFromDate && activeDate <= security.activeToDate);
     });
+    // A new array reference tells the form and the select that the options changed
+    fieldConfig.valueKeyHtmlOptions = [...fieldConfig.valueKeyHtmlOptions];
   }
 
   /**

@@ -728,8 +728,9 @@ public class WatchlistReport {
 
   /**
    * Determines for every position how many trading sessions of its own exchange went by without the shown price being
-   * renewed. Securities are measured against the calendar of their stock exchange, currency pairs against the worldwide
-   * calendar, because a foreign exchange rate belongs to no exchange.
+   * renewed, and how many sessions are missing after the youngest historical price. Securities are measured against
+   * the calendar of their stock exchange, currency pairs against the worldwide calendar, because a foreign exchange
+   * rate belongs to no exchange. Must run after the youngest history date of the positions was set.
    *
    * @param securityPositions     the securities of the watchlist
    * @param currencypairPositions the currency pairs of the watchlist
@@ -742,13 +743,26 @@ public class WatchlistReport {
         .forEach(position -> idsStockexchange.add(position.securitycurrency.getStockexchange().getIdStockexchange()));
     final Map<Integer, List<LocalDate>> sessionsByStockexchange = priceFreshnessService.loadSessions(idsStockexchange,
         today);
-    securityPositions.forEach(position -> position.staleTradingSessions = priceFreshnessService.sessionsBehind(
-        sessionsByStockexchange.get(position.securitycurrency.getStockexchange().getIdStockexchange()),
-        priceDate(position), today));
+    securityPositions.forEach(position -> {
+      final Security security = position.securitycurrency;
+      final List<LocalDate> sessions = sessionsByStockexchange.get(security.getStockexchange().getIdStockexchange());
+      position.staleTradingSessions = priceFreshnessService.sessionsBehind(sessions, priceDate(position), today);
+      if (security.getIdConnectorHistory() != null || security.isDerivedInstrument()) {
+        position.missingEodSessions = priceFreshnessService.sessionsMissed(sessions, position.youngestHistoryDate,
+            priceFreshnessService.expectedEodSession(sessions, security.getStockexchange(), security.getActiveToDate()));
+      }
+    });
     if (!currencypairPositions.isEmpty()) {
       final List<LocalDate> globalSessions = priceFreshnessService.loadGlobalSessions(today);
-      currencypairPositions.forEach(position -> position.staleTradingSessions = priceFreshnessService
-          .sessionsBehind(globalSessions, priceDate(position), today));
+      final LocalDate expectedGlobalEodSession = priceFreshnessService.expectedGlobalEodSession(globalSessions, today);
+      currencypairPositions.forEach(position -> {
+        position.staleTradingSessions = priceFreshnessService.sessionsBehind(globalSessions, priceDate(position),
+            today);
+        if (position.securitycurrency.getIdConnectorHistory() != null) {
+          position.missingEodSessions = priceFreshnessService.sessionsMissed(globalSessions,
+              position.youngestHistoryDate, expectedGlobalEodSession);
+        }
+      });
     }
   }
 

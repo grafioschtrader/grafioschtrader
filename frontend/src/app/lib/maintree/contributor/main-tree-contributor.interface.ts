@@ -1,7 +1,8 @@
-import { InjectionToken, Type } from '@angular/core';
+import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { ProcessedActionData } from '../../types/processed.action.data';
+import { DialogComponentLoader } from '../handler/lazy-dialog';
 
 /**
  * Callbacks that contributors can use to interact with the main tree.
@@ -9,9 +10,10 @@ import { ProcessedActionData } from '../../types/processed.action.data';
  */
 export interface MainTreeCallbacks {
   /**
-   * Opens an edit dialog for an entity.
+   * Opens an edit dialog for an entity. The dialog class is passed as a dynamic import so that it is loaded only when
+   * the dialog is opened for the first time.
    */
-  handleEdit: (componentType: Type<any>, parentObject: any, data: any, titleKey: string) => Observable<any>;
+  handleEdit: (loadComponent: DialogComponentLoader, parentObject: any, data: any, titleKey: string) => Observable<any>;
 
   /**
    * Opens the tenant edit dialog.

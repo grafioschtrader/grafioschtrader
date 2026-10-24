@@ -1,5 +1,6 @@
 import { BaseInputComponent } from '../base.input.component';
-import { Component, DoCheck, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { TreeSelectModule } from '@openng/optimus-ui/treeselect';
@@ -17,11 +18,12 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-input-tree-select',
   template: `
+    @let rev = notifier?.revision();
     <p-treeselect
       [style]="{ width: '100%' }"
       [class.required-input]="isRequired"
       [id]="config.field"
-      [options]="treeOptions"
+      [options]="config.treeNodes ?? noTreeNodes"
       [(ngModel)]="selectedNodes"
       (ngModelChange)="onSelectionChange($event)"
       selectionMode="checkbox"
@@ -47,30 +49,24 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
-export class FormInputTreeSelectComponent extends BaseInputComponent implements OnInit, DoCheck {
+export class FormInputTreeSelectComponent extends BaseInputComponent implements OnInit {
+  /** Shown while config.treeNodes is not set; one constant, so the binding does not change on every check. */
+  readonly noTreeNodes: TreeNode[] = [];
   selectedNodes: any;
-  treeOptions: TreeNode[] = [];
+  private readonly destroyRef = inject(DestroyRef);
   private updatingFromNgModel = false;
 
   override ngOnInit(): void {
     super.ngOnInit();
-    this.treeOptions = this.config.treeNodes || [];
     // Sync initial value from form control to ngModel
     const formControl = this.group.get(this.config.field);
     this.selectedNodes = formControl?.value || undefined;
     // Listen for programmatic changes from the form control
-    formControl?.valueChanges.subscribe((val) => {
+    formControl?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((val) => {
       if (!this.updatingFromNgModel) {
         this.selectedNodes = val || undefined;
       }
     });
-  }
-
-  /** Reads config.treeNodes on every change detection cycle to pick up dynamic tree changes. */
-  ngDoCheck(): void {
-    if (this.config.treeNodes !== this.treeOptions) {
-      this.treeOptions = this.config.treeNodes || [];
-    }
   }
 
   onSelectionChange(value: any): void {

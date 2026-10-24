@@ -37,7 +37,10 @@ import grafiosch.dto.UserAccessTokenCreateRequest;
 import grafiosch.dto.UserAccessTokenCreatedDto;
 import grafiosch.entities.UserAccessToken;
 import grafiosch.rest.RequestMappings;
+import grafiosch.service.EntityLimitService;
 import grafiosch.types.AccessTokenScope;
+import grafiosch.types.LimitType;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.rest.BaseIntegrationTest;
@@ -71,6 +74,8 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
    * transactions of alledit are only created by Playwright specs after this suite.
    */
   private static final LocalDate RUNNING_SUM_FIRST_DATE = LocalDate.of(2019, 3, 4);
+  /** The default daily budget of tool calls, the value the production migration seeds. */
+  private static final int DAILY_BUDGET = 500;
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
@@ -78,9 +83,13 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
   @Autowired
   private EntityManagerFactory entityManagerFactory;
 
+  @Autowired
+  private EntityLimitService entityLimitService;
+
   private String token;
   private Integer idUserAlledit;
   private int requestId;
+  private boolean budgetRowInserted;
   private final List<Integer> createdTransactionIds = new ArrayList<>();
 
   @BeforeAll
@@ -88,6 +97,7 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
     RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
     idUserAlledit = RestTestHelper.getUserByNickname(RestTestHelper.ALLEDIT).idUser;
     deleteTestTokens();
+    insertDefaultBudgetRow();
     McpTestSwitch.open(jdbcTemplate, entityManagerFactory, null);
   }
 
@@ -98,6 +108,7 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
     deleteTestTokens();
     jdbcTemplate.update("DELETE FROM user_entity_change_count WHERE id_user = ? AND entity_name = 'McpToolCall'",
         idUserAlledit);
+    deleteDefaultBudgetRow();
   }
 
   @Test
@@ -239,7 +250,7 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
             idUserAlledit);
         jdbcTemplate.update("""
             INSERT INTO user_entity_change_count (id_user, date, entity_name, count_insert, count_update, count_delete)
-            VALUES (?, ?, 'McpToolCall', 499, 0, 0)""", idUserAlledit, today);
+            VALUES (?, ?, 'McpToolCall', ?, 0, 0)""", idUserAlledit, today, DAILY_BUDGET - 1);
         List<Callable<JsonNode>> calls = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
           calls.add(() -> toolResult("list_portfolios", Map.of()));
@@ -257,7 +268,7 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
         assertThat(jdbcTemplate.queryForObject("""
             SELECT count_insert FROM user_entity_change_count
             WHERE id_user = ? AND date = ? AND entity_name = 'McpToolCall'""", Integer.class, idUserAlledit, today))
-            .as("round %d", round).isEqualTo(500);
+            .as("round %d", round).isEqualTo(DAILY_BUDGET);
       }
     } finally {
       pool.shutdown();
@@ -377,6 +388,36 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
 
   private synchronized String rpc(String method, Map<String, Object> params) {
     return JSON.writeValueAsString(Map.of("jsonrpc", "2.0", "id", ++requestId, "method", method, "params", params));
+  }
+
+  /**
+   * Gives the test database the default daily budget of tool calls when it carries none. grafioschtrader_t holds only
+   * the MAX defaults, because its dump is filtered to {@code limit_type = 0} and daily budgets are owned by the tests.
+   * The resolver cache of alledit is dropped, so a limit resolved before the insert is not kept.
+   */
+  private void insertDefaultBudgetRow() {
+    Integer existing = jdbcTemplate.queryForObject("""
+        SELECT COUNT(*) FROM entity_limit WHERE limit_type = ? AND entity_name = ? AND id_role IS NULL
+          AND id_user IS NULL""", Integer.class, LimitType.DAY_READ.getValue(),
+        LimitKeyConfig.ENTITY_NAME_MCP_TOOL_CALL);
+    if (existing == 0) {
+      jdbcTemplate.update("""
+          INSERT INTO entity_limit (limit_type, entity_name, limit_value, created_by, last_modified_by,
+            last_modified_time, version) VALUES (?, ?, ?, 0, 0, CURRENT_TIMESTAMP, 0)""",
+          LimitType.DAY_READ.getValue(), LimitKeyConfig.ENTITY_NAME_MCP_TOOL_CALL, DAILY_BUDGET);
+      budgetRowInserted = true;
+    }
+    entityLimitService.evictUser(idUserAlledit);
+  }
+
+  /** Removes the default budget row again, but only when this class inserted it. */
+  private void deleteDefaultBudgetRow() {
+    if (budgetRowInserted) {
+      jdbcTemplate.update("""
+          DELETE FROM entity_limit WHERE limit_type = ? AND entity_name = ? AND id_role IS NULL
+            AND id_user IS NULL""", LimitType.DAY_READ.getValue(), LimitKeyConfig.ENTITY_NAME_MCP_TOOL_CALL);
+      entityLimitService.evictUser(idUserAlledit);
+    }
   }
 
   /**

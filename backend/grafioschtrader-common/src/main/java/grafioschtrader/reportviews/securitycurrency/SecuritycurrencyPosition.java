@@ -90,6 +90,14 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> implements 
   public Integer staleTradingSessions;
 
   @Schema(description = """
+      Number of trading sessions after the youngest historical price whose closing price should already be stored,
+      because the last end of day load of the exchange ran after them. A session that closed but was not loaded yet does
+      not count, neither does a session after the last trading day of the security. Currency pairs are measured against
+      the worldwide calendar, the newest completed session is tolerated. Capped like staleTradingSessions. Null when
+      the instrument has no historical data source or the age cannot be determined.""")
+  public Integer missingEodSessions;
+
+  @Schema(description = """
       Where the displayed last price comes from. Only INTRADAY is a price of the current session; the two history
       values mean the intraday feed no longer delivers and the newest historical closing price took its place.""")
   public LastpriceOrigin lastpriceOrigin = LastpriceOrigin.INTRADAY;

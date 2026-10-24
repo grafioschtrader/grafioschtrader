@@ -100,7 +100,8 @@ public class TransactionsMarginOpenUnits implements Comparable<TransactionsMargi
    * mark-to-market calculations.
    *
    * @param price           closing price for gain/loss calculation
-   * @param transactionCost transaction costs for the closing (currently not implemented)
+   * @param transactionCost transaction costs for the closing, zero for the mark-to-market valuation of an open
+   *                        position because its closing costs are not estimated
    * @return gain or loss from closing the position at the specified price
    */
   public double calcGainLossOnPositionClose(double price, double transactionCost) {

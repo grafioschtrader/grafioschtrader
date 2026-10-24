@@ -1,4 +1,14 @@
-import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  computed,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild
+} from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { DashboardConfig, DashboardResult } from '../../lib/dashboard/dashboard.types';
@@ -35,7 +45,7 @@ import { LastSessionsPerformanceTableComponent } from './last-sessions-performan
   template: `
     <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm">
     </dynamic-form>
-    @if (performance) {
+    @if (performance(); as performance) {
       @if (performance.reasonKey) {
         <small class="d-block">{{ performance.reasonKey | translate }}</small>
       } @else {
@@ -46,7 +56,7 @@ import { LastSessionsPerformanceTableComponent } from './last-sessions-performan
             </span>
           }
         </div>
-        <last-sessions-performance-table [sessions]="rows" [currency]="performance.currency" />
+        <last-sessions-performance-table [sessions]="rows()" [currency]="performance.currency" />
         <small class="d-block">{{ 'DASHBOARD_LAST_SESSIONS_NOTE' | translate }}</small>
       }
     }
@@ -60,9 +70,9 @@ export class LastSessionsPerformanceWidgetComponent
 
   @ViewChild('form') form: DynamicFormComponent;
 
-  performance: LastSessionsPerformance;
+  readonly performance = signal<LastSessionsPerformance>(undefined);
   /** Newest session first: a card is read from the top and the last session is what the reader came for. */
-  rows: LastSessionsPerformance['sessions'] = [];
+  readonly rows = computed(() => [...(this.performance()?.sessions ?? [])].reverse());
   totalFields: ColumnConfig[] = [];
   config: FieldConfig[];
   configObject: { [name: string]: FieldConfig };
@@ -104,9 +114,7 @@ export class LastSessionsPerformanceWidgetComponent
   }
 
   ngOnChanges(): void {
-    this.performance = this.result?.payload?.custom as LastSessionsPerformance;
-    this.rows = [...(this.performance?.sessions ?? [])].reverse();
-    this.totalFields.forEach((field) => (field.fixedCurrency = this.performance?.currency));
+    this.showPerformance(this.result?.payload?.custom as LastSessionsPerformance);
     this.showChosenPortfolio();
   }
 
@@ -141,11 +149,15 @@ export class LastSessionsPerformanceWidgetComponent
     this.dashboardService.refresh(this.result.instanceId, configOverride).subscribe((result) => {
       const performance = result?.payload?.custom as LastSessionsPerformance;
       if (performance) {
-        this.performance = performance;
-        this.rows = [...performance.sessions].reverse();
-        this.totalFields.forEach((field) => (field.fixedCurrency = performance.currency));
+        this.showPerformance(performance);
       }
     });
+  }
+
+  /** Shows the figures; the totals take the currency of the figures they format. */
+  private showPerformance(performance: LastSessionsPerformance): void {
+    this.totalFields.forEach((field) => (field.fixedCurrency = performance?.currency));
+    this.performance.set(performance);
   }
 
   /**
@@ -153,7 +165,7 @@ export class LastSessionsPerformanceWidgetComponent
    * whole dashboard, which returns the card to the client and has to return the select with it.
    */
   private showChosenPortfolio(): void {
-    this.configObject.idPortfolio.formControl?.setValue(this.performance?.idPortfolio ?? '', { emitEvent: false });
+    this.configObject.idPortfolio.formControl?.setValue(this.performance()?.idPortfolio ?? '', { emitEvent: false });
   }
 
   /**
@@ -170,10 +182,9 @@ export class LastSessionsPerformanceWidgetComponent
       ),
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'externalCashTransferMC', 'EXTERNAL_CASH_TRANSFER')
     ];
-    this.translateService
-      .get(this.totalFields.map((field) => field.headerKey))
-      .subscribe((translations) =>
-        this.totalFields.forEach((field) => (field.headerTranslated = translations[field.headerKey]))
-      );
+    this.translateService.get(this.totalFields.map((field) => field.headerKey)).subscribe((translations) => {
+      this.totalFields.forEach((field) => (field.headerTranslated = translations[field.headerKey]));
+      this.notifyViewChanged();
+    });
   }
 }

@@ -49,8 +49,9 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
   public static String domain = "https://www.finanzen.net/";
   private static final List<Locale> CANDIDATE_LOCALES = Arrays.asList(Locale.GERMANY, Locale.US);
 
+  // Thousands separators are optional, including for changes such as -1188,60.
   private static final Pattern THREE_NUMBER_PATTERN = Pattern.compile(
-      "([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)\\s+([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)\\s+([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)");
+      "([-]?\\d+(?:[.,]\\d{3})*[.,]?\\d*)\\s+([-]?\\d+(?:[.,]\\d{3})*[.,]?\\d*)\\s+([-]?\\d+(?:[.,]\\d{3})*[.,]?\\d*)");
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 

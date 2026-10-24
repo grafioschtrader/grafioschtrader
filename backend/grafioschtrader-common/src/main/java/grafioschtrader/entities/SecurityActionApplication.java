@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -61,6 +62,13 @@ public class SecurityActionApplication extends BaseID<Integer> {
   @Schema(description = "Whether this application has been reversed")
   @Column(name = "is_reversed", columnDefinition = "TINYINT", length = 1)
   private boolean reversed;
+
+  @Schema(description = """
+      Number of securities accounts in which the tenant had already carried out the ISIN change before applying it, by
+      own transactions or by a pair of an earlier application whose records were lost. Only set in the answer to
+      applying the ISIN change.""")
+  @Transient
+  private Integer alreadyPerformedCount;
 
   @Override
   public Integer getId() {
@@ -121,5 +129,13 @@ public class SecurityActionApplication extends BaseID<Integer> {
 
   public void setReversed(boolean reversed) {
     this.reversed = reversed;
+  }
+
+  public Integer getAlreadyPerformedCount() {
+    return alreadyPerformedCount;
+  }
+
+  public void setAlreadyPerformedCount(Integer alreadyPerformedCount) {
+    this.alreadyPerformedCount = alreadyPerformedCount;
   }
 }

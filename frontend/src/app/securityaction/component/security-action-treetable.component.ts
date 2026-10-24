@@ -23,6 +23,7 @@ import { SharedModule } from '@openng/optimus-ui/api';
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
 import { BaseSettings } from '../../lib/base.settings';
 import { MessageToastService } from '../../lib/message/message.toast.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { SecurityActionCreateDialogComponent } from './security-action-create-dialog.component';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
@@ -54,7 +55,7 @@ enum NodeLevel {
         [fields]="fields"
         dataKey="nodeKey"
         sortField="name"
-        [(selection)]="selectedNodes"
+        [(selection)]="tableSelection"
         (nodeSelect)="onNodeSelect($event)"
         (nodeUnselect)="onNodeUnselect($event)"
         [contextMenuItems]="contextMenuItems"
@@ -83,7 +84,8 @@ export class SecurityActionTreetableComponent
   implements OnInit, OnDestroy, IGlobalMenuAttach
 {
   treeNodes: TreeNode[] = [];
-  selectedNodes: TreeNode[] = [];
+  /** Row highlighted by the single-selection tree table. */
+  tableSelection: TreeNode = null;
   contextMenuItems: MenuItem[];
   isAdmin: boolean;
   visibleCreateDialog = false;
@@ -335,8 +337,14 @@ export class SecurityActionTreetableComponent
 
   private applyIsinChange(): void {
     const action: SecurityAction = this.selectedNode.data.entity;
-    this.securityActionService.applySecurityAction(action.idSecurityAction).subscribe(() => {
-      this.messageToastService.showMessageI18n(null, 'APPLY_ISIN_CHANGE_SUCCESS');
+    this.securityActionService.applySecurityAction(action.idSecurityAction).subscribe((application) => {
+      if (application?.alreadyPerformedCount > 0) {
+        this.messageToastService.showMessageI18n(InfoLevelType.INFO, 'APPLY_ISIN_CHANGE_ALREADY_PERFORMED', {
+          count: application.alreadyPerformedCount
+        });
+      } else {
+        this.messageToastService.showMessageI18n(null, 'APPLY_ISIN_CHANGE_SUCCESS');
+      }
       this.readData();
     });
   }

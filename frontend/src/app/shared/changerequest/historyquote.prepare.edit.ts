@@ -3,7 +3,7 @@ import { SecurityService } from '../../securitycurrency/service/security.service
 import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { HistoryquoteSecurityCurrency } from '../../historyquote/component/historyquote-table.component';
+import { HistoryquoteSecurityCurrency } from '../../historyquote/model/historyquote.security.currency';
 import { Currencypair } from '../../entities/currencypair';
 import { Security } from '../../entities/security';
 import { BasePrepareEdit } from '../../lib/proposechange/component/base.prepare.edit';

@@ -20,6 +20,7 @@ import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { Security } from '../../entities/security';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
+import { Helper } from '../../lib/helper/helper';
 
 /**
  * Shows a table with the missing instruments that do not have a complete price history.
@@ -93,7 +94,8 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
     return this.feedConnectorsKV ? this.feedConnectorsKV[valueField] : null;
   }
 
-  onSelectionChange(security: Security): void {
+  onSelectionChange(selection: Security | Security[]): void {
+    const security = Helper.singleSelection(selection);
     this.selectedSecurity = security;
     this.changedSecurity.emit(security);
   }

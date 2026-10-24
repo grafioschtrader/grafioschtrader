@@ -36,8 +36,7 @@ import grafioschtrader.rest.GTIntegrationTestContext;
 class ExportDefinitionCoverageTest {
 
   private static final Map<String, String> OMITTED_PREFIXES = Map.of("hold_",
-      "holdings are rebuilt from the transactions on import and cascade with their tenant", "mail_",
-      "a message belongs to two users at once");
+      "holdings are rebuilt from the transactions on import and cascade with their tenant");
 
   private static final Map<String, String> OMITTED_TABLES = Map.ofEntries(
       entry("algo_alert_state", "derived crossing state, cascades with its strategy"),
@@ -64,6 +63,8 @@ class ExportDefinitionCoverageTest {
       entry("gt_net_supplier_detail_last", "GTNet supplier statistics of the instance"),
       entry("historyquote_quality", "derived quality statistics of the price data"),
       entry("historyquote_update_log", "system log of the price updates per stock exchange"),
+      entry("mail_entity", "duplicate guard of system messages, refers to no user"),
+      entry("mail_send_recv_read_del", "read and hide markers of a user, cascade with the user"),
       entry("security_fundamental", "derived data rebuilt by the weekly fundamental data load"),
       entry("tenant_access", "grants to accounts of other users, cascades with user and tenant"),
       entry("verificationtoken", "one-time registration token, cascades with its user"));

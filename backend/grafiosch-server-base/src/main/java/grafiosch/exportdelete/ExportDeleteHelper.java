@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import grafiosch.entities.EntityLimit;
 import grafiosch.entities.Globalparameters;
+import grafiosch.entities.MailSendRecv;
 import grafiosch.entities.MailSettingForward;
 import grafiosch.entities.MultilanguageString;
 import grafiosch.entities.OAuthAuthorization;
@@ -56,6 +57,18 @@ public abstract class ExportDeleteHelper {
   // main administrator again, so the setting of the other user is kept and only its target is cleared.
   private static String MAIL_SETTING_FORWARD_NULL_REDIRECT = String
       .format("UPDATE %s SET id_user_redirect = NULL WHERE id_user_redirect = ?", MailSettingForward.TABNAME);
+  // Every internal message is stored twice, as the sender's copy ('S') and the receiver's copy ('R'). Only the deleted
+  // user's own copies go, so the other party keeps the conversation, just as when users delete a message themselves. A
+  // role
+  // thread is shared by all members of the role: there only the user's own root row goes, which nobody else sees; the
+  // rest stays until MailRoleMessagePurgeTask removes the thread. The IDs are captured before the deletion, because the
+  // role marker of a thread may sit on a row that is itself deleted.
+  private static String MAIL_SEND_RECV_OWN_COPY_SEL = String.format(
+      "SELECT m.id_mail_send_recv FROM %s m WHERE (m.id_user_from = ? AND m.send_recv = 'S' OR m.id_user_to = ? "
+          + "AND m.send_recv = 'R') AND (m.id_reply_to_local IS NULL OR NOT EXISTS (SELECT 1 FROM %s r "
+          + "WHERE r.id_reply_to_local = m.id_reply_to_local AND r.id_role_to IS NOT NULL))",
+      MailSendRecv.TABNAME, MailSendRecv.TABNAME);
+  private static String MAIL_SEND_RECV_DEL = String.format("FROM %s WHERE id_mail_send_recv = ?", MailSendRecv.TABNAME);
   private static String USER_EXPORT = String.format(" * FROM %s WHERE id_tenant = ? OR id_user = 0", User.TABNAME);
   private static String UDF_METADATA_GENERAL_SELDEL = String.format(
       " umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?",
@@ -107,8 +120,9 @@ public abstract class ExportDeleteHelper {
       new ExportDefinition(UDFMetadataGeneral.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_GENERAL_SELDEL,
           ExportDefinition.DELETE_USE),
       new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
-      // TODO Delete all Mails of the user, nothing is exported
-      // ...
+      // Messages are never exported, they belong to two users at once
+      new ExportDefinition(MailSendRecv.TABNAME, TENANT_USER.ID_USER, MAIL_SEND_RECV_DEL, ExportDefinition.DELETE_USE,
+          MAIL_SEND_RECV_OWN_COPY_SEL),
       new ExportDefinition(MailSettingForward.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       new ExportDefinition(MailSettingForward.TABNAME, TENANT_USER.ID_USER, MAIL_SETTING_FORWARD_NULL_REDIRECT,
           ExportDefinition.DELETE_USE),

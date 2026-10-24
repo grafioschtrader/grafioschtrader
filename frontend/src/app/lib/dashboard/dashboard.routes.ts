@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Routes, Router } from '@angular/router';
 import { GlobalparameterService } from '../services/globalparameter.service';
 import { BaseSettings } from '../base.settings';
-import { DashboardComponent } from './dashboard.component';
+import type { DashboardComponent } from './dashboard.component';
 import { authGuard } from '../services/guards.definition';
 
 const dashboardGuard: CanActivateFn = () =>
@@ -26,7 +26,7 @@ export const DASHBOARD_ROUTES: Routes = [
   },
   {
     path: BaseSettings.DASHBOARD_KEY,
-    component: DashboardComponent,
+    loadComponent: () => import('./dashboard.component').then((m) => m.DashboardComponent),
     canActivate: [authGuard, dashboardGuard],
     canDeactivate: [(component: DashboardComponent) => component.canLeave()]
   }

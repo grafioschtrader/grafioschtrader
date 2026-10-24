@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, untracked } from '@angular/core';
 import { IGlobalMenuAttach } from '../component/iglobal.menu.attach';
 import { TopMenuTypes } from '../component/top.menu.types';
 import { MenuItem } from '@openng/optimus-ui/api';
@@ -8,8 +8,9 @@ import { MenuItem } from '@openng/optimus-ui/api';
  * This service coordinates the activation and deactivation of panels (components that implement IGlobalMenuAttach),
  * manages the top menu bar items (Show and Edit menus), and ensures proper cleanup when panels are switched.
  *
- * The service maintains a single active panel at a time and provides lifecycle notifications to panels
- * that use ChangeDetectionStrategy.OnPush, allowing them to react to activation/deactivation events.
+ * The service maintains a single active panel at a time. The active panel and the top menu model are signals, so
+ * every template calling isActivated() and the menubar re-render on a change, also below OnPush components. Panels
+ * that must run code when another panel takes over register for callMeDeactivate().
  *
  * Usage Pattern:
  * 1. Component registers itself when created: activePanelService.registerPanel(this)
@@ -19,14 +20,14 @@ import { MenuItem } from '@openng/optimus-ui/api';
 @Injectable()
 export class ActivePanelService {
   /**
-   * Reference to the top-level menu items array from the main menu bar.
-   * Indexed by TopMenuTypes enum (SHOW=0, EDIT=1) to access specific menu sections.
+   * The top-level menu items of the main menu bar, set by the menubar and indexed by the TopMenuTypes enum. Every
+   * change publishes a new array, which the menubar binds.
    */
-  topMenuItems: MenuItem[];
+  readonly topMenuItems = signal<MenuItem[]>([]);
 
   /**
-   * Array of panels that have registered for deactivation notifications.
-   * Only panels using ChangeDetectionStrategy.OnPush need to register to receive callMeDeactivate() callbacks.
+   * Array of panels that have registered for deactivation notifications. Only panels that must run code on
+   * deactivation register; the active border follows the activatedPanel signal without it.
    */
   private registeredPanel: IGlobalMenuAttach[] = [];
 
@@ -38,9 +39,8 @@ export class ActivePanelService {
   /**
    * The currently active panel in the application.
    * Only one panel can be active at a time. When a new panel is activated, the previous one is deactivated.
-   * @private
    */
-  _activatedPanel: IGlobalMenuAttach;
+  private readonly activatedPanelSignal = signal<IGlobalMenuAttach>(null);
 
   /**
    * Gets the currently active panel.
@@ -48,13 +48,12 @@ export class ActivePanelService {
    * @returns The active panel component, or undefined if no panel is active
    */
   get activatedPanel(): IGlobalMenuAttach {
-    return this._activatedPanel;
+    return this.activatedPanelSignal();
   }
 
   /**
-   * Registers a panel to receive deactivation notifications.
-   * Panels using ChangeDetectionStrategy.OnPush should register to receive callMeDeactivate() callbacks
-   * when another panel becomes active, allowing them to update their state appropriately.
+   * Registers a panel to receive callMeDeactivate() when another panel becomes active, for panels that must run code
+   * on deactivation.
    *
    * @param componentClass - The panel component to register for deactivation notifications
    */
@@ -72,8 +71,8 @@ export class ActivePanelService {
    * @param componentClass - The panel component to destroy
    */
   destroyPanel(componentClass: IGlobalMenuAttach): void {
-    if (componentClass === this._activatedPanel) {
-      this._activatedPanel = null;
+    if (componentClass === untracked(this.activatedPanelSignal)) {
+      this.setActivatedPanel(null);
       this.setMenuItems(TopMenuTypes.SHOW, null);
       this.setMenuItems(TopMenuTypes.EDIT, null);
     }
@@ -102,11 +101,12 @@ export class ActivePanelService {
       showMenu: null
     }
   ): void {
-    if (this._activatedPanel && componentClass !== this._activatedPanel) {
-      this._activatedPanel.hideContextMenu();
+    const previous = untracked(this.activatedPanelSignal);
+    if (previous && componentClass !== previous) {
+      previous.hideContextMenu();
     }
 
-    this._activatedPanel = componentClass;
+    this.setActivatedPanel(componentClass);
     this.setMenuItems(TopMenuTypes.SHOW, menus.showMenu);
     this.setMenuItems(TopMenuTypes.EDIT, menus.editMenu);
     this.registeredPanel.filter((panel) => panel !== componentClass).forEach((panel) => panel.callMeDeactivate());
@@ -119,7 +119,7 @@ export class ActivePanelService {
    * @returns True if the specified panel is the active panel, false otherwise
    */
   isActivated(componentClass: IGlobalMenuAttach): boolean {
-    return componentClass === this._activatedPanel;
+    return componentClass === this.activatedPanelSignal();
   }
 
   /**
@@ -130,7 +130,7 @@ export class ActivePanelService {
    * @param menuItems - Array of menu items to set in the Edit menu
    */
   addEditItems(menuItems: MenuItem[]): void {
-    this.topMenuItems[TopMenuTypes.EDIT].items = menuItems;
+    this.publishTopMenuItem(TopMenuTypes.EDIT, { items: menuItems });
   }
 
   /**
@@ -142,9 +142,25 @@ export class ActivePanelService {
    * @private
    */
   private setMenuItems(menuType: TopMenuTypes, menuItems?: MenuItem[]): void {
-    this.topMenuItems[menuType].disabled = !menuItems;
-    this.topMenuItems[menuType].items = menuItems ? menuItems : null;
-    this.topMenuItems = [...this.topMenuItems];
+    this.publishTopMenuItem(menuType, { disabled: !menuItems, items: menuItems ? menuItems : null });
+  }
+
+  /**
+   * Changes one section of the top menu and publishes the model as a new array. The section's MenuItem itself is
+   * changed in place: its label is translated asynchronously into that very object, which a copy would miss.
+   */
+  private publishTopMenuItem(menuType: TopMenuTypes, changes: Partial<MenuItem>): void {
+    untracked(() => {
+      const items = this.topMenuItems();
+      if (items[menuType]) {
+        Object.assign(items[menuType], changes);
+        this.topMenuItems.set([...items]);
+      }
+    });
+  }
+
+  private setActivatedPanel(panel: IGlobalMenuAttach): void {
+    untracked(() => this.activatedPanelSignal.set(panel));
   }
 }
 

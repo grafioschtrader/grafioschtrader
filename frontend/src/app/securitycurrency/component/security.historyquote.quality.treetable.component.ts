@@ -113,7 +113,7 @@ export class SecurityHistoryquoteQualityTreetableComponent
 
   qualityNode: TreeNode[] = [];
   historyquoteQualityHead: HistoryquoteQualityHead;
-  selectedNode: TreeNode[] = [];
+  selectedNode: TreeNode = null;
   selectedGroup: string;
   lastUpdate: string;
 

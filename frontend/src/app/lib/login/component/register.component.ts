@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, OnDestroy, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../service/log-in.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -28,15 +29,15 @@ import { ApplicationInfoComponent } from './application-info.component';
   template: `
     <div class="container">
       <div class="login jumbotron-replacement mx-auto">
-        @if (errorLastRegistration) {
+        @if (errorLastRegistration()) {
           <div class="alert alert-danger" role="alert">
-            {{ errorLastRegistration | translate }}
+            {{ errorLastRegistration() | translate }}
           </div>
         }
 
-        <application-info [applicationInfo]="applicationInfo"></application-info>
+        <application-info [applicationInfo]="applicationInfo()"></application-info>
 
-        @if (applicationInfo) {
+        @if (applicationInfo()) {
           <h2>{{ 'REGISTRATION' | translate }}</h2>
           <dynamic-form
             [config]="config"
@@ -46,14 +47,14 @@ import { ApplicationInfoComponent } from './application-info.component';
             (submitBt)="submit($event)">
           </dynamic-form>
 
-          @if (progressValue) {
+          @if (progressValue()) {
             <div>
               <h4>{{ 'REGISTER_WAIT' | translate }}</h4>
-              <p-progressBar [value]="progressValue"></p-progressBar>
+              <p-progressBar [value]="progressValue()"></p-progressBar>
             </div>
           }
 
-          @if (confirmEmail) {
+          @if (confirmEmail()) {
             <div class="alert alert-info" role="alert">
               {{ 'REGISTRATION_EMAIL' | translate }}
             </div>
@@ -67,11 +68,11 @@ import { ApplicationInfoComponent } from './application-info.component';
   imports: [DynamicFormModule, TranslateModule, ProgressBarModule, ApplicationInfoComponent]
 })
 export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {
-  progressValue: number;
-  errorLastRegistration: string;
+  readonly progressValue = signal<number>(undefined);
+  readonly errorLastRegistration = signal<string>(undefined);
   queryParams: any;
-  confirmEmail = false;
-  applicationInfo: ApplicationInfo;
+  readonly confirmEmail = signal(false);
+  readonly applicationInfo = signal<ApplicationInfo>(null);
 
   constructor(
     private messageToastService: MessageToastService,
@@ -90,18 +91,27 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
       this.actuatorService.applicationInfo(),
       this.gps.getUserFormDefinitions(),
       this.gps.getPasswordRegexProperties()
-    ]).subscribe({
-      next: (
-        data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[], prp: PasswordRegexProperties]
-      ) => {
-        this.applicationInfo = data[0];
-        sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
-        this.loginFormDefinition(data[1]);
-        this.passwordRegexProperties = data[2];
-        setTimeout(() => this.preparePasswordFields());
-      },
-      error: (err) => (this.applicationInfo = null)
-    });
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (
+          data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[], prp: PasswordRegexProperties]
+        ) => {
+          sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
+          this.loginFormDefinition(data[1]);
+          this.passwordRegexProperties = data[2];
+          this.applicationInfo.set(data[0]);
+          // The @if around <dynamic-form> renders the form only now; its controls exist after that render
+          afterNextRender(
+            () => {
+              this.preparePasswordFields();
+              this.configObject.nickname.elementRef?.nativeElement.focus();
+            },
+            { injector: this.injector }
+          );
+        },
+        error: () => this.applicationInfo.set(null)
+      });
   }
 
   submit(value: { [name: string]: any }): void {
@@ -114,13 +124,12 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     this.showProgressIndicator();
     this.loginService.update(user).subscribe({
       next: (newUser) => {
-        this.progressValue = 100;
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'USER_NEW_SAVED');
-        this.progressValue = undefined;
-        this.confirmEmail = true;
+        this.progressValue.set(undefined);
+        this.confirmEmail.set(true);
       },
       error: () => {
-        this.progressValue = undefined;
+        this.progressValue.set(undefined);
         this.form.setDisableAll(false);
         this.configObject.submit.disabled = false;
       }
@@ -128,14 +137,18 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   }
 
   showProgressIndicator() {
-    this.progressValue = 0;
+    this.progressValue.set(0);
     const interval = setInterval(() => {
-      this.progressValue = this.progressValue + Math.floor(Math.random() * 10) + 1;
-      if (this.progressValue >= 100) {
-        this.progressValue = 100;
+      if (this.progressValue() === undefined) {
+        clearInterval(interval);
+        return;
+      }
+      this.progressValue.update((value) => Math.min(100, value + Math.floor(Math.random() * 10) + 1));
+      if (this.progressValue() >= 100) {
         clearInterval(interval);
       }
     }, 1000);
+    this.destroyRef.onDestroy(() => clearInterval(interval));
   }
 
   ngOnDestroy(): void {
@@ -169,12 +182,11 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
 
   private prepareData() {
     this.queryParams = this.activatedRoute.params.subscribe((params) => {
-      this.errorLastRegistration = params['failure'];
+      this.errorLastRegistration.set(params['failure']);
     });
-    this.gps.getSupportedLocales().subscribe((data) => {
-      this.configObject.localeStr.valueKeyHtmlOptions = data;
-      super.preparePasswordFields();
-      this.configObject.nickname.elementRef.nativeElement.focus();
-    });
+    this.gps
+      .getSupportedLocales()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => (this.configObject.localeStr.valueKeyHtmlOptions = data));
   }
 }

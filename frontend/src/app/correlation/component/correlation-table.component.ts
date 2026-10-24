@@ -36,6 +36,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
 import { CorrelationAddInstrumentDialogComponent } from './correlation-add-instrument-dialog.component';
 import { InstrumentStatisticsResultComponent } from '../../shared/securitycurrency/instrument-statistics-result.component';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
 /**
  * This component serves as the main table view for correlation sets, displaying securities and currency pairs
@@ -151,6 +152,7 @@ import { InstrumentStatisticsResultComponent } from '../../shared/securitycurren
     FormsModule,
     TranslateModule,
     TableModule,
+    TooltipModule,
     CorrelationAddInstrumentDialogComponent,
     InstrumentStatisticsResultComponent
   ]

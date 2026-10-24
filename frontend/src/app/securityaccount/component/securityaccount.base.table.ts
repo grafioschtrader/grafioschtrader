@@ -39,6 +39,8 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
 import { BaseSettings } from '../../lib/base.settings';
+import { Securityaccount } from '../../entities/securityaccount';
+import type { NgxFileDropEntry } from 'ngx-file-drop';
 
 @Directive()
 export abstract class SecurityaccountBaseTable extends TableConfigBase implements IGlobalMenuAttach {
@@ -65,6 +67,22 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     'topDeviationPercentage'
   ];
 
+  /**
+   * Selection of the grouping offered by the reports on {@link SecurityaccountTable}. Declared here for the same reason
+   * as {@link algoTopOptions}; the asset class report leaves groupOptions undefined and shows no selection.
+   */
+  idTenant: number;
+  idPortfolio: number;
+  groupOptions: SelectItem[];
+  selectedGroup: string;
+  protected securityAccount: Securityaccount;
+
+  /**
+   * PDF drop zone of the report of a single securities account. Declared here for the same reason as
+   * {@link algoTopOptions}; only SecurityaccountSummaryComponent overrides the getters and shows the zone.
+   */
+  useGtPlatformDrop = false;
+
   showTable = true;
   untilDate: Date;
 
@@ -75,7 +93,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   securityPositionAll: SecurityPositionSummary[];
   securityPositionSummary: SecurityPositionGrandSummary;
   groupMap: Map<any, SecurityaccountGroupBase<any, any>>;
-  groupChangeIndexMap: Map<number, SecurityaccountGroupBase<any, any>>;
+  groupChangeIndexMap: Map<number, SecurityPositionGroupSummary>;
   // For child transaction dialog
   transactionCallParam: TransactionCallParam;
   visibleSecurityTransactionDialog = false;
@@ -117,6 +135,39 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
    */
   handleChangeAlgoTop(event: any): void {}
 
+  /**
+   * Selecting another grouping. Only the reports on {@link SecurityaccountTable} render the dropdown and override this.
+   *
+   * @param event - Selection event of the grouping dropdown
+   */
+  handleChangeGroup(event: any): void {}
+
+  /** True when the securities account is mapped to its own import platform; only the single account report knows. */
+  get accountHasOwnPlatform(): boolean {
+    return false;
+  }
+
+  /** True when the tenant provides a Grafioschtrader import platform; only the single account report asks. */
+  get gtPlatformConfigured(): boolean {
+    return false;
+  }
+
+  /** Whether the template renders the PDF drop zone. */
+  get showDropZone(): boolean {
+    return false;
+  }
+
+  onDropUseGtPlatformToggle(event: Event): void {
+    this.useGtPlatformDrop = (event.target as HTMLInputElement).checked;
+  }
+
+  /**
+   * Receives the files dropped onto the PDF drop zone, which only a report overriding {@link showDropZone} renders.
+   *
+   * @param files - The dropped files
+   */
+  dropped(files: NgxFileDropEntry[]): void {}
+
   getGroupValueByRowIndex(columnConfig: ColumnConfig, securityPositionSummary: SecurityPositionSummary): string {
     const groupValue = this.securityaccountGroupBase.getGroupValue(securityPositionSummary.security);
     return this.getValueColumnTotal(columnConfig, 0, this.groupMap, groupValue);
@@ -139,7 +190,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
         }
         rowIndex++;
       }
-      this.groupChangeIndexMap.set(rowIndex, <any>securityPositionGroupSummary);
+      this.groupChangeIndexMap.set(rowIndex, securityPositionGroupSummary);
       this.groupMap.set(
         this.securityaccountGroupBase.getGroupValueFromGroupRow(<any>securityPositionGroupSummary),
         <any>securityPositionGroupSummary

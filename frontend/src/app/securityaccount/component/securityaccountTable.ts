@@ -4,7 +4,6 @@ import { SecurityaccountService } from '../service/securityaccount.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { Securityaccount } from '../../entities/securityaccount';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { ChartDataService } from '../../shared/chart/service/chart.data.service';
@@ -22,7 +21,7 @@ import { SecurityAccountGroup } from '../model/security.account.group';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
-import { FilterService, SelectItem } from '@openng/optimus-ui/api';
+import { FilterService } from '@openng/optimus-ui/api';
 import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
 
 /**
@@ -42,12 +41,7 @@ import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
 export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
   SpecialInvestmentInstruments: typeof SpecialInvestmentInstruments = SpecialInvestmentInstruments;
 
-  public idTenant: number;
-  public idPortfolio: number;
-  groupOptions: SelectItem[] = [];
-  selectedGroup: string = SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY];
   groupMapping: Map<string, any> = new Map();
-  protected securityAccount: Securityaccount;
 
   protected constructor(
     timeSeriesQuotesService: TimeSeriesQuotesService,
@@ -102,13 +96,15 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
       new SecurityaccountAssetclassGroup(this.gps, this.translateService, this)
     );
 
+    this.groupOptions = [];
+    this.selectedGroup = SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY];
     SelectOptionsHelper.createSelectItemForEnum(translateService, SecurityAccountGroup, this.groupOptions);
 
     this.securityaccountGroupBase = new SecurityaccountCurrencyGroup(translateService, this);
     this.createColumns();
   }
 
-  handleChangeGroup(event) {
+  override handleChangeGroup(event) {
     this.selectedGroup = event.value;
     this.changeGroupToView(this.groupMapping.get(this.selectedGroup));
   }

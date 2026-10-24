@@ -18,6 +18,8 @@ import {
 } from '../validator/validator';
 import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
 import { FileRequiredValidator } from '../dynamic-form/components/form-input-file/file-input.validator';
+import { FormNotifier } from '../dynamic-form/models/form.notifier';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  * Enumeration of special validation types available for form fields.
@@ -1178,6 +1180,7 @@ export class DynamicFieldHelper {
    */
   public static setCurrency(fieldConfig: FieldConfig, currency: string): void {
     fieldConfig.inputNumberSettings.currency = currency;
+    FormNotifier.notifyOf(fieldConfig);
   }
 
   /**
@@ -1191,6 +1194,7 @@ export class DynamicFieldHelper {
   public static adjustNumberFraction(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
     this.setMinMaxValues(fieldConfig, integerDigits, precision, fieldConfig.inputNumberSettings.allowNegative);
     fieldConfig.inputNumberSettings.maxFractionDigits = precision;
+    FormNotifier.notifyOf(fieldConfig);
   }
 
   /**
@@ -1524,6 +1528,34 @@ export class DynamicFieldHelper {
     fieldConfig.errors = errors;
     fieldConfig.formControl.updateValueAndValidity();
     fieldConfig.baseInputComponent?.reEvaluateRequired();
+    // The required marker lives in the input component, which no property assignment above reaches
+    FormNotifier.notifyOf(fieldConfig);
+  }
+
+  /**
+   * Adds an error message rule to a field, replacing a rule of the same name. The field gets a new errors array, and
+   * the form is notified once more when the translated text of the rule arrives, so the message shows its text even
+   * when the translation is resolved after the form was rendered.
+   *
+   * @param translateService Translation service resolving the message text
+   * @param fieldConfig Field configuration receiving the rule
+   * @param rule The error rule; its text is filled in by this method
+   * @param textKey Translation key of the message, defaults to rule.keyi18n
+   * @param params Interpolation parameters of the message, defaults to param1 and param2 of the rule
+   */
+  public static addErrorRule(
+    translateService: TranslateService,
+    fieldConfig: FieldConfig,
+    rule: ErrorMessageRules,
+    textKey: string = rule.keyi18n,
+    params: { [key: string]: any } = { param1: rule.param1, param2: rule.param2 }
+  ): void {
+    rule.text = null;
+    fieldConfig.errors = [...(fieldConfig.errors ?? []).filter((e) => e.name !== rule.name), rule];
+    translateService.get(textKey, params).subscribe((text) => {
+      rule.text = text;
+      FormNotifier.notifyOf(fieldConfig);
+    });
   }
 
   /**
@@ -1575,18 +1607,19 @@ export class DynamicFieldHelper {
       );
       return fieldConfig;
     }
-    (fieldConfig.errors = fieldConfig.errors || []).push({ ...validError.msgR });
+    const errorRule: ErrorMessageRules = { ...validError.msgR };
     let validatorFn: ValidatorFn;
     if (validError.factory) {
       validatorFn = validError.factory(param1, param2);
       // Update error message with parameters
-      const lastError = fieldConfig.errors[fieldConfig.errors.length - 1];
-      lastError.param1 = param1;
-      lastError.param2 = param2;
+      errorRule.param1 = param1;
+      errorRule.param2 = param2;
     } else {
       validatorFn = validError.vFN;
     }
+    fieldConfig.errors = [...(fieldConfig.errors || []), errorRule];
     (fieldConfig.validation = fieldConfig.validation || []).push(validatorFn);
+    FormNotifier.notifyOf(fieldConfig);
     return fieldConfig;
   }
 }

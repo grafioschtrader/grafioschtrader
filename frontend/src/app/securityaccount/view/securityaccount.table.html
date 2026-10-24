@@ -27,7 +27,6 @@
       [value]="securityPositionAll"
       dataKey="security.idSecuritycurrency"
       selectionMode="single"
-      sortMode="none"
       stripedRows
       showGridlines>
       <ng-template #caption>
@@ -94,7 +93,6 @@
           <th style="width: 24px"></th>
           @for (field of fields; track field) { @if (field.visible) {
           <th
-            [pSortableColumn]="field.field"
             [pTooltip]="field.headerTooltipTranslated"
             [style.max-width.px]="field.width"
             [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"

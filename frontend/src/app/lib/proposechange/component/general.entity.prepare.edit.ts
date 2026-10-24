@@ -2,6 +2,7 @@ import { BasePrepareEdit } from './base.prepare.edit';
 import { ProposeTransientTransfer } from '../../entities/propose.transient.transfer';
 import { BaseID } from '../../entities/base.id';
 import { Type } from '@angular/core';
+import { DialogComponentLoader } from '../../maintree/handler/lazy-dialog';
 import { Observable, of } from 'rxjs';
 
 /**
@@ -54,7 +55,10 @@ export class EntityMapping {
   /** Additional options for customizing edit dialog behavior */
   option: any = {};
 
-  /** Component type to use for editing this entity (dynamically loaded) */
+  /** Dynamic import of the component that edits this entity. */
+  loadEditComponent?: DialogComponentLoader;
+
+  /** Component type to use for editing this entity, set once loadEditComponent has resolved. */
   editComponentType?: Type<any>;
 
   /**

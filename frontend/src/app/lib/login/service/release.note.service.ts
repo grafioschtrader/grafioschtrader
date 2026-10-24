@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
+import { SKIP_AUTH_HEADERS } from './auth.http.interceptor';
 import { BaseSettings } from '../../base.settings';
 import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -13,7 +14,10 @@ export class ReleaseNoteService {
 
   getTopReleaseNotes(limit: number = 3): Observable<ReleaseNote[]> {
     const params = new HttpParams().set('lang', this.translateService.getBrowserLang()).set('limit', limit.toString());
-    return this.httpClient.get<ReleaseNote[]>(`${BaseSettings.API_ENDPOINT}releasenote`, { params });
+    return this.httpClient.get<ReleaseNote[]>(`${BaseSettings.API_ENDPOINT}releasenote`, {
+      params,
+      context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+    });
   }
 }
 

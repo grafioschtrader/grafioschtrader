@@ -46,6 +46,8 @@ import { BaseSettings } from '../../lib/base.settings';
 import { TenantHoldingsChartService } from '../service/tenant.holdings.chart.service';
 import { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
 import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { NgxFileDropModule } from 'ngx-file-drop';
 
 /**
  * It groups asset classes of securities and includes balance of cash accounts as an asset class.
@@ -69,6 +71,8 @@ import { SecurityPositionDynamicGroupSummary } from '../../entities/view/securit
     SelectModule,
     TooltipModule,
     ContextMenuModule,
+    NgxFileDropModule,
+    AngularSvgIconModule,
     TransactionSecurityTableComponent,
     TransactionSecurityMarginTreetableComponent,
     TransactionCashaccountTableComponent,

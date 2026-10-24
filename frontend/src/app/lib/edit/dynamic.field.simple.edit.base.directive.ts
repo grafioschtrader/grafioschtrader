@@ -8,13 +8,16 @@ import { Directive } from '@angular/core';
 @Directive()
 export abstract class DynamicFieldSimpleEditBase extends SimpleEditBase {
   /**
-   * Override of the onShow method to initialize the component when dialog becomes visible.
+   * Override of the onShow method to initialize the component when dialog becomes visible. Unlike SimpleEditBase it
+   * initializes at once, without deferring to the next macrotask.
    *
    * @override
    * @param {any} event - The dialog show event
    * @returns {void}
    */
   public override onShow(event): void {
+    this.renewDialogSession();
     this.initialize();
+    this.viewChanged();
   }
 }

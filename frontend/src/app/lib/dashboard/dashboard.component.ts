@@ -6,7 +6,8 @@ import {
   Inject,
   NgZone,
   OnDestroy,
-  OnInit
+  OnInit,
+  Type
 } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -38,7 +39,8 @@ import {
   moveDashboardWidget,
   widgetFromDescriptor
 } from './dashboard.types';
-import { DASHBOARD_CONFIG_SUMMARIES, DASHBOARD_MAXIMIZABLE, DASHBOARD_RENDERERS } from './dashboard-summary.component';
+import { DASHBOARD_CONFIG_SUMMARIES, DASHBOARD_MAXIMIZABLE, DASHBOARD_RENDERERS } from './dashboard.tokens';
+import { DialogComponentLoader } from '../maintree/handler/lazy-dialog';
 import { DashboardConfigDialogComponent } from './dashboard-config-dialog.component';
 import { DashboardMasonryDirective } from './dashboard-masonry.directive';
 import { ProcessedActionData } from '../types/processed.action.data';
@@ -98,6 +100,11 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     'DASHBOARD_MAX_ROWS'
   );
   readonly availableCountField = ShowRecordConfigBase.createColumnConfig(DataType.NumericInteger, 'availableCount', '');
+  /**
+   * Renderer classes by widget type, filled as the loaders of DASHBOARD_RENDERERS resolve. A card whose renderer is
+   * still loading shows its frame without content for that moment.
+   */
+  renderers: Record<string, Type<unknown>> = {};
   private removedWidgets = new Map<string, DashboardWidget>();
   private subscriptions = new Subscription();
   private generation = 0;
@@ -110,7 +117,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     gps: GlobalparameterService,
     private service: DashboardService,
     private activePanel: ActivePanelService,
-    @Inject(DASHBOARD_RENDERERS) public renderers: Record<string, any>,
+    @Inject(DASHBOARD_RENDERERS) private rendererLoaders: Record<string, DialogComponentLoader>,
     @Inject(DASHBOARD_CONFIG_SUMMARIES) private configSummaries: Record<string, ColumnConfig>,
     @Inject(DASHBOARD_MAXIMIZABLE) private maximizableTypes: ReadonlySet<string>,
     private host: ElementRef<HTMLElement>,
@@ -119,10 +126,24 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     super(translate, gps);
   }
   ngOnInit(): void {
+    this.loadRenderers();
     this.activePanel.registerPanel(this);
     this.onComponentClick(null);
     this.load();
   }
+  /**
+   * Loads every registered widget renderer in parallel. They arrive with the dashboard rather than with the application
+   * shell; a failed import leaves the cards of that type empty.
+   */
+  private loadRenderers(): void {
+    Object.entries(this.rendererLoaders).forEach(([type, loader]) =>
+      loader().then(
+        (componentType) => (this.renderers = { ...this.renderers, [type]: componentType }),
+        (error) => console.error('Dashboard renderer ' + type + ' could not be loaded', error)
+      )
+    );
+  }
+
   ngOnDestroy(): void {
     this.generation++;
     this.stopFollowingPane();
