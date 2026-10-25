@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -13,15 +13,15 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
 @Component({
   selector: 'algo-alert-diagnostics-table',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
     [data]="rows"
     [fields]="fields"
+    [fieldsRevision]="fieldsRevision()"
     dataKey="rowKey"
-    [valueGetterFn]="getValueByPath.bind(this)"
+    [valueGetterFn]="valueGetter"
     [baseLocale]="baseLocale"
-    [customSortFn]="customSort.bind(this)"
+    [customSortFn]="customSorter"
     [multiSortMeta]="multiSortMeta"
     [paginator]="true"
     [rows]="rowsPerPage"

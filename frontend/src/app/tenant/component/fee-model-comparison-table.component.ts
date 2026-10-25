@@ -1,12 +1,4 @@
-import {
-  Component,
-  Injector,
-  Input,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, effect, Injector, input, OnDestroy, untracked } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -29,12 +21,15 @@ import { AppSettings } from '../../shared/app.settings';
   selector: 'fee-model-comparison-table',
   template: `
     <configurable-table
-      [data]="details"
+      [data]="details()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [(selection)]="selectedRow"
-      [valueGetterFn]="getValueByPath.bind(this)"
-      [customSortFn]="customSort.bind(this)"
-      [cellStyleFn]="getCellStyle.bind(this)"
+      [valueGetterFn]="valueGetter"
+      [customSortFn]="customSorter"
+      [multiSortMeta]="multiSortMeta"
+      [baseLocale]="baseLocale"
+      [cellStyleFn]="getCellStyle"
       [hasFilter]="true"
       [paginator]="true"
       [rows]="rowsPerPage"
@@ -44,14 +39,11 @@ import { AppSettings } from '../../shared/app.settings';
   `,
   standalone: true,
   imports: [ConfigurableTableComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
-export class FeeModelComparisonTableComponent extends TableConfigBase implements OnChanges, OnDestroy {
-  @Input() details: FeeModelComparisonDetail[] = [];
+export class FeeModelComparisonTableComponent extends TableConfigBase implements OnDestroy {
+  readonly details = input<FeeModelComparisonDetail[]>([]);
   selectedRow: FeeModelComparisonDetail;
-
-  private fieldsInitialized = false;
 
   constructor(
     filterService: FilterService,
@@ -114,14 +106,24 @@ export class FeeModelComparisonTableComponent extends TableConfigBase implements
     this.multiSortMeta.push({ field: 'transactionDate', order: 1 });
     this.prepareTableAndTranslate();
     this.readTableDefinition(AppSettings.FEE_MODEL_COMPARISON_TABLE_SETTINGS_STORE);
-    this.fieldsInitialized = true;
+    effect(() => {
+      const details = this.details() ?? [];
+      untracked(() => {
+        // Filter options come from this map; a new report must not retain types from the previous account.
+        this.fields
+          .filter((field) => field.translateValues && field.filterType === FilterType.withOptions)
+          .forEach((field) => (field.translatedValueMap = {}));
+        this.createTranslatedValueStoreAndFilterField(details);
+        this.prepareFilter(details);
+      });
+    });
   }
 
   /**
    * Returns background color style for the relativeError column using a green-yellow-red gradient.
    * 0% error = green, ~25% = yellow, 50%+ = red.
    */
-  getCellStyle(row: FeeModelComparisonDetail, field: ColumnConfig): { [key: string]: string } | null {
+  readonly getCellStyle = (row: FeeModelComparisonDetail, field: ColumnConfig): { [key: string]: string } | null => {
     if (field.field === 'relativeError' && row.relativeError != null) {
       const absError = Math.abs(row.relativeError);
       const maxError = 50;
@@ -129,14 +131,7 @@ export class FeeModelComparisonTableComponent extends TableConfigBase implements
       return { 'background-color': `hsl(${hue}, 70%, 85%)` };
     }
     return null;
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['details'] && this.details && this.fieldsInitialized) {
-      this.createTranslatedValueStoreAndFilterField(this.details);
-      this.prepareFilter(this.details);
-    }
-  }
+  };
 
   ngOnDestroy(): void {
     this.writeTableDefinition(AppSettings.FEE_MODEL_COMPARISON_TABLE_SETTINGS_STORE);

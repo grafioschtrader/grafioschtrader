@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, effect, Injector, input, untracked } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -15,10 +15,11 @@ import { UserSettingsService } from '../../lib/services/user.settings.service';
   selector: 'fx-observation-table',
   template: `
     <configurable-table
-      [data]="rows"
+      [data]="rows()"
       [fields]="fields"
-      [valueGetterFn]="getValueByPath.bind(this)"
-      [customSortFn]="customSort.bind(this)"
+      [fieldsRevision]="fieldsRevision()"
+      [valueGetterFn]="valueGetter"
+      [customSortFn]="customSorter"
       [multiSortMeta]="multiSortMeta"
       [baseLocale]="baseLocale"
       [paginator]="true"
@@ -29,12 +30,18 @@ import { UserSettingsService } from '../../lib/services/user.settings.service';
   `,
   standalone: true,
   imports: [ConfigurableTableComponent],
-  providers: [DialogService],
-  changeDetection: ChangeDetectionStrategy.Eager
+  providers: [DialogService]
 })
-export class FxObservationTableComponent extends TableConfigBase implements OnChanges {
-  @Input() groups: FxObservationGroup[] = [];
-  rows: (FxObservationGroup & { kindLabel: string; sampleHint: string })[] = [];
+export class FxObservationTableComponent extends TableConfigBase {
+  readonly groups = input<FxObservationGroup[]>([]);
+  /** Display labels follow the current input without retaining a second mutable set of rows. */
+  readonly rows = computed(() =>
+    this.groups().map((group) => ({
+      ...group,
+      kindLabel: 'FX_KIND_' + group.kind,
+      sampleHint: group.count < 5 ? 'FX_OBSERVATION_SMALL_SAMPLE' : ''
+    }))
+  );
 
   constructor(
     filterService: FilterService,
@@ -81,14 +88,9 @@ export class FxObservationTableComponent extends TableConfigBase implements OnCh
     this.addColumn(DataType.String, 'error', 'ERROR', true, false);
     this.multiSortMeta.push({ field: 'currencyPair', order: 1 });
     this.prepareTableAndTranslate();
-  }
-
-  ngOnChanges(): void {
-    this.rows = this.groups.map((group) => ({
-      ...group,
-      kindLabel: 'FX_KIND_' + group.kind,
-      sampleHint: group.count < 5 ? 'FX_OBSERVATION_SMALL_SAMPLE' : ''
-    }));
-    this.createTranslatedValueStoreAndFilterField(this.rows);
+    effect(() => {
+      const rows = this.rows();
+      untracked(() => this.createTranslatedValueStoreAndFilterField(rows));
+    });
   }
 }

@@ -49,6 +49,7 @@ The application roundtrip alternates backend phases around the existing prefixes
 | 040           | `040-create-watchlist.spec.ts`                                          | `WatchlistEditDynamicComponent`                                                                                                                                                                 |
 | 045           | `045-create-currencypair.spec.ts`                                       | `CurrencypairEditComponent`                                                                                                                                                                     |
 | 050           | `050-create-security.spec.ts`                                           | `SecurityEditComponent` for the Spanish `e2e='e'` rows in `generated/securities.json` (DIRECT_INVESTMENT, ETF, NON_INVESTABLE_INDICES, including history / intra / dividend / split connectors) |
+| 053           | `053-security-lookup.spec.ts`                                           | `SecurityLookupDialogComponent` with mocked provider responses: hint, base-data and connector child tables                                                                                      |
 | 055           | `055-create-global-trading-calendar.spec.ts`                            | `TradingCalendarGlobalComponent`                                                                                                                                                                |
 | 060           | `060-historyquote-table.spec.ts`                                        | `WatchlistAddInstrumentDialogComponent` (ISIN search); `HistoryquoteEditComponent`; single-row delete via confirm dialog                                                                        |
 | 062           | `062-historyquote-bulk-tools.spec.ts`                                   | `HistoryquoteDeleteDialogComponent` (delete by create type) and the gap filling, on the seeded CRE18 bond                                                                                       |
@@ -92,6 +93,7 @@ The application roundtrip alternates backend phases around the existing prefixes
 | 230           | `230-watchlist-indicators.spec.ts`                                      | `WatchlistIndicatorColumnsDialogComponent`, `WatchlistIndicatorColumnEditComponent`                                                                                                             |
 | 235           | `235-auth-http-interceptor.spec.ts`                                     | request headers of the authentication interceptor (no form)                                                                                                                                     |
 | 240           | `240-ai-providers.spec.ts`                                              | `TenantAIProviderDialogComponent`, `TenantAIProviderEditComponent` (create, rejected save, edit, delete)                                                                                        |
+| 245           | `245-tenant-analysis-tables.spec.ts`                                    | `FeeModelComparisonTableComponent`, `FxObservationTableComponent` with mocked report responses (no persistence)                                                                                 |
 | lib 005       | `e2e/lib/005-auth-http-interceptor.spec.ts`                             | the same interceptor on `grafiosch-host`                                                                                                                                                        |
 | lib 010       | `e2e/lib/010-mail.spec.ts`                                              | `MailSendDynamicDialogComponent`; forwarding settings opened, not saved                                                                                                                         |
 | lib 020       | `e2e/lib/020-nickname-lang-edit.spec.ts`                                | `NicknameLangEditComponent`                                                                                                                                                                     |
@@ -278,7 +280,6 @@ Schedule these after the persist forms they sit on. They do not produce data lat
 | —         | `LogoutReleaseRequestDynamicDialogComponent`    | —     | needs a lockout; do not schedule until a fixture can force `securityBreachCount` / request limit |
 | —         | `LimitTransactionRequestDynamicDialogComponent` | —     | same                                                                                             |
 | —         | `LogoutAdminSelfReleaseDynamicDialogComponent`  | —     | admin self-release after lockout                                                                 |
-| 053       | `SecurityLookupDialogComponent`                 | 050   | queries external data sources; skip when none answers                                            |
 
 `ColumnVisibilityDialogComponent` is a table preference, not a domain form. Skip it.
 
@@ -327,7 +328,7 @@ Existing prefixes stay. New ones are in **bold**. The order below is the executi
 | 045       | currency pair                                                      | 040                |
 | 050       | security (Spanish)                                                 | 030, 035, 040      |
 | **052**   | security CFD / private / leverage                                  | 030, 035, 040      |
-| _053_     | security lookup dialog                                             | 050                |
+| 053       | security lookup dialog (mocked providers)                          | —                  |
 | 055       | global trading calendar                                            | —                  |
 | **057**   | per-exchange calendar + copy                                       | 035, 055           |
 | 060       | historyquote create/delete one row                                 | 040                |
@@ -388,6 +389,7 @@ Existing prefixes stay. New ones are in **bold**. The order below is the executi
 | **198**   | MCP access token                                                   | users              |
 | 200–235   | alerts, strategies, replay, dashboard, indicators, interceptor     | —                  |
 | 240       | AI providers                                                       | —                  |
+| 245       | tenant analysis tables (mocked)                                    | —                  |
 | 844       | delete watchlists                                                  | —                  |
 | 888       | delete portfolios                                                  | —                  |
 
@@ -408,7 +410,7 @@ Write in this sequence so each new spec can run against services that already ho
 5. **165–168**.
 6. **172**, **173**.
 7. **192**, **193**, **197**, **198**.
-8. Optional 022, 042, 053, 063, 097, 102, 103, 182, 183; gtnet-app 080.
+8. Optional 022, 042, 063, 097, 102, 103, 182, 183; gtnet-app 080.
 
 ---
 

@@ -1,6 +1,4 @@
 frontend/src/app/algo/component/algo-alert-diagnostics-dialog.component.ts
-frontend/src/app/algo/component/algo-alert-diagnostics-table.component.ts
-frontend/src/app/algo/component/algo-alert-notification-table.component.ts
 frontend/src/app/algo/component/algo-assetclass-add-instrument-dialog.component.ts
 frontend/src/app/algo/component/algo-assetclass-add-instrument-table.component.ts
 frontend/src/app/algo/component/algo-assetclass-edit.component.ts
@@ -12,7 +10,6 @@ frontend/src/app/algo/component/algo-security-edit.component.ts
 frontend/src/app/algo/component/algo-simulation-create-dynamic-dialog.component.ts
 frontend/src/app/algo/component/algo-simulation-run-settings.component.ts
 frontend/src/app/algo/component/algo-simulation-run-start-dynamic-dialog.component.ts
-frontend/src/app/algo/component/algo-simulation-run-table.component.ts
 frontend/src/app/algo/component/algo-simulation-run.component.ts
 frontend/src/app/algo/component/algo-standalone-alert.component.ts
 frontend/src/app/algo/component/algo-strategy-edit.component.ts
@@ -195,10 +192,7 @@ frontend/src/app/securitycurrency/component/security-udf-edit.component.ts
 frontend/src/app/securitycurrency/component/security.historyquote.quality.treetable.component.ts
 frontend/src/app/securitycurrency/component/securitycurrency-search-and-set-dialog.component.ts
 frontend/src/app/securitycurrency/component/securitycurrency-search-and-set-table.component.ts
-frontend/src/app/securitylookup/component/security-lookup-base-data-table.component.ts
-frontend/src/app/securitylookup/component/security-lookup-connector-table.component.ts
 frontend/src/app/securitylookup/component/security-lookup-dialog.component.ts
-frontend/src/app/securitylookup/component/security-lookup-hint-table.component.ts
 frontend/src/app/shared/gtnet/component/gtnet-security-imp-gap-table.component.ts
 frontend/src/app/shared/gtnet/component/gtnet-security-import-edit-head.component.ts
 frontend/src/app/shared/gtnet/component/gtnet-security-import-table.component.ts
@@ -236,9 +230,7 @@ frontend/src/app/taxdata/component/tax-statement-export-dialog.component.ts
 frontend/src/app/taxdata/component/tax-year-correction-dialog.component.ts
 frontend/src/app/taxdata/component/tax-year-correction-table.component.ts
 frontend/src/app/taxdata/component/tax-year-create-dialog.component.ts
-frontend/src/app/tenant/component/fee-model-comparison-table.component.ts
 frontend/src/app/tenant/component/fee-model-comparison.component.ts
-frontend/src/app/tenant/component/fx-observation-table.component.ts
 frontend/src/app/tenant/component/tenant-dividend-account-selection.component.ts
 frontend/src/app/tenant/component/tenant-dividend-security-account-selection-dialog.component.ts
 frontend/src/app/tenant/component/tenant-dividends-cashaccount-extended.component.ts

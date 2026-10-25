@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, computed, effect, Injector, input, Input, untracked } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 
@@ -22,15 +22,15 @@ import { hintParams, LookupHintRow } from '../model/security-lookup-hint';
   selector: 'security-lookup-hint-table',
   standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    @if (rows.length > 0) {
+    @if (rows().length > 0) {
       <configurable-table
-        [data]="rows"
+        [data]="rows()"
         [fields]="fields"
-        [customSortFn]="customSort.bind(this)"
+        [fieldsRevision]="fieldsRevision()"
+        [customSortFn]="customSorter"
         [multiSortMeta]="multiSortMeta"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [valueGetterFn]="valueGetter"
         [contextMenuEnabled]="false"
         [scrollable]="false"
         [baseLocale]="baseLocale">
@@ -39,14 +39,15 @@ import { hintParams, LookupHintRow } from '../model/security-lookup-hint';
     }
   `
 })
-export class SecurityLookupHintTableComponent extends TableConfigBase implements OnChanges {
+export class SecurityLookupHintTableComponent extends TableConfigBase {
   /** Translation key of the table title */
   @Input() titleKey: string;
 
   /** Hints to show; the table is hidden when there is none */
-  @Input() hints: SecurityLookupHint[] = [];
+  readonly hints = input<SecurityLookupHint[]>([]);
 
-  rows: LookupHintRow[] = [];
+  /** Display rows derived from the current hints, without a second mutable copy. */
+  readonly rows = computed(() => (this.hints() ?? []).map((hint) => this.toRow(hint)));
 
   /**
    * Creates the table columns.
@@ -75,13 +76,10 @@ export class SecurityLookupHintTableComponent extends TableConfigBase implements
     });
     this.addColumn(DataType.String, 'text', 'LOOKUP_HINT_TEXT', true, false, { width: 600 });
     this.prepareTableAndTranslate();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['hints']) {
-      this.rows = (this.hints ?? []).map((hint) => this.toRow(hint));
-      this.createTranslatedValueStore(this.rows);
-    }
+    effect(() => {
+      const rows = this.rows();
+      untracked(() => this.createTranslatedValueStore(rows));
+    });
   }
 
   /** Translates the text of a hint and derives the translation key of its field label from the field name. */

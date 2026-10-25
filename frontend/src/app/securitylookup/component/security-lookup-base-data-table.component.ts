@@ -1,13 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges
-} from '@angular/core';
+import { Component, EventEmitter, Injector, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -31,18 +22,18 @@ import { Helper } from '../../lib/helper/helper';
   selector: 'security-lookup-base-data-table',
   standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, FormsModule, CheckboxModule, TooltipModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <configurable-table
       [data]="candidates"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="providerInstrumentId"
       [selectionMode]="'single'"
       [selection]="selectedCandidate"
       (selectionChange)="onSelectionChange($event)"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [multiSortMeta]="multiSortMeta"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [valueGetterFn]="valueGetter"
       [contextMenuEnabled]="false"
       [scrollable]="false"
       [baseLocale]="baseLocale"

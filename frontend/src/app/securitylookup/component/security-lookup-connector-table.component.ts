@@ -1,13 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges
-} from '@angular/core';
+import { Component, EventEmitter, Injector, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { MessageModule } from '@openng/optimus-ui/message';
@@ -32,21 +23,21 @@ import { Helper } from '../../lib/helper/helper';
   selector: 'security-lookup-connector-table',
   standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, MessageModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div [class.lookup-table-disabled]="disabled">
       <configurable-table
         [data]="alternatives"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="idConnector"
         [selectionMode]="disabled ? null : 'single'"
         [selection]="selectedAlternative"
-        [rowSelectableFn]="isSelectable.bind(this)"
-        [rowClassFn]="rowClass.bind(this)"
+        [rowSelectableFn]="isSelectable"
+        [rowClassFn]="rowClass"
         (selectionChange)="onSelectionChange($event)"
-        [customSortFn]="customSort.bind(this)"
+        [customSortFn]="customSorter"
         [multiSortMeta]="multiSortMeta"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [valueGetterFn]="valueGetter"
         [contextMenuEnabled]="false"
         [scrollable]="false"
         [baseLocale]="baseLocale">
@@ -134,6 +125,7 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase imple
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['showDistributionFrequency']) {
       this.distributionFrequencyColumn.visible = this.showDistributionFrequency;
+      this.notifyViewChanged();
     }
     if (changes['alternatives'] && this.alternatives) {
       this.createTranslatedValueStore(this.alternatives);
@@ -146,9 +138,9 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase imple
    * @param alternative - The row
    * @returns True when the row is selectable
    */
-  isSelectable(alternative: ConnectorAlternative): boolean {
+  readonly isSelectable = (alternative: ConnectorAlternative): boolean => {
     return isUsableAlternative(this.feed, alternative);
-  }
+  };
 
   /**
    * Marks a connector that cannot be chosen, so that it is shown as unavailable.
@@ -156,9 +148,9 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase imple
    * @param alternative - The row
    * @returns The CSS class of an unusable row, otherwise null
    */
-  rowClass(alternative: ConnectorAlternative): string | null {
+  readonly rowClass = (alternative: ConnectorAlternative): string | null => {
     return this.isSelectable(alternative) ? null : 'lookup-row-unusable';
-  }
+  };
 
   /**
    * Keeps the selection and reports it to the dialog.

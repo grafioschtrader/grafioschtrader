@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges } from '@angular/core';
+import { Component, effect, input, Input, untracked } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -17,15 +17,15 @@ import { SimulationRunEvent } from '../model/simulation.run';
 @Component({
   selector: 'algo-simulation-run-table',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
-    [data]="rows"
+    [data]="rows()"
     [fields]="fields"
+    [fieldsRevision]="fieldsRevision()"
     dataKey="idAlgoEvent"
-    [valueGetterFn]="getValueByPath.bind(this)"
+    [valueGetterFn]="valueGetter"
     [baseLocale]="baseLocale"
-    [customSortFn]="customSort.bind(this)"
+    [customSortFn]="customSorter"
     [multiSortMeta]="multiSortMeta"
     [paginator]="true"
     [rows]="rowsPerPage"
@@ -35,11 +35,10 @@ import { SimulationRunEvent } from '../model/simulation.run';
     <ng-container ngProjectAs="[caption]"><ng-content select="[caption]" /></ng-container>
   </configurable-table>`
 })
-export class AlgoSimulationRunTableComponent extends TableConfigBase implements OnChanges {
-  @Input() rows: SimulationRunEvent[] = [];
+export class AlgoSimulationRunTableComponent extends TableConfigBase {
+  readonly rows = input<SimulationRunEvent[]>([]);
   /** Height at which the trail starts to scroll, so the dialog keeps its form and its metrics in view. */
   @Input() scrollHeight = '40vh';
-  private fieldsInitialized = false;
 
   constructor(
     filter: FilterService,
@@ -49,36 +48,35 @@ export class AlgoSimulationRunTableComponent extends TableConfigBase implements 
   ) {
     super(filter, settings, translate, gps);
     this.rowsPerPage = 20;
-  }
-
-  ngOnChanges(): void {
-    if (!this.fieldsInitialized) {
-      this.addColumnFeqH(DataType.DateString, 'eventDate');
-      this.addColumnFeqH(DataType.String, 'eventType', true, false, {
-        translateValues: TranslateValue.NORMAL,
-        filterType: FilterType.withOptions
+    this.addColumnFeqH(DataType.DateString, 'eventDate');
+    this.addColumnFeqH(DataType.String, 'eventType', true, false, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    // Every rationale the replay writes is a message key, so the column reads in the user's language.
+    this.addColumnFeqH(DataType.String, 'rationale', true, false, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.Numeric, 'units', true, false, {
+      maxFractionDigits: this.gps.getMaxFractionDigits()
+    });
+    this.addColumnFeqH(DataType.Numeric, 'price', true, false, {
+      maxFractionDigits: this.gps.getMaxFractionDigits()
+    });
+    this.addColumnFeqH(DataType.Numeric, 'amount', true, false, { currencyPrecisionField: 'currency' });
+    this.addColumnFeqH(DataType.String, 'currency');
+    // A detail is either an NLS key on its own - the trigger of a plan, the status a run ended in - or text the
+    // server already resolved because it names dates, accounts or amounts. Translating the value leaves the latter
+    // untouched, because the translation of a text that is not a key is that text.
+    this.addColumnFeqH(DataType.String, 'details', true, false, { translateValues: TranslateValue.NORMAL });
+    this.prepareTableAndTranslate();
+    effect(() => {
+      const rows = this.rows();
+      untracked(() => {
+        this.createTranslatedValueStoreAndFilterField(rows);
+        this.prepareFilter(rows);
       });
-      // Every rationale the replay writes is a message key, so the column reads in the user's language.
-      this.addColumnFeqH(DataType.String, 'rationale', true, false, {
-        translateValues: TranslateValue.NORMAL,
-        filterType: FilterType.withOptions
-      });
-      this.addColumnFeqH(DataType.Numeric, 'units', true, false, {
-        maxFractionDigits: this.gps.getMaxFractionDigits()
-      });
-      this.addColumnFeqH(DataType.Numeric, 'price', true, false, {
-        maxFractionDigits: this.gps.getMaxFractionDigits()
-      });
-      this.addColumnFeqH(DataType.Numeric, 'amount', true, false, { currencyPrecisionField: 'currency' });
-      this.addColumnFeqH(DataType.String, 'currency');
-      // A detail is either an NLS key on its own - the trigger of a plan, the status a run ended in - or text the
-      // server already resolved because it names dates, accounts or amounts. Translating the value leaves the latter
-      // untouched, because the translation of a text that is not a key is that text.
-      this.addColumnFeqH(DataType.String, 'details', true, false, { translateValues: TranslateValue.NORMAL });
-      this.prepareTableAndTranslate();
-      this.fieldsInitialized = true;
-    }
-    this.createTranslatedValueStoreAndFilterField(this.rows);
-    this.prepareFilter(this.rows);
+    });
   }
 }

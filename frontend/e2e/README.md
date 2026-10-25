@@ -1,5 +1,16 @@
 # Frontend E2E suites
 
+## Tenant analysis tables (245-*)
+
+`245-tenant-analysis-tables.spec.ts` covers the fee-comparison and FX-observation child tables
+(`FeeModelComparisonTableComponent`, `FxObservationTableComponent`) with controlled HTTP responses from
+`tenant-analysis.helpers.ts`. It verifies initial and interactive sorting, translated transaction filters,
+recalculation after toggling zero costs, replacement of data and filter options on account changes, translated FX
+kinds, small-sample hints and clearing the selected account while tenant-wide transfers remain visible. The spec uses
+the real login (`alledit`) and NLS bundles but creates no portfolio, account or transaction, so it depends on no other
+spec and needs no cleanup. Run with
+`npx playwright test e2e/245-tenant-analysis-tables.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Language-model keys (240-*)
 
 `240-ai-providers.spec.ts` drives Settings → Language-model keys as `e2euser`: `TenantAIProviderDialogComponent`,
@@ -209,6 +220,18 @@ timestamps, prices, and GTNet runtime state are intentionally excluded.
 
 The spec adds only securities missing from the retained `Spain` watchlist, so it is repeatable against a populated
 test database. The same JSON file supplies the `e2e='i'` Austrian and Australian rows to `SecurityResourceTest`.
+
+## Security lookup spec (053-*)
+
+`053-security-lookup.spec.ts` opens the security form from its own empty `Lookup OnPush e2e` watchlist as `alledit`.
+It intercepts only `/api/securitylookup/lookup`, so provider availability does not influence the test. Switching
+between two listings must replace the listing hints and connector rows, reject a failed connector, disable the
+dividend feed for a non-distributing listing, and apply the independently chosen name to the unsaved security form.
+These checks cover the three OnPush child tables of the lookup dialog.
+
+The spec deletes its own watchlist before and after the run; it never saves a security. It needs the Spanish direct
+investment asset class and Madrid exchange from the preceding master-data specs. Run with
+`npx playwright test e2e/053-security-lookup.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## Global trading calendar spec (055-*)
 

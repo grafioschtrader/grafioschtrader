@@ -1,12 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -29,18 +21,18 @@ import { Helper } from '../../lib/helper/helper';
 @Component({
   selector: 'algo-alert-notification-table',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
     [data]="rows"
     [fields]="fields"
+    [fieldsRevision]="fieldsRevision()"
     dataKey="id"
     [selectionMode]="'multiple'"
     [selection]="selectedNotifications"
     (selectionChange)="onSelectionChange($event)"
-    [valueGetterFn]="getValueByPath.bind(this)"
+    [valueGetterFn]="valueGetter"
     [baseLocale]="baseLocale"
-    [customSortFn]="customSort.bind(this)"
+    [customSortFn]="customSorter"
     [multiSortMeta]="multiSortMeta"
     [paginator]="true"
     [rows]="rowsPerPage"
