@@ -1,6 +1,6 @@
 import { HttpClient, provideHttpClient, withInterceptors, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { authInterceptor } from '../app/lib/login/service/auth.http.interceptor';
-import { importProvidersFrom, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
+import { importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, Routes, withNavigationErrorHandler, withPreloading } from '@angular/router';
 import { AuthenticatedPreloadingStrategy } from '../app/lib/login/service/authenticated-preloading.strategy';
@@ -230,10 +230,7 @@ const translateLoader = (http: HttpClient) =>
 
 bootstrapApplication(GrafioschAppComponent, {
   providers: [
-    // Angular 22 bootstraps zoneless unless this is provided. Most library components are still Eager and rely on
-    // zone.js starting a check after their HTTP callbacks and timers, so without NgZone their views would stay stale.
-    // The main application passes the same provider.
-    provideZoneChangeDetection(),
+    // Angular 22 bootstraps zoneless by default. Library state owners notify Angular even while a component is Eager.
     provideHttpClient(withXhr(), withInterceptors([authInterceptor]), withInterceptorsFromDi()),
     provideRouter(
       routes,
@@ -244,7 +241,7 @@ bootstrapApplication(GrafioschAppComponent, {
     importProvidersFrom(
       AngularSvgIconModule.forRoot(),
       TranslateModule.forRoot({
-        defaultLanguage: GrafioschSettings.DEFAULT_LANGUAGE,
+        fallbackLang: GrafioschSettings.DEFAULT_LANGUAGE,
         loader: {
           provide: TranslateLoader,
           useFactory: translateLoader,
@@ -331,11 +328,15 @@ bootstrapApplication(GrafioschAppComponent, {
       const language = AppHelper.getNonUserDefinedLanguage(
         sessionStorage.getItem(GlobalSessionNames.LANGUAGE) ?? translateService.getBrowserLang()
       );
-      return firstValueFrom(translateService.use(language)).catch(() => {
-        showNlsBootstrapFailure();
-        // Never resolves on purpose, so Angular does not continue and render the root behind the overlay.
-        return new Promise<never>(() => {});
-      });
+      // The root configures Optimus in the session language. Resolve its fallback first as well: a fallback load
+      // started after bootstrap makes translate.get asynchronous while the tree and menus are being assembled.
+      return firstValueFrom(translateService.setFallbackLang(GrafioschSettings.DEFAULT_LANGUAGE))
+        .then(() => firstValueFrom(translateService.use(language)))
+        .catch(() => {
+          showNlsBootstrapFailure();
+          // Never resolves on purpose, so Angular does not continue and render the root behind the overlay.
+          return new Promise<never>(() => {});
+        });
     })
   ]
 }).catch((error) => console.error(error));

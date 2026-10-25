@@ -146,17 +146,17 @@
               @if (result.errorCode) {
                 <p role="alert">{{ result.errorCode | translate }}</p>
               }
-              @if (result.payload && renderers[widget.type]) {
+              @if (result.payload && renderers()[widget.type]) {
                 @if (maximizable(widget)) {
                   <div class="dashboard-card-body">
                     <ng-container
                       *ngComponentOutlet="
-                        renderers[widget.type];
+                        renderers()[widget.type];
                         inputs: { result: result, maximized: widget.instanceId === maximizedId }
                       " />
                   </div>
                 } @else {
-                  <ng-container *ngComponentOutlet="renderers[widget.type]; inputs: { result: result }" />
+                  <ng-container *ngComponentOutlet="renderers()[widget.type]; inputs: { result: result }" />
                 }
               }
               @if (result.dataAsOf) {

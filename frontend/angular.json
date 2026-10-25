@@ -42,10 +42,7 @@
               "src/styles.css",
               "src/app/lib/styles.css"
             ],
-            "scripts": [
-              "node_modules/split.js/dist/split.js",
-              "node_modules/reflect-metadata/Reflect.js"
-            ],
+            "scripts": ["node_modules/split.js/dist/split.js", "node_modules/reflect-metadata/Reflect.js"],
             "allowedCommonJsDependencies": ["moment", "deepmerge", "angular2-uuid", "plotly.js"],
             "browser": "src/main.ts"
           },
@@ -124,7 +121,7 @@
             "index": "src/grafiosch-host/index.html",
             "browser": "src/grafiosch-host/main.ts",
             "tsConfig": "./tsconfig.grafiosch-host.json",
-            "polyfills": ["zone.js"],
+            "polyfills": [],
             "assets": [
               "src/assets",
               {
@@ -143,10 +140,7 @@
               "src/app/lib/styles.css",
               "src/grafiosch-host/styles.css"
             ],
-            "scripts": [
-              "node_modules/split.js/dist/split.js",
-              "node_modules/reflect-metadata/Reflect.js"
-            ],
+            "scripts": ["node_modules/split.js/dist/split.js", "node_modules/reflect-metadata/Reflect.js"],
             "allowedCommonJsDependencies": ["moment", "deepmerge"]
           },
           "configurations": {

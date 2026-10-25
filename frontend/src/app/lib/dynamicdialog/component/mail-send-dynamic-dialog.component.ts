@@ -1,4 +1,14 @@
-import { Component, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  DestroyRef,
+  inject,
+  Injector,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBase } from '../../edit/form.base';
 import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
@@ -45,7 +55,8 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
   private readonly ID_USER_FROM = 'idUserFrom';
   private readonly ROLE_NAME_TO = 'roleNameTo';
   private mailSendParam: MailSendParam;
-  private userToAnyUserOptions: ValueKeyHtmlSelectOptions[];
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
 
   constructor(
     public translateService: TranslateService,
@@ -63,13 +74,16 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 3, this.helpLink.bind(this));
     this.mailSendParam = this.dynamicDialogConfig.data.mailSendParam;
+    // Build the form before its child renders. Only the select options depend on the asynchronous user lookup;
+    // assigning those FieldConfig options notifies the existing form through FormNotifier.
+    this.initializeFields();
     if (this.mailSendParam?.idUserTo === this.USER_TO_ANY_USER_PARAM) {
-      this.userAdminService.getIdUserAndNicknameExcludeMe().subscribe((vkhso: ValueKeyHtmlSelectOptions[]) => {
-        this.userToAnyUserOptions = vkhso;
-        this.initializeFields();
-      });
-    } else {
-      this.initializeFields();
+      this.userAdminService
+        .getIdUserAndNicknameExcludeMe()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((vkhso: ValueKeyHtmlSelectOptions[]) => {
+          this.configObject[this.ID_USER_TO].valueKeyHtmlOptions = vkhso;
+        });
     }
   }
 
@@ -82,7 +96,7 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
       DynamicFieldHelper.createSubmitButton('SEND')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    setTimeout(() => this.updateViewData());
+    afterNextRender(() => this.updateViewData(), { injector: this.injector });
   }
 
   submit(value: { [name: string]: any }): void {
@@ -143,9 +157,7 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
 
   private updateViewData(): void {
     if (this.mailSendParam.idUserTo) {
-      if (this.mailSendParam.idUserTo === this.USER_TO_ANY_USER_PARAM) {
-        this.configObject[this.ID_USER_TO].valueKeyHtmlOptions = this.userToAnyUserOptions;
-      } else {
+      if (this.mailSendParam.idUserTo !== this.USER_TO_ANY_USER_PARAM) {
         this.configObject[this.ID_USER_TO].formControl.setValue(this.mailSendParam.idUserTo);
         this.configObject[this.ID_USER_TO].formControl.disable();
       }

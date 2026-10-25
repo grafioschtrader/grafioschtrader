@@ -7,7 +7,8 @@ import {
   NgZone,
   OnDestroy,
   OnInit,
-  Type
+  Type,
+  signal
 } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -104,7 +105,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
    * Renderer classes by widget type, filled as the loaders of DASHBOARD_RENDERERS resolve. A card whose renderer is
    * still loading shows its frame without content for that moment.
    */
-  renderers: Record<string, Type<unknown>> = {};
+  readonly renderers = signal<Record<string, Type<unknown>>>({});
   private removedWidgets = new Map<string, DashboardWidget>();
   private subscriptions = new Subscription();
   private generation = 0;
@@ -138,7 +139,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   private loadRenderers(): void {
     Object.entries(this.rendererLoaders).forEach(([type, loader]) =>
       loader().then(
-        (componentType) => (this.renderers = { ...this.renderers, [type]: componentType }),
+        (componentType) => this.renderers.update((renderers) => ({ ...renderers, [type]: componentType })),
         (error) => console.error('Dashboard renderer ' + type + ' could not be loaded', error)
       )
     );
@@ -213,6 +214,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
           this.onComponentClick(null);
           if (document.schemaVersion !== 1) this.error = 'DASHBOARD_SCHEMA';
           this.loadPendingGroups(document.pendingGroups ?? [], generation, context);
+          this.notifyViewChanged();
         },
         error: (error) => {
           if (!this.current(generation, context)) return;
@@ -224,6 +226,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
             this.results = {};
             this.document = null;
           }
+          this.notifyViewChanged();
         }
       })
     );
@@ -246,6 +249,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
           if (!this.current(generation, context)) return;
           results.forEach((r) => (this.results[r.instanceId] = mergeDashboardResult(this.results[r.instanceId], r)));
           this.loadPendingGroups(groups.slice(1), generation, context);
+          this.notifyViewChanged();
         },
         error: (error) => {
           if (!this.current(generation, context)) return;
@@ -253,6 +257,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
           this.document.widgets
             .filter((w) => !this.results[w.instanceId])
             .forEach((w) => (this.results[w.instanceId] = this.failedResult(w, error.status)));
+          this.notifyViewChanged();
         }
       })
     );
@@ -309,6 +314,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
           this.results = {};
           this.cancel();
           this.load();
+          this.notifyViewChanged();
         },
         error: (error) => {
           this.saving = false;
@@ -319,6 +325,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
             : error.status === 403
               ? 'DASHBOARD_UNAVAILABLE'
               : 'DASHBOARD_SAVE_ERROR';
+          this.notifyViewChanged();
         }
       })
     );
@@ -346,10 +353,12 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
             this.refreshAvailable();
             action();
           }
+          this.notifyViewChanged();
         },
         error: () => {
           this.catalogueLoading = false;
           if (this.current(generation, context)) this.error = 'DASHBOARD_LOAD_ERROR';
+          this.notifyViewChanged();
         }
       })
     );
@@ -424,6 +433,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
       this.refreshing.delete(widget.instanceId);
       if (this.current(generation, context))
         this.results[widget.instanceId] = mergeDashboardResult(this.results[widget.instanceId], result);
+      this.notifyViewChanged();
     };
     this.subscriptions.add(
       this.service.refresh(widget.instanceId).subscribe({

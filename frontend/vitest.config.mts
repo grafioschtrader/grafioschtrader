@@ -12,7 +12,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'plotly.js': resolve(__dirname, 'node_modules/plotly.js/dist/plotly.js')
+      'plotly.js': resolve(import.meta.dirname, 'node_modules/plotly.js/dist/plotly.js')
     }
   }
 });

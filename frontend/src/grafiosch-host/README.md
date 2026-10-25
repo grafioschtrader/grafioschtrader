@@ -50,16 +50,16 @@ the users from `testdata/users.json` (password `A123abcd`). The browser suite of
 This is the concrete answer to "what does an application built on `lib` have to bring along?". Everything else comes
 from the library.
 
-| Extension point                                                                                                  | Host implementation                                                                                                                                                                     |
-| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DIALOG_HANDLER`                                                                                                 | `grafiosch-dialog.handler.ts`                                                                                                                                                           |
-| `AfterLoginHandler`                                                                                              | `grafiosch-after-login.handler.ts`                                                                                                                                                      |
-| `MAIN_TREE_CONTRIBUTOR` (multi)                                                                                  | `grafiosch-basedata-main-tree.contributor.ts` and `grafiosch-main-tree.contributor.ts`, sharing `grafiosch-tree-contributor.base.ts` — at least one, or `/mainview` shows an empty tree |
-| `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE`                                                                       | the library `TaskTypeBase`; this host has no extended task types, so the service is bound to `null`                                                                                     |
-| `PERSONAL_DATA_ZIP_NAME`                                                                                         | optional — the library default `personalData.zip` is used; Grafioschtrader overrides it with `gtPersonalData.zip`                                                                       |
-| The tenant page                                                                                                  | `grafiosch-tenant-edit.component.ts` + `grafiosch-tenant.service.ts` — `TenantBase` is extended per application                                                                         |
-| Application owned route keys                                                                                     | `grafiosch.settings.ts` — only the paths the library does not choose for itself; the values match the Grafioschtrader ones so a browser spec can move between the two suites            |
-| Route table, Optimus `MessageService`, `provideZoneChangeDetection()`, the NLS app initializer, the service list | `main.ts`                                                                                                                                                                               |
+| Extension point                                                                  | Host implementation                                                                                                                                                                     |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DIALOG_HANDLER`                                                                 | `grafiosch-dialog.handler.ts`                                                                                                                                                           |
+| `AfterLoginHandler`                                                              | `grafiosch-after-login.handler.ts`                                                                                                                                                      |
+| `MAIN_TREE_CONTRIBUTOR` (multi)                                                  | `grafiosch-basedata-main-tree.contributor.ts` and `grafiosch-main-tree.contributor.ts`, sharing `grafiosch-tree-contributor.base.ts` — at least one, or `/mainview` shows an empty tree |
+| `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE`                                       | the library `TaskTypeBase`; this host has no extended task types, so the service is bound to `null`                                                                                     |
+| `PERSONAL_DATA_ZIP_NAME`                                                         | optional — the library default `personalData.zip` is used; Grafioschtrader overrides it with `gtPersonalData.zip`                                                                       |
+| The tenant page                                                                  | `grafiosch-tenant-edit.component.ts` + `grafiosch-tenant.service.ts` — `TenantBase` is extended per application                                                                         |
+| Application owned route keys                                                     | `grafiosch.settings.ts` — only the paths the library does not choose for itself; the values match the Grafioschtrader ones so a browser spec can move between the two suites            |
+| Route table, Optimus `MessageService`, the NLS app initializer, the service list | `main.ts`                                                                                                                                                                               |
 
 The navigation tree deliberately uses **two** contributors, mirroring Grafioschtrader's BaseData/AdminData split, so
 that the merge in `MainTreeService` (filter by `isEnabled()`, sort by `getTreeOrder()`, flatten) is exercised and not
@@ -90,10 +90,9 @@ deadlock, no entry means no menu and no menu means no entry.
 
 ## Two traps
 
-> **`provideZoneChangeDetection()` is required.** Angular 22 bootstraps zoneless, and the library components assume
-> zone change detection: `RegisterComponent` assigns `applicationInfo` in an HTTP callback and expects the `@if` around
-> `<dynamic-form>` to have rendered by the time `preparePasswordFields()` reaches `formControl`. Without it the page
-> shows nothing but "server unavailable".
+> **The host runs zoneless.** Angular 22's default applies: there is no `provideZoneChangeDetection()` and no zone.js
+> polyfill. Library components notify Angular through signals, input changes or `markForCheck`, including those that
+> still declare `Eager`. Fix stale views where the library state is owned; the host needs no refresh workaround.
 
 > **The library services are not `providedIn: 'root'`.** Every host lists the ones its routes reach, including those
 > only the shell needs — `ManageClientService` and `UserDataService` for the menu bar, `DataChangedService` and
@@ -108,6 +107,15 @@ bundle alone. Texts used from `src/grafiosch-host/**` therefore count as **libra
 `node scripts/nls-tool.mjs check`, exactly like `src/app/lib/**`: their keys belong in
 `backend/grafiosch-base/src/main/resources/i18n/messages{,_de}.properties`. A key that is only in
 `grafioschtrader-common` works in the full application and paints as a raw key here.
+
+The app initializer awaits both the English fallback and the session language before rendering the shell. Starting
+the fallback load in the root constructor would leave menu and tree labels awaiting translation while their models
+are copied. A failed mandatory load blocks bootstrap and offers a bilingual retry screen.
+
+`e2e/lib/003-bootstrap.spec.ts` checks reload with a delayed fallback, dashboard loading, the user table, the NLS failure
+and retry, the mail composer with delayed recipient options, and the forced password-change dialog. The forced-change test overrides only `passwordRegexOk` in the
+login response, then saves the existing fixture password through the real endpoint. Run it individually with
+`npx playwright test --config=playwright.lib.config.ts e2e/lib/003-bootstrap.spec.ts --project=lib-e2e --no-deps`.
 
 ## Known gaps
 
