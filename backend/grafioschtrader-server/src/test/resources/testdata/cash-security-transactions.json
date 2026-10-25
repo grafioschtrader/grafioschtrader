@@ -1,0 +1,49 @@
+{
+  "loginNickname": "alledit",
+  "watchlistName": "Spain",
+  "portfolioName": "CornèrTrader",
+  "securityAccountName": "CT",
+  "cashAccountName": "CT CHF",
+  "cashCurrency": "CHF",
+  "securityName": "Banco Santander",
+  "securityIsin": "ES0113900J37",
+  "securityCurrency": "EUR",
+  "exchangeRate": 0.95,
+  "transactions": [
+    {
+      "transactionType": "ACCUMULATE",
+      "date": "2025-02-03",
+      "units": 10,
+      "quotation": 10,
+      "taxCost": 1,
+      "transactionCost": 4,
+      "expectedCashaccountAmount": -99.75,
+      "note": "E2E 122 Santander purchase",
+      "e2e": "e"
+    },
+    {
+      "transactionType": "REDUCE",
+      "date": "2025-02-04",
+      "units": 4,
+      "quotation": 12,
+      "taxCost": 0.4,
+      "transactionCost": 2,
+      "expectedCashaccountAmount": 43.32,
+      "note": "E2E 122 Santander partial sale",
+      "e2e": "e"
+    },
+    {
+      "transactionType": "DIVIDEND",
+      "date": "2025-02-06",
+      "exDate": "2025-02-05",
+      "units": 6,
+      "quotation": 1,
+      "taxCost": 0.6,
+      "transactionCost": 0.15,
+      "expectedCashaccountAmount": 4.99,
+      "note": "E2E 123 Santander dividend",
+      "e2e": "e"
+    }
+  ],
+  "e2e": "e"
+}

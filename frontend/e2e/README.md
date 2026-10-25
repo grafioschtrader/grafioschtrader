@@ -429,6 +429,51 @@ With the backend and frontend from an earlier run still active, execute only thi
 `npx playwright test e2e/120-bank-account-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 The `--no-deps` flag avoids rerunning the create-only user-registration setup against the populated database.
 
+## Cash-security buy/sell spec (122-*)
+
+`122-cash-security-transactions.spec.ts` drives `TransactionSecurityEditComponent` for an ordinary cash equity and
+`CalcExRateDialogComponent` for settlement in another currency. Its hand-authored fixture is
+`testdata/cash-security-transactions.json`: `alledit`, Spain watchlist, Banco Santander (`ES0113900J37`, EUR),
+CornèrTrader securities account `CT` and cash account `CT CHF`. The default equity/direct-investment trading period
+from 025 permits the trade. The spec follows 050, 055 and **120**, whose 2008 deposit funds the purchase.
+
+It buys ten shares and sells four, leaving six for 123. EUR 105 including purchase costs settles at CHF -99.75 with
+EUR/CHF 0.95; the partial sale settles at CHF 43.32. The test checks asynchronously populated instrument/account
+options, holding quantities, calculated amounts, the exchange-rate calculator, and a real server-rejected oversell.
+Before correcting the quantity, it asserts the error toast and re-enabled submit button without another UI action.
+REST verification checks the persisted amounts, dates and dated holdings.
+
+Ownership is the fixture note plus instrument ISIN/currency, cash-account name, type and date. At startup only its
+sale and purchase are deleted through REST, which also adjusts `hold_*`. When a dividend or another transaction
+already depends on the purchase, 122 accepts the exact purchase and saves it again through the table's edit dialog;
+it never deletes 123's dividend. The sale is recreated on every run. Missing prerequisites fail explicitly.
+
+The `de-CH` user requires bilingual menu/toast matches. Numeric widgets need `pressSequentially`, and readback strips
+the displayed currency prefix. The prefilled datetime is set through the picker controls and read back; `fill()` can
+leave its model unchanged. The exchange-rate dialog is found among body dialogs by its enabled cash-amount input.
+Watchlist refreshes can replace the selected row; the helper closes and retries a menu missing its transaction action.
+
+Run only this spec with
+`npx playwright test e2e/122-cash-security-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Security-dividend spec (123-*)
+
+`123-security-dividend.spec.ts` consumes the same `testdata/cash-security-transactions.json` fixture and the six-share
+holding produced by 122. It opens the dividend path of `TransactionSecurityEditComponent`, sets payment date and
+ex-date, checks the asynchronous account/holding option, enters dividend, tax and fee, and verifies CHF 4.99 net.
+A quantity exceeding even the original purchase is rejected by the real server; the dialog must remain usable,
+show the toast and re-enable Save before the test corrects the quantity. Successful persistence is verified through
+REST, including ex-date, taxable-interest flag and the unchanged six-share holding.
+The server adjusts the persisted exchange rate to the rounded settlement: CHF 4.99 / EUR 5.25, rather than retaining
+the entered 0.95 exactly. The assertion checks this effective rate as well as the rounded amount.
+
+123 deletes only its own marked dividend at startup through REST. The purchase and sale remain owned by 122 and
+are asserted as prerequisites. The widget, body-dialog and selection traps described for 122 apply here too.
+No accrued-interest scenario is included; this fixture is an equity, not a bond.
+
+Run only this spec with
+`npx playwright test e2e/123-security-dividend.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Standing-order spec (125-*)
 
 `125-standing-orders.spec.ts` recreates the two standing orders of `alledit` from the optional

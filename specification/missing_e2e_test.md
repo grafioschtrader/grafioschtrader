@@ -36,71 +36,73 @@ The application roundtrip alternates backend phases around the existing prefixes
 
 ## 2. Forms already driven by a spec
 
-| Prefix | Spec | Form class / entry point |
-|--------|------|--------------------------|
-| setup | `frontend/e2e/auth.setup.ts` | `RegisterComponent`; `TenantEditFullPageComponent` with the registration field set (name, currency, excludeDivTax, country) |
-| 005 | `005-connector-api-key.spec.ts` | `ConnectorApiKeyEditComponent` |
-| 010 | `010-import-template-group.spec.ts` | `ImportTransactionEditPlatformComponent`, `ImportTransactionEditTemplateComponent` |
-| 015 | `015-create-trading-platform-plan.spec.ts` | `TradingPlatformPlanEditComponent` (plan fields only) |
-| 020 | `020-edit-tenant.spec.ts` | `TenantEditDynamicComponent` / `TenantEditComponent` — `tenantName`, `excludeDivTax`, `country`, `idGtImportPlatform` |
-| 025 | `025-create-portfolio.spec.ts` | `PortfolioEditDynamicComponent`, `CashaccountEditComponent`, `SecurityaccountEditDynamicComponent`, `TradingPeriodTableComponent` |
-| 030 | `030-create-assetclass.spec.ts` | `AssetclassEditComponent` |
-| 035 | `035-create-stockexchange.spec.ts` | `StockexchangeEditComponent` |
-| 040 | `040-create-watchlist.spec.ts` | `WatchlistEditDynamicComponent` |
-| 045 | `045-create-currencypair.spec.ts` | `CurrencypairEditComponent` |
-| 050 | `050-create-security.spec.ts` | `SecurityEditComponent` for the Spanish `e2e='e'` rows in `generated/securities.json` (DIRECT_INVESTMENT, ETF, NON_INVESTABLE_INDICES, including history / intra / dividend / split connectors) |
-| 055 | `055-create-global-trading-calendar.spec.ts` | `TradingCalendarGlobalComponent` |
-| 060 | `060-historyquote-table.spec.ts` | `WatchlistAddInstrumentDialogComponent` (ISIN search); `HistoryquoteEditComponent`; single-row delete via confirm dialog |
-| 062 | `062-historyquote-bulk-tools.spec.ts` | `HistoryquoteDeleteDialogComponent` (delete by create type) and the gap filling, on the seeded CRE18 bond |
-| 065 | `065-create-derived-security.spec.ts` | `SecurityDerivedEditComponent`, `SecuritycurrencySearchAndSetDialogComponent` |
-| 067 | `067-create-fixed-deposit-security.spec.ts` | `SecurityEditComponent` + `SecurityHistoryquotePeriodEditTableComponent` (`noMarketValue` / Festgeld) |
-| 070 | `070-add-forex-to-performance-watchlist.spec.ts` | `WatchlistAddInstrumentDialogComponent` (add existing) |
-| 075 | `075-create-security-transactions.spec.ts` | `TransactionSecurityEditComponent` — **margin** `ACCUMULATE` / `FINANCE_COST` / `REDUCE` for group `Forex1` |
-| 080 | `080-correlation-matrix.spec.ts` | `CorrelationSetEditComponent`, `CorrelationAddInstrumentDialogComponent` |
-| 085 | `085-manage-client.spec.ts` | `ClientCreateDynamicDialogComponent` |
-| 090 | `090-share-read-access.spec.ts` | `ShareReadAccessDynamicDialogComponent` |
-| 095 | `095-create-generic-connector.spec.ts` | `GenericConnectorDefEditComponent`, `GenericConnectorEndpointEditComponent`, `GenericConnectorFieldMappingTableComponent`, `GenericConnectorHttpHeaderTableComponent` |
-| 100 | `100-schedule-batch-jobs.spec.ts` | `TaskDataChangeEditComponent` |
-| 105 | `105-create-trading-calendar-rule-set.spec.ts` | `TradingCalendarRuleSetEditComponent` |
-| 110 | `110-risk-free-rate-mapping.spec.ts` | `RiskFreeRateMappingTableComponent` |
-| 115 | `115-taxdata.spec.ts` | `TaxCountryCreateDialogComponent`, `TaxYearCreateDialogComponent`, Kursliste zip upload |
-| 120 | `120-bank-account-transactions.spec.ts` | `TransactionCashaccountEditSingleComponent` (`DEPOSIT`, `WITHDRAWAL`, `FEE`, `INTEREST_CASHACCOUNT`); `TransactionCashaccountEditDoubleComponent` |
-| 125 | `125-standing-orders.spec.ts` | `StandingOrderCashaccountEditComponent` (FEE); `StandingOrderSecurityEditComponent` (ACCUMULATE) |
-| 130 | `130-import-transactions.spec.ts` | securities-account PDF drop zone (not the import-head dialog) |
-| 132 | `132-import-transactions-csv.spec.ts` | `UploadFileDialogComponent` for the CSV; the import head is created with REST, not `SecurityaccountImportTransactionEditHeadComponent` |
-| 135 | `135-create-security-action.spec.ts` | `SecurityActionCreateDialogComponent` |
-| 140 | `140-apply-security-action.spec.ts` | apply on `SecurityActionTreetableComponent` (no field form) |
-| 145 | `145-security-transfer.spec.ts` | `SecurityTransferCreateDialogComponent` |
-| 150 | `150-udf-metadata.spec.ts` | `UDFMetadataGeneralEditComponent`, `UDFMetadataSecurityEditComponent` |
-| 155 | `155-udf-data.spec.ts` | `SecurityUDFEditComponent`; `UDFGeneralEditComponent` for entity `Currencypair` |
-| 160 | `160-security-splits.spec.ts` | `SecuritysplitEditTableComponent` |
-| 170 | `170-time-series-chart.spec.ts` | `TimeSeriesChartComponent` controls, `IndicatorEditComponent` |
-| 175 | `175-gtnet-exchange-flags.spec.ts` | `GTNetExchangeCheckboxesComponent` on the securities and currency-pair exchange tables |
-| 180 | `180-gtnet-security-import.spec.ts` | `GTNetSecurityImportEditHeadComponent`, the position `editable-table`, its CSV upload |
-| 185 | `185-propose-data-change.spec.ts` | propose-change through `SecurityEditComponent` / `StockexchangeEditComponent` as a non-owner, accepted on `RequestForYouTableComponent` |
-| 190 | `190-create-entity-limits.spec.ts` | `EntityLimitEditComponent` |
-| 195 | `195-simulation-opening.spec.ts` | `AlgoSimulationCreateDynamicDialogComponent` in its three initialization modes |
-| 200 | `200-alert-diagnostics.spec.ts` | `AlgoAlertDiagnosticsDialogComponent` (responses intercepted, no persistence) |
-| 205 | `205-dip-strategy-activation.spec.ts` | strategy activation gate; the buy dialog opened without booking |
-| 210 | `210-scale-out-plan.spec.ts` | strategy activation gate for a tranche plan |
-| 210 | `210-yaml-validation.spec.ts` | `FeeModelEditComponent` (rejected YAML, help, fee estimation, save) |
-| 215 | `215-average-down.spec.ts` | `AlgoStrategyEditComponent` (Monaco editor) |
-| 220 | `220-historical-replay.spec.ts` | `AlgoSimulationRunStartDynamicDialogComponent` and the replay panel |
-| 225 | `225-dashboard.spec.ts` | `DashboardConfigDialogComponent`, dashboard layout |
-| 230 | `230-watchlist-indicators.spec.ts` | `WatchlistIndicatorColumnsDialogComponent`, `WatchlistIndicatorColumnEditComponent` |
-| 235 | `235-auth-http-interceptor.spec.ts` | request headers of the authentication interceptor (no form) |
-| 240 | `240-ai-providers.spec.ts` | `TenantAIProviderDialogComponent`, `TenantAIProviderEditComponent` (create, rejected save, edit, delete) |
-| lib 005 | `e2e/lib/005-auth-http-interceptor.spec.ts` | the same interceptor on `grafiosch-host` |
-| lib 010 | `e2e/lib/010-mail.spec.ts` | `MailSendDynamicDialogComponent`; forwarding settings opened, not saved |
-| lib 020 | `e2e/lib/020-nickname-lang-edit.spec.ts` | `NicknameLangEditComponent` |
-| lib 030 | `e2e/lib/030-password-edit.spec.ts` | `PasswordEditComponent` |
-| lib 035 | `e2e/lib/035-task-monitor-notification.spec.ts` | `TaskDataChangeEditComponent` validation (not saved), `ColumnVisibilityDialogComponent`, active panel |
-| lib 040 / 045 | `e2e/lib/040-gtnet-own-entry.spec.ts`, `045-gtnet-remote-entry.spec.ts` | `GTNetEditComponent` (own and remote entry) |
-| lib 060 | `e2e/lib/060-gtnet-message-answer.spec.ts` | `GTNetMessageAnswerEditComponent` |
-| lib 065 | `e2e/lib/065-gtnet-export-import.spec.ts` | GTNet export / import upload |
-| gtnet 087 | `e2e/gtnet/087-config-ui.spec.ts` | `GTNetConfigEditComponent` |
-| gtnet 089 | `e2e/gtnet/089-config-entity-ui.spec.ts` | `GTNetConfigEntityEditComponent` |
-| gtnet 090 | `e2e/gtnet/090-admin-message-ui.spec.ts` | `GTNetMessageEditComponent` (multi-target admin message) |
+| Prefix        | Spec                                                                    | Form class / entry point                                                                                                                                                                        |
+| ------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| setup         | `frontend/e2e/auth.setup.ts`                                            | `RegisterComponent`; `TenantEditFullPageComponent` with the registration field set (name, currency, excludeDivTax, country)                                                                     |
+| 005           | `005-connector-api-key.spec.ts`                                         | `ConnectorApiKeyEditComponent`                                                                                                                                                                  |
+| 010           | `010-import-template-group.spec.ts`                                     | `ImportTransactionEditPlatformComponent`, `ImportTransactionEditTemplateComponent`                                                                                                              |
+| 015           | `015-create-trading-platform-plan.spec.ts`                              | `TradingPlatformPlanEditComponent` (plan fields only)                                                                                                                                           |
+| 020           | `020-edit-tenant.spec.ts`                                               | `TenantEditDynamicComponent` / `TenantEditComponent` — `tenantName`, `excludeDivTax`, `country`, `idGtImportPlatform`                                                                           |
+| 025           | `025-create-portfolio.spec.ts`                                          | `PortfolioEditDynamicComponent`, `CashaccountEditComponent`, `SecurityaccountEditDynamicComponent`, `TradingPeriodTableComponent`                                                               |
+| 030           | `030-create-assetclass.spec.ts`                                         | `AssetclassEditComponent`                                                                                                                                                                       |
+| 035           | `035-create-stockexchange.spec.ts`                                      | `StockexchangeEditComponent`                                                                                                                                                                    |
+| 040           | `040-create-watchlist.spec.ts`                                          | `WatchlistEditDynamicComponent`                                                                                                                                                                 |
+| 045           | `045-create-currencypair.spec.ts`                                       | `CurrencypairEditComponent`                                                                                                                                                                     |
+| 050           | `050-create-security.spec.ts`                                           | `SecurityEditComponent` for the Spanish `e2e='e'` rows in `generated/securities.json` (DIRECT_INVESTMENT, ETF, NON_INVESTABLE_INDICES, including history / intra / dividend / split connectors) |
+| 055           | `055-create-global-trading-calendar.spec.ts`                            | `TradingCalendarGlobalComponent`                                                                                                                                                                |
+| 060           | `060-historyquote-table.spec.ts`                                        | `WatchlistAddInstrumentDialogComponent` (ISIN search); `HistoryquoteEditComponent`; single-row delete via confirm dialog                                                                        |
+| 062           | `062-historyquote-bulk-tools.spec.ts`                                   | `HistoryquoteDeleteDialogComponent` (delete by create type) and the gap filling, on the seeded CRE18 bond                                                                                       |
+| 065           | `065-create-derived-security.spec.ts`                                   | `SecurityDerivedEditComponent`, `SecuritycurrencySearchAndSetDialogComponent`                                                                                                                   |
+| 067           | `067-create-fixed-deposit-security.spec.ts`                             | `SecurityEditComponent` + `SecurityHistoryquotePeriodEditTableComponent` (`noMarketValue` / Festgeld)                                                                                           |
+| 070           | `070-add-forex-to-performance-watchlist.spec.ts`                        | `WatchlistAddInstrumentDialogComponent` (add existing)                                                                                                                                          |
+| 075           | `075-create-security-transactions.spec.ts`                              | `TransactionSecurityEditComponent` — **margin** `ACCUMULATE` / `FINANCE_COST` / `REDUCE` for group `Forex1`                                                                                     |
+| 080           | `080-correlation-matrix.spec.ts`                                        | `CorrelationSetEditComponent`, `CorrelationAddInstrumentDialogComponent`                                                                                                                        |
+| 085           | `085-manage-client.spec.ts`                                             | `ClientCreateDynamicDialogComponent`                                                                                                                                                            |
+| 090           | `090-share-read-access.spec.ts`                                         | `ShareReadAccessDynamicDialogComponent`                                                                                                                                                         |
+| 095           | `095-create-generic-connector.spec.ts`                                  | `GenericConnectorDefEditComponent`, `GenericConnectorEndpointEditComponent`, `GenericConnectorFieldMappingTableComponent`, `GenericConnectorHttpHeaderTableComponent`                           |
+| 100           | `100-schedule-batch-jobs.spec.ts`                                       | `TaskDataChangeEditComponent`                                                                                                                                                                   |
+| 105           | `105-create-trading-calendar-rule-set.spec.ts`                          | `TradingCalendarRuleSetEditComponent`                                                                                                                                                           |
+| 110           | `110-risk-free-rate-mapping.spec.ts`                                    | `RiskFreeRateMappingTableComponent`                                                                                                                                                             |
+| 115           | `115-taxdata.spec.ts`                                                   | `TaxCountryCreateDialogComponent`, `TaxYearCreateDialogComponent`, Kursliste zip upload                                                                                                         |
+| 120           | `120-bank-account-transactions.spec.ts`                                 | `TransactionCashaccountEditSingleComponent` (`DEPOSIT`, `WITHDRAWAL`, `FEE`, `INTEREST_CASHACCOUNT`); `TransactionCashaccountEditDoubleComponent`                                               |
+| 122           | `122-cash-security-transactions.spec.ts`                                | `TransactionSecurityEditComponent` — cash equity `ACCUMULATE` / `REDUCE`, rejected oversell; `CalcExRateDialogComponent`                                                                        |
+| 123           | `123-security-dividend.spec.ts`                                         | `TransactionSecurityEditComponent` — `DIVIDEND`, ex-date, rejected quantity                                                                                                                     |
+| 125           | `125-standing-orders.spec.ts`                                           | `StandingOrderCashaccountEditComponent` (FEE); `StandingOrderSecurityEditComponent` (ACCUMULATE)                                                                                                |
+| 130           | `130-import-transactions.spec.ts`                                       | securities-account PDF drop zone (not the import-head dialog)                                                                                                                                   |
+| 132           | `132-import-transactions-csv.spec.ts`                                   | `UploadFileDialogComponent` for the CSV; the import head is created with REST, not `SecurityaccountImportTransactionEditHeadComponent`                                                          |
+| 135           | `135-create-security-action.spec.ts`                                    | `SecurityActionCreateDialogComponent`                                                                                                                                                           |
+| 140           | `140-apply-security-action.spec.ts`                                     | apply on `SecurityActionTreetableComponent` (no field form)                                                                                                                                     |
+| 145           | `145-security-transfer.spec.ts`                                         | `SecurityTransferCreateDialogComponent`                                                                                                                                                         |
+| 150           | `150-udf-metadata.spec.ts`                                              | `UDFMetadataGeneralEditComponent`, `UDFMetadataSecurityEditComponent`                                                                                                                           |
+| 155           | `155-udf-data.spec.ts`                                                  | `SecurityUDFEditComponent`; `UDFGeneralEditComponent` for entity `Currencypair`                                                                                                                 |
+| 160           | `160-security-splits.spec.ts`                                           | `SecuritysplitEditTableComponent`                                                                                                                                                               |
+| 170           | `170-time-series-chart.spec.ts`                                         | `TimeSeriesChartComponent` controls, `IndicatorEditComponent`                                                                                                                                   |
+| 175           | `175-gtnet-exchange-flags.spec.ts`                                      | `GTNetExchangeCheckboxesComponent` on the securities and currency-pair exchange tables                                                                                                          |
+| 180           | `180-gtnet-security-import.spec.ts`                                     | `GTNetSecurityImportEditHeadComponent`, the position `editable-table`, its CSV upload                                                                                                           |
+| 185           | `185-propose-data-change.spec.ts`                                       | propose-change through `SecurityEditComponent` / `StockexchangeEditComponent` as a non-owner, accepted on `RequestForYouTableComponent`                                                         |
+| 190           | `190-create-entity-limits.spec.ts`                                      | `EntityLimitEditComponent`                                                                                                                                                                      |
+| 195           | `195-simulation-opening.spec.ts`                                        | `AlgoSimulationCreateDynamicDialogComponent` in its three initialization modes                                                                                                                  |
+| 200           | `200-alert-diagnostics.spec.ts`                                         | `AlgoAlertDiagnosticsDialogComponent` (responses intercepted, no persistence)                                                                                                                   |
+| 205           | `205-dip-strategy-activation.spec.ts`                                   | strategy activation gate; the buy dialog opened without booking                                                                                                                                 |
+| 210           | `210-scale-out-plan.spec.ts`                                            | strategy activation gate for a tranche plan                                                                                                                                                     |
+| 210           | `210-yaml-validation.spec.ts`                                           | `FeeModelEditComponent` (rejected YAML, help, fee estimation, save)                                                                                                                             |
+| 215           | `215-average-down.spec.ts`                                              | `AlgoStrategyEditComponent` (Monaco editor)                                                                                                                                                     |
+| 220           | `220-historical-replay.spec.ts`                                         | `AlgoSimulationRunStartDynamicDialogComponent` and the replay panel                                                                                                                             |
+| 225           | `225-dashboard.spec.ts`                                                 | `DashboardConfigDialogComponent`, dashboard layout                                                                                                                                              |
+| 230           | `230-watchlist-indicators.spec.ts`                                      | `WatchlistIndicatorColumnsDialogComponent`, `WatchlistIndicatorColumnEditComponent`                                                                                                             |
+| 235           | `235-auth-http-interceptor.spec.ts`                                     | request headers of the authentication interceptor (no form)                                                                                                                                     |
+| 240           | `240-ai-providers.spec.ts`                                              | `TenantAIProviderDialogComponent`, `TenantAIProviderEditComponent` (create, rejected save, edit, delete)                                                                                        |
+| lib 005       | `e2e/lib/005-auth-http-interceptor.spec.ts`                             | the same interceptor on `grafiosch-host`                                                                                                                                                        |
+| lib 010       | `e2e/lib/010-mail.spec.ts`                                              | `MailSendDynamicDialogComponent`; forwarding settings opened, not saved                                                                                                                         |
+| lib 020       | `e2e/lib/020-nickname-lang-edit.spec.ts`                                | `NicknameLangEditComponent`                                                                                                                                                                     |
+| lib 030       | `e2e/lib/030-password-edit.spec.ts`                                     | `PasswordEditComponent`                                                                                                                                                                         |
+| lib 035       | `e2e/lib/035-task-monitor-notification.spec.ts`                         | `TaskDataChangeEditComponent` validation (not saved), `ColumnVisibilityDialogComponent`, active panel                                                                                           |
+| lib 040 / 045 | `e2e/lib/040-gtnet-own-entry.spec.ts`, `045-gtnet-remote-entry.spec.ts` | `GTNetEditComponent` (own and remote entry)                                                                                                                                                     |
+| lib 060       | `e2e/lib/060-gtnet-message-answer.spec.ts`                              | `GTNetMessageAnswerEditComponent`                                                                                                                                                               |
+| lib 065       | `e2e/lib/065-gtnet-export-import.spec.ts`                               | GTNet export / import upload                                                                                                                                                                    |
+| gtnet 087     | `e2e/gtnet/087-config-ui.spec.ts`                                       | `GTNetConfigEditComponent`                                                                                                                                                                      |
+| gtnet 089     | `e2e/gtnet/089-config-entity-ui.spec.ts`                                | `GTNetConfigEntityEditComponent`                                                                                                                                                                |
+| gtnet 090     | `e2e/gtnet/090-admin-message-ui.spec.ts`                                | `GTNetMessageEditComponent` (multi-target admin message)                                                                                                                                        |
 
 Login is implicit in every spec. `844-delete-watchlist.spec.ts` and `888-delete-portfolio.spec.ts` are teardown, not form coverage. Specs 195–220 create their `AlgoTop` through `POST /api/algotop/createfromwatchlist`, not through a dialog (§4.7).
 
@@ -175,20 +177,9 @@ These reuse a class that already has a spec. Extend the existing spec when the m
 
 ### 3.9 Ordinary security transactions
 
-`TransactionSecurityEditComponent` (`frontend/src/app/transaction/component/transaction-security-edit.component.ts`) is the form for accumulate, reduce, dividend and finance cost. 075 only drives the **margin** path for `Forex USD/CHF -> CHF`; `security-transaction.helpers.ts` knows only `ACCUMULATE`, `FINANCE_COST` and `REDUCE` on that margin group. 205 opens the buy dialog to check an assignment option and closes it without booking. The Forex1 opening cash amount is 0, so 075 can run before the deposits in 120.
+`TransactionSecurityEditComponent` (`frontend/src/app/transaction/component/transaction-security-edit.component.ts`) also exposes an accrued-interest amount on direct bond purchases and sales. This path needs a bond fixture with a funded account and an allowed fixed-income trading period. `HYPOTHETICAL_BUY` (DRP) remains outside the dialog scenarios.
 
-A cash equity buy needs a funded cash account. Those deposits are created by 120 (`DEPOSIT` on CornèrTrader / SaxoTrader). Dividend and reduce on a cash instrument also belong after a holding exists.
-
-`TransactionType` values still unused by any security-transaction **dialog**:
-
-- `ACCUMULATE` / `REDUCE` on a non-margin security (050 Spanish shares, or iShares Core SPI used by 125)
-- `DIVIDEND` (130/132 persist dividends via import, not via this dialog)
-- `ACCRUED_INTEREST`
-- `HYPOTHETICAL_BUY` (DRP)
-
-**Work:** spec **122** (buy then sell of one cash security) after 120 and 055. Spec **123** (dividend on that holding, or on a 132-imported position) after 122. 122 must not run before 120.
-
-`CalcExRateDialogComponent` is a one-field helper opened from the transaction form. Fold it into 122 when the cash-account currency differs from the security currency; do not give it its own prefix.
+**Work:** optionally add a bond purchase with accrued interest to the cash-security fixture and dialog coverage. Keep the transaction after its funding and trading-calendar prerequisites.
 
 ### 3.10 Historyquote legacy and apply-split
 
@@ -225,7 +216,7 @@ A cash equity buy needs a funded cash account. Those deposits are created by 120
 
 `PerformancePeriodComponent` is a non-modal `dynamic-form` (`dateFrom`, `dateTo`, `periodSplit`, APPLY). It reads holdings; it does not persist.
 
-**Work:** spec **165**, after 122 (or after 075+120 if 122 is not yet written). Open tenant and portfolio performance, apply a window, assert the tree table is non-empty.
+**Work:** spec **165**, after 122. Open tenant and portfolio performance, apply a window, assert the tree table is non-empty.
 
 ### 4.4 Tenant dividends, account selection, tax-year corrections
 
@@ -249,10 +240,10 @@ A cash equity buy needs a funded cash account. Those deposits are created by 120
 
 Specs 195–220 create their `AlgoTop` through `POST /api/algotop/createfromwatchlist` and edit strategies through `AlgoStrategyEditComponent`. These dialogs of the algo tree are not opened by any spec:
 
-| Suggested | Class | After |
-|-----------|--------|-------|
-| 172 | `AlgoCreateFromWatchlistDynamicDialogComponent`, `AlgoCreateFromPortfolioDynamicDialogComponent`, `AlgoRuleStrategyCreateDynamicDialogComponent` | 025, 040, 050 |
-| 173 | `AlgoAssetclassEditComponent`, `AlgoSecurityEditComponent` | 172, 030, 050 |
+| Suggested | Class                                                                                                                                            | After         |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| 172       | `AlgoCreateFromWatchlistDynamicDialogComponent`, `AlgoCreateFromPortfolioDynamicDialogComponent`, `AlgoRuleStrategyCreateDynamicDialogComponent` | 025, 040, 050 |
+| 173       | `AlgoAssetclassEditComponent`, `AlgoSecurityEditComponent`                                                                                       | 172, 030, 050 |
 
 172 owns its `AlgoTop` by name prefix and deletes it at the start, like 195. One fixture family under `testdata/` feeds 172 and 173.
 
@@ -266,13 +257,13 @@ Specs 195–220 create their `AlgoTop` through `POST /api/algotop/createfromwatc
 
 ### 4.9 Administration, MCP token and bankrupt securities
 
-| Suggested | Class | After | Constraint |
-|-----------|--------|-------|------------|
-| 069 | `BankruptSecurityEditComponent` | 050 | on a security the spec creates itself; never mark a security later specs trade |
-| 192 | `UserEditComponent` | users exist | admin; change a reversible field (`enabled` stays true; `timezoneOffset` can be written back) |
-| 193 | `UserChangeOwnerEntitiesDialogComponent` | 192 | move ownership of a Playwright-owned entity, then move it back at the next start |
-| 197 | `GlobalSettingsEditComponent` | admin | pick a parameter whose value can be restored; do not change `g.jwt.secret` or datasource settings |
-| 198 | `UserAccessTokenCreateDialogComponent` (settings menu → MCP) | users exist | offered only while `GlobalparameterService.useMcp()` is true; skip otherwise; revoke the token at the start |
+| Suggested | Class                                                        | After       | Constraint                                                                                                  |
+| --------- | ------------------------------------------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------- |
+| 069       | `BankruptSecurityEditComponent`                              | 050         | on a security the spec creates itself; never mark a security later specs trade                              |
+| 192       | `UserEditComponent`                                          | users exist | admin; change a reversible field (`enabled` stays true; `timezoneOffset` can be written back)               |
+| 193       | `UserChangeOwnerEntitiesDialogComponent`                     | 192         | move ownership of a Playwright-owned entity, then move it back at the next start                            |
+| 197       | `GlobalSettingsEditComponent`                                | admin       | pick a parameter whose value can be restored; do not change `g.jwt.secret` or datasource settings           |
+| 198       | `UserAccessTokenCreateDialogComponent` (settings menu → MCP) | users exist | offered only while `GlobalparameterService.useMcp()` is true; skip otherwise; revoke the token at the start |
 
 ---
 
@@ -280,15 +271,14 @@ Specs 195–220 create their `AlgoTop` through `POST /api/algotop/createfromwatc
 
 Schedule these after the persist forms they sit on. They do not produce data later specs need.
 
-| Suggested | Class | After | Note |
-|-----------|--------|-------|------|
-| 042 | `WatchlistFilterSortSettingsDialogComponent` | 040 | scope + clear filters |
-| 103 | `TaskFilterDialogComponent` | 100 | LocalStorage only |
-| — | `CalcExRateDialogComponent` | 122 | fold into 122 |
-| — | `LogoutReleaseRequestDynamicDialogComponent` | — | needs a lockout; do not schedule until a fixture can force `securityBreachCount` / request limit |
-| — | `LimitTransactionRequestDynamicDialogComponent` | — | same |
-| — | `LogoutAdminSelfReleaseDynamicDialogComponent` | — | admin self-release after lockout |
-| 053 | `SecurityLookupDialogComponent` | 050 | queries external data sources; skip when none answers |
+| Suggested | Class                                           | After | Note                                                                                             |
+| --------- | ----------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------ |
+| 042       | `WatchlistFilterSortSettingsDialogComponent`    | 040   | scope + clear filters                                                                            |
+| 103       | `TaskFilterDialogComponent`                     | 100   | LocalStorage only                                                                                |
+| —         | `LogoutReleaseRequestDynamicDialogComponent`    | —     | needs a lockout; do not schedule until a fixture can force `securityBreachCount` / request limit |
+| —         | `LimitTransactionRequestDynamicDialogComponent` | —     | same                                                                                             |
+| —         | `LogoutAdminSelfReleaseDynamicDialogComponent`  | —     | admin self-release after lockout                                                                 |
+| 053       | `SecurityLookupDialogComponent`                 | 050   | queries external data sources; skip when none answers                                            |
 
 `ColumnVisibilityDialogComponent` is a table preference, not a domain form. Skip it.
 
@@ -296,13 +286,13 @@ Schedule these after the persist forms they sit on. They do not produce data lat
 
 ## 6. Not scheduled
 
-| Class | Reason |
-|-------|--------|
-| `TransactionCashaccountConnectDebitCreditDialogComponent` | `submit()` is empty; the form does not persist |
-| `WatchlistDividendTableComponent` | Display only |
-| `HistoryquoteQualityComponent` | Display only (060 already asserts it is visible) |
-| `LoginComponent` | Implicit in every spec |
-| `RegistrationTokenVerifyComponent` | Driven by `auth.setup.ts` via MailHog |
+| Class                                                     | Reason                                           |
+| --------------------------------------------------------- | ------------------------------------------------ |
+| `TransactionCashaccountConnectDebitCreditDialogComponent` | `submit()` is empty; the form does not persist   |
+| `WatchlistDividendTableComponent`                         | Display only                                     |
+| `HistoryquoteQualityComponent`                            | Display only (060 already asserts it is visible) |
+| `LoginComponent`                                          | Implicit in every spec                           |
+| `RegistrationTokenVerifyComponent`                        | Driven by `auth.setup.ts` via MailHog            |
 
 ---
 
@@ -310,10 +300,10 @@ Schedule these after the persist forms they sit on. They do not produce data lat
 
 The two-peer suites (`gtnet/`, `gtnet-app/`) and specs 175 / 180 / lib 040–065 drive the GTNet entry, configuration, message, answer, exchange-flag and security-import-head dialogs (§2). Two remain:
 
-| Suggested | Class | Suite | After |
-|-----------|--------|-------|-------|
-| 181 | `GTNetImportHeadSelectDialogComponent` — select or create a GTNet import head from an import transaction | application | 132 (import positions), 180 (an import head exists) |
-| gtnet-app 080 | `GtnetSecurityLookupDialogComponent` — search peer metadata | `gtnet-app` | 075 (exchange kind approved); the peer must hold the searched instrument |
+| Suggested     | Class                                                                                                    | Suite       | After                                                                    |
+| ------------- | -------------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------ |
+| 181           | `GTNetImportHeadSelectDialogComponent` — select or create a GTNet import head from an import transaction | application | 132 (import positions), 180 (an import head exists)                      |
+| gtnet-app 080 | `GtnetSecurityLookupDialogComponent` — search peer metadata                                              | `gtnet-app` | 075 (exchange kind approved); the peer must hold the searched instrument |
 
 ---
 
@@ -321,85 +311,85 @@ The two-peer suites (`gtnet/`, `gtnet-app/`) and specs 175 / 180 / lib 040–065
 
 Existing prefixes stay. New ones are in **bold**. The order below is the execution order after insertion.
 
-| Prefix | Spec | Last prerequisite |
-|--------|------|-------------------|
-| 005 | connector API key | — |
-| 010 | import template group | — |
-| **012** | template form check + PDF-to-txt | 010 |
-| 015 | trading platform plan | 010 |
-| 020 | tenant edit (extend: `closedUntil`, currency-only) | 010 |
-| *022* | nickname / password on GT app (only if lib 020/030 are not enough) | setup |
-| 025 | portfolio / accounts / trading periods | 015, 020 |
-| 030 | asset class | — |
-| 035 | stock exchange | — |
-| 040 | watchlist | — |
-| *042* | watchlist filter/sort settings | 040 |
-| 045 | currency pair | 040 |
-| 050 | security (Spanish) | 030, 035, 040 |
-| **052** | security CFD / private / leverage | 030, 035, 040 |
-| *053* | security lookup dialog | 050 |
-| 055 | global trading calendar | — |
-| **057** | per-exchange calendar + copy | 035, 055 |
-| 060 | historyquote create/delete one row | 040 |
-| 062 | historyquote bulk tools (extend: CSV upload) | 060 |
-| *063* | seasonality | 060 |
-| 065 | derived security | 045, 040 |
-| 067 | Festgeld + periods | 040 |
-| **069** | bankrupt security | 050 |
-| 070 | add existing to performance watchlist | 065 |
-| 075 | margin security transactions | 065, 070, 055 |
-| 080 | correlation set | 060 |
-| 085 | manage client | — |
-| 090 | share read access | — |
-| 095 | generic connector | — |
-| *097* | generic-connector test dialog | 095 |
-| 100 | schedule batch jobs | 005, 045, 050, 095 |
-| *102* | add price-problem instruments | 100 |
-| *103* | task filter dialog | 100 |
-| 105 | trading calendar rule set | — |
-| 110 | risk-free rate mapping | — |
-| 115 | tax country / year / upload | — |
-| **117** | tax model | 115 |
-| 120 | bank-account transactions | 025, 045, 055 |
-| **122** | cash security buy / sell dialog | 050, 055, 120 |
-| **123** | dividend (and optional accrued interest) dialog | 122 |
-| 125 | standing orders (extend: further types) | 050, 120 |
-| **127** | import-head dialog | 020, 025 |
-| 130 | PDF import | 010, 020, 025 |
-| 132 | CSV import | 010, 020, 025 |
-| **133** | import set cash account | 130 or 132 |
-| 135 | create ISIN change | 050 |
-| 140 | apply ISIN change | 135 |
-| 145 | security transfer | 132 |
-| **147** | transaction CSV export | 132 |
-| **148** | transaction receipt download | 130 |
-| 150 | UDF metadata (extend: Portfolio / Watchlist row) | — |
-| 155 | UDF data on instruments | 150, 040 |
-| **157** | UDF data on Portfolio / Watchlist | 150, 025 or 040 |
-| 160 | security splits | 040 |
-| **162** | historyquote legacy + apply split | 160 |
-| **165** | performance period | 122 or 075+120 |
-| **166** | tenant dividends + tax-year correction | 115, 123 or 132 |
-| **167** | tax-statement export | 115, 122 |
-| **168** | fee-model comparison | 122 |
-| 170 | time-series chart | 040 |
-| **172** | algo top create dialogs | 025, 040, 050 |
-| **173** | algo asset class / security edit | 172, 030, 050 |
-| 175 | GTNet exchange flags | — |
-| 180 | GTNet security import | — |
-| **181** | GTNet import-head select from an import transaction | 132, 180 |
-| *182–183* | GT-app mail send + forward save | users |
-| 185 | propose data change | — |
-| 190 | entity limits | — |
-| **192** | user admin edit | users |
-| **193** | change entity owner | 192 |
-| 195 | simulation opening | — |
-| **197** | global settings | admin |
-| **198** | MCP access token | users |
-| 200–235 | alerts, strategies, replay, dashboard, indicators, interceptor | — |
-| 240 | AI providers | — |
-| 844 | delete watchlists | — |
-| 888 | delete portfolios | — |
+| Prefix    | Spec                                                               | Last prerequisite  |
+| --------- | ------------------------------------------------------------------ | ------------------ |
+| 005       | connector API key                                                  | —                  |
+| 010       | import template group                                              | —                  |
+| **012**   | template form check + PDF-to-txt                                   | 010                |
+| 015       | trading platform plan                                              | 010                |
+| 020       | tenant edit (extend: `closedUntil`, currency-only)                 | 010                |
+| _022_     | nickname / password on GT app (only if lib 020/030 are not enough) | setup              |
+| 025       | portfolio / accounts / trading periods                             | 015, 020           |
+| 030       | asset class                                                        | —                  |
+| 035       | stock exchange                                                     | —                  |
+| 040       | watchlist                                                          | —                  |
+| _042_     | watchlist filter/sort settings                                     | 040                |
+| 045       | currency pair                                                      | 040                |
+| 050       | security (Spanish)                                                 | 030, 035, 040      |
+| **052**   | security CFD / private / leverage                                  | 030, 035, 040      |
+| _053_     | security lookup dialog                                             | 050                |
+| 055       | global trading calendar                                            | —                  |
+| **057**   | per-exchange calendar + copy                                       | 035, 055           |
+| 060       | historyquote create/delete one row                                 | 040                |
+| 062       | historyquote bulk tools (extend: CSV upload)                       | 060                |
+| _063_     | seasonality                                                        | 060                |
+| 065       | derived security                                                   | 045, 040           |
+| 067       | Festgeld + periods                                                 | 040                |
+| **069**   | bankrupt security                                                  | 050                |
+| 070       | add existing to performance watchlist                              | 065                |
+| 075       | margin security transactions                                       | 065, 070, 055      |
+| 080       | correlation set                                                    | 060                |
+| 085       | manage client                                                      | —                  |
+| 090       | share read access                                                  | —                  |
+| 095       | generic connector                                                  | —                  |
+| _097_     | generic-connector test dialog                                      | 095                |
+| 100       | schedule batch jobs                                                | 005, 045, 050, 095 |
+| _102_     | add price-problem instruments                                      | 100                |
+| _103_     | task filter dialog                                                 | 100                |
+| 105       | trading calendar rule set                                          | —                  |
+| 110       | risk-free rate mapping                                             | —                  |
+| 115       | tax country / year / upload                                        | —                  |
+| **117**   | tax model                                                          | 115                |
+| 120       | bank-account transactions                                          | 025, 045, 055      |
+| 122       | cash security buy / sell + exchange-rate dialog                    | 050, 055, 120      |
+| 123       | dividend dialog                                                    | 122                |
+| 125       | standing orders (extend: further types)                            | 050, 120           |
+| **127**   | import-head dialog                                                 | 020, 025           |
+| 130       | PDF import                                                         | 010, 020, 025      |
+| 132       | CSV import                                                         | 010, 020, 025      |
+| **133**   | import set cash account                                            | 130 or 132         |
+| 135       | create ISIN change                                                 | 050                |
+| 140       | apply ISIN change                                                  | 135                |
+| 145       | security transfer                                                  | 132                |
+| **147**   | transaction CSV export                                             | 132                |
+| **148**   | transaction receipt download                                       | 130                |
+| 150       | UDF metadata (extend: Portfolio / Watchlist row)                   | —                  |
+| 155       | UDF data on instruments                                            | 150, 040           |
+| **157**   | UDF data on Portfolio / Watchlist                                  | 150, 025 or 040    |
+| 160       | security splits                                                    | 040                |
+| **162**   | historyquote legacy + apply split                                  | 160                |
+| **165**   | performance period                                                 | 122                |
+| **166**   | tenant dividends + tax-year correction                             | 115, 123 or 132    |
+| **167**   | tax-statement export                                               | 115, 122           |
+| **168**   | fee-model comparison                                               | 122                |
+| 170       | time-series chart                                                  | 040                |
+| **172**   | algo top create dialogs                                            | 025, 040, 050      |
+| **173**   | algo asset class / security edit                                   | 172, 030, 050      |
+| 175       | GTNet exchange flags                                               | —                  |
+| 180       | GTNet security import                                              | —                  |
+| **181**   | GTNet import-head select from an import transaction                | 132, 180           |
+| _182–183_ | GT-app mail send + forward save                                    | users              |
+| 185       | propose data change                                                | —                  |
+| 190       | entity limits                                                      | —                  |
+| **192**   | user admin edit                                                    | users              |
+| **193**   | change entity owner                                                | 192                |
+| 195       | simulation opening                                                 | —                  |
+| **197**   | global settings                                                    | admin              |
+| **198**   | MCP access token                                                   | users              |
+| 200–235   | alerts, strategies, replay, dashboard, indicators, interceptor     | —                  |
+| 240       | AI providers                                                       | —                  |
+| 844       | delete watchlists                                                  | —                  |
+| 888       | delete portfolios                                                  | —                  |
 
 Italic prefixes are optional or filter-only. Bold prefixes are the persist-form gaps.
 
@@ -411,15 +401,14 @@ Italic prefixes are optional or filter-only. Bold prefixes are the persist-form 
 
 Write in this sequence so each new spec can run against services that already hold its prerequisites:
 
-1. **122** then **123** — the largest functional gap, and the transaction dialogs are among the heaviest forms.
-2. Extend 020 (`closedUntil`, currency-only), 062 (CSV upload), 125 (further standing-order types).
-3. **012**, **052**, **057**, **069**, **117** — early, no cash transactions required.
-4. **127** (import head) before changing 132; then **133**, **147**, **148**, **181**.
-5. **157**, **162**.
-6. **165–168**.
-7. **172**, **173**.
-8. **192**, **193**, **197**, **198**.
-9. Optional 022, 042, 053, 063, 097, 102, 103, 182, 183; gtnet-app 080.
+1. Extend 020 (`closedUntil`, currency-only), 062 (CSV upload), 125 (further standing-order types).
+2. **012**, **052**, **057**, **069**, **117** — early, no cash transactions required.
+3. **127** (import head) before changing 132; then **133**, **147**, **148**, **181**.
+4. **157**, **162**.
+5. **165–168**.
+6. **172**, **173**.
+7. **192**, **193**, **197**, **198**.
+8. Optional 022, 042, 053, 063, 097, 102, 103, 182, 183; gtnet-app 080.
 
 ---
 
@@ -436,4 +425,4 @@ Same contract as the existing suite:
   against backend 8080 (`e2e` / `grafioschtrader_t`) and frontend 4200.
 - After adding a spec, document it in `frontend/e2e/README.md` with the same level of fixture and trap detail as the neighbouring entries.
 
-When 052, 122, 123, 127, 157, 172 write new fixture files, add the `e2e` tag from the start so a later JUnit consumer can share the file.
+When 052, 127, 157, 172 write new fixture files, add the `e2e` tag from the start so a later JUnit consumer can share the file.
