@@ -1,11 +1,10 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { AddRemoveDay, SaveTradingDays, TradingDaysPlusService } from '../service/trading.days.plus.service';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { TradingCalendarBase } from './trading.calendar.base';
 import { TradingDaysWithDateBoundaries } from '../model/trading.days.with.date.boundaries';
@@ -16,6 +15,8 @@ import { SelectModule } from '@openng/optimus-ui/select';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { FullyearcalendarLibComponent } from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 
 /**
@@ -24,7 +25,6 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 @Component({
   templateUrl: '../view/trading.calendar.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -39,6 +39,7 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 export class TradingCalendarGlobalComponent extends TradingCalendarBase implements OnInit {
   public static readonly GLOBAL_TRADING_DAYS_COLOR = 'lime';
   readonly DATE_ATTRIBUTE = 'tradingDate';
+  private readDataSub?: Subscription;
 
   constructor(
     private tradingDaysPlusService: TradingDaysPlusService,
@@ -62,8 +63,10 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
   }
 
   readData(yearChange: boolean): void {
-    this.tradingDaysPlusService
-      .getTradingDaysByYear(this.yearCalendarData.year)
+    this.readDataSub?.unsubscribe();
+    this.readDataSub = this.tradingDaysPlusService
+      .getTradingDaysByYear(this.yearCalendarData().year)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((tradingDaysWithDateBoundaries: TradingDaysWithDateBoundaries) => {
         this.clearDaysAndTransformReadData(tradingDaysWithDateBoundaries.dates);
         this.setYearsBoundariesAfterRead(tradingDaysWithDateBoundaries, yearChange);
@@ -71,13 +74,17 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
   }
 
   saveData(convertedAddRemoveDays: AddRemoveDay[]): void {
+    const year = this.selectedYear();
     this.tradingDaysPlusService
-      .save(new SaveTradingDays(this.yearCalendarData.year, convertedAddRemoveDays))
+      .save(new SaveTradingDays(year, convertedAddRemoveDays))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((tradingDaysWithDateBoundaries: TradingDaysWithDateBoundaries) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TRADING_CALENDAR_GLOBAL_SAVE', {
-          year: this.yearCalendarData.year
+          year
         });
-        this.clearDaysAndTransformReadData(tradingDaysWithDateBoundaries.dates);
+        if (this.selectedYear() === year) {
+          this.clearDaysAndTransformReadData(tradingDaysWithDateBoundaries.dates);
+        }
       });
   }
 
@@ -88,9 +95,7 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
         label: '_TRADING_CALENDAR_MARK_YEAR',
         command: (e) => this.markWorkingDaysOfFullYear()
       });
-      TranslateHelper.translateMenuItems(menuItems, this.translateService);
     }
-    this.contextMenuItems = menuItems;
     return menuItems;
   }
 
@@ -99,14 +104,14 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
   }
 
   private markWorkingDaysOfFullYear(): void {
-    const startDate = new Date(this.yearCalendarData.year, 0, 1);
+    const startDate = new Date(this.yearCalendarData().year, 0, 1);
     startDate.setHours(0, 0, 0, 0);
-    const toDate = new Date(this.yearCalendarData.year, 11, 31);
+    const toDate = new Date(this.yearCalendarData().year, 11, 31);
     toDate.setHours(0, 0, 0, 0);
     while (startDate <= toDate) {
       const weekDay = startDate.getDay();
       if (weekDay !== 0 && weekDay !== 6) {
-        if (!this.originalDaysMark.has(startDate.getTime()) && !this.addRemoveDaysMap.has(startDate.getTime())) {
+        if (!this.originalDaysMark.has(startDate.getTime()) && !this.addRemoveDaysMap().has(startDate.getTime())) {
           this.addRemoveOnOffDay(new Date(startDate));
         }
       }

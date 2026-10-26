@@ -1,13 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -50,20 +41,21 @@ import { BaseSettings } from '../../lib/base.settings';
       [data]="tradingPeriods"
       (dataChange)="onDataChange($event)"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="idSecaccountTradingPeriod"
       [showEditColumn]="true"
       [editColumnWidth]="120"
       [selectionMode]="null"
       [contextMenuEnabled]="false"
-      [createNewEntityFn]="createNewEntity.bind(this)"
-      [validateRowFn]="validateRow.bind(this)"
-      [canDeleteRowFn]="canDeleteRow.bind(this)"
+      [createNewEntityFn]="createNewEntity"
+      [validateRowFn]="validateRow"
+      [canDeleteRowFn]="canDeleteRow"
       (rowEditSave)="onRowEditSave($event)"
       (rowEditCancel)="onRowEditCancel($event)"
       (rowDelete)="onRowDelete($event)"
       (rowAdded)="onRowAdded($event)"
-      [valueGetterFn]="getValueByPath.bind(this)"
-      [customSortFn]="customSort.bind(this)"
+      [valueGetterFn]="valueGetter"
+      [customSortFn]="customSorter"
       [baseLocale]="baseLocale"
       [scrollable]="false"
       [containerClass]="''"
@@ -71,7 +63,6 @@ import { BaseSettings } from '../../lib/base.settings';
     </editable-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class TradingPeriodTableComponent extends TableEditConfigBase implements OnChanges {
@@ -89,7 +80,6 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
 
   @Output() tradingPeriodsChange = new EventEmitter<SecaccountTradingPeriod[]>();
 
-  private fieldsInitialized = false;
   private inputTempIdCounter = -1000;
   private static get MIN_DATE(): Date {
     return new Date(
@@ -109,12 +99,11 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    // The columns are defined in the constructor, so they exist before the first input arrives.
     if (changes['tradingPeriods'] && this.tradingPeriods) {
       this.tradingPeriods = this.convertDatesToDateObjects(this.tradingPeriods);
       this.assignTempIds(this.tradingPeriods);
-      if (this.fieldsInitialized) {
-        this.createTranslatedValueStoreAndFilterField(this.tradingPeriods);
-      }
+      this.createTranslatedValueStoreAndFilterField(this.tradingPeriods);
     }
   }
 
@@ -255,7 +244,6 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
     dateToCol.cec.minDate = new Date(TradingPeriodTableComponent.MIN_DATE);
 
     this.prepareTableAndTranslate();
-    this.fieldsInitialized = true;
   }
 
   private isNewRow(row: SecaccountTradingPeriod): boolean {

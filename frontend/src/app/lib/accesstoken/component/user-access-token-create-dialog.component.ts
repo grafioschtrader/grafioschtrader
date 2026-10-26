@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -28,7 +28,6 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
 @Component({
   selector: 'user-access-token-create-dialog',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule, ButtonModule, MessageModule],
   template: `<p-dialog
     [header]="'ACCESS_TOKEN_CREATE' | translate"
@@ -38,7 +37,7 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
     appendTo="body"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)">
-    @if (!created) {
+    @if (!created()) {
       <dynamic-form
         [config]="config"
         [formConfig]="formConfig"
@@ -51,7 +50,7 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
         <input
           type="text"
           readonly
-          [value]="created.plainToken"
+          [value]="created().plainToken"
           style="flex: 1; font-family: monospace"
           aria-label="token" />
         <p-button [label]="'ACCESS_TOKEN_COPY' | translate" (onClick)="copyToken()" />
@@ -64,7 +63,7 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
   /** Emitted as soon as the server created the token, while the dialog still shows it. */
   @Output() tokenCreated = new EventEmitter<void>();
   /** Set once the server created the token; it is held only as long as this dialog is open. */
-  created: UserAccessTokenCreated;
+  readonly created = signal<UserAccessTokenCreated>(null);
 
   constructor(
     public translateService: TranslateService,
@@ -76,6 +75,7 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
   }
 
   ngOnInit(): void {
+    this.destroyRef.onDestroy(() => this.created.set(null));
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
       this.translateService,
@@ -87,7 +87,7 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
   }
 
   protected override initialize(): void {
-    this.created = null;
+    this.created.set(null);
     this.form.setDefaultValuesAndEnableSubmit();
     this.form.setValue('expiresInDays', 90);
   }
@@ -95,9 +95,11 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
   submit(value: { [name: string]: any }): void {
     this.userAccessTokenService
       .create({ tokenName: value['tokenName'], scope: 'READ', expiresInDays: value['expiresInDays'] })
+      // The server may already have saved it, but its one-time answer belongs only to this open dialog.
+      .pipe(this.untilDialogClosed())
       .subscribe({
         next: (created) => {
-          this.created = created;
+          this.created.set(created);
           this.tokenCreated.emit();
         },
         error: () => (this.configObject.submit.disabled = false)
@@ -105,18 +107,21 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
   }
 
   async copyToken(): Promise<void> {
-    await navigator.clipboard.writeText(this.created.plainToken);
+    const created = this.created();
+    if (!created) return;
+    await navigator.clipboard.writeText(created.plainToken);
+    if (this.destroyRef.destroyed || this.created() !== created) return;
     this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'ACCESS_TOKEN_COPIED');
     // Copied is done: the clear text leaves the screen, and the table reloads once more
-    this.created = null;
+    this.created.set(null);
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED));
   }
 
   override onHide(event: any): void {
+    const action = this.created() ? ProcessedAction.CREATED : ProcessedAction.NO_CHANGE;
+    this.created.set(null);
+    this.renewDialogSession();
     if (this.visibleDialog) {
-      // The clear text must not outlive the dialog
-      const action = this.created ? ProcessedAction.CREATED : ProcessedAction.NO_CHANGE;
-      this.created = null;
       this.closeDialog.emit(new ProcessedActionData(action));
     }
   }

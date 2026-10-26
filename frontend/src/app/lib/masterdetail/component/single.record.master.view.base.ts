@@ -3,9 +3,11 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
 import { FormConfig } from '../../dynamic-form/models/form.config';
-import { Directive, ViewChild } from '@angular/core';
+import { DestroyRef, Directive, inject, signal, ViewChild } from '@angular/core';
 import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslateHelper } from '../../helper/translate.helper';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { AppHelper } from '../../helper/app.helper';
 import { TranslateService } from '@ngx-translate/core';
@@ -32,6 +34,10 @@ import { BaseSettings } from '../../base.settings';
  */
 @Directive()
 export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> implements IGlobalMenuAttach {
+  /** Signal-backed accessors preserve the property API used by all master-detail views. */
+  protected readonly destroyRef = inject(DestroyRef);
+  private menuSubscription?: Subscription;
+
   // Access child components
   @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
 
@@ -40,18 +46,66 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   config: FieldFormGroup[] = [];
   configObject: { [name: string]: FieldConfig };
 
-  childEntityList: S[];
+  private readonly childEntityListState = signal<S[]>([]);
+
+  get childEntityList(): S[] {
+    return this.childEntityListState();
+  }
+
+  set childEntityList(value: S[]) {
+    this.childEntityListState.set(value);
+  }
   /** Visibility of edit dialog  */
-  visibleEditDialog: boolean;
+  private readonly visibleEditDialogState = signal<boolean>(false);
+
+  get visibleEditDialog(): boolean {
+    return this.visibleEditDialogState();
+  }
+
+  set visibleEditDialog(value: boolean) {
+    this.visibleEditDialogState.set(value);
+  }
   // Data to shown
-  entityList: T[];
+  private readonly entityListState = signal<T[]>([]);
+
+  get entityList(): T[] {
+    return this.entityListState();
+  }
+
+  set entityList(value: T[]) {
+    this.entityListState.set(value);
+  }
   changeOnMainFieldSub: Subscription;
   /** Parameter object passed to edit dialog components. Type is defined by the consuming application. */
-  callParam: CP;
+  private readonly callParamState = signal<CP>(null);
+
+  get callParam(): CP {
+    return this.callParamState();
+  }
+
+  set callParam(value: CP) {
+    this.callParamState.set(value);
+  }
   // For the component Edit-Menu, it shows the same menu items as the context menu
-  contextMenuItems: MenuItem[];
+  private readonly contextMenuItemsState = signal<MenuItem[]>([]);
+
+  get contextMenuItems(): MenuItem[] {
+    return this.contextMenuItemsState();
+  }
+
+  set contextMenuItems(value: MenuItem[]) {
+    this.contextMenuItemsState.set(value);
+  }
   /** The selected entity  */
-  selectedEntity: T;
+  private readonly selectedEntityState = signal<T>(null);
+
+  get selectedEntity(): T {
+    return this.selectedEntityState();
+  }
+
+  set selectedEntity(value: T) {
+    this.selectedEntityState.set(value);
+  }
   /** Avoid looking for changes on the main select box  */
   protected ignoreChangeOnMonitorField: boolean;
 
@@ -79,7 +133,9 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
     protected messageToastService: MessageToastService,
     protected activePanelService: ActivePanelService,
     public translateService: TranslateService
-  ) {}
+  ) {
+    this.destroyRef.onDestroy(() => this.activePanelService.destroyPanel(this));
+  }
 
   abstract prepareEditMenu(): MenuItem[];
 
@@ -91,14 +147,15 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   abstract readData(): void;
 
   valueChangedMainField(): void {
-    this.changeOnMainFieldSub = this.configObject[this.mainFieldId].formControl.valueChanges.subscribe(
-      (key: number) => {
+    this.changeOnMainFieldSub?.unsubscribe();
+    this.changeOnMainFieldSub = this.configObject[this.mainFieldId].formControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((key: number) => {
         if (!this.ignoreChangeOnMonitorField) {
           this.selectedEntity = this.entityList.find((entity) => entity[this.mainFieldId] === +key);
           this.setFieldValues();
         }
-      }
-    );
+      });
   }
 
   getBaseEditMenu(entityName: string): MenuItem[] {
@@ -149,13 +206,18 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
       'MSG_CONFIRM_DELETE_RECORD|' + this.entityName,
       () => {
         //    entity = this.beforeDelete(entity);
-        this.deleteService.deleteEntity(entity[this.mainFieldId]).subscribe((response) => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: this.entityName
+        this.deleteService
+          .deleteEntity(entity[this.mainFieldId])
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((response) => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: this.entityName
+            });
+            if (this.selectedEntity?.[this.mainFieldId] === entity[this.mainFieldId]) {
+              this.selectedEntity = null;
+            }
+            this.readData();
           });
-          this.selectedEntity = null;
-          this.readData();
-        });
       }
     );
   }
@@ -173,8 +235,16 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   }
 
   refreshMenus(): void {
-    this.contextMenuItems = this.prepareEditMenu();
-    this.activePanelService.activatePanel(this, { editMenu: this.contextMenuItems, showMenu: this.prepareShowMenu() });
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = forkJoin({
+      editMenu: TranslateHelper.translateMenuItems$(this.prepareEditMenu(), this.translateService),
+      showMenu: TranslateHelper.translateMenuItems$(this.prepareShowMenu(), this.translateService)
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((menus) => {
+        this.contextMenuItems = menus.editMenu;
+        this.activePanelService.activatePanel(this, menus);
+      });
   }
 
   protected reSetHelpId(helpId: string): void {

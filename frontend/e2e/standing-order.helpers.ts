@@ -62,23 +62,26 @@ export function loadStandingOrders(): StandingOrderFixture[] {
 
 /**
  * Removes only orders matching the fixture identities. Freshly created e2e orders have no transactions and are
- * therefore deletable through the public endpoint. Historical source orders with generated transactions must be
- * detached once in the local database before this test is run for the first time.
+ * therefore deletable through the public endpoint. Historical orders with generated transactions are retained;
+ * their fixture values are still checked, and only the returned fixtures need to be recreated.
  */
-export async function deleteExistingStandingOrders(page: Page, fixtures: StandingOrderFixture[]): Promise<void> {
-  await test.step('delete matching standing orders from an earlier run', async () => {
+export async function deleteExistingStandingOrders(
+  page: Page,
+  fixtures: StandingOrderFixture[]
+): Promise<StandingOrderFixture[]> {
+  return test.step('delete matching standing orders from an earlier run', async () => {
     const headers = await authHeaders(page);
     const existing = await getTenantStandingOrders(page, headers);
     const matching = existing.filter((actual) => fixtures.some((fixture) => sameIdentity(actual, fixture)));
 
     for (const order of matching) {
-      expect(
-        order.hasTransactions,
-        `standing order ${order.idStandingOrder} has generated transactions; detach it in grafioschtrader_t first`
-      ).not.toBe(true);
+      if (order.hasTransactions) continue;
       const response = await page.request.delete(`/api/standingorder/${order.idStandingOrder}`, { headers });
       expect(response.ok(), `deleting standing order ${order.idStandingOrder}: ${await response.text()}`).toBeTruthy();
     }
+    return fixtures.filter(
+      (fixture) => !matching.some((order) => order.hasTransactions && sameIdentity(order, fixture))
+    );
   });
 }
 
@@ -88,6 +91,8 @@ export async function createCashStandingOrder(page: Page, fixture: StandingOrder
   await test.step(`create cash standing order for ${data.cashAccount}`, async () => {
     await openCreateDialog(page, 'cash');
     const dialog = page.locator('standing-order-cashaccount-edit .p-dialog:visible');
+    const rows = page.locator('standing-order-cashaccount-table tbody tr', { hasText: data.cashAccount });
+    const previousCount = await rows.count();
     await expect(dialog.locator('select#idCashaccount option')).not.toHaveCount(0, { timeout: 15_000 });
 
     await selectValue(dialog, 'transactionType', data.transactionType);
@@ -101,10 +106,7 @@ export async function createCashStandingOrder(page: Page, fixture: StandingOrder
     await fillSchedule(dialog, data, fixture.portfolio.loginNickname);
     await submitStandingOrder(page, dialog);
 
-    await expect(page.locator('standing-order-cashaccount-table tbody tr', { hasText: data.cashAccount })).toHaveCount(
-      1,
-      { timeout: 10_000 }
-    );
+    await expect(rows).toHaveCount(previousCount + 1, { timeout: 10_000 });
   });
 }
 
@@ -311,7 +313,7 @@ async function submitStandingOrder(page: Page, dialog: Locator): Promise<void> {
 async function authHeaders(page: Page): Promise<Record<string, string>> {
   const token = await page.evaluate(() => sessionStorage.getItem('jwt'));
   expect(token, 'JWT in sessionStorage after login').toBeTruthy();
-  return { 'x-auth-token': token, Accept: 'application/json' };
+  return { 'x-auth-token': token!, Accept: 'application/json' };
 }
 
 async function getTenantStandingOrders(page: Page, headers: Record<string, string>): Promise<ApiStandingOrder[]> {
@@ -373,13 +375,13 @@ function expectSecurityFields(actual: ApiStandingOrder, expected: SecurityStandi
 function accountLabel(portfolio: PortfolioFixture, accountName: string): string {
   const account = portfolio.cashAccounts.find((item) => item.name === accountName);
   expect(account, `cash account '${accountName}' in portfolio '${portfolio.name}'`).toBeDefined();
-  return `${account.name} / ${account.currency} / ${portfolio.name}`;
+  return `${account!.name} / ${account!.currency} / ${portfolio.name}`;
 }
 
 function securityAccountLabel(portfolio: PortfolioFixture, accountName: string): string {
   const account = portfolio.securityAccounts.find((item) => item.name === accountName);
   expect(account, `security account '${accountName}' in portfolio '${portfolio.name}'`).toBeDefined();
-  return `${account.name} / ${portfolio.name}`;
+  return `${account!.name} / ${portfolio.name}`;
 }
 
 function describeFixture(fixture: StandingOrderFixture): string {

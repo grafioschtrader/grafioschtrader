@@ -1,7 +1,7 @@
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { DynamicFieldHelper, VALIDATION_SPECIAL } from '../../helper/dynamic.field.helper';
 import { UDFDataType, UDFMetadata } from '../model/udf.metadata';
-import { Subscription } from 'rxjs';
+import { MonoTypeOperatorFunction } from 'rxjs';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { FormHelper } from '../../dynamic-form/components/FormHelper';
 import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
@@ -111,7 +111,7 @@ export class UDFMetadataHelper {
    * @param excludeUiOrders - List of UI orders to exclude from selection (prevents duplicates)
    * @param businessObject - Existing UDF metadata to edit, or null for new entry
    * @param configDataTypeFields - Data type and field size field configurations
-   * @returns Subscription to data type value changes that must be unsubscribed on component destroy
+   * @param lifetime - Operator binding data type changes to the owning dialog session
    * @static
    */
   public static prepareDataTypeFields(
@@ -122,21 +122,22 @@ export class UDFMetadataHelper {
     },
     excludeUiOrders: number[],
     businessObject: UDFMetadata,
-    configDataTypeFields: FieldConfig[]
-  ): Subscription {
+    configDataTypeFields: FieldConfig[],
+    lifetime: MonoTypeOperatorFunction<any>
+  ): void {
     configObject.uiOrder.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsForNumberRange(
       1,
       99,
       excludeUiOrders
     );
-    const fieldGroupSub: Subscription = configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP].formControl
+    configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP].formControl
       .get([UDFMetadataHelper.UDF_DATA_TYPE])
-      .valueChanges.subscribe((udt) =>
+      .valueChanges.pipe(lifetime)
+      .subscribe((udt) =>
         UDFMetadataHelper.enableDisableFileSize(translateService, configObject, configDataTypeFields, udt)
       );
     businessObject && form.transferBusinessObjectToForm(businessObject);
     FormHelper.disableEnableFieldConfigs(!!businessObject, [configObject[UDFMetadataHelper.UDF_DATA_TYPE]]);
-    return fieldGroupSub;
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -41,21 +41,22 @@ import { BaseSettings } from '../../lib/base.settings';
         'passiv-border': !isActivated()
       }">
       <configurable-table
-        [data]="entityList"
+        [data]="entityList()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         [dataKey]="entityKeyName"
         [(selection)]="selectedEntity"
         [selectionMode]="'single'"
         [multiSortMeta]="multiSortMeta"
         [sortMode]="'multiple'"
-        [customSortFn]="customSort.bind(this)"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [customSortFn]="customSorter"
+        [valueGetterFn]="valueGetter"
         [scrollable]="true"
         [scrollHeight]="'flex'"
         [stripedRows]="true"
         [showGridlines]="true"
         [contextMenuEnabled]="true"
-        [contextMenuItems]="contextMenuItems"
+        [contextMenuItems]="contextMenuItems()"
         [showContextMenu]="isActivated()"
         [containerClass]="''"
         (componentClick)="onComponentClick($event)">
@@ -66,24 +67,23 @@ import { BaseSettings } from '../../lib/base.settings';
         </ng-template>
       </configurable-table>
     </div>
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <udf-metadata-security-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         (closeDialog)="handleCloseDialog($event)">
       </udf-metadata-security-edit>
     }
-    @if (visibleProposalsDialog) {
+    @if (visibleProposalsDialog()) {
       <udf-fill-proposals-dialog
-        [visibleDialog]="visibleProposalsDialog"
-        [field]="proposalsField"
-        (closeDialog)="visibleProposalsDialog = false">
+        [visibleDialog]="visibleProposalsDialog()"
+        [field]="proposalsField()"
+        (closeDialog)="visibleProposalsDialog.set(false)">
       </udf-fill-proposals-dialog>
     }
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -93,7 +93,7 @@ import { BaseSettings } from '../../lib/base.settings';
     UDFFillProposalsDialogComponent
   ]
 })
-export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataSecurity> implements OnDestroy {
+export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataSecurity> {
   /** Parameters for security metadata editing operations including validation exclusions */
   callParam: UDFMetadataSecurityParam = new UDFMetadataSecurityParam();
 
@@ -101,10 +101,10 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
   isSecurityEdit = true;
 
   /** Shows the proposals of a language model for {@link proposalsField} */
-  visibleProposalsDialog = false;
+  readonly visibleProposalsDialog = signal(false);
 
   /** The field whose proposals are shown */
-  proposalsField: UDFMetadataSecurity;
+  readonly proposalsField = signal<UDFMetadataSecurity>(null);
 
   /**
    * Creates the UDF metadata security table component.
@@ -192,8 +192,8 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
       menuItems.push({
         label: 'UDF_FILL_PROPOSALS' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => {
-          this.proposalsField = udfMetaData;
-          this.visibleProposalsDialog = true;
+          this.proposalsField.set(udfMetaData);
+          this.visibleProposalsDialog.set(true);
         }
       });
     }
@@ -220,13 +220,5 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
   override readData(): void {
     super.readData();
     sessionStorage.removeItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY);
-  }
-
-  /**
-   * Cleanup handler when component is destroyed.
-   * Unregisters this component from the active panel service.
-   */
-  ngOnDestroy(): void {
-    this.activePanelService.destroyPanel(this);
   }
 }

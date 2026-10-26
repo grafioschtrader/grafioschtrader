@@ -1,4 +1,6 @@
-import { Directive, OnDestroy } from '@angular/core';
+import { DestroyRef, Directive, inject, OnDestroy, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -30,12 +32,15 @@ import { BaseSettings } from '../../lib/base.settings';
  */
 @Directive()
 export abstract class StandingOrderTableBase extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
-  standingOrders: StandingOrder[] = [];
-  selectedEntity: StandingOrder | null = null;
-  contextMenuItems: MenuItem[] = [];
-  visibleEditDialog = false;
+  protected readonly destroyRef = inject(DestroyRef);
+  readonly standingOrders = signal<StandingOrder[]>([]);
+  readonly selectedEntity = signal<StandingOrder | null>(null);
+  readonly contextMenuItems = signal<MenuItem[]>([]);
+  readonly visibleEditDialog = signal(false);
   callParam: StandingOrderCallParam;
-  failuresMap: Map<number, StandingOrderFailure[]> = new Map();
+  private readonly failuresMap = signal(new Map<number, StandingOrderFailure[]>());
+  private dataSubscriptions = new Subscription();
+  private menuSubscription?: Subscription;
   protected simulationTenant = false;
   private showInactive = false;
 
@@ -94,31 +99,31 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   }
 
   onRowUnselect(event: any): void {
-    this.selectedEntity = null;
+    this.selectedEntity.set(null);
     this.resetMenu();
   }
 
   onDialogClose(processedActionData: ProcessedActionData): void {
-    this.visibleEditDialog = false;
+    this.visibleEditDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.loadData();
     }
   }
 
   ngOnDestroy(): void {
+    this.dataSubscriptions.unsubscribe();
+    this.menuSubscription?.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
 
-  canExpandRow(so: StandingOrder): boolean {
+  readonly canExpandRow = (so: StandingOrder): boolean => {
     return (so.transactionCount ?? 0) > 0 || (so.failureCount ?? 0) > 0;
-  }
+  };
 
   onRowExpand(event: { data: StandingOrder }): void {
     const so = event.data;
-    if ((so.failureCount ?? 0) > 0 && !this.failuresMap.has(so.idStandingOrder)) {
-      this.standingOrderService.getFailures(so.idStandingOrder).subscribe((failures) => {
-        this.failuresMap.set(so.idStandingOrder, failures);
-      });
+    if ((so.failureCount ?? 0) > 0 && !this.failuresMap().has(so.idStandingOrder)) {
+      this.loadFailures(so);
     }
   }
 
@@ -127,48 +132,65 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   }
 
   getFailuresForOrder(so: StandingOrder): StandingOrderFailure[] {
-    return this.failuresMap.get(so.idStandingOrder) ?? [];
+    return this.failuresMap().get(so.idStandingOrder) ?? [];
   }
 
   protected loadData(): void {
-    const previousFailureIds = new Set(this.failuresMap.keys());
-    this.failuresMap.clear();
-    this.standingOrderService.getAllForTenant().subscribe((all: StandingOrder[]) => {
-      const today = moment().format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
-      this.standingOrders = all.filter(
-        (so) =>
-          so.dtype === this.getDtype() &&
-          (this.simulationTenant ||
-            this.showInactive ||
-            moment(so.validTo).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) >= today)
-      );
-      this.prepareTableAndTranslate();
-      this.createTranslatedValueStore(this.standingOrders);
-      this.standingOrders
-        .filter((so) => previousFailureIds.has(so.idStandingOrder) && (so.failureCount ?? 0) > 0)
-        .forEach((so) => {
-          this.standingOrderService.getFailures(so.idStandingOrder).subscribe((failures) => {
-            this.failuresMap.set(so.idStandingOrder, failures);
+    const previousFailureIds = new Set(this.failuresMap().keys());
+    this.dataSubscriptions.unsubscribe();
+    this.dataSubscriptions = new Subscription();
+    this.failuresMap.set(new Map());
+    this.dataSubscriptions.add(
+      this.standingOrderService.getAllForTenant().subscribe((all: StandingOrder[]) => {
+        const today = moment().format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
+        const orders = all.filter(
+          (so) =>
+            so.dtype === this.getDtype() &&
+            (this.simulationTenant ||
+              this.showInactive ||
+              moment(so.validTo).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) >= today)
+        );
+        this.prepareTableAndTranslate();
+        this.createTranslatedValueStore(orders);
+        this.standingOrders.set(orders);
+        const selectedId = this.selectedEntity()?.idStandingOrder;
+        this.selectedEntity.set(orders.find((so) => so.idStandingOrder === selectedId) ?? null);
+        if (this.isActivated()) this.resetMenu();
+        orders
+          .filter((so) => previousFailureIds.has(so.idStandingOrder) && (so.failureCount ?? 0) > 0)
+          .forEach((so) => {
+            this.loadFailures(so);
           });
-        });
-    });
+      })
+    );
+  }
+
+  private loadFailures(so: StandingOrder): void {
+    this.dataSubscriptions.add(
+      this.standingOrderService.getFailures(so.idStandingOrder).subscribe((failures) => {
+        this.failuresMap.update((current) => new Map(current).set(so.idStandingOrder, failures));
+      })
+    );
   }
 
   protected initializeData(): void {
-    this.standingOrderService.getCapabilities().subscribe((capabilities) => {
-      this.simulationTenant = capabilities.simulationTenant;
-      this.loadData();
-    });
+    this.standingOrderService
+      .getCapabilities()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((capabilities) => {
+        this.simulationTenant = capabilities.simulationTenant;
+        this.loadData();
+      });
   }
 
   protected handleCreate(): void {
     this.callParam = new StandingOrderCallParam(null, null, this.simulationTenant);
-    this.visibleEditDialog = true;
+    this.visibleEditDialog.set(true);
   }
 
   protected handleEdit(so: StandingOrder): void {
     this.callParam = new StandingOrderCallParam(so, null, this.simulationTenant);
-    this.visibleEditDialog = true;
+    this.visibleEditDialog.set(true);
   }
 
   protected handleDelete(so: StandingOrder): void {
@@ -177,22 +199,30 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|STANDING_ORDER',
       () => {
-        this.standingOrderService.deleteEntity(so.idStandingOrder).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: 'STANDING_ORDER'
+        this.standingOrderService
+          .deleteEntity(so.idStandingOrder)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: 'STANDING_ORDER'
+            });
+            this.loadData();
           });
-          this.loadData();
-        });
       }
     );
   }
 
   private resetMenu(): void {
-    this.contextMenuItems = this.getEditMenu();
-    this.activePanelService.activatePanel(this, {
-      showMenu: this.getMenuShowOptions(),
-      editMenu: this.contextMenuItems
-    });
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = forkJoin({
+      showMenu: TranslateHelper.translateMenuItems$(this.getMenuShowOptions(), this.translateService),
+      editMenu: TranslateHelper.translateMenuItems$(this.getEditMenu(), this.translateService)
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((menus) => {
+        this.contextMenuItems.set(menus.editMenu);
+        this.activePanelService.activatePanel(this, menus);
+      });
   }
 
   private getEditMenu(): MenuItem[] {
@@ -201,19 +231,19 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
       label: 'CREATE|STANDING_ORDER',
       command: () => this.handleCreate()
     });
-    if (this.selectedEntity) {
+    const selected = this.selectedEntity();
+    if (selected) {
       menuItems.push({
         label: 'EDIT_RECORD|STANDING_ORDER',
-        command: () => this.handleEdit(this.selectedEntity!)
+        command: () => this.handleEdit(selected)
       });
-      if (this.simulationTenant || !this.selectedEntity.hasTransactions) {
+      if (this.simulationTenant || !selected.hasTransactions) {
         menuItems.push({
           label: 'DELETE_RECORD|STANDING_ORDER',
-          command: () => this.handleDelete(this.selectedEntity!)
+          command: () => this.handleDelete(selected)
         });
       }
     }
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -227,10 +257,10 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
       label: this.showInactive ? 'HIDE_INACTIVE_STANDING_ORDERS' : 'SHOW_INACTIVE_STANDING_ORDERS',
       command: () => {
         this.showInactive = !this.showInactive;
+        this.resetMenu();
         this.loadData();
       }
     });
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 }

@@ -90,10 +90,10 @@ describe('YAML validation before submission', () => {
     const component = new YamlEditorComponent();
     component.value = 'rules: [';
     expect(component.checkSyntax()).toBe(false);
-    expect(component.diagnostics[0].line).toBeGreaterThan(0);
+    expect(component.diagnostics()[0].line).toBeGreaterThan(0);
     component.value = 'rules: []';
     expect(component.checkSyntax()).toBe(true);
-    expect(component.diagnostics).toEqual([]);
+    expect(component.diagnostics()).toEqual([]);
   });
 
   it('never authorizes a save or displays errors from an older text revision', async () => {
@@ -106,8 +106,8 @@ describe('YAML validation before submission', () => {
     component.value = 'rules: [{name: Revised}]';
     response.next([{ category: 'DOMAIN', message: 'Old result' }]);
     expect(await validation).toBe(false);
-    expect(component.diagnostics).toEqual([]);
-    expect(component.validated).toBe(false);
+    expect(component.diagnostics()).toEqual([]);
+    expect(component.validated()).toBe(false);
   });
 
   it('does not send invalid syntax to the server and keeps request failures visible', async () => {
@@ -122,7 +122,7 @@ describe('YAML validation before submission', () => {
     post.mockReturnValue(throwError(() => new Error('offline')));
     expect(await component.validateForSubmit()).toBe(false);
     expect(component.validating).toBe(false);
-    expect(component.diagnostics).toEqual([{ category: 'REQUEST', message: 'YAML_VALIDATION_UNAVAILABLE' }]);
+    expect(component.diagnostics()).toEqual([{ category: 'REQUEST', message: 'YAML_VALIDATION_UNAVAILABLE' }]);
   });
 
   it('resolves account-name mappings and distinguishes custody expression paths', () => {

@@ -1,13 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -34,18 +25,19 @@ import { GenericConnectorHttpHeader } from '../../entities/generic.connector.htt
       [data]="httpHeaders"
       (dataChange)="onDataChange($event)"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="idHttpHeader"
       [showEditColumn]="editable"
       [editColumnWidth]="120"
       [selectionMode]="null"
       [contextMenuEnabled]="false"
-      [createNewEntityFn]="createNewEntity.bind(this)"
+      [createNewEntityFn]="createNewEntity"
       (rowEditSave)="onRowEditSave($event)"
       (rowEditCancel)="onRowEditCancel($event)"
       [canDeleteRowFn]="canDeleteRow"
       (rowDelete)="onRowDelete($event)"
-      [valueGetterFn]="getValueByPath.bind(this)"
-      [customSortFn]="customSort.bind(this)"
+      [valueGetterFn]="valueGetter"
+      [customSortFn]="customSorter"
       [baseLocale]="baseLocale"
       [scrollable]="false"
       [containerClass]="''"
@@ -65,7 +57,6 @@ import { GenericConnectorHttpHeader } from '../../entities/generic.connector.htt
     </editable-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBase implements OnChanges {

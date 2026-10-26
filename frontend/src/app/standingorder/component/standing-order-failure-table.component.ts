@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
@@ -18,13 +18,14 @@ import { StandingOrderFailure } from '../../entities/standing.order';
     <configurable-table
       [data]="failures"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="'idStandingOrderFailure'"
       [expandable]="true"
-      [canExpandFn]="canExpandRow.bind(this)"
+      [canExpandFn]="canExpandRow"
       [expandedRowTemplate]="stackTraceExpansion"
       [selectionMode]="null"
       [scrollable]="false"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale">
     </configurable-table>
 
@@ -35,36 +36,21 @@ import { StandingOrderFailure } from '../../entities/standing.order';
     </ng-template>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, ConfigurableTableComponent]
 })
-export class StandingOrderFailureTableComponent extends ShowRecordConfigBase implements OnInit, OnChanges {
+export class StandingOrderFailureTableComponent extends ShowRecordConfigBase {
   @Input() failures: StandingOrderFailure[] = [];
-
-  private fieldsInitialized = false;
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['failures'] && this.failures) {
-      if (this.fieldsInitialized) {
-        this.translateHeadersAndColumns();
-      }
-    }
-  }
-
-  ngOnInit(): void {
     this.addColumnFeqH(DataType.DateString, 'executionDate', true, false);
     this.addColumnFeqH(DataType.String, 'businessError', true, false);
     this.translateHeadersAndColumns();
-    this.fieldsInitialized = true;
   }
 
-  canExpandRow(failure: StandingOrderFailure): boolean {
+  readonly canExpandRow = (failure: StandingOrderFailure): boolean => {
     return !!failure.unexpectedError;
-  }
+  };
 
   getShowLines(text: string): number {
     return Math.min((text.match(/\n/g) || '').length + 1, 15);

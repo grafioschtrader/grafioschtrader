@@ -6,14 +6,15 @@ import {
   Input,
   OnDestroy,
   OnChanges,
+  SimpleChanges,
   Output,
   ViewChild,
-  ChangeDetectionStrategy
+  signal
 } from '@angular/core';
 import * as yaml from 'js-yaml';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { BaseService } from '../../lib/login/service/base.service';
 import { BaseSettings } from '../../lib/base.settings';
 
@@ -37,7 +38,6 @@ export interface YamlDiagnostic {
   selector: 'yaml-editor',
   standalone: true,
   imports: [TranslateModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div #editorContainer [style.height]="height" style="border: 1px solid #dee2e6; border-radius: 4px;"></div>
     @if (format) {
@@ -46,7 +46,7 @@ export interface YamlDiagnostic {
       </button>
     }
     <div aria-live="polite" class="mt-2">
-      @for (error of diagnostics; track $index) {
+      @for (error of diagnostics(); track $index) {
         <div role="alert" class="text-red-600">
           {{ error.category === 'REQUEST' ? (error.message | translate) : error.message }}
           @if (error.line) {
@@ -54,7 +54,7 @@ export interface YamlDiagnostic {
           }
         </div>
       }
-      @if (validated && diagnostics.length === 0) {
+      @if (validated() && diagnostics().length === 0) {
         <div>
           {{ (format === 'CUSTODY' || format === 'CALENDAR' ? 'YAML_STRUCTURE_VALID' : 'YAML_VALID') | translate }}
         </div>
@@ -74,49 +74,58 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
   @Input() activatable = true;
   @Output() syntaxValidChange = new EventEmitter<boolean>();
   @Output() validationPendingChange = new EventEmitter<boolean>();
-  diagnostics: YamlDiagnostic[] = [];
-  private validationPending = false;
+  readonly diagnostics = signal<YamlDiagnostic[]>([]);
+  readonly validated = signal(false);
+  private readonly validationPending = signal(false);
+  private readonly syntaxValidity = signal(true);
+  private readonly destroyed$ = new Subject<void>();
+
+  /** Keep the boolean API used by the hosting dialogs while tracking their template reads. */
+  get syntaxValid(): boolean {
+    return this.syntaxValidity();
+  }
+
   get validating(): boolean {
-    return this.validationPending;
+    return this.validationPending();
   }
   set validating(value: boolean) {
-    if (this.validationPending !== value) {
-      this.validationPending = value;
+    if (this.validationPending() !== value) {
+      this.validationPending.set(value);
       this.validationPendingChange.emit(value);
     }
   }
-  validated = false;
-  syntaxValid = true;
   private revision = 0;
   private destroyed = false;
 
-  ngOnChanges(): void {
-    this.invalidateValidation();
+  ngOnChanges(changes: SimpleChanges): void {
+    // A value emitted by Monaco comes back through the two-way input binding. It is already validated locally;
+    // receiving that same value or a late completion schema must not erase its diagnostics.
+    if (changes['format'] || changes['activatable']) this.invalidateValidation();
   }
 
   private invalidateValidation(): void {
     this.revision++;
-    this.diagnostics = [];
-    this.validated = false;
+    this.diagnostics.set([]);
+    this.validated.set(false);
     this.validating = false;
   }
 
   /** Synchronous syntax check also guards Save during the typing debounce. */
   checkSyntax(): boolean {
-    this.diagnostics = [];
+    this.diagnostics.set([]);
     try {
       if (this.value.trim()) yaml.load(this.value);
-      this.syntaxValid = true;
+      this.syntaxValidity.set(true);
     } catch (error: any) {
-      this.syntaxValid = false;
-      this.diagnostics = [
+      this.syntaxValidity.set(false);
+      this.diagnostics.set([
         {
           category: 'SYNTAX',
           message: error.reason || 'Invalid YAML',
           line: error.mark ? error.mark.line + 1 : undefined,
           column: error.mark ? error.mark.column + 1 : undefined
         }
-      ];
+      ]);
     }
     this.syntaxValidChange.emit(this.syntaxValid);
     return this.syntaxValid;
@@ -130,22 +139,24 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
     const revision = ++this.revision;
     const text = this.value;
     this.validating = true;
-    this.validated = false;
+    this.validated.set(false);
     try {
       const errors = await firstValueFrom(
-        this.http.post<YamlDiagnostic[]>(
-          `${BaseSettings.API_ENDPOINT}yaml/validate`,
-          { format: this.format, yaml: text, activatable: this.activatable },
-          this.getHeaders()
-        )
+        this.http
+          .post<YamlDiagnostic[]>(
+            `${BaseSettings.API_ENDPOINT}yaml/validate`,
+            { format: this.format, yaml: text, activatable: this.activatable },
+            this.getHeaders()
+          )
+          .pipe(takeUntil(this.destroyed$))
       );
       if (this.destroyed || revision !== this.revision || text !== this.value) return false;
-      this.diagnostics = errors;
-      this.validated = true;
+      this.diagnostics.set(errors);
+      this.validated.set(true);
       return errors.length === 0;
     } catch {
       if (!this.destroyed && revision === this.revision)
-        this.diagnostics = [{ category: 'REQUEST', message: 'YAML_VALIDATION_UNAVAILABLE' }];
+        this.diagnostics.set([{ category: 'REQUEST', message: 'YAML_VALIDATION_UNAVAILABLE' }]);
       return false;
     } finally {
       if (revision === this.revision) this.validating = false;
@@ -291,13 +302,16 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
         yaml.load(content);
       } catch (e: any) {
         if (e.mark) {
+          // js-yaml may point just beyond the document at EOF; Monaco only accepts existing model lines.
+          const lineNumber = Math.min((e.mark.line || 0) + 1, model.getLineCount());
+          const endColumn = model.getLineMaxColumn(lineNumber);
           markers.push({
             severity: monaco.MarkerSeverity.Error,
             message: e.reason || 'YAML syntax error',
-            startLineNumber: (e.mark.line || 0) + 1,
-            startColumn: (e.mark.column || 0) + 1,
-            endLineNumber: (e.mark.line || 0) + 1,
-            endColumn: model.getLineMaxColumn((e.mark.line || 0) + 1)
+            startLineNumber: lineNumber,
+            startColumn: Math.min((e.mark.column || 0) + 1, endColumn),
+            endLineNumber: lineNumber,
+            endColumn
           });
         }
       }
@@ -620,6 +634,8 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
   ngOnDestroy(): void {
     this.destroyed = true;
     this.revision++;
+    this.destroyed$.next();
+    this.destroyed$.complete();
     clearTimeout(this.validationTimer);
     this.completionDisposable?.dispose();
     this.hoverDisposable?.dispose();

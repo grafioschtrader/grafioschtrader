@@ -5,7 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { UDFMetadataSecurityService } from '../service/udf.metadata.security.service';
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, Input, OnInit, signal } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -52,13 +52,14 @@ import { UDFFillSuggestTestResultComponent } from './udf-fill-suggest-test-resul
     <p-dialog
       header="{{ i18nRecord | translate }}"
       [visible]="visibleDialog"
-      [style]="{ width: isAutomaticFill() ? '850px' : '500px' }"
+      [style]="{ width: 'var(--udf-metadata-dialog-width)' }"
+      [style.--udf-metadata-dialog-width]="isAutomaticFill() ? '850px' : '500px'"
       [contentStyle]="{ display: 'flex', 'flex-direction': 'column', 'min-height': 0 }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">
-      @if (fillStatusText) {
-        <p class="bg-info">{{ fillStatusText }}</p>
+      @if (fillStatusText()) {
+        <p class="bg-info">{{ fillStatusText() }}</p>
       }
       @if (isLLMWithoutKeys()) {
         <p-message severity="warn" [text]="'UDF_FILL_LLM_NO_KEYS' | translate"></p-message>
@@ -72,24 +73,23 @@ import { UDFFillSuggestTestResultComponent } from './udf-fill-suggest-test-resul
       </dynamic-form>
       <!-- The content is a flex column so the test result takes only the height the form leaves within the dialog
            and scrolls there; the global overflow:visible of the dialog content keeps form overlays unclipped. -->
-      @if (isAutomaticFill() && testResult) {
-        <udf-fill-test-result [testResult]="testResult"></udf-fill-test-result>
+      @if (isAutomaticFill() && testResult()) {
+        <udf-fill-test-result [testResult]="testResult()"></udf-fill-test-result>
       }
-      @if (isAutomaticFill() && suggestTestRequest) {
-        <udf-fill-suggest-test-result [request]="suggestTestRequest"></udf-fill-suggest-test-result>
+      @if (isAutomaticFill() && suggestTestRequest()) {
+        <udf-fill-suggest-test-result [request]="suggestTestRequest()"></udf-fill-suggest-test-result>
       }
     </p-dialog>
-    @if (visibleProposalDialog) {
+    @if (visibleProposalDialog()) {
       <udf-fill-rule-proposal-dialog
         [idUDFMetadata]="callParam.uDFMetadataSecurity?.idUDFMetadata"
-        [visibleDialog]="visibleProposalDialog"
+        [visibleDialog]="visibleProposalDialog()"
         (ruleAccepted)="acceptProposedRule($event)"
-        (closeDialog)="visibleProposalDialog = false">
+        (closeDialog)="visibleProposalDialog.set(false)">
       </udf-fill-rule-proposal-dialog>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     DialogModule,
     MessageModule,
@@ -115,37 +115,35 @@ export class UDFMetadataSecurityEditComponent
   private static readonly FILL_PERIOD = 'fillPeriod';
 
   /** Shows the dialog in which a language model proposes a template rule */
-  visibleProposalDialog = false;
+  readonly visibleProposalDialog = signal(false);
 
   /** True when the instance has a language model that can propose a rule */
-  private ruleProposal = false;
+  private readonly ruleProposal = signal(false);
 
   /** True when the user has a language model of the own tenant, which can propose and therefore test values */
-  private valueSuggestion = false;
+  private readonly valueSuggestion = signal(false);
 
   /** True once the offer of the server arrived; before, a missing key cannot be told from a pending answer */
-  private offerLoaded = false;
+  private readonly offerLoaded = signal(false);
+  private readonly fillSource = signal<string>(UDFFillSource.MANUAL);
 
   /** Draft whose description for the language model is being tested; null hides the test */
-  suggestTestRequest: UDFFillTestRequest;
+  readonly suggestTestRequest = signal<UDFFillTestRequest>(null);
 
   /** Parameters containing security UDF metadata to edit and validation exclusion lists */
   @Input() callParam: UDFMetadataSecurityParam;
 
   /** Result of the last test of the fill rule, shown below the form */
-  testResult: UDFFillTestResult;
+  readonly testResult = signal<UDFFillTestResult>(null);
 
   /** One line summarising the fill state of an existing automatically filled field */
-  fillStatusText: string;
+  readonly fillStatusText = signal<string>(null);
 
   /** Field configurations for data type and field size inputs */
   private configDataTypeFields: FieldConfig[];
 
-  /** Subscription to data type changes for conditional field size enabling/disabling */
-  private dataTypeSubscribe: Subscription;
-
-  /** Subscriptions of the fill source fields */
-  private fillSubscriptions: Subscription[] = [];
+  /** A newer draft or test supersedes an outstanding template test. */
+  private testFillSubscription?: Subscription;
 
   /** Fill sources offered by the server */
   private fillSourceOptions: UDFFillSourceOption[] = [];
@@ -216,7 +214,7 @@ export class UDFMetadataSecurityEditComponent
       DynamicFieldHelper.createFunctionButtonFieldName(
         UDFMetadataSecurityEditComponent.TEST_CONTEXT_BUTTON,
         'UDF_FILL_TEST_LLM',
-        () => (this.suggestTestRequest = this.createTestRequest(UDFMetadataSecurityEditComponent.FILL_CONTEXT))
+        () => this.suggestTestRequest.set(this.createTestRequest(UDFMetadataSecurityEditComponent.FILL_CONTEXT))
       ),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF(UDFMetadataSecurityEditComponent.FILL_RULE, 1000, false, {
         textareaRows: 6,
@@ -230,7 +228,7 @@ export class UDFMetadataSecurityEditComponent
       DynamicFieldHelper.createFunctionButtonFieldName(
         UDFMetadataSecurityEditComponent.PROPOSE_BUTTON,
         'UDF_FILL_PROPOSE',
-        () => (this.visibleProposalDialog = true)
+        () => this.visibleProposalDialog.set(true)
       ),
       DynamicFieldHelper.createSubmitButton()
     ];
@@ -241,21 +239,14 @@ export class UDFMetadataSecurityEditComponent
    * Tells whether the language model is selected although the tenant has no key: such a field is saved and keeps its
    * values, but nothing fills it.
    */
-  isLLMWithoutKeys(): boolean {
-    return (
-      this.offerLoaded &&
-      !this.valueSuggestion &&
-      this.configObject?.[UDFMetadataSecurityEditComponent.FILL_SOURCE]?.formControl?.value === UDFFillSource.LLM
-    );
-  }
+  readonly isLLMWithoutKeys = computed(
+    () => this.offerLoaded() && !this.valueSuggestion() && this.fillSource() === UDFFillSource.LLM
+  );
 
   /**
    * Tells whether a fill source other than manual is selected, which shows the rule, the test and a wider dialog.
    */
-  isAutomaticFill(): boolean {
-    const fillSource = this.configObject?.[UDFMetadataSecurityEditComponent.FILL_SOURCE]?.formControl?.value;
-    return !!fillSource && fillSource !== UDFFillSource.MANUAL;
-  }
+  readonly isAutomaticFill = computed(() => !!this.fillSource() && this.fillSource() !== UDFFillSource.MANUAL);
 
   /**
    * Completes component initialization after asset class mappings are loaded.
@@ -271,13 +262,15 @@ export class UDFMetadataSecurityEditComponent
     this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE].valueKeyHtmlOptions = [
       new ValueKeyHtmlSelectOptions(UDFFillSource.MANUAL, this.translateService.instant(UDFFillSource.MANUAL))
     ];
-    this.dataTypeSubscribe = UDFMetadataHelper.prepareDataTypeFields(
+    this.offerLoaded.set(false);
+    UDFMetadataHelper.prepareDataTypeFields(
       this.translateService,
       this.form,
       this.configObject,
       this.callParam.excludeUiOrders,
       this.callParam.uDFMetadataSecurity,
-      this.configDataTypeFields
+      this.configDataTypeFields,
+      this.untilDialogClosed()
     );
     const existing = this.callParam.uDFMetadataSecurity;
     this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE].formControl.setValue(
@@ -287,29 +280,37 @@ export class UDFMetadataSecurityEditComponent
     if (existing?.fillSource === UDFFillSource.LLM) {
       this.configObject[UDFMetadataSecurityEditComponent.FILL_CONTEXT].formControl.setValue(existing.fillRule);
     }
-    this.fillSubscriptions.push(
-      this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE].formControl.valueChanges.subscribe(() =>
-        this.showHideFillRule()
-      ),
-      this.groupControl(UDFMetadataHelper.UDF_DATA_TYPE).valueChanges.subscribe((udt) =>
-        this.setFillSourceOptions(udt)
-      ),
-      this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID].formControl.valueChanges.subscribe((id) =>
-        this.setDefaultArgument(id)
-      )
-    );
-    this.showHideFillRule();
-    this.uDFMetadataSecurityService.getFillSources().subscribe((offer) => {
-      this.fillSourceOptions = offer.fillSources;
-      this.resolverOptions = offer.resolvers;
-      this.ruleProposal = offer.ruleProposal;
-      this.valueSuggestion = offer.valueSuggestion;
-      this.offerLoaded = true;
-      this.fillPeriods = offer.fillPeriods ?? [];
-      this.setFillSourceOptions(this.groupControl(UDFMetadataHelper.UDF_DATA_TYPE).value);
-      this.showHideFillRule();
-      this.configObject[UDFMetadataSecurityEditComponent.FILL_PERIOD].formControl.setValue(existing?.fillPeriod ?? '');
+    this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE].formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe(() => this.showHideFillRule());
+    this.groupControl(UDFMetadataHelper.UDF_DATA_TYPE)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((udt) => this.setFillSourceOptions(udt));
+    this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID].formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((id) => this.setDefaultArgument(id));
+    this.form.form.valueChanges.pipe(this.untilDialogClosed()).subscribe(() => {
+      this.testFillSubscription?.unsubscribe();
+      this.testResult.set(null);
+      this.suggestTestRequest.set(null);
     });
+    this.showHideFillRule();
+    this.uDFMetadataSecurityService
+      .getFillSources()
+      .pipe(this.untilDialogClosed())
+      .subscribe((offer) => {
+        this.fillSourceOptions = offer.fillSources;
+        this.resolverOptions = offer.resolvers;
+        this.ruleProposal.set(offer.ruleProposal);
+        this.valueSuggestion.set(offer.valueSuggestion);
+        this.offerLoaded.set(true);
+        this.fillPeriods = offer.fillPeriods ?? [];
+        this.setFillSourceOptions(this.groupControl(UDFMetadataHelper.UDF_DATA_TYPE).value);
+        this.showHideFillRule();
+        this.configObject[UDFMetadataSecurityEditComponent.FILL_PERIOD].formControl.setValue(
+          existing?.fillPeriod ?? ''
+        );
+      });
     this.loadFillStatus(existing);
   }
 
@@ -373,6 +374,7 @@ export class UDFMetadataSecurityEditComponent
    */
   private showHideFillRule(): void {
     const fillSource = this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE].formControl.value;
+    this.fillSource.set(fillSource);
     const template = fillSource === UDFFillSource.TEMPLATE;
     const resolver = fillSource === UDFFillSource.RESOLVER;
     FormHelper.hideVisibleFieldConfigs(!template, [
@@ -382,7 +384,7 @@ export class UDFMetadataSecurityEditComponent
     FormHelper.hideVisibleFieldConfigs(fillSource !== UDFFillSource.LLM, [
       this.configObject[UDFMetadataSecurityEditComponent.FILL_CONTEXT]
     ]);
-    FormHelper.hideVisibleFieldConfigs(fillSource !== UDFFillSource.LLM || !this.valueSuggestion, [
+    FormHelper.hideVisibleFieldConfigs(fillSource !== UDFFillSource.LLM || !this.valueSuggestion(), [
       this.configObject[UDFMetadataSecurityEditComponent.TEST_CONTEXT_BUTTON]
     ]);
     FormHelper.hideVisibleFieldConfigs(!resolver, [
@@ -394,17 +396,17 @@ export class UDFMetadataSecurityEditComponent
     const existing = this.callParam.uDFMetadataSecurity;
     const proposable =
       template &&
-      this.ruleProposal &&
+      this.ruleProposal() &&
       !!existing?.idUDFMetadata &&
       (existing.fillSource === UDFFillSource.MANUAL || existing.fillSource === UDFFillSource.TEMPLATE);
     FormHelper.hideVisibleFieldConfigs(!proposable, [
       this.configObject[UDFMetadataSecurityEditComponent.PROPOSE_BUTTON]
     ]);
     if (!template) {
-      this.testResult = null;
+      this.testResult.set(null);
     }
     if (fillSource !== UDFFillSource.LLM) {
-      this.suggestTestRequest = null;
+      this.suggestTestRequest.set(null);
     }
   }
 
@@ -435,18 +437,19 @@ export class UDFMetadataSecurityEditComponent
    */
   acceptProposedRule(rule: string): void {
     this.configObject[UDFMetadataSecurityEditComponent.FILL_RULE].formControl.setValue(rule);
-    this.testResult = null;
+    this.testResult.set(null);
   }
 
   /**
    * Loads the one-line fill status of an existing field with a fill source other than manual.
    */
   private loadFillStatus(existing: UDFMetadataSecurity): void {
-    this.fillStatusText = null;
+    this.fillStatusText.set(null);
     if (existing?.idUDFMetadata && existing.fillSource && existing.fillSource !== UDFFillSource.MANUAL) {
       this.uDFMetadataSecurityService
         .getFillStatus(existing.idUDFMetadata)
-        .subscribe((status) => (this.fillStatusText = this.formatFillStatus(status)));
+        .pipe(this.untilDialogClosed())
+        .subscribe((status) => this.fillStatusText.set(this.formatFillStatus(status)));
     }
   }
 
@@ -479,9 +482,12 @@ export class UDFMetadataSecurityEditComponent
    * is saved.
    */
   private testFillRule(): void {
-    this.uDFMetadataSecurityService
+    this.testFillSubscription?.unsubscribe();
+    this.testResult.set(null);
+    this.testFillSubscription = this.uDFMetadataSecurityService
       .testFillRule(this.createTestRequest(UDFMetadataSecurityEditComponent.FILL_RULE))
-      .subscribe((testResult) => (this.testResult = testResult));
+      .pipe(this.untilDialogClosed())
+      .subscribe({ next: (testResult) => this.testResult.set(testResult), error: () => {} });
   }
 
   /**
@@ -546,16 +552,14 @@ export class UDFMetadataSecurityEditComponent
 
   /**
    * Cleanup handler when dialog is closed.
-   * Unsubscribes from data type, category type and fill source change listeners to prevent memory leaks.
+   * Clears the results belonging to the dialog session being closed.
    *
    * @param event - Dialog hide event
    */
   override onHide(event): void {
-    this.dataTypeSubscribe && this.dataTypeSubscribe.unsubscribe();
-    this.fillSubscriptions.forEach((s) => s.unsubscribe());
-    this.fillSubscriptions = [];
-    this.testResult = null;
-    this.suggestTestRequest = null;
+    this.testResult.set(null);
+    this.suggestTestRequest.set(null);
+    this.visibleProposalDialog.set(false);
     super.onHide(event);
   }
 }

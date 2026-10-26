@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -21,39 +21,31 @@ export interface RuleSetClosure {
   selector: 'trading-calendar-rule-set-preview',
   template: `
     <configurable-table
-      [data]="closureList"
+      [data]="closureList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [scrollable]="true"
       [scrollHeight]="'240px'"
       [stripedRows]="true"
       [showGridlines]="true"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale">
     </configurable-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, TranslateModule]
 })
-export class TradingCalendarRuleSetPreviewComponent extends ShowRecordConfigBase implements OnChanges {
+export class TradingCalendarRuleSetPreviewComponent extends ShowRecordConfigBase {
   /** Closures as delivered by the backend, keyed by date in ascending order. */
-  @Input() closures: { [date: string]: string };
-
-  closureList: RuleSetClosure[] = [];
+  readonly closures = input<{ [date: string]: string }>({});
+  readonly closureList = computed<RuleSetClosure[]>(() =>
+    Object.entries(this.closures() ?? {}).map(([closureDate, ruleName]) => ({ closureDate, ruleName }))
+  );
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
     this.addColumn(DataType.DateString, 'closureDate', 'CLOSURE_DATE', true, false);
     this.addColumn(DataType.String, 'ruleName', 'RULE_NAME', true, false);
     this.translateHeadersAndColumns();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['closures']) {
-      this.closureList = Object.entries(this.closures ?? {}).map(([closureDate, ruleName]) => ({
-        closureDate,
-        ruleName
-      }));
-    }
   }
 }

@@ -1,4 +1,5 @@
-import { Injector } from '@angular/core';
+import { Injector, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UDFMetadata, UDFMetadataParam } from '../model/udf.metadata';
 import { ConfirmationService, FilterService, MenuItem, SortMeta } from '@openng/optimus-ui/api';
 import { MessageToastService } from '../../message/message.toast.service';
@@ -10,10 +11,10 @@ import { UserSettingsService } from '../../services/user.settings.service';
 import { DeleteService } from '../../datashowbase/delete.service';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
-import { combineLatest, Observable } from 'rxjs';
+import { forkJoin, Observable, Subscription } from 'rxjs';
 import { plainToInstance } from 'class-transformer';
 import { ClassConstructor } from 'class-transformer/types/interfaces';
-import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
 import { UDFSpecialTypeDisableUserService } from '../service/udf.special.type.disable.user.service';
 import { UDFSpecialTypeRegistry } from '../model/udf.special.type.registry';
 
@@ -23,12 +24,14 @@ import { UDFSpecialTypeRegistry } from '../model/udf.special.type.registry';
  * data loading, special type toggling, and edit rights management. Subclasses implement entity-specific
  * column additions and parameter preparation for editing dialogs.
  */
-export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSupportMenu<T> {
+export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSupportMenuSignal<T> {
   /**
    * Array of UDF special type values that the current user has disabled (hidden in UI).
    * Each entry is a numeric value corresponding to a registered IUDFSpecialType.
    */
-  specialTypeDisabledArr: number[] = [];
+  readonly specialTypeDisabledArr = signal<number[]>([]);
+  private readonly togglingSpecialType = signal(false);
+  private readDataSubscription?: Subscription;
 
   /**
    * Creates the UDF metadata table base.
@@ -124,10 +127,10 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @protected
    */
   protected beforeEdit(entity: UDFMetadata, uDFMetadataParam: UDFMetadataParam): void {
-    uDFMetadataParam.excludeUiOrders = this.entityList
+    uDFMetadataParam.excludeUiOrders = this.entityList()
       .filter((m) => entity == null || entity.uiOrder !== m.uiOrder)
       .map((m) => m.uiOrder);
-    uDFMetadataParam.excludeFieldNames = this.entityList
+    uDFMetadataParam.excludeFieldNames = this.entityList()
       .filter((m) => entity == null || entity.description !== m.description)
       .map((m) => m.description);
   }
@@ -137,15 +140,23 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * Combines metadata and disabled types into table data with proper type transformation.
    */
   override readData(): void {
-    combineLatest([
+    this.readDataSubscription?.unsubscribe();
+    this.readDataSubscription = forkJoin([
       this.deleteReadAllService.getAllByIdUser(),
       this.udfSpecialTypeDisableUserService.getDisabledSpecialTypes()
-    ]).subscribe((data: [T[], number[]]) => {
-      this.entityList = plainToInstance(this.classz, data[0]);
-      this.specialTypeDisabledArr = data[1];
-      console.log(this.specialTypeDisabledArr);
-      this.createTranslatedValueStoreAndFilterField(this.entityList);
-    });
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data: [T[], number[]]) => {
+          const entities = plainToInstance(this.classz, data[0]);
+          this.specialTypeDisabledArr.set(data[1]);
+          this.createTranslatedValueStoreAndFilterField(entities);
+          this.entityList.set(entities);
+          this.togglingSpecialType.set(false);
+          this.refreshSelectedEntity();
+        },
+        error: () => this.finishSpecialTypeToggle()
+      });
   }
 
   /**
@@ -160,7 +171,7 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
     menuItems.push({
       label: 'UDF_TURN_ON_OFF_FIELD_USER0',
       command: (event) => this.turnOnOffFieldUser0(udfMetaData),
-      disabled: !udfMetaData.udfSpecialType
+      disabled: !this.resolveSpecialType(udfMetaData) || this.togglingSpecialType()
     });
   }
 
@@ -172,17 +183,32 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @param udfMetaData - UDF metadata entity to toggle visibility for
    */
   turnOnOffFieldUser0(udfMetaData: T): void {
-    const specialType = UDFSpecialTypeRegistry.getByValue(udfMetaData.udfSpecialType);
+    const specialType = this.resolveSpecialType(udfMetaData);
     if (!specialType) {
       console.error(`Unknown UDF special type value: ${udfMetaData.udfSpecialType}`);
       return;
     }
 
-    if (this.specialTypeDisabledArr.indexOf(udfMetaData.udfSpecialType) >= 0) {
-      this.udfSpecialTypeDisableUserService.delete(specialType.name).subscribe(() => this.readData());
-    } else {
-      this.udfSpecialTypeDisableUserService.create(specialType.name).subscribe(() => this.readData());
-    }
+    if (this.togglingSpecialType()) return;
+    this.togglingSpecialType.set(true);
+    this.resetMenu(this.selectedEntity());
+    const update = this.specialTypeDisabledArr().includes(specialType.value)
+      ? this.udfSpecialTypeDisableUserService.delete(specialType.value)
+      : this.udfSpecialTypeDisableUserService.create(specialType.value);
+    update
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: () => this.readData(), error: () => this.finishSpecialTypeToggle() });
+  }
+
+  private finishSpecialTypeToggle(): void {
+    this.togglingSpecialType.set(false);
+    if (this.isActivated()) this.resetMenu(this.selectedEntity());
+  }
+
+  /** JSON uses enum names; registry consumers also support the numeric values of an already resolved row. */
+  private resolveSpecialType(entity: T) {
+    const type = entity.udfSpecialType as number | string;
+    return typeof type === 'string' ? UDFSpecialTypeRegistry.getByName(type) : UDFSpecialTypeRegistry.getByValue(type);
   }
 
   /**
@@ -195,7 +221,7 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @returns True if the special type is in the disabled array, false otherwise
    */
   udfDisabled(entity: T, field: ColumnConfig, valueField: any): boolean {
-    return this.specialTypeDisabledArr.indexOf(entity.udfSpecialType) >= 0;
+    return this.specialTypeDisabledArr().includes(this.resolveSpecialType(entity)?.value);
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -12,7 +12,6 @@ import { AppHelpIds } from '../../shared/help/help.ids';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { ResponseFormatType } from '../../shared/types/response.format.type';
 import { DateFormatType } from '../../shared/types/date.format.type';
 import { JsonDataStructure } from '../../shared/types/json.data.structure';
@@ -54,12 +53,12 @@ const ALL_FEED_INSTRUMENT_COMBOS = [
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class GenericConnectorEndpointEditComponent extends SimpleEditBase implements OnInit {
   @Input() endpoint: GenericConnectorEndpoint;
   @Input() connectorDef: GenericConnectorDef;
+  private optionTranslations: Record<string, string> = {};
 
   constructor(
     public translateService: TranslateService,
@@ -103,7 +102,6 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
   }
 
   protected override initialize(): void {
-    const t = this.translateService;
     const isEdit = !!this.endpoint?.feedSupport;
     const usedCombos = this.connectorDef.endpoints
       .filter((e) => e !== this.endpoint)
@@ -111,86 +109,45 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
     const availableCombos = isEdit
       ? [`${this.endpoint.feedSupport}|${this.endpoint.instrumentType}`]
       : ALL_FEED_INSTRUMENT_COMBOS.filter((c) => !usedCombos.includes(c));
-    this.configObject.feedSupportInstrumentType.valueKeyHtmlOptions =
-      SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-        t,
-        availableCombos.map((v) => new ValueKeyHtmlSelectOptions(v, v)),
-        false
-      );
     if (isEdit) {
       this.configObject.feedSupportInstrumentType.formControl.disable();
     }
     this.configObject.httpMethod.valueKeyHtmlOptions = ['GET', 'POST'].map((v) => new ValueKeyHtmlSelectOptions(v, v));
-    this.configObject.responseFormat.valueKeyHtmlOptions =
-      SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-        t,
-        Object.values(ResponseFormatType).map((v) => new ValueKeyHtmlSelectOptions(v, v)),
-        false
-      );
-    this.configObject.numberFormat.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-      t,
-      Object.values(NumberFormatType).map((v) => new ValueKeyHtmlSelectOptions(v, v)),
-      false
-    );
-    this.configObject.dateFormatType.valueKeyHtmlOptions =
-      SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-        t,
-        Object.values(DateFormatType).map((v) => new ValueKeyHtmlSelectOptions(v, v)),
-        false
-      );
-    this.configObject.jsonDataStructure.valueKeyHtmlOptions =
-      SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-        t,
-        Object.values(JsonDataStructure).map((v) => new ValueKeyHtmlSelectOptions(v, v)),
-        true
-      );
-    this.configObject.htmlExtractMode.valueKeyHtmlOptions =
-      SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-        t,
-        Object.values(HtmlExtractMode).map((v) => new ValueKeyHtmlSelectOptions(v, v)),
-        true
-      );
-    this.configObject.tickerBuildStrategy.valueKeyHtmlOptions =
-      SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-        t,
-        Object.values(TickerBuildStrategy).map((v) => new ValueKeyHtmlSelectOptions(v, v)),
-        false
-      );
+    this.configObject.feedSupportInstrumentType.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((combo) => {
+        const feedSupport = combo ? combo.split('|')[0] : null;
+        this.updateEndpointOptionsForFeed(feedSupport);
+        const current: string[] = this.configObject.endpointOptions.formControl.value || [];
+        const validKeys = (ENDPOINT_OPTION_BY_FEED[feedSupport] || []).map((o) => o as string);
+        this.configObject.endpointOptions.formControl.setValue(current.filter((v) => validKeys.includes(v)));
+      });
 
-    this.updateEndpointOptionsForFeed(this.endpoint?.feedSupport);
-    this.configObject.feedSupportInstrumentType.formControl.valueChanges.subscribe((combo) => {
-      const feedSupport = combo ? combo.split('|')[0] : null;
-      this.updateEndpointOptionsForFeed(feedSupport);
-      const current: string[] = this.configObject.endpointOptions.formControl.value || [];
-      const validKeys = (ENDPOINT_OPTION_BY_FEED[feedSupport] || []).map((o) => o as string);
-      this.configObject.endpointOptions.formControl.setValue(current.filter((v) => validKeys.includes(v)));
-    });
-
-    this.configObject.dateFormatType.formControl.valueChanges.subscribe((value) =>
-      this.updateDateFormatPatternRequired(value)
-    );
+    this.configObject.dateFormatType.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((value) => this.updateDateFormatPatternRequired(value));
     this.updateDateFormatPatternRequired(this.endpoint?.dateFormatType);
 
-    this.configObject.responseFormat.formControl.valueChanges.subscribe((value) =>
-      this.updateResponseFormatDependencies(value)
-    );
+    this.configObject.responseFormat.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((value) => this.updateResponseFormatDependencies(value));
     this.updateResponseFormatDependencies(this.endpoint?.responseFormat);
 
-    this.configObject.htmlExtractMode.formControl.valueChanges.subscribe((value) => {
+    this.configObject.htmlExtractMode.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((value) => {
       if (this.configObject.responseFormat.formControl.value === ResponseFormatType.HTML) {
         this.updateHtmlExtractModeDependencies(value);
       }
     });
 
-    this.configObject.jsonDataStructure.formControl.valueChanges.subscribe((value) => {
+    this.configObject.jsonDataStructure.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((value) => {
       if (this.configObject.responseFormat.formControl.value === ResponseFormatType.JSON) {
         this.updateJsonDataStructureDependencies(value);
       }
     });
 
-    this.configObject.tickerBuildStrategy.formControl.valueChanges.subscribe((value) =>
-      this.updateTickerBuildStrategyDependencies(value)
-    );
+    this.configObject.tickerBuildStrategy.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((value) => this.updateTickerBuildStrategyDependencies(value));
     this.updateTickerBuildStrategyDependencies(this.endpoint?.tickerBuildStrategy);
 
     this.form.setDefaultValuesAndEnableSubmit();
@@ -201,8 +158,42 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
           `${this.endpoint.feedSupport}|${this.endpoint.instrumentType}`
         );
       }
-      this.updateEndpointOptionsForFeed(this.endpoint.feedSupport);
     }
+    this.loadOptions(availableCombos);
+  }
+
+  /** Publishes complete translated arrays without resetting values entered while the labels were loading. */
+  private loadOptions(availableCombos: string[]): void {
+    const choices = {
+      feedSupportInstrumentType: availableCombos,
+      responseFormat: Object.values(ResponseFormatType),
+      numberFormat: Object.values(NumberFormatType),
+      dateFormatType: Object.values(DateFormatType),
+      jsonDataStructure: Object.values(JsonDataStructure),
+      htmlExtractMode: Object.values(HtmlExtractMode),
+      tickerBuildStrategy: Object.values(TickerBuildStrategy)
+    };
+    this.translateService
+      .get([...new Set([...Object.values(choices).flat(), ...Object.values(EndpointOption)])])
+      .pipe(this.untilDialogClosed())
+      .subscribe((translations) => {
+        this.optionTranslations = translations;
+        Object.entries(choices).forEach(([field, values]) => {
+          this.configObject[field].valueKeyHtmlOptions = this.translatedOptions(
+            values,
+            field === 'jsonDataStructure' || field === 'htmlExtractMode'
+          );
+        });
+        const combo = this.configObject.feedSupportInstrumentType.formControl.value;
+        this.updateEndpointOptionsForFeed(combo?.split('|')[0]);
+      });
+  }
+
+  private translatedOptions(values: string[], addEmpty = false): ValueKeyHtmlSelectOptions[] {
+    const options = values
+      .map((value) => new ValueKeyHtmlSelectOptions(value, this.optionTranslations[value] || value))
+      .sort((a, b) => a.value.localeCompare(b.value));
+    return addEmpty ? [new ValueKeyHtmlSelectOptions('', ''), ...options] : options;
   }
 
   private updateDateFormatPatternRequired(dateFormatType: string): void {
@@ -219,12 +210,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
 
   private updateEndpointOptionsForFeed(feedSupport: string): void {
     const options = feedSupport ? ENDPOINT_OPTION_BY_FEED[feedSupport] || [] : Object.values(EndpointOption);
-    this.configObject.endpointOptions.valueKeyHtmlOptions =
-      SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-        this.translateService,
-        options.map((v) => new ValueKeyHtmlSelectOptions(v, v)),
-        false
-      );
+    this.configObject.endpointOptions.valueKeyHtmlOptions = this.translatedOptions(options);
   }
 
   private enableField(fieldName: string, required: boolean): void {

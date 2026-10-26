@@ -47,7 +47,7 @@ export abstract class TradingCalendarBase extends CalendarNavigation {
 
   submit(): void {
     const convertedAddRemoveDays: AddRemoveDay[] = [];
-    this.addRemoveDaysMap.forEach((value: boolean, key: number) =>
+    this.addRemoveDaysMap().forEach((value: boolean, key: number) =>
       convertedAddRemoveDays.push(new AddRemoveDay(moment(key).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), value))
     );
     this.saveData(convertedAddRemoveDays);

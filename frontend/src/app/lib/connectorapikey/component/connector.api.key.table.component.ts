@@ -1,7 +1,9 @@
-import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { map, of, Subscription, switchMap } from 'rxjs';
 
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
 import { ConnectorApiKey, SubscriptionTypeReadableName } from '../types/connector.api.key';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { MessageToastService } from '../../message/message.toast.service';
@@ -16,19 +18,19 @@ import { ConnectorApiKeyService } from '../service/connector.api.key.service';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { BaseSettings } from '../../base.settings';
-import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
 
 @Component({
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollable]="false"
       [stripedRows]="true"
       [showGridlines]="true"
@@ -37,38 +39,35 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }"
-      [showContextMenu]="!!contextMenuItems"
-      [contextMenuItems]="contextMenuItems"
-      [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [showContextMenu]="!!contextMenuItems()"
+      [contextMenuItems]="contextMenuItems()"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ entityNameUpper | translate }}</h4>
     </configurable-table>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <connector-api-key-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [connectorApiKey]="connectorApiKey"
-        [strn]="strn"
+        [strn]="strn()"
         [existingProviders]="existingProviders"
-        [subscriptionTypeOptionsMap]="subscriptionTypeOptionsMap"
+        [subscriptionTypeOptionsMap]="subscriptionTypeOptionsMap()"
         (closeDialog)="handleCloseDialog($event)">
       </connector-api-key-edit>
     }
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, TranslateModule, ConnectorApiKeyEditComponent]
 })
-export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<ConnectorApiKey> implements OnDestroy {
+export class ConnectorApiKeyTableComponent extends TableCrudSupportMenuSignal<ConnectorApiKey> {
   connectorApiKey: ConnectorApiKey;
 
-  strn: { [id: string]: SubscriptionTypeReadableName };
+  readonly strn = signal<Record<string, SubscriptionTypeReadableName>>({});
   existingProviders: string[];
-  subscriptionTypeOptionsMap: {
-    [providerId: string]: ValueKeyHtmlSelectOptions[];
-  };
+  readonly subscriptionTypeOptionsMap = signal<Record<string, ValueKeyHtmlSelectOptions[]>>({});
+  private readDataSub?: Subscription;
 
   constructor(
     private connectorApiKeyService: ConnectorApiKeyService,
@@ -107,38 +106,53 @@ export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<Connecto
   }
 
   protected override initialize(): void {
-    this.connectorApiKeyService.getFeedSubscriptionType().subscribe((strn) => {
-      this.strn = strn;
-      super.initialize();
-    });
+    this.connectorApiKeyService
+      .getFeedSubscriptionType()
+      .pipe(
+        switchMap((strn) => {
+          const subscriptions = Object.fromEntries(
+            Object.entries(strn).map(([provider, details]) => [
+              provider,
+              details.subscriptionTypes.map((type) => String(typeof type === 'object' ? type.id : type))
+            ])
+          );
+          const keys = [...new Set(Object.values(subscriptions).flat())];
+          return (keys.length ? this.translateService.get(keys) : of({})).pipe(
+            map((translations) => ({
+              strn,
+              options: Object.fromEntries(
+                Object.entries(subscriptions).map(([provider, types]) => [
+                  provider,
+                  types.map((type) => new ValueKeyHtmlSelectOptions(type, translations[type] ?? type))
+                ])
+              )
+            }))
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(({ strn, options }) => {
+        this.strn.set(strn);
+        this.subscriptionTypeOptionsMap.set(options);
+        super.initialize();
+      });
   }
 
   override prepareCallParam(entity: ConnectorApiKey) {
-    this.existingProviders = this.entityList.map((el) => el.idProvider);
+    this.existingProviders = this.entityList().map((el) => el.idProvider);
     this.connectorApiKey = entity;
-
-    // Prepare subscription type options for each provider
-    this.subscriptionTypeOptionsMap = {};
-    Object.keys(this.strn).forEach((providerId) => {
-      const subscriptionTypes = this.strn[providerId].subscriptionTypes;
-      // Convert SubscriptionTypeValue to strings
-      const subscriptionTypeStrings = subscriptionTypes.map((st) =>
-        typeof st === 'object' && st !== null && 'id' in st ? String(st.id) : String(st)
-      );
-      // Use translateArrayKeyEqualValue and remove the empty first option
-      this.subscriptionTypeOptionsMap[providerId] = SelectOptionsHelper.translateArrayKeyEqualValue(
-        this.translateService,
-        subscriptionTypeStrings
-      ).slice(1);
-    });
   }
 
   protected override readData(): void {
-    this.connectorApiKeyService.getAllConnectorApiKeys().subscribe((result) => {
-      this.createTranslatedValueStoreAndFilterField(result);
-      this.entityList = result;
-      this.refreshSelectedEntity();
-    });
+    this.readDataSub?.unsubscribe();
+    this.readDataSub = this.connectorApiKeyService
+      .getAllConnectorApiKeys()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        this.createTranslatedValueStoreAndFilterField(result);
+        this.entityList.set(result);
+        this.refreshSelectedEntity();
+      });
   }
 
   protected override hasRightsForDeleteEntity(entity: ConnectorApiKey): boolean {
@@ -146,11 +160,7 @@ export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<Connecto
   }
 
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
-    return this.strn[valueField]?.readableName ?? valueField;
-  }
-
-  ngOnDestroy(): void {
-    this.activePanelService.destroyPanel(this);
+    return this.strn()[valueField]?.readableName ?? valueField;
   }
 
   override getHelpContextId(): string {

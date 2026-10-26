@@ -1,0 +1,17 @@
+{
+  "_comment": "Display-only responses for 126; account and order IDs are resolved from the fixture-owned CT USD order. No transaction or failure is saved.",
+  "failure": {
+    "executionDate": "2025-01-10",
+    "businessError": "E2E execution failure",
+    "unexpectedError": "E2E stack trace\nDelayed failure detail"
+  },
+  "transaction": {
+    "idTransaction": -1,
+    "transactionType": "FEE",
+    "transactionTime": "2025-01-10T12:00:00Z",
+    "cashaccountAmount": -3,
+    "connectedIdTransaction": null,
+    "transactionCost": 0,
+    "taxCost": 0
+  }
+}

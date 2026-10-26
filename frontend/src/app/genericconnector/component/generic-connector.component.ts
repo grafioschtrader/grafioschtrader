@@ -1,8 +1,9 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, AfterRenderRef, Component, inject, Injector, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
-import { combineLatest } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
 import { GenericConnectorDef } from '../../entities/generic.connector.def';
@@ -77,8 +78,8 @@ import { AppSettings } from '../../shared/app.settings';
             <div
               (click)="onEndpointPanelClick(endpoint, $event)"
               [ngClass]="{
-                'active-border': endpoint === selectedEndpoint,
-                'passiv-border': endpoint !== selectedEndpoint
+                'active-border': endpoint === selectedEndpoint(),
+                'passiv-border': endpoint !== selectedEndpoint()
               }">
               <p-accordion-panel [value]="'' + i">
                 <p-accordion-header>
@@ -109,25 +110,24 @@ import { AppSettings } from '../../shared/app.settings';
         (closeDialog)="handleCloseEditDialog($event)">
       </generic-connector-def-edit>
     }
-    @if (visibleEndpointDialog) {
+    @if (visibleEndpointDialog()) {
       <generic-connector-endpoint-edit
-        [visibleDialog]="visibleEndpointDialog"
-        [endpoint]="selectedEndpoint"
+        [visibleDialog]="visibleEndpointDialog()"
+        [endpoint]="endpointToEdit"
         [connectorDef]="selectedEntity"
         (closeDialog)="handleCloseEndpointDialog($event)">
       </generic-connector-endpoint-edit>
     }
-    @if (visibleTestDialog) {
+    @if (visibleTestDialog()) {
       <generic-connector-test-dialog
-        [visibleDialog]="visibleTestDialog"
-        [endpoint]="selectedEndpoint"
+        [visibleDialog]="visibleTestDialog()"
+        [endpoint]="selectedEndpoint()"
         [connectorDef]="selectedEntity"
         (closeDialog)="handleCloseTestDialog()">
       </generic-connector-test-dialog>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -144,11 +144,15 @@ import { AppSettings } from '../../shared/app.settings';
 })
 export class GenericConnectorComponent
   extends SingleRecordMasterViewBase<GenericConnectorDef, GenericConnectorEndpoint>
-  implements OnInit, OnDestroy
+  implements OnInit
 {
-  visibleEndpointDialog = false;
-  visibleTestDialog = false;
-  selectedEndpoint: GenericConnectorEndpoint;
+  readonly visibleEndpointDialog = signal(false);
+  readonly visibleTestDialog = signal(false);
+  readonly selectedEndpoint = signal<GenericConnectorEndpoint>(null);
+  endpointToEdit: GenericConnectorEndpoint;
+  private readonly injector = inject(Injector);
+  private readSubscription?: Subscription;
+  private formRender?: AfterRenderRef;
   private lastSelectedConnectorId: number = null;
 
   constructor(
@@ -181,13 +185,13 @@ export class GenericConnectorComponent
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  expandedPanelValues: string[] = [];
+  readonly expandedPanelValues = signal<string[]>([]);
 
   private initExpandedPanels(): void {
     if (!this.selectedEntity?.endpoints) {
-      this.expandedPanelValues = [];
+      this.expandedPanelValues.set([]);
     } else {
-      this.expandedPanelValues = this.selectedEntity.endpoints.map((_, i) => '' + i);
+      this.expandedPanelValues.set(this.selectedEntity.endpoints.map((_, i) => '' + i));
     }
   }
 
@@ -196,31 +200,56 @@ export class GenericConnectorComponent
   }
 
   readData(): void {
-    this.genericConnectorDefService.getAllGenericConnectors().subscribe((connectors) => {
-      this.entityList = connectors;
-      this.configObject.idGenericConnector.valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-          'idGenericConnector',
-          'readableName',
-          connectors,
-          true
+    this.readSubscription?.unsubscribe();
+    this.formRender?.destroy();
+    this.readSubscription = this.genericConnectorDefService
+      .getAllGenericConnectors()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((connectors) => {
+        const selectedId = this.selectedEntity?.idGenericConnector;
+        this.entityList = connectors;
+        this.selectedEntity = connectors.find((connector) => connector.idGenericConnector === selectedId) ?? null;
+        this.configObject.idGenericConnector.valueKeyHtmlOptions =
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+            'idGenericConnector',
+            'readableName',
+            connectors,
+            true
+          );
+        this.formRender = afterNextRender(
+          () => {
+            this.valueChangedMainField();
+            this.setFieldValues();
+          },
+          { injector: this.injector }
         );
-      setTimeout(() => {
-        this.valueChangedMainField();
-        this.setFieldValues();
       });
-    });
   }
 
   setChildData(selectedEntity: GenericConnectorDef): void {
     const newId = selectedEntity?.idGenericConnector ?? null;
     if (newId !== this.lastSelectedConnectorId) {
-      this.selectedEndpoint = null;
+      this.selectedEndpoint.set(null);
       this.initExpandedPanels();
       this.lastSelectedConnectorId = newId;
+    } else {
+      this.selectedEndpoint.set(this.findSelectedEndpoint(selectedEntity));
     }
     this.childEntityList = selectedEntity?.endpoints || [];
     this.refreshMenus();
+  }
+
+  private findSelectedEndpoint(connector: GenericConnectorDef): GenericConnectorEndpoint {
+    const selected = this.selectedEndpoint();
+    return (
+      (selected &&
+        connector?.endpoints.find((endpoint) =>
+          selected.idEndpoint != null
+            ? endpoint.idEndpoint === selected.idEndpoint
+            : endpoint.feedSupport === selected.feedSupport && endpoint.instrumentType === selected.instrumentType
+        )) ||
+      null
+    );
   }
 
   /**
@@ -292,18 +321,18 @@ export class GenericConnectorComponent
       });
       menuItems.push({
         label: 'EDIT_RECORD|ENDPOINT' + BaseSettings.DIALOG_MENU_SUFFIX,
-        command: () => this.handleEditEndpoint(this.selectedEndpoint),
-        disabled: !this.selectedEndpoint || !this.canEditEndpoint(this.selectedEndpoint)
+        command: () => this.handleEditEndpoint(this.selectedEndpoint()),
+        disabled: !this.selectedEndpoint() || !this.canEditEndpoint(this.selectedEndpoint())
       });
       menuItems.push({
         label: 'DELETE_RECORD|ENDPOINT',
-        command: () => this.handleDeleteEndpoint(this.selectedEndpoint),
-        disabled: !this.selectedEndpoint || !this.canEditEndpoint(this.selectedEndpoint)
+        command: () => this.handleDeleteEndpoint(this.selectedEndpoint()),
+        disabled: !this.selectedEndpoint() || !this.canEditEndpoint(this.selectedEndpoint())
       });
       menuItems.push({
         label: 'TEST_ENDPOINT' + BaseSettings.DIALOG_MENU_SUFFIX,
-        command: () => this.handleTestEndpoint(this.selectedEndpoint),
-        disabled: !this.selectedEndpoint
+        command: () => this.handleTestEndpoint(this.selectedEndpoint()),
+        disabled: !this.selectedEndpoint()
       });
       menuItems.push({ separator: true });
       menuItems.push({
@@ -312,7 +341,6 @@ export class GenericConnectorComponent
       });
     }
 
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -323,26 +351,26 @@ export class GenericConnectorComponent
   // --- HTTP Header handling ---
 
   onHttpHeadersChange(headers: GenericConnectorHttpHeader[]): void {
-    this.selectedEntity.httpHeaders = headers;
+    this.selectedEntity = Object.assign(new GenericConnectorDef(), this.selectedEntity, { httpHeaders: headers });
     this.saveConnector();
   }
 
   // --- Endpoint handling ---
 
   onEndpointPanelClick(endpoint: GenericConnectorEndpoint, event: Event): void {
-    this.selectedEndpoint = this.selectedEndpoint === endpoint ? null : endpoint;
+    this.selectedEndpoint.set(this.selectedEndpoint() === endpoint ? null : endpoint);
     this.refreshMenus();
   }
 
   handleCreateEndpoint(): void {
-    this.selectedEndpoint = new GenericConnectorEndpoint();
-    this.selectedEndpoint.fieldMappings = [];
-    this.visibleEndpointDialog = true;
+    this.endpointToEdit = new GenericConnectorEndpoint();
+    this.endpointToEdit.fieldMappings = [];
+    this.visibleEndpointDialog.set(true);
   }
 
   handleEditEndpoint(endpoint: GenericConnectorEndpoint): void {
-    this.selectedEndpoint = endpoint;
-    this.visibleEndpointDialog = true;
+    this.endpointToEdit = { ...endpoint, fieldMappings: endpoint.fieldMappings.map((mapping) => ({ ...mapping })) };
+    this.visibleEndpointDialog.set(true);
   }
 
   handleDeleteEndpoint(endpoint: GenericConnectorEndpoint): void {
@@ -353,8 +381,10 @@ export class GenericConnectorComponent
       () => {
         const idx = this.selectedEntity.endpoints.indexOf(endpoint);
         if (idx >= 0) {
-          this.selectedEntity.endpoints.splice(idx, 1);
-          this.selectedEndpoint = null;
+          this.selectedEntity = Object.assign(new GenericConnectorDef(), this.selectedEntity, {
+            endpoints: this.selectedEntity.endpoints.filter((_, index) => index !== idx)
+          });
+          this.selectedEndpoint.set(null);
           this.saveConnector();
         }
       }
@@ -371,84 +401,101 @@ export class GenericConnectorComponent
   }
 
   handleCloseEndpointDialog(processedActionData: ProcessedActionData): void {
-    this.visibleEndpointDialog = false;
+    this.visibleEndpointDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
-      if (!this.selectedEntity.endpoints.includes(this.selectedEndpoint)) {
-        this.selectedEntity.endpoints.push(this.selectedEndpoint);
-      }
+      const draft = this.endpointToEdit;
+      const endpoints = this.selectedEntity.endpoints;
+      const exists = endpoints.some((endpoint) => endpoint.idEndpoint === draft.idEndpoint);
+      this.selectedEntity = Object.assign(new GenericConnectorDef(), this.selectedEntity, {
+        endpoints: exists
+          ? endpoints.map((endpoint) => (endpoint.idEndpoint === draft.idEndpoint ? draft : endpoint))
+          : [...endpoints, draft]
+      });
+      this.selectedEndpoint.set(draft);
       this.saveConnector();
     }
   }
 
   handleTestEndpoint(endpoint: GenericConnectorEndpoint): void {
-    this.selectedEndpoint = endpoint;
-    this.visibleTestDialog = true;
+    this.selectedEndpoint.set(endpoint);
+    this.visibleTestDialog.set(true);
   }
 
   handleCloseTestDialog(): void {
-    this.visibleTestDialog = false;
+    this.visibleTestDialog.set(false);
   }
 
-  // --- Field Mapping handling ---
-
   onFieldMappingsChange(mappings: GenericConnectorFieldMapping[], endpoint: GenericConnectorEndpoint): void {
-    const ep = this.selectedEntity.endpoints.find((e) => e.idEndpoint === endpoint.idEndpoint);
-    if (ep) {
-      ep.fieldMappings = mappings;
-    }
+    this.selectedEntity = Object.assign(new GenericConnectorDef(), this.selectedEntity, {
+      endpoints: this.selectedEntity.endpoints.map((current) =>
+        current.idEndpoint === endpoint.idEndpoint ? { ...current, fieldMappings: mappings } : current
+      )
+    });
+    this.selectedEndpoint.set(this.findSelectedEndpoint(this.selectedEntity));
     this.saveConnector();
   }
 
   // --- Admin actions ---
 
   private handleActivate(entity: GenericConnectorDef): void {
-    this.genericConnectorDefService.activateConnector(entity.idGenericConnector).subscribe(() => {
-      this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED', {
-        i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)
+    this.genericConnectorDefService
+      .activateConnector(entity.idGenericConnector)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED', {
+          i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)
+        });
+        this.readData();
       });
-      this.readData();
-    });
   }
 
   private handleDeactivate(entity: GenericConnectorDef): void {
-    combineLatest([
+    forkJoin([
       this.translateService.get('MSG_CONFIRM_DEACTIVATE_CONNECTOR', {
         count: entity.instrumentCount
       }),
       this.translateService.get('MSG_GENERAL_HEADER')
-    ]).subscribe(([msg, header]) => {
-      this.confirmationService.confirm({
-        message: msg,
-        header: header,
-        accept: () => {
-          this.genericConnectorDefService.deactivateConnector(entity.idGenericConnector).subscribe(() => {
-            this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED', {
-              i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)
-            });
-            this.readData();
-          });
-        }
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([msg, header]) => {
+        this.confirmationService.confirm({
+          message: msg,
+          header: header,
+          accept: () => {
+            this.genericConnectorDefService
+              .deactivateConnector(entity.idGenericConnector)
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe(() => {
+                this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED', {
+                  i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)
+                });
+                this.readData();
+              });
+          }
+        });
       });
-    });
   }
 
   private saveConnector(): void {
-    this.genericConnectorDefService.update(this.selectedEntity).subscribe((updated) => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-        i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)
+    const entity = this.selectedEntity;
+    this.genericConnectorDefService
+      .update(entity)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((updated) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+          i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)
+        });
+        if (this.selectedEntity?.idGenericConnector === entity.idGenericConnector) {
+          this.selectedEntity = updated;
+          this.selectedEndpoint.set(this.findSelectedEndpoint(updated));
+        }
+        this.readData();
+        // The reload endpoint is admin-only; calling it as a non-admin creator raises a
+        // SecurityException that counts towards the user's security breach limit and locks the
+        // account after a few saves. Non-activated connectors are not registered anyway.
+        if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+          this.genericConnectorDefService.reloadConnectors().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+        }
       });
-      this.selectedEntity = updated;
-      this.readData();
-      // The reload endpoint is admin-only; calling it as a non-admin creator raises a
-      // SecurityException that counts towards the user's security breach limit and locks the
-      // account after a few saves. Non-activated connectors are not registered anyway.
-      if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
-        this.genericConnectorDefService.reloadConnectors().subscribe();
-      }
-    });
-  }
-
-  ngOnDestroy(): void {
-    super.destroy();
   }
 }

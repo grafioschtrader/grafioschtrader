@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy } from '@angular/core';
+import { Component, Injector, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { Subscription } from 'rxjs';
-import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { TranslateValue } from '../../datashowbase/column.config';
@@ -27,45 +28,45 @@ import { UserAccessTokenCreateDialogComponent } from './user-access-token-create
 @Component({
   selector: 'user-access-token-table',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, TranslateModule, ButtonModule, UserAccessTokenCreateDialogComponent],
   template: `
     <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem">
       <p-button
         [label]="'ACCESS_TOKEN_CREATE' | translate"
-        [disabled]="!formDefinition"
+        [disabled]="!formDefinition()"
         (onClick)="handleEditEntity(null)" />
-      @if (selectedEntity) {
-        <p-button [label]="'ACCESS_TOKEN_REVOKE' | translate" (onClick)="handleDeleteEntity(selectedEntity)" />
+      @if (selectedEntity()) {
+        <p-button [label]="'ACCESS_TOKEN_REVOKE' | translate" (onClick)="handleDeleteEntity(selectedEntity())" />
       }
     </div>
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       selectionMode="single"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [customSortFn]="customSorter"
+      [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale"
       [scrollable]="false"
-      [showContextMenu]="!!contextMenuItems"
-      [contextMenuItems]="contextMenuItems"
+      [showContextMenu]="!!contextMenuItems()"
+      [contextMenuItems]="contextMenuItems()"
       [contextMenuAppendTo]="'body'"
       (componentClick)="onComponentClick($event)" />
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <user-access-token-create-dialog
-        [visibleDialog]="visibleDialog"
-        [formDefinition]="formDefinition"
+        [visibleDialog]="visibleDialog()"
+        [formDefinition]="formDefinition()"
         (tokenCreated)="readData()"
         (closeDialog)="handleCloseDialog($event)" />
     }
   `
 })
-export class UserAccessTokenTableComponent extends TableCrudSupportMenu<UserAccessToken> implements OnDestroy {
-  formDefinition: ClassDescriptorInputAndShow;
-  private subscriptions = new Subscription();
+export class UserAccessTokenTableComponent extends TableCrudSupportMenuSignal<UserAccessToken> {
+  readonly formDefinition = signal<ClassDescriptorInputAndShow>(null);
+  private readDataSub?: Subscription;
 
   constructor(
     private userAccessTokenService: UserAccessTokenService,
@@ -104,22 +105,26 @@ export class UserAccessTokenTableComponent extends TableCrudSupportMenu<UserAcce
   }
 
   protected override initialize(): void {
-    this.subscriptions.add(
-      this.gps.getEntityFormDefinition('UserAccessTokenCreateRequest').subscribe((definition) => {
-        this.formDefinition = definition;
+    this.gps
+      .getEntityFormDefinition('UserAccessTokenCreateRequest')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((definition) => {
+        this.formDefinition.set(definition);
         this.readData();
-      })
-    );
+      });
   }
 
   protected override readData(): void {
-    this.subscriptions.add(
-      this.userAccessTokenService.getAll().subscribe((rows) => {
-        this.entityList = rows;
+    this.readDataSub?.unsubscribe();
+    this.readDataSub = this.userAccessTokenService
+      .getAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((rows) => {
+        this.entityList.set(rows);
         this.createTranslatedValueStoreAndFilterField(rows);
-        this.resetMenu(rows.find((row) => row.idUserAccessToken === this.selectedEntity?.idUserAccessToken) ?? null);
-      })
-    );
+        this.refreshSelectedEntity();
+        if (!this.selectedEntity() && this.isActivated()) this.resetMenu(null);
+      });
   }
 
   protected override prepareCallParam(_: UserAccessToken): void {}
@@ -130,7 +135,7 @@ export class UserAccessTokenTableComponent extends TableCrudSupportMenu<UserAcce
       {
         label: 'ACCESS_TOKEN_CREATE' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.handleEditEntity(null),
-        disabled: !this.formDefinition
+        disabled: !this.formDefinition()
       }
     ];
     if (entity) {
@@ -145,10 +150,5 @@ export class UserAccessTokenTableComponent extends TableCrudSupportMenu<UserAcce
 
   override getHelpContextId(): string {
     return HelpIds.HELP_INTRO_SETTINGS_AI_ASSISTANT;
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-    this.activePanelService.destroyPanel(this);
   }
 }

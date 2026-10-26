@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.menu.component';
@@ -13,31 +13,16 @@ import { AppSettings } from '../../shared/app.settings';
   selector: 'stockexchange-tabmenu',
   standalone: true,
   imports: [SharedTabMenuComponent, RouterModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `
 })
-export class StockexchangeTabMenuComponent implements OnInit {
-  tabs: TabItem[] = [];
-  defaultRoute: string = AppSettings.STOCKEXCHANGE_TAB_EXCHANGES_KEY;
-
-  ngOnInit(): void {
-    this.initializeTabs();
-  }
-
-  private initializeTabs(): void {
-    const tabsConfig: [string, string][] = [
-      ['STOCKEXCHANGE', AppSettings.STOCKEXCHANGE_TAB_EXCHANGES_KEY],
-      ['TRADING_CALENDAR_RULE_SET', AppSettings.STOCKEXCHANGE_TAB_RULE_SETS_KEY]
-    ];
-
-    this.tabs = tabsConfig.map(([label, route]) => ({
-      label,
-      route,
-      icon: ''
-    }));
-  }
+export class StockexchangeTabMenuComponent {
+  readonly defaultRoute = AppSettings.STOCKEXCHANGE_TAB_EXCHANGES_KEY;
+  readonly tabs: TabItem[] = [
+    { label: 'STOCKEXCHANGE', route: AppSettings.STOCKEXCHANGE_TAB_EXCHANGES_KEY, icon: '' },
+    { label: 'TRADING_CALENDAR_RULE_SET', route: AppSettings.STOCKEXCHANGE_TAB_RULE_SETS_KEY, icon: '' }
+  ];
 }

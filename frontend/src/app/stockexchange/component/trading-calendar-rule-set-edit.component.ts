@@ -1,4 +1,5 @@
-import { ViewChild, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ViewChild, Component, effect, Input, OnInit, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -48,11 +49,12 @@ import { TradingCalendarRuleSetPreviewComponent } from './trading-calendar-rule-
     <yaml-editor
       #yamlEditor
       format="CALENDAR"
-      (syntaxValidChange)="configObject.submit.disabled = !$event || yamlEditor.validating"
-      (validationPendingChange)="configObject.submit.disabled = $event || !yamlEditor.syntaxValid"
+      (syntaxValidChange)="updateSubmitState()"
+      (validationPendingChange)="updateSubmitState()"
       [height]="'380px'"
-      [(value)]="ruleYamlValue"
-      [schema]="ruleSchema"
+      [value]="ruleYamlValue()"
+      (valueChange)="ruleYamlValue.set($event)"
+      [schema]="ruleSchema()"
       [fieldCompletions]="ruleCompletions"></yaml-editor>
 
     @if (idTradingCalendarRuleSet) {
@@ -61,26 +63,25 @@ import { TradingCalendarRuleSetPreviewComponent } from './trading-calendar-rule-
         [toggleable]="true"
         [collapsed]="true"
         styleClass="mt-3"
-        (onBeforeToggle)="loadPreview()">
+        (onBeforeToggle)="onPreviewToggle($event.collapsed)">
         <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
           <p-button [label]="'PREVIOUS_YEAR' | translate" (click)="changePreviewYear(-1)">
             <i class="pi pi-angle-left" pButtonIcon></i>
           </p-button>
-          <strong>{{ previewYear }}</strong>
+          <strong>{{ previewYear() }}</strong>
           <p-button [label]="'NEXT_YEAR' | translate" (click)="changePreviewYear(1)">
             <i class="pi pi-angle-right" pButtonIcon></i>
           </p-button>
         </div>
-        @if (previewError) {
-          <div class="text-red-600">{{ previewError }}</div>
+        @if (previewError()) {
+          <div class="text-red-600">{{ previewError() }}</div>
         } @else {
-          <trading-calendar-rule-set-preview [closures]="previewClosures"> </trading-calendar-rule-set-preview>
+          <trading-calendar-rule-set-preview [closures]="previewClosures()"> </trading-calendar-rule-set-preview>
         }
       </p-fieldset>
     }
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     DialogModule,
     DynamicFormModule,
@@ -99,13 +100,15 @@ export class TradingCalendarRuleSetEditComponent
   @Input() callParam: TradingCalendarRuleSet;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
-  ruleYamlValue = '';
-  ruleSchema: any;
+  readonly ruleYamlValue = signal('');
+  readonly ruleSchema = signal<any>(null);
   ruleCompletions: { [fieldName: string]: YamlFieldCompletion[] };
 
-  previewYear: number = new Date().getFullYear();
-  previewClosures: { [date: string]: string } = {};
-  previewError: string = null;
+  readonly previewYear = signal(new Date().getFullYear());
+  readonly previewClosures = signal<{ [date: string]: string }>({});
+  readonly previewError = signal<string>(null);
+  private previewSubscription?: Subscription;
+  private optionsLoaded = false;
 
   constructor(
     private tradingCalendarRuleSetService: TradingCalendarRuleSetService,
@@ -122,6 +125,13 @@ export class TradingCalendarRuleSetEditComponent
       messageToastService,
       tradingCalendarRuleSetService
     );
+    effect(() => {
+      this.ruleYamlValue();
+      // A result belongs to the exact YAML that was sent, including while its response is still in flight.
+      this.previewSubscription?.unsubscribe();
+      this.previewClosures.set({});
+      this.previewError.set(null);
+    });
   }
 
   get idTradingCalendarRuleSet(): number {
@@ -145,27 +155,44 @@ export class TradingCalendarRuleSetEditComponent
   }
 
   protected override initialize(): void {
-    this.ruleYamlValue = this.callParam?.ruleYaml ?? '';
+    this.ruleYamlValue.set(this.callParam?.ruleYaml ?? '');
+    this.previewYear.set(new Date().getFullYear());
+    this.previewClosures.set({});
+    this.previewError.set(null);
+    this.optionsLoaded = false;
+    this.form.setDefaultValuesAndEnableSubmit();
+    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
+      this.translateService,
+      this.gps,
+      this.callParam,
+      this.form,
+      this.configObject,
+      this.proposeChangeEntityWithEntity
+    );
+    this.updateSubmitState();
     this.httpClient
       .get('assets/schemas/trading-calendar-rule-schema.json')
-      .subscribe((schema) => (this.ruleSchema = schema));
+      .pipe(this.untilDialogClosed())
+      .subscribe((schema) => this.ruleSchema.set(schema));
 
-    this.tradingCalendarRuleSetService.getRuleSetOptions().subscribe((options: ValueKeyHtmlSelectOptions[]) => {
-      // A set must not extend itself, so the edited one is removed from the choices. Longer cycles are refused by
-      // the backend, which is the only place that can see the whole chain.
-      this.configObject.idExtendsRuleSet.valueKeyHtmlOptions = options.filter(
-        (option) => !this.idTradingCalendarRuleSet || +option.key !== this.idTradingCalendarRuleSet
-      );
-      this.form.setDefaultValuesAndEnableSubmit();
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-        this.translateService,
-        this.gps,
-        this.callParam,
-        this.form,
-        this.configObject,
-        this.proposeChangeEntityWithEntity
-      );
-    });
+    this.tradingCalendarRuleSetService
+      .getRuleSetOptions()
+      .pipe(this.untilDialogClosed())
+      .subscribe((options: ValueKeyHtmlSelectOptions[]) => {
+        // A set must not extend itself, so the edited one is removed from the choices. Longer cycles are refused by
+        // the backend, which is the only place that can see the whole chain.
+        this.configObject.idExtendsRuleSet.valueKeyHtmlOptions = options.filter(
+          (option) => !this.idTradingCalendarRuleSet || +option.key !== this.idTradingCalendarRuleSet
+        );
+        this.optionsLoaded = true;
+        this.updateSubmitState();
+      });
+  }
+
+  /** Options and YAML validation can finish in either order; neither may enable submit before the other. */
+  updateSubmitState(): void {
+    this.configObject.submit.disabled =
+      !this.optionsLoaded || !this.yamlEditor?.syntaxValid || this.yamlEditor.validating;
   }
 
   /**
@@ -173,13 +200,20 @@ export class TradingCalendarRuleSetEditComponent
    * save as well, but reporting them here lists every problem at once instead of the first one as a toast.
    */
   override async submit(value: { [name: string]: any }): Promise<void> {
-    if (await this.yamlEditor.validateForSubmit()) super.submit(value);
-    else this.configObject.submit.disabled = !this.yamlEditor.syntaxValid;
+    if (await this.yamlEditor.validateForSubmit()) {
+      if (!this.destroyRef.destroyed && this.optionsLoaded) super.submit(value);
+    } else this.updateSubmitState();
   }
 
   changePreviewYear(offset: number): void {
-    this.previewYear += offset;
+    this.previewYear.update((year) => year + offset);
     this.loadPreview();
+  }
+
+  /** The before-toggle event contains the old state: only expanding starts a preview. */
+  onPreviewToggle(collapsed: boolean): void {
+    this.previewSubscription?.unsubscribe();
+    if (collapsed) this.loadPreview();
   }
 
   /**
@@ -190,12 +224,15 @@ export class TradingCalendarRuleSetEditComponent
     if (!this.idTradingCalendarRuleSet) {
       return;
     }
-    this.previewError = null;
-    this.tradingCalendarRuleSetService
-      .previewClosures(this.idTradingCalendarRuleSet, this.previewYear, this.ruleYamlValue)
+    this.previewSubscription?.unsubscribe();
+    this.previewError.set(null);
+    this.previewClosures.set({});
+    this.previewSubscription = this.tradingCalendarRuleSetService
+      .previewClosures(this.idTradingCalendarRuleSet, this.previewYear(), this.ruleYamlValue())
+      .pipe(this.untilDialogClosed())
       .subscribe({
-        next: (closures) => (this.previewClosures = closures),
-        error: () => (this.previewError = this.translateService.instant('PREVIEW_CLOSURES_FAILED'))
+        next: (closures) => this.previewClosures.set(closures),
+        error: () => this.previewError.set(this.translateService.instant('PREVIEW_CLOSURES_FAILED'))
       });
   }
 
@@ -203,7 +240,7 @@ export class TradingCalendarRuleSetEditComponent
     const ruleSet = new TradingCalendarRuleSet();
     this.copyFormToPublicBusinessObject(ruleSet, this.callParam, this.proposeChangeEntityWithEntity);
     ruleSet.mic = ruleSet.mic ? ruleSet.mic.toUpperCase() : null;
-    ruleSet.ruleYaml = this.ruleYamlValue;
+    ruleSet.ruleYaml = this.ruleYamlValue();
     return ruleSet;
   }
 

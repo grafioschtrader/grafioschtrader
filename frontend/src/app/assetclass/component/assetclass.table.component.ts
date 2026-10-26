@@ -1,16 +1,17 @@
-import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { combineLatest, Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { AssetclassService } from '../service/assetclass.service';
 import { Assetclass } from '../../entities/assetclass';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AssetclassCallParam } from './assetclass.call.param';
-import { plainToClass } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
@@ -29,13 +30,14 @@ import { AssetclassEditComponent } from './assetclass-edit.component';
 @Component({
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollHeight]="'flex'"
       [scrollable]="true"
       [stripedRows]="true"
@@ -46,9 +48,9 @@ import { AssetclassEditComponent } from './assetclass-edit.component';
         'passiv-border': !isActivated()
       }"
       [showContextMenu]="isActivated()"
-      [contextMenuItems]="contextMenuItems"
-      [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [contextMenuItems]="contextMenuItems()"
+      [ownerHighlightFn]="ownerHighlight"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ entityNameUpper | translate }}</h4>
 
@@ -58,9 +60,9 @@ import { AssetclassEditComponent } from './assetclass-edit.component';
       </ng-template>
     </configurable-table>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <assetclass-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         [proposeChangeEntityWithEntity]=""
         (closeDialog)="handleCloseDialog($event)">
@@ -69,11 +71,12 @@ import { AssetclassEditComponent } from './assetclass-edit.component';
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, ConfigurableTableComponent, AngularSvgIconModule, AssetclassEditComponent]
 })
-export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> implements OnDestroy {
+export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> {
   callParam: AssetclassCallParam = new AssetclassCallParam();
+  readonly ownerHighlight = (entity: Assetclass, field: ColumnConfig): boolean =>
+    this.isNotSingleModeAndOwner(entity, field);
 
   private readDataSub?: Subscription;
 
@@ -130,17 +133,19 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
 
   readData(): void {
     this.readDataSub?.unsubscribe();
-    combineLatest([
+    this.readDataSub = forkJoin([
       this.assetclassService.getAllAssetclass(),
       this.assetclassService.assetclassesHasSecurity()
-    ]).subscribe((data: [Assetclass[], number[]]) => {
-      const assetclassList: Assetclass[] = plainToClass(Assetclass, data[0]);
-      this.callParam.setSuggestionsArrayOfAssetclassList(assetclassList);
-      this.createTranslatedValueStoreAndFilterField(assetclassList);
-      this.entityList = assetclassList;
-      data[1].forEach((keyvalue) => (this.hasSecurityObject[keyvalue[0]] = keyvalue[1]));
-      this.refreshSelectedEntity();
-    });
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        const assetclassList = plainToInstance(Assetclass, data[0]);
+        this.callParam.setSuggestionsArrayOfAssetclassList(assetclassList);
+        this.createTranslatedValueStoreAndFilterField(assetclassList);
+        this.hasSecurityObject = Object.fromEntries(data[1]);
+        this.entityList.set(assetclassList);
+        this.refreshSelectedEntity();
+      });
   }
 
   getAssetclassIcon(assetclass: Assetclass, field: ColumnConfig, valueField: any): string {
@@ -149,10 +154,5 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
 
   public override getHelpContextId(): string {
     return HelpIds.HELP_BASEDATA_ASSETCLASS;
-  }
-
-  ngOnDestroy(): void {
-    this.readDataSub?.unsubscribe();
-    this.activePanelService.destroyPanel(this);
   }
 }

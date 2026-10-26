@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnChanges, SimpleChanges, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { EditInputType } from '../../lib/datashowbase/column.config';
@@ -29,15 +31,17 @@ import { TaxDataService } from '../service/tax-data.service';
   selector: 'tax-exchange-rate-table',
   template: `
     <editable-table
-      [data]="exchangeRates"
+      [data]="exchangeRates()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="idIctaxExchangeRate"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [showEditColumn]="isAdmin"
       [canDeleteRowFn]="neverDelete"
-      [valueGetterFn]="getValueByPath.bind(this)"
-      [customSortFn]="customSort.bind(this)"
+      [valueGetterFn]="valueGetter"
+      [customSortFn]="customSorter"
+      [multiSortMeta]="multiSortMeta"
       [baseLocale]="baseLocale"
       [numberLocale]="numberLocale"
       [scrollable]="false"
@@ -53,14 +57,15 @@ import { TaxDataService } from '../service/tax-data.service';
     </editable-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [EditableTableComponent]
 })
 export class TaxExchangeRateTableComponent extends TableEditConfigBase implements OnChanges, IGlobalMenuAttach {
   @Input() taxYear: TaxYear;
 
   contextMenuItems: MenuItem[] = [];
-  exchangeRates: IctaxExchangeRate[] = [];
+  private readonly destroyRef = inject(DestroyRef);
+  private readSubscription?: Subscription;
+  readonly exchangeRates = signal<IctaxExchangeRate[]>([]);
   selectedEntity: IctaxExchangeRate;
   isAdmin: boolean;
 
@@ -84,6 +89,7 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
     super(filterService, usersettingsService, translateService, gps);
     this.isAdmin = AuditHelper.hasAdminRole(gps);
     this.numberLocale = gps.getLocale();
+    this.destroyRef.onDestroy(() => this.activePanelService.destroyPanel(this));
 
     this.addColumnFeqH(DataType.String, 'currency', true, false, { width: 90 });
     this.addColumnFeqH(DataType.NumericInteger, 'denomination', true, false, { width: 110 });
@@ -160,21 +166,28 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
    * @param event - the row the user finished editing
    */
   onRowEditSave(event: RowEditSaveEvent<IctaxExchangeRate>): void {
-    this.taxDataService.updateExchangeRate(event.row).subscribe({
-      next: () => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-          i18nRecord: this.ICTAX_EXCHANGE_RATE
-        });
-        this.readData();
-      }
-    });
+    this.taxDataService
+      .updateExchangeRate(event.row)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: this.ICTAX_EXCHANGE_RATE
+          });
+          this.readData();
+        }
+      });
   }
 
   private readData(): void {
-    this.taxDataService.getExchangeRates(this.taxYear.idTaxYear).subscribe((rates: IctaxExchangeRate[]) => {
-      this.exchangeRates = rates;
-      this.createTranslatedValueStore(this.exchangeRates);
-    });
+    this.readSubscription?.unsubscribe();
+    this.readSubscription = this.taxDataService
+      .getExchangeRates(this.taxYear.idTaxYear)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((rates: IctaxExchangeRate[]) => {
+        this.createTranslatedValueStore(rates);
+        this.exchangeRates.set(rates);
+      });
   }
 
   private resetMenu(): void {

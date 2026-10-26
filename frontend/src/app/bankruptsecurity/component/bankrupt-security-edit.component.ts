@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
+import { finalize, Subscription, switchMap, take, tap } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -53,7 +54,6 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class BankruptSecurityEditComponent extends SimpleEntityEditBase<BankruptSecurity> implements OnInit {
@@ -61,6 +61,8 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
 
   private readonly supplementCriteria = new SupplementCriteria(true, true);
   private selectedSecurity: Security | null = null;
+  private searchSubscription?: Subscription;
+  readonly searchSecurity = (fieldConfig: FieldConfig): void => this.handleSecuritySearchClick(fieldConfig);
 
   constructor(
     translateService: TranslateService,
@@ -85,13 +87,7 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
     // arriving later would leave the form empty and the edit values would not transfer.
     const fieldDescriptors = this.callParam.formDefinition.fieldDescriptorInputAndShows;
     this.config = [
-      DynamicFieldHelper.createFieldInputButton(
-        DataType.String,
-        'securityName',
-        'SECURITY',
-        this.handleSecuritySearchClick.bind(this),
-        true
-      ),
+      DynamicFieldHelper.createFieldInputButton(DataType.String, 'securityName', 'SECURITY', this.searchSecurity, true),
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'noDataSince', fieldDescriptors),
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'noTradingSince', fieldDescriptors),
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'note', fieldDescriptors),
@@ -114,23 +110,38 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
   }
 
   handleSecuritySearchClick(fieldConfig: FieldConfig): void {
-    this.translateService.get('SET_SECURITY').subscribe((title) => {
-      const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
-        header: title,
-        width: '720px',
-        resizable: false,
-        modal: true,
-        closable: true,
-        closeOnEscape: true,
-        data: { supplementCriteria: this.supplementCriteria }
-      });
-      ref.onClose.subscribe((security: Security | CurrencypairWatchlist) => {
+    this.searchSubscription?.unsubscribe();
+    this.searchSubscription = this.translateService
+      .get('SET_SECURITY')
+      .pipe(
+        switchMap((title) => {
+          const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
+            header: title,
+            width: '720px',
+            resizable: false,
+            modal: true,
+            closable: true,
+            closeOnEscape: true,
+            data: { supplementCriteria: this.supplementCriteria }
+          });
+          // The nested dialog belongs to this edit session, including when navigation destroys its owner.
+          let closed = false;
+          return ref.onClose.pipe(
+            take(1),
+            tap(() => (closed = true)),
+            finalize(() => {
+              if (!closed) ref.close();
+            })
+          );
+        }),
+        this.untilDialogClosed()
+      )
+      .subscribe((security: Security | CurrencypairWatchlist) => {
         if (security) {
           this.selectedSecurity = security as Security;
           this.configObject.securityName.formControl.setValue(this.selectedSecurity.name);
         }
       });
-    });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): BankruptSecurity {

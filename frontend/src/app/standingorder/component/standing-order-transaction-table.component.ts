@@ -1,4 +1,6 @@
-import { Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, Input, OnDestroy, OnChanges, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
@@ -19,7 +21,7 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { TranslateValue } from '../../lib/datashowbase/column.config';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { AppSettings } from '../../shared/app.settings';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
@@ -39,11 +41,12 @@ import { StandingOrderSecurityEditComponent } from './standing-order-security-ed
   template: `
     <h5>{{ 'SUCCESSFUL_TRANSACTIONS' | translate }}</h5>
     <configurable-table
-      [data]="transactions"
+      [data]="transactions()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="'idTransaction'"
       [(selection)]="selectedTransaction"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [multiSortMeta]="multiSortMeta"
       (rowSelect)="onRowSelect($event)"
       (rowUnselect)="onRowUnselect($event)"
@@ -57,8 +60,8 @@ import { StandingOrderSecurityEditComponent } from './standing-order-security-ed
       }"
       [customClass]="'datatable nestedtable'"
       [scrollable]="false"
-      [valueGetterFn]="getValueByPath.bind(this)"
-      [negativeValueFn]="isValueByPathMinus.bind(this)"
+      [valueGetterFn]="valueGetter"
+      [negativeValueFn]="negativeValue"
       [baseLocale]="baseLocale"
       [contextMenuAppendTo]="'body'">
     </configurable-table>
@@ -112,7 +115,6 @@ import { StandingOrderSecurityEditComponent } from './standing-order-security-ed
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -125,10 +127,12 @@ import { StandingOrderSecurityEditComponent } from './standing-order-security-ed
     StandingOrderSecurityEditComponent
   ]
 })
-export class StandingOrderTransactionTableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
+export class StandingOrderTransactionTableComponent extends TransactionContextMenu implements OnChanges, OnDestroy {
   @Input() standingOrder: StandingOrder;
 
-  transactions: Transaction[] = [];
+  readonly transactions = signal<Transaction[]>([]);
+  readonly negativeValue = (row: Transaction, field: ColumnConfig) => this.isValueByPathMinus(row, field);
+  private readSubscription?: Subscription;
   private portfolio: Portfolio;
 
   constructor(
@@ -171,9 +175,9 @@ export class StandingOrderTransactionTableComponent extends TransactionContextMe
     });
   }
 
-  ngOnInit(): void {
+  ngOnChanges(): void {
     this.prepareTableAndTranslate();
-    this.multiSortMeta.push({ field: 'transactionTime', order: -1 });
+    this.multiSortMeta = [{ field: 'transactionTime', order: -1 }];
     this.initialize();
   }
 
@@ -203,12 +207,22 @@ export class StandingOrderTransactionTableComponent extends TransactionContextMe
   }
 
   protected initialize(): void {
-    this.portfolioService
+    this.readSubscription?.unsubscribe();
+    this.readSubscription = this.portfolioService
       .getPortfolioByIdSecuritycashaccount(this.standingOrder.cashaccount.idSecuritycashAccount)
-      .subscribe((portfolio) => {
-        this.portfolio = portfolio;
-        this.loadTransactions();
-      });
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((portfolio) => {
+          this.portfolio = portfolio;
+          return this.standingOrderService.getTransactions(this.standingOrder.idStandingOrder);
+        })
+      )
+      .subscribe((transactions) => this.publishTransactions(transactions));
+  }
+
+  private publishTransactions(transactions: Transaction[]): void {
+    this.createTranslatedValueStoreAndFilterField(transactions);
+    this.transactions.set(transactions);
   }
 
   protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam): void {
@@ -216,9 +230,6 @@ export class StandingOrderTransactionTableComponent extends TransactionContextMe
   }
 
   private loadTransactions(): void {
-    this.standingOrderService.getTransactions(this.standingOrder.idStandingOrder).subscribe((transactions) => {
-      this.transactions = transactions;
-      this.createTranslatedValueStoreAndFilterField(this.transactions);
-    });
+    this.initialize();
   }
 }

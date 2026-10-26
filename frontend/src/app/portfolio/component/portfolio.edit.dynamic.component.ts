@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, OnInit } from '@angular/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { PortfolioService } from '../service/portfolio.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -31,10 +31,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule]
 })
-export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfolio> implements OnInit, AfterViewInit {
+export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfolio> implements OnInit {
   callParam: CallParam;
 
   constructor(
@@ -55,6 +54,7 @@ export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfol
       messageToastService,
       portfolioService
     );
+    afterNextRender(() => this.initializeForm());
   }
 
   ngOnInit(): void {
@@ -71,22 +71,26 @@ export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfol
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  ngAfterViewInit(): void {
-    this.gpsGT.getCurrencies().subscribe((data) => {
-      this.configObject.currency.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-        'key',
-        'value',
-        data,
-        false
-      );
-      this.form.setDefaultValuesAndEnableSubmit();
-      if (this.callParam.thisObject != null) {
-        this.form.transferBusinessObjectToForm(this.callParam.thisObject);
-      } else {
-        this.configObject.currency.formControl.setValue((<Tenant>this.callParam.parentObject).currency);
-      }
-      this.configObject.name.elementRef.nativeElement.focus();
-    });
+  /** Initializes the rendered form once; arriving currency options must not reset values already entered. */
+  private initializeForm(): void {
+    this.form.setDefaultValuesAndEnableSubmit();
+    if (this.callParam.thisObject != null) {
+      this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+    } else {
+      this.configObject.currency.formControl.setValue((<Tenant>this.callParam.parentObject).currency);
+    }
+    this.configObject.name.elementRef?.nativeElement.focus();
+    this.gpsGT
+      .getCurrencies()
+      .pipe(this.untilDialogClosed())
+      .subscribe((data) => {
+        this.configObject.currency.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+          'key',
+          'value',
+          data,
+          false
+        );
+      });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Portfolio {

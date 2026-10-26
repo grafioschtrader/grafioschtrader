@@ -1,4 +1,6 @@
-import { ViewChild, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ViewChild, Component, Input, OnInit, computed, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -24,7 +26,6 @@ import { ProcessedAction } from '../../lib/types/processed.action';
 @Component({
   selector: 'tax-model-edit',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     TranslateModule,
     DialogModule,
@@ -37,6 +38,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
     styleClass="big-dialog"
     [header]="'TAX_MODEL_YAML' | translate"
     [visible]="visibleDialog"
+    (visibleChange)="!$event && onHide($event)"
     [modal]="true"
     [style]="{ width: '900px' }"
     (onShow)="onShow($event)"
@@ -45,16 +47,17 @@ import { ProcessedAction } from '../../lib/types/processed.action';
     <yaml-editor
       #yamlEditor
       format="TAXES"
-      [(value)]="yaml"
-      [schema]="schema"
+      [value]="yaml()"
+      (valueChange)="onYamlChange($event)"
+      [schema]="schema()"
       [fieldCompletions]="evalExCompletions"
       [height]="'300px'" />
-    @if (tooLarge) {
+    @if (tooLarge()) {
       <p role="alert">{{ 'TAX_MODEL_TOO_LARGE' | translate }}</p>
     }
     <p-button
       [label]="'SAVE' | translate"
-      [disabled]="tooLarge || yamlEditor.validating || !yamlEditor.syntaxValid"
+      [disabled]="modelLoading() || tooLarge() || yamlEditor.validating || !yamlEditor.syntaxValid"
       (click)="save()" />
     <p-button [label]="'TAX_MODEL_CLEAR' | translate" (click)="save(null)" />
     <details>
@@ -65,7 +68,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
         [translateService]="translateService"
         #form="dynamicForm"
         (submitBt)="preview()" />
-      @if (result) {
+      @if (result(); as result) {
         <p>{{ (result.complete ? 'TAX_ESTIMATE_COMPLETE' : 'TAX_ESTIMATE_INCOMPLETE') | translate }}</p>
         <tax-details-table mode="estimate" [rows]="[result]" />
         <tax-details-table mode="matches" [rows]="result.matchedRules" [currency]="result.currency" />
@@ -77,11 +80,15 @@ import { ProcessedAction } from '../../lib/types/processed.action';
 export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
   @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
   @Input() country: TaxCountry;
-  yaml = '';
-  schema: object;
+  readonly yaml = signal('');
+  readonly schema = signal<object>(undefined);
+  readonly modelLoading = signal(false);
+  readonly tooLarge = computed(() => new TextEncoder().encode(this.yaml()).length > 65536);
   evalExCompletions: { [fieldName: string]: YamlFieldCompletion[] };
-  errors: string[] = [];
-  result: any;
+  readonly result = signal<any>(null);
+  private yamlEdited = false;
+  private validationRevision = 0;
+  private previewSubscription?: Subscription;
 
   constructor(
     public translateService: TranslateService,
@@ -113,50 +120,98 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.evalExCompletions = TaxModelEditComponent.buildEvalExCompletions();
-    this.http.get('assets/schemas/tax-model-schema.json').subscribe((schema) => (this.schema = schema));
+    this.http
+      .get('assets/schemas/tax-model-schema.json')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((schema) => this.schema.set(schema));
   }
 
   protected override initialize(): void {
-    this.service.getTaxModel(this.country.idTaxCountry).subscribe((model) => (this.yaml = model.yaml || ''));
-    this.service.taxOptions('eventkinds').subscribe((options) => {
-      this.configObject.eventKind.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-        this.translateService,
-        options,
-        false
-      );
-    });
-    this.gpsGT.getCurrencies().subscribe((options) => (this.configObject.currency.valueKeyHtmlOptions = options));
-    this.gps.getCountriesForSelectBox().subscribe((options) => {
-      for (const key of ['issuerCountry', 'dealerCountry', 'exchangeCountry'])
-        this.configObject[key].valueKeyHtmlOptions = options;
-    });
+    this.validationRevision++;
+    this.yamlEdited = false;
+    this.yaml.set('');
+    this.result.set(null);
+    this.modelLoading.set(true);
+    this.service
+      .getTaxModel(this.country.idTaxCountry)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (model) => {
+          if (!this.yamlEdited) this.yaml.set(model.yaml || '');
+          this.modelLoading.set(false);
+        },
+        error: () => this.modelLoading.set(false)
+      });
+    this.service
+      .taxOptions('eventkinds')
+      .pipe(this.untilDialogClosed())
+      .subscribe((options) => {
+        this.configObject.eventKind.valueKeyHtmlOptions =
+          SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(this.translateService, options, false);
+      });
+    this.gpsGT
+      .getCurrencies()
+      .pipe(this.untilDialogClosed())
+      .subscribe((options) => (this.configObject.currency.valueKeyHtmlOptions = options));
+    this.gps
+      .getCountriesForSelectBox()
+      .pipe(this.untilDialogClosed())
+      .subscribe((options) => {
+        for (const key of ['issuerCountry', 'dealerCountry', 'exchangeCountry'])
+          this.configObject[key].valueKeyHtmlOptions = options;
+      });
     this.form.setDefaultValuesAndEnableSubmit();
   }
 
-  get tooLarge(): boolean {
-    return new TextEncoder().encode(this.yaml).length > 65536;
+  onYamlChange(yaml: string): void {
+    this.yamlEdited = true;
+    this.yaml.set(yaml);
+    this.validationRevision++;
+    this.previewSubscription?.unsubscribe();
+    this.result.set(null);
+    this.configObject.submit.disabled = false;
   }
 
-  async save(yaml: string = this.yaml): Promise<void> {
+  override onHide(event): void {
+    this.validationRevision++;
+    super.onHide(event);
+  }
+
+  async save(yaml: string = this.yaml()): Promise<void> {
+    const revision = ++this.validationRevision;
     if (yaml !== null && !(await this.yamlEditor.validateForSubmit())) return;
+    if (this.destroyRef.destroyed || revision !== this.validationRevision) return;
     this.service
       .saveTaxModel(this.country.idTaxCountry, yaml)
+      .pipe(this.untilDialogClosed())
       .subscribe(() => this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)));
   }
 
   async preview(): Promise<void> {
+    const revision = ++this.validationRevision;
+    this.previewSubscription?.unsubscribe();
     if (!(await this.yamlEditor.validateForSubmit())) {
+      if (!this.destroyRef.destroyed && revision === this.validationRevision) this.configObject.submit.disabled = false;
+      return;
+    }
+    if (this.destroyRef.destroyed || revision !== this.validationRevision) return;
+    if (this.tooLarge()) {
       this.configObject.submit.disabled = false;
       return;
     }
-    if (this.tooLarge) return;
-    const request: any = { yaml: this.yaml, countryCode: this.country.countryCode };
-    this.form.cleanMaskAndTransferValuesToBusinessObject(request);
+    const request: any = { yaml: this.yaml(), countryCode: this.country.countryCode };
+    this.form.cleanMaskAndTransferValuesToBusinessObject(request, true);
     for (const field of ['units', 'price', 'cleanValue', 'accruedInterest', 'grossIncome']) request[field] ??= 0;
-    this.service.estimateTax(request).subscribe((result) => {
-      this.result = result;
-      this.configObject.submit.disabled = false;
-    });
+    this.previewSubscription = this.service
+      .estimateTax(request)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (result) => {
+          this.result.set(result);
+          this.configObject.submit.disabled = false;
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   /** EvalEx variables, functions and event-kind comparisons accepted by the backend tax evaluator. */

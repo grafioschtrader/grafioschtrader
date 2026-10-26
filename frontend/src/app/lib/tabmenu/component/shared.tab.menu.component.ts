@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -24,7 +24,7 @@ import { TabsModule } from '@openng/optimus-ui/tabs';
   selector: 'app-shared-tab-menu',
   template: `
     <div class="card">
-      <p-tabs [value]="activeRoute">
+      <p-tabs [value]="activeRoute()">
         <p-tablist>
           @for (tab of tabs; track tab.route) {
             <p-tab [value]="tab.route" (click)="onTabClick(tab.route)">
@@ -81,7 +81,7 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
   @Input() customNavigationHandler: ((route: string) => void) | null = null;
 
   /** The currently active route. */
-  activeRoute: string = '';
+  readonly activeRoute = signal('');
 
   private subscription: Subscription;
 
@@ -111,13 +111,13 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
 
       // Subscribe to active route changes
       this.subscription = this.tabMenuService.activeRoute$.subscribe((route) => {
-        this.activeRoute = route;
+        this.activeRoute.set(route);
         this.saveActiveRoute(route);
       });
     } else {
       // For custom navigation, just translate tabs and set initial route
       TranslateHelper.translateMenuItems(this.tabs, this.translateService);
-      this.activeRoute = this.defaultRoute;
+      this.activeRoute.set(this.defaultRoute);
     }
   }
 
@@ -136,7 +136,7 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
     // Use custom navigation handler if provided
     if (this.customNavigationHandler) {
       this.customNavigationHandler(route);
-      this.activeRoute = route;
+      this.activeRoute.set(route);
       this.saveActiveRoute(route);
     } else {
       this.tabMenuService.navigateTo(route, this.activatedRoute);

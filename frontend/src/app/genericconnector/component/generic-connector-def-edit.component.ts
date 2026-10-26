@@ -1,4 +1,5 @@
-import { ViewChild, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, ViewChild, Component, inject, Injector, Input, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Validators } from '@angular/forms';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -11,7 +12,6 @@ import { AssetclassCategory } from '../../shared/types/assetclass.category';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppSettings } from '../../shared/app.settings';
 import { AppHelpIds } from '../../shared/help/help.ids';
@@ -49,23 +49,24 @@ import { combineLatest } from 'rxjs';
       <yaml-editor
         #yamlEditor
         format="TOKENS"
-        (syntaxValidChange)="configObject.submit.disabled = !$event || yamlEditor.validating"
-        (validationPendingChange)="configObject.submit.disabled = $event || !yamlEditor.syntaxValid"
+        (syntaxValidChange)="configObject.submit.disabled = optionsLoading() || !$event || yamlEditor.validating"
+        (validationPendingChange)="configObject.submit.disabled = optionsLoading() || $event || !yamlEditor.syntaxValid"
         [height]="'300px'"
         [(value)]="tokenConfigYamlValue"
-        [schema]="tokenConfigSchema"></yaml-editor>
+        [schema]="tokenConfigSchema()"></yaml-editor>
     </p-fieldset>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule, FieldsetModule, YamlEditorComponent]
 })
 export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<GenericConnectorDef> implements OnInit {
   @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
   @Input() callParam: GenericConnectorDef;
 
-  tokenConfigYamlValue = '';
-  tokenConfigSchema: any;
+  readonly tokenConfigYamlValue = signal('');
+  readonly tokenConfigSchema = signal<any>(null);
+  readonly optionsLoading = signal(true);
+  private readonly injector = inject(Injector);
   private geoTreeNodes: TreeNode[] = [];
   private catTranslations: { [key: string]: string } = {};
 
@@ -130,18 +131,11 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   }
 
   protected override initialize(): void {
-    this.configObject.rateLimitType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService,
-      RateLimitType
-    );
-    this.configObject.supportedCategories.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService,
-      AssetclassCategory
-    );
-
+    this.optionsLoading.set(true);
+    this.geoTreeNodes = [];
     // FormControl.disable() emits valueChanges as well. Ignoring it keeps applyFieldLocks() from clearing the rate
     // limit fields it has just locked, because disableAndClearField() would set them to null.
-    this.configObject.rateLimitType.formControl.valueChanges.subscribe((value) => {
+    this.configObject.rateLimitType.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((value) => {
       if (this.configObject.rateLimitType.formControl.enabled) {
         this.updateRateLimitTypeDependencies(value);
       }
@@ -150,29 +144,52 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
       this.callParam?.rateLimitType != null ? RateLimitType[this.callParam.rateLimitType] : null
     );
 
+    this.configObject.geoInclusions.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe(() => this.rebuildExclusionsTree());
+    this.form.setDefaultValuesAndEnableSubmit();
+    if (this.callParam) {
+      this.form.transferBusinessObjectToForm(this.callParam);
+      this.loadSupportedCategories();
+    }
+    this.tokenConfigYamlValue.set(this.callParam?.tokenConfigYaml || '');
+    this.applyFieldLocks();
+    // Geographic selections need the tree's actual node references. Hide only those controls while loading;
+    // the rest of the form is ready for editing and must never be reset by a late response.
+    this.configObject.geoInclusions.invisible = true;
+    this.configObject.geoExclusions.invisible = true;
+    this.configObject.submit.disabled = true;
+    this.loadOptions();
+    afterNextRender(() => this.configObject.shortId.baseInputComponent?.focus(), { injector: this.injector });
+  }
+
+  /** Publishes the translated choices and restores geographic selections once their tree nodes are available. */
+  private loadOptions(): void {
     const categoryNames = Object.keys(AssetclassCategory).filter((k) => isNaN(Number(k)));
+    const rateLimitNames = Object.keys(RateLimitType).filter((k) => isNaN(Number(k)));
     combineLatest([
       this.stockexchangeService.getAllStockexchangesBaseData(),
-      this.translateService.get(categoryNames)
-    ]).subscribe(([baseData, catTrans]) => {
-      this.catTranslations = catTrans;
-      this.geoTreeNodes = this.buildGeoTree(baseData.stockexchanges, baseData.countries);
-      this.configObject.geoInclusions.treeNodes = this.geoTreeNodes;
-
-      // Rebuild geoExclusions tree whenever geoInclusions selection changes
-      this.configObject.geoInclusions.formControl.valueChanges.subscribe(() => this.rebuildExclusionsTree());
-
-      this.form.setDefaultValuesAndEnableSubmit();
-      if (this.callParam) {
-        this.form.transferBusinessObjectToForm(this.callParam);
-        this.loadSupportedCategories();
-        this.loadGeoRestrictions();
-      }
-      // Last, so that the rate limit dependencies above cannot re-enable a locked field.
-      this.applyFieldLocks();
-      this.configObject.shortId.elementRef.nativeElement.focus();
-      this.tokenConfigYamlValue = this.callParam?.tokenConfigYaml || '';
-    });
+      this.translateService.get([...categoryNames, ...rateLimitNames])
+    ])
+      .pipe(this.untilDialogClosed())
+      .subscribe(([baseData, translations]) => {
+        this.catTranslations = translations;
+        this.configObject.rateLimitType.valueKeyHtmlOptions = rateLimitNames
+          .map((name) => new ValueKeyHtmlSelectOptions(name, translations[name]))
+          .sort((a, b) => a.value.localeCompare(b.value));
+        this.configObject.supportedCategories.valueKeyHtmlOptions = categoryNames
+          .map((name) => new ValueKeyHtmlSelectOptions(name, translations[name]))
+          .sort((a, b) => a.value.localeCompare(b.value));
+        this.geoTreeNodes = this.buildGeoTree(baseData.stockexchanges, baseData.countries);
+        this.configObject.geoInclusions.treeNodes = this.geoTreeNodes;
+        if (this.callParam) {
+          this.loadGeoRestrictions();
+        }
+        this.configObject.geoInclusions.invisible = false;
+        this.configObject.geoExclusions.invisible = false;
+        this.optionsLoading.set(false);
+        this.configObject.submit.disabled = !this.yamlEditor.syntaxValid || this.yamlEditor.validating;
+      });
   }
 
   /**
@@ -455,7 +472,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     };
     entity.descriptionNLS.map.en = values.en;
     entity.descriptionNLS.map.de = values.de;
-    entity.tokenConfigYaml = this.tokenConfigYamlValue?.trim() || null;
+    entity.tokenConfigYaml = this.tokenConfigYamlValue().trim() || null;
 
     // supportedCategories: convert array back to comma-separated string
     const catArray = this.configObject.supportedCategories.formControl.value;
@@ -468,9 +485,12 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   }
 
   private loadTokenConfigSchema(): void {
-    this.httpClient.get('assets/schemas/token-config-schema.json').subscribe({
-      next: (schema: any) => (this.tokenConfigSchema = schema),
-      error: () => console.warn('Failed to load token config schema')
-    });
+    this.httpClient
+      .get('assets/schemas/token-config-schema.json')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (schema: any) => this.tokenConfigSchema.set(schema),
+        error: () => console.warn('Failed to load token config schema')
+      });
   }
 }

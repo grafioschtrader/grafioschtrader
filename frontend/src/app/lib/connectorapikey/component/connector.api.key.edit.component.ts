@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { ConnectorApiKey, SubscriptionTypeReadableName } from '../types/connector.api.key';
@@ -13,7 +13,6 @@ import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
-import { Subscription } from 'rxjs';
 import { Validators } from '@angular/forms';
 import { BaseSettings } from '../../base.settings';
 import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
@@ -39,7 +38,6 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<ConnectorApiKey> implements OnInit {
@@ -49,8 +47,6 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
   @Input() subscriptionTypeOptionsMap: {
     [providerId: string]: ValueKeyHtmlSelectOptions[];
   };
-
-  private idProviderChangedSub: Subscription;
 
   constructor(
     translateService: TranslateService,
@@ -72,7 +68,7 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('idProvider', true),
-      DynamicFieldHelper.createFieldSelectStringHeqF('subscriptionType', false),
+      DynamicFieldHelper.createFieldSelectStringHeqF('subscriptionType', true),
       // A browser cuts a longer pasted key silently; 256 covers OpenAI project keys and fits the encrypted column
       DynamicFieldHelper.createFieldInputStringHeqF('apiKey', 256, true, {
         minLength: 10
@@ -89,28 +85,31 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
       false,
       this.connectorApiKey ? [] : this.existingProviders
     );
-    this.valueChangedOnIdProvider();
     this.form.setDefaultValuesAndEnableSubmit();
+    this.updateSubscriptionTypeVisibility(this.connectorApiKey?.idProvider);
     if (this.connectorApiKey) {
       this.form.transferBusinessObjectToForm(this.connectorApiKey);
       this.configObject.idProvider.formControl.disable();
-      this.updateSubscriptionTypeVisibility(this.connectorApiKey.idProvider);
+    } else {
+      this.configObject.idProvider.formControl.enable();
     }
+    this.valueChangedOnIdProvider();
   }
 
   valueChangedOnIdProvider(): void {
-    this.idProviderChangedSub = this.configObject.idProvider.formControl.valueChanges.subscribe((selection) => {
-      this.configObject.subscriptionType.valueKeyHtmlOptions = this.subscriptionTypeOptionsMap[selection];
-      this.updateSubscriptionTypeVisibility(selection);
-    });
+    this.configObject.idProvider.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((selection) => this.updateSubscriptionTypeVisibility(selection));
   }
 
   private updateSubscriptionTypeVisibility(providerId: string): void {
-    const options = this.subscriptionTypeOptionsMap[providerId];
-    if (!options || options.length === 0) {
+    const options = this.subscriptionTypeOptionsMap[providerId] ?? [];
+    this.configObject.subscriptionType.valueKeyHtmlOptions = options;
+    // A subscription belongs to its provider; switching providers must require a fresh selection.
+    this.configObject.subscriptionType.formControl.setValue(null);
+    if (options.length === 0) {
       this.configObject.subscriptionType.invisible = true;
       this.configObject.subscriptionType.formControl.clearValidators();
-      this.configObject.subscriptionType.formControl.setValue(null);
     } else {
       this.configObject.subscriptionType.invisible = false;
       this.configObject.subscriptionType.formControl.setValidators(Validators.required);
@@ -120,10 +119,5 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ConnectorApiKey {
     return this.copyFormToPrivateBusinessObject(new ConnectorApiKey(), this.connectorApiKey);
-  }
-
-  override onHide(event): void {
-    this.idProviderChangedSub && this.idProviderChangedSub.unsubscribe();
-    super.onHide(event);
   }
 }

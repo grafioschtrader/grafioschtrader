@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
@@ -30,20 +30,23 @@ import { TransactionType } from '../../shared/types/transaction.type';
         'passiv-border': !isActivated()
       }">
       <configurable-table
-        [data]="standingOrders"
+        [data]="standingOrders()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
+        [customSortFn]="customSorter"
+        [multiSortMeta]="multiSortMeta"
         [dataKey]="'idStandingOrder'"
         [(selection)]="selectedEntity"
         (rowSelect)="onRowSelect($event)"
         (rowUnselect)="onRowUnselect($event)"
-        [contextMenuItems]="contextMenuItems"
+        [contextMenuItems]="contextMenuItems()"
         [contextMenuAppendTo]="'body'"
         [showContextMenu]="isActivated()"
         [expandable]="true"
-        [canExpandFn]="canExpandRow.bind(this)"
+        [canExpandFn]="canExpandRow"
         [expandedRowTemplate]="detailExpansion"
         (rowExpand)="onRowExpand($event)"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [valueGetterFn]="valueGetter"
         [baseLocale]="baseLocale">
       </configurable-table>
     </div>
@@ -58,16 +61,15 @@ import { TransactionType } from '../../shared/types/transaction.type';
       }
     </ng-template>
 
-    @if (visibleEditDialog) {
+    @if (visibleEditDialog()) {
       <standing-order-cashaccount-edit
-        [visibleDialog]="visibleEditDialog"
+        [visibleDialog]="visibleEditDialog()"
         [callParam]="callParam"
         (closeDialog)="onDialogClose($event)">
       </standing-order-cashaccount-edit>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,

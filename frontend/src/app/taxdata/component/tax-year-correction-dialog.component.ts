@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -40,7 +40,6 @@ import { TaxYearCorrectionTableComponent } from './tax-year-correction-table.com
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, TranslateModule, TaxYearCorrectionTableComponent]
 })
 export class TaxYearCorrectionDialogComponent {

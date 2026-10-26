@@ -70,8 +70,8 @@ export class AssetclassService
     );
   }
 
-  public assetclassesHasSecurity(): Observable<number[]> {
-    return <Observable<number[]>>(
+  public assetclassesHasSecurity(): Observable<[number, number][]> {
+    return <Observable<[number, number][]>>(
       this.httpClient
         .get(`${BaseSettings.API_ENDPOINT}${AppSettings.ASSETCLASS_KEY}/hassecurity`, this.getHeaders())
         .pipe(catchError(this.handleError.bind(this)))

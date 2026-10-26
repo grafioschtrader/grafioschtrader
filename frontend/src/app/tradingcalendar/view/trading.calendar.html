@@ -14,30 +14,30 @@
     <label class="small-padding control-label" for="idYearSelect">{{'YEAR' | translate}}</label>
     <p-select
       (onChange)="yearChanged($event)"
-      [(ngModel)]="selectedYear"
-      [disabled]="addRemoveDaysMap.size > 0"
-      [options]="possibleYears"
+      [ngModel]="selectedYear()"
+      [disabled]="addRemoveDaysMap().size > 0"
+      [options]="possibleYears()"
       id="idYearSelect">
     </p-select>
     <ng-fullyearcalendar-lib
       (daySelect)="onDaySelect($event)"
       [locale]="locale"
-      [underline]="underline"
-      [yearCalendarData]="yearCalendarData"></ng-fullyearcalendar-lib>
+      [underline]="underline()"
+      [yearCalendarData]="yearCalendarData()"></ng-fullyearcalendar-lib>
     <p-footer>
       <div class="ui-dialog-buttonpane ui-widget-content flexRight">
-        @if (containsYear(yearCalendarData.year - 1)) {
-        <p-button (click)="addMinusYear(-1)" [disabled]="addRemoveDaysMap.size > 0" class="btn">
+        @if (containsYear(yearCalendarData().year - 1)) {
+        <p-button (click)="addMinusYear(-1)" [disabled]="addRemoveDaysMap().size > 0" class="btn">
           <i class="pi pi-angle-left"></i>
-          {{yearCalendarData.year-1}}
+          {{yearCalendarData().year-1}}
         </p-button>
-        } @if (containsYear(yearCalendarData.year + 1)) {
-        <p-button (click)="addMinusYear(1)" [disabled]="addRemoveDaysMap.size > 0" class="btn">
-          {{yearCalendarData.year+1}}
+        } @if (containsYear(yearCalendarData().year + 1)) {
+        <p-button (click)="addMinusYear(1)" [disabled]="addRemoveDaysMap().size > 0" class="btn">
+          {{yearCalendarData().year+1}}
           <i class="pi pi-angle-right"></i>
         </p-button>
         } @if (hasRightsToModify()) {
-        <p-button (click)="submit()" [disabled]="addRemoveDaysMap.size === 0" class="btn">
+        <p-button (click)="submit()" [disabled]="addRemoveDaysMap().size === 0" class="btn">
           <i class="pi pi-save"></i>
           {{'SAVE' | translate }}
         </p-button>
@@ -45,5 +45,5 @@
       </div>
     </p-footer>
   </p-panel>
-  <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body"> </p-contextMenu>
+  <p-contextMenu #contextMenu [model]="contextMenuItems()" [target]="cmDiv" appendTo="body"> </p-contextMenu>
 </div>

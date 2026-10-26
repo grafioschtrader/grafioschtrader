@@ -63,6 +63,11 @@ notifies Angular of every change it makes, so a new component never needs `Eager
   `destroyRef`; do not declare your own.
 - **New CRUD tables extend `TableCrudSupportMenuSignal`** (`lib/datashowbase/table.crud.support.menu.signal.ts`):
   `entityList`, `selectedEntity`, `visibleDialog` and `contextMenuItems` are signals. Reference: `TenantAIProviderTableComponent`.
+- **Master-detail views on `SingleRecordMasterViewBase`** keep its property API: selection, lists, edit-dialog
+  visibility, call parameters and context menus are backed by signals. Always replace records, nested arrays and
+  lists; a mutation inside `selectedEntity` does not notify. `valueChangedMainField()` replaces the previous control
+  subscription, and the base binds selection, deletion and translated menus to the component lifetime. Reference:
+  `GenericConnectorComponent`, which synchronises the rendered form with `afterNextRender` after options load.
 - **Function inputs bind stable members, never `.bind(this)`** — `[valueGetterFn]="valueGetter"`,
   `[customSortFn]="customSorter"`, and a `readonly` arrow-function member for every other callback input. A
   `.bind(this)` creates a new function on every check. Table hosts also get `[fieldsRevision]="fieldsRevision()"`, so

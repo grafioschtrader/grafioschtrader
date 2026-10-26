@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, ViewChild } from '@angular/core';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -27,10 +27,10 @@ import { BaseSettings } from '../../lib/base.settings';
     (submitBt)="submit($event)">
   </dynamic-form>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule]
 })
-export class TaxYearCreateDialogComponent extends FormBase implements OnInit, AfterViewInit {
+export class TaxYearCreateDialogComponent extends FormBase implements OnInit {
+  private readonly injector = inject(Injector);
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
   constructor(
@@ -49,9 +49,10 @@ export class TaxYearCreateDialogComponent extends FormBase implements OnInit, Af
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    afterNextRender(() => this.initialize(), { injector: this.injector });
   }
 
-  ngAfterViewInit(): void {
+  private initialize(): void {
     const oldestDate =
       sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK;
     const minYear = new Date(oldestDate).getFullYear();

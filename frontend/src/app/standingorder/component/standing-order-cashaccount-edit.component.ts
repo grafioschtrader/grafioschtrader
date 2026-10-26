@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -28,6 +28,7 @@ import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
     <p-dialog
       header="{{ 'STANDING_ORDER_CASHACCOUNT' | translate }}"
       [visible]="visibleDialog"
+      (visibleChange)="!$event && onHide($event)"
       [style]="{ width: '550px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -42,7 +43,6 @@ import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase implements OnInit {
@@ -115,7 +115,10 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
     super.initialize();
     // Options only — assigning them from the async response must not touch form values, because
     // setExistingValues() may already have run inside the portfolio subscription.
-    this.gpsGT.getCurrencies().subscribe((data) => (this.configObject.amountCurrency.valueKeyHtmlOptions = data));
+    this.gpsGT
+      .getCurrencies()
+      .pipe(this.untilDialogClosed())
+      .subscribe((data) => (this.configObject.amountCurrency.valueKeyHtmlOptions = data));
   }
 
   protected override getCashaccountPrecisionFields(): FieldConfig[] {

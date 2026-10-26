@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, inject, Injector, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -25,10 +26,11 @@ import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
     (submitBt)="submit($event)">
   </dynamic-form>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule]
 })
-export class TaxCountryCreateDialogComponent extends FormBase implements OnInit, AfterViewInit {
+export class TaxCountryCreateDialogComponent extends FormBase implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
   constructor(
@@ -47,16 +49,20 @@ export class TaxCountryCreateDialogComponent extends FormBase implements OnInit,
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    afterNextRender(() => this.initialize(), { injector: this.injector });
   }
 
-  ngAfterViewInit(): void {
-    this.gps.getCountriesForSelectBox().subscribe((countries) => {
-      const existing = this.dialogConfig.data?.existingCountries || [];
-      this.configObject.countryCode.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
-        countries.filter((country) => !existing.includes(country.key))
-      );
-      this.form.setDefaultValuesAndEnableSubmit();
-    });
+  private initialize(): void {
+    this.gps
+      .getCountriesForSelectBox()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((countries) => {
+        const existing = this.dialogConfig.data?.existingCountries || [];
+        this.configObject.countryCode.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
+          countries.filter((country) => !existing.includes(country.key))
+        );
+        this.form.setDefaultValuesAndEnableSubmit();
+      });
   }
 
   helpLink(): void {

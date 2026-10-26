@@ -2,6 +2,8 @@ import { HttpClient, provideHttpClient, withInterceptors, withInterceptorsFromDi
 import { authInterceptor } from '../app/lib/login/service/auth.http.interceptor';
 import { importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
+import { SETTINGS_MENU_EXTENSIONS } from '../app/lib/mainmenubar/service/settings-menu-extensions';
+import { accessTokenSettingsMenu } from './access-token-settings-menu';
 import { provideRouter, Routes, withNavigationErrorHandler, withPreloading } from '@angular/router';
 import { AuthenticatedPreloadingStrategy } from '../app/lib/login/service/authenticated-preloading.strategy';
 import { handleLazyLoadNavigationError } from '../app/lib/login/service/lazy-load-failure';
@@ -74,6 +76,7 @@ import { MultiTranslateHttpLoader } from '../app/lib/translator/multi.translate.
 import { showNlsBootstrapFailure } from '../app/lib/translator/nls.bootstrap.failure';
 import { UDFMetadataGeneralTableComponent } from '../app/lib/udfmeta/components/udf.metadata.general.table.component';
 import { UDFMetadataGeneralService } from '../app/lib/udfmeta/service/udf.metadata.general.service';
+import { UDFSpecialTypeDisableUserService } from '../app/lib/udfmeta/service/udf.special.type.disable.user.service';
 import { UserAdminService } from '../app/lib/user/service/user.admin.service';
 import { UserTableComponent } from '../app/lib/user/component/user.table.component';
 import { EntityLimitService } from '../app/lib/entitylimit/service/entity.limit.service';
@@ -255,6 +258,7 @@ bootstrapApplication(GrafioschAppComponent, {
     // UserDataService, the main tree injects DataChangedService and TreeNavigationStateService. A missing entry
     // surfaces late and unhelpfully, as NG0201 while rendering /mainview.
     ActivePanelService,
+    { provide: SETTINGS_MENU_EXTENSIONS, useValue: accessTokenSettingsMenu, multi: true },
     ActuatorService,
     ConfirmationService,
     ConnectorApiKeyService,
@@ -276,6 +280,7 @@ bootstrapApplication(GrafioschAppComponent, {
     TaskDataChangeService,
     TreeNavigationStateService,
     UDFMetadataGeneralService,
+    UDFSpecialTypeDisableUserService,
     UserAdminService,
     UserDataService,
     EntityLimitService,

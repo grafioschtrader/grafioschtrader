@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -12,14 +12,14 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
 @Component({
   selector: 'tax-details-table',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
     [data]="rows"
     [fields]="fields"
-    [valueGetterFn]="getValueByPath.bind(this)"
+    [fieldsRevision]="fieldsRevision()"
+    [valueGetterFn]="valueGetter"
     [baseLocale]="baseLocale"
-    [customSortFn]="customSort.bind(this)"
+    [customSortFn]="customSorter"
     [multiSortMeta]="multiSortMeta" />`
 })
 export class TaxDetailsTableComponent extends TableConfigBase implements OnChanges {
@@ -99,6 +99,7 @@ export class TaxDetailsTableComponent extends TableConfigBase implements OnChang
     }
     if (this.mode === 'matches') {
       this.fields.find((field) => field.field === 'amount').fixedCurrency = this.currency;
+      this.notifyViewChanged();
     }
     this.createTranslatedValueStore(this.rows);
   }

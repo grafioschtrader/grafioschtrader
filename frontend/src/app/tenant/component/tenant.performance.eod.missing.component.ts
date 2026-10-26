@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -16,7 +16,7 @@ import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.
 import { BaseSettings } from '../../lib/base.settings';
 import { FullyearcalendarLibComponent } from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
 import { RangeSelectDays } from '../../lib/fullyearcalendar/Interface/range.select.days';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HelpIds } from '../../lib/help/help.ids';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
@@ -51,23 +51,23 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
         <label class="small-padding control-label" for="idYearSelect">{{ 'YEAR' | translate }}</label>
         <p-select
           id="idYearSelect"
-          [options]="possibleYears"
-          [(ngModel)]="selectedYear"
+          [options]="possibleYears()"
+          [ngModel]="selectedYear()"
           (onChange)="yearChanged($event)">
         </p-select>
-        <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline" [yearCalendarData]="yearCalendarData">
+        <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline()" [yearCalendarData]="yearCalendarData()">
         </ng-fullyearcalendar-lib>
         <p-footer>
           <div class="ui-dialog-buttonpane ui-widget-content flexRight">
-            @if (containsYear(yearCalendarData.year - 1)) {
+            @if (containsYear(yearCalendarData().year - 1)) {
               <p-button class="btn" (click)="addMinusYear(-1)">
                 <i class="pi pi-angle-left mr-2"></i>
-                {{ yearCalendarData.year - 1 }}
+                {{ yearCalendarData().year - 1 }}
               </p-button>
             }
-            @if (containsYear(yearCalendarData.year + 1)) {
+            @if (containsYear(yearCalendarData().year + 1)) {
               <p-button class="btn" (click)="addMinusYear(1)">
-                {{ yearCalendarData.year + 1 }}
+                {{ yearCalendarData().year + 1 }}
                 <i class="pi pi-angle-right ml-2"></i>
               </p-button>
             }
@@ -81,8 +81,8 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
         (changedSecurity)="handleChangedSecurity($event)">
       </tenant-performance-eod-missing-table>
 
-      @if (contextMenuItems) {
-        <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body"> </p-contextMenu>
+      @if (contextMenuItems().length) {
+        <p-contextMenu #contextMenu [model]="contextMenuItems()" [target]="cmDiv" appendTo="body"> </p-contextMenu>
       }
     </div>
   `,
@@ -100,10 +100,7 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
     TenantPerformanceEodMissingTableComponent
   ]
 })
-export class TenantPerformanceEodMissingComponent
-  extends CalendarNavigation
-  implements IGlobalMenuAttach, OnInit, OnDestroy
-{
+export class TenantPerformanceEodMissingComponent extends CalendarNavigation implements IGlobalMenuAttach, OnInit {
   missingQuotesWithSecurities: MissingQuotesWithSecurities;
   securities: Security[] = [];
   allMissingDays: Date[] = [];
@@ -113,7 +110,7 @@ export class TenantPerformanceEodMissingComponent
   foundDayMarkedRange: boolean;
   selectedSecurity: Security;
 
-  private subscriptionHistoryquoteChanged: Subscription;
+  private readDataSub?: Subscription;
 
   constructor(
     private timeSeriesQuotesService: TimeSeriesQuotesService,
@@ -129,7 +126,7 @@ export class TenantPerformanceEodMissingComponent
   }
 
   ngOnInit(): void {
-    this.subscriptionHistoryquoteChanged = this.dataChangedService.dateChanged$.subscribe((processedActionData) => {
+    this.dataChangedService.dateChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((processedActionData) => {
       if (processedActionData.data instanceof Historyquote && processedActionData.action === ProcessedAction.UPDATED) {
         this.readData(true);
       }
@@ -138,8 +135,10 @@ export class TenantPerformanceEodMissingComponent
   }
 
   readData(yearChange: boolean): void {
-    this.holdingService
-      .getMissingQuotesWithSecurities(this.yearCalendarData.year)
+    this.readDataSub?.unsubscribe();
+    this.readDataSub = this.holdingService
+      .getMissingQuotesWithSecurities(this.yearCalendarData().year)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((mqws: MissingQuotesWithSecurities) => {
         this.clearDaySelection(this.selectedDayByUser);
         this.missingQuotesWithSecurities = mqws;
@@ -156,23 +155,26 @@ export class TenantPerformanceEodMissingComponent
         });
         this.markGroundDays(this.allMissingDays);
         if (!yearChange) {
-          this.setYearsBoundaries(moment(mqws.firstEverTradingDay).year(), moment().year());
+          const currentYear = moment().year();
+          // A tenant without holdings has no first trading day, but still displays the current year's calendar.
+          const firstYear = mqws.firstEverTradingDay ? moment(mqws.firstEverTradingDay).year() : currentYear;
+          this.setYearsBoundaries(firstYear, currentYear);
         }
       });
   }
 
   markGroundDays(days: Date[]): void {
-    this.yearCalendarData.dates = [];
-    days.forEach((date, i) => {
-      date.setHours(0, 0, 0, 0);
-      this.yearCalendarData.dates.push({
+    const dates = days.map((day, i): RangeSelectDays => {
+      const date = this.getZeroTimeDate(day);
+      return {
         id: i,
         start: date,
         end: date,
         color: 'red',
         select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onDayPlusSelect(range, ranges)
-      });
+      };
     });
+    this.yearCalendarData.update((data) => ({ ...data, dates }));
   }
 
   override getEditMenu(): MenuItem[] {
@@ -189,7 +191,7 @@ export class TenantPerformanceEodMissingComponent
 
   onDayPlusSelect(range: RangeSelectDays, ranges: RangeSelectDays[]) {
     this.foundDayMarkedRange =
-      ranges.length === 2 && this.securityMissingDays.find((date) => date === range.start) !== null;
+      ranges.length === 2 && this.securityMissingDays.some((date) => date.getTime() === range.start.getTime());
     this.clearCalendarFromTableSelection();
     if (ranges.length === 1 || this.foundDayMarkedRange) {
       if (this.selectedDayByUser) {
@@ -231,10 +233,6 @@ export class TenantPerformanceEodMissingComponent
     return HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE;
   }
 
-  ngOnDestroy(): void {
-    this.subscriptionHistoryquoteChanged && this.subscriptionHistoryquoteChanged.unsubscribe();
-  }
-
   protected override getMenuShowOptions(): MenuItem[] {
     let menuItems: MenuItem[] = [];
     if (this.selectedSecurity) {
@@ -245,13 +243,13 @@ export class TenantPerformanceEodMissingComponent
           false
         )
       );
-      this.contextMenuItems = menuItems;
       menuItems.push(...BusinessHelper.getUrlLinkMenus(this.selectedSecurity));
-      TranslateHelper.translateMenuItems(menuItems, this.translateService);
-    } else {
-      this.contextMenuItems = null;
     }
     return super.getMenuShowOptions().concat(menuItems);
+  }
+
+  protected override getContextMenuItems(showMenu: MenuItem[], editMenu: MenuItem[]): MenuItem[] {
+    return showMenu.slice(1);
   }
 
   private clearDaySelection(day: Date): void {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { UDFDataType, UDFMetadataGeneral, UDFMetadataGeneralParam } from '../model/udf.metadata';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -12,7 +12,6 @@ import { UDFMetadataHelper } from './udf.metadata.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { FieldConfig } from '../../dynamic-form/models/field.config';
-import { Subscription } from 'rxjs';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { UDFConfig } from '../../login/model/configuration-with-login';
 import { BaseSettings } from '../../base.settings';
@@ -46,7 +45,6 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMetadataGeneral> implements OnInit {
@@ -55,9 +53,6 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
 
   /** Field configurations for data type and field size inputs */
   private configDataTypeFields: FieldConfig[];
-
-  /** Subscription to data type changes for conditional field size enabling/disabling */
-  private dataTypeSubscribe: Subscription;
 
   /** UDF configuration settings loaded from session storage */
   private udfConfig: UDFConfig;
@@ -115,13 +110,14 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
       SelectOptionsHelper.createHtmlOptionsFromStringArray(this.udfConfig.udfGeneralSupportedEntities, true),
       false
     );
-    this.dataTypeSubscribe = UDFMetadataHelper.prepareDataTypeFields(
+    UDFMetadataHelper.prepareDataTypeFields(
       this.translateService,
       this.form,
       this.configObject,
       this.callParam.excludeUiOrders,
       this.callParam.uDFMetadataGeneral,
-      this.configDataTypeFields
+      this.configDataTypeFields,
+      this.untilDialogClosed()
     );
     this.configObject.udfDataType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
       this.translateService,
@@ -158,16 +154,5 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
     );
     uDFMetadataGeneral.idUser = this.gps.getIdUser();
     return uDFMetadataGeneral;
-  }
-
-  /**
-   * Cleanup handler when dialog is closed.
-   * Unsubscribes from data type change listener to prevent memory leaks.
-   *
-   * @param event - Dialog hide event
-   */
-  override onHide(event): void {
-    this.dataTypeSubscribe && this.dataTypeSubscribe.unsubscribe();
-    super.onHide(event);
   }
 }

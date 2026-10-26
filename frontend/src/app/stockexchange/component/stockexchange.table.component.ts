@@ -1,11 +1,12 @@
-import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { StockexchangeService } from '../service/stockexchange.service';
 import { Stockexchange } from '../../entities/stockexchange';
-import { combineLatest } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -33,19 +34,20 @@ import { TradingCalendarStockexchangeComponent } from './trading-calendar-stocke
 @Component({
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollHeight]="'flex'"
       [scrollable]="true"
       [stripedRows]="true"
       [showGridlines]="true"
       [expandable]="true"
-      [canExpandFn]="canExpandRow.bind(this)"
+      [canExpandFn]="canExpandRow"
       [expandedRowTemplate]="expandedContent"
       [containerClass]="{
         'data-container-full': true,
@@ -53,10 +55,10 @@ import { TradingCalendarStockexchangeComponent } from './trading-calendar-stocke
         'passiv-border': !isActivated()
       }"
       [showContextMenu]="isActivated()"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems()"
       [contextMenuAppendTo]="'body'"
-      [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [ownerHighlightFn]="ownerHighlight"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ entityNameUpper | translate }}</h4>
 
@@ -79,9 +81,9 @@ import { TradingCalendarStockexchangeComponent } from './trading-calendar-stocke
       </trading-calendar-stockexchange>
     </ng-template>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <stockexchange-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         (closeDialog)="handleCloseDialog($event)">
       </stockexchange-edit>
@@ -89,7 +91,6 @@ import { TradingCalendarStockexchangeComponent } from './trading-calendar-stocke
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ConfigurableTableComponent,
     StockexchangeEditComponent,
@@ -98,11 +99,15 @@ import { TradingCalendarStockexchangeComponent } from './trading-calendar-stocke
     TranslateModule
   ]
 })
-export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<Stockexchange> implements OnDestroy {
+export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<Stockexchange> {
   callParam: StockexchangeCallParam = new StockexchangeCallParam();
+  readonly ownerHighlight = (entity: Stockexchange, field: ColumnConfig): boolean =>
+    this.isNotSingleModeAndOwner(entity, field);
+  readonly canExpandRow = (stockexchange: Stockexchange): boolean => !stockexchange.noMarketValue;
 
   private countriesAsKeyValue: { [cc: string]: string } = {};
   private stockexchangeMics: StockexchangeMic[];
+  private readDataSub?: Subscription;
 
   constructor(
     private stockexchangeService: StockexchangeService,
@@ -177,44 +182,42 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
 
   override onComponentClick(event): void {
     if (!event[this.consumedGT]) {
-      this.resetMenu(this.selectedEntity);
+      this.resetMenu(this.selectedEntity());
     }
   }
 
-  ngOnDestroy(): void {
-    this.activePanelService.destroyPanel(this);
-  }
-
-  canExpandRow(stockexchange: Stockexchange): boolean {
-    return !stockexchange.noMarketValue;
-  }
-
   getCopySourceStockexchanges(targetIdStockexchange: number): ValueKeyHtmlSelectOptions[] {
-    return this.entityList
+    return this.entityList()
       .filter((stockexhange) => !stockexhange.noMarketValue && targetIdStockexchange !== stockexhange.idStockexchange)
       .map((stockexchange) => new ValueKeyHtmlSelectOptions(stockexchange.idStockexchange, stockexchange.name));
   }
 
   protected override readData(): void {
+    this.readDataSub?.unsubscribe();
     if (this.callParam.countriesAsHtmlOptions) {
-      combineLatest([
+      this.readDataSub = forkJoin([
         this.stockexchangeService.getAllStockexchanges(true),
         this.stockexchangeService.stockexchangesHasSecurity()
-      ]).subscribe((data: [Stockexchange[], StockexchangeHasSecurity[]]) => {
-        this.prepareStockexchanges(data[0], data[1]);
-      });
+      ])
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((data) => {
+          this.prepareStockexchanges(data[0], data[1]);
+        });
     } else {
-      this.stockexchangeService.getAllStockexchangesBaseData().subscribe((sbd: StockexchangeBaseData) => {
-        this.stockexchangeMics = sbd.stockexchangeMics;
-        this.prepareCountiesSelect(sbd.countries);
-        this.prepareStockexchanges(sbd.stockexchanges, sbd.hasSecurity);
-      });
+      this.readDataSub = this.stockexchangeService
+        .getAllStockexchangesBaseData()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((sbd: StockexchangeBaseData) => {
+          this.stockexchangeMics = sbd.stockexchangeMics;
+          this.prepareCountiesSelect(sbd.countries);
+          this.prepareStockexchanges(sbd.stockexchanges, sbd.hasSecurity);
+        });
     }
   }
 
   private prepareStockexchanges(stockexchanges: Stockexchange[], shs: StockexchangeHasSecurity[]): void {
-    this.entityList = plainToInstance(Stockexchange, stockexchanges);
-    shs.forEach((keyvalue) => (this.hasSecurityObject[keyvalue.id] = keyvalue.s));
+    this.hasSecurityObject = Object.fromEntries(shs.map((row) => [row.id, row.s]));
+    this.entityList.set(plainToInstance(Stockexchange, stockexchanges));
     this.refreshSelectedEntity();
   }
 
@@ -223,13 +226,13 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     this.countriesAsKeyValue = StockexchangeHelper.transform(vkhso);
   }
 
-  public override getEditMenuItems(): MenuItem[] {
-    const menuItems: MenuItem[] = super.getEditMenuItems(this.selectedEntity);
+  protected override getEditMenuItems(entity: Stockexchange): MenuItem[] {
+    const menuItems = super.getEditMenuItems(entity);
     menuItems.push({ separator: true });
     menuItems.push({
       label: 'WEBSITE',
-      command: (e) => AppHelper.toExternalWebpage(this.selectedEntity.website, 'stockexchange'),
-      disabled: !this.selectedEntity || !this.selectedEntity.website
+      command: () => AppHelper.toExternalWebpage(entity.website, 'stockexchange'),
+      disabled: !entity?.website
     });
     return menuItems;
   }
@@ -238,6 +241,6 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     this.callParam.hasSecurity = entity && this.hasSecurityObject[this.getId(entity)] !== 0;
     this.callParam.stockexchange = entity;
     this.callParam.stockexchangeMics = this.stockexchangeMics;
-    this.callParam.existingMic = new Set(this.entityList.map((se) => se.mic));
+    this.callParam.existingMic = new Set(this.entityList().map((se) => se.mic));
   }
 }

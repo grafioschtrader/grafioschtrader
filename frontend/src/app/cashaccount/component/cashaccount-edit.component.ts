@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -40,7 +40,6 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> implements OnInit {
@@ -98,9 +97,12 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     }
     this.configObject.name.elementRef.nativeElement.focus();
     // Currency options load asynchronously and only populate the dropdown; they must not reset the form.
-    this.gpsGT.getCurrencies().subscribe((data) => {
-      this.configObject.currency.valueKeyHtmlOptions = data;
-    });
+    this.gpsGT
+      .getCurrencies()
+      .pipe(this.untilDialogClosed())
+      .subscribe((data) => {
+        this.configObject.currency.valueKeyHtmlOptions = data;
+      });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Cashaccount {

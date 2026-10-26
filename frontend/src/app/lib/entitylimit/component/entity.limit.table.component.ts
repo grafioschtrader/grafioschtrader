@@ -1,16 +1,16 @@
-import { Component, Injector, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { combineLatest } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 
-import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { EntityLimitEditComponent } from './entity.limit.edit.component';
 import { EntityLimit } from '../../entities/entity.limit';
 import { EntityLimitService } from '../service/entity.limit.service';
-import { LimitKeyDefinition } from '../model/limit.key.definition';
 import { MessageToastService } from '../../message/message.toast.service';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
 import { GlobalparameterService } from '../../services/globalparameter.service';
@@ -22,25 +22,25 @@ import { FilterType } from '../../datashowbase/filter.type';
 import { BaseSettings } from '../../base.settings';
 import { AppHelper } from '../../helper/app.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
-import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
 
 /**
  * Administration of every configured limit, of any limit type and any scope.
  *
  * A row whose limit key is a registered lifetime cap and which has neither a role nor a user is the default of that
  * key. Its value may be changed but the row itself must stay, because a key with no row at all resolves as unlimited;
- * the delete action is therefore hidden for those rows and the backend rejects the deletion as well.
+ * the delete action is therefore disabled for those rows and the backend rejects the deletion as well.
  */
 @Component({
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollable]="false"
       [stripedRows]="true"
       [showGridlines]="true"
@@ -51,9 +51,9 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }"
-      [showContextMenu]="!!contextMenuItems"
-      [contextMenuItems]="contextMenuItems"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [showContextMenu]="!!contextMenuItems()"
+      [contextMenuItems]="contextMenuItems()"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ entityNameUpper | translate }}</h4>
 
@@ -70,21 +70,20 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
       </ng-template>
     </configurable-table>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <entity-limit-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [existingEntityLimit]="callParam"
-        [existingEntityLimits]="entityList"
+        [existingEntityLimits]="entityList()"
         (closeDialog)="handleCloseDialog($event)">
       </entity-limit-edit>
     }
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, TranslateModule, TooltipModule, EntityLimitEditComponent]
 })
-export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit> implements OnDestroy {
+export class EntityLimitTableComponent extends TableCrudSupportMenuSignal<EntityLimit> {
   /** The row the edit dialog works on, null when a new one is created. */
   callParam: EntityLimit;
 
@@ -92,17 +91,19 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
   private configurableTable: ConfigurableTableComponent;
 
   /** Key ids whose default row is mandatory, so the delete action can be withheld for exactly those rows. */
-  private mandatoryKeyIds = new Set<string>();
+  private readonly mandatoryKeyIds = signal(new Set<string>());
 
   /** Translated role name per role id, so the role column shows a name instead of the raw id. */
-  private roleNameById = new Map<string, string>();
+  private readonly roleNameById = signal(new Map<string, string>());
 
   /**
    * Whether an entity holds data shared between all tenants, per entity name. Delivered with the limit key
    * definitions rather than derived from the owner scope of the row, because only the total-number limits have a
    * scope while the daily ones do not.
    */
-  private sharedByEntityName = new Map<string, boolean>();
+  private readonly sharedByEntityName = signal(new Map<string, boolean>());
+  private readonly showMenuItems = signal<MenuItem[]>(null);
+  private readDataSub?: Subscription;
 
   constructor(
     private entityLimitService: EntityLimitService,
@@ -117,7 +118,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
     injector: Injector
   ) {
     super(
-      'ENTITY_LIMIT_INFO_CLASS',
+      BaseSettings.ENTITY_LIMIT,
       entityLimitService,
       confirmationService,
       messageToastService,
@@ -129,6 +130,8 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
       usersettingsService,
       injector
     );
+    // The heading is a translated description; key lookup and deletion use the actual entity name.
+    this.entityNameUpper = 'ENTITY_LIMIT_INFO_CLASS';
 
     this.addColumnFeqH(DataType.String, 'entityName', true, false, {
       fieldValueFN: this.getEntityLabel.bind(this),
@@ -186,24 +189,37 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    * from the displayed name and not from the id.
    */
   protected override initialize(): void {
-    combineLatest([this.entityLimitService.getLimitKeyDefinitions(), this.entityLimitService.getRoles()]).subscribe(
-      ([definitions, roles]: [LimitKeyDefinition[], ValueKeyHtmlSelectOptions[]]) => {
-        this.mandatoryKeyIds = new Set(definitions.filter((d) => d.mandatoryAllRow).map((d) => d.keyId));
-        this.sharedByEntityName = new Map(
-          definitions.filter((d) => d.sharedData != null).map((d) => [d.entityName, d.sharedData])
+    forkJoin([
+      this.entityLimitService.getLimitKeyDefinitions(),
+      this.entityLimitService.getRoles(),
+      TranslateHelper.translateMenuItems$(this.getMenuShowOptions(), this.translateService)
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([definitions, roles, showMenu]) => {
+        this.mandatoryKeyIds.set(new Set(definitions.filter((d) => d.mandatoryAllRow).map((d) => d.keyId)));
+        this.sharedByEntityName.set(
+          new Map(definitions.filter((d) => d.sharedData != null).map((d) => [d.entityName, d.sharedData]))
         );
-        this.roleNameById = new Map(roles.map((role) => [String(role.key), this.translateService.instant(role.value)]));
+        this.roleNameById.set(
+          new Map(roles.map((role) => [String(role.key), this.translateService.instant(role.value)]))
+        );
+        this.showMenuItems.set(showMenu);
         this.readData();
-      }
-    );
+      });
   }
 
   protected override readData(): void {
-    this.entityLimitService.getAllEntityLimits().subscribe((entityLimits: EntityLimit[]) => {
-      this.createTranslatedValueStoreAndFilterField(entityLimits);
-      this.prepareFilter(entityLimits);
-      this.entityList = entityLimits;
-    });
+    this.readDataSub?.unsubscribe();
+    this.readDataSub = this.entityLimitService
+      .getAllEntityLimits()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((entityLimits: EntityLimit[]) => {
+        this.createTranslatedValueStoreAndFilterField(entityLimits);
+        this.prepareFilter(entityLimits);
+        this.entityList.set(entityLimits);
+        this.refreshSelectedEntity();
+        if (!this.selectedEntity() && this.isActivated()) this.resetMenu(null);
+      });
   }
 
   /**
@@ -211,7 +227,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    * unlimited. Role and user overrides, and every daily row, stay freely deletable.
    */
   protected override hasRightsForDeleteEntity(entityLimit: EntityLimit): boolean {
-    return !(entityLimit.idRole == null && entityLimit.idUser == null && this.mandatoryKeyIds.has(entityLimit.keyId));
+    return !(entityLimit.idRole == null && entityLimit.idUser == null && this.mandatoryKeyIds().has(entityLimit.keyId));
   }
 
   protected prepareCallParam(entity: EntityLimit): void {
@@ -223,11 +239,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    * all, because TableCrudSupportMenu returns none by default.
    */
   protected override prepareShowMenu(): MenuItem[] {
-    const menuItems = this.getMenuShowOptions();
-    if (menuItems) {
-      TranslateHelper.translateMenuItems(menuItems, this.translateService);
-    }
-    return menuItems;
+    return this.showMenuItems();
   }
 
   /**
@@ -248,7 +260,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    * @return true for shared data, false for data of one client or user, undefined when the entity is unknown
    */
   isSharedData(entityLimit: EntityLimit): boolean | undefined {
-    return this.sharedByEntityName.get(entityLimit.entityName);
+    return this.sharedByEntityName().get(entityLimit.entityName);
   }
 
   private getEntityLabel(entityLimit: EntityLimit, field: ColumnConfig, valueField: any): string {
@@ -290,7 +302,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
 
   /** The role ids arrive as strings from the options endpoint, the column holds them as numbers. */
   private getRoleName(entityLimit: EntityLimit, field: ColumnConfig, value: any): string {
-    return value == null ? '' : (this.roleNameById.get(String(value)) ?? String(value));
+    return value == null ? '' : (this.roleNameById().get(String(value)) ?? String(value));
   }
 
   private translateEntityName(entityName: string): string {
@@ -299,9 +311,5 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
 
   public override getHelpContextId(): string {
     return HelpIds.HELP_ENTITY_LIMIT;
-  }
-
-  ngOnDestroy(): void {
-    this.activePanelService.destroyPanel(this);
   }
 }

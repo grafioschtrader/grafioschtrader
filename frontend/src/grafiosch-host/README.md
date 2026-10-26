@@ -82,6 +82,11 @@ ADMIN_DATA                      [2]
   ENTITY_LIMIT                         admin only
 ```
 
+The host enables `g.use.accesstoken` and contributes Settings → Personal access tokens through
+`access-token-settings-menu.ts`. It opens the library's token/OAuth management dialog without an application-specific
+introduction or MCP endpoint. `e2e/lib/043-access-token-notification.spec.ts` exercises this dialog in the zoneless host;
+its token/OAuth traffic is isolated in the browser, while authentication and form definitions use the test backend.
+
 GTNet is the largest library area the host reaches: the components in `src/app/lib/gnet` and the six `GTNet*Resource`
 classes of `grafiosch-server-base` are library code end to end. The parent node targets the setup table, which is where
 this instance's own GTNet entry is created — which is why the feature flag is raised from

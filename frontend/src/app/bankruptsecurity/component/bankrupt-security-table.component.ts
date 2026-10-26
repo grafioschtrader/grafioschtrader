@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy } from '@angular/core';
+import { Component, Injector, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { plainToClass } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { Subscription } from 'rxjs';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -10,7 +11,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
@@ -37,13 +38,14 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
 @Component({
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollHeight]="'flex'"
       [scrollable]="true"
       [containerClass]="{
@@ -52,29 +54,29 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
         'passiv-border': !isActivated()
       }"
       [showContextMenu]="isActivated()"
-      [contextMenuItems]="contextMenuItems"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [contextMenuItems]="contextMenuItems()"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ entityNameUpper | translate }}</h4>
     </configurable-table>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <bankrupt-security-edit
-        [visibleDialog]="visibleDialog"
-        [callParam]="callParam"
+        [visibleDialog]="visibleDialog()"
+        [callParam]="callParam()"
         (closeDialog)="handleCloseDialog($event)">
       </bankrupt-security-edit>
     }
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, ConfigurableTableComponent, BankruptSecurityEditComponent]
 })
-export class BankruptSecurityTableComponent extends TableCrudSupportMenu<BankruptSecurity> implements OnDestroy {
-  callParam: BankruptSecurityCallParam;
+export class BankruptSecurityTableComponent extends TableCrudSupportMenuSignal<BankruptSecurity> {
+  readonly callParam = signal<BankruptSecurityCallParam>(null);
 
   private readDataSub?: Subscription;
+  private openDialogSub?: Subscription;
 
   constructor(
     private bankruptSecurityService: BankruptSecurityService,
@@ -115,12 +117,16 @@ export class BankruptSecurityTableComponent extends TableCrudSupportMenu<Bankrup
 
   readData(): void {
     this.readDataSub?.unsubscribe();
-    this.readDataSub = this.bankruptSecurityService.getAllWithSecurityName().subscribe((rows) => {
-      this.entityList = plainToClass(BankruptSecurityRow, rows);
-      this.createTranslatedValueStoreAndFilterField(this.entityList);
-      this.prepareFilter(this.entityList);
-      this.refreshSelectedEntity();
-    });
+    this.readDataSub = this.bankruptSecurityService
+      .getAllWithSecurityName()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((rows) => {
+        const entities = plainToInstance(BankruptSecurityRow, rows);
+        this.createTranslatedValueStoreAndFilterField(entities);
+        this.prepareFilter(entities);
+        this.entityList.set(entities);
+        this.refreshSelectedEntity();
+      });
   }
 
   /**
@@ -128,11 +134,15 @@ export class BankruptSecurityTableComponent extends TableCrudSupportMenu<Bankrup
    * the dialog can build its form synchronously, which is what makes the edit values transfer at all.
    */
   override handleEditEntity(entity: BankruptSecurity): void {
-    const row = entity as BankruptSecurityRow;
-    this.gps.getEntityFormDefinition(AppSettings.BANKRUPT_SECURITY).subscribe((formDefinition) => {
-      this.callParam = new BankruptSecurityCallParam(formDefinition, entity ? row : null, entity ? row.name : null);
-      this.visibleDialog = true;
-    });
+    this.openDialogSub?.unsubscribe();
+    const row = entity ? plainToInstance(BankruptSecurityRow, entity) : null;
+    this.openDialogSub = this.gps
+      .getEntityFormDefinition(AppSettings.BANKRUPT_SECURITY)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((formDefinition) => {
+        this.callParam.set(new BankruptSecurityCallParam(formDefinition, row, row?.name ?? null));
+        this.visibleDialog.set(true);
+      });
   }
 
   /** A marker belongs to whoever may edit the instrument; the backend refuses anything else outright. */
@@ -146,10 +156,5 @@ export class BankruptSecurityTableComponent extends TableCrudSupportMenu<Bankrup
 
   public override getHelpContextId(): string {
     return HelpIds.HELP_BASEDATA_BANKRUPT_SECURITY;
-  }
-
-  ngOnDestroy(): void {
-    this.readDataSub?.unsubscribe();
-    this.activePanelService.destroyPanel(this);
   }
 }

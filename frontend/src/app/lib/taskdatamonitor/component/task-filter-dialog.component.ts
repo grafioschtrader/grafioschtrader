@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -41,8 +41,9 @@ export interface TaskFilterItem {
       (onHide)="onHide()"
       [modal]="true">
       <configurable-table
-        [data]="taskFilterItems"
+        [data]="taskFilterItems()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         [dataKey]="'idTask'"
         [selectionMode]="'multiple'"
         [(selection)]="selectedItems"
@@ -50,7 +51,7 @@ export interface TaskFilterItem {
         [scrollHeight]="'400px'"
         [showContextMenu]="false"
         [stripedRows]="true"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [valueGetterFn]="valueGetter"
         [baseLocale]="baseLocale">
       </configurable-table>
 
@@ -60,15 +61,14 @@ export interface TaskFilterItem {
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, FormsModule, TranslateModule, DialogModule, ButtonModule, ConfigurableTableComponent]
 })
 export class TaskFilterDialogComponent extends ShowRecordConfigBase {
   @Input() visibleDialog = false;
   @Output() closeDialog = new EventEmitter<number[] | null>();
 
-  taskFilterItems: TaskFilterItem[] = [];
-  selectedItems: TaskFilterItem[] = [];
+  readonly taskFilterItems = signal<TaskFilterItem[]>([]);
+  readonly selectedItems = signal<TaskFilterItem[]>([]);
 
   constructor(
     @Inject(TASK_TYPE_ENUM) private taskTypeEnum: any,
@@ -114,14 +114,14 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
    * The Apply button is disabled when no selections are made.
    */
   hasSelection(): boolean {
-    return this.selectedItems.length > 0;
+    return this.selectedItems().length > 0;
   }
 
   /**
    * Applies the current filter selection. Saves to LocalStorage and emits the selected task IDs.
    */
   applyFilter(): void {
-    const selectedTaskIds = this.selectedItems.map((item) => item.taskAsId);
+    const selectedTaskIds = this.selectedItems().map((item) => item.taskAsId);
     this.saveSelectionToStorage(selectedTaskIds);
     this.closeDialog.emit(selectedTaskIds);
   }
@@ -131,13 +131,13 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
    * Creates a TaskFilterItem for each enum value.
    */
   private initializeTaskFilterItems(): void {
-    this.taskFilterItems = [];
+    const items: TaskFilterItem[] = [];
     const enumKeys = Object.keys(this.taskTypeEnum).filter((key) => isNaN(Number(key)));
 
     for (const key of enumKeys) {
       const value = this.taskTypeEnum[key];
       if (typeof value === 'number') {
-        this.taskFilterItems.push({
+        items.push({
           idTask: key,
           taskAsId: value
         });
@@ -145,8 +145,8 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
     }
 
     // Sort by taskAsId
-    this.taskFilterItems.sort((a, b) => a.taskAsId - b.taskAsId);
-    this.createTranslatedValueStore(this.taskFilterItems);
+    this.taskFilterItems.set(items.sort((a, b) => a.taskAsId - b.taskAsId));
+    this.createTranslatedValueStore(items);
   }
 
   /**
@@ -158,10 +158,10 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
     const savedTaskIds = TaskFilterDialogComponent.getValidatedStoredTaskIds(this.taskTypeEnum);
     if (savedTaskIds === null) {
       // No (valid) stored preference - select all
-      this.selectedItems = [...this.taskFilterItems];
+      this.selectedItems.set([...this.taskFilterItems()]);
     } else {
       // Restore saved selection
-      this.selectedItems = this.taskFilterItems.filter((item) => savedTaskIds.includes(item.taskAsId));
+      this.selectedItems.set(this.taskFilterItems().filter((item) => savedTaskIds.includes(item.taskAsId)));
     }
   }
 

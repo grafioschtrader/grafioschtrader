@@ -9,22 +9,31 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { computed, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, Subscription } from 'rxjs';
 
 export abstract class CalendarNavigation implements IGlobalMenuAttach {
+  protected readonly destroyRef = inject(DestroyRef);
+  private menuSubscription?: Subscription;
   readonly NEW_DATE_COLOR = 'yellow';
 
   locale: LocaleSettings;
-  yearCalendarData: YearCalendarData;
-  underline = false;
-  possibleYears: SelectItem[] = [];
-  selectedYear: number;
+  readonly yearCalendarData = signal<YearCalendarData>({
+    year: new Date().getFullYear(),
+    dates: [],
+    disableWeekDays: [DayOfWeek.SATURDAY, DayOfWeek.SUNDAY]
+  });
+  readonly underline = signal(false);
+  readonly possibleYears = signal<SelectItem[]>([]);
+  readonly selectedYear = computed(() => this.yearCalendarData().year);
 
-  addRemoveDaysMap: Map<number, boolean> = new Map();
+  readonly addRemoveDaysMap = signal(new Map<number, boolean>());
   originalDaysMark: Set<number> = new Set();
 
   // Used when a component click event is consumed by the child and the parent should ignore it.
   readonly consumedGT = 'consumedGT';
-  contextMenuItems: MenuItem[];
+  readonly contextMenuItems = signal<MenuItem[]>([]);
 
   protected constructor(
     public translateService: TranslateService,
@@ -38,7 +47,7 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
       dayNamesMin: Helper.CALENDAR_LANG[language].dayNamesMin,
       monthNames: Helper.CALENDAR_LANG[language].monthNames
     };
-    this.yearCalendarData = { year: new Date().getFullYear(), disableWeekDays: [DayOfWeek.SATURDAY, DayOfWeek.SUNDAY] };
+    this.destroyRef.onDestroy(() => this.activePanelService.destroyPanel(this));
   }
 
   abstract getHelpContextId(): string;
@@ -48,31 +57,29 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   abstract onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void;
 
   setYearsBoundaries(fromYear: number, toYear: number) {
-    this.possibleYears = Array.from({ length: toYear - fromYear + 1 }, (_, index) => ({
-      value: fromYear + index,
-      label: (fromYear + index).toString()
-    }));
-    this.selectedYear = this.yearCalendarData.year;
+    this.possibleYears.set(
+      Array.from({ length: toYear - fromYear + 1 }, (_, index) => ({
+        value: fromYear + index,
+        label: (fromYear + index).toString()
+      }))
+    );
   }
 
   containsYear(year: number): boolean {
-    return this.possibleYears.find((selectItem) => selectItem.value === year) != null;
+    return this.possibleYears().some((selectItem) => selectItem.value === year);
   }
 
   yearChanged(event): void {
-    this.yearCalendarData.year = event.value;
-    this.selectedYear = event.value;
+    this.yearCalendarData.update((data) => ({ ...data, year: event.value, dates: [], disabledDays: [] }));
     this.readData(true);
   }
 
   addMinusYear(addMinusYear: number): void {
-    this.yearCalendarData.year += addMinusYear;
-    this.selectedYear = this.yearCalendarData.year;
-    this.readData(true);
+    this.yearChanged({ value: this.selectedYear() + addMinusYear });
   }
 
   clearDaysAndTransformReadData(dayToMarkList: Date[]): void {
-    this.yearCalendarData.dates = [];
+    this.yearCalendarData.update((data) => ({ ...data, dates: [] }));
     this.markOnOffSingleDays(dayToMarkList);
   }
 
@@ -105,72 +112,89 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   addRemoveOnOffDay(date: Date): void {
     let i = 0;
 
-    for (; i < this.yearCalendarData.dates.length; i++) {
+    const data = this.yearCalendarData();
+    // Rebuilding the calendar input also rebuilds its Date instances; compare the represented day.
+    for (; i < data.dates.length; i++) {
       if (
-        this.yearCalendarData.dates[i].start === date &&
-        (this.markExistingColors.includes(this.yearCalendarData.dates[i].color) ||
-          this.yearCalendarData.dates[i].color === this.NEW_DATE_COLOR)
+        data.dates[i].start.getTime() === date.getTime() &&
+        (this.markExistingColors.includes(data.dates[i].color) || data.dates[i].color === this.NEW_DATE_COLOR)
       ) {
         break;
       }
     }
-    if (i < this.yearCalendarData.dates.length) {
+    if (i < data.dates.length) {
       // Date was marked -> it will be removed
       this.adjustAddRemoveMap(date, false);
-      this.yearCalendarData.dates = this.yearCalendarData.dates
-        .slice(0, i)
-        .concat(this.yearCalendarData.dates.slice(i + 1, this.yearCalendarData.dates.length));
+      this.yearCalendarData.set({ ...data, dates: data.dates.filter((_, index) => index !== i) });
     } else {
       // Date was not marked -> it will be marked
       this.adjustAddRemoveMap(date, true);
-      this.yearCalendarData.dates = [
-        ...this.yearCalendarData.dates,
-        {
-          id: date.getTime(),
-          start: date,
-          end: date,
-          color: this.originalDaysMark.has(date.getTime()) ? this.getExistingColor(date) : this.NEW_DATE_COLOR,
-          select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
-        }
-      ];
+      this.yearCalendarData.set({
+        ...data,
+        dates: [
+          ...data.dates,
+          {
+            id: date.getTime(),
+            start: date,
+            end: date,
+            color: this.originalDaysMark.has(date.getTime()) ? this.getExistingColor(date) : this.NEW_DATE_COLOR,
+            select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
+          }
+        ]
+      });
     }
   }
 
   protected resetMenu(): void {
-    this.activePanelService.activatePanel(this, {
-      showMenu: this.getMenuShowOptions(),
-      editMenu: this.getEditMenu()
-    });
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = forkJoin({
+      showMenu: TranslateHelper.translateMenuItems$(this.getMenuShowOptions(), this.translateService),
+      editMenu: TranslateHelper.translateMenuItems$(this.getEditMenu(), this.translateService)
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((menus) => {
+        this.contextMenuItems.set(this.getContextMenuItems(menus.showMenu, menus.editMenu));
+        this.activePanelService.activatePanel(this, menus);
+      });
+  }
+
+  protected getContextMenuItems(showMenu: MenuItem[], editMenu: MenuItem[]): MenuItem[] {
+    return editMenu ?? [];
   }
 
   protected getEditMenu(): MenuItem[] {
-    return this.contextMenuItems;
+    return [];
   }
 
   protected getMenuShowOptions(): MenuItem[] {
     const menuItems: MenuItem[] = [
-      { label: 'TRADING_CALENDAR_UNDERLINE', command: (e) => (this.underline = !this.underline) }
+      {
+        label: 'TRADING_CALENDAR_UNDERLINE',
+        command: () => {
+          this.underline.update((underline) => !underline);
+        }
+      }
     ];
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
   protected markOnOffSingleDays(dayToMarkList: Date[]): void {
-    this.addRemoveDaysMap = new Map();
+    this.addRemoveDaysMap.set(new Map());
     this.originalDaysMark = new Set();
 
-    dayToMarkList.forEach((tradingDay, i) => {
+    const dates = dayToMarkList.map((tradingDay, i): RangeSelectDays => {
       const date = this.getZeroTimeDate(tradingDay);
 
       this.originalDaysMark.add(date.getTime());
-      this.yearCalendarData.dates.push({
+      return {
         id: i,
         start: date,
         end: date,
         color: this.getExistingColor(date),
         select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
-      });
+      };
     });
+    this.yearCalendarData.update((data) => ({ ...data, dates: [...data.dates, ...dates] }));
   }
 
   protected getZeroTimeDate(dateToSet: Date): Date {
@@ -184,10 +208,12 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   }
 
   private adjustAddRemoveMap(date: Date, addDay: boolean) {
-    if (this.addRemoveDaysMap.has(date.getTime())) {
-      this.addRemoveDaysMap.delete(date.getTime());
+    const changes = new Map(this.addRemoveDaysMap());
+    if (changes.has(date.getTime())) {
+      changes.delete(date.getTime());
     } else {
-      this.addRemoveDaysMap.set(date.getTime(), addDay);
+      changes.set(date.getTime(), addDay);
     }
+    this.addRemoveDaysMap.set(changes);
   }
 }

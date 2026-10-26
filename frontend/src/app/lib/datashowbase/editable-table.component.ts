@@ -1,7 +1,9 @@
 import {
+  ChangeDetectorRef,
   Component,
   ContentChild,
   EventEmitter,
+  inject,
   input,
   Input,
   OnChanges,
@@ -741,6 +743,9 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    */
   menuModel: MenuItem[] = [];
 
+  /** Marks this table after state changes made outside a template event, such as the delayed start of editing. */
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
   constructor(private translateService: TranslateService) {}
 
   /**
@@ -1316,6 +1321,8 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
       if (this.table) {
         // Directly set Optimus's editing state — no DOM manipulation needed
         this.table.editingRowKeys[rowKey] = true;
+        // Called from a timer after addNewRow(); below an OnPush parent nothing else would render the edit inputs.
+        this.changeDetectorRef.markForCheck();
 
         // Focus first editable cell after Angular change detection renders the edit inputs
         setTimeout(() => {

@@ -1,5 +1,57 @@
 # Frontend E2E suites
 
+## Master-data dialog notification (037-*)
+
+`037-master-data-dialog-notification.spec.ts` opens the trading-platform-plan, asset-class and stock-exchange
+dialogs as `alledit`. It holds back real option responses, checks that drafts survive loading, closes a dialog
+while a mapping is pending, repeats opening and reopens existing rows. The stock-exchange scenario delivers an
+obsolete country-index answer after the newer one, checks index/rule-set exclusion and selects then clears a MIC.
+The security-UDF scenario exercises the same category/instrument base with multi-selects. The platform-plan table
+scenario creates, renames and deletes its own plan with delayed table responses; it checks retained selection,
+main-menu editing and repeated fee-model dialog opening. It deletes leftovers of its own two plan names before
+each run. The remaining dialog scenarios save nothing, and existing shared fixtures are preserved. It requires the fixture logins and the
+Saxo Trader plan from 015, stock exchanges and US reference indices, plus at least one trading-calendar rule set.
+The add-only plan check in 015 waits for rendered rows and tolerates whitespace around the translated name, so a
+rerun recognizes the existing fixture instead of creating a duplicate.
+
+The asset-class and stock-exchange table scenarios create, rename and delete their own rows, delay table and
+reference-count responses, and verify retained selection, refreshed main menus and delete/field locks for referenced
+fixtures. They delete their own leftover names before each run.
+
+The platform-plan table scenario checks visible CRUD and menu behavior. Closing Monaco can still emit
+`Calling 'cancelAndSet' on a disposed IntervalTimer`, also reproduced with the table on `Eager`; this existing editor
+disposal issue is outside the table notification assertions.
+
+Run it with
+`npx playwright test e2e/037-master-data-dialog-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Stock-exchange calendar notification (056-*)
+
+`056-stockexchange-calendar-notification.spec.ts` expands the SIX (`XSWX`) calendar below its OnPush stock-exchange
+table as `alledit`. It delays real calendar responses, supersedes an old year request, collapses a calendar during
+loading, checks the marking-style menu and verifies that calendar clicks keep the calendar's own menu active.
+The copy scenario creates two dedicated exchanges, copies a single year and the full calendar, retries a transport
+failure and closes/reopens a dialog while a copy response is pending. It removes its own exchanges and their
+calendar rows at startup and in a final cleanup; shared exchange calendars are never changed. The missing-quote
+calendar uses response fixtures from `testdata/missing-quote-calendar.json` to check a tenant without holdings and
+shared year navigation with holdings but no quote gaps. These responses are delayed and independent of transactions
+created later in the roundtrip or quote downloads. The spec runs after 055, which
+populates global trading days.
+
+Run it with
+`npx playwright test e2e/056-stockexchange-calendar-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Fee-model notification (038-*)
+
+`038-fee-model-notification.spec.ts` opens the fee editor from the Saxo Trader plan and from an `alledit`
+securities-account tree node. It holds back real option and estimation responses, checks that drafts survive
+option loading, verifies commission and FX results without an extra UI event, delivers an obsolete FX answer
+after the newer result, exercises transport failure and recovery, and closes with a request pending before
+reopening. It uses the plans and accounts created by 015/025 and persists no changes to their YAML or accounts.
+
+Run it with
+`npx playwright test e2e/038-fee-model-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Tenant analysis tables (245-*)
 
 `245-tenant-analysis-tables.spec.ts` covers the fee-comparison and FX-observation child tables
@@ -25,6 +77,44 @@ presses "Test key", which would send the fake key to the provider. Two traps: th
 so it is found by its key hint, not inside `tenant-ai-provider-edit`; and reloading after a save keeps the row
 selected, so a second click on it would deselect it. Run with
 `npx playwright test e2e/240-ai-providers.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Personal MCP access tokens (250-*)
+
+`250-mcp-access-token.spec.ts` drives Settings → AI assistants (MCP) as `e2euser`, against the real test backend.
+Its two scenarios create the named tokens in `testdata/mcp-access-tokens.json` through
+`UserAccessTokenCreateDialogComponent`. They check required/range validation, persisted name/scope/lifetime, the
+one-time clear-text display, copying the exact token to the browser clipboard or closing without copying, reopening
+with an empty creation form and listing without exposing a token or hash. They also cancel a revocation before
+confirming it. The created token must authenticate a real `/api/mcp` `tools/list` request; after revocation the same
+request must return HTTP 401. No MCP tool is executed and no outside service is contacted.
+
+Each scenario deletes only this spec's exact token names of its fixture user at the start and in `finally`; it never
+removes another test's or user's tokens. The browser clipboard is cleared afterwards. Trace and screenshot recording
+are disabled for this file, and assertions avoid printing generated credentials.
+
+The spec skips only when the login's `useFeatures` lacks `MCP`, matching the settings menu's feature gate. For a full
+run the test instance must have MCP deployed and the administrator must have opened it with `gt.mcp.use=1`; the spec
+does not change that setting. It needs only the registered fixture user and home tenant, and no earlier form spec.
+The number 250 places it after the existing settings-dialog tests. This spec changes only personal tokens; the four
+token/OAuth dialog components use Angular's `OnPush` default.
+
+Run against verified test services with
+`npx playwright test e2e/250-mcp-access-token.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+`251-access-token-notification.spec.ts` and `lib/043-access-token-notification.spec.ts` run the eight shared scenarios in
+`lib/access-token.scenarios.ts` against Grafioschtrader and the zoneless reference host. The reference host exposes the
+portable dialog through Settings → Personal access tokens; it has no MCP endpoint. These scenarios use real login,
+translations and form definitions, but intercept all personal-token/OAuth requests and writes with a fresh page-local
+fixture. They exercise delayed client information and form/list loads, save failure and retry, a newer reload replacing
+an older one while retaining selection, closing during creation, pending reads cancelled on close, clipboard completion
+after the editor has closed, and OAuth revocation with cancellation, delayed reload and an empty result. They create no
+real token or authorization. A cancelled creation response does not imply backend rollback: a token already saved by
+the server is listed when the management dialog is reopened, without its clear text.
+
+OAuth consent, code exchange and real authorization revocation remain outside these notification scenarios. Real
+personal-token persistence and authentication remain covered by 250. Run the notification files with `--no-deps`, using
+`--project=grafioschtrader-e2e` for 251 and `--config=playwright.lib.config.ts --project=lib-e2e` for lib/043. Like 250,
+the Grafioschtrader file skips when MCP is disabled; the library file needs no MCP deployment.
 
 ## HTTP authentication (235-* and lib/005-*)
 
@@ -241,6 +331,9 @@ transaction validation rejects every date that is absent from that table, so thi
 
 The spec is rerunnable: it accepts an already complete calendar unchanged, and if an earlier attempt left only a
 partial calendar, it removes those partial rows through the REST resource before recreating all years through the UI.
+An additional read-only scenario always runs, including on an already complete calendar: it delays the initial
+response, supersedes a year request and toggles an existing day twice without saving, checking the save button and
+year-selection lock.
 
 ## Security transaction spec (075-*)
 
@@ -263,7 +356,7 @@ safe after either a completed or partially failed run.
 With the backend and frontend from an earlier run still active, execute only this spec with
 `npx playwright test e2e/075-create-security-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Connector API key spec (005-*)
+## Connector API key specs (005-_, 006-_ and lib/038-*)
 
 `005-connector-api-key.spec.ts` creates the connector API keys as the admin user, through the
 Connector-API-Key admin view. It replaces the former Flyway migration `V3__seed_connector_apikey`,
@@ -285,6 +378,22 @@ creating, because the create dialog only offers providers that are not configure
 makes it re-runnable against a polluted database. It carries the lowest number in the suite (`005`) so
 the keys exist before every other spec — and, since the startup price update was removed from the
 `e2e` profile, before `100-schedule-batch-jobs.spec.ts` schedules that update.
+
+`006-connector-api-key-notification.spec.ts` and `lib/038-connector-api-key-notification.spec.ts` run the five shared
+scenarios in `lib/connector-api-key.scenarios.ts` against Grafioschtrader and the zoneless library host. They cover delayed
+provider metadata and key lists, translated display values, provider exclusions, subscription options delivered as
+names/numbers/identifier objects, required validation, provider switching, repeated dialog openings, long keys,
+create/edit/cancel/delete and selection refresh after a delayed reload. Client-side navigation must cancel pending
+metadata/list requests before the view opens again.
+
+Every test starts with a fresh, page-local in-memory fixture. All `/api/connectorapikey` requests, including provider
+metadata and writes, are intercepted; no existing credentials are read or overwritten and no external provider is called.
+These are browser notification/interaction tests, independent of the local CSV. Encryption and database persistence stay
+the responsibility of `005` and the backend tests.
+
+Run either spec against its verified test services with `--no-deps`:
+`npx playwright test e2e/006-connector-api-key-notification.spec.ts --project=grafioschtrader-e2e --no-deps` or
+`npx playwright test e2e/lib/038-connector-api-key-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
 
 ## Managed-client specs (085-_, 090-_)
 
@@ -348,6 +457,31 @@ to receive focus before filling any cells, so that autofocus cannot redirect typ
 resumes existing connectors by adding missing endpoints, field mappings and headers; it does not treat a partially
 created definition as a completed connector.
 
+`097-generic-connector-dialog-notification.spec.ts` opens the two connector edit dialogs with `OnPush`. It delays
+stock-exchange options and the token schema, checks that drafts and YAML diagnostics survive their arrival, closes
+with options pending, and repeats opening. It exercises rate-limit and JSON/CSV/HTML dependencies, Monaco EOF
+markers and schema completion, asynchronous server validation and an obsolete validation response. Existing endpoint
+values are checked again after canceling an edit. The master-view scenario delays the initial list, saves and deletes
+an HTTP header, changes selection while a save is pending and edits an endpoint twice. It owns the two
+`e2e_notify_a` / `e2e_notify_b` definitions, removes leftovers before creating them and deletes them in final cleanup;
+shared 095 fixtures are only read. The test-dialog scenario supplies deterministic HTTP answers without contacting
+external price providers, verifies changed columns and empty results, retries after a 503 and closes/reopens while
+an old answer is held. Run it with
+`npx playwright test e2e/097-generic-connector-dialog-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+On the first blur of an empty required field, the error row changes the centered connector dialog's position. Blur
+the initially focused `shortId` before clicking a header control, so the button stays under the pointer throughout
+the click.
+
+`106-calendar-rule-set-notification.spec.ts` complements the alias-only scenario of 105 with real YAML CRUD as
+`alledit`. It owns and cleans up its two `E2E OnPush calendar rules` names before creating a rule set without a MIC.
+Real schema, option, table and preview responses are held back to verify draft preservation, persistent YAML,
+retained selection and refreshed menus. Preview checks use unsaved rules on seeded SIX (`XSWX`), compare the next
+weekday after 2 January independently, release an obsolete year/YAML response last, exercise request failure and
+recovery, and close with a response pending. It also checks active tabs after browser back/forward navigation.
+Run it with
+`npx playwright test e2e/106-calendar-rule-set-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 The trading calendar rule sets of 105 have a related trap: their table offers _Create_ only while no rule set is
 selected, so `createRuleSet` opens the context menu on the table caption, never on a row.
 
@@ -394,8 +528,11 @@ The `delete` flag per portfolio is the teardown definition: `true` makes `888` r
 completely (cash accounts → securities accounts → portfolio), `false` generates no test at all there
 and keeps the portfolio in `grafioschtrader_t`. `888` processes the portfolios in reverse fixture
 order and tolerates an already missing row or node, so a partially failed `025` does not turn the
-teardown red as well. `025` is create-only and therefore expects the fixture portfolios not to exist
-yet — after a half-failed run, either run `888` first or remove the leftovers by hand.
+teardown red as well. `025` accepts existing portfolios and accounts by natural key and creates only missing rows,
+so reruns preserve transactions created by later specs. Its dialog checks reopen every portfolio and cash account,
+hold back the real currency-options response, and verify that it arrives without erasing unsaved name edits.
+The portfolio is selected before opening its context menu; clicking a node already selected by the context menu
+can deselect it without navigating to the cash-account summary.
 
 The fixture spans three users with different locales: `e2euser` (en-US, registered by `auth.setup.ts`)
 owns `Test Portfolio`; `alledit` and `limit2` (de-CH, seeded by `ResourceTestSuite_1`) own the remaining
@@ -497,6 +634,17 @@ No accrued-interest scenario is included; this fixture is an equity, not a bond.
 Run only this spec with
 `npx playwright test e2e/123-security-dividend.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## Account-dialog notification spec (124-*)
+
+`124-account-dialog-notification.spec.ts` reopens the CornèrTrader securities account `CT` of `alledit`, using
+`cash-security-transactions.json` to identify the account used by 122/123. Those trades must already exist.
+It checks the existing trading periods and selected platform plan, holds back the real transaction-summary
+response, then verifies that the delete button for the equity/direct-investment period disappears when the
+response arrives without a further UI event. It saves nothing and is repeatable against a populated database.
+
+Run only this spec with
+`npx playwright test e2e/124-account-dialog-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Standing-order spec (125-*)
 
 `125-standing-orders.spec.ts` recreates the two standing orders of `alledit` from the optional
@@ -504,13 +652,21 @@ Run only this spec with
 cash fee for `CT USD` and an amount-based accumulation order for the iShares Core SPI ETF in security account `CT`.
 The ETF is selected through the instrument search by ISIN; account and security IDs remain database-independent.
 
-At the start, the spec deletes only existing orders matching those fixture identities through the standing-order REST
-endpoint. This recovers both successful and partial prior runs while leaving unrelated orders untouched. Fresh e2e
-orders have no generated transactions and are therefore deletable. Historical source orders that already generated
-transactions must be detached and deleted once in `grafioschtrader_t` before the first isolated run.
+At the start, the spec deletes matching orders through REST when they have no generated transactions. Historical
+orders with generated transactions are retained and their fixture values are verified. Their transaction history
+is never detached or deleted for a rerun, and unrelated orders remain untouched.
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/125-standing-orders.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Standing-order notification (126-*)
+
+`126-standing-order-notification.spec.ts` checks delayed capability/order loading, cancelled and reopened cash and
+security dialogs, dependent schedule/investment fields, and saving a dedicated future cash order. That order is
+identified by its note and removed at startup and in `finally`; its future validity prevents scheduled execution.
+The expansion case uses display-only transaction/failure responses from `testdata/standing-order-notification.json`
+with runtime account/order IDs. It persists no failure or transaction. Run 126 individually with
+`--project=grafioschtrader-e2e --no-deps`.
 
 ## Direct document-import spec (130-*)
 
@@ -612,6 +768,17 @@ deleted. Each row is then created through `UDFMetadataGeneralEditComponent` or
 created user-owned definitions are retained in `grafioschtrader_t` for later tests; rerunning `150-*` replaces them at
 the start.
 
+Five notification cases also cover cancelling and saving edits in both metadata tables, delayed table reloads,
+data-type/field-size dependencies, closing while fill-source options or a rule test are pending, discarding obsolete
+test results and changing the special-type preference of a system field. The two saved-edit cases recreate their own
+fixture row at startup and restore its original help text before finishing. The special-type case restores the
+user's original preference in `finally`; it never modifies or deletes a system definition. Template tests calculate
+URLs locally and do not fetch the sites or call a language model.
+
+`lib/039-udf-metadata-notification.spec.ts` checks the general table's delayed load and the edit form's dependent
+fields over repeated openings in the zoneless library host. It saves no data. Run it with
+`npx playwright test e2e/lib/039-udf-metadata-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
+
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/150-udf-metadata.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
@@ -688,6 +855,21 @@ succeeded.
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/190-create-entity-limits.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+`191-entity-limit-notification.spec.ts` runs the shared `lib/entity-limit.scenarios.ts` cases against GT;
+`lib/037-entity-limit-notification.spec.ts` runs the same cases against the zoneless library host. They cover delayed
+table loading, translated filters and clearing them when hidden, the disabled delete action of mandatory defaults,
+role choices excluding already configured scopes, create/edit/cancel/delete, delayed reloads, closing during option
+loading and the user-scoped dialog opened from user administration. The user-scoped case saves no data.
+
+The persistence case owns only `DAY_CUD|UserAccessToken|||` for `ROLE_LIMITEDIT`, outside spec 190's fixture. It
+deletes that exact key/role pair at the start and through the UI at the end; an interrupted run is repeatable.
+No mandatory default or user override is changed. Limit and role ids are resolved from the API in each database.
+
+Run the application wrapper with
+`npx playwright test e2e/191-entity-limit-notification.spec.ts --project=grafioschtrader-e2e --no-deps`, and the library
+wrapper separately with
+`npx playwright test e2e/lib/037-entity-limit-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
 
 ## Simulation-opening spec (195-*)
 
@@ -857,6 +1039,34 @@ the watchlist; if absent, it searches for an exact existing security and adds th
 The edit dialog then replaces all user-created periods with the fixture values and saves the base values again. This
 makes both a completed rerun and a security left outside the watchlist converge on the same database state.
 
+## Bankrupt security spec (069-*)
+
+`069-bankrupt-security.spec.ts` marks the seeded Alfa bond `CH0385518086` / CHF (`2.875 Alfa Holding Issuance
+(Ireland) 17-22`) through `BankruptSecurityEditComponent`. The field values come from
+`backend/grafioschtrader-server/src/test/resources/testdata/bankrupt-security.json` (the `e2e='e'` row, copied from
+the production marker: both dates `2023-03-20`, note `Russland Sanktionen`). The bond and its closing prices are
+already in `V2__testdata.sql`. A security this spec created itself would have no quote, and the backend rejects a
+marker without one.
+
+The spec logs in as `alledit`, opens Base data → Instrument without price data, and deletes an existing marker for
+that ISIN before creating it. It cancels an edit, reopens the dialog with the original values and saves changed dates
+and notes. Holding the real table reload verifies that the OnPush table shows the changed row after the response
+arrives. It then deletes the row and creates it once more with the fixture values, so a run that stopped halfway can
+be repeated. The marker is left in place. CRE18 (`CH0398677754`) is not used: `062-historyquote-bulk-tools` owns that
+bond.
+
+Two further cases leave the view while its form definition is pending and close the search and edit dialogs while
+search options are pending. A late response must neither reopen an abandoned edit dialog nor replace a new draft.
+These cases save no data.
+
+Creation types the dates into empty inputs; editing chooses the adjacent date through the calendar overlay. Replacing
+an already populated date with keyboard input currently makes the Optimus date mask discard the text, including with
+`Eager` change detection. Plain Playwright `fill()` also does not drive that mask correctly.
+
+With the backend on the `e2e` profile (`grafioschtrader_t`) and the frontend dev server already running:
+
+`npx playwright test e2e/069-bankrupt-security.spec.ts --project=grafioschtrader-e2e --no-deps`
+
 ## Tax data spec (115-*)
 
 `115-taxdata.spec.ts` covers the tax data administration view (Administrative data -> Tax data) as the
@@ -898,6 +1108,20 @@ exchange rates at all and must not remove the ones already imported.
 rather than by column position. The expansion toggle of a tax year is a leading cell, and while it was
 being introduced it shifted the name out of the first column and broke every selector of this spec at
 once.
+
+## Tax dialog notification (116-_, 127-_)
+
+`116-tax-data-notification.spec.ts` delays the tree, country options, model YAML, schema and event-kind options.
+It checks dialog sessions, draft preservation and a real preview using `testdata/tax-model-notification.yaml`:
+1% of a CHF 1,000 clean value must display CHF 10. It also exercises transport failure/retry and closes the editor
+while a preview is pending, without saving a model. The exchange-rate case needs the optional 2025 Kursliste import
+from 115 and cancels an edit without changing the published USD rate; the other cases need no Kursliste files.
+
+`127-tax-dialog-notification.spec.ts` opens tax export and correction dialogs through the dividends report. It
+overlays only the report's Swiss-country and available-year metadata, preserving saved tenant settings. The export
+case checks canton options, drafts and old dialog responses; no statement is downloaded. The correction case saves
+an owned comment through the table and deletes only comments carrying its note prefix at startup and in `finally`.
+Existing corrections remain untouched. Run 116 and 127 individually with `--project=grafioschtrader-e2e --no-deps`.
 
 ## GTNet exchange-flag spec (175-*)
 
@@ -1183,7 +1407,7 @@ GTNET_SKIP_BOOTSTRAP=true \
 npx playwright test e2e/gtnet-app/075-exchange-kind-approval.spec.ts --config=playwright.gtnet-app.config.ts
 ```
 
-### Table and form notification (035-*)
+### Task monitor and table/form notification (lib/035-_, lib/036-_ and 101-*)
 
 `035-task-monitor-notification.spec.ts` uses the batch processing monitor of `grafiosch-host` as `admin` to check the
 change notification of the library building blocks: a column toggled in the column visibility dialog disappears and
@@ -1194,6 +1418,20 @@ the create dialog shows only the task and the start time, which is prefilled. Th
 own (a routed component), the admin's locale may be German after `020-nickname-lang-edit`, and a sort badge follows
 the header text. Run with
 `npx playwright test --config=playwright.lib.config.ts e2e/lib/035-task-monitor-notification.spec.ts --project=lib-e2e --no-deps`.
+
+`101-task-monitor-notification.spec.ts` and `lib/036-task-monitor-queues.spec.ts` run the shared scenarios in
+`lib/task-monitor.scenarios.ts` in Grafioschtrader and the zoneless library host. They delay constraints and row responses,
+switch queues before responses arrive, follow browser back/forward navigation, and leave/reopen the monitor while
+requests are pending. They also check the persisted task filter, an empty intersection between queue and filter (which
+must issue no unfiltered request), repeated create/copy dialogs, optional/required entities, numeric IDs, task-scoped ID
+options, create/delete reloads, failed-task details and protected actions for system/running tasks. Grafioschtrader also
+checks cancellation of the additional security-tooltip request when the queue changes.
+
+Each test starts with a fresh page-local fixture intercepting all task endpoints, including writes, plus the security
+tooltip endpoint. These tests exercise browser behavior without enqueuing, interrupting or deleting real jobs; they do
+not test backend persistence or job execution. The original `lib/035` continues to use the real test services and saves
+no job. Run the new specs with `--no-deps`, using `--project=grafioschtrader-e2e` for `101`, or
+`--config=playwright.lib.config.ts --project=lib-e2e` for `lib/036`.
 
 ### Users of the library suite
 

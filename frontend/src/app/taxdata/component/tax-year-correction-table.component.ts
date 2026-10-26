@@ -1,4 +1,6 @@
-import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, OnChanges, Output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -44,25 +46,25 @@ import { TaxYearCorrectionService } from '../service/tax-year-correction.service
       #entityTable
       [(data)]="corrections"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="idTaxYearCorrection"
       [contextMenuEnabled]="false"
-      [valueGetterFn]="getValueByPath.bind(this)"
-      [customSortFn]="customSort.bind(this)"
+      [valueGetterFn]="valueGetter"
+      [customSortFn]="customSorter"
       [multiSortMeta]="multiSortMeta"
       [baseLocale]="baseLocale"
       [numberLocale]="numberLocale"
-      [createNewEntityFn]="createNewEntity.bind(this)"
-      [canDeleteRowFn]="canDeleteRow.bind(this)"
+      [createNewEntityFn]="createNewEntity"
+      [canDeleteRowFn]="canDeleteRow"
       (rowEditSave)="onRowEditSave($event)"
       (rowDelete)="onRowDelete($event)">
     </editable-table>
   `,
   standalone: true,
   imports: [EditableTableComponent, TranslateModule, ButtonModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [TaxYearCorrectionService]
 })
-export class TaxYearCorrectionTableComponent extends TableEditConfigBase implements OnInit {
+export class TaxYearCorrectionTableComponent extends TableEditConfigBase implements OnChanges {
   /** The security whose corrections are maintained. */
   @Input() idSecuritycurrency: number;
   /** Tax years offered for new rows in addition to the years with ICTax data (e.g. the report years). */
@@ -72,7 +74,9 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
   /** Fires after any successful create/update/delete so the opener can reload the dividends report. */
   @Output() dataChanged = new EventEmitter<void>();
 
-  corrections: TaxYearCorrection[] = [];
+  private readonly destroyRef = inject(DestroyRef);
+  private readSubscription?: Subscription;
+  readonly corrections = signal<TaxYearCorrection[]>([]);
 
   /** User locale (e.g. 'de-CH') so the taxable income edit input formats numbers like the rest of GT. */
   numberLocale: string;
@@ -80,7 +84,7 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
   /** Tax years with ICTax data for the security's ISIN; only these years allow override values. */
   private ictaxYearSet = new Set<number>();
   /** All selectable tax years (input years plus ICTax years), descending. */
-  private allYears: number[] = [];
+  private readonly allYears = signal<number[]>([]);
 
   private readonly TAX_YEAR_CORRECTION = 'TAX_YEAR_CORRECTION';
 
@@ -120,18 +124,23 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
     this.prepareTableAndTranslate();
   }
 
-  ngOnInit(): void {
+  ngOnChanges(): void {
     this.readData();
   }
 
   private readData(): void {
-    this.taxYearCorrectionService.getBySecurity(this.idSecuritycurrency).subscribe((info) => {
-      this.corrections = info.corrections;
-      this.ictaxYearSet = new Set(info.ictaxTaxYears.map((y) => Number(y)));
-      this.allYears = Array.from(new Set([...this.yearOptions, ...info.ictaxTaxYears].map((y) => Number(y)))).sort(
-        (a, b) => b - a
-      );
-    });
+    this.readSubscription?.unsubscribe();
+    this.readSubscription = this.taxYearCorrectionService
+      .getBySecurity(this.idSecuritycurrency)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((info) => {
+        this.ictaxYearSet = new Set(info.ictaxTaxYears.map((y) => Number(y)));
+        this.allYears.set(
+          Array.from(new Set([...this.yearOptions, ...info.ictaxTaxYears].map((y) => Number(y)))).sort((a, b) => b - a)
+        );
+        this.corrections.set(info.corrections);
+        this.notifyViewChanged();
+      });
   }
 
   /** New rows carry no persisted id (null or the editable table's negative temporary key). */
@@ -147,9 +156,11 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
   /** Tax years not yet used by another correction record; the given row's own year stays selectable. */
   getFreeYears(row: TaxYearCorrection | null): number[] {
     const usedYears = new Set(
-      this.corrections.filter((c) => c !== row && c.taxYear != null).map((c) => Number(c.taxYear))
+      this.corrections()
+        .filter((c) => c !== row && c.taxYear != null)
+        .map((c) => Number(c.taxYear))
     );
-    return this.allYears.filter((y) => !usedYears.has(y));
+    return this.allYears().filter((y) => !usedYears.has(y));
   }
 
   private getYearOptions(row: TaxYearCorrection): ValueKeyHtmlSelectOptions[] {
@@ -166,9 +177,9 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
     return entity;
   };
 
-  canDeleteRow(row: TaxYearCorrection): boolean {
+  readonly canDeleteRow = (row: TaxYearCorrection): boolean => {
     return true;
-  }
+  };
 
   onRowEditSave(event: RowEditSaveEvent<TaxYearCorrection>): void {
     const entity = event.row;
@@ -187,24 +198,27 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
     } else if (entity.useTaxableAmount) {
       entity.taxableIncome = null;
     }
-    this.taxYearCorrectionService.update(entity).subscribe({
-      next: () => {
-        this.messageToastService.showMessageI18n(
-          InfoLevelType.SUCCESS,
-          event.isNew ? 'MSG_RECORD_CREATED' : 'MSG_RECORD_SAVED',
-          { i18nRecord: this.TAX_YEAR_CORRECTION }
-        );
-        this.readData();
-        this.dataChanged.emit();
-      },
-      error: () => this.readData()
-    });
+    this.taxYearCorrectionService
+      .update(entity)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.messageToastService.showMessageI18n(
+            InfoLevelType.SUCCESS,
+            event.isNew ? 'MSG_RECORD_CREATED' : 'MSG_RECORD_SAVED',
+            { i18nRecord: this.TAX_YEAR_CORRECTION }
+          );
+          this.readData();
+          this.dataChanged.emit();
+        },
+        error: () => this.readData()
+      });
   }
 
   onRowDelete(event: RowEditEvent<TaxYearCorrection>): void {
     const entity = event.row;
     if (this.isNewRow(entity)) {
-      this.corrections = this.corrections.filter((c) => c !== entity);
+      this.corrections.update((rows) => rows.filter((c) => c !== entity));
       return;
     }
     AppHelper.confirmationDialog(
@@ -212,13 +226,16 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + this.TAX_YEAR_CORRECTION,
       () => {
-        this.taxYearCorrectionService.deleteEntity(entity.idTaxYearCorrection).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: this.TAX_YEAR_CORRECTION
+        this.taxYearCorrectionService
+          .deleteEntity(entity.idTaxYearCorrection)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: this.TAX_YEAR_CORRECTION
+            });
+            this.readData();
+            this.dataChanged.emit();
           });
-          this.readData();
-          this.dataChanged.emit();
-        });
       }
     );
   }

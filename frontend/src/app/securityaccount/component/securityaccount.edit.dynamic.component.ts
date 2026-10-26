@@ -1,7 +1,8 @@
-import { AfterViewInit, Component, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, OnInit, ViewChild, signal } from '@angular/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateService } from '@ngx-translate/core';
-import { AppHelper, Comparison } from '../../lib/helper/app.helper';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { map, Observable, of, switchMap } from 'rxjs';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { Portfolio } from '../../entities/portfolio';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -42,26 +43,22 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
     </dynamic-form>
     <trading-period-table
       #tradingPeriodTable
-      [tradingPeriods]="tradingPeriods"
-      [transactionSummaries]="transactionSummaries"
+      [tradingPeriods]="tradingPeriods()"
+      [transactionSummaries]="transactionSummaries()"
       [isNewSecurityAccount]="callParam.thisObject == null" />
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormComponent, TradingPeriodTableComponent]
 })
-export class SecurityaccountEditDynamicComponent
-  extends SimpleDynamicEditBase<Securityaccount>
-  implements OnInit, AfterViewInit
-{
+export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<Securityaccount> implements OnInit {
   static readonly DIALOG_WIDTH = 850;
   callParam: CallParam;
 
   @ViewChild('tradingPeriodTable')
   tradingPeriodTable: TradingPeriodTableComponent;
 
-  tradingPeriods: SecaccountTradingPeriod[] = [];
-  transactionSummaries: TradingPeriodTransactionSummary[] = [];
+  readonly tradingPeriods = signal<SecaccountTradingPeriod[]>([]);
+  readonly transactionSummaries = signal<TradingPeriodTransactionSummary[]>([]);
 
   constructor(
     private tradingPlatformPlanService: TradingPlatformPlanService,
@@ -82,6 +79,7 @@ export class SecurityaccountEditDynamicComponent
       messageToastService,
       securityaccountService
     );
+    afterNextRender(() => this.initializeForm());
   }
 
   ngOnInit(): void {
@@ -103,47 +101,56 @@ export class SecurityaccountEditDynamicComponent
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
+  /** Publishes a complete translated list so no asynchronous callback mutates options already shown by the form. */
   private tradingPlatformPlanCreateValueKeyHtmlSelectOptions(
     tradingPlatformPlans: TradingPlatformPlan[]
-  ): ValueKeyHtmlSelectOptions[] {
-    const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
+  ): Observable<ValueKeyHtmlSelectOptions[]> {
     this.configObject.tradingPlatformPlan.referencedDataObject = tradingPlatformPlans;
-    tradingPlatformPlans.forEach((tradingPlatformPlan) => {
-      this.translateService.get(tradingPlatformPlan.transactionFeePlan).subscribe((tp) => {
-        const valueKeyHtmlSelectOption = new ValueKeyHtmlSelectOptions(tradingPlatformPlan.idTradingPlatformPlan, null);
-        valueKeyHtmlSelectOption.value =
-          Helper.getValueByPath(tradingPlatformPlan, 'platformPlanNameNLS.map.' + this.gps.getUserLang()) + ' / ' + tp;
-        const indexPos = AppHelper.binarySearch(
-          valueKeyHtmlSelectOptions,
-          valueKeyHtmlSelectOption.value,
-          (option, value) =>
-            option.value === value ? Comparison.EQ : option.value > value ? Comparison.GT : Comparison.LT
-        );
-        valueKeyHtmlSelectOptions.splice(Math.abs(indexPos), 0, valueKeyHtmlSelectOption);
-      });
-    });
-    return valueKeyHtmlSelectOptions;
+    if (!tradingPlatformPlans.length) {
+      return of([new ValueKeyHtmlSelectOptions('', '')]);
+    }
+    return this.translateService
+      .get(tradingPlatformPlans.map((plan) => plan.transactionFeePlan))
+      .pipe(
+        map((translations) => [
+          new ValueKeyHtmlSelectOptions('', ''),
+          ...tradingPlatformPlans
+            .map(
+              (plan) =>
+                new ValueKeyHtmlSelectOptions(
+                  plan.idTradingPlatformPlan,
+                  Helper.getValueByPath(plan, 'platformPlanNameNLS.map.' + this.gps.getUserLang()) +
+                    ' / ' +
+                    translations[plan.transactionFeePlan]
+                )
+            )
+            .sort((a, b) => a.value.localeCompare(b.value))
+        ])
+      );
   }
 
-  ngAfterViewInit(): void {
-    this.tradingPlatformPlanService.getAllTradingPlatform().subscribe((tradingPlatformPlans: TradingPlatformPlan[]) => {
-      this.configObject.tradingPlatformPlan.valueKeyHtmlOptions =
-        this.tradingPlatformPlanCreateValueKeyHtmlSelectOptions(tradingPlatformPlans);
-      this.form.setDefaultValuesAndEnableSubmit();
-      if (this.callParam.thisObject != null) {
-        this.form.transferBusinessObjectToForm(this.callParam.thisObject);
-        const secaccount = <Securityaccount>this.callParam.thisObject;
-        this.tradingPeriods = [...(secaccount.tradingPeriods || [])];
-        (<SecurityaccountService>this.serviceEntityUpdate)
-          .getTransactionSummaries(secaccount.idSecuritycashAccount)
-          .subscribe((summaries) => (this.transactionSummaries = summaries));
-      } else {
-        this.tradingPeriods = this.getDefaultTradingPeriods();
-      }
-      setTimeout(() => {
-        this.configObject.name.elementRef?.nativeElement?.focus();
-      }, 50);
-    });
+  /** Loads options and transaction constraints independently after the dynamic form has rendered. */
+  private initializeForm(): void {
+    this.form.setDefaultValuesAndEnableSubmit();
+    if (this.callParam.thisObject != null) {
+      this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+      const secaccount = <Securityaccount>this.callParam.thisObject;
+      this.tradingPeriods.set([...(secaccount.tradingPeriods || [])]);
+      (<SecurityaccountService>this.serviceEntityUpdate)
+        .getTransactionSummaries(secaccount.idSecuritycashAccount)
+        .pipe(this.untilDialogClosed())
+        .subscribe((summaries) => this.transactionSummaries.set(summaries));
+    } else {
+      this.tradingPeriods.set(this.getDefaultTradingPeriods());
+    }
+    this.configObject.name.elementRef?.nativeElement?.focus();
+    this.tradingPlatformPlanService
+      .getAllTradingPlatform()
+      .pipe(
+        switchMap((plans) => this.tradingPlatformPlanCreateValueKeyHtmlSelectOptions(plans)),
+        this.untilDialogClosed()
+      )
+      .subscribe((options) => (this.configObject.tradingPlatformPlan.valueKeyHtmlOptions = options));
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Securityaccount {
@@ -152,7 +159,7 @@ export class SecurityaccountEditDynamicComponent
       <Securityaccount>this.callParam.thisObject
     );
     securityaccount.portfolio = <Portfolio>this.callParam.parentObject;
-    securityaccount.tradingPeriods = this.tradingPeriodTable?.getData() || this.tradingPeriods;
+    securityaccount.tradingPeriods = this.tradingPeriodTable?.getData() || this.tradingPeriods();
     return securityaccount;
   }
 

@@ -21,9 +21,9 @@ test.describe.serial("standing orders of 'alledit'", () => {
 
   test('recreates and verifies every fixture standing order', async ({ page }) => {
     await loginAsFixtureUser(page, 'alledit');
-    await deleteExistingStandingOrders(page, STANDING_ORDERS);
+    const toCreate = await deleteExistingStandingOrders(page, STANDING_ORDERS);
 
-    for (const fixture of STANDING_ORDERS) {
+    for (const fixture of toCreate) {
       if (fixture.standingOrder.kind === 'cash') {
         await createCashStandingOrder(page, fixture);
       } else {

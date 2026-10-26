@@ -1,0 +1,5 @@
+version: 1
+transactionTaxes:
+  rules:
+    - name: Notification purchase
+      expression: cleanValue * 0.01

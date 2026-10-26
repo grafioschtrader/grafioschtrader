@@ -1,0 +1,16 @@
+[
+  {
+    "nickname": "e2euser",
+    "tokenName": "e2e-browser-mcp-copy",
+    "expiresInDays": 7,
+    "finishBy": "copy",
+    "e2e": "e"
+  },
+  {
+    "nickname": "e2euser",
+    "tokenName": "e2e-browser-mcp-close",
+    "expiresInDays": 7,
+    "finishBy": "close",
+    "e2e": "e"
+  }
+]

@@ -1,6 +1,18 @@
-import { ViewChild, Component, Input, OnInit, Optional, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ViewChild,
+  Component,
+  Input,
+  OnInit,
+  Optional,
+  afterNextRender,
+  effect,
+  inject,
+  Injector,
+  signal
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
-import { combineLatest } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -71,8 +83,9 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
         #yamlEditor
         [format]="isDynamic ? 'FEES_ACCOUNT' : 'FEES'"
         [height]="'400px'"
-        [(value)]="feeModelYamlValue"
-        [schema]="feeModelSchema"
+        [value]="feeModelYamlValue()"
+        (valueChange)="feeModelYamlValue.set($event)"
+        [schema]="feeModelSchema()"
         [fieldCompletions]="evalExCompletions"></yaml-editor>
 
       <div class="flex justify-end mt-3">
@@ -92,31 +105,30 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
           #form="dynamicForm">
         </dynamic-form>
 
-        @if (testResult) {
-          @if (testResult.estimatedCost != null) {
+        @if (testResult(); as result) {
+          @if (result.estimatedCost != null) {
             <div class="text-green-600 mt-2">
               <strong>{{ 'ESTIMATED_COST' | translate }}:</strong>
-              {{ testResult.estimatedCost }}
-              @if (testResult.matchedRuleName) {
-                <span> &mdash; {{ 'MATCHED_RULE' | translate }}: {{ testResult.matchedRuleName }}</span>
+              {{ result.estimatedCost }}
+              @if (result.matchedRuleName) {
+                <span> &mdash; {{ 'MATCHED_RULE' | translate }}: {{ result.matchedRuleName }}</span>
               }
             </div>
           }
-          @if (testResult.error) {
-            <div class="text-red-600 mt-2"><strong>Error:</strong> {{ testResult.error }}</div>
+          @if (result.error) {
+            <div class="text-red-600 mt-2"><strong>Error:</strong> {{ result.error }}</div>
           }
         }
       </p-fieldset>
       <p-fieldset [legend]="'FX_CONVERSION' | translate" [toggleable]="true" [collapsed]="true" styleClass="mt-3">
         <fx-markup-preview
-          [yaml]="feeModelYamlValue"
+          [yaml]="feeModelYamlValue()"
           [idSecurityaccount]="securityaccount?.idSecuritycashAccount"
           [idTradingPlatformPlan]="callParam?.idTradingPlatformPlan"></fx-markup-preview>
       </p-fieldset>
     </ng-template>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     DialogModule,
     DynamicFormModule,
@@ -135,10 +147,14 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
   @Input() callParam: TradingPlatformPlan;
 
   isDynamic = false;
-  feeModelYamlValue = '';
-  feeModelSchema: any;
+  readonly feeModelYamlValue = signal('');
+  readonly feeModelSchema = signal<any>(null);
   evalExCompletions: { [fieldName: string]: YamlFieldCompletion[] };
-  testResult: TransactionCostEstimateResult = null;
+  readonly testResult = signal<TransactionCostEstimateResult>(null);
+
+  private readonly injector = inject(Injector);
+  private estimateSubscription: Subscription;
+  private estimateRevision = 0;
 
   securityaccount: Securityaccount;
 
@@ -158,6 +174,12 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
     this.isDynamic = !!dynamicDialogRef;
     this.loadFeeModelSchema();
     this.evalExCompletions = this.buildEvalExCompletions();
+    effect(() => {
+      this.feeModelYamlValue();
+      this.estimateRevision++;
+      this.estimateSubscription?.unsubscribe();
+      this.testResult.set(null);
+    });
   }
 
   ngOnInit(): void {
@@ -186,67 +208,84 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
 
     if (this.isDynamic) {
       this.securityaccount = this.dynamicDialogConfig.data.callParam.thisObject;
-      this.initialize();
+      afterNextRender(() => this.initialize(), { injector: this.injector });
     }
   }
 
   protected override initialize(): void {
     if (this.isDynamic) {
-      this.feeModelYamlValue = this.securityaccount?.feeModelYaml || '';
+      this.feeModelYamlValue.set(this.securityaccount?.feeModelYaml || '');
     } else {
-      this.feeModelYamlValue = this.callParam?.feeModelYaml || '';
+      this.feeModelYamlValue.set(this.callParam?.feeModelYaml || '');
     }
-    this.testResult = null;
-
-    combineLatest([this.stockexchangeService.getAllStockexchanges(false), this.gpsGT.getCurrencies()]).subscribe(
-      ([stockexchanges, currencies]) => {
+    this.testResult.set(null);
+    this.form.setDefaultValuesAndEnableSubmit();
+    const enumKeys = (e: any): string[] => Object.keys(e).filter((key) => typeof e[key] === 'number');
+    const instrumentKeys = enumKeys(SpecialInvestmentInstruments);
+    const categoryKeys = enumKeys(AssetclassType);
+    forkJoin([
+      this.stockexchangeService.getAllStockexchanges(false),
+      this.gpsGT.getCurrencies(),
+      this.translateService.get([...instrumentKeys, ...categoryKeys, 'BUY', 'SELL'])
+    ])
+      .pipe(this.untilDialogClosed())
+      .subscribe(([stockexchanges, currencies, texts]) => {
         this.configObject.mic.valueKeyHtmlOptions = this.createMicOptions(stockexchanges);
         this.configObject.currency.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')].concat(currencies);
         this.configObject.settlementCurrency.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')].concat(
           currencies
         );
-        this.configObject.specInvestInstrument.valueKeyHtmlOptions =
-          this.createOrdinalEnumOptions(SpecialInvestmentInstruments);
-        this.configObject.categoryType.valueKeyHtmlOptions = this.createOrdinalEnumOptions(AssetclassType);
-        this.translateService.get(['BUY', 'SELL']).subscribe((t) => {
-          this.configObject.tradeDirection.valueKeyHtmlOptions = [
-            new ValueKeyHtmlSelectOptions('', ''),
-            new ValueKeyHtmlSelectOptions(0, t['BUY']),
-            new ValueKeyHtmlSelectOptions(1, t['SELL'])
-          ];
-        });
-
-        this.form.setDefaultValuesAndEnableSubmit();
-      }
-    );
+        this.configObject.specInvestInstrument.valueKeyHtmlOptions = this.createOrdinalEnumOptions(
+          SpecialInvestmentInstruments,
+          instrumentKeys,
+          texts
+        );
+        this.configObject.categoryType.valueKeyHtmlOptions = this.createOrdinalEnumOptions(
+          AssetclassType,
+          categoryKeys,
+          texts
+        );
+        this.configObject.tradeDirection.valueKeyHtmlOptions = [
+          new ValueKeyHtmlSelectOptions('', ''),
+          new ValueKeyHtmlSelectOptions(0, texts['BUY']),
+          new ValueKeyHtmlSelectOptions(1, texts['SELL'])
+        ];
+      });
   }
 
   async save(): Promise<void> {
+    const untilClosed = this.untilDialogClosed<Securityaccount | TradingPlatformPlan>();
     if (!(await this.yamlEditor.validateForSubmit())) return;
     if (this.isDynamic) {
       const sa = new Securityaccount();
       Object.assign(sa, this.securityaccount);
-      sa.feeModelYaml = this.feeModelYamlValue?.trim() || null;
-      this.securityaccountService.update(sa).subscribe({
-        next: () => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-            i18nRecord: AppSettings.SECURITYACCOUNT.toUpperCase()
-          });
-          this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.UPDATED));
-        }
-      });
+      sa.feeModelYaml = this.feeModelYamlValue().trim() || null;
+      this.securityaccountService
+        .update(sa)
+        .pipe(untilClosed)
+        .subscribe({
+          next: () => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+              i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.SECURITYACCOUNT)
+            });
+            this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.UPDATED));
+          }
+        });
     } else {
       const tradingPlatformPlan = new TradingPlatformPlan();
       Object.assign(tradingPlatformPlan, this.callParam);
-      tradingPlatformPlan.feeModelYaml = this.feeModelYamlValue?.trim() || null;
-      this.tradingPlatformPlanService.update(tradingPlatformPlan).subscribe({
-        next: () => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-            i18nRecord: AppSettings.TRADING_PLATFORM_PLAN.toUpperCase()
-          });
-          this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
-        }
-      });
+      tradingPlatformPlan.feeModelYaml = this.feeModelYamlValue().trim() || null;
+      this.tradingPlatformPlanService
+        .update(tradingPlatformPlan)
+        .pipe(untilClosed)
+        .subscribe({
+          next: () => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+              i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.TRADING_PLATFORM_PLAN)
+            });
+            this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
+          }
+        });
     }
   }
 
@@ -262,17 +301,15 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
    * Unlike SelectOptionsHelper.createHtmlOptionsFromEnumAddEmpty which uses enum name strings as keys,
    * this method uses numeric ordinals — required when the backend expects Integer fields.
    */
-  private createOrdinalEnumOptions(e: any): ValueKeyHtmlSelectOptions[] {
-    const keys: string[] = Object.keys(e).filter((k) => typeof e[k] === 'number');
-    const translateKeys = keys.map((k) => e[e[k]]);
-    const options: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
-    this.translateService.get(translateKeys).subscribe((translations) => {
-      for (const name of keys) {
-        const ordinal: number = e[name];
-        options.push(new ValueKeyHtmlSelectOptions(ordinal, translations[name] || name));
-      }
-    });
-    return options;
+  private createOrdinalEnumOptions(
+    e: any,
+    keys: string[],
+    translations: { [key: string]: string }
+  ): ValueKeyHtmlSelectOptions[] {
+    return [
+      new ValueKeyHtmlSelectOptions('', ''),
+      ...keys.map((name) => new ValueKeyHtmlSelectOptions(e[name], translations[name] || name))
+    ];
   }
 
   /**
@@ -280,7 +317,12 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
    * Both modes evaluate unsaved YAML without persisting the plan.
    */
   async testEstimation(event: any): Promise<void> {
+    const revision = ++this.estimateRevision;
+    this.estimateSubscription?.unsubscribe();
+    const untilClosed = this.untilDialogClosed<TransactionCostEstimateResult>();
     if (!(await this.yamlEditor.validateForSubmit())) return;
+    if (revision !== this.estimateRevision) return;
+    this.testResult.set(null);
 
     const request: TransactionCostEstimateRequest = {
       idSecurityaccount: this.securityaccount?.idSecuritycashAccount,
@@ -308,19 +350,14 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       )
     };
 
-    if (this.isDynamic) {
-      request.yaml = this.feeModelYamlValue?.trim() || null;
-      this.securityaccountService.estimateCostFromYaml(request).subscribe({
-        next: (result: TransactionCostEstimateResult) => (this.testResult = result),
-        error: () => (this.testResult = { error: 'Request failed' })
-      });
-    } else {
-      request.yaml = this.feeModelYamlValue?.trim() || null;
-      this.tradingPlatformPlanService.estimateTransactionCost(request).subscribe({
-        next: (result) => (this.testResult = result),
-        error: () => (this.testResult = { error: 'Request failed' })
-      });
-    }
+    request.yaml = this.feeModelYamlValue().trim() || null;
+    const estimate = this.isDynamic
+      ? this.securityaccountService.estimateCostFromYaml(request)
+      : this.tradingPlatformPlanService.estimateTransactionCost(request);
+    this.estimateSubscription = estimate.pipe(untilClosed).subscribe({
+      next: (result) => this.testResult.set(result),
+      error: () => this.testResult.set({ error: 'Request failed' })
+    });
   }
 
   submit(value: { [name: string]: any }): void {
@@ -328,10 +365,13 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
   }
 
   private loadFeeModelSchema(): void {
-    this.httpClient.get('assets/schemas/fee-model-schema.json').subscribe({
-      next: (schema: any) => (this.feeModelSchema = schema),
-      error: () => console.warn('Failed to load fee model schema')
-    });
+    this.httpClient
+      .get('assets/schemas/fee-model-schema.json')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (schema: any) => this.feeModelSchema.set(schema),
+        error: () => console.warn('Failed to load fee model schema')
+      });
   }
 
   /**

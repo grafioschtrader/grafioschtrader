@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule } from '@ngx-translate/core';
 import { DynamicDialogConfig } from '@openng/optimus-ui/dynamicdialog';
-import { Subscription } from 'rxjs';
 import { UserAccessTokenService } from '../service/user-access-token.service';
+import { AccessTokenClientInfo } from '../model/user-access-token';
 import { UserAccessTokenTableComponent } from './user-access-token-table.component';
 import { OAuthAuthorizationTableComponent } from './oauth-authorization-table.component';
 
@@ -18,7 +19,6 @@ export interface UserAccessTokenDialogData {
  */
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, UserAccessTokenTableComponent, OAuthAuthorizationTableComponent],
   template: `
     @if (introKey) {
@@ -31,14 +31,14 @@ export interface UserAccessTokenDialogData {
       <li>{{ 'ACCESS_TOKEN_NOTICE_SHARED' | translate }}</li>
       <li>{{ 'ACCESS_TOKEN_NOTICE_HOME_TENANT' | translate }}</li>
     </ul>
-    @if (clientInfoLoaded) {
-      @if (endpointUrl) {
+    @if (clientInfo()) {
+      @if (clientInfo().endpointUrl) {
         <p>
-          <b>{{ 'ACCESS_TOKEN_ENDPOINT' | translate }}:</b> <code>{{ endpointUrl }}</code>
+          <b>{{ 'ACCESS_TOKEN_ENDPOINT' | translate }}:</b> <code>{{ clientInfo().endpointUrl }}</code>
         </p>
-        @if (configSnippet) {
+        @if (configSnippet()) {
           <p>{{ 'ACCESS_TOKEN_CONFIG_EXAMPLE' | translate }}</p>
-          <pre style="white-space: pre-wrap; word-break: break-all">{{ configSnippet }}</pre>
+          <pre style="white-space: pre-wrap; word-break: break-all">{{ configSnippet() }}</pre>
         }
       } @else {
         <p>{{ 'ACCESS_TOKEN_NO_ENDPOINT' | translate }}</p>
@@ -49,12 +49,13 @@ export interface UserAccessTokenDialogData {
     <oauth-authorization-table />
   `
 })
-export class UserAccessTokenDialogComponent implements OnInit, OnDestroy {
+export class UserAccessTokenDialogComponent implements OnInit {
   introKey: string;
-  endpointUrl: string;
-  configSnippet: string;
-  clientInfoLoaded = false;
-  private subscription: Subscription;
+  readonly clientInfo = signal<AccessTokenClientInfo>(null);
+  readonly configSnippet = computed(() =>
+    this.clientInfo()?.configSnippet?.replace('${TIME_ZONE}', Intl.DateTimeFormat().resolvedOptions().timeZone)
+  );
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private dynamicDialogConfig: DynamicDialogConfig<UserAccessTokenDialogData>,
@@ -63,18 +64,9 @@ export class UserAccessTokenDialogComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.introKey = this.dynamicDialogConfig.data?.introKey;
-    this.subscription = this.userAccessTokenService.getClientInfo().subscribe((info) => {
-      this.endpointUrl = info.endpointUrl;
-      // The example carries a placeholder for the token; the time zone is the browser's, as the tools expect it
-      this.configSnippet = info.configSnippet?.replace(
-        '${TIME_ZONE}',
-        Intl.DateTimeFormat().resolvedOptions().timeZone
-      );
-      this.clientInfoLoaded = true;
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
+    this.userAccessTokenService
+      .getClientInfo()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((info) => this.clientInfo.set(info));
   }
 }

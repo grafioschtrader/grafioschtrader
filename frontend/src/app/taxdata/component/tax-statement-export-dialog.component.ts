@@ -1,4 +1,5 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -24,6 +25,7 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
     <p-dialog
       header="{{ 'EXPORT_TAX_STATEMENT' | translate }}"
       [visible]="visibleDialog"
+      (visibleChange)="!$event && onHide($event)"
       [style]="{ width: '550px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -38,7 +40,6 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TaxStatementExportDialogComponent extends SimpleEditBase implements OnInit {
@@ -75,16 +76,20 @@ export class TaxStatementExportDialogComponent extends SimpleEditBase implements
     this.configObject.taxYear.valueKeyHtmlOptions = this.availableTaxYears.map(
       (y) => new ValueKeyHtmlSelectOptions(String(y), String(y))
     );
-    this.taxDataService.getCantons().subscribe((cantons) => {
-      this.configObject.canton.valueKeyHtmlOptions = cantons;
-      this.form.setDefaultValuesAndEnableSubmit();
-      if (this.taxExportSettings) {
-        this.form.transferBusinessObjectToForm({
-          ...this.taxExportSettings,
-          taxYear: String(this.taxExportSettings.taxYear)
-        });
-      }
-    });
+    this.form.setDefaultValuesAndEnableSubmit();
+    if (this.taxExportSettings) {
+      this.form.transferBusinessObjectToForm({
+        ...this.taxExportSettings,
+        taxYear: String(this.taxExportSettings.taxYear)
+      });
+    }
+    this.taxDataService
+      .getCantons()
+      .pipe(this.untilDialogClosed())
+      .subscribe((cantons) => {
+        this.configObject.canton.valueKeyHtmlOptions = cantons;
+        this.viewChanged();
+      });
   }
 
   submit(value: { [name: string]: any }): void {
@@ -101,18 +106,21 @@ export class TaxStatementExportDialogComponent extends SimpleEditBase implements
     };
 
     this.configObject.submit.disabled = true;
-    this.taxDataService.exportEch0196(request).subscribe({
-      next: (blob: Blob) => {
-        this.tenantService.saveTaxExportSettings(request).subscribe();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `tax_statement_${request.taxYear}.zip`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED, request));
-      },
-      error: () => (this.configObject.submit.disabled = false)
-    });
+    this.taxDataService
+      .exportEch0196(request)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (blob: Blob) => {
+          this.tenantService.saveTaxExportSettings(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `tax_statement_${request.taxYear}.zip`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED, request));
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 }

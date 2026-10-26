@@ -9,10 +9,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-/** Tests the routes consumed by the bond terms dialog without starting an application or accessing a database. */
+/** Tests dialog option routes without starting an application or accessing a database. */
 class TaxDataCouponOptionsTest {
 
   private final MockMvc mvc = MockMvcBuilders.standaloneSetup(new TaxDataResource()).build();
+
+  @Test
+  @DisplayName("Tax previews can select all four accepted trade and income event kinds")
+  void taxEventKinds() throws Exception {
+    mvc.perform(get("/api/taxdata/eventkinds")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(4))
+        .andExpect(jsonPath("$[0].key").value("BUY")).andExpect(jsonPath("$[1].key").value("SELL"))
+        .andExpect(jsonPath("$[2].key").value("DIVIDEND")).andExpect(jsonPath("$[3].key").value("SECURITY_INTEREST"));
+  }
 
   @Test
   @DisplayName("Bond terms can load the available coupon day-count conventions")

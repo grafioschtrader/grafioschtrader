@@ -1,4 +1,5 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
+import { holdCalendarResponse } from './calendar.helpers';
 import { loginAsFixtureUser } from './helpers';
 
 // This spec must run before 075-create-security-transactions: the fresh E2E database intentionally starts with an
@@ -251,4 +252,44 @@ test.describe.serial('create the global trading calendar as admin', () => {
       .filter({ hasText: new RegExp(`^\\s*${LAST_YEAR + 1}\\s*$`) });
     await expect(beyondLastYear).toHaveCount(0);
   });
+});
+
+test('global calendar publishes delayed data and keeps the newest selected year', async ({ page }) => {
+  await loginAsFixtureUser(page, ADMIN);
+  const initial = await holdCalendarResponse(page, `**/api/tradingdaysplus/${new Date().getFullYear()}`);
+  const calendar = page.locator('ng-fullyearcalendar-lib');
+  try {
+    await page.getByRole('treeitem', { name: CALENDAR_NODE_RX }).first().click();
+    await initial.arrived;
+    initial.release();
+    await expect(calendar.locator('.day[style*="lime"]').first()).toBeVisible();
+  } finally {
+    initial.release();
+  }
+  const obsolete = await holdCalendarResponse(page, '**/api/tradingdaysplus/2024');
+  try {
+    await page.locator('p-select#idYearSelect').click();
+    await page.getByRole('option', { name: '2024', exact: true }).click();
+    await obsolete.arrived;
+    const response = await selectYear(page, 2023);
+    const dates = ((await response.json()) as TradingDaysResponse).dates;
+    expect(dates.length).toBeGreaterThan(0);
+    await expect(calendar.locator('.day')).toHaveCount(365);
+    await expect(calendar.locator('.day[style*="lime"]')).toHaveCount(dates.length);
+    obsolete.release();
+    await obsolete.done;
+    await expect(page.locator('p-select#idYearSelect')).toContainText('2023');
+    await expect(calendar.locator('.day[style*="lime"]')).toHaveCount(dates.length);
+    const firstDay = new Date(`${dates[0]}T00:00:00`);
+    const day = calendarDay(calendar, firstDay.getMonth(), firstDay.getDate());
+    const save = page.locator('p-footer button').filter({ hasText: /Save|Speichern/i });
+    await day.click();
+    await expect(save).toBeEnabled();
+    await expect(page.locator('p-select#idYearSelect')).toHaveClass(/p-disabled/);
+    await day.click();
+    await expect(save).toBeDisabled();
+    await expect(calendar.locator('.day[style*="lime"]')).toHaveCount(dates.length);
+  } finally {
+    obsolete.release();
+  }
 });

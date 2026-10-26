@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -40,14 +40,13 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<TradingPlatformPlan> implements OnInit {
   @Input() callParam: TradingPlatformPlan;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
-  importTransactionPlatformList: ImportTransactionPlatform[];
+  private importTransactionPlatformList: ImportTransactionPlatform[] = [];
 
   constructor(
     private importTransactionPlatformService: ImportTransactionPlatformService,
@@ -94,11 +93,26 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
   }
 
   protected override initialize(): void {
+    this.form.setDefaultValuesAndEnableSubmit();
+    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
+      this.translateService,
+      this.gps,
+      this.callParam,
+      this.form,
+      this.configObject,
+      this.proposeChangeEntityWithEntity
+    );
+    // Options may arrive after the user starts typing. Only the options and submit state change in the callback.
+    this.configObject.submit.disabled = true;
+    this.configObject.en.baseInputComponent?.focus();
+    const feeKeys = Object.values(TradingPlatformFeePlan).filter((value): value is string => typeof value === 'string');
     forkJoin([
       this.importTransactionPlatformService.getAllImportTransactionPlatforms(),
-      this.gps.getCountriesForSelectBox()
-    ]).subscribe(
-      ([importTransactionPlatforms, countries]: [ImportTransactionPlatform[], ValueKeyHtmlSelectOptions[]]) => {
+      this.gps.getCountriesForSelectBox(),
+      this.translateService.get(feeKeys)
+    ])
+      .pipe(this.untilDialogClosed())
+      .subscribe(([importTransactionPlatforms, countries, texts]) => {
         this.importTransactionPlatformList = importTransactionPlatforms;
         if (this.configObject.countryCode) {
           this.configObject.countryCode.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
@@ -113,23 +127,11 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
             importTransactionPlatforms,
             true
           );
-        this.form.setDefaultValuesAndEnableSubmit();
-        this.configObject.transactionFeePlan.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-          this.translateService,
-          TradingPlatformFeePlan
-        );
-        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-          this.translateService,
-          this.gps,
-          this.callParam,
-          this.form,
-          this.configObject,
-          this.proposeChangeEntityWithEntity
-        );
-
-        this.configObject.en.elementRef.nativeElement.focus();
-      }
-    );
+        this.configObject.transactionFeePlan.valueKeyHtmlOptions = feeKeys
+          .map((key) => new ValueKeyHtmlSelectOptions(key, texts[key]))
+          .sort((a, b) => a.value.localeCompare(b.value));
+        this.configObject.submit.disabled = false;
+      });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TradingPlatformPlan {

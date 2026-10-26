@@ -1,4 +1,5 @@
-import { CrudMenuOptions, TableCrudSupportMenu } from './table.crud.support.menu';
+import { CrudMenuOptions } from './table.crud.support.menu.helper';
+import { TableCrudSupportMenuSignal } from './table.crud.support.menu.signal';
 import { Directive, Injector } from '@angular/core';
 import { DeleteService } from './delete.service';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
@@ -15,7 +16,7 @@ import { BaseID } from '../entities/base.id';
  * Therefore, tables that manage such dependent entities should be derived from this class.
  */
 @Directive()
-export abstract class TableCrudSupportMenuSecurity<T extends BaseID> extends TableCrudSupportMenu<T> {
+export abstract class TableCrudSupportMenuSecurity<T extends BaseID> extends TableCrudSupportMenuSignal<T> {
   hasSecurityObject: { [key: number]: number } = {};
 
   protected constructor(
@@ -30,7 +31,7 @@ export abstract class TableCrudSupportMenuSecurity<T extends BaseID> extends Tab
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
     injector: Injector,
-    crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS
+    crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenuSignal.ALLOW_ALL_CRUD_OPERATIONS
   ) {
     super(
       entityName,
@@ -49,10 +50,6 @@ export abstract class TableCrudSupportMenuSecurity<T extends BaseID> extends Tab
   }
 
   protected override hasRightsForDeleteEntity(entity: T): boolean {
-    return (
-      Object.keys(this.hasSecurityObject).length > 0 &&
-      this.hasSecurityObject[this.getId(entity)] === 0 &&
-      super.hasRightsForDeleteEntity(entity)
-    );
+    return this.hasSecurityObject[this.getId(entity)] === 0 && super.hasRightsForDeleteEntity(entity);
   }
 }

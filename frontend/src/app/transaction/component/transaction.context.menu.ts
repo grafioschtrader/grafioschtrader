@@ -6,7 +6,9 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { TransactionService } from '../service/transaction.service';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { Directive, EventEmitter, Injector, Output, ViewChild } from '@angular/core';
+import { DestroyRef, Directive, EventEmitter, inject, Injector, Output, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { Security } from '../../entities/security';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
@@ -33,6 +35,10 @@ import { transactionMenuPermissions } from './transaction.menu.permissions';
  */
 @Directive()
 export abstract class TransactionContextMenu extends TableConfigBase implements IGlobalMenuAttach {
+  protected readonly destroyRef = inject(DestroyRef);
+  private menuSubscription?: Subscription;
+  private menuTransaction?: Transaction;
+  private menuSignature?: string;
   /** Reference to special investment instruments enum for template usage */
   SpecialInvestmentInstruments: typeof SpecialInvestmentInstruments = SpecialInvestmentInstruments;
 
@@ -137,6 +143,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    */
   handleConnectDebitCreditTransaction(transaction: Transaction): void {
     this.visibleConnectDebitCreditDialog = true;
+    this.notifyViewChanged();
   }
 
   /**
@@ -150,6 +157,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
     } else if (Transaction.isWithdrawalOrDeposit(transaction.transactionType)) {
       this.visibleStandingOrderCashaccountDialog = true;
     }
+    this.notifyViewChanged();
   }
 
   /**
@@ -200,8 +208,23 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * Activates the current panel and sets up the context menu items based on the selected transaction.
    */
   setMenuItemsToActivePanel(): void {
-    this.activePanelService.activatePanel(this, { editMenu: this.getMenuItemsOnTransaction(this.selectedTransaction) });
-    this.contextMenuItems = this.getMenuItemsOnTransaction(this.selectedTransaction);
+    const items = this.getMenuItemsOnTransaction(this.selectedTransaction);
+    const signature = JSON.stringify(items);
+    // Replacing an unchanged model while its context menu is open detaches the clicked menu item.
+    if (this.menuTransaction === this.selectedTransaction && this.menuSignature === signature) {
+      this.activePanelService.activatePanel(this, { editMenu: this.contextMenuItems });
+      return;
+    }
+    this.menuTransaction = this.selectedTransaction;
+    this.menuSignature = signature;
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = TranslateHelper.translateMenuItems$(items, this.translateService)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((items) => {
+        this.contextMenuItems = items;
+        this.activePanelService.activatePanel(this, { editMenu: items });
+        this.notifyViewChanged();
+      });
   }
 
   /**
@@ -244,6 +267,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
 
   /** Destroys the component and cleans up panel registration */
   destroy(): void {
+    this.menuSubscription?.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
 
@@ -271,6 +295,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   protected handleEditConnectedTransaction(transaction: Transaction): void {
     this.transactionService
       .getTransactionByIdTransaction(transaction.connectedIdTransaction)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((transactionConnected) =>
         this.handleSecurityEditTransaction(
           transaction,
@@ -307,6 +332,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
         this.visibleCashaccountTransactionSingleDialog = true;
       }
     }
+    this.notifyViewChanged();
   }
 
   /**
@@ -378,8 +404,6 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
         command: (e) => (transaction ? this.handleToggleTaxableInterest(transaction) : null),
         disabled: !permissions.taxableInterest
       });
-
-      TranslateHelper.translateMenuItems(menuItems, this.translateService);
     }
     return menuItems;
   }

@@ -1,4 +1,5 @@
-import { Component, Inject, Injector, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, Inject, Injector, OnDestroy, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import {
@@ -15,11 +16,12 @@ import { HelpIds } from '../../help/help.ids';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { TaskDataChangeService } from '../service/task.data.change.service';
-import { CrudMenuOptions, TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { CrudMenuOptions } from '../../datashowbase/table.crud.support.menu.helper';
+import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
 import { MessageToastService } from '../../message/message.toast.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { FilterType } from '../../datashowbase/filter.type';
-import { combineLatest, of, Subscription } from 'rxjs';
+import { forkJoin, of, Subscription, switchMap } from 'rxjs';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { ITaskExtendService } from './itask.extend.service';
 import { TASK_EXTENDED_SERVICE } from '../service/task.extend.service.token';
@@ -41,18 +43,19 @@ import { GlobalSessionNames } from '../../global.session.names';
 @Component({
   template: `
     <configurable-table
-      [data]="taskDataChangeList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="'idTaskDataChange'"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollable]="false"
       [stripedRows]="true"
       [showGridlines]="true"
       [expandable]="true"
-      [canExpandFn]="canExpandRow.bind(this)"
+      [canExpandFn]="canExpand"
       [expandedRowTemplate]="expandedContent"
       [hasFilter]="hasFilter"
       [customMatchModeOptions]="customMatchModeOptions"
@@ -65,13 +68,13 @@ import { GlobalSessionNames } from '../../global.session.names';
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }"
-      [showContextMenu]="!!contextMenuItems"
+      [showContextMenu]="!!contextMenuItems()"
       [contextMenuAppendTo]="'body'"
-      [contextMenuItems]="contextMenuItems"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [contextMenuItems]="contextMenuItems()"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <div caption>
-        <h4>{{ queueLabelKey | translate }}</h4>
+        <h4>{{ queueLabelKey() | translate }}</h4>
         <p>{{ 'NO_DATA_REFRESH' | translate }}</p>
       </div>
 
@@ -98,25 +101,24 @@ import { GlobalSessionNames } from '../../global.session.names';
       }
     </ng-template>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <task-data-change-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
-        [tdcFormConstraints]="tdcFormConstraints"
+        [tdcFormConstraints]="tdcFormConstraints()"
         [taskTypeEnum]="taskTypeEnum"
-        [queue]="queue"
+        [queue]="queue()"
         (closeDialog)="handleCloseDialog($event)">
       </task-data-change-edit>
     }
 
-    @if (visibleFilterDialog) {
-      <task-filter-dialog [visibleDialog]="visibleFilterDialog" (closeDialog)="handleCloseFilterDialog($event)">
+    @if (visibleFilterDialog()) {
+      <task-filter-dialog [visibleDialog]="visibleFilterDialog()" (closeDialog)="handleCloseFilterDialog($event)">
       </task-filter-dialog>
     }
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ConfigurableTableComponent,
@@ -126,32 +128,35 @@ import { GlobalSessionNames } from '../../global.session.names';
     TaskFilterDialogComponent
   ]
 })
-export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataChange> implements OnDestroy {
+export class TaskDataChangeTableComponent extends TableCrudSupportMenuSignal<TaskDataChange> implements OnDestroy {
   private static readonly STORE_KEY = 'u_taskdatachange';
 
   minDate: Date = new Date(
     sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
   );
   maxDate: Date = new Date('2099-12-31');
-  taskDataChangeList: TaskDataChange[];
-  additionalData: any;
+  private readonly additionalData = signal<any>([]);
   callParam: TaskDataChange;
   ProgressStateType: typeof ProgressStateType = ProgressStateType;
-  editMenu: MenuItem;
-  visibleFilterDialog = false;
+  readonly visibleFilterDialog = signal(false);
   /** Current task ID filter. Null means no filter (load all). */
-  currentTaskFilter: number[] | null = null;
+  readonly currentTaskFilter = signal<number[] | null>(null);
 
-  tdcFormConstraints: TaskDataChangeFormConstraints;
+  readonly tdcFormConstraints = signal<TaskDataChangeFormConstraints>(null);
   taskTypeEnum: any;
 
   /** The queue whose tasks are shown */
-  queue: string = MAIN_TASK_QUEUE;
+  readonly queue = signal(MAIN_TASK_QUEUE);
   /** Text key of the caption, the label of the queue */
-  queueLabelKey = 'TASK_DATA_MONITOR';
+  readonly queueLabelKey = computed(
+    () => this.tdcFormConstraints()?.queues?.find((q) => q.name === this.queue())?.labelKey ?? 'TASK_DATA_MONITOR'
+  );
+  readonly canExpand = (task: TaskDataChange): boolean => this.canExpandRow(task);
 
   private readonly activatedRoute = inject(ActivatedRoute);
-  private routeSubscription: Subscription;
+  private readDataSub?: Subscription;
+  private queueInitialized = false;
+  private readonly showMenu = signal<MenuItem[]>([]);
 
   constructor(
     private taskDataChangeService: TaskDataChangeService,
@@ -238,30 +243,34 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   }
 
   ngOnDestroy(): void {
-    this.writeTableDefinition(this.storeKey());
-    this.routeSubscription?.unsubscribe();
+    if (this.queueInitialized) this.writeTableDefinition(this.storeKey());
   }
 
   /** The key of the stored column settings; the main queue keeps the key it always had. */
   private storeKey(): string {
-    return this.queue === MAIN_TASK_QUEUE
+    return this.queue() === MAIN_TASK_QUEUE
       ? TaskDataChangeTableComponent.STORE_KEY
-      : TaskDataChangeTableComponent.STORE_KEY + '_' + this.queue;
+      : TaskDataChangeTableComponent.STORE_KEY + '_' + this.queue();
   }
 
   protected override initialize(): void {
     // Load stored filter from LocalStorage (null means load all). The stored selection is validated
     // against the current set of task types, so a stale filter (e.g. after task-type renumbering or a
     // newly added task) is discarded and all tasks are shown.
-    this.currentTaskFilter = TaskFilterDialogComponent.getValidatedStoredTaskIds(this.taskTypeEnum);
-    this.taskDataChangeService.getFormConstraints().subscribe((tdcFormConstraints: TaskDataChangeFormConstraints) => {
-      // Only needs to be read once, as this is configuration data.
-      this.tdcFormConstraints = tdcFormConstraints;
-      // The tab menu reuses this component when another queue is chosen, so the queue is followed, not read once
-      this.routeSubscription = this.activatedRoute.paramMap.subscribe((params: ParamMap) =>
-        this.showQueue(TaskDataChangeTabMenuComponent.queueOf(params.get('queue')))
-      );
-    });
+    this.currentTaskFilter.set(TaskFilterDialogComponent.getValidatedStoredTaskIds(this.taskTypeEnum));
+    forkJoin({
+      constraints: this.taskDataChangeService.getFormConstraints(),
+      showMenu: TranslateHelper.translateMenuItems$(this.createShowMenu(), this.translateService)
+    })
+      .pipe(
+        switchMap(({ constraints, showMenu }) => {
+          this.tdcFormConstraints.set(constraints);
+          this.showMenu.set(showMenu);
+          return this.activatedRoute.paramMap;
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((params: ParamMap) => this.showQueue(TaskDataChangeTabMenuComponent.queueOf(params.get('queue'))));
   }
 
   /**
@@ -270,11 +279,16 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
    * @param queue - The queue to show
    */
   private showQueue(queue: string): void {
-    if (this.taskDataChangeList) {
+    if (this.queueInitialized) {
       this.writeTableDefinition(this.storeKey());
     }
-    this.queue = queue;
-    this.queueLabelKey = this.tdcFormConstraints.queues?.find((q) => q.name === queue)?.labelKey ?? 'TASK_DATA_MONITOR';
+    this.queueInitialized = true;
+    this.queue.set(queue);
+    this.visibleDialog.set(false);
+    this.visibleFilterDialog.set(false);
+    this.entityList.set([]);
+    this.selectedEntity.set(null);
+    if (this.isActivated()) this.resetMenu(null);
     this.readTableDefinition(this.storeKey());
     this.readData();
   }
@@ -284,40 +298,50 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
    * happens with a server that reports no queues.
    */
   private taskIdsOfQueue(): number[] | null {
-    const taskTypeQueue = this.tdcFormConstraints?.taskTypeQueue;
+    const taskTypeQueue = this.tdcFormConstraints()?.taskTypeQueue;
     if (!taskTypeQueue) {
-      return this.currentTaskFilter;
+      return this.currentTaskFilter();
     }
     const ids = Object.keys(taskTypeQueue)
-      .filter((name) => taskTypeQueue[name] === this.queue)
+      .filter((name) => taskTypeQueue[name] === this.queue())
       .map((name) => this.taskTypeEnum[name])
       .filter((id) => typeof id === 'number');
-    return this.currentTaskFilter ? ids.filter((id) => this.currentTaskFilter.includes(id)) : ids;
+    return this.currentTaskFilter() ? ids.filter((id) => this.currentTaskFilter().includes(id)) : ids;
   }
 
   protected override readData(): void {
+    this.readDataSub?.unsubscribe();
     const idTasks = this.taskIdsOfQueue();
     if (idTasks && idTasks.length === 0) {
       // An empty list would load every task
-      this.taskDataChangeList = [];
+      this.entityList.set([]);
+      this.additionalData.set([]);
       this.prepareTableAndTranslate();
+      this.createTranslatedValueStoreAndFilterField([]);
+      this.prepareFilter([]);
+      this.refreshSelectedEntity();
       return;
     }
-    combineLatest([
+    this.readDataSub = forkJoin([
       this.taskDataChangeService.getAllTaskDataChange(idTasks),
       this.hasAdditionalToolTipData() ? this.taskExtendService.getAdditionalData() : of([])
-    ]).subscribe(([taskDataChanges, additionalData]: [TaskDataChange[], any]) => {
-      this.taskDataChangeList = taskDataChanges;
-      if (this.hasAdditionalToolTipData()) {
-        this.additionalData = additionalData;
-      }
-      this.prepareTableAndTranslate();
-      this.createTranslatedValueStoreAndFilterField(this.taskDataChangeList);
-      this.prepareFilter(this.taskDataChangeList);
-    });
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([taskDataChanges, additionalData]: [TaskDataChange[], any]) => {
+        this.entityList.set(taskDataChanges);
+        this.additionalData.set(additionalData);
+        this.prepareTableAndTranslate();
+        this.createTranslatedValueStoreAndFilterField(taskDataChanges);
+        this.prepareFilter(taskDataChanges);
+        this.refreshSelectedEntity();
+      });
   }
 
   protected override prepareShowMenu(): MenuItem[] {
+    return this.showMenu();
+  }
+
+  private createShowMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
     menuItems.push({
       label: 'TASK_FILTER' + BaseSettings.DIALOG_MENU_SUFFIX,
@@ -328,7 +352,6 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     if (columnMenuItems) {
       menuItems.push(...columnMenuItems);
     }
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -336,7 +359,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
    * Opens the task filter dialog.
    */
   openFilterDialog(): void {
-    this.visibleFilterDialog = true;
+    this.visibleFilterDialog.set(true);
   }
 
   /**
@@ -344,9 +367,9 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
    * @param selectedTaskIds Array of selected task IDs or null if cancelled
    */
   handleCloseFilterDialog(selectedTaskIds: number[] | null): void {
-    this.visibleFilterDialog = false;
+    this.visibleFilterDialog.set(false);
     if (selectedTaskIds !== null) {
-      this.currentTaskFilter = selectedTaskIds;
+      this.currentTaskFilter.set(selectedTaskIds);
       this.readData();
     }
   }
@@ -356,7 +379,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       menuItems.push({
         label: 'COPY_RECORD|' + this.entityNameUpper,
         command: (event) => this.copyTaskDataChange(taskDataChange),
-        disabled: taskDataChange[taskDataChange.idTask] > this.tdcFormConstraints.maxUserCreateTask
+        disabled: this.taskTypeEnum[taskDataChange.idTask] > this.tdcFormConstraints().maxUserCreateTask
       });
 
       menuItems.push({
@@ -364,7 +387,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
         command: (event) => this.interruptingRunningJob(taskDataChange.idTaskDataChange),
         disabled: !(
           typeof taskDataChange.idTask === 'string' &&
-          this.tdcFormConstraints.canBeInterruptedList.includes(taskDataChange.idTask) &&
+          this.tdcFormConstraints().canBeInterruptedList.includes(taskDataChange.idTask) &&
           ProgressStateType[taskDataChange.progressStateType] ===
             ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING]]
         )
@@ -375,7 +398,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   getTooltipValueByPath(dataobject: any, field: ColumnConfig) {
     let toolTip = null;
     if (this.hasAdditionalToolTipData()) {
-      toolTip = this.taskExtendService.getToolTipByPath(dataobject, field, this.additionalData);
+      toolTip = this.taskExtendService.getToolTipByPath(dataobject, field, this.additionalData());
     }
     if (toolTip === null) {
       toolTip = this.getValueByPathWithField(dataobject, field, field.fieldTranslated || field.field);
@@ -395,18 +418,21 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       idEntity: taskDataChange.idEntity
     });
     this.prepareCallParam(taskDataChangeNew);
-    this.visibleDialog = true;
+    this.visibleDialog.set(true);
   }
 
   private interruptingRunningJob(idTaskDataChange: number): void {
-    this.taskDataChangeService.interruptingRunningJob(idTaskDataChange).subscribe((interrupted) => {
-      if (interrupted) {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TASK_INTERRUPTED', null);
-      } else {
-        this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'TASK_NOT_INTERRUPTED', null);
-      }
-      this.readData();
-    });
+    this.taskDataChangeService
+      .interruptingRunningJob(idTaskDataChange)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((interrupted) => {
+        if (interrupted) {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TASK_INTERRUPTED', null);
+        } else {
+          this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'TASK_NOT_INTERRUPTED', null);
+        }
+        this.readData();
+      });
   }
 
   protected override hasRightsForDeleteEntity(entity: TaskDataChange): boolean {

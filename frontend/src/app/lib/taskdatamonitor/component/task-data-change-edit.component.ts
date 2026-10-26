@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
@@ -15,7 +15,7 @@ import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
-import { Subscription } from 'rxjs';
+import { map, Observable, of, switchMap } from 'rxjs';
 import { FormHelper } from '../../dynamic-form/components/FormHelper';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { GroupItem, ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
@@ -48,7 +48,6 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataChange> implements OnInit {
@@ -57,9 +56,6 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   @Input() taskTypeEnum: any = TaskTypeBase; // Application can provide extended enum
   /** The queue of the monitor tab; only its task types can be created there */
   @Input() queue: string = MAIN_TASK_QUEUE;
-
-  private idTaskSubscribe: Subscription;
-  private entitySubscribe: Subscription;
 
   constructor(
     translateService: TranslateService,
@@ -111,87 +107,91 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   }
 
   valueChangedOnIdTask(): void {
-    this.idTaskSubscribe = this.configObject.idTask.formControl.valueChanges.subscribe((idTask) => {
-      const taskConfig = this.tdcFormConstraints.taskTypeConfig[idTask];
-      // An empty entity in the list is the "no entity" choice, not a selectable one. A configuration that holds
-      // nothing else offers the user no choice at all, so it is treated like a task without entity configuration.
-      if (taskConfig && taskConfig.some((entity: string) => entity !== '')) {
-        // Scenario B/C: task has entity configuration - show entity field
-        this.configObject.entity.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-          this.translateService,
-          SelectOptionsHelper.createHtmlOptionsFromStringArray(taskConfig, true),
-          false
-        );
-        FormHelper.disableEnableFieldConfigs(false, [this.configObject.entity]);
-        const allowEmpty = taskConfig.includes('');
-        DynamicFieldHelper.resetValidator(
-          this.configObject.entity,
-          allowEmpty ? null : [Validators.required],
-          allowEmpty ? null : [DynamicFieldHelper.RULE_REQUIRED_DIRTY]
-        );
-        this.configObject.entity.formControl.setValue(null);
-      } else {
-        // Scenario A: no entity configuration - hide all entity fields
-        this.configObject.entity.formControl.setValue(null);
-        this.hideIdEntityFields();
-        DynamicFieldHelper.resetValidator(this.configObject.entity, null, null);
-        this.configObject.entity.formControl.disable();
-        FormHelper.hideVisibleFieldConfigs(true, [this.configObject.entity]);
-      }
-    });
+    this.configObject.idTask.formControl.valueChanges
+      .pipe(
+        switchMap((idTask) => {
+          const taskConfig = this.tdcFormConstraints.taskTypeConfig[idTask];
+          this.configObject.entity.valueKeyHtmlOptions = [];
+          // An empty entity in the list is the "no entity" choice, not a selectable one. A configuration that holds
+          // nothing else offers the user no choice at all, so it is treated like a task without entity configuration.
+          if (taskConfig && taskConfig.some((entity: string) => entity !== '')) {
+            // Scenario B/C: task has entity configuration - show entity field
+            FormHelper.disableEnableFieldConfigs(false, [this.configObject.entity]);
+            const allowEmpty = taskConfig.includes('');
+            DynamicFieldHelper.resetValidator(
+              this.configObject.entity,
+              allowEmpty ? null : [Validators.required],
+              allowEmpty ? null : [DynamicFieldHelper.RULE_REQUIRED_DIRTY]
+            );
+            this.configObject.entity.formControl.setValue(null);
+            return this.translateOptions(SelectOptionsHelper.createHtmlOptionsFromStringArray(taskConfig, true));
+          } else {
+            // Scenario A: no entity configuration - hide all entity fields
+            this.configObject.entity.formControl.setValue(null);
+            this.hideIdEntityFields();
+            DynamicFieldHelper.resetValidator(this.configObject.entity, null, null);
+            this.configObject.entity.formControl.disable();
+            FormHelper.hideVisibleFieldConfigs(true, [this.configObject.entity]);
+            return of([]);
+          }
+        }),
+        this.untilDialogClosed()
+      )
+      .subscribe((options) => (this.configObject.entity.valueKeyHtmlOptions = options));
   }
 
   valueChangedOnEntity(): void {
-    this.entitySubscribe = this.configObject.entity.formControl.valueChanges.subscribe((entity) => {
-      // Options are task-scoped: pick the option map of the currently selected task first.
-      const optionsForTask =
-        this.tdcFormConstraints.entityIdOptions &&
-        this.tdcFormConstraints.entityIdOptions[this.configObject.idTask.formControl.value];
-      if (!entity || entity.length === 0) {
-        // No entity selected: hide both idEntity fields
-        this.hideIdEntityFields();
-      } else if (optionsForTask && optionsForTask[entity]) {
-        // Entity with predefined options: show select dropdown, hide number input
-        this.configObject.idEntity.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-          this.translateService,
-          optionsForTask[entity].map((opt: EntityIdOption) => new ValueKeyHtmlSelectOptions(opt.key, opt.value)),
-          false
-        );
-        this.configObject.idEntity.formControl.setValue(null);
-        FormHelper.disableEnableFieldConfigs(false, [this.configObject.idEntity]);
-        DynamicFieldHelper.resetValidator(
-          this.configObject.idEntity,
-          [Validators.required],
-          [DynamicFieldHelper.RULE_REQUIRED_DIRTY]
-        );
-        this.hideField(this.configObject.idEntityNum);
-      } else {
-        // Entity without predefined options: show number input, hide select
-        this.configObject.idEntityNum.formControl.setValue(null);
-        FormHelper.disableEnableFieldConfigs(false, [this.configObject.idEntityNum]);
-        DynamicFieldHelper.resetValidator(
-          this.configObject.idEntityNum,
-          [Validators.required],
-          [DynamicFieldHelper.RULE_REQUIRED_DIRTY]
-        );
-        this.hideField(this.configObject.idEntity);
-      }
-    });
-  }
-
-  override onHide(event): void {
-    this.idTaskSubscribe && this.idTaskSubscribe.unsubscribe();
-    this.entitySubscribe && this.entitySubscribe.unsubscribe();
-    super.onHide(event);
+    this.configObject.entity.formControl.valueChanges
+      .pipe(
+        switchMap((entity) => {
+          this.configObject.idEntity.valueKeyHtmlOptions = [];
+          // Options are task-scoped: pick the option map of the currently selected task first.
+          const optionsForTask =
+            this.tdcFormConstraints.entityIdOptions &&
+            this.tdcFormConstraints.entityIdOptions[this.configObject.idTask.formControl.value];
+          if (!entity || entity.length === 0) {
+            // No entity selected: hide both idEntity fields
+            this.hideIdEntityFields();
+            return of([]);
+          } else if (optionsForTask && optionsForTask[entity]) {
+            // Entity with predefined options: show select dropdown, hide number input
+            this.configObject.idEntity.formControl.setValue(null);
+            FormHelper.disableEnableFieldConfigs(false, [this.configObject.idEntity]);
+            DynamicFieldHelper.resetValidator(
+              this.configObject.idEntity,
+              [Validators.required],
+              [DynamicFieldHelper.RULE_REQUIRED_DIRTY]
+            );
+            this.hideField(this.configObject.idEntityNum);
+            return this.translateOptions(
+              optionsForTask[entity].map((opt: EntityIdOption) => new ValueKeyHtmlSelectOptions(opt.key, opt.value))
+            );
+          } else {
+            // Entity without predefined options: show number input, hide select
+            this.configObject.idEntityNum.formControl.setValue(null);
+            FormHelper.disableEnableFieldConfigs(false, [this.configObject.idEntityNum]);
+            DynamicFieldHelper.resetValidator(
+              this.configObject.idEntityNum,
+              [Validators.required],
+              [DynamicFieldHelper.RULE_REQUIRED_DIRTY]
+            );
+            this.hideField(this.configObject.idEntity);
+            return of([]);
+          }
+        }),
+        this.untilDialogClosed()
+      )
+      .subscribe((options) => (this.configObject.idEntity.valueKeyHtmlOptions = options));
   }
 
   protected override initialize(): void {
+    this.form.setDefaultValuesAndEnableSubmit();
     this.valueChangedOnIdTask();
     this.valueChangedOnEntity();
     // Initially hide entity and idEntity fields until a task is selected
     this.hideField(this.configObject.entity);
     this.hideIdEntityFields();
-    this.configObject.idTask.groupItem = this.createTaskTypeOptions();
+    this.loadTaskTypeOptions();
     if (this.callParam) {
       this.form.transferBusinessObjectToForm(this.callParam);
       // For number input case, transferBusinessObjectToForm sets idEntity on the select field.
@@ -219,23 +219,34 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
    * The suffixed text is written to both 'value' (shown in the closed control) and 'optionsText' (shown in
    * the overlay list and searched by the filter box).
    *
-   * @returns the options of the idTask dropdown, sorted by translated description
+   * Translation belongs to this dialog session, including when it closes before the texts arrive.
    */
-  private createTaskTypeOptions(): GroupItem[] {
-    return SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService,
-      this.taskTypeEnum,
-      Object.keys(this.taskTypeEnum)
-        .filter(
-          (key) =>
-            this.taskTypeEnum[key] <= this.tdcFormConstraints.maxUserCreateTask &&
-            (this.tdcFormConstraints.taskTypeQueue?.[key] ?? MAIN_TASK_QUEUE) === this.queue
-        )
-        .map((key) => this.taskTypeEnum[key])
-    ).map((option) => {
-      const label = `${option.value} - ${this.taskTypeEnum[option.key as string]}`;
-      return new GroupItem(option.key, label, label, null);
-    });
+  private loadTaskTypeOptions(): void {
+    const names = Object.keys(this.taskTypeEnum).filter(
+      (key) =>
+        this.taskTypeEnum[key] <= this.tdcFormConstraints.maxUserCreateTask &&
+        (this.tdcFormConstraints.taskTypeQueue?.[key] ?? MAIN_TASK_QUEUE) === this.queue
+    );
+    this.translateOptions(names.map((name) => new ValueKeyHtmlSelectOptions(name, name)))
+      .pipe(this.untilDialogClosed())
+      .subscribe((options) => {
+        this.configObject.idTask.groupItem = options
+          .map((option) => {
+            const label = `${option.value} - ${this.taskTypeEnum[option.key]}`;
+            return new GroupItem(option.key, label, label, null);
+          })
+          .sort((a, b) => a.value.localeCompare(b.value));
+      });
+  }
+
+  /** Publishes new option objects instead of mutating labels after the select received its array. */
+  private translateOptions(options: ValueKeyHtmlSelectOptions[]): Observable<ValueKeyHtmlSelectOptions[]> {
+    const keys = options.map((option) => option.value).filter(Boolean);
+    return (keys.length ? this.translateService.get(keys) : of({})).pipe(
+      map((texts) =>
+        options.map((option) => new ValueKeyHtmlSelectOptions(option.key, texts[option.value] ?? option.value))
+      )
+    );
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TaskDataChange {

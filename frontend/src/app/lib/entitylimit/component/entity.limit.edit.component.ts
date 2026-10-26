@@ -1,8 +1,8 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { combineLatest, of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
@@ -52,7 +52,6 @@ import { BaseSettings } from '../../base.settings';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> implements OnInit {
@@ -122,48 +121,52 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
     // The roles are awaited together with the keys, because the offered keys depend on which of their scopes are
     // still free and the role selection is filled from the picked key.
     const entityLimitService = <EntityLimitService>this.serviceEntityUpdate;
-    combineLatest([
+    forkJoin([
       entityLimitService.getLimitKeyDefinitions(
         this.scopedIdUser,
         this.existingEntityLimit ? this.existingEntityLimit.idEntityLimit : undefined
       ),
       this.scopedIdUser == null ? entityLimitService.getRoles() : of<ValueKeyHtmlSelectOptions[]>([])
-    ]).subscribe(([limitKeyDefinitions, roles]: [LimitKeyDefinition[], ValueKeyHtmlSelectOptions[]]) => {
-      this.limitKeyDefinitions = limitKeyDefinitions;
-      this.roleOptions = roles;
-      this.usedScopesByKeyId = this.collectUsedScopes();
-      this.configObject.keyId.groupItem = this.toKeyOptions(limitKeyDefinitions);
-      this.configObject.keyId.formControl.valueChanges.subscribe((keyId: string) => this.applyPickedKey(keyId));
-      // Fills the role selection while no key is picked yet and, for an existing row, for its fixed key, because a
-      // disabled control emits no value change.
-      this.applyRoleOptions(this.existingEntityLimit?.keyId);
+    ])
+      .pipe(this.untilDialogClosed())
+      .subscribe(([limitKeyDefinitions, roles]: [LimitKeyDefinition[], ValueKeyHtmlSelectOptions[]]) => {
+        this.limitKeyDefinitions = limitKeyDefinitions;
+        this.roleOptions = roles;
+        this.usedScopesByKeyId = this.collectUsedScopes();
+        this.configObject.keyId.groupItem = this.toKeyOptions(limitKeyDefinitions);
+        this.configObject.keyId.formControl.valueChanges
+          .pipe(this.untilDialogClosed())
+          .subscribe((keyId: string) => this.applyPickedKey(keyId));
+        // Fills the role selection while no key is picked yet and, for an existing row, for its fixed key, because a
+        // disabled control emits no value change.
+        this.applyRoleOptions(this.existingEntityLimit?.keyId);
 
-      if (this.existingEntityLimit) {
-        // The key identifies the row, so it stays fixed once the row exists.
-        this.configObject.keyId.formControl.disable();
-      }
-      // Also fills the form from the entity: every control the entity has no property for, the two readable ones
-      // included, is reset to its default, so they may only be filled afterwards.
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-        this.translateService,
-        this.gps,
-        this.proposeChangeEntityWithEntity
-          ? this.proposeChangeEntityWithEntity.proposedEntity
-          : this.existingEntityLimit,
-        this.form,
-        this.configObject,
-        this.proposeChangeEntityWithEntity
-      );
-      if (this.existingEntityLimit) {
-        this.showReadableKeyParts(
-          this.existingEntityLimit.limitTypeKey,
-          this.existingEntityLimit.ownerScopeKey,
-          this.existingEntityLimit.countScopeKey,
-          this.existingEntityLimit.relationEntityName
+        if (this.existingEntityLimit) {
+          // The key identifies the row, so it stays fixed once the row exists.
+          this.configObject.keyId.formControl.disable();
+        }
+        // Also fills the form from the entity: every control the entity has no property for, the two readable ones
+        // included, is reset to its default, so they may only be filled afterwards.
+        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
+          this.translateService,
+          this.gps,
+          this.proposeChangeEntityWithEntity
+            ? this.proposeChangeEntityWithEntity.proposedEntity
+            : this.existingEntityLimit,
+          this.form,
+          this.configObject,
+          this.proposeChangeEntityWithEntity
         );
-      }
-      this.configObject.keyId.baseInputComponent.focus();
-    });
+        if (this.existingEntityLimit) {
+          this.showReadableKeyParts(
+            this.existingEntityLimit.limitTypeKey,
+            this.existingEntityLimit.ownerScopeKey,
+            this.existingEntityLimit.countScopeKey,
+            this.existingEntityLimit.relationEntityName
+          );
+        }
+        this.configObject.keyId.baseInputComponent.focus();
+      });
   }
 
   /**

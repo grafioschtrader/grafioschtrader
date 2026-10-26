@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterOutlet } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppSettings } from '../../shared/app.settings';
@@ -9,20 +10,20 @@ import { StandingOrderService } from '../service/standing.order.service';
 @Component({
   selector: 'standing-order-tab-menu',
   template: `
-    @if (simulationTenant) {
+    @if (simulationTenant()) {
       <p class="sim-standing-order-info">{{ 'SIMULATION_STANDING_ORDER_INFO' | translate }}</p>
     }
-    <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
+    <app-shared-tab-menu [tabs]="tabs()" [defaultRoute]="defaultRoute">
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [SharedTabMenuComponent, RouterOutlet, TranslateModule]
 })
 export class StandingOrderTabMenuComponent implements OnInit {
-  simulationTenant = false;
-  tabs: TabItem[] = [];
+  private readonly destroyRef = inject(DestroyRef);
+  readonly simulationTenant = signal(false);
+  readonly tabs = signal<TabItem[]>([]);
   private readonly cashTab: TabItem = {
     label: 'STANDING_ORDER_CASHACCOUNT',
     route: AppSettings.TENANT_STANDING_ORDER_CASHACCOUNT,
@@ -39,9 +40,12 @@ export class StandingOrderTabMenuComponent implements OnInit {
   constructor(private standingOrderService: StandingOrderService) {}
 
   ngOnInit(): void {
-    this.standingOrderService.getCapabilities().subscribe((capabilities) => {
-      this.simulationTenant = capabilities.simulationTenant;
-      this.tabs = capabilities.securityStandingOrderSupported ? [this.cashTab, this.securityTab] : [this.cashTab];
-    });
+    this.standingOrderService
+      .getCapabilities()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((capabilities) => {
+        this.simulationTenant.set(capabilities.simulationTenant);
+        this.tabs.set(capabilities.securityStandingOrderSupported ? [this.cashTab, this.securityTab] : [this.cashTab]);
+      });
   }
 }

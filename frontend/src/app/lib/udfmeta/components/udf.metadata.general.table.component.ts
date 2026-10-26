@@ -1,4 +1,4 @@
-import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { UDFMetadataGeneral, UDFMetadataGeneralParam } from '../model/udf.metadata';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
@@ -39,21 +39,22 @@ import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.com
         'passiv-border': !isActivated()
       }">
       <configurable-table
-        [data]="entityList"
+        [data]="entityList()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         [dataKey]="entityKeyName"
         [(selection)]="selectedEntity"
         [selectionMode]="'single'"
         [multiSortMeta]="multiSortMeta"
         [sortMode]="'multiple'"
-        [customSortFn]="customSort.bind(this)"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [customSortFn]="customSorter"
+        [valueGetterFn]="valueGetter"
         [scrollable]="true"
         [scrollHeight]="'flex'"
         [stripedRows]="true"
         [showGridlines]="true"
         [contextMenuEnabled]="true"
-        [contextMenuItems]="contextMenuItems"
+        [contextMenuItems]="contextMenuItems()"
         [showContextMenu]="isActivated()"
         [containerClass]="''"
         (componentClick)="onComponentClick($event)">
@@ -64,9 +65,9 @@ import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.com
         </ng-template>
       </configurable-table>
     </div>
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <udf-metadata-general-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         (closeDialog)="handleCloseDialog($event)">
       </udf-metadata-general-edit>
@@ -74,7 +75,6 @@ import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.com
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -83,7 +83,7 @@ import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.com
     UDFMetadataGeneralEditComponent
   ]
 })
-export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGeneral> implements OnDestroy {
+export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGeneral> {
   /** Parameters for metadata editing operations including validation exclusions */
   callParam: UDFMetadataGeneralParam = new UDFMetadataGeneralParam();
 
@@ -177,13 +177,5 @@ export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGe
   override readData(): void {
     super.readData();
     sessionStorage.removeItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL);
-  }
-
-  /**
-   * Cleanup handler when component is destroyed.
-   * Unregisters this component from the active panel service.
-   */
-  ngOnDestroy(): void {
-    this.activePanelService.destroyPanel(this);
   }
 }

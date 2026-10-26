@@ -1,12 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -63,7 +55,6 @@ import { GenericConnectorFieldMappingTableComponent } from './generic-connector-
     </generic-connector-field-mapping-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, GenericConnectorFieldMappingTableComponent]
 })
 export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBase implements OnChanges {
@@ -180,7 +171,6 @@ export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBa
   }
 
   onFieldMappingsChange(mappings: GenericConnectorFieldMapping[]): void {
-    this.endpoint.fieldMappings = mappings;
     this.fieldMappingsChange.emit(mappings);
   }
 }

@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
+import { filter } from 'rxjs';
 import { Tab, TabList, Tabs } from '@openng/optimus-ui/tabs';
-import { BaseTabMenuComponent } from '../../tabmenu/component/base.tab.menu.component';
 import { TabItem } from '../../types/tab.item';
-import { TranslateHelper } from '../../helper/translate.helper';
 import { TaskDataChangeService } from '../service/task.data.change.service';
 import { MAIN_TASK_QUEUE, TaskDataChangeFormConstraints, TaskQueueInfo } from '../types/task.data.change';
 
@@ -17,10 +17,10 @@ import { MAIN_TASK_QUEUE, TaskDataChangeFormConstraints, TaskQueueInfo } from '.
 @Component({
   template: `
     <div class="card">
-      @if (tabs.length > 1) {
-        <p-tabs [value]="activeRoute">
+      @if (tabs().length > 1) {
+        <p-tabs [value]="activeRoute()">
           <p-tablist>
-            @for (tab of tabs; track tab.route) {
+            @for (tab of tabs(); track tab.route) {
               <p-tab [value]="tab.route" (click)="navigateTo(tab.route)">
                 <span>{{ tab.label | translate }}</span>
               </p-tab>
@@ -32,21 +32,20 @@ import { MAIN_TASK_QUEUE, TaskDataChangeFormConstraints, TaskQueueInfo } from '.
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, RouterModule, Tabs, TabList, Tab]
 })
-export class TaskDataChangeTabMenuComponent extends BaseTabMenuComponent {
+export class TaskDataChangeTabMenuComponent implements OnInit {
   /** Prefix of the child route of a queue, so the route of a queue cannot be mistaken for another part of the URL */
   static readonly QUEUE_ROUTE_PREFIX = 'queue-';
+  readonly tabs = signal<TabItem[]>([]);
+  readonly activeRoute = signal(TaskDataChangeTabMenuComponent.routeOf(MAIN_TASK_QUEUE));
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
-    router: Router,
-    activatedRoute: ActivatedRoute,
-    translateService: TranslateService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute,
     private taskDataChangeService: TaskDataChangeService
-  ) {
-    super(router, activatedRoute, translateService);
-  }
+  ) {}
 
   /** The child route of a queue. */
   static routeOf(queue: string): string {
@@ -60,29 +59,42 @@ export class TaskDataChangeTabMenuComponent extends BaseTabMenuComponent {
       : MAIN_TASK_QUEUE;
   }
 
-  /** The queues are known only from the server, see {@link navigateToDefault}. */
-  protected initializeTabs(): TabItem[] {
-    return [];
-  }
-
-  protected getDefaultRoute(): string {
-    return TaskDataChangeTabMenuComponent.routeOf(MAIN_TASK_QUEUE);
-  }
-
   /** Builds the tabs from the queues of the server, then opens the queue of the URL or the main queue. */
-  protected override navigateToDefault(): void {
-    this.taskDataChangeService.getFormConstraints().subscribe((constraints: TaskDataChangeFormConstraints) => {
-      const queues: TaskQueueInfo[] = constraints.queues?.length
-        ? constraints.queues
-        : [{ name: MAIN_TASK_QUEUE, parallel: 1, labelKey: 'TASK_DATA_MONITOR' }];
-      this.tabs = queues.map((q) => ({
-        label: q.labelKey,
-        route: TaskDataChangeTabMenuComponent.routeOf(q.name),
-        icon: ''
-      }));
-      TranslateHelper.translateMenuItems(this.tabs, this.translateService);
-      const routeFromUrl = this.tabs.find((tab) => this.router.url.split('/').includes(tab.route))?.route;
-      this.navigateTo(routeFromUrl ?? this.getDefaultRoute());
-    });
+  ngOnInit(): void {
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() =>
+        this.activeRoute.set(this.routeFromUrl() ?? TaskDataChangeTabMenuComponent.routeOf(MAIN_TASK_QUEUE))
+      );
+    this.taskDataChangeService
+      .getFormConstraints()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((constraints: TaskDataChangeFormConstraints) => {
+        const queues: TaskQueueInfo[] = constraints.queues?.length
+          ? constraints.queues
+          : [{ name: MAIN_TASK_QUEUE, parallel: 1, labelKey: 'TASK_DATA_MONITOR' }];
+        this.tabs.set(
+          queues.map((q) => ({
+            label: q.labelKey,
+            route: TaskDataChangeTabMenuComponent.routeOf(q.name),
+            icon: ''
+          }))
+        );
+        const route = this.routeFromUrl();
+        if (route) this.activeRoute.set(route);
+        else this.navigateTo(TaskDataChangeTabMenuComponent.routeOf(MAIN_TASK_QUEUE));
+      });
+  }
+
+  navigateTo(route: string): void {
+    this.activeRoute.set(route);
+    this.router.navigate([route], { relativeTo: this.activatedRoute });
+  }
+
+  private routeFromUrl(): string {
+    return this.tabs().find((tab) => this.router.url.split('/').includes(tab.route))?.route;
   }
 }

@@ -126,25 +126,28 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * replaced, which keeps the dialog from offering a value the server would reject on save.
    */
   private applyQuoteToleranceRange(): void {
-    (<StandingOrderService>this.serviceEntityUpdate).getCapabilities().subscribe((capabilities) => {
-      const fieldConfig = this.configObject.quoteToleranceDays;
-      fieldConfig.min = capabilities.minQuoteTolerance;
-      fieldConfig.max = capabilities.maxQuoteTolerance;
-      DynamicFieldHelper.resetValidator(
-        fieldConfig,
-        [Validators.required, rangeValidator([capabilities.minQuoteTolerance, capabilities.maxQuoteTolerance])],
-        [
-          DynamicFieldHelper.RULE_REQUIRED_TOUCHED,
-          {
-            name: 'range',
-            keyi18n: 'range',
-            param1: capabilities.minQuoteTolerance,
-            param2: capabilities.maxQuoteTolerance,
-            rules: [RuleEvent.DIRTY]
-          }
-        ]
-      );
-    });
+    (<StandingOrderService>this.serviceEntityUpdate)
+      .getCapabilities()
+      .pipe(this.untilDialogClosed())
+      .subscribe((capabilities) => {
+        const fieldConfig = this.configObject.quoteToleranceDays;
+        fieldConfig.min = capabilities.minQuoteTolerance;
+        fieldConfig.max = capabilities.maxQuoteTolerance;
+        DynamicFieldHelper.resetValidator(
+          fieldConfig,
+          [Validators.required, rangeValidator([capabilities.minQuoteTolerance, capabilities.maxQuoteTolerance])],
+          [
+            DynamicFieldHelper.RULE_REQUIRED_TOUCHED,
+            {
+              name: 'range',
+              keyi18n: 'range',
+              param1: capabilities.minQuoteTolerance,
+              param2: capabilities.maxQuoteTolerance,
+              rules: [RuleEvent.DIRTY]
+            }
+          ]
+        );
+      });
   }
 
   /**
@@ -164,15 +167,17 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * portfolios, which are available before any cash account value is set by loadCashaccountsFromPortfolios().
    */
   private setupCashaccountPrecisionListener(): void {
-    this.configObject.idCashaccount.formControl.valueChanges.subscribe((idCashaccount: any) => {
-      const currency = this.getCashaccountCurrency(+idCashaccount);
-      if (currency) {
-        const precision = this.gps.getCurrencyPrecision(currency);
-        this.getCashaccountPrecisionFields().forEach((fc) =>
-          DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_STANDARD_INTEGER_DIGITS, precision)
-        );
-      }
-    });
+    this.configObject.idCashaccount.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((idCashaccount: any) => {
+        const currency = this.getCashaccountCurrency(+idCashaccount);
+        if (currency) {
+          const precision = this.gps.getCurrencyPrecision(currency);
+          this.getCashaccountPrecisionFields().forEach((fc) =>
+            DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_STANDARD_INTEGER_DIGITS, precision)
+          );
+        }
+      });
   }
 
   /**
@@ -220,7 +225,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * is disabled. For YEARS all three are enabled (subject to periodDayPosition logic).
    */
   private setupRepeatUnitListener(): void {
-    this.configObject.repeatUnit.formControl.valueChanges.subscribe((unit: string) => {
+    this.configObject.repeatUnit.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((unit: string) => {
       this.applyRepeatUnit(unit);
     });
   }
@@ -230,9 +235,11 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * disables and clears it for FIRST_DAY or LAST_DAY since the day is implicit.
    */
   private setupPeriodDayPositionListener(): void {
-    this.configObject.periodDayPosition.formControl.valueChanges.subscribe((pos: string) => {
-      this.applyPeriodDayPosition(pos);
-    });
+    this.configObject.periodDayPosition.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((pos: string) => {
+        this.applyPeriodDayPosition(pos);
+      });
   }
 
   /**
@@ -294,26 +301,35 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * Loads cashaccount options by fetching portfolios and flattening their cashaccount lists.
    */
   private loadCashaccountsFromPortfolios(): void {
-    this.portfolioService.getPortfoliosForTenantOrderByName().subscribe((portfolios: Portfolio[]) => {
-      this.portfolios = portfolios;
-      const cashaccountsHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
-      for (const portfolio of portfolios) {
-        if (portfolio.cashaccountList) {
-          portfolio.cashaccountList.forEach((ca) =>
-            cashaccountsHtmlOptions.push(
-              new ValueKeyHtmlSelectOptions(ca.idSecuritycashAccount, `${ca.name} / ${ca.currency} / ${portfolio.name}`)
-            )
-          );
+    this.portfolioService
+      .getPortfoliosForTenantOrderByName()
+      .pipe(this.untilDialogClosed())
+      .subscribe((portfolios: Portfolio[]) => {
+        this.portfolios = portfolios;
+        const cashaccountsHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
+        for (const portfolio of portfolios) {
+          if (portfolio.cashaccountList) {
+            portfolio.cashaccountList.forEach((ca) =>
+              cashaccountsHtmlOptions.push(
+                new ValueKeyHtmlSelectOptions(
+                  ca.idSecuritycashAccount,
+                  `${ca.name} / ${ca.currency} / ${portfolio.name}`
+                )
+              )
+            );
+          }
         }
-      }
-      this.configObject.idCashaccount.valueKeyHtmlOptions = cashaccountsHtmlOptions;
-      this.afterPortfoliosLoaded();
-      this.setExistingValues();
-      this.toggleCashaccountOptionsByValidFrom();
-      this.configObject.validFrom.formControl.valueChanges.subscribe(() => this.toggleCashaccountOptionsByValidFrom());
-      const unit = this.configObject.repeatUnit.formControl.value;
-      this.applyRepeatUnit(unit ?? RepeatUnit[RepeatUnit.MONTHS]);
-    });
+        this.configObject.idCashaccount.valueKeyHtmlOptions = cashaccountsHtmlOptions;
+        this.afterPortfoliosLoaded();
+        this.setExistingValues();
+        this.toggleCashaccountOptionsByValidFrom();
+        this.configObject.validFrom.formControl.valueChanges
+          .pipe(this.untilDialogClosed())
+          .subscribe(() => this.toggleCashaccountOptionsByValidFrom());
+        const unit = this.configObject.repeatUnit.formControl.value;
+        this.applyRepeatUnit(unit ?? RepeatUnit[RepeatUnit.MONTHS]);
+        this.viewChanged();
+      });
   }
 
   /**

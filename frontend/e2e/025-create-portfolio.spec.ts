@@ -9,6 +9,7 @@ import {
   portfolioLabel,
   portfolioNode,
   portfolioSubtree,
+  readFixturePortfolio,
   RX,
   SecurityAccountData,
   selectWhenLoaded
@@ -16,8 +17,9 @@ import {
 
 /**
  * Creates every portfolio of testdata/portfolios.json with its cash accounts, securities accounts and
- * trading periods. The teardown lives in 888-delete-portfolio.spec.ts, which reads the same fixture —
- * this spec is create-only, so it expects the fixture portfolios not to exist yet.
+ * trading periods. Existing fixture rows are retained on a rerun because later specs may have booked transactions.
+ * Reopening the portfolio and cash-account dialogs checks that delayed currency options do not erase user input.
+ * The teardown lives in 888-delete-portfolio.spec.ts, which reads the same fixture.
  */
 const PORTFOLIOS = loadPortfolios();
 
@@ -25,6 +27,10 @@ for (const p of PORTFOLIOS) {
   test.describe.serial(`Create portfolio ${p.name} of '${p.loginNickname}'`, () => {
     test(`creates the portfolio ${p.name}`, async ({ page }) => {
       await loginAsFixtureUser(page, p.loginNickname);
+      if (await readFixturePortfolio(page, p)) {
+        await expect(portfolioNode(page, p)).toBeVisible();
+        return;
+      }
 
       // Dashboard is also a root node; identify the tenant root by its label, but right-click its content element.
       // Optimus attaches the context-menu listener there rather than to the enclosing ARIA treeitem.
@@ -48,6 +54,10 @@ for (const p of PORTFOLIOS) {
     for (const sa of p.securityAccounts) {
       test(`creates the securities account ${sa.name} in ${p.name}`, async ({ page }) => {
         const creds = await loginAsFixtureUser(page, p.loginNickname);
+        const existing = await readFixturePortfolio(page, p);
+        if (existing?.securityaccountList.some((account) => account.name === sa.name)) {
+          return;
+        }
         await openSecurityAccountsFolder(page, p, RX.createSecurityAccount);
 
         const dialog = page.locator('.p-dialog');
@@ -58,7 +68,7 @@ for (const p of PORTFOLIOS) {
 
         // The dialog pre-fills Equities/Direct investment and Equities/ETF; the fixture rows are added.
         for (const tp of sa.tradingPeriods) {
-          await addTradingPeriod(dialog, tp, creds.locale);
+          await addTradingPeriod(dialog, tp, creds.locale!);
         }
 
         await dialog.locator('button[type="submit"]').click();
@@ -69,6 +79,7 @@ for (const p of PORTFOLIOS) {
 
     test(`creates ${p.cashAccounts.length} cash accounts in ${p.name}`, async ({ page }) => {
       await loginAsFixtureUser(page, p.loginNickname);
+      const existing = await readFixturePortfolio(page, p);
 
       // Clicking the portfolio node opens its cash account summary view.
       const node = portfolioNode(page, p);
@@ -77,6 +88,9 @@ for (const p of PORTFOLIOS) {
       await page.waitForTimeout(3000);
 
       for (const account of p.cashAccounts) {
+        if (existing?.cashaccountList.some((row) => row.name === account.name)) {
+          continue;
+        }
         // First left-click to activate the panel, then right-click to open its context menu.
         const contentArea = page.locator('.data-container').first();
         await contentArea.waitFor({ state: 'visible', timeout: 10_000 });
@@ -113,7 +127,70 @@ for (const p of PORTFOLIOS) {
       expect(await accountRow.locator(':scope > td').count()).toBe(headerCellCount);
       expect(await summaryTable.locator('tfoot tr').first().locator('td').count()).toBe(headerCellCount);
     });
+
+    test(`reopens ${p.name} and its cash accounts while currency options arrive late`, async ({ page }) => {
+      page.setDefaultTimeout(15_000);
+      await loginAsFixtureUser(page, p.loginNickname);
+      // Navigate before the context menu selects the same node; clicking that selected node would only deselect it.
+      await portfolioNode(page, p).click();
+      await expect(
+        page.locator('.datatable tbody tr').filter({ hasText: p.cashAccounts[0].name }).first()
+      ).toBeVisible();
+      const currencies = await holdCurrencyOptions(page);
+      try {
+        await openTreeContextMenu(page, portfolioNode(page, p), RX.editPortfolio);
+        const dialog = page.locator('.p-dialog:visible');
+        await expect(dialog.locator('#name')).toHaveValue(p.name);
+        await dialog.locator('#name').fill('Unsaved portfolio name');
+        currencies.release();
+        await expect(dialog.locator('select#currency option:checked')).toHaveAttribute('value', p.currency);
+        await expect(dialog.locator('#name')).toHaveValue('Unsaved portfolio name');
+        await dialog.locator('.p-dialog-close-button').click();
+        await expect(dialog).toHaveCount(0);
+      } finally {
+        currencies.release();
+      }
+
+      for (const account of p.cashAccounts) {
+        const options = await holdCurrencyOptions(page);
+        try {
+          const row = page
+            .locator('.datatable tbody tr')
+            .filter({ has: page.getByText(account.name, { exact: true }) })
+            .first();
+          await row.click();
+          await row.click({ button: 'right' });
+          await page.locator('[role="menu"]:visible').getByText(RX.editCashAccount).click();
+          const dialog = page.locator('.p-dialog:visible');
+          await expect(dialog.locator('#name')).toHaveValue(account.name);
+          await dialog.locator('#name').fill('Unsaved cash account');
+          options.release();
+          await expect(dialog.locator('select#currency option:checked')).toHaveAttribute('value', account.currency);
+          await expect(dialog.locator('#name')).toHaveValue('Unsaved cash account');
+          await dialog.locator('.p-dialog-close-button').click();
+          await expect(dialog).toHaveCount(0);
+        } finally {
+          options.release();
+        }
+      }
+    });
   });
+}
+
+/** Holds the actual HTTP answer until the test has typed into the already initialized form. */
+async function holdCurrencyOptions(page: Page): Promise<{ release: () => void }> {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => (release = resolve));
+  await page.route(
+    '**/api/gt_globalparameters/currencies',
+    async (route) => {
+      const response = await route.fetch();
+      await gate;
+      await route.fulfill({ response });
+    },
+    { times: 1 }
+  );
+  return { release };
 }
 
 /**

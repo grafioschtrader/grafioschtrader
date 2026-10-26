@@ -30,7 +30,7 @@ function escapeRegExp(value: string): string {
 }
 
 function planNameRegex(row: TppRow): RegExp {
-  return new RegExp(`^(${escapeRegExp(row.platformPlanNameDE)}|${escapeRegExp(row.platformPlanNameEN)})$`, 'i');
+  return new RegExp(`^\\s*(${escapeRegExp(row.platformPlanNameDE)}|${escapeRegExp(row.platformPlanNameEN)})\\s*$`, 'i');
 }
 
 function loadE2ERows(): TppRow[] {
@@ -80,6 +80,7 @@ test.describe.serial("Create trading platform plans (e2e='e' rows from shared CS
       // Wait for the table to be visible and active
       const contentArea = page.locator('.data-container').first();
       await contentArea.waitFor({ state: 'visible', timeout: 10_000 });
+      await expect(contentArea.locator('tbody tr').first()).toBeVisible();
 
       // A retained plan from an earlier run already satisfies this add-only fixture.
       const existingPlan = contentArea

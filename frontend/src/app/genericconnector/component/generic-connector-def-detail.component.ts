@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -54,7 +54,6 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule]
 })
 export class GenericConnectorDefDetailComponent extends SingleRecordConfigBase implements OnChanges {

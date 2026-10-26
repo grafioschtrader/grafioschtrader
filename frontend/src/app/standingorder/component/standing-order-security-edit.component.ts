@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -44,6 +44,7 @@ enum InvestMode {
     <p-dialog
       header="{{ 'STANDING_ORDER_SECURITY' | translate }}"
       [visible]="visibleDialog"
+      (visibleChange)="!$event && onHide($event)"
       [style]="{ width: '600px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -59,7 +60,6 @@ enum InvestMode {
   `,
   standalone: true,
   imports: [DialogModule, DynamicFormModule, TranslateModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class StandingOrderSecurityEditComponent extends StandingOrderEditBase implements OnInit {
@@ -250,22 +250,26 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
 
   /** Opens the security search dialog when the security name button is clicked. */
   handleSecuritySearchClick(fieldConfig: FieldConfig): void {
-    this.translateService.get('SET_SECURITY').subscribe((title) => {
-      const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
-        header: title,
-        width: '720px',
-        resizable: false,
-        closable: true,
-        closeOnEscape: true,
-        data: { supplementCriteria: this.supplementCriteria }
+    this.translateService
+      .get('SET_SECURITY')
+      .pipe(this.untilDialogClosed())
+      .subscribe((title) => {
+        const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
+          header: title,
+          width: '720px',
+          resizable: false,
+          modal: true,
+          closable: true,
+          closeOnEscape: true,
+          data: { supplementCriteria: this.supplementCriteria }
+        });
+        ref.onClose.pipe(this.untilDialogClosed()).subscribe((security: Security | CurrencypairWatchlist) => {
+          if (security) {
+            this.selectedSecurity = security as Security;
+            this.configObject.securityName.formControl.setValue(security.name);
+          }
+        });
       });
-      ref.onClose.subscribe((security: Security | CurrencypairWatchlist) => {
-        if (security) {
-          this.selectedSecurity = security as Security;
-          this.configObject.securityName.formControl.setValue(security.name);
-        }
-      });
-    });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): StandingOrderSecurity {
@@ -311,7 +315,7 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
    * Subscribes to investMode changes and toggles between units and investAmount+fractionalUnits fields.
    */
   private setupInvestModeListener(): void {
-    this.configObject.investMode.formControl.valueChanges.subscribe((mode: any) => {
+    this.configObject.investMode.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((mode: any) => {
       const numericMode = StandingOrderEditBase.enumFormValueToNumeric(InvestMode, mode);
       this.applyInvestMode(numericMode ?? InvestMode.INVEST_MODE_UNITS);
     });
@@ -341,8 +345,12 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
    * when a fixed cost value is entered.
    */
   private setupCostFormulaListeners(): void {
-    this.configObject.taxCost.formControl.valueChanges.subscribe(() => this.applyCostFormulaState());
-    this.configObject.transactionCost.formControl.valueChanges.subscribe(() => this.applyCostFormulaState());
+    this.configObject.taxCost.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe(() => this.applyCostFormulaState());
+    this.configObject.transactionCost.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe(() => this.applyCostFormulaState());
   }
 
   /**
@@ -350,9 +358,11 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
    * to show only cash accounts from the same portfolio as the selected security account.
    */
   private setupSecurityaccountChangeListener(): void {
-    this.configObject.idSecurityaccount.formControl.valueChanges.subscribe((idSecurityaccount: number) => {
-      this.updateCashaccountOptions(+idSecurityaccount);
-    });
+    this.configObject.idSecurityaccount.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((idSecurityaccount: number) => {
+        this.updateCashaccountOptions(+idSecurityaccount);
+      });
     const currentValue = this.configObject.idSecurityaccount.formControl.value;
     if (currentValue != null) {
       this.updateCashaccountOptions(+currentValue);

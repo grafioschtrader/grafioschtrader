@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
@@ -17,6 +17,8 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 import { FieldsetModule } from '@openng/optimus-ui/fieldset';
 import { TableModule } from '@openng/optimus-ui/table';
 import moment from 'moment';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 
 /**
  * Test dialog for verifying a generic connector endpoint configuration. Lets the user enter a ticker (or currency
@@ -41,29 +43,29 @@ import moment from 'moment';
         (submitBt)="submit($event)">
       </dynamic-form>
 
-      @if (testResult) {
+      @if (testResult(); as result) {
         <p-fieldset legend="{{ 'TEST_RESULT' | translate }}" class="mt-3">
-          @for (item of summaryItems; track item.key) {
+          @for (item of summaryItems(); track item.key) {
             <div class="mb-1">
               <strong>{{ item.label }}:</strong> {{ item.value }}
             </div>
           }
         </p-fieldset>
 
-        @if (testResult.parsedRows?.length > 0) {
+        @if (result.parsedRows?.length > 0) {
           <p-fieldset legend="{{ 'PARSED_DATA' | translate }}" class="mt-3">
             <div style="max-height: 300px; overflow-y: auto;">
-              <p-table [value]="testResult.parsedRows" [scrollable]="true" styleClass="p-datatable-sm">
+              <p-table [value]="result.parsedRows" [scrollable]="true" styleClass="p-datatable-sm">
                 <ng-template #header>
                   <tr>
-                    @for (col of parsedColumns; track col) {
+                    @for (col of parsedColumns(); track col) {
                       <th>{{ col }}</th>
                     }
                   </tr>
                 </ng-template>
                 <ng-template #body let-row>
                   <tr>
-                    @for (col of parsedColumns; track col) {
+                    @for (col of parsedColumns(); track col) {
                       <td>{{ row[col] }}</td>
                     }
                   </tr>
@@ -73,10 +75,10 @@ import moment from 'moment';
           </p-fieldset>
         }
 
-        @if (testResult.rawResponseSnippet) {
+        @if (result.rawResponseSnippet) {
           <p-fieldset legend="{{ 'RAW_RESPONSE' | translate }}" [toggleable]="true" [collapsed]="true" class="mt-3">
             <pre style="max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;">{{
-              testResult.rawResponseSnippet
+              result.rawResponseSnippet
             }}</pre>
           </p-fieldset>
         }
@@ -84,18 +86,33 @@ import moment from 'moment';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, DialogModule, DynamicFormModule, FieldsetModule, TableModule]
 })
 export class GenericConnectorTestDialogComponent extends SimpleEditBase implements OnInit {
   @Input() endpoint: GenericConnectorEndpoint;
   @Input() connectorDef: GenericConnectorDef;
 
-  testResult: GenericConnectorTestResult;
-  parsedColumns: string[] = [];
-  summaryItems: { key: string; label: string; value: any }[] = [];
-
-  private summaryTranslations: { [key: string]: string } = {};
+  readonly testResult = signal<GenericConnectorTestResult>(null);
+  readonly parsedColumns = computed(() => {
+    const rows = this.testResult()?.parsedRows;
+    return rows?.length ? Object.keys(rows[0]) : [];
+  });
+  private readonly summaryTranslations = signal<Record<string, string>>({});
+  readonly summaryItems = computed(() => {
+    const result = this.testResult();
+    if (!result) return [];
+    const translations = this.summaryTranslations();
+    const items = [
+      { key: 'success', label: translations['SUCCESS'], value: result.success },
+      { key: 'httpStatus', label: translations['HTTP_STATUS'], value: result.httpStatus },
+      { key: 'requestUrl', label: translations['REQUEST_URL'], value: result.requestUrl },
+      { key: 'executionTimeMs', label: translations['EXECUTION_TIME_MS'], value: result.executionTimeMs }
+    ];
+    return result.errorMessage
+      ? [...items, { key: 'errorMessage', label: translations['ERROR_MESSAGE'], value: result.errorMessage }]
+      : items;
+  });
+  private testSubscription?: Subscription;
 
   constructor(
     public translateService: TranslateService,
@@ -119,13 +136,14 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
     this.applyFieldVisibility();
 
     const keys = ['SUCCESS', 'HTTP_STATUS', 'REQUEST_URL', 'EXECUTION_TIME_MS', 'ERROR_MESSAGE'];
-    this.translateService.get(keys).subscribe((t) => (this.summaryTranslations = t));
+    this.translateService
+      .get(keys)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((translations) => this.summaryTranslations.set(translations));
   }
 
   protected override initialize(): void {
-    this.testResult = null;
-    this.parsedColumns = [];
-    this.summaryItems = [];
+    this.testResult.set(null);
     this.applyFieldVisibility();
   }
 
@@ -164,53 +182,19 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
       }
     }
 
-    this.genericConnectorDefService.testEndpoint(request).subscribe({
-      next: (result) => {
-        this.testResult = result;
-        this.buildSummaryItems(result);
-        if (result.parsedRows?.length > 0) {
-          this.parsedColumns = Object.keys(result.parsedRows[0]);
-        } else {
-          this.parsedColumns = [];
+    this.testSubscription?.unsubscribe();
+    this.testResult.set(null);
+    this.testSubscription = this.genericConnectorDefService
+      .testEndpoint(request)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (result) => {
+          this.testResult.set(result);
+          this.configObject.submit.disabled = false;
+        },
+        error: () => {
+          this.configObject.submit.disabled = false;
         }
-        this.configObject.submit.disabled = false;
-      },
-      error: () => {
-        this.configObject.submit.disabled = false;
-      }
-    });
-  }
-
-  private buildSummaryItems(result: GenericConnectorTestResult): void {
-    const t = this.summaryTranslations;
-    this.summaryItems = [
-      {
-        key: 'success',
-        label: t['SUCCESS'] || 'Success',
-        value: result.success
-      },
-      {
-        key: 'httpStatus',
-        label: t['HTTP_STATUS'] || 'HTTP status',
-        value: result.httpStatus
-      },
-      {
-        key: 'requestUrl',
-        label: t['REQUEST_URL'] || 'Request URL',
-        value: result.requestUrl
-      },
-      {
-        key: 'executionTimeMs',
-        label: t['EXECUTION_TIME_MS'] || 'Execution time (ms)',
-        value: result.executionTimeMs
-      }
-    ];
-    if (result.errorMessage) {
-      this.summaryItems.push({
-        key: 'errorMessage',
-        label: t['ERROR_MESSAGE'] || 'Error message',
-        value: result.errorMessage
       });
-    }
   }
 }

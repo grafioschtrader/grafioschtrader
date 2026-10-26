@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
@@ -47,34 +49,35 @@ enum NodeLevel {
         </p-header>
       </p-panel>
       <configurable-tree-table
-        [data]="treeNodes"
+        [data]="treeNodes()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="nodeKey"
         sortField="name"
         [(selection)]="tableSelection"
         (nodeSelect)="onNodeSelect($event)"
         (nodeUnselect)="onNodeUnselect($event)"
-        [contextMenuItems]="contextMenuItems"
-        [showContextMenu]="!!contextMenuItems"
+        [contextMenuItems]="contextMenuItems()"
+        [showContextMenu]="!!contextMenuItems()"
         [expandable]="true"
-        [canExpandFn]="canExpandNode.bind(this)"
+        [canExpandFn]="canExpandNode"
         [expandedRowTemplate]="expandedContent"
-        [valueGetterFn]="getValueByPath.bind(this)">
+        [valueGetterFn]="valueGetter">
       </configurable-tree-table>
 
       <!-- One table of the official exchange rates per tax year -->
       <ng-template #expandedContent let-node>
         <tax-exchange-rate-table [taxYear]="node.entity"></tax-exchange-rate-table>
       </ng-template>
-      @if (visibleUploadFileDialog) {
+      @if (visibleUploadFileDialog()) {
         <upload-file-dialog
-          [visibleDialog]="visibleUploadFileDialog"
+          [visibleDialog]="visibleUploadFileDialog()"
           [fileUploadParam]="fileUploadParam"
           (closeDialog)="onUploadDialogClose()">
         </upload-file-dialog>
       }
-      @if (modelCountry) {
-        <tax-model-edit [visibleDialog]="true" [country]="modelCountry" (closeDialog)="closeModel()" />
+      @if (modelCountry(); as country) {
+        <tax-model-edit [visibleDialog]="true" [country]="country" (closeDialog)="closeModel()" />
       }
     </div>
   `,
@@ -89,22 +92,24 @@ enum NodeLevel {
     TaxExchangeRateTableComponent,
     TaxModelEditComponent
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class TaxDataTreetableComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
-  treeNodes: TreeNode[] = [];
+  private readonly destroyRef = inject(DestroyRef);
+  private readSubscription?: Subscription;
+  private menuSubscription?: Subscription;
+  readonly treeNodes = signal<TreeNode[]>([]);
   /** Row highlighted by the single-selection tree table. */
-  tableSelection: TreeNode = null;
-  contextMenuItems: MenuItem[];
+  readonly tableSelection = signal<TreeNode>(null);
+  readonly contextMenuItems = signal<MenuItem[]>(null);
   fileUploadParam: FileUploadParam;
-  visibleUploadFileDialog = false;
+  readonly visibleUploadFileDialog = signal(false);
   isAdmin: boolean;
-  modelCountry: TaxCountry;
+  readonly modelCountry = signal<TaxCountry>(null);
   existingCountries: string[] = [];
 
   closeModel(): void {
-    this.modelCountry = null;
+    this.modelCountry.set(null);
     this.readData();
   }
 
@@ -178,9 +183,9 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
    * @param node - the tree node data
    * @returns true when the year has at least one rate to show
    */
-  canExpandNode(node: any): boolean {
+  readonly canExpandNode = (node: any): boolean => {
     return node.nodeLevel === NodeLevel.YEAR && node.entity?.exchangeRateCount > 0;
-  }
+  };
 
   onNodeSelect(event): void {
     this.selectedNode = event.node;
@@ -193,16 +198,20 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   }
 
   onUploadDialogClose(): void {
-    this.visibleUploadFileDialog = false;
+    this.visibleUploadFileDialog.set(false);
     this.fileUploadParam = null;
     this.readData();
   }
 
   private readData(): void {
-    this.taxDataService.getTree().subscribe((countries: TaxCountry[]) => {
-      this.existingCountries = countries.map((country) => country.countryCode);
-      this.treeNodes = this.buildTree(countries);
-    });
+    this.readSubscription?.unsubscribe();
+    this.readSubscription = this.taxDataService
+      .getTree()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((countries: TaxCountry[]) => {
+        this.existingCountries = countries.map((country) => country.countryCode);
+        this.treeNodes.set(this.buildTree(countries));
+      });
   }
 
   private buildTree(countries: TaxCountry[]): TreeNode[] {
@@ -242,11 +251,16 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   }
 
   private resetMenu(): void {
-    this.contextMenuItems = this.isAdmin ? this.prepareEditMenu() : null;
-    this.activePanelService.activatePanel(this, {
-      showMenu: null,
-      editMenu: this.contextMenuItems
-    });
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = TranslateHelper.translateMenuItems$(
+      this.isAdmin ? this.prepareEditMenu() : null,
+      this.translateService
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((items) => {
+        this.contextMenuItems.set(items);
+        this.activePanelService.activatePanel(this, { showMenu: null, editMenu: items });
+      });
   }
 
   private prepareEditMenu(): MenuItem[] {
@@ -261,7 +275,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
       if (level === NodeLevel.COUNTRY) {
         menuItems.push({
           label: 'TAX_MODEL_YAML' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: () => (this.modelCountry = this.selectedNode.data.entity)
+          command: () => this.modelCountry.set(this.selectedNode.data.entity)
         });
         menuItems.push({
           label: 'CREATE_TAX_YEAR' + BaseSettings.DIALOG_MENU_SUFFIX,
@@ -294,49 +308,59 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
         });
       }
     }
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
   private createCountry(): void {
-    this.translateService.get('CREATE_TAX_COUNTRY').subscribe((title) => {
-      const ref = this.dialogService.open(TaxCountryCreateDialogComponent, {
-        data: { existingCountries: this.existingCountries },
-        closeOnEscape: true,
-        header: title,
-        width: '400px',
-        modal: true,
-        closable: true
+    this.translateService
+      .get('CREATE_TAX_COUNTRY')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((title) => {
+        const ref = this.dialogService.open(TaxCountryCreateDialogComponent, {
+          data: { existingCountries: this.existingCountries },
+          header: title,
+          width: '400px',
+          modal: true,
+          closable: true,
+          closeOnEscape: true
+        });
+        ref.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((countryCode: string) => {
+          if (countryCode) {
+            this.taxDataService
+              .createCountry({ idTaxCountry: null, countryCode })
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe(() => this.readData());
+          }
+        });
       });
-      ref.onClose.subscribe((countryCode: string) => {
-        if (countryCode) {
-          this.taxDataService.createCountry({ idTaxCountry: null, countryCode }).subscribe(() => this.readData());
-        }
-      });
-    });
   }
 
   private createYear(): void {
     const country: TaxCountry = this.selectedNode.data.entity;
-    this.translateService.get('CREATE_TAX_YEAR').subscribe((title) => {
-      const ref = this.dialogService.open(TaxYearCreateDialogComponent, {
-        header: title,
-        width: '400px',
-        modal: true,
-        closable: true
+    this.translateService
+      .get('CREATE_TAX_YEAR')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((title) => {
+        const ref = this.dialogService.open(TaxYearCreateDialogComponent, {
+          header: title,
+          width: '400px',
+          modal: true,
+          closable: true,
+          closeOnEscape: true
+        });
+        ref.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((taxYear: number) => {
+          if (taxYear) {
+            this.taxDataService
+              .createYear({
+                idTaxYear: null,
+                idTaxCountry: country.idTaxCountry,
+                taxYear
+              })
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe(() => this.readData());
+          }
+        });
       });
-      ref.onClose.subscribe((taxYear: number) => {
-        if (taxYear) {
-          this.taxDataService
-            .createYear({
-              idTaxYear: null,
-              idTaxCountry: country.idTaxCountry,
-              taxYear
-            })
-            .subscribe(() => this.readData());
-        }
-      });
-    });
   }
 
   private showUploadDialog(): void {
@@ -350,22 +374,31 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
       this.taxDataService,
       year.idTaxYear
     );
-    this.visibleUploadFileDialog = true;
+    this.visibleUploadFileDialog.set(true);
   }
 
   private deleteCountry(): void {
     const country: TaxCountry = this.selectedNode.data.entity;
-    this.taxDataService.deleteCountry(country.idTaxCountry).subscribe(() => this.clearSelectionAndReload());
+    this.taxDataService
+      .deleteCountry(country.idTaxCountry)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.clearSelectionAndReload());
   }
 
   private deleteYear(): void {
     const year: TaxYear = this.selectedNode.data.entity;
-    this.taxDataService.deleteYear(year.idTaxYear).subscribe(() => this.clearSelectionAndReload());
+    this.taxDataService
+      .deleteYear(year.idTaxYear)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.clearSelectionAndReload());
   }
 
   private deleteUpload(): void {
     const upload: TaxUpload = this.selectedNode.data.entity;
-    this.taxDataService.deleteUpload(upload.idTaxUpload).subscribe(() => this.clearSelectionAndReload());
+    this.taxDataService
+      .deleteUpload(upload.idTaxUpload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.clearSelectionAndReload());
   }
 
   /**
@@ -374,16 +407,19 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
    */
   private clearSelectionAndReload(): void {
     this.selectedNode = null;
-    this.tableSelection = null;
+    this.tableSelection.set(null);
     this.resetMenu();
     this.readData();
   }
 
   private reimportFile(): void {
     const upload: TaxUpload = this.selectedNode.data.entity;
-    this.taxDataService.reimport(upload.idTaxUpload).subscribe((updated: TaxUpload) => {
-      this.messageToastService.showMessageI18n(null, 'REIMPORT_TAX_DATA_SUCCESS', { count: updated.recordCount });
-      this.readData();
-    });
+    this.taxDataService
+      .reimport(upload.idTaxUpload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((updated: TaxUpload) => {
+        this.messageToastService.showMessageI18n(null, 'REIMPORT_TAX_DATA_SUCCESS', { count: updated.recordCount });
+        this.readData();
+      });
   }
 }

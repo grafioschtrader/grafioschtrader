@@ -1,9 +1,10 @@
-import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
-import { combineLatest } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { BaseSettings } from '../../lib/base.settings';
@@ -13,7 +14,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
 import { TradingCalendarRuleSet } from '../../entities/trading.calendar.rule.set';
@@ -28,13 +29,14 @@ import { StockexchangeService } from '../service/stockexchange.service';
 @Component({
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollable]="false"
       [stripedRows]="true"
       [showGridlines]="true"
@@ -44,10 +46,10 @@ import { StockexchangeService } from '../service/stockexchange.service';
         'passiv-border': !isActivated()
       }"
       [showContextMenu]="isActivated()"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems()"
       [contextMenuAppendTo]="'body'"
-      [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [ownerHighlightFn]="ownerHighlight"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ entityNameUpper | translate }}</h4>
 
@@ -63,9 +65,9 @@ import { StockexchangeService } from '../service/stockexchange.service';
       </ng-template>
     </configurable-table>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <trading-calendar-rule-set-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         (closeDialog)="handleCloseDialog($event)">
       </trading-calendar-rule-set-edit>
@@ -73,14 +75,13 @@ import { StockexchangeService } from '../service/stockexchange.service';
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, TooltipModule, ConfigurableTableComponent, TradingCalendarRuleSetEditComponent]
 })
-export class TradingCalendarRuleSetTableComponent
-  extends TableCrudSupportMenu<TradingCalendarRuleSet>
-  implements OnDestroy
-{
+export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenuSignal<TradingCalendarRuleSet> {
   callParam: TradingCalendarRuleSet;
+  readonly ownerHighlight = (entity: TradingCalendarRuleSet, field: ColumnConfig): boolean =>
+    this.isNotSingleModeAndOwner(entity, field);
+  private readDataSubscription?: Subscription;
 
   /** Maps a market identifier code (MIC) to its ISO country code, for the flag column. */
   private micToCountryCode: { [mic: string]: string } = {};
@@ -139,10 +140,6 @@ export class TradingCalendarRuleSetTableComponent
     return entity ? items.filter((item) => !item.label?.startsWith('CREATE|')) : items;
   }
 
-  ngOnDestroy(): void {
-    this.activePanelService.destroyPanel(this);
-  }
-
   override getHelpContextId(): string {
     return HelpIds.HELP_BASEDATA_TRADING_CALENDAR_RULE;
   }
@@ -174,15 +171,17 @@ export class TradingCalendarRuleSetTableComponent
   }
 
   protected override readData(): void {
-    combineLatest([
+    this.readDataSubscription?.unsubscribe();
+    this.readDataSubscription = forkJoin([
       this.tradingCalendarRuleSetService.getAllRuleSets(),
       this.stockexchangeService.getAllStockexchangesBaseData()
-    ]).subscribe(([ruleSets, baseData]) => {
-      this.micToCountryCode = {};
-      baseData.stockexchangeMics.forEach((m) => (this.micToCountryCode[m.mic] = m.countryCode));
-      this.createTranslatedValueStoreAndFilterField(ruleSets);
-      this.entityList = ruleSets;
-      this.refreshSelectedEntity();
-    });
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([ruleSets, baseData]) => {
+        this.micToCountryCode = Object.fromEntries(baseData.stockexchangeMics.map((m) => [m.mic, m.countryCode]));
+        this.createTranslatedValueStoreAndFilterField(ruleSets);
+        this.entityList.set(ruleSets);
+        this.refreshSelectedEntity();
+      });
   }
 }

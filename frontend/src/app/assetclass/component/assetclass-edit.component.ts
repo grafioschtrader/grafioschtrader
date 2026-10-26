@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { Assetclass } from '../../entities/assetclass';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -41,12 +41,13 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetclass> implements OnInit {
   @Input() callParam: AssetclassCallParam;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+
+  private readonly injector = inject(Injector);
 
   constructor(
     translateService: TranslateService,
@@ -107,11 +108,6 @@ export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetc
     return !this.callParam.assetclass;
   }
 
-  override onHide(event): void {
-    this.categoryTypeSubscribe && this.categoryTypeSubscribe.unsubscribe();
-    super.onHide(event);
-  }
-
   protected override initializeOthers(): void {
     this.configObject.en.suggestions = this.callParam.subCategorySuggestionsEN;
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
@@ -127,7 +123,7 @@ export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetc
       this.configObject.specialInvestmentInstrument
     ]);
     if (!this.callParam.assetclass) {
-      setTimeout(() => this.configObject.categoryType.elementRef.nativeElement.focus());
+      afterNextRender(() => this.configObject.categoryType.baseInputComponent?.focus(), { injector: this.injector });
     }
   }
 

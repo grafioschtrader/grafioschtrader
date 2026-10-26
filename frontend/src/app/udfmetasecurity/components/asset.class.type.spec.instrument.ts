@@ -6,9 +6,8 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { AssetclassType } from '../../shared/types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
-import { Subscription } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { InputType } from '../../lib/dynamic-form/models/input.type';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 
@@ -22,9 +21,6 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
 export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBase<T> {
   /** Map of asset class types to their valid special investment instruments */
   protected assetclassSpezInstMap: { [key in AssetclassType]: SpecialInvestmentInstruments[] };
-
-  /** Subscription to category type changes for dynamic instrument filtering */
-  protected categoryTypeSubscribe: Subscription;
 
   /** All available special investment instrument options for selection */
   protected valueKeyHtmlOptionsSpecInvest: ValueKeyHtmlSelectOptions[];
@@ -71,8 +67,9 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
    * to show only those valid for the selected asset class types.
    */
   valueChangedOnCategoryType(): void {
-    this.categoryTypeSubscribe = this.configObject[this.fieldCategoryType].formControl.valueChanges.subscribe(
-      (categoryType) => {
+    this.configObject[this.fieldCategoryType].formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((categoryType) => {
         if (this.configObject[this.fieldCategoryType].inputType === InputType.MultiSelect) {
           const vkh: ValueKeyHtmlSelectOptions[] = [];
           if (categoryType && categoryType.length > 0) {
@@ -97,8 +94,7 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
             );
           }
         }
-      }
-    );
+      });
   }
 
   /**
@@ -119,35 +115,30 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
    * @protected
    */
   protected override initialize(): void {
-    this.gpsGT.getPossibleAssetclassInstrumentMap().subscribe((assetclassSpezInstMap) => {
-      this.assetclassSpezInstMap = assetclassSpezInstMap;
-      this.form.setDefaultValuesAndEnableSubmit();
-      this.configObject[this.fieldCategoryType].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-        this.translateService,
-        AssetclassType,
-        [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN],
-        true
-      );
-      this.valueKeyHtmlOptionsSpecInvest = SelectOptionsHelper.createHtmlOptionsFromEnum(
-        this.translateService,
-        SpecialInvestmentInstruments,
-        [],
-        true
-      );
-      this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest;
-      this.valueChangedOnCategoryType();
-      this.initializeOthers();
-    });
-  }
-
-  /**
-   * Cleanup handler when dialog is closed.
-   * Unsubscribes from category type change listener to prevent memory leaks.
-   *
-   * @param event - Dialog hide event
-   */
-  override onHide(event): void {
-    this.categoryTypeSubscribe && this.categoryTypeSubscribe.unsubscribe();
-    super.onHide(event);
+    const categoryKeys = Object.values(AssetclassType).filter(
+      (value): value is string => typeof value === 'string' && !['CURRENCY_CASH', 'CURRENCY_FOREIGN'].includes(value)
+    );
+    const instrumentKeys = Object.values(SpecialInvestmentInstruments).filter(
+      (value): value is string => typeof value === 'string'
+    );
+    forkJoin({
+      mapping: this.gpsGT.getPossibleAssetclassInstrumentMap(),
+      texts: this.translateService.get([...categoryKeys, ...instrumentKeys])
+    })
+      .pipe(this.untilDialogClosed())
+      .subscribe(({ mapping, texts }) => {
+        this.assetclassSpezInstMap = mapping;
+        this.form.setDefaultValuesAndEnableSubmit();
+        const options = (keys: string[]) =>
+          keys
+            .map((key) => new ValueKeyHtmlSelectOptions(key, texts[key]))
+            .sort((a, b) => a.value.localeCompare(b.value));
+        this.configObject[this.fieldCategoryType].valueKeyHtmlOptions = options(categoryKeys);
+        this.valueKeyHtmlOptionsSpecInvest = options(instrumentKeys);
+        this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions =
+          this.valueKeyHtmlOptionsSpecInvest;
+        this.valueChangedOnCategoryType();
+        this.initializeOthers();
+      });
   }
 }

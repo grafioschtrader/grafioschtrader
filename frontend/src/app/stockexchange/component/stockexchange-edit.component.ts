@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { Stockexchange } from '../../entities/stockexchange';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -19,8 +19,7 @@ import { SecurityService } from '../../securitycurrency/service/security.service
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { AssetclassType } from '../../shared/types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
-import { combineLatest, Subscription } from 'rxjs';
-import { Observable } from 'rxjs/internal/Observable';
+import { distinctUntilChanged, forkJoin, Observable, of, startWith, switchMap } from 'rxjs';
 import { Security } from '../../entities/security';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import moment from 'moment';
@@ -34,7 +33,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.set.service';
 
 /**
- * Edit stockexchnage
+ * Edits a stock exchange and its calendar source, with country-dependent reference indices.
  */
 @Component({
   selector: 'stockexchange-edit',
@@ -54,7 +53,6 @@ import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchange> implements OnInit {
@@ -62,13 +60,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
   private readonly nameMaxLength = 32;
   private countriesAsKeyValue: { [cc: string]: string } = {};
-  private onlyMainStockexchangeSubscribe: Subscription;
-  private micSubscribe: Subscription;
-  private countryCodeSubscribe: Subscription;
-
-  private ruleSetOptions: ValueKeyHtmlSelectOptions[] = [];
   private ruleSetIdByMic: { [mic: string]: number } = {};
-  private calendarSourceSubscriptions: Subscription[] = [];
+  private readonly injector = inject(Injector);
 
   constructor(
     translateService: TranslateService,
@@ -133,74 +126,85 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   protected override initialize(): void {
-    const observables: Observable<any>[] = [
-      this.gps.getTimezones(),
-      this.tradingCalendarRuleSetService.getRuleSetOptions(),
-      this.tradingCalendarRuleSetService.getRuleSetIdByMic()
-    ];
-    const securitiesIndex = observables.length;
-    if (this.callParam.stockexchange) {
-      observables.push(this.getSecurityObservable(this.callParam.stockexchange.countryCode));
+    this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam.countriesAsHtmlOptions);
+    this.configObject.mic.groupItem = this.createMicOptions(true);
+    this.configObject.countryCode.valueKeyHtmlOptions = this.callParam.countriesAsHtmlOptions;
+    this.form.setDefaultValuesAndEnableSubmit();
+    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
+      this.translateService,
+      this.gps,
+      this.callParam.stockexchange,
+      this.form,
+      this.configObject,
+      this.proposeChangeEntityWithEntity
+    );
+    FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [
+      this.configObject.noMarketValue,
+      this.configObject.timeZone
+    ]);
+    this.disableEnableCountry();
+    this.valueChangedOnCountryCode();
+    this.watchCalendarSource();
+    this.applyCalendarSourceExclusion();
+    if (this.canAssignMic()) {
+      this.valueChangedOnOnlyMainStockexchange();
     }
-    combineLatest(observables).subscribe((data) => {
-      this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam.countriesAsHtmlOptions);
-      this.configObject.mic.groupItem = this.createMicOptions(true);
-      this.configObject.timeZone.valueKeyHtmlOptions = data[0] as ValueKeyHtmlSelectOptions[];
-      this.ruleSetOptions = SelectOptionsHelper.prependEmptyOption(data[1] as ValueKeyHtmlSelectOptions[]);
-      this.ruleSetIdByMic = data[2] as { [mic: string]: number };
-      this.configObject.idTradingCalendarRuleSet.valueKeyHtmlOptions = this.ruleSetOptions;
-      this.configObject.countryCode.valueKeyHtmlOptions = this.callParam.countriesAsHtmlOptions;
-      this.form.setDefaultValuesAndEnableSubmit();
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-        this.translateService,
-        this.gps,
-        this.callParam.stockexchange,
-        this.form,
-        this.configObject,
-        this.proposeChangeEntityWithEntity
-      );
-      FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [
-        this.configObject.noMarketValue,
-        this.configObject.timeZone
-      ]);
-      this.disableEnableCountry();
-      if (data.length > securitiesIndex) {
-        this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions =
-          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-            'idSecuritycurrency',
-            'name',
-            data[securitiesIndex] as Security[],
-            true
-          );
-      }
-      this.valueChangedOnCountryCode();
-      this.watchCalendarSource();
-      this.applyCalendarSourceExclusion();
-      if (this.canAssignMic()) {
-        this.valueChangedOnOnlyMainStockexchange();
-        this.valueChangedOnMic();
-        setTimeout(() => (<any>this.configObject.mic.elementRef)?.accessibleViewChild?.nativeElement?.focus());
-      } else {
-        setTimeout(() => this.configObject.name.elementRef?.nativeElement?.focus());
-      }
-    });
+    this.loadOptions();
+  }
+
+  /** Loads the calendar and time-zone choices once per session, preserving edits made while they are pending. */
+  private loadOptions(): void {
+    // A MIC needs its rule-set mapping before it can supply defaults. Loading options never resets the form.
+    this.configObject.mic.formControl.disable();
+    this.configObject.submit.disabled = true;
+    forkJoin({
+      timezones: this.gps.getTimezones(),
+      ruleSets: this.tradingCalendarRuleSetService.getRuleSetOptions(),
+      mapping: this.tradingCalendarRuleSetService.getRuleSetIdByMic()
+    })
+      .pipe(this.untilDialogClosed())
+      .subscribe(({ timezones, ruleSets, mapping }) => {
+        this.configObject.timeZone.valueKeyHtmlOptions = timezones;
+        this.configObject.idTradingCalendarRuleSet.valueKeyHtmlOptions = [
+          new ValueKeyHtmlSelectOptions('', ''),
+          ...ruleSets
+        ];
+        this.ruleSetIdByMic = mapping;
+        this.configObject.submit.disabled = false;
+        if (this.canAssignMic()) {
+          this.configObject.mic.formControl.enable();
+          this.valueChangedOnMic();
+        }
+        afterNextRender(
+          () => {
+            if (this.canAssignMic()) {
+              this.configObject.mic.baseInputComponent?.focus();
+            } else {
+              this.configObject.name.baseInputComponent?.focus();
+            }
+          },
+          { injector: this.injector }
+        );
+      });
   }
 
   private valueChangedOnOnlyMainStockexchange(): void {
-    this.onlyMainStockexchangeSubscribe = this.configObject.onlyMainStockexchange.formControl.valueChanges.subscribe(
-      (oms: boolean) => {
+    this.configObject.onlyMainStockexchange.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((oms: boolean) => {
         this.configObject.mic.groupItem = this.createMicOptions(oms);
-      }
-    );
+      });
   }
 
   private valueChangedOnMic(): void {
-    this.micSubscribe = this.configObject.mic.formControl.valueChanges.subscribe((mic) => {
+    this.configObject.mic.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((mic) => {
       const sm: StockexchangeMic = this.callParam.stockexchangeMics.find((smf) => smf.mic === mic);
-      this.configObject.name.formControl.setValue(sm.name.toLowerCase().substring(0, this.nameMaxLength));
-      this.configObject.countryCode.formControl.setValue(sm.countryCode);
-      this.configObject.website.formControl.setValue(sm.website);
-      this.configObject.timeZone.formControl.setValue(sm.timeZone);
+      if (sm) {
+        this.configObject.name.formControl.setValue(sm.name.toLowerCase().substring(0, this.nameMaxLength));
+        this.configObject.countryCode.formControl.setValue(sm.countryCode);
+        this.configObject.website.formControl.setValue(sm.website);
+        this.configObject.timeZone.formControl.setValue(sm.timeZone);
+      }
       this.disableEnableCountry();
       // The MIC drives the defaults of this dialog, so it also decides the calendar source: the rule set written for
       // that MIC is preselected, and a MIC without one leaves the field empty rather than keeping the rule set of the
@@ -214,14 +218,11 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
    * the two therefore clears and disables the other, mirroring the check the backend enforces on save.
    */
   private watchCalendarSource(): void {
-    this.calendarSourceSubscriptions.push(
-      this.configObject.idIndexUpdCalendar.formControl.valueChanges.subscribe(() =>
-        this.applyCalendarSourceExclusion()
-      ),
-      this.configObject.idTradingCalendarRuleSet.formControl.valueChanges.subscribe(() =>
-        this.applyCalendarSourceExclusion()
-      )
-    );
+    for (const field of ['idIndexUpdCalendar', 'idTradingCalendarRuleSet']) {
+      this.configObject[field].formControl.valueChanges
+        .pipe(this.untilDialogClosed())
+        .subscribe(() => this.applyCalendarSourceExclusion());
+    }
   }
 
   /**
@@ -237,6 +238,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     const indexSelected = !ruleSetSelected && !!this.configObject.idIndexUpdCalendar.formControl.value;
     this.setCalendarSourceState(this.configObject.idIndexUpdCalendar, ruleSetSelected);
     this.setCalendarSourceState(this.configObject.idTradingCalendarRuleSet, indexSelected);
+    this.viewChanged();
   }
 
   private setCalendarSourceState(fieldConfig: FieldConfig, disable: boolean): void {
@@ -253,28 +255,28 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private valueChangedOnCountryCode(): void {
-    this.countryCodeSubscribe = this.configObject.countryCode.formControl.valueChanges.subscribe((countryCode) => {
-      this.configObject.idIndexUpdCalendar.formControl.setValue(null);
-      if (countryCode) {
-        this.getSecurityObservable(countryCode).subscribe((securities) => {
-          this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions =
-            SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-              'idSecuritycurrency',
-              'name',
-              securities,
-              true
-            );
-        });
-      } else {
-        this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')];
-      }
-    });
+    const country = this.configObject.countryCode.formControl;
+    country.valueChanges
+      .pipe(
+        startWith(country.value),
+        distinctUntilChanged(),
+        switchMap((countryCode, index) => {
+          if (index > 0) {
+            this.configObject.idIndexUpdCalendar.formControl.setValue(null);
+          }
+          this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = [];
+          return countryCode ? this.getSecurityObservable(countryCode) : of<Security[]>([]);
+        }),
+        this.untilDialogClosed()
+      )
+      .subscribe((securities) => {
+        this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions =
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idSecuritycurrency', 'name', securities, true);
+      });
   }
 
   private disableEnableCountry(): void {
-    FormHelper.disableEnableFieldConfigs(this.configObject.mic.formControl.value.length > 0, [
-      this.configObject.countryCode
-    ]);
+    FormHelper.disableEnableFieldConfigs(!!this.configObject.mic.formControl.value, [this.configObject.countryCode]);
   }
 
   private createMicOptions(onlyMainStockexchange: boolean): GroupItem[] {
@@ -352,7 +354,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       this.callParam.stockexchange,
       this.proposeChangeEntityWithEntity
     );
-    stockexchange.mic = stockexchange.mic.length === 0 ? null : stockexchange.mic;
+    stockexchange.mic = stockexchange.mic || null;
     return stockexchange;
   }
 
@@ -364,14 +366,5 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     securitycurrencySearch.activeDate = moment().format(BaseSettings.FORMAT_DATE_SHORT_US);
     securitycurrencySearch.stockexchangeCountryCode = countryCode;
     return this.securityService.searchByCriteria(securitycurrencySearch);
-  }
-
-  override onHide(event): void {
-    this.onlyMainStockexchangeSubscribe && this.onlyMainStockexchangeSubscribe.unsubscribe();
-    this.micSubscribe && this.micSubscribe.unsubscribe();
-    this.countryCodeSubscribe && this.countryCodeSubscribe.unsubscribe();
-    this.calendarSourceSubscriptions.forEach((subscription) => subscription.unsubscribe());
-    this.calendarSourceSubscriptions = [];
-    super.onHide(event);
   }
 }

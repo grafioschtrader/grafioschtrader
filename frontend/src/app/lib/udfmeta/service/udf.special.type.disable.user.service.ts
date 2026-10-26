@@ -5,8 +5,9 @@ import { Observable } from 'rxjs';
 import { LoginService } from '../../login/service/log-in.service';
 import { HttpClient } from '@angular/common/http';
 import { MessageToastService } from '../../message/message.toast.service';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { BaseSettings } from '../../base.settings';
+import { UDFSpecialTypeRegistry } from '../model/udf.special.type.registry';
 
 /**
  * Service for managing user preferences to disable/enable predefined UDF special types.
@@ -34,21 +35,29 @@ export class UDFSpecialTypeDisableUserService extends AuthServiceWithLogout<UDFS
    *          Use UDFSpecialTypeRegistry.getByValue() to resolve full special type objects.
    */
   public getDisabledSpecialTypes(): Observable<number[]> {
-    return <Observable<number[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_SPECIAL_TYPE_DISABLE_USER}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<(number | string)[]>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_SPECIAL_TYPE_DISABLE_USER}`,
+        this.getHeaders()
+      )
+      .pipe(
+        map((types) =>
+          types
+            .map((type) => (typeof type === 'string' ? UDFSpecialTypeRegistry.getByName(type)?.value : type))
+            .filter((type) => type != null)
+        ),
+        catchError(this.handleError.bind(this))
+      );
   }
 
   /**
    * Disables a UDF special type for the current user.
    * The specified special type will be hidden in UDF editing interfaces.
    *
-   * @param udfSpecialType - Name of the special type to disable (string representation of UDFSpecialType enum)
+   * @param udfSpecialType - Numeric registry value of the special type to disable
    * @returns Observable completing when the special type has been disabled
    */
-  public create(udfSpecialType: string): Observable<any> {
+  public create(udfSpecialType: number): Observable<any> {
     return this.httpClient
       .post(
         `${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_SPECIAL_TYPE_DISABLE_USER}`,
@@ -62,10 +71,10 @@ export class UDFSpecialTypeDisableUserService extends AuthServiceWithLogout<UDFS
    * Re-enables a previously disabled UDF special type for the current user.
    * The specified special type will become visible again in UDF editing interfaces.
    *
-   * @param udfSpecialType - Name of the special type to enable (string representation of UDFSpecialType enum)
+   * @param udfSpecialType - Numeric registry value of the special type to enable
    * @returns Observable completing when the special type has been re-enabled
    */
-  public delete(udfSpecialType: string): Observable<any> {
+  public delete(udfSpecialType: number): Observable<any> {
     return this.httpClient
       .delete(
         `${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_SPECIAL_TYPE_DISABLE_USER}/${udfSpecialType}`,

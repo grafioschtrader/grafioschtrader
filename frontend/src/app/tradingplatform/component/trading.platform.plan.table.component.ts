@@ -1,6 +1,8 @@
-import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
 import { TradingPlatformPlan } from '../../entities/tradingplatformplan';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -9,10 +11,9 @@ import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { TradingPlatformPlanService } from '../service/trading.platform.plan.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { HelpIds } from '../../lib/help/help.ids';
-import { ImportTransactionPlatformService } from '../../imptranstemplate/service/import.transaction.platform.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { TranslateValue } from '../../lib/datashowbase/column.config';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -24,13 +25,14 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
 @Component({
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollable]="false"
       [stripedRows]="true"
       [showGridlines]="true"
@@ -40,24 +42,24 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
         'passiv-border': !isActivated()
       }"
       [showContextMenu]="isActivated()"
-      [contextMenuItems]="contextMenuItems"
-      [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [contextMenuItems]="contextMenuItems()"
+      [ownerHighlightFn]="ownerHighlight"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ entityNameUpper | translate }}</h4>
     </configurable-table>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <trading-platform-plan-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         (closeDialog)="handleCloseDialog($event)">
       </trading-platform-plan-edit>
     }
 
-    @if (visibleFeeModelDialog) {
+    @if (visibleFeeModelDialog()) {
       <fee-model-edit
-        [visibleDialog]="visibleFeeModelDialog"
+        [visibleDialog]="visibleFeeModelDialog()"
         [callParam]="feeModelCallParam"
         (closeDialog)="handleCloseFeeModelDialog($event)">
       </fee-model-edit>
@@ -65,17 +67,18 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, ConfigurableTableComponent, TradingPlatformPlanEditComponent, FeeModelEditComponent]
 })
-export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<TradingPlatformPlan> implements OnDestroy {
+export class TradingPlatformPlanTableComponent extends TableCrudSupportMenuSignal<TradingPlatformPlan> {
   callParam: TradingPlatformPlan;
-  visibleFeeModelDialog = false;
+  readonly visibleFeeModelDialog = signal(false);
   feeModelCallParam: TradingPlatformPlan;
-  private platformTransactionImportKV: { [id: string]: string };
+  readonly ownerHighlight = (entity: TradingPlatformPlan, field: ColumnConfig): boolean =>
+    this.isNotSingleModeAndOwner(entity, field);
+
+  private readDataSubscription?: Subscription;
 
   constructor(
-    private importTransactionPlatformService: ImportTransactionPlatformService,
     private tradingPlatformPlanService: TradingPlatformPlanService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
@@ -120,20 +123,20 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
     this.callParam = entity;
   }
 
-  ngOnDestroy(): void {
-    this.activePanelService.destroyPanel(this);
-  }
-
   override getHelpContextId(): string {
     return HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN;
   }
 
   protected override readData(): void {
-    this.tradingPlatformPlanService.getAllTradingPlatform().subscribe((result) => {
-      this.createTranslatedValueStoreAndFilterField(result);
-      this.entityList = result;
-      this.refreshSelectedEntity();
-    });
+    this.readDataSubscription?.unsubscribe();
+    this.readDataSubscription = this.tradingPlatformPlanService
+      .getAllTradingPlatform()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        this.createTranslatedValueStoreAndFilterField(result);
+        this.entityList.set(result);
+        this.refreshSelectedEntity();
+      });
   }
 
   protected override beforeDelete(entity: TradingPlatformPlan): TradingPlatformPlan {
@@ -148,17 +151,17 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
   protected override addCustomMenusToSelectedEntity(entity: TradingPlatformPlan, menuItems: MenuItem[]): void {
     menuItems.push({
       label: 'EDIT_FEE_MODEL' + BaseSettings.DIALOG_MENU_SUFFIX,
-      command: (event) => this.handleEditFeeModel(entity)
+      command: () => this.handleEditFeeModel(entity)
     });
   }
 
   private handleEditFeeModel(entity: TradingPlatformPlan): void {
     this.feeModelCallParam = entity;
-    this.visibleFeeModelDialog = true;
+    this.visibleFeeModelDialog.set(true);
   }
 
   handleCloseFeeModelDialog(processedActionData: ProcessedActionData): void {
-    this.visibleFeeModelDialog = false;
+    this.visibleFeeModelDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }

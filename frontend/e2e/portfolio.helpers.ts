@@ -156,6 +156,36 @@ export function loadPortfolios(): PortfolioFixture[] {
   return fixture.portfolios.filter((p) => p.e2e === 'e');
 }
 
+/** The persisted accounts needed to resume creation and to reopen the fixture dialogs without deleting shared data. */
+export interface StoredPortfolio {
+  idPortfolio: number;
+  name: string;
+  currency: string;
+  cashaccountList: { idSecuritycashAccount: number; name: string; currency: string }[];
+  securityaccountList: {
+    idSecuritycashAccount: number;
+    name: string;
+    tradingPlatformPlan: { idTradingPlatformPlan: number };
+    tradingPeriods: {
+      specInvestInstrument: string;
+      categoryType: string | null;
+      dateFrom: string;
+      dateTo: string | null;
+    }[];
+  }[];
+}
+
+/** Reads by natural key under the logged-in tenant; existing fixture portfolios may already back transactions. */
+export async function readFixturePortfolio(page: Page, p: PortfolioFixture): Promise<StoredPortfolio | undefined> {
+  const token = await page.evaluate(() => sessionStorage.getItem('jwt'));
+  expect(token).toBeTruthy();
+  const response = await page.request.get('/api/portfolio/tenant', { headers: { 'x-auth-token': token! } });
+  expect(response.ok(), await response.text()).toBeTruthy();
+  const matches = ((await response.json()) as StoredPortfolio[]).filter((row) => row.name === p.name);
+  expect(matches.length, `unique fixture portfolio ${p.name}`).toBeLessThanOrEqual(1);
+  return matches[0];
+}
+
 /**
  * Bilingual label patterns. TranslateHelper.translateMenuItem composes the menu labels from
  * '<VERB>|<ENTITY>' and the grafiosch-base messages{,_de}.properties entries CREATE='Create
@@ -170,6 +200,9 @@ export const RX = {
   securityAccountsFolder: /(Securities\s+accounts|Depots)/i,
   createSecurityAccount: /(Create\s+Securities\s*account|Erstellen\s+Depot)/i,
   createCashAccount: /(New\s+Cash\s*account|Neues\s+Bankkonto)/i,
+  editPortfolio: /(Edit|Bearbeiten)\s+Portfolio/i,
+  editSecurityAccount: /(Edit\s+Securities\s*account|Bearbeiten\s+Depot)/i,
+  editCashAccount: /(Edit\s+Cash\s*account|Bearbeiten\s+Bankkonto)/i,
   deleteNode: /^(Delete|Löschen)$/,
   deleteCashAccount: /(Delete\s+Cash\s*account|Löschen\s+Bankkonto)/i,
   /** Header of the delete question — AppHelper.confirmationDialog translates MSG_GENERAL_HEADER. */

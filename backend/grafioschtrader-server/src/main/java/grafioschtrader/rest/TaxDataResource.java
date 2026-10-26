@@ -35,6 +35,7 @@ import grafiosch.entities.Role;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.rest.RequestMappings;
+import grafioschtrader.dto.TaxEstimateRequest.EventKind;
 import grafioschtrader.dto.TaxStatementExportRequest;
 import grafioschtrader.entities.IctaxExchangeRate;
 import grafioschtrader.entities.IctaxSecurityTaxData;
@@ -136,6 +137,13 @@ public class TaxDataResource {
   @GetMapping(value = "/cantons", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCantons() {
     return new ResponseEntity<>(CANTONS, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Get event kinds accepted by the tax model preview")
+  @GetMapping(value = "/eventkinds", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getEventKinds() {
+    return ResponseEntity.ok(Arrays.stream(EventKind.values())
+        .map(kind -> new ValueKeyHtmlSelectOptions(kind.name(), kind.name())).toList());
   }
 
   @Operation(summary = "Get coupon day-count conventions for the security bond terms dialog")

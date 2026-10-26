@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy } from '@angular/core';
+import { Component, DestroyRef, inject, Injector, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -22,37 +23,38 @@ import { UserAccessTokenService } from '../service/user-access-token.service';
 @Component({
   selector: 'oauth-authorization-table',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, TranslateModule, ButtonModule],
   template: `
     <h4>{{ 'ACCESS_TOKEN_OAUTH_CLIENTS' | translate }}</h4>
-    @if (authorizations.length === 0) {
+    @if (authorizations().length === 0) {
       <p>{{ 'ACCESS_TOKEN_OAUTH_NONE' | translate }}</p>
     } @else {
-      @if (selected) {
+      @if (selected()) {
         <p-button
           [label]="'ACCESS_TOKEN_REVOKE' | translate"
           [style]="{ 'margin-bottom': '0.5rem' }"
-          (onClick)="revoke(selected)" />
+          (onClick)="revoke(selected())" />
       }
       <configurable-table
-        [data]="authorizations"
+        [data]="authorizations()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="idOAuthAuthorization"
         selectionMode="single"
         [(selection)]="selected"
         [multiSortMeta]="multiSortMeta"
-        [customSortFn]="customSort.bind(this)"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [customSortFn]="customSorter"
+        [valueGetterFn]="valueGetter"
         [baseLocale]="baseLocale"
         [scrollable]="false" />
     }
   `
 })
-export class OAuthAuthorizationTableComponent extends TableConfigBase implements OnDestroy {
-  authorizations: OAuthAuthorization[] = [];
-  selected: OAuthAuthorization;
-  private subscriptions = new Subscription();
+export class OAuthAuthorizationTableComponent extends TableConfigBase {
+  readonly authorizations = signal<OAuthAuthorization[]>([]);
+  readonly selected = signal<OAuthAuthorization>(null);
+  private readonly destroyRef = inject(DestroyRef);
+  private readDataSub?: Subscription;
 
   constructor(
     private userAccessTokenService: UserAccessTokenService,
@@ -78,13 +80,15 @@ export class OAuthAuthorizationTableComponent extends TableConfigBase implements
   }
 
   readData(): void {
-    this.subscriptions.add(
-      this.userAccessTokenService.getOAuthAuthorizations().subscribe((rows) => {
-        this.authorizations = rows;
-        this.selected = null;
+    this.readDataSub?.unsubscribe();
+    this.readDataSub = this.userAccessTokenService
+      .getOAuthAuthorizations()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((rows) => {
+        this.authorizations.set(rows);
+        this.selected.set(null);
         this.createTranslatedValueStoreAndFilterField(rows);
-      })
-    );
+      });
   }
 
   revoke(authorization: OAuthAuthorization): void {
@@ -92,17 +96,18 @@ export class OAuthAuthorizationTableComponent extends TableConfigBase implements
       this.translateService,
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|OAUTH_AUTHORIZATION',
-      () =>
-        this.userAccessTokenService.deleteOAuthAuthorization(authorization.idOAuthAuthorization).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: 'OAUTH_AUTHORIZATION'
+      () => {
+        if (this.destroyRef.destroyed) return;
+        this.userAccessTokenService
+          .deleteOAuthAuthorization(authorization.idOAuthAuthorization)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: 'OAUTH_AUTHORIZATION'
+            });
+            this.readData();
           });
-          this.readData();
-        })
+      }
     );
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 }

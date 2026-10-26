@@ -1,13 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -36,18 +27,19 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
       [data]="fieldMappings"
       (dataChange)="onDataChange($event)"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="idFieldMapping"
       [showEditColumn]="editable"
       [editColumnWidth]="120"
       [selectionMode]="null"
       [contextMenuEnabled]="false"
-      [createNewEntityFn]="createNewEntity.bind(this)"
+      [createNewEntityFn]="createNewEntity"
       (rowEditSave)="onRowEditSave($event)"
       (rowEditCancel)="onRowEditCancel($event)"
       [canDeleteRowFn]="canDeleteRow"
       (rowDelete)="onRowDelete($event)"
-      [valueGetterFn]="getValueByPath.bind(this)"
-      [customSortFn]="customSort.bind(this)"
+      [valueGetterFn]="valueGetter"
+      [customSortFn]="customSorter"
       [baseLocale]="baseLocale"
       [scrollable]="false"
       [containerClass]="''"
@@ -67,7 +59,6 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
     </editable-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class GenericConnectorFieldMappingTableComponent extends TableEditConfigBase implements OnChanges {
@@ -163,6 +154,8 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
     const targetFieldColumn = this.fields.find((f) => f.field === 'targetField');
     if (targetFieldColumn?.cec) {
       targetFieldColumn.cec.valueKeyHtmlOptions = targetFields.map((f) => new ValueKeyHtmlSelectOptions(f, f));
+      // The options live on the column configuration, which the editable table reads without an input change.
+      this.notifyViewChanged();
     }
   }
 
