@@ -69,7 +69,6 @@ TICKER
 # MULTI_ASSET -> German "Multi-Asset".
 COMMODITIES
 MULTI_ASSET
-SERVER_ONLINE
 # SYMBOL_IMP reads "Symbol import" in both; German would be "Symbol-Import".
 SYMBOL_IMP
 # VALUE_SECURITY reads "Total Position" in both; German would be "Gesamtposition".

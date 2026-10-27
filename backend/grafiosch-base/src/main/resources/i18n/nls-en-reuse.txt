@@ -51,3 +51,6 @@ relation.entity.name
 
 # --- Deliberate: a status shown as 'OK' in both languages (dashboard, data provider requests).
 OK
+
+# --- Deliberate: a product-style status label kept in English (GTNet setup table).
+SERVER_ONLINE
