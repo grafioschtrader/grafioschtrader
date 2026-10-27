@@ -51,6 +51,7 @@ import { ManageClientService } from './lib/manageclient/service/manage-client.se
 import { ParentChildRegisterService } from './shared/service/parent.child.register.service';
 import { HttpClient, provideHttpClient, withInterceptors, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { authInterceptor } from './lib/login/service/auth.http.interceptor';
+import { provideDialogCloseKeepsFocus } from './lib/edit/dialog.close.focus';
 import { ViewSizeChangedService } from './lib/layout/service/view.size.changed.service';
 import { ChartDataService } from './shared/chart/service/chart.data.service';
 import { PlotlyLoaderService } from './shared/chart/plotly.loader';
@@ -180,6 +181,7 @@ export const appConfig: ApplicationConfig = {
       registerTaskTypeHelpIds(AppTaskTypeHelpIds);
     }),
     provideHttpClient(withXhr(), withInterceptors([authInterceptor]), withInterceptorsFromDi()),
+    provideDialogCloseKeepsFocus(),
     ActivePanelService,
     ActuatorService,
     AlarmSetupService,

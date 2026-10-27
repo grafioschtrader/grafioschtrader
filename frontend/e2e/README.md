@@ -847,7 +847,11 @@ user's original preference in `finally`; it never modifies or deletes a system d
 URLs locally and do not fetch the sites or call a language model.
 
 `lib/039-udf-metadata-notification.spec.ts` checks the general table's delayed load and the edit form's dependent
-fields over repeated openings in the zoneless library host. It saves no data. Run it with
+fields over repeated openings in the zoneless library host. Its second test presses the close button while an empty
+required field holds the focus and expects the first click to close the dialog (`provideDialogCloseKeepsFocus`). It
+holds the button for 150 ms like a person, because the zoneless host renders the field message one frame after an
+instant mouseup, and it presses only once the dialog height is stable: the opening animation and the form
+initialisation move the button by themselves. It saves no data. Run it with
 `npx playwright test e2e/lib/039-udf-metadata-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
 
 With the backend and frontend still active, execute only this spec with

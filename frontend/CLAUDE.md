@@ -662,6 +662,10 @@ dialogRef.onClose.subscribe((result: ProcessedActionData) => { ... });
 > change), which sets them to `false` on purpose. Match the existing convention used by
 > `ColumnVisibilityDialogComponent` (`lib/datashowbase/table.config.base.ts`) and the search dialogs.
 
+**Every host registers `provideDialogCloseKeepsFocus()`** (`lib/edit/dialog.close.focus.ts`). Without it, pressing the
+X moves the focus off an empty required field, its message grows the centred dialog, and the first click misses the
+button that moved up. Do not work around a "needs two clicks" close in a dialog or a spec; check the host provider.
+
 ### Dialog Components with Tables
 
 Dialog components displaying tables should extend `ShowRecordConfigBase`:

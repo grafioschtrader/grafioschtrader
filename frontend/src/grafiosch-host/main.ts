@@ -1,5 +1,6 @@
 import { HttpClient, provideHttpClient, withInterceptors, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { authInterceptor } from '../app/lib/login/service/auth.http.interceptor';
+import { provideDialogCloseKeepsFocus } from '../app/lib/edit/dialog.close.focus';
 import { importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { SETTINGS_MENU_EXTENSIONS } from '../app/lib/mainmenubar/service/settings-menu-extensions';
@@ -235,6 +236,7 @@ bootstrapApplication(GrafioschAppComponent, {
   providers: [
     // Angular 22 bootstraps zoneless by default. Library state owners notify Angular even while a component is Eager.
     provideHttpClient(withXhr(), withInterceptors([authInterceptor]), withInterceptorsFromDi()),
+    provideDialogCloseKeepsFocus(),
     provideRouter(
       routes,
       withPreloading(AuthenticatedPreloadingStrategy),
