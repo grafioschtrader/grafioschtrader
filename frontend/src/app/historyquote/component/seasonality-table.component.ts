@@ -1,5 +1,5 @@
 import { AppSettings } from '../../shared/app.settings';
-import { Component, Injector, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, Input, OnChanges, SimpleChanges, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -30,16 +30,16 @@ import {
   template: `
     @if (result && result.yearRows.length > 0) {
       <p-table
-        [columns]="fields"
+        [columns]="tableFields()"
         [value]="result.yearRows"
         dataKey="year"
         (sortFunction)="customSort($event)"
         [customSort]="true"
         stripedRows
         showGridlines>
-        <ng-template #header let-fields>
+        <ng-template #header>
           <tr>
-            @for (field of fields; track field.field) {
+            @for (field of tableFields(); track field.field) {
               <th [pSortableColumn]="field.field" [style.width.px]="field.width" class="text-end">
                 {{ field.headerTranslated }}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
@@ -47,9 +47,9 @@ import {
             }
           </tr>
         </ng-template>
-        <ng-template #body let-el let-columns="fields">
+        <ng-template #body let-el>
           <tr>
-            @for (field of fields; track field.field) {
+            @for (field of tableFields(); track field.field) {
               <td [style.background-color]="getBackgroundColor(el, field)" [class.text-end]="field.field !== 'year'">
                 {{ getValueByPath(el, field) }}
               </td>
@@ -72,11 +72,16 @@ import {
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, FormsModule, TranslateModule, TableModule]
 })
 export class SeasonalityTableComponent extends TableConfigBase implements OnChanges {
   @Input() result: SeasonalReturnsResult;
+
+  /** A new columns reference re-renders the header and body templates of the OnPush p-table after a rebuild. */
+  readonly tableFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields];
+  });
 
   /** Footer statistic rows; each knows its label and how to read its value from a column statistic. */
   readonly footerRows: {
@@ -172,6 +177,7 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
     this.translateHeadersAndColumns();
     // Month/quarter headers are not NLS keys, so restore them after the translation pass overwrote them.
     labels.forEach((label, index) => (this.fields[index + 1].headerTranslated = label));
+    this.notifyViewChanged();
   }
 
   private computeColorScale(): void {

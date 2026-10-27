@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -44,37 +45,37 @@ import { SeasonalityTableComponent } from './seasonality-table.component';
         #form="dynamicForm">
       </dynamic-form>
 
-      @if (loading) {
+      @if (loading()) {
         <div class="progress-bar-box">
           <h4>{{ 'LOADING' | translate }}</h4>
           <p-progressBar mode="indeterminate" [style]="{ height: '6px' }"></p-progressBar>
         </div>
       }
 
-      @if (result) {
+      @if (result(); as result) {
         <p>
           <strong>{{ 'CURRENCY' | translate }}:</strong> {{ result.currency }}
         </p>
       }
 
-      <seasonality-table [result]="result"></seasonality-table>
+      <seasonality-table [result]="result()"></seasonality-table>
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, DynamicFormModule, ProgressBarModule, SeasonalityTableComponent]
 })
-export class SeasonalityComponent extends FormBase implements OnInit, AfterViewInit, OnDestroy, IGlobalMenuAttach {
+export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMenuAttach {
   @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
 
-  result: SeasonalReturnsResult = null;
-  loading = false;
+  readonly result = signal<SeasonalReturnsResult>(null);
+  readonly loading = signal(false);
   menuItems: MenuItem[] = [];
 
   private idSecuritycurrency: number;
   private formReady = false;
-  private routeSubscribe: Subscription;
-  private valueChangeSubscriptions: Subscription[] = [];
+  private readonly destroyRef = inject(DestroyRef);
+  /** Request of the current inputs; a newer input or instrument replaces a request that is still pending. */
+  private reloadSubscription: Subscription;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -86,32 +87,31 @@ export class SeasonalityComponent extends FormBase implements OnInit, AfterViewI
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, null, false);
     this.formConfig.labelColumns = 2;
+    // The dynamic-form builds its FormGroup in its own ngOnInit, so the form controls exist after the first render.
+    afterNextRender(() => this.initializeControls());
+    this.destroyRef.onDestroy(() => this.reloadSubscription?.unsubscribe());
   }
 
   ngOnInit(): void {
     this.createInputFormDefinition();
-    this.routeSubscribe = this.activatedRoute.paramMap.subscribe((paramMap) => {
+    this.activatedRoute.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((paramMap) => {
       const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
       this.idSecuritycurrency = paramObject.allParam?.[0]?.idSecuritycurrency;
       this.maybeReload();
     });
   }
 
-  ngAfterViewInit(): void {
-    // The dynamic-form builds its FormGroup in its own ngOnInit (after this component's ngOnInit), so the form
-    // controls only exist now. Defer to a microtask to avoid ExpressionChangedAfterItHasBeenChecked errors.
-    Promise.resolve().then(() => {
-      this.configObject.periodType.formControl.setValue(SeasonalPeriodType.MONTHLY);
-      this.configObject.includeDividends.formControl.setValue(false);
-      this.configObject.inTenantCurrency.formControl.setValue(false);
-      ['periodType', 'includeDividends', 'inTenantCurrency'].forEach((name) =>
-        this.valueChangeSubscriptions.push(
-          this.configObject[name].formControl.valueChanges.subscribe(() => this.reload())
-        )
-      );
-      this.formReady = true;
-      this.maybeReload();
-    });
+  private initializeControls(): void {
+    this.configObject.periodType.formControl.setValue(SeasonalPeriodType.MONTHLY);
+    this.configObject.includeDividends.formControl.setValue(false);
+    this.configObject.inTenantCurrency.formControl.setValue(false);
+    ['periodType', 'includeDividends', 'inTenantCurrency'].forEach((name) =>
+      this.configObject[name].formControl.valueChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.reload())
+    );
+    this.formReady = true;
+    this.maybeReload();
   }
 
   private maybeReload(): void {
@@ -134,11 +134,6 @@ export class SeasonalityComponent extends FormBase implements OnInit, AfterViewI
 
   getHelpContextId(): string {
     return AppHelpIds.HELP_WATCHLIST_SEASONALITY_HEATMAP;
-  }
-
-  ngOnDestroy(): void {
-    this.routeSubscribe && this.routeSubscribe.unsubscribe();
-    this.valueChangeSubscriptions.forEach((s) => s.unsubscribe());
   }
 
   private createInputFormDefinition(): void {
@@ -168,16 +163,17 @@ export class SeasonalityComponent extends FormBase implements OnInit, AfterViewI
   }
 
   private reload(): void {
-    this.loading = true;
+    this.loading.set(true);
     const periodType: SeasonalPeriodType = this.configObject.periodType.formControl.value;
     const includeDividends = !!this.configObject.includeDividends.formControl.value;
     const inTenantCurrency = !!this.configObject.inTenantCurrency.formControl.value;
-    this.securityService
+    this.reloadSubscription?.unsubscribe();
+    this.reloadSubscription = this.securityService
       .getSeasonalReturns(this.idSecuritycurrency, periodType, includeDividends, inTenantCurrency)
       .subscribe((result) => {
-        this.result = result;
+        this.result.set(result);
         this.applyCapabilities(result);
-        this.loading = false;
+        this.loading.set(false);
       });
   }
 
@@ -185,6 +181,8 @@ export class SeasonalityComponent extends FormBase implements OnInit, AfterViewI
   private applyCapabilities(result: SeasonalReturnsResult): void {
     this.toggleControl('includeDividends', result.dividendsAvailable);
     this.toggleControl('inTenantCurrency', result.currencyConversionAvailable);
+    // The toggles change without events, which the form does not notice by itself.
+    this.form.notifier.notify();
   }
 
   private toggleControl(name: string, enabled: boolean): void {

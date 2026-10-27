@@ -1009,6 +1009,15 @@ rows are intercepted, opens and closes the apply-split dialog and the edit dialo
 live view. Nothing is written to the database. Run it with
 `npx playwright test e2e/063-historyquote-legacy-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## Seasonality notification spec (064-*)
+
+`064-seasonality-notification.spec.ts` opens the seasonality heat map of Nestlé from the `Switzerland` watchlist of 060
+as `alledit`. The seasonal returns are intercepted with fixed figures. The first monthly response is held, so the
+progress bar and then the 14 columns must follow its delivery; the capability flags of the response disable the
+main-currency toggle. Switching to quarterly and back to monthly while the quarterly request is still pending must keep
+the monthly table when the quarterly answer arrives late. Nothing is written to the database. Run it with
+`npx playwright test e2e/064-seasonality-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Derived instrument spec (065-*)
 
 `065-create-derived-security.spec.ts` uses the `Derived` watchlist created by 040 for user `alledit` and
