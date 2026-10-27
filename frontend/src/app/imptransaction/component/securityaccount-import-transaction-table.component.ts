@@ -1,4 +1,6 @@
-import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, Injector, OnDestroy, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription, take } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
@@ -44,10 +46,11 @@ import { Helper } from '../../lib/helper/helper';
   selector: 'securityaccount-import-transaction-table',
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="'importTransactionPos.idTransactionPos'"
-      [selection]="selectedEntities"
+      [selection]="selectedEntities()"
       (selectionChange)="onSelectionChange($event)"
       [selectionMode]="'multiple'"
       [paginator]="true"
@@ -59,8 +62,8 @@ import { Helper } from '../../lib/helper/helper';
       [showGridlines]="true"
       [expandable]="true"
       [expandedRowTemplate]="expandedRowContent"
-      [customSortFn]="customSort.bind(this)"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [customSortFn]="customSorter"
+      [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale"
       [containerClass]="'datatable'">
       <ng-template #iconCell let-row let-field="field" let-value="value">
@@ -84,17 +87,16 @@ import { Helper } from '../../lib/helper/helper';
       }
     </ng-template>
 
-    @if (visibleSetCashaccountDialog) {
+    @if (visibleSetCashaccountDialog()) {
       <securityaccount-import-set-cashaccount
-        [visibleDialog]="visibleSetCashaccountDialog"
-        [combineTemplateAndImpTransPos]="selectedEntities"
+        [visibleDialog]="visibleSetCashaccountDialog()"
+        [combineTemplateAndImpTransPos]="selectedEntities()"
         [idSecuritycashAccount]="selectImportTransactionHead.securityaccount.idSecuritycashAccount"
         (closeDialog)="handleOnCloseSetDialog($event)">
       </securityaccount-import-set-cashaccount>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ConfigurableTableComponent,
@@ -120,11 +122,13 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
   private static iconLoadDone = false;
   supplementCriteria: SupplementCriteria;
-  entityList: CombineTemplateAndImpTransPos[] = [];
-  selectedEntities: CombineTemplateAndImpTransPos[] = [];
+  readonly entityList = signal<CombineTemplateAndImpTransPos[]>([]);
+  private readonly destroyRef = inject(DestroyRef);
+  private readSubscription?: Subscription;
+  readonly selectedEntities = signal<CombineTemplateAndImpTransPos[]>([]);
   selectImportTransactionHead: ImportTransactionHead;
   importTransactionTemplates: ImportTransactionTemplate[];
-  visibleSetCashaccountDialog = false;
+  readonly visibleSetCashaccountDialog = signal(false);
   parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>;
   private readonly ITP = 'IMPORT_TRANSACTION_POS';
 
@@ -287,6 +291,11 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>,
     importTransactionTemplates: ImportTransactionTemplate[]
   ) {
+    if (this.selectImportTransactionHead?.idTransactionHead !== selectImportTransactionHead?.idTransactionHead) {
+      this.entityList.set([]);
+      this.selectedEntities.set([]);
+      this.visibleSetCashaccountDialog.set(false);
+    }
     this.selectImportTransactionHead = selectImportTransactionHead;
     this.parentChildRowSelection = parentChildRowSelection;
     this.importTransactionTemplates = importTransactionTemplates;
@@ -294,18 +303,24 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   }
 
   readData(): void {
+    this.readSubscription?.unsubscribe();
     if (this.selectImportTransactionHead) {
-      this.importTransactionPosService
+      this.readSubscription = this.importTransactionPosService
         .getCombineTemplateAndImpTransPosListByTransactionHead(this.selectImportTransactionHead.idTransactionHead)
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos[]) => {
           this.createTranslatedValueStoreAndFilterField(combineTemplateAndImpTransPos);
-          this.entityList = combineTemplateAndImpTransPos;
-          this.replaceSelectedElements(this.selectedEntities, this.entityList);
-          this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList, null);
+          this.entityList.set(combineTemplateAndImpTransPos);
+          const selectedIds = new Set(this.selectedEntities().map((row) => row.importTransactionPos.idTransactionPos));
+          this.selectedEntities.set(
+            combineTemplateAndImpTransPos.filter((row) => selectedIds.has(row.importTransactionPos.idTransactionPos))
+          );
+          this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList(), null);
         });
     } else {
-      this.entityList = [];
-      this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList, null);
+      this.entityList.set([]);
+      this.selectedEntities.set([]);
+      this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList(), null);
     }
   }
 
@@ -316,8 +331,8 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
    * @param selectedEntities - The rows selected now
    */
   onSelectionChange(selection: CombineTemplateAndImpTransPos | CombineTemplateAndImpTransPos[]): void {
-    this.selectedEntities = Helper.multipleSelection(selection);
-    this.parentChildRowSelection?.rowSelectionChanged(this.entityList, null);
+    this.selectedEntities.set(Helper.multipleSelection(selection));
+    this.parentChildRowSelection?.rowSelectionChanged(this.entityList(), null);
   }
 
   /**
@@ -360,63 +375,64 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     menuItems.push({
       label: 'DELETE_RECORDS|' + this.ITP,
       command: (event) => this.handleDeleteEntities(),
-      disabled: !this.selectedEntities || this.selectedEntities.length === 0
+      disabled: !this.selectedEntities() || this.selectedEntities().length === 0
     });
     menuItems.push({ separator: true });
 
     menuItems.push({
       label: 'COPY_FILENAME_TO_CLIPBOARD',
-      disabled: !this.selectedEntities || this.selectedEntities.length !== 1 || !this.selectedEntities[0].fullPath,
-      command: (event) => toClipboard(this.selectedEntities[0].importTransactionPos.fileNameOriginal)
+      disabled:
+        !this.selectedEntities() || this.selectedEntities().length !== 1 || !this.selectedEntities()[0].fullPath,
+      command: (event) => toClipboard(this.selectedEntities()[0].importTransactionPos.fileNameOriginal)
     });
 
     menuItems.push({ separator: true });
     menuItems.push({
       label: '_ACCEPT_TOTAL_DIFF',
       disabled:
-        !this.selectedEntities ||
-        this.selectedEntities.length === 0 ||
-        this.selectedEntities.some((ctaitp) => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
+        !this.selectedEntities() ||
+        this.selectedEntities().length === 0 ||
+        this.selectedEntities().some((ctaitp) => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
       command: (event) => this.acceptTotalDiff()
     });
 
     menuItems.push({
       label: 'IMPORT_ADJUST_MULTIPLICATION',
       disabled:
-        !this.selectedEntities ||
-        this.selectedEntities.length === 0 ||
-        !this.selectedEntities.every((ctaitp) => !!ctaitp.importTransactionPos.calcCashaccountAmount) ||
-        this.selectedEntities.some((ctaitp) => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
+        !this.selectedEntities() ||
+        this.selectedEntities().length === 0 ||
+        !this.selectedEntities().every((ctaitp) => !!ctaitp.importTransactionPos.calcCashaccountAmount) ||
+        this.selectedEntities().some((ctaitp) => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
       command: (event) => this.adjustExchangeRateOrQuotation()
     });
 
     menuItems.push({
       label: 'SET_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled:
-        !this.selectedEntities ||
-        this.selectedEntities.length === 0 ||
-        !this.selectedEntities.every((ctaitp) =>
+        !this.selectedEntities() ||
+        this.selectedEntities().length === 0 ||
+        !this.selectedEntities().every((ctaitp) =>
           Transaction.isSecurityTransaction(ctaitp.importTransactionPos.transactionType)
         ) ||
-        this.selectedEntities.some((ctaitp) => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
+        this.selectedEntities().some((ctaitp) => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
       command: (event) => this.openSetSecurityDialog()
     });
 
     menuItems.push({
       label: 'SET_CASHACCOUNT' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled:
-        !this.selectedEntities ||
-        this.selectedEntities.length === 0 ||
-        this.selectedEntities.some((ctaitp) => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
-      command: (event) => (this.visibleSetCashaccountDialog = true)
+        !this.selectedEntities() ||
+        this.selectedEntities().length === 0 ||
+        this.selectedEntities().some((ctaitp) => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
+      command: (event) => this.visibleSetCashaccountDialog.set(true)
     });
     menuItems.push({ separator: true });
     menuItems.push({
       label: '_IGNORE_MAYBE_TRANSACTION' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled:
-        !this.selectedEntities ||
-        this.selectedEntities.length === 0 ||
-        this.selectedEntities.some(
+        !this.selectedEntities() ||
+        this.selectedEntities().length === 0 ||
+        this.selectedEntities().some(
           (ctaitp) =>
             ctaitp.importTransactionPos.idTransactionMaybe === null ||
             ctaitp.importTransactionPos.idTransactionMaybe === 0
@@ -427,9 +443,9 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     menuItems.push({
       label: '_IGNORE_MAYBE_TRANSACTION_UNDO' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled:
-        !this.selectedEntities ||
-        this.selectedEntities.length === 0 ||
-        this.selectedEntities.some((ctaitp) => ctaitp.importTransactionPos.idTransactionMaybe !== 0),
+        !this.selectedEntities() ||
+        this.selectedEntities().length === 0 ||
+        this.selectedEntities().some((ctaitp) => ctaitp.importTransactionPos.idTransactionMaybe !== 0),
       command: (event) => this.removeMayBeTransaction(null)
     });
 
@@ -438,10 +454,10 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
       label: 'IMPORT_CREATE_TRANSACTION',
       command: (event) => this.handleCreateTransactions(),
       disabled:
-        !this.selectedEntities ||
-        this.selectedEntities.length === 0 ||
-        !this.selectedEntities.every((ctaitp) => ctaitp.importTransactionPos.readyForTransaction) ||
-        this.selectedEntities.some((ctaitp) => this.hasTransactionOrMaybe(ctaitp.importTransactionPos))
+        !this.selectedEntities() ||
+        this.selectedEntities().length === 0 ||
+        !this.selectedEntities().every((ctaitp) => ctaitp.importTransactionPos.readyForTransaction) ||
+        this.selectedEntities().some((ctaitp) => this.hasTransactionOrMaybe(ctaitp.importTransactionPos))
     });
     return menuItems;
   }
@@ -449,10 +465,11 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   adjustExchangeRateOrQuotation(): void {
     this.importTransactionPosService
       .adjustCurrencyExRateOrQuotation(
-        this.selectedEntities.map(
+        this.selectedEntities().map(
           (ctaitp: CombineTemplateAndImpTransPos) => ctaitp.importTransactionPos.idTransactionPos
         )
       )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((importTransactionPosList) =>
         this.showMessageAndReadData('MSG_ACCEPTED_ADJUST_MULTIPLICATION', importTransactionPosList.length)
       );
@@ -461,10 +478,11 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   acceptTotalDiff(): void {
     this.importTransactionPosService
       .acceptTotalDiff(
-        this.selectedEntities.map(
+        this.selectedEntities().map(
           (ctaitp: CombineTemplateAndImpTransPos) => ctaitp.importTransactionPos.idTransactionPos
         )
       )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((importTransactionPosList) =>
         this.showMessageAndReadData('MSG_ACCEPTED_TOTAL_DIFF', importTransactionPosList.length)
       );
@@ -474,36 +492,42 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
    * Opens the security search dialog via DialogService and saves the selected security to the import transaction positions.
    */
   private openSetSecurityDialog(): void {
-    this.translateService.get('SET_SECURITY').subscribe((title) => {
-      const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
-        header: title,
-        width: '720px',
-        resizable: false,
-        closable: true,
-        closeOnEscape: true,
-        data: { supplementCriteria: this.supplementCriteria }
+    this.translateService
+      .get('SET_SECURITY')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((title) => {
+        const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
+          header: title,
+          width: '720px',
+          modal: true,
+          resizable: false,
+          closable: true,
+          closeOnEscape: true,
+          data: { supplementCriteria: this.supplementCriteria }
+        });
+        ref.onClose.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe((security: Security) => {
+          if (security) {
+            this.importTransactionPosService
+              .setSecurity(
+                security.idSecuritycurrency,
+                this.selectedEntities().map((ctaitp) => ctaitp.importTransactionPos.idTransactionPos)
+              )
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe(() => this.readData());
+          }
+        });
       });
-      ref.onClose.subscribe((security: Security) => {
-        if (security) {
-          this.importTransactionPosService
-            .setSecurity(
-              security.idSecuritycurrency,
-              this.selectedEntities.map((ctaitp) => ctaitp.importTransactionPos.idTransactionPos)
-            )
-            .subscribe(() => this.readData());
-        }
-      });
-    });
   }
 
   removeMayBeTransaction(idTransactionMayBe: number): void {
     this.importTransactionPosService
       .setIdTransactionMayBe(
         idTransactionMayBe,
-        this.selectedEntities.map(
+        this.selectedEntities().map(
           (combineTemplateAndImpTransPos) => combineTemplateAndImpTransPos.importTransactionPos.idTransactionPos
         )
       )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((rcImportTransactionPosList) => this.readData());
   }
 
@@ -519,12 +543,13 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
       'MSG_CONFIRM_DELETE_RECORDS|' + this.ITP,
       () => {
         this.importTransactionPosService
-          .deleteMultiple(this.selectedEntities.map((ctaitp) => ctaitp.importTransactionPos.idTransactionPos))
+          .deleteMultiple(this.selectedEntities().map((ctaitp) => ctaitp.importTransactionPos.idTransactionPos))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((response) => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORDS', {
               i18nRecord: this.ITP
             });
-            this.selectedEntities = [];
+            this.selectedEntities.set([]);
             this.readData();
           });
       }
@@ -533,12 +558,13 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
   handleCreateTransactions(): void {
     this.importTransactionPosService
-      .createAndSaveTransactions(this.selectedEntities.map((ctaitp) => ctaitp.importTransactionPos.idTransactionPos))
+      .createAndSaveTransactions(this.selectedEntities().map((ctaitp) => ctaitp.importTransactionPos.idTransactionPos))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((rc) => this.readData());
   }
 
   handleOnCloseSetDialog(processedActionData: ProcessedActionData): void {
-    this.visibleSetCashaccountDialog = false;
+    this.visibleSetCashaccountDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
@@ -560,27 +586,6 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
   ngOnDestroy(): void {
     this.writeTableDefinition(AppSettings.IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE);
-  }
-
-  /**
-   * The selected elements are not automatically updated with the newly read data. Therefore, this must be done explicitly.
-   * @param selectedEntities
-   * @param entityList
-   * @private
-   */
-  private replaceSelectedElements(
-    selectedEntities: CombineTemplateAndImpTransPos[],
-    entityList: CombineTemplateAndImpTransPos[]
-  ): void {
-    for (let i = 0; i < selectedEntities.length; i++) {
-      const match = entityList.find(
-        (elem) =>
-          elem.importTransactionPos.idTransactionPos === selectedEntities[i].importTransactionPos.idTransactionPos
-      );
-      if (match) {
-        selectedEntities[i] = match;
-      }
-    }
   }
 
   private hasTransactionOrMaybe(itp: ImportTransactionPos): boolean {

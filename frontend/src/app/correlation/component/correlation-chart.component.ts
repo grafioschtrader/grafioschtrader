@@ -1,6 +1,11 @@
 import {
+  afterNextRender,
+  AfterRenderRef,
   AfterViewInit,
-  ChangeDetectionStrategy,
+  computed,
+  DestroyRef,
+  Injector,
+  signal,
   Component,
   ElementRef,
   OnDestroy,
@@ -10,7 +15,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
@@ -41,23 +46,23 @@ import { buildCorrelationFigure, CorrelationChartType } from './correlation-char
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"></dynamic-form>
-      @if (chartInput?.includeDividends || chartInput?.adjustCurrency) {
+      @if (chartInput()?.includeDividends || chartInput()?.adjustCurrency) {
         <div class="chart-adjustments">
-          @if (chartInput?.includeDividends) {
+          @if (chartInput()?.includeDividends) {
             <span>{{ 'INCLUDE_DIVIDENDS' | translate }}</span>
           }
-          @if (chartInput?.adjustCurrency) {
+          @if (chartInput()?.adjustCurrency) {
             <span>{{ 'ADJUST_CURRENCY' | translate }}</span>
           }
         </div>
       }
-      @if (noData) {
+      @if (noData()) {
         <p>{{ 'NO_DATA_AVAILABLE' | translate }}</p>
       }
-      @if (missingCloses) {
+      @if (missingCloses()) {
         <p>{{ 'CORRELATION_CHART_MISSING_PRICES' | translate }}</p>
       }
-      <div #chart class="correlation-chart-plot" [hidden]="noData"></div>
+      <div #chart class="correlation-chart-plot" [hidden]="noData()"></div>
     </div>
   `,
   styles: [
@@ -80,15 +85,21 @@ import { buildCorrelationFigure, CorrelationChartType } from './correlation-char
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, DynamicFormModule]
 })
 export class CorrelationChartComponent extends FormBase implements OnInit, AfterViewInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
   @ViewChild('chart', { static: true }) chartElement: ElementRef;
-  chartInput: CorrelationChartInput;
-  noData = true;
-  missingCloses = false;
+  readonly chartInput = signal<CorrelationChartInput>(null);
+  private readonly chartType = signal(CorrelationChartType.Combined);
+  private readonly figure = computed(() =>
+    this.chartInput() ? buildCorrelationFigure(this.chartInput(), this.chartType()) : null
+  );
+  readonly noData = computed(() => !this.figure()?.data.length);
+  readonly missingCloses = computed(() => !!this.figure()?.missingCloses);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private pendingRender?: AfterRenderRef;
   private ready = false;
   private destroyed = false;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
@@ -96,7 +107,6 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   private plotly: PlotlyInstance;
   private renderVersion = 0;
   private plotlyConfig: any;
-  private subscriptions: Subscription[] = [];
 
   constructor(
     private chartService: CorrelationChartService,
@@ -117,43 +127,48 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
     this.config = [DynamicFieldHelper.createFieldSelectStringHeqF('chartType', true, { usedLayoutColumns: 6 })];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     const types = Object.values(CorrelationChartType);
-    this.subscriptions.push(
-      this.translateService.stream(types).subscribe((texts) => {
+    this.translateService
+      .stream(types)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((texts) => {
         this.configObject.chartType.valueKeyHtmlOptions = types.map(
           (type) => new ValueKeyHtmlSelectOptions(type, texts[type])
         );
         this.drawChart();
-      }),
-      this.chartService.input$.subscribe((input) => {
-        this.chartInput = input;
-        this.drawChart();
-      }),
-      this.viewSizeChangedService.viewSizeChanged$.subscribe(() => {
-        if (!this.noData && this.chartElement.nativeElement.data) {
-          this.plotly?.Plots.resize(this.chartElement.nativeElement);
-        }
-      })
-    );
+      });
+    this.chartService.input$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((input) => {
+      this.chartInput.set(input);
+      this.drawChart();
+    });
+    this.viewSizeChangedService.viewSizeChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (!this.noData() && this.chartElement.nativeElement.data) {
+        this.plotly?.Plots.resize(this.chartElement.nativeElement);
+      }
+    });
   }
 
   ngAfterViewInit(): void {
-    Promise.resolve().then(() => {
-      if (this.destroyed) {
-        return;
-      }
-      const stored = this.usersettingsService.readSingleValue(this.storeKey());
-      this.configObject.chartType.formControl.setValue(
-        Object.values(CorrelationChartType).includes(stored) ? stored : CorrelationChartType.Combined
-      );
-      this.subscriptions.push(
-        this.configObject.chartType.formControl.valueChanges.subscribe((type) => {
-          this.usersettingsService.saveSingleValue(this.storeKey(), type);
-          this.drawChart();
-        })
-      );
-      this.ready = true;
-      this.drawChart();
-    });
+    afterNextRender(
+      () => {
+        if (this.destroyed) {
+          return;
+        }
+        const stored = this.usersettingsService.readSingleValue(this.storeKey());
+        const type = Object.values(CorrelationChartType).includes(stored) ? stored : CorrelationChartType.Combined;
+        this.chartType.set(type);
+        this.configObject.chartType.formControl.setValue(type);
+        this.configObject.chartType.formControl.valueChanges
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((type) => {
+            this.chartType.set(type);
+            this.usersettingsService.saveSingleValue(this.storeKey(), type);
+            this.drawChart();
+          });
+        this.ready = true;
+        this.drawChart();
+      },
+      { injector: this.injector }
+    );
   }
 
   isActivated(): boolean {
@@ -171,7 +186,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   ngOnDestroy(): void {
     this.destroyed = true;
     this.renderVersion++;
-    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+    this.pendingRender?.destroy();
     this.plotly?.purge(this.chartElement.nativeElement);
     this.chartService.shown = false;
     this.activePanelService.destroyPanel(this);
@@ -186,36 +201,37 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
       return;
     }
     const version = ++this.renderVersion;
-    const figure = this.chartInput
-      ? buildCorrelationFigure(this.chartInput, this.configObject.chartType.formControl.value)
-      : null;
-    this.noData = !figure?.data.length;
-    this.missingCloses = !!figure?.missingCloses;
-    if (this.noData) {
+    this.pendingRender?.destroy();
+    const figure = this.figure();
+    if (this.noData()) {
       this.plotly?.purge(this.chartElement.nativeElement);
       return;
     }
-    PlotlyHelper.translateLayout(this.translateService, figure.layout);
+    const layout = structuredClone(figure.layout);
+    const data = structuredClone(figure.data);
+    PlotlyHelper.translateLayout(this.translateService, layout);
     // Allow Angular to unhide the plot before Plotly measures its container.
-    setTimeout(() =>
-      this.plotlyLoader.load().then(
-        (plotly) => {
-          if (this.destroyed || version !== this.renderVersion) {
-            return;
-          }
-          this.plotly = plotly;
-          plotly.react(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig).then(() => {
-            if (
-              !this.destroyed &&
-              version === this.renderVersion &&
-              this.chartElement.nativeElement.querySelector('g.legend')
-            ) {
-              PlotlyHelper.attachTooltip(figure.legendTooltipMap, this.chartElement);
+    this.pendingRender = afterNextRender(
+      () =>
+        this.plotlyLoader.load().then(
+          (plotly) => {
+            if (this.destroyed || version !== this.renderVersion) {
+              return;
             }
-          });
-        },
-        () => {}
-      )
+            this.plotly = plotly;
+            plotly.react(this.chartElement.nativeElement, data, layout, this.plotlyConfig).then(() => {
+              if (
+                !this.destroyed &&
+                version === this.renderVersion &&
+                this.chartElement.nativeElement.querySelector('g.legend')
+              ) {
+                PlotlyHelper.attachTooltip(figure.legendTooltipMap, this.chartElement);
+              }
+            });
+          },
+          () => {}
+        ),
+      { injector: this.injector }
     );
   }
 }

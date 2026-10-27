@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -20,10 +20,9 @@ import { AppHelper } from '../../lib/helper/app.helper';
   selector: 'securityaccount-import-extended-info',
   templateUrl: '../../securityaccount/view/securityaccount.import.extended.info.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, AngularSvgIconModule]
 })
-export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase implements OnInit {
+export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase implements OnChanges {
   @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos;
   private readonly IMPORT_VALUE = 'IMPORT_VALUE';
   private readonly IMPORT_ASSIGN = 'IMPORT_ASSIGN';
@@ -31,9 +30,6 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
-  }
-
-  ngOnInit(): void {
     this.addFieldProperty(DataType.DateTimeString, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE', {
       fieldsetName: this.IMPORT_VALUE
     });
@@ -163,6 +159,9 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
     });
 
     this.translateHeadersAndColumns();
-    this.createTranslatedValueStore([this.combineTemplateAndImpTransPos]);
+  }
+
+  ngOnChanges(): void {
+    this.createTranslatedValueStore(this.combineTemplateAndImpTransPos ? [this.combineTemplateAndImpTransPos] : []);
   }
 }

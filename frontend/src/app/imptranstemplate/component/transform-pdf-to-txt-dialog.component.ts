@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -31,10 +32,10 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements OnInit {
+  private transformSubscription?: Subscription;
   constructor(
     private importTransactionPlatformService: ImportTransactionPlatformService,
     public translateService: TranslateService,
@@ -65,9 +66,13 @@ export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements 
   }
 
   handleFileInput(files: FileList) {
-    this.importTransactionPlatformService.uploadAndTransformPDFToTxt(files.item(0)).subscribe((txt: string) => {
-      this.configObject.templateAsTxt.formControl.setValue(txt);
-    });
+    this.transformSubscription?.unsubscribe();
+    this.transformSubscription = this.importTransactionPlatformService
+      .uploadAndTransformPDFToTxt(files.item(0))
+      .pipe(this.untilDialogClosed())
+      .subscribe((txt: string) => {
+        this.configObject.templateAsTxt.formControl.setValue(txt);
+      });
   }
 
   submit(value: { [name: string]: any }): void {

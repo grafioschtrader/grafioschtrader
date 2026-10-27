@@ -79,6 +79,8 @@ export class CorrelationEditingSupport {
    * @param correlationLimit - Correlation limit configuration containing period requirements and rolling options
    */
   setUpValueChange(configObject: { [name: string]: FieldConfig }, correlationLimit: CorrelationLimit): void {
+    this.destroy();
+    this.actualSamplingPeriod = undefined;
     this.requiredMinPeriods = correlationLimit.requiredMinPeriods;
     this.valueChangedOnSamplingPeriod(configObject, correlationLimit);
     this.valueChangedOnDateFrom(configObject);

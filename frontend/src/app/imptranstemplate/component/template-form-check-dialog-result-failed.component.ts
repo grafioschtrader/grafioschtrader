@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -64,7 +64,6 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
 })
 export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBase implements OnInit {

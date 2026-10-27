@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -46,7 +46,6 @@ import { GTNetSecurityImpPosService } from '../../shared/gtnet/service/gtnet-sec
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase implements OnInit {
@@ -83,6 +82,9 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
   }
 
   protected override initialize(): void {
+    this.setupModeOptions();
+    this.setupValueChangeHandlers();
+    this.initializeFields();
     this.loadExistingHeads();
   }
 
@@ -96,6 +98,7 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
 
     this.gtNetSecurityImpPosService
       .createFromImportTransactionHead(this.idTransactionHead, idGtNetSecurityImpHead, headName)
+      .pipe(this.untilDialogClosed())
       .subscribe({
         next: (head: GTNetSecurityImpHead) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GTNET_IMPORT_POSITIONS_CREATED');
@@ -110,13 +113,16 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
   }
 
   private loadExistingHeads(): void {
-    this.gtNetSecurityImpHeadService.getAll().subscribe((heads: GTNetSecurityImpHead[]) => {
-      this.existingHeads = heads;
-      this.setupModeOptions();
-      this.setupHeadOptions();
-      this.setupValueChangeHandlers();
-      this.initializeFields();
-    });
+    this.gtNetSecurityImpHeadService
+      .getAll()
+      .pipe(this.untilDialogClosed())
+      .subscribe((heads: GTNetSecurityImpHead[]) => {
+        this.existingHeads = heads;
+        this.setupHeadOptions();
+        if (this.configObject.headName.formControl.value === this.suggestedHeadName) {
+          this.configObject.headName.formControl.setValue(this.suggestUniqueName(this.suggestedHeadName));
+        }
+      });
   }
 
   private setupModeOptions(): void {
@@ -139,7 +145,7 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
 
   private setupValueChangeHandlers(): void {
     // Handle mode changes to show/hide appropriate fields
-    this.configObject.mode.formControl.valueChanges.subscribe((mode: string) => {
+    this.configObject.mode.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((mode: string) => {
       this.updateFieldVisibility(mode);
     });
   }

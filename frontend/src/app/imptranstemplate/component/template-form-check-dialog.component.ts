@@ -1,4 +1,5 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -34,21 +35,20 @@ import { TemplateFormCheckDialogResultFailedComponent } from './template-form-ch
       (submitBt)="submit($event)">
     </dynamic-form>
 
-    @if (formTemplateCheck) {
-      @if (formTemplateCheck.importTransactionPos) {
-        <template-form-check-dialog-result-success [formTemplateCheck]="formTemplateCheck">
+    @if (formTemplateCheck(); as result) {
+      @if (result.importTransactionPos) {
+        <template-form-check-dialog-result-success [formTemplateCheck]="result">
         </template-form-check-dialog-result-success>
       }
 
-      @if (formTemplateCheck.failedParsedTemplateStateList) {
+      @if (result.failedParsedTemplateStateList) {
         <template-form-check-dialog-result-failed
-          [failedParsedTemplateStateList]="formTemplateCheck.failedParsedTemplateStateList">
+          [failedParsedTemplateStateList]="result.failedParsedTemplateStateList">
         </template-form-check-dialog-result-failed>
       }
     }
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     DialogModule,
     DynamicFormModule,
@@ -60,7 +60,8 @@ import { TemplateFormCheckDialogResultFailedComponent } from './template-form-ch
 export class TemplateFormCheckDialogComponent extends SimpleEditBase implements OnInit {
   @Input() importTransactionPlatform: ImportTransactionPlatform;
 
-  formTemplateCheck: FormTemplateCheck;
+  readonly formTemplateCheck = signal<FormTemplateCheck>(null);
+  private checkSubscription?: Subscription;
 
   constructor(
     private importTransactionTemplateService: ImportTransactionTemplateService,
@@ -88,14 +89,20 @@ export class TemplateFormCheckDialogComponent extends SimpleEditBase implements 
       this.importTransactionPlatform.idTransactionImportPlatform,
       this.configObject.templateAsTxt.formControl.value
     );
-    this.importTransactionTemplateService.checkFormAgainstTemplate(ftc).subscribe((formTemplateCheck) => {
-      this.formTemplateCheck = formTemplateCheck;
-    });
+    this.checkSubscription?.unsubscribe();
+    this.checkSubscription = this.importTransactionTemplateService
+      .checkFormAgainstTemplate(ftc)
+      .pipe(this.untilDialogClosed())
+      .subscribe((formTemplateCheck) => {
+        this.formTemplateCheck.set(formTemplateCheck);
+      });
   }
 
   submit(value: { [name: string]: any }): void {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE, null));
   }
 
-  protected override initialize(): void {}
+  protected override initialize(): void {
+    this.formTemplateCheck.set(null);
+  }
 }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
@@ -38,7 +38,6 @@ import { AppSettings } from '../../shared/app.settings';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class SecurityaccountImportSetCashaccountDialogComponent extends SimpleEditBase implements OnInit {
@@ -71,20 +70,24 @@ export class SecurityaccountImportSetCashaccountDialogComponent extends SimpleEd
         value.idCashaccount,
         this.combineTemplateAndImpTransPos.map((ct) => ct.importTransactionPos.idTransactionPos)
       )
+      .pipe(this.untilDialogClosed())
       .subscribe((rcImportTransactionPosList) =>
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED))
       );
   }
 
   protected initialize(): void {
-    this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount).subscribe((portfolio) => {
-      this.configObject.idCashaccount.valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-          'idSecuritycashAccount',
-          'name',
-          portfolio.cashaccountList,
-          false
-        );
-    });
+    this.portfolioService
+      .getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount)
+      .pipe(this.untilDialogClosed())
+      .subscribe((portfolio) => {
+        this.configObject.idCashaccount.valueKeyHtmlOptions =
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+            'idSecuritycashAccount',
+            'name',
+            portfolio.cashaccountList,
+            false
+          );
+      });
   }
 }

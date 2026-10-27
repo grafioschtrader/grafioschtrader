@@ -472,8 +472,6 @@ export async function cleanupImportTransactionScenario(
 ): Promise<void> {
   await test.step('delete import leftovers', async () => {
     const headers = await authHeaders(page);
-    await deleteGeneratedImportHeads(page, headers, idSecurityAccount);
-
     const matchingTransactions = (await getTenantTransactions(page, headers))
       .filter((transaction) => belongsToScenario(transaction, scenario, idSecurityAccount))
       .sort(
@@ -493,6 +491,7 @@ export async function cleanupImportTransactionScenario(
       belongsToScenario(transaction, scenario, idSecurityAccount)
     );
     expect(remaining, 'matching transactions after startup cleanup').toHaveLength(0);
+    await deleteGeneratedImportHeads(page, headers, idSecurityAccount);
   });
 }
 
@@ -688,6 +687,17 @@ async function deleteGeneratedImportHeads(
   expect(response.ok(), `loading import heads for account ${idSecurityAccount}: ${await response.text()}`).toBeTruthy();
   const heads = (await response.json()) as ApiImportTransactionHead[];
   for (const head of heads.filter((candidate) => candidate.note === 'Computer generated')) {
+    const positions = await getImportPositions(page, head.idTransactionHead);
+    if (positions.length > 0) {
+      const removedPositions = await page.request.post('/api/importtransactionpos/deletes', {
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        data: positions.map((position) => position.importTransactionPos.idTransactionPos)
+      });
+      expect(
+        removedPositions.ok(),
+        `deleting positions of generated import head ${head.idTransactionHead}: ${await removedPositions.text()}`
+      ).toBeTruthy();
+    }
     const deleteResponse = await page.request.delete(`/api/importtransactionhead/${head.idTransactionHead}`, {
       headers
     });

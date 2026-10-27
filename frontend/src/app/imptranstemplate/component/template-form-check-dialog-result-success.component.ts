@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, effect, input, untracked } from '@angular/core';
 
 import { FormTemplateCheck } from './form.template.check';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -19,26 +19,32 @@ import { AppSettings } from '../../shared/app.settings';
       <div class="row">
         <div class="col-md-6 showlabel text-end">{{ field.headerTranslated }}:</div>
         <div class="col-md-6 nopadding wrap">
-          {{ getValueByPath(formTemplateCheck.importTransactionPos, field) }}
+          {{ getValueByPath(transactionPos(), field) }}
         </div>
       </div>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule]
 })
-export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordConfigBase implements OnInit, OnChanges {
-  @Input() formTemplateCheck: FormTemplateCheck;
+export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordConfigBase {
+  readonly formTemplateCheck = input<FormTemplateCheck>();
+  readonly transactionPos = computed(() => {
+    const result = this.formTemplateCheck();
+    return result
+      ? {
+          ...result.importTransactionPos,
+          templatePurpose: result.successParsedTemplateState?.templatePurpose,
+          validSince: result.successParsedTemplateState?.validSince
+        }
+      : null;
+  });
 
   readonly TEMPLATE_PURPOSE = 'templatePurpose';
   readonly VALID_SINCE = 'validSince';
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
-  }
-
-  ngOnInit(): void {
     this.addFieldPropertyFeqH(DataType.String, this.TEMPLATE_PURPOSE);
     this.addFieldPropertyFeqH(DataType.DateString, this.VALID_SINCE);
     this.addFieldPropertyFeqH(DataType.String, 'transactionType', {
@@ -63,13 +69,9 @@ export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordC
     this.addFieldProperty(DataType.Numeric, 'cashaccountAmount', 'TOTAL_AMOUNT');
     this.addFieldProperty(DataType.Numeric, 'calcCashaccountAmount', 'CALC_TOTAL_VALUE');
     this.translateHeadersAndColumns();
-  }
-
-  ngOnChanges(): void {
-    this.formTemplateCheck.importTransactionPos[this.TEMPLATE_PURPOSE] =
-      this.formTemplateCheck.successParsedTemplateState.templatePurpose;
-    this.formTemplateCheck.importTransactionPos[this.VALID_SINCE] =
-      this.formTemplateCheck.successParsedTemplateState.validSince;
-    this.createTranslatedValueStore([this.formTemplateCheck.importTransactionPos]);
+    effect(() => {
+      const row = this.transactionPos();
+      untracked(() => this.createTranslatedValueStore(row ? [row] : []));
+    });
   }
 }
