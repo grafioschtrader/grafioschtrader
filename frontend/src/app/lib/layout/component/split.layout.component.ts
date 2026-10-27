@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ChangedViewSizeType, ViewSizeChangedService } from '../service/view.size.changed.service';
 import { RouterModule } from '@angular/router';
 
@@ -11,9 +11,6 @@ declare function Split(ids, options);
 /**
  * This component defines the global split layout of GT. There is a division into navigation, main and additional area.
  * The size of these areas can be adjusted.
- *
- * It stays Eager while routed views below its own router outlets are still Eager: an OnPush host would no longer
- * check them when an event outside them occurs.
  */
 @Component({
   selector: 'split-layout',
@@ -36,7 +33,6 @@ declare function Split(ids, options);
     <main-dialog></main-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterModule, MenubarComponent, MainTreeComponent, MainDialogComponent]
 })
 export class SplitLayoutComponent implements OnInit {

@@ -1,4 +1,3 @@
-frontend/src/app/app.component.ts
 frontend/src/app/lib/datashowbase/column-visibility-dialog.component.ts
 frontend/src/app/lib/datashowbase/configurable-table.component.ts
 frontend/src/app/lib/datashowbase/configurable-tree-table.component.ts
@@ -24,6 +23,5 @@ frontend/src/app/lib/dynamic-form/containers/dynamic-form/dynamic-form.component
 frontend/src/app/lib/dynamic-form/containers/dynamic-form/error-message.compoent.ts
 frontend/src/app/lib/fullyearcalendar/fullyearcalendar-lib.component.ts
 frontend/src/app/lib/fullyearcalendar/month-calendar/monthly-calendar.component.ts
-frontend/src/app/lib/layout/component/split.layout.component.ts
 frontend/src/grafiosch-host/app.component.ts
 frontend/src/grafiosch-host/grafiosch-tenant-edit.component.ts

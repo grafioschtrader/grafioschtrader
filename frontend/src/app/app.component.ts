@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MessageToastComponent } from './lib/message/message.toast.component';
 import { TranslateService } from '@ngx-translate/core';
@@ -130,7 +130,6 @@ const MyPreset = definePreset(Aura, {
       <router-outlet></router-outlet>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterOutlet, MessageToastComponent]
 })
 export class AppComponent implements OnDestroy {

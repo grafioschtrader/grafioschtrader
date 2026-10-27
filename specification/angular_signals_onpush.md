@@ -10,18 +10,18 @@
 
 Angular 22 makes `OnPush` the component default. The reusable library under `src/app/lib` already notifies Angular of
 the changes it makes — form configuration, controls, edit dialogs, table column state, the active panel and the menu
-bar — and a ratchet test keeps `ChangeDetectionStrategy.Eager` from spreading (§2.1). The remaining 29
-`Eager` components are listed in the allowlist; Grafioschtrader still uses zone.js while the library host runs zoneless.
+bar — and a ratchet test keeps `ChangeDetectionStrategy.Eager` from spreading (§2.1). Every application component
+runs as `OnPush`; the remaining 27 `Eager` components are library hosts and the two `grafiosch-host` components listed
+in the allowlist. Grafioschtrader still uses zone.js while the library host runs zoneless.
 
-This specification converts the existing components module by module (§4), puts the library host components on
-`OnPush` (§5), introduces `httpResource` and finally removes zone.js from
-Grafioschtrader (§6). It changes no REST contract, no backend code and no Flyway script.
+This specification puts the library host components on `OnPush` (§4), introduces `httpResource` and finally
+removes zone.js from Grafioschtrader (§5). It changes no REST contract, no backend code and no Flyway script.
 
 `OnPush`, signal APIs and zoneless operation are three separate properties. `OnPush` needs correct notification;
 signals are the preferred way to notify but `input()`, `viewChild()` and `httpResource` are not prerequisites of
 `OnPush`; zoneless operation needs correct notification everywhere, including in components that are still `Eager`.
 
-The stages in §4, §5 and §6 ship one after the other. The `httpResource` part of §6 uses the authentication interceptor in
+The stages in §4 and §5 ship one after the other. The `httpResource` part of §5 uses the authentication interceptor in
 `frontend/src/app/lib/login/service/auth.http.interceptor.ts`.
 
 ## 2. What the change lands on
@@ -31,12 +31,12 @@ Measured against the tree at the code baseline.
 | Property                                                | Value                                                                                                                                                                                                                                          |
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@Component` files under `frontend/src`                 | 315                                                                                                                                                                                                                                            |
-| explicitly `ChangeDetectionStrategy.Eager`              | 29, all listed in `frontend/src/eager-allowlist.txt`                                                                                                                                                                                          |
+| explicitly `ChangeDetectionStrategy.Eager`              | 27, all listed in `frontend/src/eager-allowlist.txt`                                                                                                                                                                                          |
 | explicitly `ChangeDetectionStrategy.OnPush`             | 1 (`ChartGeneralPurposeComponent`)                                                                                                                                                                                                             |
-| no `changeDetection` property, i.e. `OnPush` by default | 285 (§2.3)                                                                                                                                                                                                                                     |
+| no `changeDetection` property, i.e. `OnPush` by default | 287 (§2.3)                                                                                                                                                                                                                                     |
 | `markForCheck` / `detectChanges` calls | 8 / 0                                                                                                                                                                                                                                          |
 | `ngDoCheck` in `src/app/lib`                            | 2 (`ConfigurableTableComponent`, `FullyearcalendarLibComponent`)                                                                                                                                                                               |
-| components injecting `NgZone`                           | 8 (§6.2)                                                                                                                                                                                                                                       |
+| components injecting `NgZone`                           | 8 (§5.2)                                                                                                                                                                                                                                       |
 | `frontend/tsconfig.json`                                | `strictTemplates: true` with `interpolatedSignalNotInvoked`, `uninvokedFunctionInTextInterpolation` and `uninvokedFunctionInEventBinding` as errors and `unusedLetDeclaration` suppressed; `strict: false`, `strictInjectionParameters: false` |
 
 Grafioschtrader forces zone change detection through `provideZoneChangeDetection()` in `src/app/app.config.ts` and
@@ -77,8 +77,8 @@ Grafioschtrader forces zone change detection through `provideZoneChangeDetection
 
 ### 2.2 Gaps the stages close
 
-- 29 components declare `Eager`: `AppComponent`, 26 shared library components and the two `grafiosch-host`
-  components. Their host and input notifications are handled in §4 and §5.
+- 27 components declare `Eager`: 25 shared library components and the two `grafiosch-host` components. Their host
+  and input notifications are handled in §4.
 - Remaining function inputs bound with `.bind(this)` create a new function on every check. Table hosts other
   than the converted ones do not bind `fieldsRevision`.
 - `ConfigurableTableComponent.ngDoCheck` recomputes the frozen-column slots for tables that do not bind
@@ -130,6 +130,7 @@ Grafioschtrader forces zone change detection through `provideZoneChangeDetection
 | `SecurityaccountSummaryComponent`, `SecurityaccountSummariesComponent`, `SecurityaccountTabMenuComponent`, `SecurityaccountEmptyComponent`, `TenantSummariesSecurityaccountComponent`, `TenantSummariesAssetclassComponent`, `PortfolioCashaccountSummaryComponent`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | The position reports on `SecurityaccountBaseTable` share one template over plain fields; `getDataToView()` and `initTableTextTranslation()` mark the view after every load, and the transaction command, which the menu bar may run, marks it as well. The asset class report marks its strategy options and translated summary labels, the portfolio cash account summary its load and the dialogs opened from the menu bar. `BaseTabMenuComponent` marks its view after each navigation, so the securities account tab menu follows the active route. Covered by `e2e/120-bank-account-transactions.spec.ts`, `e2e/122-cash-security-transactions.spec.ts`, `e2e/123-security-dividend.spec.ts`, `e2e/124-account-dialog-notification.spec.ts`, `e2e/130-import-transactions.spec.ts` (drop zone of the account report), `e2e/145-security-transfer.spec.ts`, `e2e/246-tenant-notification.spec.ts` and `e2e/247-tenant-chart-notification.spec.ts`. |
 | `LoginComponent`, `RegisterComponent`, `RegistrationTokenVerifyComponent`, `ApplicationInfoComponent`, `NicknameLangEditComponent`, `PasswordEditComponent`, `LimitTransactionRequestDynamicDialogComponent`, `LogoutAdminSelfReleaseDynamicDialogComponent`, `LogoutReleaseRequestDynamicDialogComponent`, `MailSendDynamicDialogComponent`, `UploadFileDialogComponent`, `GlobalSettingsTableComponent`, `GlobalSettingsEditComponent`, `ClientCreateDynamicDialogComponent`, `ShareReadAccessDynamicDialogComponent`, `ManagedClientsTableDialogComponent`, `SharedViewersTableDialogComponent`, `SendRecvTreetableComponent`, `SendRecvForwardTabMenuComponent`, `MailForwardSettingTableEditComponent`, `StepsComponent`, `StepComponent`, `UDFGeneralEditComponent`, `RequestForYouTableComponent` | The library feature components: login, registration and the dialogs opened from them already held their state in signals; lists, selections, menus and dialog visibility of the remaining tables are signals, menus are published translated. The `detectChanges()` workarounds of the upload dialog, the mail tree and the change-request table are gone: the mail tree publishes its nodes directly, and the change-request table sets the inputs of its dynamically created edit dialog with `ComponentRef.setInput`, limited to the inputs the component type declares (`reflectComponentType`). A wizard step holds `active` as a signal set by its parent. Covered by the library suite in the zoneless host (`e2e/lib/003` to `070`) and by `e2e/132-import-transactions-csv.spec.ts`, `e2e/185-propose-data-change.spec.ts` and `e2e/191-entity-limit-notification.spec.ts`.                                                                   |
 | `MenubarComponent`, `MainTreeComponent`, `MainDialogComponent`, `MessageToastComponent`, `SharedTabMenuComponent` | `MainDialogService.visibleDialogs` and the rendered tree and context menu of `MainTreeComponent` are signals. The collapse entry republishes the top menu after changing its icon, which a gutter drag does without an event inside the menu bar. `GlobalparameterService.clearValues()` resets every cached session value, so a login after a logout in the same tab renders from its own features. Covered by `e2e/lib/044-feature-change-relogin.spec.ts` and `e2e/lib/046-collapse-tree-icon.spec.ts`. |
+| `AppComponent`, `SplitLayoutComponent` | No template state of their own: the root renders the toast outlet and the router outlet, the split layout the menu bar, main tree, dialog host and two router outlets, all of them `OnPush`. Covered by the GT and library specs of the shell. |
 | `ChartGeneralPurposeComponent` (explicit)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Renders through Plotly into a static element and binds nothing but the active border.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `WatchlistPerformanceComponent`, `WatchlistPriceFeedComponent`, `WatchlistUdfComponent`, `WatchlistDividendSplitFeedComponent`, `WatchlistIndicatorComponent`, `WatchlistTabMenuComponent`, `WatchlistEditDynamicComponent`, `WatchlistAddInstrumentDialogComponent`, `WatchlistAddInstrumentTableComponent`, `WatchlistAddEditPriceProblemInstrumentComponent`, `WatchlistFilterSortSettingsDialogComponent`, `WatchlistIndicatorColumnsDialogComponent`, `WatchlistIndicatorColumnEditComponent`, `WatchlistPriceFeedExpandedComponent`, `SecuritycurrencyExtendedInfoComponent`, `SecuritycurrencyUdfComponent`, `WatchlistDividendTableComponent`, `WatchlistSecuritysplitTableComponent` | `WatchlistTable` owns signal state for reports, selection, menus and dialog visibility, derives the combined instrument list from its report and replaces outstanding reads by kind. Rows and instruments are copied before publication; stored filters are applied after rendering. Table callbacks are stable and bind the fields revision. Instrument details rebuild from signal inputs; derived links, dividends, splits and indicator rows notify through signals. The shared `AlarmSetupService.visibleDialog` is a signal-backed property. Covered by `e2e/248-watchlist-notification.spec.ts`, `e2e/230-watchlist-indicators.spec.ts`, `e2e/057-instrument-statistics-notification.spec.ts` and `e2e/155-udf-data.spec.ts`. |
 | `AlgoTopDataViewComponent`, `AlgoAssetclassEditComponent`, `AlgoSecurityEditComponent`, `AlgoStrategyEditComponent`, `AlgoAssetclassAddInstrumentDialogComponent`, `AlgoAssetclassAddInstrumentTableComponent`, `AlgoCreateFromWatchlistDynamicDialogComponent`, `AlgoCreateFromPortfolioDynamicDialogComponent`, `AlgoRuleStrategyCreateDynamicDialogComponent`, `AlgoSimulationCreateDynamicDialogComponent`, `AlgoSimulationRunStartDynamicDialogComponent`, `AlgoSimulationRunComponent`, `AlgoSimulationRunSettingsComponent`, `SimulationRunTabMenuComponent`, `AlgoStandaloneAlertComponent`, `AlgoHierarchyAlertOverviewComponent`, `AlgoAlertDiagnosticsDialogComponent`, `StrategyDetailComponent` | Hierarchies, menus, dialogs, alerts and replay results use signals; tree nodes and run summaries are derived. Row edits publish copies while preserving tree expansion and selection. Superseded hierarchy, schema, detail and replay reads are cancelled; subscriptions follow component or dialog-session lifetime. Render-bound form setup uses `afterNextRender`, rebuilt fields mark their host and tree callbacks bind stable members and the fields revision. Covered by `e2e/195-simulation-opening.spec.ts`, `e2e/200-alert-diagnostics.spec.ts`, `e2e/201-algo-notification.spec.ts`, `e2e/215-average-down.spec.ts` and `e2e/220-historical-replay.spec.ts`. |
@@ -145,37 +146,15 @@ without a check.
 | Library strategy           | The large hosts — dynamic form, configurable/editable/tree table, menubar, `ActivePanelService`, edit base classes — are notification-correct **in place**. `TableCrudSupportMenu<T>` holds its state in signals, which changes the type of that state for every subclass.                                                                                                                                                               |
 | `FieldConfig` notification | Automatic and permanent: a library convention, not a migration aid. Object identity is unchanged, so references held anywhere notify, and the existing assignment sites stay as they are.                                                                                                                                                                                                                                                |
 | Notification granularity   | One `revision` signal per form. A change re-renders every view of that form; a per-field split is not part of this work.                                                                                                                                                                                                                                                                                                                 |
-| Signal inputs              | New application components use `input()`, `output()`, `viewChild()` where they help. Converting decorator inputs is never a prerequisite of `OnPush`. Library base-class inputs (`visibleDialog`, `closeDialog`, `form`) stay decorators until §5.                                                                                                                                                                                       |
+| Signal inputs              | New application components use `input()`, `output()`, `viewChild()` where they help. Converting decorator inputs is never a prerequisite of `OnPush`. Library base-class inputs (`visibleDialog`, `closeDialog`, `form`) stay decorators until §4.                                                                                                                                                                                       |
 | Strict templates           | `strictTemplates` stays on with the three extended diagnostics as errors, so an uninvoked signal in an interpolation fails the build. A signal used as an `@if` condition without call is not diagnosed by itself; the member accesses inside such a block fail type checking instead, and the browser checks of each converted component cover the rest. TypeScript `strict` and `strictInjectionParameters` are not part of this work. |
 | Signal Forms               | Not used for `dynamic-form`: its field set is a runtime value built from `ClassDescriptorInputAndShow`, while a Signal Forms schema is static. A new form whose fields are known at compile time may use Signal Forms.                                                                                                                                                                                                                   |
-| `httpResource`             | Only for idempotent GET reads driven by signals, with the existing error and logout semantics (§6.1). CUD stays on `AuthServiceWithLogout.updateEntity` and the existing observable methods.                                                                                                                                                                                                                                             |
-| Zoneless                   | `grafiosch-host` runs without zone.js and exposes missing library notifications; GT drops zone.js last (§6.2).                                                                                                                                                                                                                                                                                                                           |
+| `httpResource`             | Only for idempotent GET reads driven by signals, with the existing error and logout semantics (§5.1). CUD stays on `AuthServiceWithLogout.updateEntity` and the existing observable methods.                                                                                                                                                                                                                                             |
+| Zoneless                   | `grafiosch-host` runs without zone.js and exposes missing library notifications; GT drops zone.js last (§5.2).                                                                                                                                                                                                                                                                                                                           |
 | `@Service()`               | Not adopted. Library services stay listed per host; the existing `providedIn: 'root'` services stay as they are and are not added to a provider list.                                                                                                                                                                                                                                                                                    |
 | Guard                      | The ratchet test and its shrinking allowlist (§2.1).                                                                                                                                                                                                                                                                                                                                                                                     |
 
-## 4. Stage 1 — application components, module by module
-
-`AppComponent` is the remaining application component on the allowlist. Its router, session and bootstrap state
-must notify independently of zone.js before it drops `Eager`; remove its line from `eager-allowlist.txt` in the same
-change. The library and host components follow in §5.
-
-For each component:
-
-- template state written outside a template event becomes a `signal`; derived state becomes a `computed`, without a
-  second mutable copy; signals change only by new references;
-- `subscribe` calls are tied to their real lifetime — `untilDialogClosed()` for a dialog session,
-  `takeUntilDestroyed(this.destroyRef)` for the component, an explicit `Subscription` replaced on rebuild where a
-  form or configuration is rebuilt;
-- every function input binds a stable member: `valueGetter`, `customSorter`, or a `readonly` arrow-function member
-  of the component passing it; table hosts bind `[fieldsRevision]="fieldsRevision()"`;
-- `setTimeout` survives only for a real delay or debounce; view synchronisation uses `afterNextRender`;
-- `input()` replaces a decorator input only where it removes code — typically the `fieldsInitialized` ordering flag
-  documented in `frontend/CLAUDE.md`, which becomes an `effect` on the input signal.
-
-A component that cannot be converted without a library change stays on the allowlist; the library change is made
-first.
-
-## 5. Stage 2 — library hosts on `OnPush`
+## 4. Stage 1 — library hosts on `OnPush`
 
 The library host components drop `Eager` once their consumers no longer depend on it:
 
@@ -187,10 +166,8 @@ The library host components drop `Eager` once their consumers no longer depend o
   reassigning its `data` input and replaces its `setTimeout` edit-key writes;
 - `FullyearcalendarLibComponent` and `MonthlyCalendarComponent` — `FullyearcalendarLibComponent.ngDoCheck` is removed in favour of input changes; its global, stock-exchange and
   missing-quote calendar parents already publish new `yearCalendarData` objects and date arrays;
-- `SplitLayoutComponent`, once the views routed into its two router outlets are off the allowlist — an `OnPush`
-  host no longer checks an `Eager` routed view after an event outside it;
 - `SimpleEditBase.visibleDialog` / `closeDialog` / `form` become `input()` / `output()` / `viewChild()`; subclasses
-  reading `this.visibleDialog` change to `this.visibleDialog()`;
+  reading `this.visibleDialog` change to `this.visibleDialog()`.
 
 `GrafioschAppComponent` and `GrafioschTenantEditComponent` in `src/grafiosch-host` drop `Eager` with the library
 components they host; their asynchronous state must notify in the zoneless host.
@@ -199,9 +176,9 @@ Acceptance: every library component is off the allowlist; `e2e/240-ai-providers.
 `e2e/lib/035-task-monitor-notification.spec.ts` pass; the Playwright specs for transaction edit, watchlist, history
 quote, correlation and the trading calendar pass individually.
 
-## 6. Stage 3 — `httpResource` and zoneless GT
+## 5. Stage 2 — `httpResource` and zoneless GT
 
-### 6.1 `httpResource`
+### 5.1 `httpResource`
 
 Use `httpResource` where all of these hold: the request is an idempotent GET; its URL or parameters derive from
 signals; the view owns loading, error and empty state; a newer parameter value supersedes an outstanding request.
@@ -223,7 +200,7 @@ First candidates are `CorrelationSetService.getCalculationByCorrelationSet` (a G
 Acceptance: token expiry and both logout error classes log out; a validation error shows one toast; changing a
 parameter during a request shows only the newer result and no error; a retry after a failure reports a new failure.
 
-### 6.2 Zoneless GT
+### 5.2 Zoneless GT
 
 Preconditions: `eager-allowlist.txt` is empty, the library browser specs pass on the zoneless `grafiosch-host`, and every visible
 asynchronous update in GT is a signal write, an input change, an `AsyncPipe` emission or a `markForCheck`.
@@ -251,9 +228,9 @@ Acceptance: registration, login, forced password change and the NLS bootstrap fa
 menus; dynamic dialogs; nested editable tables; file upload with progress; Plotly charts; the Monaco editor; the
 security lookup dialogs — all update; no `zone.js` appears in either production build.
 
-## 7. Testing and delivery
+## 6. Testing and delivery
 
-- Vitest tests stay pure functions without TestBed or DOM. Request builders and the error-reporting decision of §6.1
+- Vitest tests stay pure functions without TestBed or DOM. Request builders and the error-reporting decision of §5.1
   live in pure functions with their own specs. They do not prove rendering or subscription integration.
 - Rendering is verified with the Playwright specs of the converted module, run one at a time against the running
   `e2e` backend as described in `.agents/skills/e2e-test/SKILL.md`, and by the browser checks named in each
@@ -262,10 +239,10 @@ security lookup dialogs — all update; no `zone.js` appears in either productio
   every change to it. The full `e2eTest.cmd` / `e2eTest.sh` roundtrip runs only on explicit request.
 - Each stage passes `npm test`, `npm run buildprod` and the `grafiosch-host` build.
 
-## 8. Durable rules and retirement
+## 7. Durable rules and retirement
 
-`frontend/CLAUDE.md` → "Change detection" holds the rules for component authors. Stage 2 rewrites its examples and
+`frontend/CLAUDE.md` → "Change detection" holds the rules for component authors. Stage 1 rewrites its examples and
 those in "Dialog Base Class Hierarchy", "Using ConfigurableTableComponent", "Using EditableTableComponent" and
-"Dialog Components with Tables" for the signal inputs of the base classes; §6.2 removes the remaining GT zone.js
+"Dialog Components with Tables" for the signal inputs of the base classes; §5.2 removes the remaining GT zone.js
 guidance. The work introduces no user-visible workflow, so the gt-user-manual is not affected. Delete
-this specification when §6.2 has shipped.
+this specification when §5.2 has shipped.
