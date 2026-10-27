@@ -1,5 +1,6 @@
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { Directive, Input, OnInit, ViewChild } from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -46,13 +47,18 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   configObject: { [nameKey: string]: FieldConfig };
   formConfig: FormConfig;
   private monitor: boolean;
+  private readonly injector = inject(Injector);
+  /** Value subscription of the current opening; a new opening replaces it, so openings do not accumulate. */
+  private formValueSubscription: Subscription;
 
   protected constructor(
     protected multiplyAddClose: boolean,
     protected gps: GlobalparameterService,
     protected multipleRequestToOneService: MultipleRequestToOneService,
     public translateService: TranslateService
-  ) {}
+  ) {
+    inject(DestroyRef).onDestroy(() => this.formValueSubscription?.unsubscribe());
+  }
 
   abstract childClearList(): void;
 
@@ -116,7 +122,8 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   }
 
   onShow(event) {
-    setTimeout(() => this.initialize());
+    // The form controls of a dialog that was just made visible exist after the next render.
+    afterNextRender(() => this.initialize(), { injector: this.injector });
   }
 
   submit(value: { [name: string]: any }): void {
@@ -176,7 +183,8 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   }
 
   private valueChangedOnForm(): void {
-    this.dynamicFormComponent.form.valueChanges.subscribe((security: Security) => {
+    this.formValueSubscription?.unsubscribe();
+    this.formValueSubscription = this.dynamicFormComponent.form.valueChanges.subscribe((security: Security) => {
       if (!this.monitor) {
         this.monitor = true;
         this.dynamicFormComponent.controls

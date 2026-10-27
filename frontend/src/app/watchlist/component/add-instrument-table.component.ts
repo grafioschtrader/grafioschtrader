@@ -1,4 +1,5 @@
-import { Directive, Injector, Input } from '@angular/core';
+import { computed, DestroyRef, Directive, inject, Injector, Input, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
 import { TranslateService } from '@ngx-translate/core';
@@ -24,8 +25,15 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
   /** Tenant limits for controlling maximum number of instruments that can be added */
   @Input() tenantLimits: TenantLimit[];
 
-  /** Currently selected securities and currency pairs for addition */
-  selectedSecuritycurrencies: (Security | Currencypair)[] = [];
+  /** Columns as a new reference after every change, so the header and body templates of the OnPush p-table follow. */
+  readonly tableFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields];
+  });
+
+  private readonly selectedSecuritycurrenciesSignal = signal<(Security | Currencypair)[]>([]);
+  /** Search of the current criteria; a newer search replaces one that is still pending. */
+  private searchSubscription: Subscription;
 
   /** ID of the target entity to add instruments to */
   id: number;
@@ -55,6 +63,16 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
   ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.multiSortMeta.push({ field: 'name', order: 1 });
+    inject(DestroyRef).onDestroy(() => this.searchSubscription?.unsubscribe());
+  }
+
+  /** Currently selected securities and currency pairs for addition; replaced, never changed in place. */
+  get selectedSecuritycurrencies(): (Security | Currencypair)[] {
+    return this.selectedSecuritycurrenciesSignal();
+  }
+
+  set selectedSecuritycurrencies(selected: (Security | Currencypair)[]) {
+    this.selectedSecuritycurrenciesSignal.set(selected ?? []);
   }
 
   /** Clears the search results and selected instruments lists */
@@ -71,7 +89,8 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
   loadData(id: number, securitycurrencySearch: SecuritycurrencySearch): void {
     this.id = id;
     this.securitycurrencySearch = securitycurrencySearch;
-    this.addSearchToListService
+    this.searchSubscription?.unsubscribe();
+    this.searchSubscription = this.addSearchToListService
       .searchByCriteria(id, securitycurrencySearch)
       .subscribe((securitycurrencyLists: SecuritycurrencyLists) => {
         this.createTranslatedValueStoreAndFilterField(securitycurrencyLists.securityList);

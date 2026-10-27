@@ -387,7 +387,7 @@ safe after either a completed or partially failed run.
 With the backend and frontend from an earlier run still active, execute only this spec with
 `npx playwright test e2e/075-create-security-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Correlation matrix and notification (080-*, 081-*)
+## Correlation matrix and notification (080-_, 081-_)
 
 `080-correlation-matrix.spec.ts` reuses the named `E2E Corr Matrix` and `E2E Corr Limit` sets of `alledit`.
 It creates missing sets/instrument associations through the forms, renders a six-instrument matrix and a rolling
@@ -400,8 +400,8 @@ browser-local set/limit/calculation/save/rolling responses. It supersedes a dela
 set, changes selection during a pending save, reopens the editor with rebuilt rolling options, and switches
 between chart modes, pending results, missing closes and no data. No correlation set, instrument, quote or
 transaction is persisted, so it needs only the existing fixture login and no database cleanup. The search case
-checks that the existing search dialog can still add instruments below the converted matrix host. The search dialog
-and search table remain Eager until their shared bases gain request/control lifetimes and immutable result state.
+checks that the OnPush search dialog shows a delayed search result below the converted matrix host, adds the selected
+instrument and updates its tenant-limit line from two to three instruments.
 
 Run each file separately with `npx playwright test e2e/080-correlation-matrix.spec.ts --project=grafioschtrader-e2e --no-deps`
 or `npx playwright test e2e/081-correlation-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.

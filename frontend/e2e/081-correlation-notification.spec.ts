@@ -199,6 +199,9 @@ test('keeps the existing search dialog usable below the OnPush matrix host', asy
   await menu.getByText(/Bestehendes.*Instrument|Add existing instrument/i).click();
   const dialog = page.locator('correlation-add-instrument .p-dialog');
   await expect(dialog.locator('select#idStockexchange option')).not.toHaveCount(0);
+  // The tenant limit line shows the instruments already in the set and follows an addition.
+  const limitLine = dialog.locator('correlation-set-add-instrument-table h5').first();
+  await expect(limitLine).toHaveText(/^\s*2\s/);
   await dialog.locator('input#name').fill('Notification');
   await dialog.locator('button[type="submit"]').click();
   await expect.poll(() => requested).toBe(true);
@@ -207,6 +210,7 @@ test('keeps the existing search dialog usable below the OnPush matrix host', asy
   await dialog.locator('tbody p-tablecheckbox').first().click();
   await dialog.getByRole('button', { name: /^(Add|Hinzuf.gen)$/ }).click();
   await expect(matrix(page).locator('tbody tr')).toHaveCount(3);
+  await expect(limitLine).toHaveText(/^\s*3\s/);
   await dialog.getByRole('button', { name: /^(Beenden|Close)$/ }).click();
   await expect(page.locator('correlation-add-instrument')).toHaveCount(0);
 });

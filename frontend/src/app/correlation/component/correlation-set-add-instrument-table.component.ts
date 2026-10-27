@@ -1,6 +1,6 @@
 import { AddInstrumentTable } from '../../watchlist/component/add-instrument-table.component';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -22,7 +22,6 @@ import { ButtonModule } from '@openng/optimus-ui/button';
   selector: 'correlation-set-add-instrument-table',
   templateUrl: '../../watchlist/view/add.instrument.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
 })
 export class CorrelationSetAddInstrumentTableComponent extends AddInstrumentTable<CorrelationSet> {

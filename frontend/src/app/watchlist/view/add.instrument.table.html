@@ -4,7 +4,7 @@
   }
   <p-table
     [(selection)]="selectedSecuritycurrencies"
-    [columns]="fields"
+    [columns]="tableFields()"
     [multiSortMeta]="multiSortMeta"
     [paginator]="true"
     [rowsPerPageOptions]="[10,20,30]"
@@ -14,12 +14,12 @@
     sortMode="multiple"
     stripedRows
     showGridlines>
-    <ng-template #header let-fields>
+    <ng-template #header>
       <tr>
         <th style="width: 2.25em">
           <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
         </th>
-        @for (field of fields; track field.field) {
+        @for (field of tableFields(); track field.field) {
         <th
           [pSortableColumn]="field.field"
           [style.max-width.px]="field.width"
@@ -30,12 +30,12 @@
         }
       </tr>
     </ng-template>
-    <ng-template #body let-columns="fields" let-el>
+    <ng-template #body let-el>
       <tr [pSelectableRow]="el">
         <td>
           <p-tableCheckbox [value]="el"></p-tableCheckbox>
         </td>
-        @for (field of fields; track field.field) { @if (field.visible) {
+        @for (field of tableFields(); track field.field) { @if (field.visible) {
         <td
           [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                   || field.dataType===DataType.NumericInteger)? 'text-end': ''"

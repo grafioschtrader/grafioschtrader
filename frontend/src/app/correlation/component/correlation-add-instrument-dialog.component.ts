@@ -1,5 +1,5 @@
 import { SecuritycurrencySearchBase } from '../../securitycurrency/component/securitycurrency.search.base';
-import { Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { TenantLimit } from '../../shared/types/tenant.limit';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -39,7 +39,6 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
     </p-dialog>
   `,
   imports: [TranslateModule, DialogModule, DynamicFormComponent, CorrelationSetAddInstrumentTableComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
