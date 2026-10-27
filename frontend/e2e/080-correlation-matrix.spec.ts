@@ -32,6 +32,20 @@ const ABB_ISIN = 'CH0012221716';
 // Playwright viewport is too short to expose the result-table action buttons.
 test.use({ viewport: { width: 1440, height: 1200 } });
 
+/** Removes only this test's set, including partial instrument associations left by a failed run. */
+async function deleteExistingSet(page: Page, name: string): Promise<void> {
+  const token = await page.evaluate(() => sessionStorage.getItem('jwt'));
+  expect(token, 'JWT after login').toBeTruthy();
+  const headers = { 'x-auth-token': token!, Accept: 'application/json' };
+  const response = await page.request.get('/api/correlationset/tenant', { headers });
+  expect(response.ok(), `loading correlation sets: ${await response.text()}`).toBeTruthy();
+  const sets: { idCorrelationSet: number; name: string }[] = await response.json();
+  for (const set of sets.filter((set) => set.name === name)) {
+    const deleted = await page.request.delete(`/api/correlationset/${set.idCorrelationSet}`, { headers });
+    expect(deleted.ok(), `deleting ${name}: ${await deleted.text()}`).toBeTruthy();
+  }
+}
+
 /** Opens the correlation view via the left-tree root node and waits for it to render. */
 async function gotoCorrelationView(page: Page): Promise<void> {
   const root = page
@@ -186,10 +200,11 @@ test.describe.serial('Correlation matrix', () => {
   test('builds a 6-instrument matrix and generates a rolling-correlation chart', async ({ page }) => {
     test.setTimeout(180_000);
     await loginAsFixtureUser(page, LOGIN_NICKNAME);
+    await deleteExistingSet(page, SET_NAME);
     await gotoCorrelationView(page);
     await ensureSetSelected(page, SET_NAME);
 
-    // Idempotent: only populate when the set is (near) empty. Six instruments = target.
+    // Populate the freshly recreated set with six instruments.
     if ((await matrixRowCount(page)) < 6) {
       // 1) by ISIN — Nestlé
       await addBySearch(
@@ -210,7 +225,8 @@ test.describe.serial('Correlation matrix', () => {
           const name = d.locator('#name');
           await name.click();
           await name.fill('Novartis');
-          await name.dispatchEvent('input');
+          await expect(name).toHaveValue('Novartis');
+          await expect(d.locator('#isin')).toHaveValue('');
         },
         1
       );
@@ -234,7 +250,8 @@ test.describe.serial('Correlation matrix', () => {
           const name = d.locator('#name');
           await name.click();
           await name.fill('Roche');
-          await name.dispatchEvent('input');
+          await expect(name).toHaveValue('Roche');
+          await expect(d.locator('#isin')).toHaveValue('');
         },
         1
       );
@@ -284,10 +301,11 @@ test.describe.serial('Correlation matrix', () => {
   test('enforces the max-instruments upper limit', async ({ page }) => {
     test.setTimeout(240_000);
     await loginAsFixtureUser(page, LOGIN_NICKNAME);
+    await deleteExistingSet(page, SET_NAME_LIMIT);
     await gotoCorrelationView(page);
     await ensureSetSelected(page, SET_NAME_LIMIT);
 
-    // Build up to the limit (idempotent: skip if a previous run already filled it).
+    // Fill the freshly recreated set up to the limit.
     if ((await matrixRowCount(page)) < MAX_INSTRUMENTS) {
       const addDialog = await openAddInstrumentDialog(page);
 

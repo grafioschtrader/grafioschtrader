@@ -457,11 +457,12 @@ With the backend and frontend from an earlier run still active, execute only thi
 
 ## Correlation matrix and notification (080-_, 081-_)
 
-`080-correlation-matrix.spec.ts` reuses the named `E2E Corr Matrix` and `E2E Corr Limit` sets of `alledit`.
-It creates missing sets/instrument associations through the forms, renders a six-instrument matrix and a rolling
+`080-correlation-matrix.spec.ts` deletes its own named `E2E Corr Matrix` / `E2E Corr Limit` set through REST at the
+start of each test, then recreates its data through the forms. It renders a six-instrument matrix and a rolling
 Plotly chart, and checks the twenty-instrument limit. It needs the existing fixture login, CH/US instruments and
-their overlapping historical prices; it waits for the tenant list before checking for an existing name, so reruns
-reuse its existing sets rather than accumulating new ones.
+their overlapping historical prices. Removing only its own sets also recovers a partially populated matrix after a
+failed search. The search dialog leaves initial focus to `SecuritycurrencySearchBase`, avoiding Optimus UI's delayed
+focus stealing a name entry into the ISIN field; the test checks the entered name and the empty ISIN.
 
 `081-correlation-notification.spec.ts` covers the OnPush master, matrix table, set editor and chart with fresh
 browser-local set/limit/calculation/save/rolling responses. It supersedes a delayed calculation, clears an empty
