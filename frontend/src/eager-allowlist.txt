@@ -21,7 +21,5 @@ frontend/src/app/lib/dynamic-form/components/form-input/tri-state-checkbox.ts
 frontend/src/app/lib/dynamic-form/containers/dynamic-form/dynamic-form-layout.component.ts
 frontend/src/app/lib/dynamic-form/containers/dynamic-form/dynamic-form.component.ts
 frontend/src/app/lib/dynamic-form/containers/dynamic-form/error-message.compoent.ts
-frontend/src/app/lib/fullyearcalendar/fullyearcalendar-lib.component.ts
-frontend/src/app/lib/fullyearcalendar/month-calendar/monthly-calendar.component.ts
 frontend/src/grafiosch-host/app.component.ts
 frontend/src/grafiosch-host/grafiosch-tenant-edit.component.ts

@@ -1,23 +1,23 @@
-import { Component, EventEmitter, Input, OnDestroy, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Month } from '../model/month';
 import { Day } from '../model/day';
+import { LocaleSettings } from '../Interface/locale.settings';
 
 @Component({
   selector: 'month-calendar',
   template: `
-    @if (month) {
+    @if (month(); as month) {
       <div class="calcontainer">
         <div style="text-align: center;">
-          <b>{{ locale['monthNames'][month.index] }}</b>
+          <b>{{ locale().monthNames[month.index] }}</b>
         </div>
         <table style="margin: 0px auto;">
           <thead>
             <tr>
-              @for (wd of locale.dayNamesMin; track wd) {
+              @for (wd of locale().dayNamesMin; track wd) {
                 <th>
-                  <div
-                    [className]="disabledDaysOfWeek && disabledDaysOfWeek.indexOf(wd) >= 0 ? 'disabledHeaderDay' : ''">
+                  <div [className]="disabledDaysOfWeek()?.includes(wd) ? 'disabledHeaderDay' : ''">
                     <b>{{ wd }}</b>
                   </div>
                 </th>
@@ -38,7 +38,7 @@ import { Day } from '../model/day';
                           class="day caltooltip"
                           [ngStyle]="
                             day.ranges
-                              ? underline
+                              ? underline()
                                 ? {
                                     'border-bottom': '5px solid ' + day.ranges[day.ranges.length - 1].backgroundColor,
                                     'margin-bottom': '-5px'
@@ -77,21 +77,16 @@ import { Day } from '../model/day';
   `,
   styleUrls: ['./monthly-calendar.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule]
 })
-export class MonthlyCalendarComponent implements OnDestroy {
-  @Input() underline = false;
-  @Input() locale: any;
-  @Input() month: Month;
-  @Input() disabledDaysOfWeek: string[];
+export class MonthlyCalendarComponent {
+  readonly underline = input(false);
+  readonly locale = input<LocaleSettings>();
+  /** Month of the parent's rebuilt year; a calendar change always arrives as a new object. */
+  readonly month = input<Month>();
+  readonly disabledDaysOfWeek = input<string[]>();
 
-  @Output()
-  dayClicked: EventEmitter<Date> = new EventEmitter<Date>();
-
-  ngOnDestroy(): void {
-    this.dayClicked.unsubscribe();
-  }
+  readonly dayClicked = output<Date>();
 
   dayClick(day: Day): void {
     if (day.ranges) {

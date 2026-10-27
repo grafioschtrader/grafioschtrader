@@ -1,4 +1,4 @@
-import { Component, DoCheck, EventEmitter, Input, OnDestroy, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 
 import { Year } from './model/year';
 import { Range } from './model/range';
@@ -11,16 +11,16 @@ import { MonthlyCalendarComponent } from './month-calendar/monthly-calendar.comp
 @Component({
   selector: 'ng-fullyearcalendar-lib',
   template: `
-    @if (year) {
+    @if (year(); as year) {
       <div class="flex-container">
         @for (month of year.months; track month) {
           <div class="grid-item">
             <month-calendar
-              [underline]="underline"
+              [underline]="underline()"
               (dayClicked)="dayClicked($event)"
               [month]="month"
-              [disabledDaysOfWeek]="disabledDaysOfWeek"
-              [locale]="locale"></month-calendar>
+              [disabledDaysOfWeek]="disabledDaysOfWeek()"
+              [locale]="locale()"></month-calendar>
           </div>
         }
       </div>
@@ -28,12 +28,11 @@ import { MonthlyCalendarComponent } from './month-calendar/monthly-calendar.comp
   `,
   styleUrls: ['./fullyearcalendar-lib.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MonthlyCalendarComponent]
 })
-export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
-  @Input() underline = false;
-  @Input() locale: LocaleSettings = {
+export class FullyearcalendarLibComponent {
+  readonly underline = input(false);
+  readonly locale = input<LocaleSettings>({
     dayNamesMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
     monthNames: [
       'January',
@@ -49,42 +48,22 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
       'November',
       'December'
     ]
-  };
-  _yearCalendarData: YearCalendarData;
-  @Output() daySelect: EventEmitter<Date> = new EventEmitter<Date>();
-  public year: Year;
-  disabledDaysOfWeek: string[];
-  private initial_data: string;
-  private colorBgToFgColor: Map<string, string> = new Map();
-
-  constructor() {}
-
-  @Input() set yearCalendarData(val: YearCalendarData) {
-    if (val.disableWeekDays) {
-      this.disabledDaysOfWeek = [];
-      val.disableWeekDays.forEach((dayOfWeek: DayOfWeek) =>
-        this.disabledDaysOfWeek.push(this.locale.dayNamesMin[Year.getDayNumberByDayOfWeek(dayOfWeek)])
-      );
-    }
-    this._yearCalendarData = val;
-
-    this.initValue(val);
-  }
-
-  ngOnDestroy(): void {
-    this.daySelect.unsubscribe();
-  }
-
+  });
   /**
-   * from on push in values, comparing if there is any difference
+   * Year, marked ranges and disabled days to render. The parents publish a new object on every change, so the
+   * calendar is rebuilt from the input alone and needs no deep comparison.
    */
-  ngDoCheck(): void {
-    const stringData = JSON.stringify(this._yearCalendarData);
-    if (this.initial_data !== stringData) {
-      this.initial_data = stringData;
-      this.initValue(this._yearCalendarData, stringData);
-    }
-  }
+  readonly yearCalendarData = input.required<YearCalendarData>();
+  readonly daySelect = output<Date>();
+
+  /** Header names of the disabled week days, in the language of the locale input. */
+  readonly disabledDaysOfWeek = computed(() =>
+    this.yearCalendarData().disableWeekDays?.map(
+      (dayOfWeek: DayOfWeek) => this.locale().dayNamesMin[Year.getDayNumberByDayOfWeek(dayOfWeek)]
+    )
+  );
+  readonly year = computed(() => this.buildYear(this.yearCalendarData()));
+  private colorBgToFgColor: Map<string, string> = new Map();
 
   isDisabled(date: Date, disabledDays: DisabledDate[]): boolean {
     return (
@@ -134,14 +113,13 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
     return ctx.getImageData(0, 0, 1, 1).data;
   }
 
-  private initValue(val: YearCalendarData, oldValue: string = null): void {
-    this.year = new Year(val.year);
-    this.initial_data = oldValue != null ? oldValue : JSON.stringify(val);
-    for (const m of this.year.months) {
+  private buildYear(val: YearCalendarData): Year {
+    const year = new Year(val.year);
+    for (const m of year.months) {
       for (const w of m.weeks) {
         for (const day of w.daysOfWeek) {
-          if (this._yearCalendarData.dates && this._yearCalendarData.dates.length > 0) {
-            for (const d of this._yearCalendarData.dates) {
+          if (val.dates && val.dates.length > 0) {
+            for (const d of val.dates) {
               if (day.day >= d.start && day.day <= d.end) {
                 const range = new Range();
                 range.id = d.id;
@@ -164,10 +142,10 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
             }
           }
           day.isDisabled =
-            this.isDisabled(day.day, this._yearCalendarData.disabledDays) ||
-            this.isWeekdayDisabled(day.dayOfWeek, this._yearCalendarData.disableWeekDays);
+            this.isDisabled(day.day, val.disabledDays) || this.isWeekdayDisabled(day.dayOfWeek, val.disableWeekDays);
         }
       }
     }
+    return year;
   }
 }
