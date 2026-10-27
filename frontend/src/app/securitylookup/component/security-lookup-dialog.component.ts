@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, NgZone, Output } from '@angular/core';
+import { Component, EventEmitter, Input, NgZone, Output, signal } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
@@ -41,7 +41,6 @@ import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../mod
     SecurityLookupConnectorTableComponent,
     SecurityLookupHintTableComponent
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <p-dialog
       [header]="'SECURITY_LOOKUP_DIALOG' | translate"
@@ -52,26 +51,26 @@ import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../mod
       [resizable]="true"
       (onShow)="onShow()"
       (onHide)="onHide()">
-      @if (loading) {
+      @if (loading()) {
         <div class="flex justify-content-center align-items-center" style="min-height: 200px">
           <p-progressSpinner></p-progressSpinner>
         </div>
       } @else {
-        @if (errorMessage) {
-          <p-message severity="error" [text]="errorMessage"></p-message>
+        @if (errorMessage()) {
+          <p-message severity="error" [text]="errorMessage()"></p-message>
         }
-        @if (response) {
+        @if (response(); as response) {
           <security-lookup-hint-table titleKey="LOOKUP_HINTS" [hints]="response.hints"></security-lookup-hint-table>
           @if (response.candidates.length === 0) {
             <p-message severity="info" [text]="'SECURITY_LOOKUP_NO_RESULTS' | translate"></p-message>
           } @else {
             <security-lookup-base-data-table
               [candidates]="response.candidates"
-              [selectedCandidate]="selectedCandidate"
+              [selectedCandidate]="selectedCandidate()"
               [(nameCandidate)]="nameCandidate"
               (candidateSelected)="onCandidateSelected($event)">
             </security-lookup-base-data-table>
-            @if (selectedCandidate) {
+            @if (selectedCandidate(); as selectedCandidate) {
               <security-lookup-hint-table titleKey="LOOKUP_HINTS_LISTING" [hints]="selectedCandidate.hints">
               </security-lookup-hint-table>
               @for (feed of visibleFeeds(); track feed.key) {
@@ -79,16 +78,16 @@ import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../mod
                   [titleKey]="feed.titleKey"
                   [feed]="feed.key"
                   [alternatives]="alternativesOf(feed.field)"
-                  [selectedAlternative]="selection[feed.key]"
+                  [selectedAlternative]="selection()[feed.key]"
                   [showDistributionFrequency]="feed.key === 'dividend'"
                   [disabled]="isFeedDisabled(feed.key)"
                   disabledMessageKey="DIVIDEND_CONNECTOR_NOT_NEEDED"
-                  (alternativeSelected)="selection[feed.key] = $event">
+                  (alternativeSelected)="selectAlternative(feed.key, $event)">
                 </security-lookup-connector-table>
               }
             }
             <div class="flex justify-content-end mt-3">
-              <p-button [label]="'APPLY' | translate" (onClick)="apply()" [disabled]="!selectedCandidate">
+              <p-button [label]="'APPLY' | translate" (onClick)="apply()" [disabled]="!selectedCandidate()">
                 <i class="pi pi-check" pButtonIcon></i>
               </p-button>
             </div>
@@ -118,13 +117,14 @@ export class SecurityLookupDialogComponent {
     { key: 'split', field: 'splitConnectors', titleKey: 'ID_CONNECTOR_SPLIT' }
   ];
 
-  loading = false;
-  response: SecurityLookupResponse;
-  errorMessage: string;
-  selectedCandidate: SecurityLookupCandidate;
+  readonly loading = signal(false);
+  readonly response = signal<SecurityLookupResponse>(null);
+  readonly errorMessage = signal<string>(null);
+  readonly selectedCandidate = signal<SecurityLookupCandidate>(null);
   /** The listing whose name is taken over; by default the first one not written entirely in capitals */
-  nameCandidate: SecurityLookupCandidate;
-  selection: Record<LookupFeed, ConnectorAlternative> = this.emptySelection();
+  readonly nameCandidate = signal<SecurityLookupCandidate>(null);
+  /** Chosen connector alternative per feed; every change publishes a new record */
+  readonly selection = signal<Record<LookupFeed, ConnectorAlternative>>(this.emptySelection());
 
   /** Prevents a second emission when "Apply" closes the dialog */
   private selectionHandled = false;
@@ -142,9 +142,9 @@ export class SecurityLookupDialogComponent {
   onShow(): void {
     this.ngZone.run(() => {
       this.selectionHandled = false;
-      this.errorMessage = null;
-      this.response = null;
-      this.nameCandidate = null;
+      this.errorMessage.set(null);
+      this.response.set(null);
+      this.nameCandidate.set(null);
       this.onCandidateSelected(null);
       this.performLookup();
     });
@@ -167,15 +167,26 @@ export class SecurityLookupDialogComponent {
    * @param candidate - The chosen listing, or null
    */
   onCandidateSelected(candidate: SecurityLookupCandidate): void {
-    this.selectedCandidate = candidate;
-    this.selection = this.emptySelection();
+    this.selectedCandidate.set(candidate);
+    const selection = this.emptySelection();
     if (candidate) {
       this.feeds.forEach((feed) => {
-        this.selection[feed.key] = this.isFeedDisabled(feed.key)
+        selection[feed.key] = this.isFeedDisabled(feed.key)
           ? null
           : preselectAlternative(feed.key, this.alternativesOf(feed.field));
       });
     }
+    this.selection.set(selection);
+  }
+
+  /**
+   * Takes over the alternative the user chose for one feed.
+   *
+   * @param feed - The feed of the connector table
+   * @param alternative - The chosen alternative, or null
+   */
+  selectAlternative(feed: LookupFeed, alternative: ConnectorAlternative): void {
+    this.selection.update((selection) => ({ ...selection, [feed]: alternative }));
   }
 
   /**
@@ -187,8 +198,8 @@ export class SecurityLookupDialogComponent {
   visibleFeeds(): { key: LookupFeed; field: keyof SecurityLookupCandidate; titleKey: string }[] {
     return this.feeds.filter(
       (feed) =>
-        (feed.key !== 'dividend' || this.response?.dividendConnectorApplicable !== false) &&
-        (feed.key !== 'split' || this.response?.splitConnectorApplicable !== false)
+        (feed.key !== 'dividend' || this.response()?.dividendConnectorApplicable !== false) &&
+        (feed.key !== 'split' || this.response()?.splitConnectorApplicable !== false)
     );
   }
 
@@ -199,7 +210,7 @@ export class SecurityLookupDialogComponent {
    * @returns The connectors, empty when no listing is chosen
    */
   alternativesOf(field: keyof SecurityLookupCandidate): ConnectorAlternative[] {
-    return (this.selectedCandidate?.[field] as ConnectorAlternative[]) ?? [];
+    return (this.selectedCandidate()?.[field] as ConnectorAlternative[]) ?? [];
   }
 
   /**
@@ -210,15 +221,15 @@ export class SecurityLookupDialogComponent {
    * @returns True when no connector of this feed may be chosen
    */
   isFeedDisabled(feed: LookupFeed): boolean {
-    return feed === 'dividend' && !!this.selectedCandidate?.distributesNothing;
+    return feed === 'dividend' && !!this.selectedCandidate()?.distributesNothing;
   }
 
   /** Hands the chosen listing and connectors to the security form and closes the dialog. */
   apply(): void {
     const result: SecurityLookupSelection = {
-      candidate: this.selectedCandidate,
-      nameCandidate: this.nameCandidate,
-      ...this.selection
+      candidate: this.selectedCandidate(),
+      nameCandidate: this.nameCandidate(),
+      ...this.selection()
     };
     this.selectionHandled = true;
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, result));
@@ -227,19 +238,19 @@ export class SecurityLookupDialogComponent {
 
   private performLookup(): void {
     this.cancelPendingRequest();
-    this.loading = true;
+    this.loading.set(true);
     this.lookupSubscription = this.securityLookupService
       .lookup(this.isin, this.currency, this.mic, this.idAssetClass, this.tickerSymbol)
       .subscribe({
         next: (response) => {
-          this.response = response;
-          this.nameCandidate = preselectNameCandidate(response.candidates);
+          this.nameCandidate.set(preselectNameCandidate(response.candidates));
           this.onCandidateSelected(response.candidates.length === 1 ? response.candidates[0] : null);
-          this.loading = false;
+          this.response.set(response);
+          this.loading.set(false);
         },
         error: (error) => {
-          this.loading = false;
-          this.errorMessage = error.message;
+          this.loading.set(false);
+          this.errorMessage.set(error.message);
         }
       });
   }
@@ -249,7 +260,7 @@ export class SecurityLookupDialogComponent {
       this.lookupSubscription.unsubscribe();
       this.lookupSubscription = null;
     }
-    this.loading = false;
+    this.loading.set(false);
   }
 
   private emptySelection(): Record<LookupFeed, ConnectorAlternative> {

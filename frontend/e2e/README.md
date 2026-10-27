@@ -116,6 +116,16 @@ personal-token persistence and authentication remain covered by 250. Run the not
 `--project=grafioschtrader-e2e` for 251 and `--config=playwright.lib.config.ts --project=lib-e2e` for lib/043. Like 250,
 the Grafioschtrader file skips when MCP is disabled; the library file needs no MCP deployment.
 
+## MCP OAuth consent notification (255-*)
+
+`255-mcp-oauth-consent-notification.spec.ts` opens the consent page `/oauth/authorize` an MCP client sends the user
+to, logged in as `alledit`. The validation and consent endpoints answer from the spec after a held delay: the page
+first shows the checking text, then the consent question with client name and host, disables both buttons while a
+decision is pending and enables them again after a refused consent; a 404 validation shows the "not enabled" reason.
+Every request is held, because the page is loaded a second time after the login redirect. The spec needs no
+registered client and creates no authorization. Run with
+`npx playwright test e2e/255-mcp-oauth-consent-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## HTTP authentication (235-* and lib/005-*)
 
 `235-auth-http-interceptor.spec.ts` and `lib/005-auth-http-interceptor.spec.ts` run the shared scenarios in

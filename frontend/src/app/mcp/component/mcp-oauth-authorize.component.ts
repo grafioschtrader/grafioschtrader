@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
@@ -24,12 +25,11 @@ type PageState = 'checking' | 'consent' | 'error' | 'redirecting';
 @Component({
   selector: 'mcp-oauth-authorize',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, ButtonModule, MessageModule],
   template: `
     <div style="max-width: 640px; margin: 2rem auto; padding: 0 16px">
       <h2>{{ 'MCP_OAUTH_TITLE' | translate }}</h2>
-      @switch (state) {
+      @switch (state()) {
         @case ('checking') {
           <p>{{ 'MCP_OAUTH_CHECKING' | translate }}</p>
         }
@@ -37,12 +37,13 @@ type PageState = 'checking' | 'consent' | 'error' | 'redirecting';
           <p>{{ 'MCP_OAUTH_REDIRECTING' | translate }}</p>
         }
         @case ('error') {
-          <p-message severity="error" [text]="errorKey | translate" />
+          <p-message severity="error" [text]="errorKey() | translate" />
         }
         @case ('consent') {
+          @let request = validation();
           <p>
             <b>{{
-              'MCP_OAUTH_QUESTION' | translate: { clientName: validation.clientName, clientHost: validation.clientHost }
+              'MCP_OAUTH_QUESTION' | translate: { clientName: request.clientName, clientHost: request.clientHost }
             }}</b>
           </p>
           <p>{{ 'MCP_OAUTH_SCOPE_READ' | translate }}</p>
@@ -55,11 +56,11 @@ type PageState = 'checking' | 'consent' | 'error' | 'redirecting';
             <li>{{ 'ACCESS_TOKEN_NOTICE_HOME_TENANT' | translate }}</li>
           </ul>
           <div style="display: flex; gap: 0.5rem">
-            <p-button [label]="'MCP_OAUTH_APPROVE' | translate" [disabled]="deciding" (onClick)="decide(true)" />
+            <p-button [label]="'MCP_OAUTH_APPROVE' | translate" [disabled]="deciding()" (onClick)="decide(true)" />
             <p-button
               [label]="'MCP_OAUTH_DENY' | translate"
               severity="secondary"
-              [disabled]="deciding"
+              [disabled]="deciding()"
               (onClick)="decide(false)" />
           </div>
         }
@@ -68,10 +69,12 @@ type PageState = 'checking' | 'consent' | 'error' | 'redirecting';
   `
 })
 export class McpOAuthAuthorizeComponent implements OnInit {
-  state: PageState = 'checking';
-  errorKey: string;
-  validation: OAuthValidationResponse;
-  deciding = false;
+  readonly state = signal<PageState>('checking');
+  readonly errorKey = signal<string>(null);
+  readonly validation = signal<OAuthValidationResponse>(null);
+  readonly deciding = signal(false);
+
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private route: ActivatedRoute,
@@ -97,16 +100,19 @@ export class McpOAuthAuthorizeComponent implements OnInit {
       scope: q.get('scope'),
       resource: q.get('resource')
     };
-    this.mcpOAuthService.validate(request).subscribe({
-      next: (response) => this.handleValidation(response),
-      error: (error: HttpErrorResponse) => this.handleValidation(error.error, error.status)
-    });
+    this.mcpOAuthService
+      .validate(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => this.handleValidation(response),
+        error: (error: HttpErrorResponse) => this.handleValidation(error.error, error.status)
+      });
   }
 
   private handleValidation(response: OAuthValidationResponse, status?: number): void {
     if (response?.authorizationRequestId) {
-      this.validation = response;
-      this.state = 'consent';
+      this.validation.set(response);
+      this.state.set('consent');
     } else if (response?.redirect) {
       this.goTo(response.redirect);
     } else {
@@ -115,26 +121,29 @@ export class McpOAuthAuthorizeComponent implements OnInit {
   }
 
   private showError(status: number, error: string): void {
-    this.state = 'error';
     if (status === 404) {
-      this.errorKey = 'MCP_OAUTH_ERROR_NOT_AVAILABLE';
+      this.errorKey.set('MCP_OAUTH_ERROR_NOT_AVAILABLE');
     } else if (status === 429 || status === 503) {
-      this.errorKey = 'MCP_OAUTH_ERROR_UNAVAILABLE';
+      this.errorKey.set('MCP_OAUTH_ERROR_UNAVAILABLE');
     } else {
-      this.errorKey = error === 'invalid_redirect_uri' ? 'MCP_OAUTH_ERROR_REDIRECT' : 'MCP_OAUTH_ERROR_CLIENT';
+      this.errorKey.set(error === 'invalid_redirect_uri' ? 'MCP_OAUTH_ERROR_REDIRECT' : 'MCP_OAUTH_ERROR_CLIENT');
     }
+    this.state.set('error');
   }
 
   decide(approve: boolean): void {
-    this.deciding = true;
-    this.mcpOAuthService.consent(this.validation.authorizationRequestId, approve).subscribe({
-      next: (response) => this.goTo(response.redirect),
-      error: () => (this.deciding = false)
-    });
+    this.deciding.set(true);
+    this.mcpOAuthService
+      .consent(this.validation().authorizationRequestId, approve)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => this.goTo(response.redirect),
+        error: () => this.deciding.set(false)
+      });
   }
 
   private goTo(redirect: string): void {
-    this.state = 'redirecting';
+    this.state.set('redirecting');
     window.location.assign(redirect);
   }
 }

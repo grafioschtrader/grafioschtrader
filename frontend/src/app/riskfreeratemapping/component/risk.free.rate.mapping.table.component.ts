@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -48,12 +49,13 @@ import { AppHelpIds } from '../../shared/help/help.ids';
       #entityTable
       [(data)]="entityList"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="rowKey"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [createNewEntityFn]="createNewEntity"
       [canEditRowFn]="canEditOrDeleteRow"
       [canDeleteRowFn]="canEditOrDeleteRow"
@@ -81,7 +83,6 @@ import { AppHelpIds } from '../../shared/help/help.ids';
     </editable-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class RiskFreeRateMappingTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
@@ -90,9 +91,12 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
   @ViewChild('entityTable')
   entityTable: EditableTableComponent<RiskFreeRateMapping>;
 
-  contextMenuItems: MenuItem[] = [];
-  entityList: RiskFreeRateMapping[] = [];
-  selectedEntity: RiskFreeRateMapping;
+  /** The edit menu is intentionally empty, see {@link resetMenu} */
+  readonly contextMenuItems: MenuItem[] = [];
+  readonly entityList = signal<RiskFreeRateMapping[]>([]);
+  readonly selectedEntity = signal<RiskFreeRateMapping>(null);
+
+  private readonly destroyRef = inject(DestroyRef);
 
   /** All ISO currency options as returned by GlobalparametersGT.getCurrencies(). */
   private allCurrencyOptions: ValueKeyHtmlSelectOptions[] = [];
@@ -175,16 +179,20 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
       this.riskFreeRateMappingService.getAll(),
       this.riskFreeRateMappingService.getAllInstruments(),
       this.gpsGT.getCurrencies()
-    ]).subscribe(([mappings, instruments, currencies]) => {
-      this.entityList = (mappings || []).map((m) => {
-        (m as any).rowKey = `existing_${m.idRiskFreeRateMapping}`;
-        return m;
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([mappings, instruments, currencies]) => {
+        this.allInstrumentOptions = instruments || [];
+        this.allCurrencyOptions = currencies || [];
+        this.rebuildInstrumentLookup();
+        this.entityList.set(
+          (mappings || []).map((m) => {
+            (m as any).rowKey = `existing_${m.idRiskFreeRateMapping}`;
+            return m;
+          })
+        );
+        this.prepareTableAndTranslate();
       });
-      this.allInstrumentOptions = instruments || [];
-      this.allCurrencyOptions = currencies || [];
-      this.rebuildInstrumentLookup();
-      this.prepareTableAndTranslate();
-    });
   }
 
   /**
@@ -203,7 +211,9 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
 
   private getCurrencyOptions(row: RiskFreeRateMapping): ValueKeyHtmlSelectOptions[] {
     const usedCurrencies = new Set<string>(
-      this.entityList.filter((m) => m !== row && m.currency != null).map((m) => m.currency)
+      this.entityList()
+        .filter((m) => m !== row && m.currency != null)
+        .map((m) => m.currency)
     );
     return this.allCurrencyOptions.filter((opt) => !usedCurrencies.has(String(opt.key)));
   }
@@ -213,7 +223,9 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
       return [];
     }
     const usedIds = new Set<number>(
-      this.entityList.filter((m) => m !== row && m.idSecuritycurrency != null).map((m) => m.idSecuritycurrency)
+      this.entityList()
+        .filter((m) => m !== row && m.idSecuritycurrency != null)
+        .map((m) => m.idSecuritycurrency)
     );
     return this.allInstrumentOptions
       .filter((opt) => opt.currency === row.currency && !usedIds.has(opt.idSecuritycurrency))
@@ -292,7 +304,6 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
    * the per-row trash button rendered by EditableTableComponent.
    */
   private resetMenu(): void {
-    this.contextMenuItems = [];
     this.activePanelService.activatePanel(this, {
       showMenu: null,
       editMenu: this.contextMenuItems
@@ -312,7 +323,7 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
             i18nRecord: RiskFreeRateMappingTableComponent.I18N_RECORD
           });
-          this.selectedEntity = null;
+          this.selectedEntity.set(null);
           this.readData();
         });
       }
