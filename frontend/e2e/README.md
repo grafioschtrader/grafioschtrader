@@ -948,6 +948,13 @@ Run the application wrapper with
 wrapper separately with
 `npx playwright test e2e/lib/037-entity-limit-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
 
+`lib/042-user-admin-notification.spec.ts` checks user administration in the zoneless library host: the table after a
+held response, the nested limit table of a user with limits and no limit proposal, and two openings each of the
+owner-change and the user edit dialog for the `ROLE_LIMITEDIT` user, closed with the X. Its second test holds the own
+change requests and expects the table to show every returned row; a fresh `grafiosch_t` returns none. It saves no data.
+Run it with
+`npx playwright test e2e/lib/042-user-admin-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
+
 ## Simulation-opening spec (195-*)
 
 `195-simulation-opening.spec.ts` covers the three ways a simulation environment establishes its opening ledger.

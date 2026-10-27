@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { TabItem } from '../../types/tab.item';
 import { BaseSettings } from '../../base.settings';
 
@@ -12,11 +12,10 @@ import { SharedTabMenuComponent } from '../../tabmenu/component/shared.tab.menu.
     </app-shared-tab-menu>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterModule, SharedTabMenuComponent]
 })
 export class ProposeChangeTabMenuComponent {
-  tabs: TabItem[] = [
+  readonly tabs: TabItem[] = [
     {
       label: 'CHANGE_REQUESTS_FOR_YOU',
       route: BaseSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY,
@@ -29,5 +28,5 @@ export class ProposeChangeTabMenuComponent {
     }
   ];
 
-  defaultRoute = BaseSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY;
+  readonly defaultRoute = BaseSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY;
 }

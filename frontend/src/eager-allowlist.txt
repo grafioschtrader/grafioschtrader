@@ -92,15 +92,9 @@ frontend/src/app/lib/manageclient/component/managed-clients-table-dialog.compone
 frontend/src/app/lib/manageclient/component/share-read-access-dynamic-dialog.component.ts
 frontend/src/app/lib/manageclient/component/shared-viewers-table-dialog.component.ts
 frontend/src/app/lib/message/message.toast.component.ts
-frontend/src/app/lib/proposechange/component/propose.change.tab.menu.component.ts
 frontend/src/app/lib/proposechange/component/request.for.you.table.component.ts
-frontend/src/app/lib/proposechange/component/your.proposal.table.component.ts
 frontend/src/app/lib/tabmenu/component/shared.tab.menu.component.ts
 frontend/src/app/lib/udfmeta/components/udf-general-edit.component.ts
-frontend/src/app/lib/user/component/entity-limit-user-table.component.ts
-frontend/src/app/lib/user/component/user-change-owner-entities-dialog.component.ts
-frontend/src/app/lib/user/component/user-edit-component.ts
-frontend/src/app/lib/user/component/user.table.component.ts
 frontend/src/app/lib/wizard/component/step.component.ts
 frontend/src/app/lib/wizard/component/steps.component.ts
 frontend/src/app/mcp/component/mcp-oauth-authorize.component.ts

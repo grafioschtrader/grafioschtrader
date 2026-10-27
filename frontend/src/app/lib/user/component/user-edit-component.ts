@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -39,7 +39,6 @@ import { BaseSettings } from '../../base.settings';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UserEditComponent extends SimpleEntityEditBase<User> implements OnInit {

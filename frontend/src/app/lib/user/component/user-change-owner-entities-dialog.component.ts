@@ -1,14 +1,12 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 import { SimpleEditBase } from '../../edit/simple.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
 import { MessageToastService } from '../../message/message.toast.service';
-import { MainDialogService } from '../../mainmenubar/service/main.dialog.service';
 import { GlobalparameterService } from '../../services/globalparameter.service';
 import { HelpIds } from '../../help/help.ids';
-import { UserSettingsDialogs } from '../../mainmenubar/component/user-settings-dialogs';
 import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -40,7 +38,6 @@ import { ProcessedAction } from '../../types/processed.action';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UserChangeOwnerEntitiesDialogComponent extends SimpleEditBase implements OnInit {
@@ -51,7 +48,6 @@ export class UserChangeOwnerEntitiesDialogComponent extends SimpleEditBase imple
     public translateService: TranslateService,
     private userAdminService: UserAdminService,
     private messageToastService: MessageToastService,
-    private mainDialogService: MainDialogService,
     gps: GlobalparameterService
   ) {
     super(HelpIds.HELP_USER, gps);
@@ -68,10 +64,6 @@ export class UserChangeOwnerEntitiesDialogComponent extends SimpleEditBase imple
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-  }
-
-  override onHide(event) {
-    this.mainDialogService.visibleDialog(false, UserSettingsDialogs.NicknameLocale);
   }
 
   submit(values: { [name: string]: any }): void {

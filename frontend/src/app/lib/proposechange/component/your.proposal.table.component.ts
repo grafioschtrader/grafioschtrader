@@ -1,5 +1,7 @@
-import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
-import { CrudMenuOptions, TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { Component, Injector } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
+import { CrudMenuOptions } from '../../datashowbase/table.crud.support.menu.helper';
 import { ProposeChangeEntity } from '../../entities/propose.change.entity';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
 import { GlobalparameterService } from '../../services/globalparameter.service';
@@ -23,14 +25,15 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
   template: `
     <configurable-table
       (componentClick)="onComponentClick($event)"
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       [contextMenuAppendTo]="'body'"
       [(selection)]="selectedEntity"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems()"
       [showContextMenu]="isActivated()"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [valueGetterFn]="valueGetter"
       [containerClass]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
@@ -40,10 +43,9 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, ConfigurableTableComponent]
 })
-export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChangeEntity> {
+export class YourProposalTableComponent extends TableCrudSupportMenuSignal<ProposeChangeEntity> {
   constructor(
     private proposeChangeEntityService: ProposeChangeEntityService,
     confirmationService: ConfirmationService,
@@ -83,10 +85,14 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
   }
 
   readData(): void {
-    this.proposeChangeEntityService.getProposeChangeEntityListByCreatedBy().subscribe((proposeChangeEntityList) => {
-      this.createTranslatedValueStoreAndFilterField(proposeChangeEntityList);
-      this.entityList = plainToInstance(ProposeChangeEntity, proposeChangeEntityList);
-    });
+    this.proposeChangeEntityService
+      .getProposeChangeEntityListByCreatedBy()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((proposeChangeEntityList) => {
+        this.createTranslatedValueStoreAndFilterField(proposeChangeEntityList);
+        this.entityList.set(plainToInstance(ProposeChangeEntity, proposeChangeEntityList));
+        this.refreshSelectedEntity();
+      });
   }
 
   prepareCallParam(entity: ProposeChangeEntity): void {}

@@ -1,5 +1,7 @@
-import { CrudMenuOptions, TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
-import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
+import { CrudMenuOptions } from '../../datashowbase/table.crud.support.menu.helper';
+import { Component, Injector, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -21,14 +23,11 @@ import { UserChangeOwnerEntitiesDialogComponent } from './user-change-owner-enti
 import { ProcessedActionData } from '../../types/processed.action.data';
 import { ProcessedAction } from '../../types/processed.action';
 import { AuditHelper } from '../../helper/audit.helper';
-import { TranslateHelper } from '../../helper/translate.helper';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { UserTaskType } from '../../types/user.task.type';
 import { SvgIconRegistryService } from 'angular-svg-icon';
-import { LimitEntityTransactionError } from '../../login/service/limit.entity.transaction.error';
 import { ProposeUserTaskService } from '../../dynamicdialog/service/propose.user.task.service';
 import { InfoLevelType } from '../../message/info.leve.type';
-import { DynamicDialogs } from '../../dynamicdialog/component/dynamic.dialogs';
 import { BaseSettings } from '../../base.settings';
 
 /**
@@ -37,27 +36,28 @@ import { BaseSettings } from '../../base.settings';
 @Component({
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollable]="false"
       [stripedRows]="true"
       [showGridlines]="true"
       [expandable]="true"
-      [canExpandFn]="canExpandRow.bind(this)"
+      [canExpandFn]="canExpandRow"
       [expandedRowTemplate]="expandedContent"
       [containerClass]="{
         'data-container': true,
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }"
-      [showContextMenu]="!!contextMenuItems"
-      [contextMenuItems]="contextMenuItems"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [showContextMenu]="!!contextMenuItems()"
+      [contextMenuItems]="contextMenuItems()"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ entityNameUpper | translate }}</h4>
 
@@ -72,30 +72,29 @@ import { BaseSettings } from '../../base.settings';
       <entity-limit-user-table [user]="user" (dateChanged)="handleChangesOnLimitTable($event)">
       </entity-limit-user-table>
     </ng-template>
-    @if (visibleDialog) {
-      <user-edit [visibleDialog]="visibleDialog" [callParam]="callParam" (closeDialog)="handleCloseDialog($event)">
+    @if (visibleDialog()) {
+      <user-edit [visibleDialog]="visibleDialog()" [callParam]="callParam" (closeDialog)="handleCloseDialog($event)">
       </user-edit>
     }
-    @if (visibleEditLimitDialog) {
+    @if (visibleEditLimitDialog()) {
       <entity-limit-edit
-        [visibleDialog]="visibleEditLimitDialog"
-        [idUser]="selectedEntity?.idUser"
+        [visibleDialog]="visibleEditLimitDialog()"
+        [idUser]="selectedEntity()?.idUser"
         (closeDialog)="handleEditLimitCloseDialog($event)">
       </entity-limit-edit>
     }
 
-    @if (visibleChangeEntitiesOwnerDialog) {
+    @if (visibleChangeEntitiesOwnerDialog()) {
       <user-change-owner-entities
-        [visibleDialog]="visibleChangeEntitiesOwnerDialog"
-        [fromUser]="selectedEntity"
-        [allUsers]="entityList"
+        [visibleDialog]="visibleChangeEntitiesOwnerDialog()"
+        [fromUser]="selectedEntity()"
+        [allUsers]="entityList()"
         (closeDialog)="handleChangeOwnerCloseDialog($event)">
       </user-change-owner-entities>
     }
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ConfigurableTableComponent,
     AngularSvgIconModule,
@@ -106,7 +105,7 @@ import { BaseSettings } from '../../base.settings';
     UserChangeOwnerEntitiesDialogComponent
   ]
 })
-export class UserTableComponent extends TableCrudSupportMenu<User> implements OnDestroy {
+export class UserTableComponent extends TableCrudSupportMenuSignal<User> {
   private static createTypeIconMap: { [key: number]: string } = {
     [UserTaskType.RELEASE_LOGOUT]: 'user_update',
     [UserTaskType.LIMIT_CUD_CHANGE]: 'user_limit_update'
@@ -114,18 +113,12 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   private static iconLoadDone = false;
 
   callParam: User;
-  visibleEditLimitDialog: boolean;
-  visibleChangeEntitiesOwnerDialog: boolean;
+  readonly visibleEditLimitDialog = signal(false);
+  readonly visibleChangeEntitiesOwnerDialog = signal(false);
 
-  private limitChangeMenuItem: MenuItem = {
-    label: 'CREATE|' + EntityLimitUserTableComponent.ENTITY_LIMIT + BaseSettings.DIALOG_MENU_SUFFIX,
-    command: (event) => this.addEntityLimit()
-  };
-
-  private changeEntitiesOwnerMenuItem: MenuItem = {
-    label: 'USER_CHANGE_OWNER_ENTITIES' + BaseSettings.DIALOG_MENU_SUFFIX,
-    command: (event) => this.changeOwnerEntities()
-  };
+  /** Only users with entity limits or limit proposals have a nested limit table */
+  readonly canExpandRow = (user: User): boolean =>
+    user.entityLimitList.length + user.userChangeLimitProposeList.length > 0;
 
   constructor(
     private iconReg: SvgIconRegistryService,
@@ -153,7 +146,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
       gps,
       usersettingsService,
       injector,
-      [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]
+      [CrudMenuOptions.Allow_Edit]
     );
     UserTableComponent.registerIcons(this.iconReg);
 
@@ -182,7 +175,6 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     this.addColumnFeqH(DataType.NumericInteger, 'timezoneOffset', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'securityBreachCount', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'limitRequestExceedCount', true, false);
-    TranslateHelper.translateMenuItems([this.limitChangeMenuItem, this.changeEntitiesOwnerMenuItem], translateService);
     this.prepareTableAndTranslate();
   }
 
@@ -191,7 +183,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
       for (const [key, iconName] of Object.entries(UserTableComponent.createTypeIconMap)) {
         iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + iconName + BaseSettings.SVG, iconName);
       }
-      UserTableComponent.iconLoadDone = false;
+      UserTableComponent.iconLoadDone = true;
     }
   }
 
@@ -209,37 +201,29 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     return HelpIds.HELP_USER;
   }
 
-  canExpandRow(user: User): boolean {
-    return user.entityLimitList.length + user.userChangeLimitProposeList.length > 0;
-  }
-
-  ngOnDestroy(): void {
-    this.activePanelService.destroyPanel(this);
-  }
-
   override onComponentClick(event): void {
     if (!event[this.consumedGT]) {
-      this.resetMenu(this.selectedEntity);
+      this.resetMenu(this.selectedEntity());
     }
   }
 
   addEntityLimit(): void {
-    this.visibleEditLimitDialog = true;
+    this.visibleEditLimitDialog.set(true);
   }
 
   changeOwnerEntities(): void {
-    this.visibleChangeEntitiesOwnerDialog = true;
+    this.visibleChangeEntitiesOwnerDialog.set(true);
   }
 
   handleEditLimitCloseDialog(processedActionData: ProcessedActionData): void {
-    this.visibleEditLimitDialog = false;
+    this.visibleEditLimitDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
   }
 
   handleChangeOwnerCloseDialog(processedActionData: ProcessedActionData): void {
-    this.visibleChangeEntitiesOwnerDialog = false;
+    this.visibleChangeEntitiesOwnerDialog.set(false);
   }
 
   handleChangesOnLimitTable(event) {
@@ -247,56 +231,47 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   }
 
   override handleCloseDialog(processedActionData: ProcessedActionData): void {
-    this.visibleDialog = false;
+    this.visibleDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       if (processedActionData.action === ProcessedAction.REJECT_DATA_CHANGE) {
         // Reject the proposed user changes, which were created by a user violation
         this.proposeUserTaskService
-          .rejectUserTask(this.selectedEntity.userChangePropose.idProposeRequest, processedActionData.data)
+          .rejectUserTask(this.selectedEntity().userChangePropose.idProposeRequest, processedActionData.data)
           .subscribe((stringResponse) =>
             this.messageToastService.showMessage(InfoLevelType.SUCCESS, stringResponse.response)
           );
       } else {
         this.readData();
       }
-    } else if (
-      processedActionData.transformedError &&
-      processedActionData.transformedError.errorClass &&
-      processedActionData.transformedError.errorClass instanceof LimitEntityTransactionError
-    ) {
-      DynamicDialogs.getOpenedLimitTransactionRequestDynamicComponent(
-        this.translateService,
-        this.dialogService,
-        this.entityName
-      );
+    } else {
+      this.checkLimitError(processedActionData);
     }
   }
 
-  override resetMenu(user: User): void {
-    this.selectedEntity = user;
-    if (this.selectedEntity) {
-      // Menus for the user -> only edit
-      this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
-      // Menu for change user limit -> only create
-      this.contextMenuItems.push({ separator: true });
-      if (this.selectedEntity && AuditHelper.isLimitedEditUser(this.selectedEntity)) {
-        this.contextMenuItems.push(this.limitChangeMenuItem);
-      }
-      this.contextMenuItems.push(this.changeEntitiesOwnerMenuItem);
-    } else {
-      this.contextMenuItems = null;
+  /** Below the edit entry: a new entity limit for a user with limited editing, and the transfer of owned entities. */
+  protected override addCustomMenusToSelectedEntity(user: User, menuItems: MenuItem[]): void {
+    menuItems.push({ separator: true });
+    if (AuditHelper.isLimitedEditUser(user)) {
+      menuItems.push({
+        label: 'CREATE|' + EntityLimitUserTableComponent.ENTITY_LIMIT + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.addEntityLimit()
+      });
     }
-    this.activePanelService.activatePanel(this, {
-      editMenu: this.contextMenuItems
+    menuItems.push({
+      label: 'USER_CHANGE_OWNER_ENTITIES' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: () => this.changeOwnerEntities()
     });
   }
 
   protected readData(): void {
-    this.userAdminService.getAllUsers().subscribe((users) => {
-      this.createTranslatedValueStoreAndFilterField(users);
-      this.entityList = users;
-      this.refreshSelectedEntity();
-    });
+    this.userAdminService
+      .getAllUsers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((users) => {
+        this.createTranslatedValueStoreAndFilterField(users);
+        this.entityList.set(users);
+        this.refreshSelectedEntity();
+      });
   }
 
   protected prepareCallParam(entity: User) {

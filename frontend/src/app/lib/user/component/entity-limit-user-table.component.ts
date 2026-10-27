@@ -3,17 +3,17 @@ import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
 import {
   Component,
+  DestroyRef,
   EventEmitter,
+  inject,
   Injector,
   Input,
   OnChanges,
-  OnDestroy,
-  OnInit,
   Output,
-  SimpleChanges,
-  ViewChild,
-  ChangeDetectionStrategy
+  signal,
+  SimpleChanges
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -46,13 +46,14 @@ import { BaseSettings } from '../../base.settings';
   selector: 'entity-limit-user-table',
   template: ` <div class="datatable nestedtable">
       <configurable-table
-        [data]="user?.entityLimitList || []"
+        [data]="entityLimits()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         [dataKey]="'idEntityLimit'"
         [selectionMode]="'single'"
         [(selection)]="selectedEntityLimit"
         [multiSortMeta]="multiSortMeta"
-        [customSortFn]="customSort.bind(this)"
+        [customSortFn]="customSorter"
         [paginator]="true"
         [rows]="20"
         (pageChange)="onPage($event)"
@@ -63,10 +64,10 @@ import { BaseSettings } from '../../base.settings';
           'active-border': isActivated(),
           'passiv-border': !isActivated()
         }"
-        [showContextMenu]="!!contextMenuItems"
-        [contextMenuItems]="contextMenuItems"
+        [showContextMenu]="!!contextMenuItems()"
+        [contextMenuItems]="contextMenuItems()"
         [contextMenuAppendTo]="'body'"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [valueGetterFn]="valueGetter"
         (rowSelect)="onRowSelect($event)"
         (rowUnselect)="onRowUnselect($event)"
         (componentClick)="onComponentClick($event)">
@@ -77,9 +78,9 @@ import { BaseSettings } from '../../base.settings';
       </configurable-table>
     </div>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <entity-limit-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [idUser]="user.idUser"
         [existingEntityLimit]="existingEntityLimit"
         [proposeChangeEntityWithEntity]="proposeChangeEntityWithEntity"
@@ -87,40 +88,35 @@ import { BaseSettings } from '../../base.settings';
       </entity-limit-edit>
     }`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, AngularSvgIconModule, EntityLimitEditComponent]
 })
-export class EntityLimitUserTableComponent
-  extends TableConfigBase
-  implements OnInit, OnChanges, OnDestroy, IGlobalMenuAttach
-{
+export class EntityLimitUserTableComponent extends TableConfigBase implements OnChanges, IGlobalMenuAttach {
   public static readonly ENTITY_LIMIT = 'ENTITY_LIMIT';
 
   @Input() user: User;
   // Master table must be informed about changes thru editing
   @Output() dateChanged = new EventEmitter<ProcessedActionData>();
 
-  contextMenuItems: MenuItem[];
+  /** Translated context menu of the selected limit, null without a selection */
+  readonly contextMenuItems = signal<MenuItem[]>(null);
 
-  selectedEntityLimit: EntityLimit;
-  visibleDialog = false;
+  /** The limits of the user, followed by a row for every requested limit the user does not have yet */
+  readonly entityLimits = signal<EntityLimit[]>([]);
+
+  readonly selectedEntityLimit = signal<EntityLimit>(null);
+  readonly visibleDialog = signal(false);
   entityKeyName: string;
 
   existingEntityLimit: EntityLimit;
 
   proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
   private proposeMap: Map<number, ProposeChangeEntityWithEntity> = new Map();
-  private deleteMenu: MenuItem = {
-    label: 'DELETE_RECORD|' + EntityLimitUserTableComponent.ENTITY_LIMIT,
-    command: (event) => this.handleDelete(this.selectedEntityLimit)
-  };
-  private menuItems: MenuItem[] = [
-    {
-      label: 'EDIT_RECORD|' + EntityLimitUserTableComponent.ENTITY_LIMIT + BaseSettings.DIALOG_MENU_SUFFIX,
-      command: (event) => this.handleEditEntity(this.selectedEntityLimit)
-    },
-    this.deleteMenu
-  ];
+
+  /** False when the last limit proposal asks for a limit the user does not have yet, so there is nothing to delete */
+  private deleteAllowed = true;
+
+  /** Translation of the latest menu; a newer menu replaces one that is still being translated */
+  private menuSubscription: Subscription;
 
   constructor(
     private activePanelService: ActivePanelService,
@@ -152,7 +148,10 @@ export class EntityLimitUserTableComponent
     this.prepareTableAndTranslate();
     this.entityKeyName = this.gps.getKeyNameByEntityName(EntityLimit.name);
     this.multiSortMeta.push({ field: 'entityName', order: 1 });
-    TranslateHelper.translateMenuItems(this.menuItems, this.translateService);
+    inject(DestroyRef).onDestroy(() => {
+      this.menuSubscription?.unsubscribe();
+      this.activePanelService.destroyPanel(this);
+    });
   }
 
   /** The entity name is a Java class name, its translation key is that name in UPPER_SNAKE_CASE. */
@@ -172,25 +171,30 @@ export class EntityLimitUserTableComponent
   }
 
   onRowSelect(event) {
-    this.selectedEntityLimit = event.data;
+    this.selectedEntityLimit.set(event.data);
     this.setMenuItemsToActivePanel();
   }
 
   onRowUnselect(event) {
-    this.selectedEntityLimit = null;
+    this.selectedEntityLimit.set(null);
   }
 
+  /** Publishes the translated menu of the selected limit as context menu and in the menu bar. */
   setMenuItemsToActivePanel(): void {
-    this.activePanelService.activatePanel(this, {
-      editMenu: this.getMenuItemsOnEntityLimit(this.selectedEntityLimit)
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = TranslateHelper.translateMenuItems$(
+      this.getMenuItemsOnEntityLimit(this.selectedEntityLimit()),
+      this.translateService
+    ).subscribe((menuItems) => {
+      this.contextMenuItems.set(menuItems);
+      this.activePanelService.activatePanel(this, { editMenu: menuItems });
     });
-    this.contextMenuItems = this.getMenuItemsOnEntityLimit(this.selectedEntityLimit);
   }
 
   handleEditEntity(selectedEntityLimit: EntityLimit): void {
     this.existingEntityLimit = selectedEntityLimit;
     this.proposeChangeEntityWithEntity = this.proposeMap.get(selectedEntityLimit.idEntityLimit);
-    this.visibleDialog = true;
+    this.visibleDialog.set(true);
   }
 
   handleDelete(selectedEntityLimit: EntityLimit) {
@@ -209,26 +213,16 @@ export class EntityLimitUserTableComponent
     );
   }
 
-  ngOnInit(): void {
-    this.initializeUserData();
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['user'] && this.user) {
-      this.initializeUserData();
+      const entityLimits = this.createProposeLimitForView();
+      this.createTranslatedValueStoreAndFilterField(entityLimits);
+      this.entityLimits.set(entityLimits);
     }
-  }
-
-  private initializeUserData(): void {
-    if (!this.user) {
-      return;
-    }
-    this.createProposeLimitForView();
-    this.createTranslatedValueStoreAndFilterField(this.user.entityLimitList);
   }
 
   handleCloseDialog(processedActionData: ProcessedActionData) {
-    this.visibleDialog = false;
+    this.visibleDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       if (processedActionData.action === ProcessedAction.REJECT_DATA_CHANGE) {
         this.proposeUserTaskService
@@ -253,22 +247,44 @@ export class EntityLimitUserTableComponent
 
   callMeDeactivate(): void {}
 
-  ngOnDestroy(): void {}
-
   public getHelpContextId(): string {
     return HelpIds.HELP_USER;
   }
 
+  /**
+   * Builds the untranslated edit and delete entries for the selected limit.
+   *
+   * @param entityLimit - Selected limit or null
+   * @returns The menu entries, or null without a selection
+   */
   protected getMenuItemsOnEntityLimit(entityLimit: EntityLimit): MenuItem[] {
-    return this.selectedEntityLimit == null ? null : this.menuItems;
+    return entityLimit == null
+      ? null
+      : [
+          {
+            label: 'EDIT_RECORD|' + EntityLimitUserTableComponent.ENTITY_LIMIT + BaseSettings.DIALOG_MENU_SUFFIX,
+            command: () => this.handleEditEntity(entityLimit)
+          },
+          {
+            label: 'DELETE_RECORD|' + EntityLimitUserTableComponent.ENTITY_LIMIT,
+            command: () => this.handleDelete(entityLimit),
+            disabled: !this.deleteAllowed
+          }
+        ];
   }
 
-  private createProposeLimitForView(): void {
+  /**
+   * Returns the limits of the user plus a row for every limit proposal on an entity without a limit, and maps each
+   * proposal to the limit it changes. The user passed in from the master table is left unchanged.
+   */
+  private createProposeLimitForView(): EntityLimit[] {
+    const entityLimits = [...this.user.entityLimitList];
+    this.deleteAllowed = true;
     if (this.user.userChangeLimitProposeList) {
       for (const proposeUserTask of this.user.userChangeLimitProposeList) {
         const entityField = proposeUserTask.proposeChangeFieldList.find((p) => p.field === 'entity');
-        let existingLimit = this.user.entityLimitList.find((uec) => uec.entityName === entityField.valueDesarialized);
-        this.deleteMenu.disabled = !existingLimit;
+        let existingLimit = entityLimits.find((uec) => uec.entityName === entityField.valueDesarialized);
+        this.deleteAllowed = !!existingLimit;
         if (!existingLimit) {
           existingLimit = new EntityLimit();
           // create and add user entity change Limit
@@ -286,7 +302,7 @@ export class EntityLimitUserTableComponent
           // A limit increase request always asks for a daily CUD budget of one user.
           uecl.keyId = 'DAY_CUD|' + uecl.entityName + '|||';
           uecl.limitTypeKey = 'LIMIT_TYPE_DAY_CUD';
-          this.user.entityLimitList.push(uecl);
+          entityLimits.push(uecl);
         }
         this.proposeMap.set(
           existingLimit.idEntityLimit,
@@ -294,5 +310,6 @@ export class EntityLimitUserTableComponent
         );
       }
     }
+    return entityLimits;
   }
 }
