@@ -497,6 +497,16 @@ The file content itself is pasted verbatim into the `templateAsTxt` textarea. Th
 `alledit` cannot see the instance-wide platform command, then logs in as `admin` and marks `Grafioschtrader`
 as the template set offered by this installation. A rerun accepts that platform already being selected.
 
+## Import-template notification (011-*)
+
+`011-import-template-notification.spec.ts` uses the existing `alledit` login and Grafioschtrader template set.
+It delays language options while editing a draft, closes and reopens during a pending response, supersedes a
+pending template check, displays failed and successful parsed results, creates/edits/deletes a browser-local template,
+retries after an HTTP error and replaces
+an in-flight PDF transformation. The HTTP check and transformation responses are local browser fixtures;
+no template, document or transaction is persisted. Closing waits for the dialog to be removed before reopening.
+Run with `npx playwright test e2e/011-import-template-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Tenant edit spec (020-*)
 
 `020-edit-tenant.spec.ts` exercises Grafioschtrader's `TenantEditComponent` through the dynamic tenant dialog. It
@@ -684,7 +694,8 @@ one transaction, and all transactions with those natural keys belong to the scen
 For every discovered account directory, the spec logs in as its nickname, selects the account through the main tree,
 enables **Use Grafioschtrader import templates**, and puts all PDFs into one browser `DataTransfer` before dispatching a
 real drop on the account drop zone. It verifies the direct-import response and the persisted transactions. Before the
-drop it deletes matching transactions and any failed computer-generated import head, making successful and partial
+drop it deletes matching transactions, then the positions of any failed computer-generated import head before
+deleting that head, making successful and partial
 runs repeatable against the same `grafioschtrader_t`.
 
 The first scenario is `e2e/user/Swissquote`: its buy and dividend receipts both use the Grafioschtrader templates
@@ -710,6 +721,16 @@ reconciliation makes an interrupted or successful run repeatable against the sam
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/132-import-transactions-csv.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Transaction-import notification (133-*)
+
+`133-import-notification.spec.ts` navigates to `limit1`'s Migros securities account. It supplies fresh browser-local
+import heads and positions, expands a position, delays cash-account options, checks assignment and retained
+selection, and changes the selected import head while a previous position response is pending. It also exercises
+the GTNet head-selection dialog's delayed options, preserved draft, mode-dependent validation and re-enabled
+submit button after two rejected saves. All import/GTNet writes are intercepted; it creates no database rows
+and needs no database cleanup. Shared account fixtures remain unchanged. Run with
+`npx playwright test e2e/133-import-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## ISIN-change specs (135-* and 140-*)
 

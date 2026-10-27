@@ -1,4 +1,4 @@
-import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 
 import { ImportTransactionTemplate } from '../../entities/import.transaction.template';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -9,13 +9,15 @@ import { ImportTransactionTemplateService } from '../service/import.transaction.
 import { ParentChildRowSelection } from '../../lib/datashowbase/parent.child.row.selection';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { ImportTransactionPlatform } from '../../entities/import.transaction.platform';
-import { CrudMenuOptions, TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
+import { CrudMenuOptions } from '../../lib/datashowbase/table.crud.support.menu.helper';
+import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { plainToClass } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { combineLatest } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
@@ -29,28 +31,29 @@ import { ImportTransactionEditTemplateComponent } from './import-transaction-edi
   selector: 'import-transaction-template-table',
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="entityKeyName"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollHeight]="'flex'"
       [scrollable]="true"
       [stripedRows]="true"
       [showGridlines]="true"
       [containerClass]="{ 'data-container': true }"
       [showContextMenu]="isActivated()"
-      [contextMenuItems]="contextMenuItems"
-      [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [contextMenuItems]="contextMenuItems()"
+      [ownerHighlightFn]="ownerHighlight"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ entityNameUpper | translate }}</h4>
     </configurable-table>
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <import-transaction-edit-template
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         (closeDialog)="handleCloseDialog($event)">
       </import-transaction-edit-template>
@@ -58,11 +61,13 @@ import { ImportTransactionEditTemplateComponent } from './import-transaction-edi
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, ConfigurableTableComponent, ImportTransactionEditTemplateComponent]
 })
-export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenu<ImportTransactionTemplate> {
+export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenuSignal<ImportTransactionTemplate> {
   callParam: CallParam;
+  readonly ownerHighlight = (entity: ImportTransactionTemplate, field: ColumnConfig): boolean =>
+    this.isNotSingleModeAndOwner(entity, field);
+  private readSubscription?: Subscription;
 
   // Parent selected entity
   selectImportTransactionPlatform: ImportTransactionPlatform;
@@ -94,7 +99,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
       gps,
       usersettingsService,
       injector,
-      [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]
+      [CrudMenuOptions.ParentControl, ...TableCrudSupportMenuSignal.ALLOW_ALL_CRUD_OPERATIONS]
     );
 
     this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {
@@ -123,32 +128,42 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
     seclectImportTransactionPlatform: ImportTransactionPlatform,
     parentChildRowSelection: ParentChildRowSelection<ImportTransactionTemplate>
   ) {
+    if (
+      this.selectImportTransactionPlatform?.idTransactionImportPlatform !==
+      seclectImportTransactionPlatform?.idTransactionImportPlatform
+    ) {
+      this.entityList.set([]);
+      this.selectedEntity.set(null);
+    }
     this.selectImportTransactionPlatform = seclectImportTransactionPlatform;
     this.parentChildRowSelection = parentChildRowSelection;
     this.readData();
   }
 
   override readData(): void {
+    this.readSubscription?.unsubscribe();
     if (this.selectImportTransactionPlatform) {
-      combineLatest([
+      this.readSubscription = combineLatest([
         this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(
           this.selectImportTransactionPlatform.idTransactionImportPlatform,
           false
         ),
         this.importTransactionTemplateService.getPossibleLanguagesForTemplate()
-      ]).subscribe(([templates, languages]: [ImportTransactionTemplate[], any[]]) => {
-        this.createTranslatedValueStoreAndFilterField(templates);
-        this.entityList = plainToClass(ImportTransactionTemplate, templates);
-        languages.forEach((o: any) => {
-          this.languageAsKeyValue.key = o.key as string;
-          this.languageAsKeyValue[o.key as string] = o.value;
+      ])
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(([templates, languages]: [ImportTransactionTemplate[], any[]]) => {
+          this.createTranslatedValueStoreAndFilterField(templates);
+          this.entityList.set(plainToInstance(ImportTransactionTemplate, templates));
+          languages.forEach((o: any) => {
+            this.languageAsKeyValue[o.key as string] = o.value;
+          });
+          this.refreshSelectedEntity();
+          this.parentChildRowSelection?.rowSelectionChanged(this.entityList(), this.selectedEntity());
         });
-        this.refreshSelectedEntity();
-        this.parentChildRowSelection?.rowSelectionChanged(this.entityList, this.selectedEntity);
-      });
     } else {
-      this.entityList = [];
-      this.parentChildRowSelection?.rowSelectionChanged(this.entityList, this.selectedEntity);
+      this.entityList.set([]);
+      this.selectedEntity.set(null);
+      this.parentChildRowSelection?.rowSelectionChanged(this.entityList(), this.selectedEntity());
     }
   }
 
@@ -160,7 +175,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
     let menuItems: MenuItem[] = [];
     menuItems.push({ separator: true });
     if (this.selectImportTransactionPlatform) {
-      menuItems = menuItems.concat(super.prepareEditMenu(this.selectedEntity));
+      menuItems = menuItems.concat(super.prepareEditMenu(this.selectedEntity()));
     }
     return menuItems;
   }

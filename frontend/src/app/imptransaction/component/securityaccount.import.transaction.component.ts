@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Params } from '@angular/router';
@@ -78,17 +80,17 @@ import { GTNetImportHeadSelectDialogComponent } from './gtnet-import-head-select
       </securityaccount-import-transaction-edit-head>
     }
 
-    @if (visibleUploadFileDialog) {
+    @if (visibleUploadFileDialog()) {
       <upload-file-dialog
-        [visibleDialog]="visibleUploadFileDialog"
+        [visibleDialog]="visibleUploadFileDialog()"
         [fileUploadParam]="fileUploadParam"
         (closeDialog)="handleCloseImportUploadDialog($event)">
       </upload-file-dialog>
     }
 
-    @if (visibleGtnetHeadSelectDialog) {
+    @if (visibleGtnetHeadSelectDialog()) {
       <gtnet-import-head-select-dialog
-        [visibleDialog]="visibleGtnetHeadSelectDialog"
+        [visibleDialog]="visibleGtnetHeadSelectDialog()"
         [suggestedHeadName]="suggestedGtnetHeadName"
         [idTransactionHead]="$safeNavigationMigration(selectedEntity?.idTransactionHead)"
         (closeDialog)="handleCloseGtnetHeadSelectDialog($event)">
@@ -96,7 +98,6 @@ import { GTNetImportHeadSelectDialogComponent } from './gtnet-import-head-select
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     DynamicFormModule,
@@ -119,9 +120,8 @@ export class SecurityaccountImportTransactionComponent
   sitdc: SecurityaccountImportTransactionTableComponent;
 
   // Child Dialogs
-  visibleImportEditHeadDialog = false;
-  visibleUploadFileDialog = false;
-  visibleGtnetHeadSelectDialog = false;
+  readonly visibleUploadFileDialog = signal(false);
+  readonly visibleGtnetHeadSelectDialog = signal(false);
   fileUploadParam: FileUploadParam;
   // callParam: CallParam;
   importTransactionTemplates: ImportTransactionTemplate[];
@@ -131,6 +131,8 @@ export class SecurityaccountImportTransactionComponent
   securityAccount: Securityaccount;
 
   private routeSubscribe: Subscription;
+  private readSubscription?: Subscription;
+  private readonly injector = inject(Injector);
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -174,11 +176,24 @@ export class SecurityaccountImportTransactionComponent
   }
 
   ngOnInit(): void {
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      const id = +params['id'];
-      this.securityAccount = this.treeNavState.getEntity<Securityaccount>(AppSettings.SECURITYACCOUNT_IMPORT_KEY, id);
-      this.callParam = new CallParam(this.securityAccount, null);
-      this.loadImportTransactionTemplates().subscribe((importTransactionTemplates: ImportTransactionTemplate[]) => {
+    this.routeSubscribe = this.activatedRoute.params
+      .pipe(
+        switchMap((params: Params) => {
+          const id = +params['id'];
+          this.securityAccount = this.treeNavState.getEntity<Securityaccount>(
+            AppSettings.SECURITYACCOUNT_IMPORT_KEY,
+            id
+          );
+          this.readSubscription?.unsubscribe();
+          this.selectedEntity = null;
+          this.childEntityList = [];
+          this.successFailedDirectImportTransaction = null;
+          this.callParam = new CallParam(this.securityAccount, null);
+          return this.loadImportTransactionTemplates().pipe(map((templates) => ({ params, templates })));
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(({ params, templates: importTransactionTemplates }) => {
         this.importTransactionTemplates = importTransactionTemplates;
         if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
           this.successFailedDirectImportTransaction = JSON.parse(params[AppSettings.SUCCESS_FAILED_IMP_TRANS]);
@@ -188,12 +203,14 @@ export class SecurityaccountImportTransactionComponent
             this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'FAILED_TRANS_FROM_IMPORT');
           }
         }
-        setTimeout(() => {
-          this.valueChangedMainField();
-          this.readData();
-        });
+        afterNextRender(
+          () => {
+            this.valueChangedMainField();
+            this.readData();
+          },
+          { injector: this.injector }
+        );
       });
-    });
   }
 
   /**
@@ -224,8 +241,10 @@ export class SecurityaccountImportTransactionComponent
   }
 
   readData(): void {
-    this.importTransactionHeadService
+    this.readSubscription?.unsubscribe();
+    this.readSubscription = this.importTransactionHeadService
       .getImportTransactionHeadBySecurityaccount(this.securityAccount.idSecuritycashAccount)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((importTransactionHeads: ImportTransactionHead[]) => {
         this.entityList = plainToInstance(ImportTransactionHead, importTransactionHeads);
         this.configObject.idTransactionHead.valueKeyHtmlOptions =
@@ -305,7 +324,6 @@ export class SecurityaccountImportTransactionComponent
 
     // Add menu items of child data table
     menuItems.push(...this.sitdc.prepareEditMenu());
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
 
     return menuItems;
   }
@@ -319,12 +337,17 @@ export class SecurityaccountImportTransactionComponent
   }
 
   handleUploadCSVFile(): void {
+    const head = this.selectedEntity;
     const idPlatform = this.selectedEntity.useGtPlatform
       ? this.gpsGT.getTenantGtImportPlatformId()
       : this.securityAccount.tradingPlatformPlan.importTransactionPlatform.idTransactionImportPlatform;
     this.importTransactionTemplateService
       .getCSVTemplateIdsAsValueKeyHtmlSelectOptions(idPlatform)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((vkhso) => {
+        if (this.selectedEntity?.idTransactionHead !== head.idTransactionHead) {
+          return;
+        }
         const fieldConfig = [
           DynamicFieldHelper.createFieldSelectString(
             'idTransactionImportTemplate',
@@ -339,7 +362,7 @@ export class SecurityaccountImportTransactionComponent
         fieldConfig[0].valueKeyHtmlOptions = vkhso;
         this.handleUploadFiles(
           new AdditionalFieldConfig(fieldConfig, this.submitPrepareFN.bind(this)),
-          this.selectedEntity,
+          head,
           'UPLOAD_CSV',
           'csv',
           false
@@ -363,7 +386,7 @@ export class SecurityaccountImportTransactionComponent
       this.importTransactionHeadService,
       importTransactionHead.idTransactionHead
     );
-    this.visibleUploadFileDialog = true;
+    this.visibleUploadFileDialog.set(true);
   }
 
   submitPrepareFN(value: { [name: string]: any }, formData: FormData, fieldConfig: FieldConfig[]): void {
@@ -371,7 +394,7 @@ export class SecurityaccountImportTransactionComponent
   }
 
   handleCloseImportUploadDialog(processedActionData: ProcessedActionData): void {
-    this.visibleUploadFileDialog = false;
+    this.visibleUploadFileDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.setChildData(this.selectedEntity);
     }
@@ -384,12 +407,11 @@ export class SecurityaccountImportTransactionComponent
 
   protected override prepareShowMenu(): MenuItem[] {
     const menuItems = this.sitdc.prepareShowMenu();
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
   protected prepareCallParam(entity: ImportTransactionHead): void {
-    this.callParam.thisObject = entity;
+    this.callParam = new CallParam(this.securityAccount, entity);
   }
 
   /**
@@ -420,6 +442,7 @@ export class SecurityaccountImportTransactionComponent
     AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'MSG_CONFIRM_ROLLBACK_IMPORT', () =>
       this.importTransactionHeadService
         .rollbackImportedTransactions(this.selectedEntity.idTransactionHead)
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((noRecord: number) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_ROLLBACK_IMPORT', { noRecord });
           this.setChildData(this.selectedEntity);
@@ -433,7 +456,7 @@ export class SecurityaccountImportTransactionComponent
    */
   handleCreateGtnetImportFromMissing(): void {
     this.suggestedGtnetHeadName = this.selectedEntity?.name || '';
-    this.visibleGtnetHeadSelectDialog = true;
+    this.visibleGtnetHeadSelectDialog.set(true);
   }
 
   /**
@@ -442,7 +465,7 @@ export class SecurityaccountImportTransactionComponent
    * so the GTNet import tab can use it for auto-assigning securities.
    */
   handleCloseGtnetHeadSelectDialog(processedActionData: ProcessedActionData): void {
-    this.visibleGtnetHeadSelectDialog = false;
+    this.visibleGtnetHeadSelectDialog.set(false);
     if (processedActionData.action === ProcessedAction.CREATED && this.selectedEntity) {
       // Store idTransactionHead for the GTNet tab to read
       localStorage.setItem(AppSettings.ID_TRANSACTION_HEAD, String(this.selectedEntity.idTransactionHead));

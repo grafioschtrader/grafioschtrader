@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
@@ -80,26 +82,25 @@ import { TemplateFormCheckDialogComponent } from './template-form-check-dialog.c
       <import-transaction-edit-platform
         [visibleDialog]="visibleEditDialog"
         [callParam]="callParam"
-        [platformTransactionImportHtmlOptions]="platformTransactionImportHtmlOptions"
+        [platformTransactionImportHtmlOptions]="platformTransactionImportHtmlOptions()"
         (closeDialog)="handleCloseEditDialog($event)">
       </import-transaction-edit-platform>
     }
-    @if (visibleTransformPDFToTxtDialog) {
+    @if (visibleTransformPDFToTxtDialog()) {
       <transform-pdf-to-txt-dialog
-        [visibleDialog]="visibleTransformPDFToTxtDialog"
+        [visibleDialog]="visibleTransformPDFToTxtDialog()"
         (closeDialog)="handleCloseTransformPDFToTxtDialog()">
       </transform-pdf-to-txt-dialog>
     }
-    @if (visibleTemplateFormCheckDialog) {
+    @if (visibleTemplateFormCheckDialog()) {
       <template-form-check-dialog
-        [visibleDialog]="visibleTemplateFormCheckDialog"
+        [visibleDialog]="visibleTemplateFormCheckDialog()"
         [importTransactionPlatform]="selectedEntity"
         (closeDialog)="handleCloseTemplateFormCheckDialog()">
       </template-form-check-dialog>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -122,9 +123,11 @@ export class ImportTransactionTemplateComponent
   @ViewChild(ImportTransactionTemplateTableComponent)
   ittdc: ImportTransactionTemplateTableComponent;
 
-  visibleTransformPDFToTxtDialog: boolean;
-  visibleTemplateFormCheckDialog: boolean;
-  platformTransactionImportHtmlOptions: ValueKeyHtmlSelectOptions[];
+  private readonly injector = inject(Injector);
+  private readSubscription?: Subscription;
+  readonly visibleTransformPDFToTxtDialog = signal(false);
+  readonly visibleTemplateFormCheckDialog = signal(false);
+  readonly platformTransactionImportHtmlOptions = signal<ValueKeyHtmlSelectOptions[]>([]);
   /** The platform of this instance holding the Grafioschtrader authored import templates, null when unset. */
   gtImportPlatformId: number | null;
 
@@ -169,24 +172,32 @@ export class ImportTransactionTemplateComponent
     this.gtImportPlatformId = this.gpsGT.getGtImportPlatformId();
     this.importTransactionPlatformService
       .getPlatformTransactionImport()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((platformTransactionImports: IPlatformTransactionImport[]) => {
-        this.platformTransactionImportHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-          'id',
-          'readableName',
-          platformTransactionImports,
-          true
+        this.platformTransactionImportHtmlOptions.set(
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+            'id',
+            'readableName',
+            platformTransactionImports,
+            true
+          )
         );
-        this.configObject.idCsvImportImplementation.valueKeyHtmlOptions = this.platformTransactionImportHtmlOptions;
-        setTimeout(() => {
-          this.valueChangedMainField();
-          this.readData();
-        });
+        this.configObject.idCsvImportImplementation.valueKeyHtmlOptions = this.platformTransactionImportHtmlOptions();
+        afterNextRender(
+          () => {
+            this.valueChangedMainField();
+            this.readData();
+          },
+          { injector: this.injector }
+        );
       });
   }
 
   readData(): void {
-    this.importTransactionPlatformService
+    this.readSubscription?.unsubscribe();
+    this.readSubscription = this.importTransactionPlatformService
       .getAllImportTransactionPlatforms()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((importTransactionPlatforms: ImportTransactionPlatform[]) => {
         this.entityList = plainToInstance(ImportTransactionPlatform, importTransactionPlatforms);
         this.configObject.idTransactionImportPlatform.valueKeyHtmlOptions =
@@ -196,7 +207,7 @@ export class ImportTransactionTemplateComponent
             importTransactionPlatforms,
             true
           );
-        setTimeout(() => this.setFieldValues());
+        afterNextRender(() => this.setFieldValues(), { injector: this.injector });
       });
   }
 
@@ -233,26 +244,25 @@ export class ImportTransactionTemplateComponent
       disabled: !this.selectedEntity || this.ittdc.isEmpty()
     });
 
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     menuItems.splice(menuItems.length - 2, 0, ...this.ittdc.prepareEditMenu());
 
     return menuItems;
   }
 
   transformPDFToTxtDialog(): void {
-    this.visibleTransformPDFToTxtDialog = true;
+    this.visibleTransformPDFToTxtDialog.set(true);
   }
 
   testTemplateDialog(): void {
-    this.visibleTemplateFormCheckDialog = true;
+    this.visibleTemplateFormCheckDialog.set(true);
   }
 
   handleCloseTransformPDFToTxtDialog(): void {
-    this.visibleTransformPDFToTxtDialog = false;
+    this.visibleTransformPDFToTxtDialog.set(false);
   }
 
   handleCloseTemplateFormCheckDialog() {
-    this.visibleTemplateFormCheckDialog = false;
+    this.visibleTemplateFormCheckDialog.set(false);
   }
 
   rowSelectionChanged(childEntityList: ImportTransactionTemplate[], childSelectedEntity: ImportTransactionTemplate) {
@@ -281,6 +291,7 @@ export class ImportTransactionTemplateComponent
   private setAsGtImportPlatform(itp: ImportTransactionPlatform): void {
     this.importTransactionPlatformService
       .setGtImportPlatform(itp.idTransactionImportPlatform)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((idTransactionImportPlatform: number | null) => {
         this.gtImportPlatformId = idTransactionImportPlatform;
         this.gpsGT.setGtImportPlatformId(idTransactionImportPlatform);
@@ -304,6 +315,7 @@ export class ImportTransactionTemplateComponent
   private uploadTemplateFiles(formData: FormData): void {
     this.importTransactionTemplateService
       .uploadImportTemplateFiles(this.selectedEntity.idTransactionImportPlatform, formData)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((sitt: SuccessFailedImportTransactionTemplate) => {
         this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'UPLOAD_TEMPLATES_SUCCESS', {
           successNew: sitt.successNew,

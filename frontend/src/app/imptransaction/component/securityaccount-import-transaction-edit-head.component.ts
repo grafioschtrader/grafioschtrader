@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
@@ -35,13 +35,14 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class SecurityaccountImportTransactionEditHeadComponent
   extends SimpleEntityEditBase<ImportTransactionHead>
   implements OnInit
 {
+  private readonly injector = inject(Injector);
+
   @Input() callParam: CallParam;
 
   constructor(
@@ -80,7 +81,7 @@ export class SecurityaccountImportTransactionEditHeadComponent
     if (this.callParam.thisObject) {
       this.form.transferBusinessObjectToForm(this.callParam.thisObject);
     }
-    setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
+    afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionHead {

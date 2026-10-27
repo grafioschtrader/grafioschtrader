@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { ImportTransactionPlatform } from '../../entities/import.transaction.platform';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -38,13 +38,14 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class ImportTransactionEditPlatformComponent
   extends SimpleEntityEditBase<ImportTransactionPlatform>
   implements OnInit
 {
+  private readonly injector = inject(Injector);
+
   @Input() callParam: CallParam;
   @Input() platformTransactionImportHtmlOptions: ValueKeyHtmlSelectOptions[];
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
@@ -88,7 +89,7 @@ export class ImportTransactionEditPlatformComponent
       this.configObject,
       this.proposeChangeEntityWithEntity
     );
-    setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
+    afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionPlatform {

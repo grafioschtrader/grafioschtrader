@@ -1,14 +1,13 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { TabsModule } from '@openng/optimus-ui/tabs';
 
 import { AppSettings } from '../../shared/app.settings';
 import { Securityaccount } from '../../entities/securityaccount';
 import { TabItem } from '../../lib/types/tab.item';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
 
@@ -20,7 +19,7 @@ import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navi
 @Component({
   template: `
     <div class="card">
-      <p-tabs [value]="activeIndex">
+      <p-tabs [value]="activeIndex()">
         <p-tablist>
           @for (tab of tabs; track tab.route; let i = $index) {
             <p-tab [value]="i" (click)="onTabClick(i)">
@@ -33,12 +32,11 @@ import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navi
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, RouterModule, TabsModule, TranslateModule]
 })
 export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy {
   tabs: TabItem[] = [];
-  activeIndex: number = 0;
+  readonly activeIndex = signal(0);
 
   private securityaccount: Securityaccount;
   private successFailedImportTransParam: any = null;
@@ -48,7 +46,6 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
   constructor(
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private translateService: TranslateService,
     private gps: GlobalparameterService,
     private treeNavState: TreeNavigationStateService
   ) {}
@@ -69,8 +66,6 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
         icon: ''
       });
     }
-
-    TranslateHelper.translateMenuItems(this.tabs, this.translateService);
 
     this.routeParamSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       const id = +params['id'];
@@ -102,7 +97,7 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
   }
 
   onTabClick(index: number): void {
-    if (this.activeIndex !== index) {
+    if (this.activeIndex() !== index) {
       this.navigateToTab(index);
     }
   }
@@ -112,7 +107,7 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
       return;
     }
 
-    this.activeIndex = index;
+    this.activeIndex.set(index);
     const tab = this.tabs[index];
     // Store entity in shared service so child components can access it
     this.treeNavState.setEntity(tab.route, this.securityaccount.idSecuritycashAccount, this.securityaccount);

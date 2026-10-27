@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -41,7 +41,6 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class ImportTransactionEditTemplateComponent
@@ -87,27 +86,30 @@ export class ImportTransactionEditTemplateComponent
   }
 
   protected override initialize(): void {
-    this.importTransactionTemplateService.getPossibleLanguagesForTemplate().subscribe((data) => {
-      this.configObject.templateFormatType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-        this.translateService,
-        TemplateFormatType
-      );
-      this.configObject.templateCategory.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-        this.translateService,
-        TemplateCategory
-      );
-      this.configObject.templateLanguage.valueKeyHtmlOptions = data;
-      this.form.setDefaultValuesAndEnableSubmit();
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-        this.translateService,
-        this.gps,
-        <Auditable>this.callParam.thisObject,
-        this.form,
-        this.configObject,
-        this.proposeChangeEntityWithEntity
-      );
-      this.configObject.templatePurpose.elementRef.nativeElement.focus();
-    });
+    this.form.setDefaultValuesAndEnableSubmit();
+    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
+      this.translateService,
+      this.gps,
+      <Auditable>this.callParam.thisObject,
+      this.form,
+      this.configObject,
+      this.proposeChangeEntityWithEntity
+    );
+    this.importTransactionTemplateService
+      .getPossibleLanguagesForTemplate()
+      .pipe(this.untilDialogClosed())
+      .subscribe((data) => {
+        this.configObject.templateFormatType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+          this.translateService,
+          TemplateFormatType
+        );
+        this.configObject.templateCategory.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+          this.translateService,
+          TemplateCategory
+        );
+        this.configObject.templateLanguage.valueKeyHtmlOptions = data;
+        this.configObject.templatePurpose.elementRef.nativeElement.focus();
+      });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionTemplate {
