@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -46,7 +46,6 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DialogModule, DynamicFormModule, WatchlistAddInstrumentTableComponent]
 })
 export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearchBase {

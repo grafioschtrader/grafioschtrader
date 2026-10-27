@@ -68,6 +68,13 @@ notifies Angular of every change it makes, so a new component never needs `Eager
   `pageFirstRowSelectedRow()`. Their edit dialogs use `TransactionBaseOperations`: initialise through
   `initializeAfterRender()`, bind streams with `untilDialogClosed()` and end the session on hide. Replace competing
   holdings, quotation and exchange-rate requests through `replaceDialogRequest()`.
+- **Watchlist tabs on `WatchlistTable`** hold report, selection, menu and dialog visibility in signals. Their combined
+  instrument list is derived from the report; copy rows and instruments before publishing it. Superseded reads are
+  cancelled through `replaceWatchlistRequest()`, and stored filters are restored through `afterNextRender`.
+- **Algo hierarchy views on `AlgoTreeViewBase`** derive their tree from the `algoTop` signal; use `patchHierarchyRow()`
+  to replace edited rows while retaining expansion and selection. `replaceAlgoRequest()` cancels a superseded read,
+  including strategy details. Rebuilding a dialog's plain field configuration needs `viewChanged()` even when its
+  strategy type and width stay unchanged; initialise the rendered controls through `afterNextRender`.
 - **Master-detail views on `SingleRecordMasterViewBase`** keep its property API: selection, lists, edit-dialog
   visibility, call parameters and context menus are backed by signals. Always replace records, nested arrays and
   lists; a mutation inside `selectedEntity` does not notify. `valueChangedMainField()` replaces the previous control

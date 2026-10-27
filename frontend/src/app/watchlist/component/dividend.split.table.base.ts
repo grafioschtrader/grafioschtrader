@@ -1,4 +1,4 @@
-import { Injector } from '@angular/core';
+import { DestroyRef, inject, signal, Injector } from '@angular/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { SvgIconRegistryService } from 'angular-svg-icon';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
@@ -15,8 +15,10 @@ import { FilterService } from '@openng/optimus-ui/api';
  * icon registration, sorting configuration, and create type visualization.
  */
 export abstract class DividendSplitTableBase<S extends DividendSplit> extends TableConfigBase {
+  protected readonly destroyRef = inject(DestroyRef);
+
   /** Array of dividend or split entities to display in the table */
-  data: S[];
+  readonly data = signal<S[]>(undefined);
 
   /**
    * Creates a new dividend/split table base with sorting and icon configuration.

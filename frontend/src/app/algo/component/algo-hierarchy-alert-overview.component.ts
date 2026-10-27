@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { DestroyRef, inject, signal, Component, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
@@ -37,16 +38,17 @@ interface HierarchyAlertRow {
 @Component({
   selector: 'algo-hierarchy-alert-overview',
   template: `
-    @if (treeNodes.length > 0) {
+    @if (treeNodes().length > 0) {
       <h5>{{ 'ALGO_HIERARCHY_ALERTS' | translate }}</h5>
       <configurable-tree-table
-        [data]="treeNodes"
+        [data]="treeNodes()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="nodeKey"
         [selectionMode]="null"
-        [valueGetterFn]="getValueByPath.bind(this)"
-        [rowClassFn]="getRowClass.bind(this)"
-        [cellClassFn]="getCellClass.bind(this)"
+        [valueGetterFn]="valueGetter"
+        [rowClassFn]="getRowClassCallback"
+        [cellClassFn]="getCellClassCallback"
         [enableSort]="false">
       </configurable-tree-table>
     }
@@ -59,15 +61,18 @@ interface HierarchyAlertRow {
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, ConfigurableTreeTableComponent]
 })
 export class AlgoHierarchyAlertOverviewComponent extends TreeTableConfigBase implements OnInit {
+  readonly getRowClassCallback = (rowNode: any, rowData: HierarchyAlertRow) => this.getRowClass(rowNode, rowData);
+  readonly getCellClassCallback = (rowData: HierarchyAlertRow, field: ColumnConfig) =>
+    this.getCellClass(rowData, field);
+  protected readonly destroyRef = inject(DestroyRef);
   private static readonly MONITORED = 'ALGO_ALERT_MONITORED';
   private static readonly DORMANT = 'ALGO_ALERT_DORMANT_NOT_ASSIGNED';
   private static readonly SWITCHED_OFF = 'ALGO_ALERT_SWITCHED_OFF';
 
-  treeNodes: TreeNode[] = [];
+  readonly treeNodes = signal<TreeNode[]>([]);
 
   /**
    * @param algoAlertService - Reads the alerts of the tenant's hierarchies
@@ -92,10 +97,13 @@ export class AlgoHierarchyAlertOverviewComponent extends TreeTableConfigBase imp
   }
 
   ngOnInit(): void {
-    this.algoAlertService.hierarchyAlerts().subscribe((groups: AlgoTopAlertGroup[]) => {
-      this.treeNodes = groups.map((group) => this.createTopNode(group));
-      this.createTranslateValuesStoreForTranslation(this.treeNodes);
-    });
+    this.algoAlertService
+      .hierarchyAlerts()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((groups: AlgoTopAlertGroup[]) => {
+        this.treeNodes.set(groups.map((group) => this.createTopNode(group)));
+        this.createTranslateValuesStoreForTranslation(this.treeNodes());
+      });
   }
 
   /** Hierarchy rows are bold. */

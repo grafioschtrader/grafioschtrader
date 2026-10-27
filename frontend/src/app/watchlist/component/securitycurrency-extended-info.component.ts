@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, effect, input, untracked } from '@angular/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -26,20 +26,19 @@ import { AppHelper } from '../../lib/helper/app.helper';
   selector: 'securitycurrency-extended-info',
   templateUrl: '../view/securitycurrency.base.info.fields.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TooltipModule, ReplacePipe]
 })
-export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseInfoFields implements OnInit, OnChanges {
+export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseInfoFields {
   /** URL for intraday price data feed */
-  @Input() intradayUrl: string;
+  readonly intradayUrl = input<string>();
   /** URL for historical price data feed */
-  @Input() historicalUrl: string;
+  readonly historicalUrl = input<string>();
   /** URL for dividend data feed */
-  @Input() dividendUrl: string;
+  readonly dividendUrl = input<string>();
   /** URL for stock split data feed */
-  @Input() splitUrl: string;
+  readonly splitUrl = input<string>();
   /** Key-value mapping of feed connector IDs to human-readable names */
-  @Input() feedConnectorsKV: { [id: string]: string };
+  readonly feedConnectorsKV = input<{ [id: string]: string }>({});
   /** Fieldset name constant for quotation data grouping */
   readonly QUOTATION_DATA = 'QUOTATION_DATA';
 
@@ -57,46 +56,30 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
     gps: GlobalparameterService
   ) {
     super(watchlistService, securityService, translateService, gps);
+    effect(() => {
+      this.securitycurrency();
+      this.intradayUrl();
+      this.historicalUrl();
+      this.dividendUrl();
+      this.splitUrl();
+      this.feedConnectorsKV();
+      untracked(() => this.initializeContent());
+    });
   }
 
-  /** Flag to track if fields have been initialized */
-  private fieldsInitialized = false;
-
-  /**
-   * Initializes the component by setting up field definitions, adding quotation data fields,
-   * translating headers and columns, and creating the content model with extended information.
-   */
-  ngOnInit(): void {
+  /** Rebuilds the record when the instrument or one of its lazily loaded URLs changes. */
+  private initializeContent(): void {
     super.initializeFields();
     this.addQuotationDataFields();
     this.translateHeadersAndColumns();
     this.content = new ContentExtendedInfo(
-      this.intradayUrl,
-      this.historicalUrl,
-      this.dividendUrl,
-      this.splitUrl,
-      this.securitycurrency
+      this.intradayUrl(),
+      this.historicalUrl(),
+      this.dividendUrl(),
+      this.splitUrl(),
+      this.securitycurrency()
     );
     this.createTranslatedValueStore([this.content]);
-    this.fieldsInitialized = true;
-  }
-
-  /**
-   * Handles changes to input properties. Updates the content model when URL inputs change
-   * after initial setup, ensuring the display reflects the latest URL values.
-   */
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.fieldsInitialized && this.content) {
-      const urlChanged =
-        changes['intradayUrl'] || changes['historicalUrl'] || changes['dividendUrl'] || changes['splitUrl'];
-      if (urlChanged) {
-        // Update the content object with new URL values
-        (this.content as ContentExtendedInfo).intradayUrl = this.intradayUrl;
-        (this.content as ContentExtendedInfo).historicalUrl = this.historicalUrl;
-        (this.content as ContentExtendedInfo).dividendUrl = this.dividendUrl;
-        (this.content as ContentExtendedInfo).splitUrl = this.splitUrl;
-      }
-    }
   }
 
   /**
@@ -179,8 +162,8 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
    * Only adds fields if the security is not a currency pair and meets dividend connector criteria.
    */
   private addDividendGroup(): void {
-    if (!(this.securitycurrency instanceof CurrencypairWatchlist)) {
-      const s = <Security>this.securitycurrency;
+    if (!(this.securitycurrency() instanceof CurrencypairWatchlist)) {
+      const s = <Security>this.securitycurrency();
       if (
         Security.canHaveDividendConnector(
           s.assetClass,
@@ -213,8 +196,8 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
    * Only adds fields if the security is not a currency pair and meets split connector criteria.
    */
   private addSplitGroup(): void {
-    if (!(this.securitycurrency instanceof CurrencypairWatchlist)) {
-      const s = <Security>this.securitycurrency;
+    if (!(this.securitycurrency() instanceof CurrencypairWatchlist)) {
+      const s = <Security>this.securitycurrency();
       if (Security.canHaveSplitConnector(s.assetClass, !s.stockexchange.noMarketValue)) {
         this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'idConnectorSplit', {
           fieldsetName: AppSettings.SPLIT_SETTINGS,
@@ -242,7 +225,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
    * @returns Human-readable name for the feed connector or undefined if not found
    */
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
-    return this.feedConnectorsKV[valueField];
+    return this.feedConnectorsKV()[valueField];
   }
 
   protected readonly AppHelper = AppHelper;

@@ -305,6 +305,27 @@ test.describe('historical replay', () => {
     await expect(panel.getByText(RX.completed).first()).toBeVisible({ timeout: 15_000 });
     await expect(panel.getByText(RX.applyTaxModels).first()).toBeVisible();
     await expect(panel.getByText(RX.generateBondCoupons).first()).toBeVisible();
+
+    // The frozen hierarchy is a separate OnPush route. It must render after its response without another click.
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    let settingsArrived = false;
+    await page.route(`**/api/tenant/simulation/${simulation.idTenant}/run/settings`, async (route) => {
+      const settings = await route.fetch();
+      expect(settings.ok()).toBeTruthy();
+      settingsArrived = true;
+      await gate;
+      await route.fulfill({ response: settings });
+    });
+    await page.locator('p-tabs').getByRole('tab').last().click();
+    await expect.poll(() => settingsArrived).toBe(true);
+    const frozen = page.locator('algo-simulation-run-settings');
+    await expect(frozen.locator('tbody tr')).toHaveCount(0);
+    release();
+    await expect(frozen.locator('tbody tr')).toHaveCount(2);
+    await expect(frozen.getByRole('gridcell', { name: new RegExp(PREFIX) })).toBeVisible();
+    await expect(frozen.getByRole('columnheader', { name: /Used|Verwendet/i })).toBeVisible();
+    await expect(frozen.locator('tbody tr').first().getByRole('gridcell').nth(2)).toHaveText(/^\s*100(?:[.,]00)?\s*$/);
   });
 
   test('repeating a replay replaces the previous result rather than appending to it', async ({ page }) => {

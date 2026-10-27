@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { computed, signal, Component, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Params } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -12,7 +13,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { AlgoTop } from '../model/algo.top';
 import { AlgoAssetclass } from '../model/algo.assetclass';
 import { AlgoSecurity } from '../model/algo.security';
-import { SimulationRunAllocation, SimulationRunSettings } from '../model/simulation.run';
+import { SimulationRunSettings } from '../model/simulation.run';
 import { AlgoStrategyService } from '../service/algo.strategy.service';
 import { AlgoSimulationRunService } from '../service/algo-simulation-run.service';
 import { AlgoTreeViewBase } from './algo.tree.view.base';
@@ -31,7 +32,6 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 @Component({
   selector: 'algo-simulation-run-settings',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     TranslateModule,
     ConfigurableTreeTableComponent,
@@ -41,25 +41,26 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   ],
   template: `
     <div class="data-container">
-      @if (settings === null) {
+      @if (settings() === null) {
         <p>{{ 'SIMULATION_RUN_NONE' | translate }}</p>
-      } @else if (settings) {
+      } @else if (settings()) {
         <div class="row">
           <div class="col-md-2 showlabel text-end">{{ submittedAtField.headerTranslated }}:</div>
-          <div class="col-md-10 nopadding wrap">{{ getValueByPath(settings, submittedAtField) }}</div>
+          <div class="col-md-10 nopadding wrap">{{ getValueByPath(settings(), submittedAtField) }}</div>
         </div>
-        @if (treeNodes) {
+        @if (treeNodes()) {
           <configurable-tree-table
-            [data]="treeNodes"
+            [data]="treeNodes()"
             [fields]="fields"
+            [fieldsRevision]="fieldsRevision()"
             dataKey="idTree"
             [(selection)]="selectedNode"
             (nodeSelect)="onNodeSelect($event)"
             (nodeUnselect)="onNodeUnselect($event)"
             [showContextMenu]="false"
-            [valueGetterFn]="getValueByPath.bind(this)"
+            [valueGetterFn]="valueGetter"
             [baseLocale]="baseLocale"
-            [rowClassFn]="getAlgoRowClass.bind(this)"
+            [rowClassFn]="getAlgoRowClassCallback"
             [enableSort]="false">
             <h4 caption>{{ 'SIMULATION_RUN_SETTINGS' | translate }}</h4>
             <ng-template #iconCell let-row let-value="value">
@@ -75,8 +76,8 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
               }
             </ng-template>
           </configurable-tree-table>
-          @if (algoStrategyShowParamCall.algoStrategy) {
-            <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall"> </strategy-detail>
+          @if (algoStrategyShowParamCall().algoStrategy) {
+            <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall()"> </strategy-detail>
           }
         } @else {
           <p>{{ 'SIMULATION_RUN_SETTINGS_NONE' | translate }}</p>
@@ -93,10 +94,11 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   ]
 })
 export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase implements OnInit, OnDestroy {
+  readonly getAlgoRowClassCallback = (rowNode: any, rowData: any) => this.getAlgoRowClass(rowNode, rowData);
   /** Undefined while loading, null when the environment has never been replayed. */
-  settings: SimulationRunSettings | null;
+  readonly settings = signal<SimulationRunSettings | null>(undefined);
   submittedAtField: ColumnConfig;
-  private allocation: SimulationRunAllocation;
+  private readonly allocation = computed(() => this.settings()?.allocation);
   private routeSubscribe: Subscription;
 
   /**
@@ -131,10 +133,16 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
 
   ngOnInit(): void {
     this.translateHeadersAndColumns();
-    this.translateService.get(this.submittedAtField.headerKey).subscribe((text) => {
-      this.submittedAtField.headerTranslated = text;
-    });
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => this.readSettings(+params['id']));
+    this.translateService
+      .get(this.submittedAtField.headerKey)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((text) => {
+        this.submittedAtField.headerTranslated = text;
+        this.notifyViewChanged();
+      });
+    this.routeSubscribe = this.activatedRoute.params
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params: Params) => this.readSettings(+params['id']));
   }
 
   ngOnDestroy(): void {
@@ -142,17 +150,21 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
   }
 
   private readSettings(idTenant: number): void {
-    this.settings = undefined;
-    this.treeNodes = null;
-    this.selectedNode = null;
-    this.algoStrategyShowParamCall.algoStrategy = null;
-    this.runService.settings(idTenant).subscribe((settings) => {
-      this.settings = settings ?? null;
-      this.allocation = settings?.allocation;
-      if (settings?.hierarchy) {
-        this.buildTree(settings.hierarchy.algoTop, settings.hierarchy.algoAssetclassList);
-      }
-    });
+    this.settings.set(undefined);
+    this.algoTop.set(null);
+    this.selectedNode.set(null);
+    this.onNodeUnselect(null);
+    this.replaceAlgoRequest('settings').add(
+      this.runService
+        .settings(idTenant)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((settings) => {
+          this.settings.set(settings ?? null);
+          if (settings?.hierarchy) {
+            this.buildTree(settings.hierarchy.algoTop, settings.hierarchy.algoAssetclassList);
+          }
+        })
+    );
   }
 
   /**
@@ -171,7 +183,7 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
    * instrument, was recorded with its original weight but received none, so it shows zero.
    */
   private lookupUsedPercentage(dataobject: any): number {
-    const a = this.allocation;
+    const a = this.allocation();
     if (!a) {
       return null;
     }

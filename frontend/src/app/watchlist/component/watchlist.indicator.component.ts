@@ -1,5 +1,6 @@
+import { signal, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CellMark } from '../../lib/datashowbase/configurable-table.component';
-import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { WatchlistTable, WatchListType } from './watchlist.table';
 import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
@@ -54,7 +55,6 @@ import { SecuritycurrencyIndicatorGroup, WatchlistIndicatorColumn } from '../mod
   ],
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ButtonModule,
@@ -74,7 +74,7 @@ import { SecuritycurrencyIndicatorGroup, WatchlistIndicatorColumn } from '../mod
 })
 /** Daily-series indicator table; column identity and types are supplied by the backend. */
 export class WatchlistIndicatorComponent extends WatchlistTable implements OnInit, OnDestroy {
-  indicatorGroup: SecuritycurrencyIndicatorGroup;
+  readonly indicatorGroup = signal<SecuritycurrencyIndicatorGroup>(undefined);
   private definitions = new Map<string, WatchlistIndicatorColumn>();
   constructor(
     private indicatorService: WatchlistIndicatorService,
@@ -141,60 +141,68 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
     this.getWatchlistWithoutUpdate();
   }
   protected override getWatchlistWithoutUpdate(): void {
-    combineLatest([
-      this.indicatorService.report(this.idWatchlist),
-      this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist)
-    ]).subscribe({
-      next: ([group, limits]) => {
-        this.indicatorGroup = group;
-        this.tenantLimits = limits;
-        this.fields = this.fields.filter((f) => !f.field.startsWith('ind_'));
-        this.definitions.clear();
-        group.columns.forEach((column) => {
-          const key = 'ind_' + column.idWatchlistIndicatorColumn;
-          this.definitions.set(key, column);
-          const cc = this.addColumn(
-            column.resultType === 'BOOLEAN' ? DataType.Boolean : DataType.NumericShowZero,
-            key,
-            key,
-            true,
-            true,
-            {
-              fixedFractionDigits: column.decimals,
-              filterType: FilterType.likeDataType,
-              templateName: column.resultType === 'BOOLEAN' ? 'check' : undefined,
-              cellTooltipFN: (row) => this.indicatorTooltip(row, column)
-            }
-          );
-          const benchmark = group.benchmarks[column.idBenchmark];
-          cc.headerTooltipTranslated =
-            column.expression +
-            (benchmark
-              ? '\n' + benchmark.name
-              : column.idBenchmark == null && /\b(RS|BETA)\s*\(/i.test(column.expression)
-                ? '\n' + this.translateService.instant('WIC_BENCHMARK_MISSING')
-                : '');
-        });
-        this.prepareTableAndTranslate();
-        this.fields.forEach((field) => {
-          const column = this.definitions.get(field.field);
-          if (column) field.headerTranslated = column.label;
-        });
-        this.readTableDefinition(AppSettings.WATCHLIST_INDICATOR_TABLE_SETTINGS_STORE);
-        [...group.securityPositionList, ...group.currencypairPositionList].forEach((row) =>
-          group.columns.forEach((column) => {
-            row['ind_' + column.idWatchlistIndicatorColumn] =
-              group.cells[row.securitycurrency.idSecuritycurrency]?.[column.idWatchlistIndicatorColumn]?.value ?? null;
-          })
-        );
-        this.createSecurityPositionList(group);
-        this.loading = false;
-      },
-      error: () => (this.loading = false)
-    });
+    this.replaceWatchlistRequest('data').add(
+      combineLatest([
+        this.indicatorService.report(this.idWatchlist),
+        this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist)
+      ])
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: ([group, limits]) => {
+            this.indicatorGroup.set(group);
+            this.tenantLimits.set(limits);
+            this.fields = this.fields.filter((f) => !f.field.startsWith('ind_'));
+            this.definitions.clear();
+            group.columns.forEach((column) => {
+              const key = 'ind_' + column.idWatchlistIndicatorColumn;
+              this.definitions.set(key, column);
+              const cc = this.addColumn(
+                column.resultType === 'BOOLEAN' ? DataType.Boolean : DataType.NumericShowZero,
+                key,
+                key,
+                true,
+                true,
+                {
+                  fixedFractionDigits: column.decimals,
+                  filterType: FilterType.likeDataType,
+                  templateName: column.resultType === 'BOOLEAN' ? 'check' : undefined,
+                  cellTooltipFN: (row) => this.indicatorTooltip(row, column)
+                }
+              );
+              const benchmark = group.benchmarks[column.idBenchmark];
+              cc.headerTooltipTranslated =
+                column.expression +
+                (benchmark
+                  ? '\n' + benchmark.name
+                  : column.idBenchmark == null && /\b(RS|BETA)\s*\(/i.test(column.expression)
+                    ? '\n' + this.translateService.instant('WIC_BENCHMARK_MISSING')
+                    : '');
+            });
+            this.prepareTableAndTranslate();
+            this.fields.forEach((field) => {
+              const column = this.definitions.get(field.field);
+              if (column) field.headerTranslated = column.label;
+            });
+            this.readTableDefinition(AppSettings.WATCHLIST_INDICATOR_TABLE_SETTINGS_STORE);
+            [...group.securityPositionList, ...group.currencypairPositionList].forEach((row) =>
+              group.columns.forEach((column) => {
+                row['ind_' + column.idWatchlistIndicatorColumn] =
+                  group.cells[row.securitycurrency.idSecuritycurrency]?.[column.idWatchlistIndicatorColumn]?.value ??
+                  null;
+              })
+            );
+            this.createSecurityPositionList(group);
+            this.loading.set(false);
+          },
+          error: () => this.loading.set(false)
+        })
+    );
   }
   createDefaults(): void {
-    this.indicatorService.defaults().subscribe(() => this.getWatchlistWithoutUpdate());
+    this.indicatorService
+      .defaults()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.getWatchlistWithoutUpdate());
   }
   editColumns(): void {
     const ref = this.dialogService.open(WatchlistIndicatorColumnsDialogComponent, {
@@ -204,17 +212,17 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
       closable: true,
       closeOnEscape: true
     });
-    ref.onClose.subscribe(() => this.getWatchlistWithoutUpdate());
+    ref.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.getWatchlistWithoutUpdate());
   }
   protected override getEditMenuItems(position): MenuItem[] {
     return [...super.getEditMenuItems(position), { label: 'WIC_EDIT_COLUMNS', command: () => this.editColumns() }];
   }
   private indicatorTooltip(row, column: WatchlistIndicatorColumn): string {
     const cell =
-      this.indicatorGroup?.cells[row.securitycurrency.idSecuritycurrency]?.[column.idWatchlistIndicatorColumn];
+      this.indicatorGroup()?.cells[row.securitycurrency.idSecuritycurrency]?.[column.idWatchlistIndicatorColumn];
     if (!cell) return '';
     if (cell.status !== 'OK') return this.translateService.instant('WIC_STATUS_' + cell.status);
-    const benchmark = this.indicatorGroup.benchmarks[column.idBenchmark];
+    const benchmark = this.indicatorGroup().benchmarks[column.idBenchmark];
     const currency = row.securitycurrency.currency ?? row.securitycurrency.toCurrency;
     return (
       (cell.lastCommonDate ?? '') +
@@ -228,8 +236,8 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
    * converted value, the original currency and the exchange rate.
    */
   private fundamentalTooltip(idSecuritycurrency: number, column: WatchlistIndicatorColumn): string {
-    const variables = this.indicatorGroup.columnFundamentalVariables?.[column.idWatchlistIndicatorColumn] ?? [];
-    const infos = this.indicatorGroup.fundamentalInfo?.[idSecuritycurrency] ?? {};
+    const variables = this.indicatorGroup().columnFundamentalVariables?.[column.idWatchlistIndicatorColumn] ?? [];
+    const infos = this.indicatorGroup().fundamentalInfo?.[idSecuritycurrency] ?? {};
     return variables
       .filter((variable) => infos[variable])
       .map((variable) => {
@@ -249,7 +257,7 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
     const column = this.definitions.get(field.field);
     if (!column) return null;
     const cell =
-      this.indicatorGroup?.cells[position.securitycurrency.idSecuritycurrency]?.[column.idWatchlistIndicatorColumn];
+      this.indicatorGroup()?.cells[position.securitycurrency.idSecuritycurrency]?.[column.idWatchlistIndicatorColumn];
     return cell && (cell.status !== 'OK' || (column.resultType === 'BOOLEAN' && cell.lastCommonDate))
       ? { iconClass: 'fa fa-info-circle', tooltip: this.indicatorTooltip(position, column) }
       : null;
@@ -266,7 +274,7 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
     return { color: positive ? 'green' : 'red' };
   }
   protected override updateAllPrice(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.getWatchlistWithoutUpdate();
   }
   override getHelpContextId(): string {

@@ -1,4 +1,4 @@
-import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { AddInstrumentTable } from './add-instrument-table.component';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -22,7 +22,6 @@ import { ButtonModule } from '@openng/optimus-ui/button';
   selector: 'add-instrument-table',
   templateUrl: '../view/add.instrument.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
 })
 export class WatchlistAddInstrumentTableComponent extends AddInstrumentTable<Watchlist> {

@@ -1,7 +1,8 @@
+import { DestroyRef, inject, afterNextRender, Injector, signal, Component, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FormsModule } from '@angular/forms';
-import { AfterViewInit, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
@@ -38,19 +39,19 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
  */
 @Component({
   template: `
-    @if (creationAvailableFrom) {
+    @if (creationAvailableFrom()) {
       <p role="alert" class="alert alert-warning alert-dialog-wrap">
-        {{ 'SIMULATION_PORTFOLIO_WAIT' | translate: { date: creationAvailableFrom } }}
+        {{ 'SIMULATION_PORTFOLIO_WAIT' | translate: { date: creationAvailableFrom() } }}
       </p>
     }
-    @if (dataNotes.length) {
+    @if (dataNotes().length) {
       <div class="alert alert-warning alert-dialog-wrap">
-        @for (note of dataNotes; track note) {
+        @for (note of dataNotes(); track note) {
           <div>{{ note }}</div>
         }
       </div>
     }
-    @if (manualCash) {
+    @if (manualCash()) {
       <p class="alert-dialog-wrap">{{ 'SIMULATION_MANUAL_CASH_HINT' | translate }}</p>
     }
     <dynamic-form
@@ -60,9 +61,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       #form="dynamicForm"
       (submitBt)="submit($event)">
     </dynamic-form>
-    @if (preview) {
+    @if (preview()) {
       <p>{{ 'SIMULATION_PREVIEW_HELP' | translate }}</p>
-      @for (error of preview.errors; track error) {
+      @for (error of preview().errors; track error) {
         <p role="alert">{{ error }}</p>
       }
       <table class="table">
@@ -74,7 +75,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
           </tr>
         </thead>
         <tbody>
-          @for (account of preview.accounts; track account.idCashaccount) {
+          @for (account of preview().accounts; track account.idCashaccount) {
             <tr>
               <td>{{ account.name }}</td>
               <td>{{ account.currency }}</td>
@@ -83,7 +84,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
           }
         </tbody>
       </table>
-      @for (position of preview.unresolvedPositions; track position.positionKey) {
+      @for (position of preview().unresolvedPositions; track position.positionKey) {
         <label [attr.for]="'destination_' + position.positionKey">
           {{ position.securityName }} / {{ position.securityaccountName }} ({{ position.currency }})
         </label>
@@ -97,27 +98,35 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule, FormsModule]
 })
-export class AlgoSimulationCreateDynamicDialogComponent
-  extends SimpleDynamicEditBase<Tenant>
-  implements OnInit, AfterViewInit
-{
+export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEditBase<Tenant> implements OnInit {
+  private readonly pendingReads = new Map<string, Subscription>();
+  private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
+    this.pendingReads.forEach((request) => request.unsubscribe())
+  );
+  private replaceAlgoRequest(key: string): Subscription {
+    this.pendingReads.get(key)?.unsubscribe();
+    const request = new Subscription();
+    this.pendingReads.set(key, request);
+    return request;
+  }
+
   /** Read by MainTreeDynamicDialogs; the translated initialization-mode labels need more than the default 400px. */
   static readonly DIALOG_WIDTH = 600;
+  private readonly injector = inject(Injector);
 
   callParam: CallParam;
   private algoTop: AlgoTop;
   cashAccounts: Cashaccount[] = [];
-  preview: SimulationPreviewDto;
+  readonly preview = signal<SimulationPreviewDto>(undefined);
   assignments: { [key: string]: number } = {};
   /** What the price data of the instruments allows, shown above the form. It never prevents a save. */
-  dataNotes: string[] = [];
+  readonly dataNotes = signal<string[]>([]);
   /** Localized first creation day when the fixed opening date is not yet a completed day. */
-  creationAvailableFrom: string;
+  readonly creationAvailableFrom = signal<string>(undefined);
   /** True while manual cash is chosen; only then are the balance fields and their explanation shown. */
-  manualCash = false;
+  readonly manualCash = signal(false);
   private previewSignature: string;
   /** Currency-aware formatting of the previewed opening balances, as required for every displayed value. */
   private readonly balanceField = ShowRecordConfigBase.createColumnConfig(
@@ -188,9 +197,11 @@ export class AlgoSimulationCreateDynamicDialogComponent
     this.configObject.simulationStartDate.defaultValue = fixedStartDate?.toDate() ?? null;
     this.configObject.simulationStartDate.disabled = !!fixedStartDate;
     if (fixedStartDate && !fixedStartDate.isBefore(moment(), 'day')) {
-      this.creationAvailableFrom = AppHelper.getDateByFormat(
-        this.gps,
-        fixedStartDate.clone().add(1, 'day').format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)
+      this.creationAvailableFrom.set(
+        AppHelper.getDateByFormat(
+          this.gps,
+          fixedStartDate.clone().add(1, 'day').format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)
+        )
       );
       this.configObject.submit.disabled = true;
     }
@@ -201,28 +212,35 @@ export class AlgoSimulationCreateDynamicDialogComponent
         disabled: false,
         value: this.translateService.instant(mode)
       }));
+    afterNextRender(() => this.initializeForm(), { injector: this.injector });
   }
 
-  ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.form.setValue('tenantName', this.algoTop.name);
+  private initializeForm(): void {
+    this.form.setValue('tenantName', this.algoTop.name);
 
-      this.form.setValue('initializationMode', SimulationInitializationMode.COPY_PORTFOLIO);
-      this.form.form?.get('initializationMode')?.valueChanges.subscribe((mode) => {
-        this.preview = undefined;
+    this.form.setValue('initializationMode', SimulationInitializationMode.COPY_PORTFOLIO);
+    this.form.form
+      ?.get('initializationMode')
+      ?.valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((mode) => {
+        this.replaceAlgoRequest('preview');
+        this.preview.set(undefined);
         this.assignments = {};
         this.previewSignature = undefined;
         this.toggleCashBalanceFields(mode === SimulationInitializationMode.MANUAL_CASH);
       });
-      this.form.form?.get('simulationStartDate')?.valueChanges.subscribe((date) => {
-        this.preview = undefined;
+    this.form.form
+      ?.get('simulationStartDate')
+      ?.valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((date) => {
+        this.replaceAlgoRequest('preview');
+        this.preview.set(undefined);
         this.assignments = {};
         this.previewSignature = undefined;
         this.loadDataNotes(date);
       });
-      this.toggleCashBalanceFields(false);
-      this.loadDataNotes(this.configObject.simulationStartDate.defaultValue);
-    });
+    this.toggleCashBalanceFields(false);
+    this.loadDataNotes(this.configObject.simulationStartDate.defaultValue);
   }
 
   /**
@@ -234,38 +252,43 @@ export class AlgoSimulationCreateDynamicDialogComponent
    */
   private loadDataNotes(date: any): void {
     const openingDate = date instanceof Date ? moment(date).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) : undefined;
-    this.tenantService.getSimulationDateBounds(this.algoTop.idAlgoAssetclassSecurity, openingDate).subscribe({
-      next: (bounds) => {
-        const notes: string[] = [];
-        if (bounds.universeFromDate) {
-          notes.push(
-            this.translateService.instant('SIMULATION_UNIVERSE_FROM', {
-              date: AppHelper.getDateByFormat(this.gps, bounds.universeFromDate)
-            })
-          );
-        }
-        if (bounds.instrumentsWithoutHistory.length) {
-          notes.push(
-            this.translateService.instant('SIMULATION_UNIVERSE_NO_HISTORY', {
-              names: bounds.instrumentsWithoutHistory.join(', ')
-            })
-          );
-        }
-        if (bounds.unpricedAtOpeningDate.length) {
-          notes.push(
-            this.translateService.instant('SIMULATION_OPENING_NOT_PRICED', {
-              names: bounds.unpricedAtOpeningDate.join(', ')
-            })
-          );
-        }
-        this.dataNotes = notes;
-      },
-      error: () => (this.dataNotes = [])
-    });
+    this.replaceAlgoRequest('bounds').add(
+      this.tenantService
+        .getSimulationDateBounds(this.algoTop.idAlgoAssetclassSecurity, openingDate)
+        .pipe(this.untilDialogClosed())
+        .subscribe({
+          next: (bounds) => {
+            const notes: string[] = [];
+            if (bounds.universeFromDate) {
+              notes.push(
+                this.translateService.instant('SIMULATION_UNIVERSE_FROM', {
+                  date: AppHelper.getDateByFormat(this.gps, bounds.universeFromDate)
+                })
+              );
+            }
+            if (bounds.instrumentsWithoutHistory.length) {
+              notes.push(
+                this.translateService.instant('SIMULATION_UNIVERSE_NO_HISTORY', {
+                  names: bounds.instrumentsWithoutHistory.join(', ')
+                })
+              );
+            }
+            if (bounds.unpricedAtOpeningDate.length) {
+              notes.push(
+                this.translateService.instant('SIMULATION_OPENING_NOT_PRICED', {
+                  names: bounds.unpricedAtOpeningDate.join(', ')
+                })
+              );
+            }
+            this.dataNotes.set(notes);
+          },
+          error: () => this.dataNotes.set([])
+        })
+    );
   }
 
   override submit(value: { [name: string]: any }): void {
-    if (this.creationAvailableFrom) {
+    if (this.creationAvailableFrom()) {
       return;
     }
     const dto: SimulationTenantCreateDTO = {
@@ -294,30 +317,38 @@ export class AlgoSimulationCreateDynamicDialogComponent
       const signature = JSON.stringify(dto);
       if (
         this.previewSignature !== signature ||
-        this.preview?.errors.length ||
-        this.preview?.unresolvedPositions.length
+        this.preview()?.errors.length ||
+        this.preview()?.unresolvedPositions.length
       ) {
-        this.tenantService.previewSimulation(dto).subscribe({
-          next: (result) => {
-            this.preview = result;
-            this.previewSignature = signature;
-            this.configObject.submit.disabled = false;
-          },
-          error: () => (this.configObject.submit.disabled = false)
-        });
+        this.replaceAlgoRequest('preview').add(
+          this.tenantService
+            .previewSimulation(dto)
+            .pipe(this.untilDialogClosed())
+            .subscribe({
+              next: (result) => {
+                this.preview.set(result);
+                this.previewSignature = signature;
+                this.configObject.submit.disabled = false;
+              },
+              error: () => (this.configObject.submit.disabled = false)
+            })
+        );
         return;
       }
     }
 
-    this.tenantService.createSimulationTenant(dto).subscribe({
-      next: (returnEntity) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-          i18nRecord: this.dynamicDialogConfig.header
-        });
-        this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
-      },
-      error: () => (this.configObject.submit.disabled = false)
-    });
+    this.tenantService
+      .createSimulationTenant(dto)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (returnEntity) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: this.dynamicDialogConfig.header
+          });
+          this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   /**
@@ -341,7 +372,7 @@ export class AlgoSimulationCreateDynamicDialogComponent
   }
 
   private toggleCashBalanceFields(enabled: boolean): void {
-    this.manualCash = enabled;
+    this.manualCash.set(enabled);
     for (const ca of this.cashAccounts) {
       const fieldName = `cashBalance_${ca.idSecuritycashAccount}`;
       if (this.configObject[fieldName]) {

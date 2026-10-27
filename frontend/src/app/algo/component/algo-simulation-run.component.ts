@@ -1,7 +1,9 @@
+import { forkJoin, Subscription, Subject } from 'rxjs';
+import { DestroyRef, inject, computed, signal, Component, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { AppSettings } from '../../shared/app.settings';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -12,7 +14,6 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { SliderModule } from '@openng/optimus-ui/slider';
 import moment from 'moment';
-import { Subject, Subscription } from 'rxjs';
 import { debounceTime, finalize } from 'rxjs/operators';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
@@ -73,7 +74,6 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
 @Component({
   selector: 'algo-simulation-run',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NgClass,
     FormsModule,
@@ -92,14 +92,14 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
       (click)="onComponentClick($event)">
       <h4>{{ 'SIMULATION_RUN' | translate }}</h4>
 
-      @if (simulation) {
+      @if (simulation()) {
         <div class="fcontainer">
           <fieldset class="out-border fbox">
             <legend class="out-border-legend">{{ 'SIMULATION_ENVIRONMENT' | translate }}</legend>
             @for (field of contextFields; track field.field) {
               <div class="row">
                 <div class="col-md-5 showlabel text-end">{{ field.headerTranslated }}:</div>
-                <div class="col-md-7 nopadding wrap">{{ getValueByPath(simulation, field) }}</div>
+                <div class="col-md-7 nopadding wrap">{{ getValueByPath(simulation(), field) }}</div>
               </div>
             }
             @if (recreateRequired) {
@@ -110,7 +110,7 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
           </fieldset>
         </div>
 
-        @if (run) {
+        @if (run()) {
           <div class="fcontainer">
             @for (fieldSetName of Object.keys(fieldSetGroups); track fieldSetName) {
               <fieldset class="out-border fbox">
@@ -121,10 +121,10 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
                     <div class="col-md-7 nopadding wrap">
                       @switch (field.templateName) {
                         @case ('check') {
-                          <span><i [ngClass]="{ 'fa fa-check': getValueByPath(run, field) }"></i></span>
+                          <span><i [ngClass]="{ 'fa fa-check': getValueByPath(run(), field) }"></i></span>
                         }
                         @default {
-                          {{ getValueByPath(run, field) }}
+                          {{ getValueByPath(run(), field) }}
                         }
                       }
                     </div>
@@ -135,17 +135,17 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
                     <div class="col-12 nopadding wrap">
                       {{
                         'SIMULATION_RUN_PROGRESS'
-                          | translate: { done: run.tradingDaysDone, total: run.tradingDaysTotal }
+                          | translate: { done: run().tradingDaysDone, total: run().tradingDaysTotal }
                       }}
                     </div>
                   </div>
-                  @if (run.failureMessage) {
+                  @if (run().failureMessage) {
                     <div class="row">
                       <div class="col-md-5 showlabel text-end">{{ 'FAILURE_MESSAGE' | translate }}:</div>
                       <div class="col-md-7 nopadding wrap" role="alert">
-                        {{ failureMessage.key | translate }}
-                        @if (failureMessage.detail) {
-                          : {{ failureMessage.detail }}
+                        {{ failureMessage().key | translate }}
+                        @if (failureMessage().detail) {
+                          : {{ failureMessage().detail }}
                         }
                       </div>
                     </div>
@@ -154,37 +154,37 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
               </fieldset>
             }
           </div>
-          <p-button [label]="'SIMULATION_RUN_REFRESH' | translate" [disabled]="busy" (click)="refresh()" />
+          <p-button [label]="'SIMULATION_RUN_REFRESH' | translate" [disabled]="busy()" (click)="refresh()" />
           @if (running && mayStart) {
-            <p-button [label]="'SIMULATION_RUN_CANCEL' | translate" [disabled]="busy" (click)="cancel()" />
+            <p-button [label]="'SIMULATION_RUN_CANCEL' | translate" [disabled]="busy()" (click)="cancel()" />
           }
-          @if (conventions.length > 0) {
+          @if (conventions().length > 0) {
             <fieldset class="out-border">
               <legend class="out-border-legend">{{ 'CONVENTIONS' | translate }}</legend>
               <p>{{ 'SIMULATION_RUN_CONVENTIONS' | translate }}</p>
               <ul>
-                @for (convention of conventions; track convention) {
+                @for (convention of conventions(); track convention) {
                   <li>{{ convention | translate }}</li>
                 }
               </ul>
             </fieldset>
           }
-          @if (incomeSummary) {
+          @if (incomeSummary()) {
             <fieldset class="out-border">
               <legend class="out-border-legend">{{ 'SIMULATION_INCOME_SUMMARY' | translate }}</legend>
-              <tax-details-table mode="income" [rows]="incomeSummary.income || []" />
+              <tax-details-table mode="income" [rows]="incomeSummary().income || []" />
               <details>
                 <summary>
-                  {{ 'SIMULATION_TAX_WARNINGS' | translate }} ({{ incomeSummary.warnings?.length || 0 }})
+                  {{ 'SIMULATION_TAX_WARNINGS' | translate }} ({{ incomeSummary().warnings?.length || 0 }})
                 </summary>
-                <tax-details-table mode="warnings" [rows]="incomeSummary.warnings || []" />
+                <tax-details-table mode="warnings" [rows]="incomeSummary().warnings || []" />
               </details>
             </fieldset>
           }
           <fieldset class="out-border">
             <legend class="out-border-legend">{{ 'SIMULATION_RUN_EVENTS' | translate }}</legend>
-            <algo-simulation-run-table [rows]="events">
-              @if (eventTotal > events.length) {
+            <algo-simulation-run-table [rows]="events()">
+              @if (eventTotal() > events().length) {
                 <div caption class="event-window">
                   <span>{{ 'SIMULATION_RUN_EVENTS_ANCHOR' | translate }}: {{ anchorDateText }}</span>
                   <p-slider
@@ -195,7 +195,7 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
                     [ariaLabel]="'SIMULATION_RUN_EVENTS_ANCHOR' | translate"
                     (onSlideEnd)="anchorMoved$.next()"
                     (keyup)="anchorMoved$.next()" />
-                  <span>{{ 'SIMULATION_RUN_EVENTS_WINDOW' | translate: windowParams }}</span>
+                  <span>{{ 'SIMULATION_RUN_EVENTS_WINDOW' | translate: windowParams() }}</span>
                 </div>
               }
             </algo-simulation-run-table>
@@ -203,10 +203,10 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
         } @else {
           <p>{{ 'SIMULATION_RUN_NONE' | translate }}</p>
         }
-      } @else if (notFound) {
+      } @else if (notFound()) {
         <p role="alert">{{ 'SIMULATION_ENVIRONMENT_NOT_FOUND' | translate }}</p>
       }
-      <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" appendTo="body" />
+      <p-contextMenu [target]="cmDiv" [model]="contextMenuItems()" appendTo="body" />
     </div>
   `,
   styles: [
@@ -223,6 +223,18 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
   ]
 })
 export class AlgoSimulationRunComponent extends SingleRecordConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
+  private readonly pendingReads = new Map<string, Subscription>();
+  private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
+    this.pendingReads.forEach((request) => request.unsubscribe())
+  );
+  private replaceAlgoRequest(key: string): Subscription {
+    this.pendingReads.get(key)?.unsubscribe();
+    const request = new Subscription();
+    this.pendingReads.set(key, request);
+    return request;
+  }
+
+  protected readonly destroyRef = inject(DestroyRef);
   /** Poll interval while a run has only just started, so that a short replay still appears to finish promptly. */
   private static readonly POLL_FAST_MILLIS = 3000;
   /** Poll interval for a longer run. Four requests a minute stay below the hourly refill of the request limit. */
@@ -237,23 +249,25 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
 
   /** The environment the run belongs to. Its own record, so it is not part of the grouped fields of the run. */
   contextFields: ColumnConfig[] = [];
-  simulation: SimulationTenantInfo;
-  run: SimulationRunResult;
-  failureMessage: SimulationFailureMessage;
-  events: SimulationRunEvent[] = [];
+  readonly simulation = signal<SimulationTenantInfo>(undefined);
+  readonly run = signal<SimulationRunResult>(undefined);
+  readonly failureMessage = computed(() => splitSimulationFailureMessage(this.run()?.failureMessage));
+  readonly events = signal<SimulationRunEvent[]>([]);
   /** Entries the run wrote in total; more than the loaded window holds when the trail is long. */
-  eventTotal = 0;
+  readonly eventTotal = signal(0);
   /** Position of the slider in days after the opening date of the run. */
-  anchorOffset: number;
+  readonly anchorOffset = signal<number>(undefined);
   /** Interpolation values of the text that names the loaded period and its share of the trail. */
-  windowParams: { [key: string]: string } = {};
+  readonly windowParams = signal<{ [key: string]: string }>({});
   /** Fires on each release or key stroke of the slider; debounced, because the keyboard has no end of a slide. */
   readonly anchorMoved$ = new Subject<void>();
-  conventions: string[] = [];
-  incomeSummary: any;
-  contextMenuItems: MenuItem[] = [];
-  busy = false;
-  notFound = false;
+  readonly conventions = computed(() => this.run()?.conventions?.split(' ').filter(Boolean) ?? []);
+  readonly incomeSummary = computed(() =>
+    this.run()?.taxIncomeSummaryJson ? JSON.parse(this.run().taxIncomeSummaryJson) : null
+  );
+  readonly contextMenuItems = signal<MenuItem[]>([]);
+  readonly busy = signal(false);
+  readonly notFound = signal(false);
   private idTenant: number;
   private poll: ReturnType<typeof setTimeout>;
   /** When the current polling began; decides between the fast and the slow interval. */
@@ -295,35 +309,47 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   }
 
   ngOnInit(): void {
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.idTenant = +params['id'];
-      this.stopPolling();
-      this.reset();
-      // A direct reload can activate this route before the navigation tree has populated its entity cache, so the
-      // environment is read from the server rather than from the node it was navigated from.
-      this.tenantService.getSimulationTenants().subscribe((simulations) => {
-        this.simulation = simulations.find((simulation) => simulation.idTenant === this.idTenant);
-        if (!this.simulation) {
-          // The environment was deleted, or the route was reloaded while switched into a simulation, where the listing
-          // is the one of the simulation itself rather than of the main tenant.
-          this.notFound = true;
-          this.updateMenu();
-          return;
-        }
-        this.initContextFields();
-        this.initRunFields();
-        this.refresh();
+    this.routeSubscribe = this.activatedRoute.params
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params: Params) => {
+        this.idTenant = +params['id'];
+        this.stopPolling();
+        this.pendingReads.forEach((request) => request.unsubscribe());
+        this.equityCurve = [];
+        this.reset();
+        // A direct reload can activate this route before the navigation tree has populated its entity cache, so the
+        // environment is read from the server rather than from the node it was navigated from.
+        this.replaceAlgoRequest('environment').add(
+          this.tenantService
+            .getSimulationTenants()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((simulations) => {
+              this.simulation.set(simulations.find((simulation) => simulation.idTenant === this.idTenant));
+              if (!this.simulation()) {
+                // The environment was deleted, or the route was reloaded while switched into a simulation, where the listing
+                // is the one of the simulation itself rather than of the main tenant.
+                this.notFound.set(true);
+                this.updateMenu();
+                return;
+              }
+              this.initContextFields();
+              this.initRunFields();
+              this.refresh();
+            })
+        );
       });
-    });
     // The start dialog announces an accepted run, whether it was opened from this panel or from the tree node.
-    this.dataChangedSubscribe = this.dataChangedService.dateChanged$.subscribe(
-      (processedActionData: ProcessedActionData) => {
-        if (this.simulation && (processedActionData.data as SimulationRunResult)?.idSimulationResult != null) {
+    this.dataChangedSubscribe = this.dataChangedService.dateChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((processedActionData: ProcessedActionData) => {
+        if (this.simulation() && (processedActionData.data as SimulationRunResult)?.idSimulationResult != null) {
           this.refresh();
         }
-      }
-    );
-    this.anchorSubscribe = this.anchorMoved$.pipe(debounceTime(400)).subscribe(() => this.onAnchorMoved());
+      });
+    this.anchorSubscribe = this.anchorMoved$
+      .pipe(debounceTime(400))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.onAnchorMoved());
   }
 
   ngOnDestroy(): void {
@@ -341,22 +367,22 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   }
 
   get running(): boolean {
-    return this.run?.status === SimulationRunStatus.RUNNING;
+    return this.run()?.status === SimulationRunStatus.RUNNING;
   }
 
   /** Length of the run in calendar days, the range of the slider. */
   get runDays(): number {
-    return this.run ? moment(this.run.endDate).diff(moment(this.run.openingDate), 'days') : 0;
+    return this.run() ? moment(this.run().endDate).diff(moment(this.run().openingDate), 'days') : 0;
   }
 
   /** The day the slider points at, formatted as it would be in the table, while it is still being dragged. */
   get anchorDateText(): string {
-    return this.formatWindowValue(this.windowDateField, this.offsetToDate(this.anchorOffset));
+    return this.formatWindowValue(this.windowDateField, this.offsetToDate(this.anchorOffset()));
   }
 
   /** An environment created before the opening date and policy were recorded cannot be replayed until recreated. */
   get recreateRequired(): boolean {
-    return !this.simulation?.simulationStartDate || !this.simulation?.initializationMode;
+    return !this.simulation()?.simulationStartDate || !this.simulation()?.initializationMode;
   }
 
   /**
@@ -373,11 +399,22 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   }
 
   onComponentClick(_event): void {
-    this.contextMenuItems = this.getEditMenu();
-    this.activePanelService.activatePanel(this, {
-      showMenu: this.getShowMenu(),
-      editMenu: this.contextMenuItems.length > 0 ? this.contextMenuItems : null
-    });
+    this.publishMenus(true);
+  }
+
+  private publishMenus(activate: boolean): void {
+    this.replaceAlgoRequest('menu').add(
+      forkJoin({
+        edit: TranslateHelper.translateMenuItems$(this.getEditMenu(), this.translateService),
+        show: TranslateHelper.translateMenuItems$(this.getShowMenu(), this.translateService)
+      })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(({ edit, show }) => {
+          this.contextMenuItems.set(edit);
+          if (activate || this.isActivated())
+            this.activePanelService.activatePanel(this, { showMenu: show, editMenu: edit.length ? edit : null });
+        })
+    );
   }
 
   hideContextMenu(): void {}
@@ -389,10 +426,11 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   }
 
   cancel(): void {
-    this.busy = true;
+    this.busy.set(true);
     this.runService
       .cancel(this.idTenant)
-      .pipe(finalize(() => (this.busy = false)))
+      .pipe(finalize(() => this.busy.set(false)))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.refresh());
   }
 
@@ -409,24 +447,29 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    * @param loadEvents - whether the audit trail is reloaded regardless of a change of the running state
    */
   private load(loadEvents: boolean): void {
-    this.busy = true;
-    this.runService
-      .status(this.idTenant)
-      .pipe(finalize(() => (this.busy = false)))
-      .subscribe({
-        next: (run) => {
-          this.apply(run, loadEvents);
-          if (this.running) {
-            this.scheduleNextPoll();
+    this.stopPolling();
+    const request = this.replaceAlgoRequest('status');
+    this.busy.set(true);
+    request.add(
+      this.runService
+        .status(this.idTenant)
+        .pipe(finalize(() => this.busy.set(false)))
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (run) => {
+            this.apply(run, loadEvents);
+            if (this.running) {
+              this.scheduleNextPoll();
+            }
+          },
+          // A refusal here can also mean that the environment has just started replaying, which makes every request of a
+          // session sitting inside it fail. Returning home is the only thing left that works.
+          error: () => {
+            this.stopPolling();
+            this.simulationContext.recoverToHome();
           }
-        },
-        // A refusal here can also mean that the environment has just started replaying, which makes every request of a
-        // session sitting inside it fail. Returning home is the only thing left that works.
-        error: () => {
-          this.stopPolling();
-          this.simulationContext.recoverToHome();
-        }
-      });
+        })
+    );
   }
 
   /**
@@ -435,17 +478,20 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    */
   private openStartDialog(): void {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'SIMULATION_RUN_CONFIRM', () => {
-      this.gps
-        .getEntityFormDefinition('SimulationRunRequestDTO')
-        .subscribe((formDefinition) =>
-          MainTreeDynamicDialogs.getEditDialogComponent(
-            AlgoSimulationRunStartDynamicDialogComponent,
-            this.translateService,
-            this.dialogService,
-            new CallParam({ formDefinition } as any, this.simulation as any),
-            'SIMULATION_RUN'
+      this.replaceAlgoRequest('start-dialog').add(
+        this.gps
+          .getEntityFormDefinition('SimulationRunRequestDTO')
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((formDefinition) =>
+            MainTreeDynamicDialogs.getEditDialogComponent(
+              AlgoSimulationRunStartDynamicDialogComponent,
+              this.translateService,
+              this.dialogService,
+              new CallParam({ formDefinition } as any, this.simulation() as any),
+              'SIMULATION_RUN'
+            )
           )
-        );
+      );
     });
   }
 
@@ -454,11 +500,10 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     const menuItems: MenuItem[] = [
       {
         label: 'SIMULATION_EQUITY_CHART',
-        disabled: this.run?.status !== SimulationRunStatus.COMPLETED,
+        disabled: this.run()?.status !== SimulationRunStatus.COMPLETED,
         command: () => this.showEquityChart()
       }
     ];
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -468,22 +513,29 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    */
   private showEquityChart(): void {
     const idTenant = this.idTenant;
-    this.runService.equitySeries(idTenant).subscribe((curve) => {
-      this.equityCurve = curve;
-      if (!this.requestFromChartSubscribe) {
-        this.requestFromChartSubscribe = this.chartDataService.requestFromChart$.subscribe((id) => {
-          id === AppSettings.SIMULATION_EQUITY_KEY && this.sendEquityChart();
-        });
-      }
-      if (this.router.url.includes(`${AppSettings.CHART_GENERAL_PURPOSE}/${AppSettings.SIMULATION_EQUITY_KEY}`)) {
-        this.sendEquityChart();
-      } else {
-        this.router.navigate([
-          BaseSettings.MAINVIEW_KEY + '/',
-          { outlets: { mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.SIMULATION_EQUITY_KEY] } }
-        ]);
-      }
-    });
+    this.replaceAlgoRequest('equity').add(
+      this.runService
+        .equitySeries(idTenant)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((curve) => {
+          this.equityCurve = curve;
+          if (!this.requestFromChartSubscribe) {
+            this.requestFromChartSubscribe = this.chartDataService.requestFromChart$
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe((id) => {
+                id === AppSettings.SIMULATION_EQUITY_KEY && this.sendEquityChart();
+              });
+          }
+          if (this.router.url.includes(`${AppSettings.CHART_GENERAL_PURPOSE}/${AppSettings.SIMULATION_EQUITY_KEY}`)) {
+            this.sendEquityChart();
+          } else {
+            this.router.navigate([
+              BaseSettings.MAINVIEW_KEY + '/',
+              { outlets: { mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.SIMULATION_EQUITY_KEY] } }
+            ]);
+          }
+        })
+    );
   }
 
   /** Two lines over the valued days: the equity of the environment and the capital invested up to each day. */
@@ -522,12 +574,12 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
 
   private getEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    if (this.simulation && this.mayStart) {
+    if (this.simulation() && this.mayStart) {
       menuItems.push({
         label: 'SIMULATION_RUN_START' + BaseSettings.DIALOG_MENU_SUFFIX,
         // The strategy is shared with the main tenant; a replay it cannot run is refused, so it is not offered.
-        disabled: this.running || this.recreateRequired || !!this.simulation.replayBlockedReason,
-        title: this.simulation.replayBlockedReason ?? undefined,
+        disabled: this.running || this.recreateRequired || !!this.simulation().replayBlockedReason,
+        title: this.simulation().replayBlockedReason ?? undefined,
         command: () => this.openStartDialog()
       });
     }
@@ -541,11 +593,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    * panel the user is working in.
    */
   private updateMenu(): void {
-    if (this.isActivated()) {
-      this.onComponentClick(null);
-    } else {
-      this.contextMenuItems = this.getEditMenu();
-    }
+    this.publishMenus(false);
   }
 
   /**
@@ -556,12 +604,9 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    * @param loadEvents - whether the audit trail is reloaded even though the running state did not change
    */
   private apply(run: SimulationRunResult, loadEvents: boolean): void {
-    this.run = run;
+    this.run.set(run);
     const runningChanged = this.wasRunning !== this.running;
     this.wasRunning = this.running;
-    this.failureMessage = splitSimulationFailureMessage(run?.failureMessage);
-    this.incomeSummary = run?.taxIncomeSummaryJson ? JSON.parse(run.taxIncomeSummaryJson) : null;
-    this.conventions = run?.conventions ? run.conventions.split(' ').filter((key) => !!key) : [];
     if (run) {
       // The status is the one value of the run that is a key rather than a number, and polling replaces the object.
       this.createTranslatedValueStore([run]);
@@ -585,32 +630,37 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    * carry, so the server returns a bounded window and the total, and the slider in the table header moves the window.
    */
   private loadEventWindow(): void {
-    this.anchorOffset = this.anchorDate
-      ? moment(this.anchorDate).diff(moment(this.run.openingDate), 'days')
-      : this.runDays;
-    this.runService.eventWindow(this.idTenant, this.anchorDate).subscribe((window: SimulationRunEventWindow) => {
-      this.events = window.events;
-      this.eventTotal = window.totalElements;
-      this.windowParams = {
-        from: this.formatWindowValue(this.windowDateField, this.events[this.events.length - 1]?.eventDate),
-        to: this.formatWindowValue(this.windowDateField, this.events[0]?.eventDate),
-        count: this.formatWindowValue(this.windowCountField, this.events.length),
-        total: this.formatWindowValue(this.windowCountField, this.eventTotal)
-      };
-    });
+    this.anchorOffset.set(
+      this.anchorDate ? moment(this.anchorDate).diff(moment(this.run().openingDate), 'days') : this.runDays
+    );
+    this.replaceAlgoRequest('events').add(
+      this.runService
+        .eventWindow(this.idTenant, this.anchorDate)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((window: SimulationRunEventWindow) => {
+          this.events.set(window.events);
+          this.eventTotal.set(window.totalElements);
+          this.windowParams.set({
+            from: this.formatWindowValue(this.windowDateField, this.events()[this.events().length - 1]?.eventDate),
+            to: this.formatWindowValue(this.windowDateField, this.events()[0]?.eventDate),
+            count: this.formatWindowValue(this.windowCountField, this.events().length),
+            total: this.formatWindowValue(this.windowCountField, this.eventTotal())
+          });
+        })
+    );
   }
 
   /** Loads the window of the day the slider was released on, unless it is the one already shown. */
   private onAnchorMoved(): void {
-    const anchorDate = this.offsetToDate(this.anchorOffset);
-    if (this.run && anchorDate !== (this.anchorDate ?? this.run.endDate)) {
+    const anchorDate = this.offsetToDate(this.anchorOffset());
+    if (this.run() && anchorDate !== (this.anchorDate ?? this.run().endDate)) {
       this.anchorDate = anchorDate;
       this.loadEventWindow();
     }
   }
 
   private offsetToDate(offset: number): string {
-    return this.run ? moment(this.run.openingDate).add(offset, 'days').format('YYYY-MM-DD') : null;
+    return this.run() ? moment(this.run().openingDate).add(offset, 'days').format('YYYY-MM-DD') : null;
   }
 
   private formatWindowValue(field: ColumnConfig, value: string | number): string {
@@ -619,16 +669,14 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
 
   /** Navigating from one environment to the next reuses the component, so nothing of the previous one may survive. */
   private reset(): void {
-    this.simulation = undefined;
-    this.run = undefined;
+    this.simulation.set(undefined);
+    this.run.set(undefined);
     this.wasRunning = undefined;
     this.pollStartedAt = undefined;
-    this.failureMessage = undefined;
-    this.events = [];
-    this.eventTotal = 0;
+    this.events.set([]);
+    this.eventTotal.set(0);
     this.anchorDate = undefined;
-    this.conventions = [];
-    this.notFound = false;
+    this.notFound.set(false);
     this.updateMenu();
   }
 
@@ -653,7 +701,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
       this.contextFields.map((field) => field.headerKey),
       this.contextFields
     );
-    TranslateHelper.createTranslatedValueStore(this.translateService, this.contextFields, [this.simulation]);
+    TranslateHelper.createTranslatedValueStore(this.translateService, this.contextFields, [this.simulation()]);
   }
 
   /** Converts the raw ratio before locale formatting; the callback's third argument is already formatted text. */

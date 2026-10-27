@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit } from '@angular/core';
 
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -35,14 +35,14 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DynamicFormModule]
 })
-export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchlist> implements OnInit, AfterViewInit {
+export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchlist> implements OnInit {
   /**
    * Call parameters containing the watchlist entity to be edited and operation context.
    */
   callParam: CallParam;
+  private readonly injector = inject(Injector);
 
   /**
    * Creates an instance of WatchlistEditDynamicComponent.
@@ -87,18 +87,19 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    afterNextRender(() => this.initializeForm(), { injector: this.injector });
   }
 
   /**
    * Completes form setup after view initialization.
    * Enables submit button, populates form with existing data if editing, and sets focus.
    */
-  ngAfterViewInit(): void {
+  private initializeForm(): void {
     this.form.setDefaultValuesAndEnableSubmit();
     if (this.callParam.thisObject != null) {
       this.form.transferBusinessObjectToForm(this.callParam.thisObject);
     }
-    setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
+    this.configObject.name.elementRef.nativeElement.focus();
   }
 
   /**

@@ -232,6 +232,21 @@ whitespace around Angular's interpolated text.
 Run against the test services with
 `npx playwright test e2e/200-alert-diagnostics.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## Algo notification (201-*)
+
+`201-algo-notification.spec.ts` checks delayed hierarchy creation, dynamic class and security forms, follow-on
+instrument search, strategy schemas, manual allocation rows and portfolio generation. It holds real responses so
+the forms must render after HTTP completion. Switching back to a cached strategy while another schema is pending
+must retain the selected form. Deterministic intercepted alert responses cover delayed standalone rows, the dormant
+hierarchy overview, disabled pending checkboxes, accepted changes and rollback after a rejected change.
+
+The spec owns the `Algo signals e2e` watchlist and hierarchy and removes them before each case. It borrows Santander
+(`ES0113900J37`) from `alledit`'s `Spain` watchlist without changing the security. The standalone case creates no records.
+It requires `/api/gtinfo` to identify the `e2e` profile and `grafioschtrader_t`.
+
+Run against the active test services with
+`npx playwright test e2e/201-algo-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## One-command run
 
 From the repository root, `e2eTest.cmd` (Windows) or `./e2eTest.sh` (Linux/macOS/Git Bash) runs the
@@ -298,6 +313,15 @@ Three rules from it are worth repeating here, because getting them wrong is sile
   `TradingCalendarRuleSetResourceTest` are the worked example of one file with both consumers.
 
 ## Watchlist specs (040-* create / 844-* teardown)
+
+`248-watchlist-notification.spec.ts` creates its own `Watchlist OnPush e2e` through the tree dialog for `alledit`
+and `admin`, removes leftovers before each scenario and deletes it after success. It borrows Banco Santander by
+ISIN from the shared securities without editing that instrument. Held responses verify the search, price refresh,
+UDF tab and nested dividend/split tables without another view event; deterministic quotation and dividend/split
+values are browser-only responses. The spec also covers menu-bar dialog opening, the position caption, filter
+restoration across tabs, removing a filter through the settings dialog, expanded instrument information and the
+price-problem form's checkbox validation. Run it individually against the existing e2e services:
+`npx playwright test e2e/248-watchlist-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 Use `watchlistTable(page)` from `watchlist.helpers.ts` to locate the watchlist table and its context-menu
 container. It is scoped to the shared watchlist view without depending on the sizing class (`data-container-full`).
@@ -1067,7 +1091,7 @@ Four things bite in this dialog:
   `[id^="cashBalance_"] input` are the real controls — `input#simulationStartDate` matches nothing, and `toBeHidden()`
   against it would pass on absence.
 - **The picker's display format has a two-digit year** (`dd.mm.y`, so `24.07.26`), like the history-quote specs.
-- **The dialog assigns `tenantName` and `initializationMode` from a `setTimeout`** in `ngAfterViewInit`; typing before
+- **The dialog assigns `tenantName` and `initializationMode` through `afterNextRender`**; typing before
   that lands is overwritten, so `openCreateDialog` waits for both values first.
 
 Prerequisites: the `ALGO` feature must be enabled for the instance, and 025 must have left portfolios with cash
@@ -1703,6 +1727,10 @@ ratio. What a replay does with prices belongs to 205-215 and to the pure backend
   `RUN_START` / `RUN_END` audit trail. The tests also check that repeating a
   replay replaces the previous result instead of appending to it, and that an end date on or before the opening date is
   refused.
+
+The completed replay also opens its frozen-settings tab with the real response held. Its two hierarchy rows and
+used weights must appear after release without another click. The hierarchy uses `gridcell` roles, and numeric cell
+text includes interpolation whitespace; use a whitespace-tolerant numeric assertion.
 
 Four things bite here:
 

@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 
 import { AlgoStrategyParamCall } from '../model/algo.dialog.visible';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -48,7 +48,6 @@ import * as yaml from 'js-yaml';
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: []
 })
 export class StrategyDetailComponent extends SingleRecordConfigBase implements OnChanges {

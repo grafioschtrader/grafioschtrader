@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { DestroyRef, inject, Component, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -27,10 +28,10 @@ import { AppSettings } from '../../shared/app.settings';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, RouterModule, Tabs, TabList, Tab]
 })
 export class SimulationRunTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
+  protected readonly destroyRef = inject(DestroyRef);
   /** Tenant id of the simulation environment the tabs belong to. */
   private idTenant: number;
   private routeSubscribe: Subscription;
@@ -41,11 +42,13 @@ export class SimulationRunTabMenuComponent extends BaseTabMenuComponent implemen
 
   override ngOnInit(): void {
     super.ngOnInit();
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.idTenant = +params['id'];
-      const routeFromUrl = this.tabs.find((tab) => this.router.url.split('/').includes(tab.route))?.route;
-      this.navigateTo(routeFromUrl ?? this.activeRoute);
-    });
+    this.routeSubscribe = this.activatedRoute.params
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params: Params) => {
+        this.idTenant = +params['id'];
+        const routeFromUrl = this.tabs.find((tab) => this.router.url.split('/').includes(tab.route))?.route;
+        this.navigateTo(routeFromUrl ?? this.activeRoute);
+      });
   }
 
   override ngOnDestroy(): void {

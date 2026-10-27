@@ -1,4 +1,5 @@
-import { Component, Injector, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, Injector, Input, OnInit } from '@angular/core';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -19,7 +20,6 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
   selector: 'watchlist-securitysplit-table',
   templateUrl: '../view/dividend.split.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, ConfigurableTableComponent, AngularSvgIconModule]
 })
 export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase<Securitysplit> implements OnInit {
@@ -73,8 +73,9 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
   ngOnInit(): void {
     this.securitysplitService
       .getSecuritysplitsByIdSecuritycurrency(this.idSecuritycurrency)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((securitysplits) => {
-        this.data = securitysplits;
+        this.data.set(securitysplits);
       });
   }
 }

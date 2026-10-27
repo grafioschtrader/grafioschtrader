@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { MenuItem, MenuItemCommandEvent } from '@openng/optimus-ui/api';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { AlgoCallParam, AlgoStrategyDefinitionForm } from '../model/algo.dialog.visible';
@@ -13,7 +13,13 @@ import { SimulationContextService } from './simulation.context.service';
 
 @Injectable()
 export class AlarmSetupService {
-  visibleDialog: boolean;
+  private readonly visibleDialogSignal = signal(false);
+  get visibleDialog(): boolean {
+    return this.visibleDialogSignal();
+  }
+  set visibleDialog(visible: boolean) {
+    this.visibleDialogSignal.set(visible);
+  }
   algoCallParam: AlgoCallParam;
   assit: AlgoSecurityStrategyImplType;
 

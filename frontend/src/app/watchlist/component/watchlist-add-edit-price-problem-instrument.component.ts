@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -42,7 +42,6 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DialogModule, DynamicFormModule]
 })
 export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditBase implements OnInit {
@@ -112,9 +111,12 @@ export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditB
     const ihwp = new IntraHistoricalWatchlistProblem();
     this.form.cleanMaskAndTransferValuesToBusinessObject(ihwp);
 
-    this.watchlistService.addInstrumentsWithPriceDataProblems(this.idWatchlist, ihwp).subscribe({
-      next: (watchlist) => this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)),
-      error: () => (this.configObject.submit.disabled = false)
-    });
+    this.watchlistService
+      .addInstrumentsWithPriceDataProblems(this.idWatchlist, ihwp)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (watchlist) => this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)),
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 }

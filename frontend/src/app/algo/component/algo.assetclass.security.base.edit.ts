@@ -86,9 +86,9 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
 
   /** Recomputes the options of the second priority whenever the first one changes. */
   protected valueChangedOnSecurityaccount1(): void {
-    this.securityaccount1ChangedSub = this.configObject.idSecurityaccount1.formControl.valueChanges.subscribe(
-      (idSecurityaccount: number) => this.setSecurityaccount2Options(idSecurityaccount)
-    );
+    this.securityaccount1ChangedSub = this.configObject.idSecurityaccount1.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((idSecurityaccount: number) => this.setSecurityaccount2Options(idSecurityaccount));
   }
 
   /**

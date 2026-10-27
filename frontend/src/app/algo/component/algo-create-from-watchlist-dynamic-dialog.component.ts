@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, inject, Injector, Component, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
@@ -36,14 +36,11 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule]
 })
-export class AlgoCreateFromWatchlistDynamicDialogComponent
-  extends SimpleDynamicEditBase<AlgoTop>
-  implements OnInit, AfterViewInit
-{
+export class AlgoCreateFromWatchlistDynamicDialogComponent extends SimpleDynamicEditBase<AlgoTop> implements OnInit {
   static readonly DIALOG_WIDTH = 500;
+  private readonly injector = inject(Injector);
   callParam: CallParam;
   private dto: AlgoTopCreateFromWatchlist;
 
@@ -75,32 +72,35 @@ export class AlgoCreateFromWatchlistDynamicDialogComponent
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    afterNextRender(() => this.initializeForm(), { injector: this.injector });
   }
 
-  ngAfterViewInit(): void {
+  private initializeForm(): void {
     this.callParam = this.dynamicDialogConfig.data.callParam;
     this.dto = this.callParam.thisObject as AlgoTopCreateFromWatchlist;
-    this.watchlistService.getWatchlistsByIdTenant().subscribe((watchlists) => {
-      this.configObject.idWatchlist.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-        'idWatchlist',
-        'name',
-        watchlists,
-        true
-      );
-    });
+    this.watchlistService
+      .getWatchlistsByIdTenant()
+      .pipe(this.untilDialogClosed())
+      .subscribe((watchlists) => {
+        this.configObject.idWatchlist.valueKeyHtmlOptions =
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idWatchlist', 'name', watchlists, true);
+      });
   }
 
   override submit(value: { [name: string]: any }): void {
     this.form.cleanMaskAndTransferValuesToBusinessObject(this.dto);
-    this.algoTopService.createFromWatchlist(this.dto).subscribe({
-      next: (returnEntity) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-          i18nRecord: this.dynamicDialogConfig.header
-        });
-        this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
-      },
-      error: () => (this.configObject.submit.disabled = false)
-    });
+    this.algoTopService
+      .createFromWatchlist(this.dto)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (returnEntity) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: this.dynamicDialogConfig.header
+          });
+          this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   protected getNewOrExistingInstanceBeforeSave(value: { [p: string]: any }): AlgoTop {

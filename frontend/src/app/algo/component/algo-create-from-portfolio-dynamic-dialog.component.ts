@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, inject, Injector, Component, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
@@ -34,14 +34,11 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule]
 })
-export class AlgoCreateFromPortfolioDynamicDialogComponent
-  extends SimpleDynamicEditBase<AlgoTop>
-  implements OnInit, AfterViewInit
-{
+export class AlgoCreateFromPortfolioDynamicDialogComponent extends SimpleDynamicEditBase<AlgoTop> implements OnInit {
   static readonly DIALOG_WIDTH = 500;
+  private readonly injector = inject(Injector);
   callParam: CallParam;
   private dto: AlgoTopCreateFromPortfolio;
 
@@ -78,24 +75,28 @@ export class AlgoCreateFromPortfolioDynamicDialogComponent
       ...this.configObject.referenceDate.calendarConfig,
       maxDate: yesterday
     };
+    afterNextRender(() => this.initializeForm(), { injector: this.injector });
   }
 
-  ngAfterViewInit(): void {
+  private initializeForm(): void {
     this.callParam = this.dynamicDialogConfig.data.callParam;
     this.dto = this.callParam.thisObject as AlgoTopCreateFromPortfolio;
   }
 
   override submit(value: { [name: string]: any }): void {
     this.form.cleanMaskAndTransferValuesToBusinessObject(this.dto);
-    this.algoTopService.createFromPortfolio(this.dto).subscribe({
-      next: (returnEntity) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-          i18nRecord: this.dynamicDialogConfig.header
-        });
-        this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
-      },
-      error: () => (this.configObject.submit.disabled = false)
-    });
+    this.algoTopService
+      .createFromPortfolio(this.dto)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (returnEntity) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: this.dynamicDialogConfig.header
+          });
+          this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   protected getNewOrExistingInstanceBeforeSave(value: { [p: string]: any }): AlgoTop {

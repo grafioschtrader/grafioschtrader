@@ -1,6 +1,6 @@
+import { signal, Component, OnInit, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { YamlEditorComponent } from './yaml-editor.component';
-import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import moment from 'moment';
@@ -43,7 +43,7 @@ import { AlgoSimulationRunService } from '../service/algo-simulation-run.service
       #yamlEditor
       format="CUSTODY"
       [(value)]="custodyYaml"
-      [schema]="custodySchema"
+      [schema]="custodySchema()"
       height="250px"
       (syntaxValidChange)="configObject.submit.disabled = !$event || yamlEditor.validating"
       (validationPendingChange)="configObject.submit.disabled = $event || !yamlEditor.syntaxValid" />
@@ -57,7 +57,6 @@ import { AlgoSimulationRunService } from '../service/algo-simulation-run.service
   `,
   standalone: true,
   styles: [':host { display: block; max-height: calc(100vh - 140px); overflow-y: auto; }'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule, YamlEditorComponent]
 })
 export class AlgoSimulationRunStartDynamicDialogComponent
@@ -67,8 +66,8 @@ export class AlgoSimulationRunStartDynamicDialogComponent
   /** Read by MainTreeDynamicDialogs; the limitation text above the form needs more than the default 400px. */
   static readonly DIALOG_WIDTH = 800;
   @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
-  custodyYaml = '';
-  custodySchema: object;
+  readonly custodyYaml = signal('');
+  readonly custodySchema = signal<object>(undefined);
 
   private simulation: SimulationTenantInfo;
 
@@ -106,7 +105,10 @@ export class AlgoSimulationRunStartDynamicDialogComponent
       false
     ) as FieldConfig[];
     this.config = this.config.filter((field) => field.field !== 'custodyOpeningYaml');
-    this.http.get('assets/schemas/custody-opening-schema.json').subscribe((schema) => (this.custodySchema = schema));
+    this.http
+      .get('assets/schemas/custody-opening-schema.json')
+      .pipe(this.untilDialogClosed())
+      .subscribe((schema) => this.custodySchema.set(schema));
     this.config.push(DynamicFieldHelper.createSubmitButton('SIMULATION_RUN_START'));
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.limitEndDate();
@@ -122,6 +124,7 @@ export class AlgoSimulationRunStartDynamicDialogComponent
       this.configObject.submit.disabled = !this.yamlEditor.syntaxValid;
       return;
     }
+    if (this.destroyRef.destroyed) return;
     const request = {
       endDate: null as string,
       applyTaxModels: false,
@@ -129,7 +132,7 @@ export class AlgoSimulationRunStartDynamicDialogComponent
       custodyOpeningYaml: null as string
     };
     this.form.cleanMaskAndTransferValuesToBusinessObject(request);
-    request.custodyOpeningYaml = this.custodyYaml;
+    request.custodyOpeningYaml = this.custodyYaml();
     this.configObject.submit.disabled = true;
     this.runService
       .start(
@@ -140,6 +143,7 @@ export class AlgoSimulationRunStartDynamicDialogComponent
         request.custodyOpeningYaml
       )
       .pipe(finalize(() => (this.configObject.submit.disabled = false)))
+      .pipe(this.untilDialogClosed())
       .subscribe((run) => {
         const processedActionData = new ProcessedActionData(ProcessedAction.CREATED, run);
         this.dataChangedService.dataHasChanged(processedActionData);

@@ -1,14 +1,15 @@
 <configurable-table
-  [data]="data"
+  [data]="data()"
   [fields]="fields"
+  [fieldsRevision]="fieldsRevision()"
   [dataKey]="keyfield"
   [multiSortMeta]="multiSortMeta"
   [paginator]="true"
   [rows]="20"
   selectionMode="single"
   sortMode="multiple"
-  [valueGetterFn]="getValueByPath.bind(this)"
-  [customSortFn]="customSort.bind(this)"
+  [valueGetterFn]="valueGetter"
+  [customSortFn]="customSorter"
   [baseLocale]="baseLocale"
   customClass="datatable nestedtable leftRight2Table"
   (pageChange)="onPage($event)">

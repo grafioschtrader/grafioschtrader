@@ -1,3 +1,4 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { computed, DestroyRef, Directive, inject, Injector, Input, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Security } from '../../entities/security';
@@ -34,6 +35,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
   private readonly selectedSecuritycurrenciesSignal = signal<(Security | Currencypair)[]>([]);
   /** Search of the current criteria; a newer search replaces one that is still pending. */
   private searchSubscription: Subscription;
+  protected readonly destroyRef = inject(DestroyRef);
 
   /** ID of the target entity to add instruments to */
   id: number;
@@ -77,6 +79,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
 
   /** Clears the search results and selected instruments lists */
   clearList(): void {
+    this.searchSubscription?.unsubscribe();
     this.securitycurrencyList = [];
     this.selectedSecuritycurrencies = [];
   }
@@ -92,6 +95,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
     this.searchSubscription?.unsubscribe();
     this.searchSubscription = this.addSearchToListService
       .searchByCriteria(id, securitycurrencySearch)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((securitycurrencyLists: SecuritycurrencyLists) => {
         this.createTranslatedValueStoreAndFilterField(securitycurrencyLists.securityList);
         this.securitycurrencyList = securitycurrencyLists.securityList;
@@ -109,13 +113,16 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
         securitycurrencyLists.securityList.push(Object.assign(new Security(), securitycurrency));
       }
     });
-    this.addSearchToListService.addSecuritycurrenciesToList(this.id, securitycurrencyLists).subscribe((data: T) => {
-      this.clearList();
-      this.loadData(this.id, this.securitycurrencySearch);
-      this.dataChangedService.dataHasChanged(
-        new ProcessedActionData(ProcessedAction.UPDATED, this.instance ? this.instance : data)
-      );
-    });
+    this.addSearchToListService
+      .addSecuritycurrenciesToList(this.id, securitycurrencyLists)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: T) => {
+        this.clearList();
+        this.loadData(this.id, this.securitycurrencySearch);
+        this.dataChangedService.dataHasChanged(
+          new ProcessedActionData(ProcessedAction.UPDATED, this.instance ? this.instance : data)
+        );
+      });
   }
 
   /**

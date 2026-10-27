@@ -21,7 +21,7 @@ import { expectToast } from './manage-client.helpers';
  * 2. Both components put their id on the host element, not on the inner input. `#simulationStartDate input` and
  *    `[id^="cashBalance_"] input` are therefore the real controls; `input#simulationStartDate` matches nothing, and
  *    an assertion against it would pass on absence.
- * 3. The dialog assigns `tenantName` and `initializationMode` from a `setTimeout` in ngAfterViewInit and only then
+ * 3. The dialog assigns `tenantName` and `initializationMode` through `afterNextRender` and only then
  *    subscribes to valueChanges. Typing before that lands is silently overwritten, so every interaction waits for
  *    the form to settle first.
  *
@@ -165,7 +165,7 @@ async function openCreateDialog(page: Page, strategyName: string): Promise<Locat
     }
     await dialog.waitFor({ state: 'visible', timeout: 5_000 });
   }).toPass({ timeout: 45_000 });
-  // ngAfterViewInit assigns both values in a setTimeout; typing before that lands would be overwritten.
+  // afterNextRender assigns both values; typing before that lands would be overwritten.
   await expect(dialog.locator('#tenantName')).toHaveValue(strategyName, { timeout: 10_000 });
   await expect(dialog.locator('select#initializationMode')).toHaveValue('COPY_PORTFOLIO', { timeout: 10_000 });
   return dialog;

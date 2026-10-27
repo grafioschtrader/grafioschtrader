@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { combineLatest, Observable, Subscription } from 'rxjs';
@@ -61,10 +62,10 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
   // Both services are scoped to this component on purpose: the cached instrument statistics and the remembered
   // accordion panels of an expanded row survive watchlist and tab changes, but are discarded when the user leaves
   // the watchlist area.
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [InstrumentStatisticsCacheService, WatchlistExpandedPanelStateService]
 })
 export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
+  protected readonly destroyRef = inject(DestroyRef);
   /** The current watchlist object containing ID and data. */
   private watchlist: Watchlist;
 
@@ -113,17 +114,19 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
       );
     }
     if (observables.length > 0) {
-      combineLatest(observables).subscribe((data: any[]) => {
-        let dataIndex = 0;
-        if (!sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY)) {
-          sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY, JSON.stringify(data[dataIndex]));
-          dataIndex++;
-        }
-        if (!sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)) {
-          sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL, JSON.stringify(data[dataIndex]));
-        }
-        this.subscribeWatchlistChange();
-      });
+      combineLatest(observables)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((data: any[]) => {
+          let dataIndex = 0;
+          if (!sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY)) {
+            sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY, JSON.stringify(data[dataIndex]));
+            dataIndex++;
+          }
+          if (!sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)) {
+            sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL, JSON.stringify(data[dataIndex]));
+          }
+          this.subscribeWatchlistChange();
+        });
     } else {
       this.subscribeWatchlistChange();
     }
@@ -146,28 +149,30 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
    * Preserves the active tab when switching between different watchlists.
    */
   private subscribeWatchlistChange(): void {
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      const id = +params['id'];
-      if (id) {
-        this.watchlist = this.treeNavState.getEntity<Watchlist>(
-          BaseSettings.MAINVIEW_KEY + '/' + AppSettings.WATCHLIST_TAB_MENU_KEY,
-          id
-        );
+    this.routeSubscribe = this.activatedRoute.params
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params: Params) => {
+        const id = +params['id'];
+        if (id) {
+          this.watchlist = this.treeNavState.getEntity<Watchlist>(
+            BaseSettings.MAINVIEW_KEY + '/' + AppSettings.WATCHLIST_TAB_MENU_KEY,
+            id
+          );
 
-        // Preserve the current active tab when switching watchlists
-        if (this.isFirstLoad) {
-          // On first load, check if there's already an active route in URL
-          const currentRouteFromUrl = this.getCurrentRouteFromUrl();
-          if (currentRouteFromUrl) {
-            this.lastActiveRoute = currentRouteFromUrl;
-            this.activeRoute = currentRouteFromUrl;
+          // Preserve the current active tab when switching watchlists
+          if (this.isFirstLoad) {
+            // On first load, check if there's already an active route in URL
+            const currentRouteFromUrl = this.getCurrentRouteFromUrl();
+            if (currentRouteFromUrl) {
+              this.lastActiveRoute = currentRouteFromUrl;
+              this.activeRoute = currentRouteFromUrl;
+            }
+            this.isFirstLoad = false;
           }
-          this.isFirstLoad = false;
+          // Navigate to the last active route (or default on first load)
+          this.navigateTo(this.lastActiveRoute);
         }
-        // Navigate to the last active route (or default on first load)
-        this.navigateTo(this.lastActiveRoute);
-      }
-    });
+      });
   }
 
   /**

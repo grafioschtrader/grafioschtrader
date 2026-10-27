@@ -1,5 +1,6 @@
+import { signal, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TimeFrame, WatchlistTable, WatchListType } from './watchlist.table';
-import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { WatchlistService } from '../service/watchlist.service';
@@ -23,7 +24,6 @@ import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
 import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
 import { ViewSizeChangedService } from '../../lib/layout/service/view.size.changed.service';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { BusinessHelper } from '../../shared/helper/business.helper';
@@ -76,7 +76,6 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
   ],
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -102,11 +101,11 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
 })
 export class WatchlistPerformanceComponent extends WatchlistTable implements OnInit, OnDestroy {
   /** Adds the reinvested dividends of the securities to the daily, YTD and time frame changes (total return). */
-  includeDividends = false;
+  readonly includeDividends = signal(false);
   /** Translated hint for a distributing security without dividend data. */
-  private dividendMissingHint = '';
+  private readonly dividendMissingHint = signal('');
   /** Shows the position values of the selected row in the caption of the table. */
-  showPositionHeader = false;
+  readonly showPositionHeader = signal(false);
   /** Currency of the tenant as delivered with the data, the suffix of the headers of the values in this currency. */
   private mainCurrency: string;
 
@@ -167,13 +166,16 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.timeFrames.push(new TimeFrame('YEAR_2', moment(date).diff(moment(date).subtract(2, 'years'), 'days')));
     this.timeFrames.push(new TimeFrame('YEAR_3', moment(date).diff(moment(date).subtract(3, 'years'), 'days')));
     this.choosenTimeFrame = this.restoreTimeFrame();
-    this.includeDividends =
-      this.usersettingsService.readSingleValue(AppSettings.WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE) === true;
-    this.showPositionHeader =
-      this.usersettingsService.readSingleValue(AppSettings.WATCHLIST_PERFORMANCE_POSITION_HEADER_STORE) === true;
+    this.includeDividends.set(
+      this.usersettingsService.readSingleValue(AppSettings.WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE) === true
+    );
+    this.showPositionHeader.set(
+      this.usersettingsService.readSingleValue(AppSettings.WATCHLIST_PERFORMANCE_POSITION_HEADER_STORE) === true
+    );
     this.translateService
       .get('TOTAL_RETURN_DIVIDEND_MISSING')
-      .subscribe((hint: string) => (this.dividendMissingHint = hint));
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((hint: string) => this.dividendMissingHint.set(hint));
     this.addBaseColumns();
     this.addColumnFeqH(DataType.NumericRaw, 'securitycurrency.leverageFactor', true, true, {
       templateName: 'greenRed',
@@ -212,7 +214,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       filterType: FilterType.likeDataType
     });
     // Marks a distributing security whose changes lack dividend data although dividends are included
-    this.addColumn(DataType.String, 'dividendDataMissing', 'TOTAL_RETURN', this.includeDividends, false, {
+    this.addColumn(DataType.String, 'dividendDataMissing', 'TOTAL_RETURN', this.includeDividends(), false, {
       width: 30,
       fieldValueFN: this.getDividendDataMissingMark.bind(this),
       cellTooltipFN: this.getDividendDataMissingTooltip.bind(this)
@@ -278,14 +280,22 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
 
   /** Loads watchlist data and tenant limits independently so a slow limit request cannot block the table refresh. */
   protected override getWatchlistWithoutUpdate(): void {
-    this.watchlistService.getWatchlistWithoutUpdate(this.idWatchlist).subscribe((data: SecuritycurrencyGroup) => {
-      this.createSecurityPositionList(data);
-      this.loading = false;
-      this.updateAllPrice();
-    });
-    this.watchlistService
-      .getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist)
-      .subscribe((tenantLimits) => (this.tenantLimits = tenantLimits));
+    this.replaceWatchlistRequest('data').add(
+      this.watchlistService
+        .getWatchlistWithoutUpdate(this.idWatchlist)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((data: SecuritycurrencyGroup) => {
+          this.createSecurityPositionList(data);
+          this.loading.set(false);
+          this.updateAllPrice();
+        })
+    );
+    this.replaceWatchlistRequest('limits').add(
+      this.watchlistService
+        .getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((tenantLimits) => this.tenantLimits.set(tenantLimits))
+    );
   }
 
   /** Updates all price data for the watchlist by delegating to REST service implementation. */
@@ -302,14 +312,13 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>
   ): MenuItem[] {
     const menuItems = [
-      ...this.getShowContextMenuItems(securitycurrencyPosition, false),
+      ...this.getShowContextMenuItems(securitycurrencyPosition),
       { separator: true },
       this.getMenuTimeFrame(),
       this.getMenuIncludeDividends(),
       this.getMenuPositionHeader(),
       ...this.getMenuShowOptions()
     ];
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -346,8 +355,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
    * position line is switched off. The values in the currency of the tenant carry its code once it is known.
    */
   private createPositionHeaderFields(): void {
-    if (!this.showPositionHeader) {
-      this.positionHeaderFields = null;
+    if (!this.showPositionHeader()) {
+      this.positionHeaderFields.set(null);
       return;
     }
     // Until the first data arrived the currency is unknown and the headers stay without it
@@ -388,19 +397,21 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       fields.map((field) => field.headerKey),
       fields
     );
-    this.positionHeaderFields = fields;
+    this.positionHeaderFields.set(fields);
   }
 
   /** Updates price data through REST service call with period performance data for the selected time frame. */
   private updateAllPriceThruRest(): void {
-    this.watchlistService
-      .getWatchlistWithPeriodPerformance(this.idWatchlist, this.choosenTimeFrame.days, this.includeDividends)
-      .subscribe((data: SecuritycurrencyGroup) => {
-        if (this.watchlist.idWatchlist === data.idWatchlist) {
-          this.selectedSecuritycurrencyPosition = null;
-          this.createSecurityPositionList(data);
-        }
-      });
+    this.replaceWatchlistRequest('prices').add(
+      this.watchlistService
+        .getWatchlistWithPeriodPerformance(this.idWatchlist, this.choosenTimeFrame.days, this.includeDividends())
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((data: SecuritycurrencyGroup) => {
+          if (this.watchlist().idWatchlist === data.idWatchlist) {
+            this.createSecurityPositionList(data);
+          }
+        })
+    );
   }
 
   /** Creates the time frame selection menu with checkable items for different time periods. */
@@ -411,7 +422,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
         label: timeFrame.name,
         icon:
           this.choosenTimeFrame === timeFrame ? AppSettings.ICONNAME_CIRCLE_CHECK : AppSettings.ICONNAME_CIRCLE_EMTPY,
-        command: (event) => this.handleTimeFrame(event, timeFrame, childMenuItems)
+        command: () => this.handleTimeFrame(timeFrame)
       });
     });
     return { label: 'TIME_FRAME', items: childMenuItems };
@@ -419,65 +430,60 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
 
   /**
    * Handles time frame selection by updating the chosen time frame, menu icons, column visibility, and refreshing data.
-   * @param event The menu click event
    * @param timeFrame The selected time frame object
-   * @param childMenuItems The array of child menu items to update icons for
    */
-  private handleTimeFrame(event, timeFrame: TimeFrame, childMenuItems: MenuItem[]) {
+  private handleTimeFrame(timeFrame: TimeFrame) {
     this.choosenTimeFrame = timeFrame;
     this.usersettingsService.saveSingleValue(AppSettings.WATCHLIST_PERFORMANCE_TIMEFRAME_STORE, timeFrame.name);
-    childMenuItems.forEach((menuItem) => (menuItem.icon = AppSettings.ICONNAME_CIRCLE_EMTPY));
-    event.item.icon = AppSettings.ICONNAME_CIRCLE_CHECK;
     this.hideShowColumnByFileHeader('TIME_FRAME_ANNUAL', timeFrame.days > 600);
     this.updateTimeFrameTooltips();
     this.updateAllPrice();
+    this.resetMenu(this.selectedSecuritycurrencyPosition());
   }
 
   /** Creates the checkable menu item that adds the reinvested dividends to the changes of the securities. */
   private getMenuIncludeDividends(): MenuItem {
     return {
       label: 'INCLUDE_DIVIDENDS',
-      icon: this.includeDividends ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
-      command: (event) => this.handleIncludeDividends(event)
+      icon: this.includeDividends() ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
+      command: () => this.handleIncludeDividends()
     };
   }
 
   /**
    * Switches the total return mode, remembers it like the time frame and reloads the changes.
-   * @param event The menu click event
    */
-  private handleIncludeDividends(event): void {
-    this.includeDividends = !this.includeDividends;
+  private handleIncludeDividends(): void {
+    this.includeDividends.set(!this.includeDividends());
     this.usersettingsService.saveSingleValue(
       AppSettings.WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE,
-      this.includeDividends
+      this.includeDividends()
     );
-    event.item.icon = this.includeDividends ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY;
-    this.hideShowColumnByFileHeader('TOTAL_RETURN', this.includeDividends);
+    this.hideShowColumnByFileHeader('TOTAL_RETURN', this.includeDividends());
     this.updateAllPrice();
+    this.resetMenu(this.selectedSecuritycurrencyPosition());
   }
 
   /** Creates the checkable menu item that shows the position values of the selected row in the caption. */
   private getMenuPositionHeader(): MenuItem {
     return {
       label: 'POSITION_IN_HEADER',
-      icon: this.showPositionHeader ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
-      command: (event) => this.handlePositionHeader(event)
+      icon: this.showPositionHeader() ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
+      command: () => this.handlePositionHeader()
     };
   }
 
   /**
    * Switches the position line in the caption on or off and remembers the choice.
-   * @param event The menu click event
    */
-  private handlePositionHeader(event): void {
-    this.showPositionHeader = !this.showPositionHeader;
+  private handlePositionHeader(): void {
+    this.showPositionHeader.set(!this.showPositionHeader());
     this.usersettingsService.saveSingleValue(
       AppSettings.WATCHLIST_PERFORMANCE_POSITION_HEADER_STORE,
-      this.showPositionHeader
+      this.showPositionHeader()
     );
-    event.item.icon = this.showPositionHeader ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY;
     this.createPositionHeaderFields();
+    this.resetMenu(this.selectedSecuritycurrencyPosition());
   }
 
   /** A warning sign for a security whose total return lacks dividend data. */
@@ -486,7 +492,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     field: ColumnConfig,
     valueField: any
   ): string {
-    return this.includeDividends && securitycurrencyPosition.dividendDataMissing ? '\u26A0' : null;
+    return this.includeDividends() && securitycurrencyPosition.dividendDataMissing ? '\u26A0' : null;
   }
 
   /** Explains the warning sign of {@link getDividendDataMissingMark}. */
@@ -495,7 +501,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     field: ColumnConfig,
     valueField: any
   ): string {
-    return this.includeDividends && securitycurrencyPosition.dividendDataMissing ? this.dividendMissingHint : null;
+    return this.includeDividends() && securitycurrencyPosition.dividendDataMissing ? this.dividendMissingHint() : null;
   }
 
   /**
@@ -521,6 +527,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   private updateTimeFrameTooltips(): void {
     this.translateService
       .get([this.choosenTimeFrame.name, 'TIME_FRAME_TOOLTIP', 'TIME_FRAME_ANNUAL_TOOLTIP'])
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((translations) => {
         const translatedTimeFrame = translations[this.choosenTimeFrame.name];
         const timeFrameColumn = this.getColumnConfigByHeader('TIME_FRAME');
@@ -537,6 +544,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
             translatedTimeFrame
           );
         }
+        this.notifyViewChanged();
       });
   }
 }

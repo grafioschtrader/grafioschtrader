@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { AccordionModule } from '@openng/optimus-ui/accordion';
 import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
@@ -65,7 +65,6 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
     </p-accordion>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     TranslateModule,
     AccordionModule,

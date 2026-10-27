@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { WatchlistTable, WatchListType } from './watchlist.table';
 import { SecurityService } from '../../securitycurrency/service/security.service';
@@ -79,7 +80,6 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
   ],
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -238,38 +238,47 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     );
     const tenantLimitObservable: Observable<TenantLimit[]> =
       this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-    combineLatest([
-      watchListObservable,
-      tenantLimitObservable,
-      this.uDFMetadataSecurityService.getAllByIdUser()
-    ]).subscribe((result: [SecuritycurrencyUDFGroup, TenantLimit[], UDFMetadataSecurity[]]) => {
-      this.createSecurityPositionList(result[0]);
-      this.udfEntityValues = (<SecuritycurrencyUDFGroup>result[0]).udfEntityValues;
-      this.udfFillInfo = (<SecuritycurrencyUDFGroup>result[0]).udfFillInfo ?? {};
-      this.tenantLimits = result[1];
-      this.fillFields = result[2].filter(
-        (f) => f.idUser === this.gps.getIdUser() && f.fillSource && f.fillSource !== UDFFillSource.MANUAL
-      );
-      this.extendSecurityWithUDF();
-      this.prepareCellMarks();
-      this.loading = false;
-    });
+    this.replaceWatchlistRequest('data').add(
+      combineLatest([watchListObservable, tenantLimitObservable, this.uDFMetadataSecurityService.getAllByIdUser()])
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((result: [SecuritycurrencyUDFGroup, TenantLimit[], UDFMetadataSecurity[]]) => {
+          this.udfEntityValues = (<SecuritycurrencyUDFGroup>result[0]).udfEntityValues;
+          this.udfFillInfo = (<SecuritycurrencyUDFGroup>result[0]).udfFillInfo ?? {};
+          this.tenantLimits.set(result[1]);
+          this.fillFields = result[2].filter(
+            (f) => f.idUser === this.gps.getIdUser() && f.fillSource && f.fillSource !== UDFFillSource.MANUAL
+          );
+          this.createSecurityPositionList(this.extendSecurityWithUDF(result[0]));
+          this.prepareCellMarks();
+          this.loading.set(false);
+        })
+    );
   }
 
   /**
    * Extends security position list items with their corresponding UDF values by parsing JSON strings
    * and merging UDF data directly into the security currency objects for display purposes.
    */
-  private extendSecurityWithUDF(): void {
+  private extendSecurityWithUDF(group: SecuritycurrencyUDFGroup): SecuritycurrencyUDFGroup {
     this.udfValuesMap.clear();
-    this.securityPositionList.forEach((spl) => {
-      const jsonString = this.udfEntityValues[spl.securitycurrency.idSecuritycurrency];
-      if (jsonString) {
-        const udfValues: any = JSON.parse(jsonString);
-        this.udfValuesMap.set(spl.securitycurrency.idSecuritycurrency, udfValues);
-        Object.assign(spl.securitycurrency, udfValues);
-      }
-    });
+    const extend = (position) => {
+      const json = this.udfEntityValues[position.securitycurrency.idSecuritycurrency];
+      const values = json ? JSON.parse(json) : {};
+      this.udfValuesMap.set(position.securitycurrency.idSecuritycurrency, values);
+      return {
+        ...position,
+        securitycurrency: Object.assign(
+          Object.create(Object.getPrototypeOf(position.securitycurrency)),
+          position.securitycurrency,
+          values
+        )
+      };
+    };
+    return {
+      ...group,
+      securityPositionList: group.securityPositionList.map(extend),
+      currencypairPositionList: group.currencypairPositionList.map(extend)
+    };
   }
 
   /**
@@ -379,7 +388,10 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
             label: this.translateService.instant(locked ? 'UDF_FILL_UNLOCK' : 'UDF_FILL_LOCK', {
               field: f.description
             }),
-            command: () => action().subscribe(() => this.getWatchlistWithoutUpdate())
+            command: () =>
+              action()
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe(() => this.getWatchlistWithoutUpdate())
           }
         ];
       });
@@ -401,6 +413,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
         command: () =>
           this.uDFMetadataSecurityService
             .acceptProposals(f.idUDFMetadata, decisions)
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => this.getWatchlistWithoutUpdate())
       },
       {
@@ -408,6 +421,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
         command: () =>
           this.uDFMetadataSecurityService
             .rejectProposals(f.idUDFMetadata, decisions)
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => this.getWatchlistWithoutUpdate())
       }
     ];
@@ -417,7 +431,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    * Refreshes all price data by setting loading state and triggering a complete data reload.
    */
   protected override updateAllPrice(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.getWatchlistWithoutUpdate();
   }
 

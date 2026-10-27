@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { switchMap, combineLatest, Observable, of } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { AlgoAssetclass } from '../model/algo.assetclass';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -8,7 +9,6 @@ import { AlgoAssetclassService } from '../service/algo.assetclass.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
 import { AssetclassService } from '../../assetclass/service/assetclass.service';
-import { combineLatest, Observable, of } from 'rxjs';
 import { Assetclass } from '../../entities/assetclass';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { distinctUntilChanged } from 'rxjs/operators';
@@ -41,7 +41,6 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoAssetclass> implements OnInit {
@@ -88,14 +87,17 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     this.valueChangedOnSecurityaccount1();
 
     // Subscribe to customCategory checkbox changes
-    this.configObject.customCategory.formControl.valueChanges.subscribe((checked: boolean) => {
-      this.updateCustomCategoryDependencies(checked);
-    });
+    this.configObject.customCategory.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((checked: boolean) => {
+        this.updateCustomCategoryDependencies(checked);
+      });
 
     const assetclassObservable = isCustom ? of([] as Assetclass[]) : this.getAssetclassObserver();
 
-    combineLatest([assetclassObservable, accountOptionsObservable]).subscribe(
-      (data: [Assetclass | Assetclass[], ValueKeyHtmlSelectOptions[]]) => {
+    combineLatest([assetclassObservable, accountOptionsObservable])
+      .pipe(this.untilDialogClosed())
+      .subscribe((data: [Assetclass | Assetclass[], ValueKeyHtmlSelectOptions[]]) => {
         this.configObject.assetclass.referencedDataObject = Array.isArray(data[0]) ? data[0] : [data[0]];
         this.configObject.assetclass.valueKeyHtmlOptions =
           BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
@@ -111,12 +113,12 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
         } else {
           // Creating: the allowed accounts follow the asset class; a custom category allows every account.
           this.configObject.assetclass.formControl.valueChanges
-            .pipe(distinctUntilChanged())
-            .subscribe((idAssetClass: number | string) =>
-              this.getAccountOptions(undefined, idAssetClass ? +idAssetClass : undefined).subscribe((options) =>
-                this.setAccountOptions(options)
-              )
-            );
+            .pipe(
+              distinctUntilChanged(),
+              switchMap((id: number | string) => this.getAccountOptions(undefined, id ? +id : undefined)),
+              this.untilDialogClosed()
+            )
+            .subscribe((options) => this.setAccountOptions(options));
         }
 
         if (isCustom) {
@@ -125,8 +127,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
           this.updateCustomCategoryDependencies(false);
           this.disableEnableInputForExisting(this.algoCallParam.thisObject != null);
         }
-      }
-    );
+      });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoAssetclass {
@@ -160,6 +161,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     // Disabling must not re-enter the checkbox's valueChanges subscription.
     if (this.algoCallParam.thisObject != null) {
       this.configObject.customCategory.formControl.disable({ emitEvent: false });
+      this.viewChanged();
     }
   }
 

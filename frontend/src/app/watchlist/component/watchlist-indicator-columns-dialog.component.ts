@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, Injector } from '@angular/core';
+import { DestroyRef, inject, computed, signal, Component, OnInit, Injector } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TableModule } from '@openng/optimus-ui/table';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -18,7 +19,6 @@ import { HelpIds } from '../../lib/help/help.ids';
 /** Ordered column editor, separate from both the report and its dynamic edit form. */
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TableModule, ButtonModule, TooltipModule, TranslateModule, WatchlistIndicatorColumnEditComponent],
   styles: [
     `
@@ -39,11 +39,11 @@ import { HelpIds } from '../../lib/help/help.ids';
         <i class="pi pi-question" pButtonIcon></i>
       </p-button>
     </div>
-    <p-table [value]="rows" (onRowReorder)="reorder()" dataKey="idWatchlistIndicatorColumn">
+    <p-table [value]="rows()" (onRowReorder)="reorder()" dataKey="idWatchlistIndicatorColumn">
       <ng-template #header
         ><tr>
           <th></th>
-          @for (field of fields; track field.field) {
+          @for (field of tableFields(); track field.field) {
             <th>{{ field.headerTranslated }}</th>
           }
           <th></th></tr
@@ -51,7 +51,7 @@ import { HelpIds } from '../../lib/help/help.ids';
       <ng-template #body let-row let-index="rowIndex"
         ><tr [pReorderableRow]="index">
           <td><span class="pi pi-bars" pReorderableRowHandle></span></td>
-          @for (field of fields; track field.field) {
+          @for (field of tableFields(); track field.field) {
             <td>{{ getValueByPath(row, field) }}</td>
           }
           <td class="row-actions">
@@ -76,15 +76,20 @@ import { HelpIds } from '../../lib/help/help.ids';
           </td></tr
       ></ng-template>
     </p-table>
-    @if (visibleEdit) {
-      <watchlist-indicator-column-edit [visibleDialog]="true" [callParam]="callParam" (closeDialog)="closed()" />
+    @if (visibleEdit()) {
+      <watchlist-indicator-column-edit [visibleDialog]="true" [callParam]="callParam()" (closeDialog)="closed()" />
     }
   `
 })
 export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase implements OnInit {
-  rows: WatchlistIndicatorColumn[] = [];
-  visibleEdit = false;
-  callParam: any;
+  readonly tableFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields];
+  });
+  protected readonly destroyRef = inject(DestroyRef);
+  readonly rows = signal<WatchlistIndicatorColumn[]>([]);
+  readonly visibleEdit = signal(false);
+  readonly callParam = signal<any>(undefined);
   constructor(
     filter: FilterService,
     settings: UserSettingsService,
@@ -105,15 +110,19 @@ export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase im
     this.load();
   }
   private load(): void {
-    forkJoin([this.service.getAll(), this.watchlists.getWatchlistsByIdTenant()]).subscribe(([rows, lists]) => {
-      this.rows = rows.map((row) =>
-        Object.assign(row, {
-          watchlistName:
-            lists.find((w) => w.idWatchlist === row.idWatchlist)?.name ??
-            this.translateService.instant('WIC_ALL_WATCHLISTS')
-        })
-      );
-    });
+    forkJoin([this.service.getAll(), this.watchlists.getWatchlistsByIdTenant()])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([rows, lists]) => {
+        this.rows.set(
+          rows.map((row) =>
+            Object.assign({}, row, {
+              watchlistName:
+                lists.find((w) => w.idWatchlist === row.idWatchlist)?.name ??
+                this.translateService.instant('WIC_ALL_WATCHLISTS')
+            })
+          )
+        );
+      });
   }
   edit(row: WatchlistIndicatorColumn): void {
     forkJoin([
@@ -121,18 +130,22 @@ export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase im
       this.watchlists.getWatchlistsByIdTenant(),
       this.service.markColors(),
       this.service.benchmarks()
-    ]).subscribe(([formDefinition, watchlists, colors, benchmarks]) => {
-      this.callParam = { thisObject: row, optParam: { formDefinition, watchlists, colors, benchmarks } };
-      this.visibleEdit = true;
-    });
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([formDefinition, watchlists, colors, benchmarks]) => {
+        this.callParam.set({ thisObject: row, optParam: { formDefinition, watchlists, colors, benchmarks } });
+        this.visibleEdit.set(true);
+      });
   }
   closed(): void {
-    this.visibleEdit = false;
+    this.visibleEdit.set(false);
     this.load();
   }
   reorder(): void {
+    this.rows.set([...this.rows()]);
     this.service
-      .order(this.rows.map((r) => r.idWatchlistIndicatorColumn))
+      .order(this.rows().map((r) => r.idWatchlistIndicatorColumn))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ next: () => this.load(), error: () => this.load() });
   }
   /** Opens the user manual page of the indicator tab, which explains expressions, functions and variables. */
@@ -142,7 +155,11 @@ export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase im
   remove(row: WatchlistIndicatorColumn): void {
     this.confirmation.confirm({
       message: this.translateService.instant('WIC_DELETE_CONFIRM', { label: row.label }),
-      accept: () => this.service.deleteEntity(row.idWatchlistIndicatorColumn).subscribe(() => this.load())
+      accept: () =>
+        this.service
+          .deleteEntity(row.idWatchlistIndicatorColumn)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => this.load())
     });
   }
 }

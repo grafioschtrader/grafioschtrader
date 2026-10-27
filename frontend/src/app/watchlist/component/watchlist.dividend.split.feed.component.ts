@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { SecurityService } from '../../securitycurrency/service/security.service';
@@ -19,7 +20,6 @@ import { WatchlistTable, WatchListType } from './watchlist.table';
 import { combineLatest, Observable } from 'rxjs';
 import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
 import { TenantLimit } from '../../shared/types/tenant.limit';
-import { SecurityCurrencyHelper } from '../../securitycurrency/service/security.currency.helper';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -65,7 +65,6 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
   ],
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -195,7 +194,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
    * @param valueField The connector ID value to be transformed into readable name
    */
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
-    return this.feedConnectorsKV[valueField];
+    return this.feedConnectorsKV()[valueField];
   }
 
   /** Initializes the component by calling base initialization and loading connector data */
@@ -213,12 +212,14 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
       this.watchlistService.getWatchlistForSplitAndDividend(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> =
       this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-    combineLatest([watchListObservable, tenantLimitObservable]).subscribe(
-      (result: [SecuritycurrencyGroup, TenantLimit[]]) => {
-        this.createSecurityPositionList(result[0]);
-        this.tenantLimits = result[1];
-        this.loading = false;
-      }
+    this.replaceWatchlistRequest('data').add(
+      combineLatest([watchListObservable, tenantLimitObservable])
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((result: [SecuritycurrencyGroup, TenantLimit[]]) => {
+          this.createSecurityPositionList(result[0]);
+          this.tenantLimits.set(result[1]);
+          this.loading.set(false);
+        })
     );
   }
 
@@ -228,7 +229,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
 
   /** Refreshes all watchlist data by setting loading state and retrieving updated information */
   protected override updateAllPrice(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.getWatchlistWithoutUpdate();
   }
 
@@ -237,11 +238,11 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
    * Uses SecurityCurrencyHelper to populate the connector name mappings before loading watchlist content.
    */
   private loadData(): void {
-    SecurityCurrencyHelper.loadAllConnectors(
-      this.securityService,
-      this.currencypairService,
-      this.feedConnectorsKV,
-      this.getWatchlistWithoutUpdate.bind(this)
-    );
+    combineLatest([this.securityService.getFeedConnectors(), this.currencypairService.getFeedConnectors()])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([security, currency]) => {
+        this.feedConnectorsKV.set(Object.fromEntries([...security, ...currency].map((c) => [c.id, c.readableName])));
+        this.getWatchlistWithoutUpdate();
+      });
   }
 }

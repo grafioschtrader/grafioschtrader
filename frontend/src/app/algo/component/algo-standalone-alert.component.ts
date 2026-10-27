@@ -1,6 +1,8 @@
+import { DestroyRef, inject, signal, Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlgoAlertDiagnosticsDialogComponent } from './algo-alert-diagnostics-dialog.component';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
@@ -40,9 +42,9 @@ import { AlgoHierarchyAlertOverviewComponent } from './algo-hierarchy-alert-over
   selector: 'algo-standalone-alert',
   template: `
     <h4>{{ 'ALGO_OVERVIEW' | translate }}</h4>
-    <p-button [label]="'ALERT_DIAGNOSTICS' | translate" (click)="visibleDiagnostics = true" />
-    @if (visibleDiagnostics) {
-      <algo-alert-diagnostics (closed)="visibleDiagnostics = false" />
+    <p-button [label]="'ALERT_DIAGNOSTICS' | translate" (click)="visibleDiagnostics.set(true)" />
+    @if (visibleDiagnostics()) {
+      <algo-alert-diagnostics (closed)="visibleDiagnostics.set(false)" />
     }
     <div
       class="data-container"
@@ -52,18 +54,19 @@ import { AlgoHierarchyAlertOverviewComponent } from './algo-hierarchy-alert-over
         'passiv-border': !isActivated()
       }">
       <configurable-tree-table
-        [data]="treeNodes"
+        [data]="treeNodes()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="nodeKey"
         [(selection)]="selectedNode"
         (nodeSelect)="onRowSelect($event)"
         (nodeUnselect)="onRowUnselect($event)"
-        [contextMenuItems]="contextMenuItems"
+        [contextMenuItems]="contextMenuItems()"
         [contextMenuAppendTo]="'body'"
         [showContextMenu]="isActivated() && canWrite()"
-        [valueGetterFn]="getValueByPath.bind(this)"
-        [checkboxVisibleFn]="isCheckboxVisible.bind(this)"
-        [checkboxDisabledFn]="isCheckboxDisabled.bind(this)"
+        [valueGetterFn]="valueGetter"
+        [checkboxVisibleFn]="isCheckboxVisibleCallback"
+        [checkboxDisabledFn]="isCheckboxDisabledCallback"
         (checkboxChange)="onCheckboxChange($event)"
         (componentClick)="onComponentClick($event)">
       </configurable-tree-table>
@@ -72,16 +75,15 @@ import { AlgoHierarchyAlertOverviewComponent } from './algo-hierarchy-alert-over
       }
     </div>
 
-    @if (visibleStrategyDialog) {
+    @if (visibleStrategyDialog()) {
       <algo-strategy-edit
-        [visibleDialog]="visibleStrategyDialog"
-        [algoCallParam]="algoCallParam"
+        [visibleDialog]="visibleStrategyDialog()"
+        [algoCallParam]="algoCallParam()"
         (closeDialog)="onStrategyDialogClose($event)">
       </algo-strategy-edit>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ButtonModule,
     AlgoAlertDiagnosticsDialogComponent,
@@ -93,18 +95,32 @@ import { AlgoHierarchyAlertOverviewComponent } from './algo-hierarchy-alert-over
   ]
 })
 export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
-  treeNodes: TreeNode[] = [];
-  selectedNode: TreeNode | null = null;
-  contextMenuItems: MenuItem[] = [];
+  private readonly pendingReads = new Map<string, Subscription>();
+  private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
+    this.pendingReads.forEach((request) => request.unsubscribe())
+  );
+  private replaceAlgoRequest(key: string): Subscription {
+    this.pendingReads.get(key)?.unsubscribe();
+    const request = new Subscription();
+    this.pendingReads.set(key, request);
+    return request;
+  }
 
-  visibleDiagnostics = false;
-  visibleStrategyDialog = false;
-  algoCallParam: AlgoCallParam;
+  readonly isCheckboxVisibleCallback = (rowData: any, field: ColumnConfig) => this.isCheckboxVisible(rowData, field);
+  readonly isCheckboxDisabledCallback = (rowData: any, field: ColumnConfig) => this.isCheckboxDisabled(rowData, field);
+  protected readonly destroyRef = inject(DestroyRef);
+  readonly treeNodes = signal<TreeNode[]>([]);
+  readonly selectedNode = signal<TreeNode | null>(null);
+  readonly contextMenuItems = signal<MenuItem[]>([]);
+
+  readonly visibleDiagnostics = signal(false);
+  readonly visibleStrategyDialog = signal(false);
+  readonly algoCallParam = signal<AlgoCallParam>(undefined);
   algoStrategyDefinitionForm = new AlgoStrategyDefinitionForm();
 
   private algoSecurities: AlgoSecurity[] = [];
   /** Strategies whose alert preference is being saved; their checkbox stays disabled until the response arrives. */
-  private savingAlerts = new Set<number>();
+  private readonly savingAlerts = signal(new Set<number>());
 
   constructor(
     private activePanelService: ActivePanelService,
@@ -157,27 +173,56 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
   // ============================================================================
 
   private loadData(): void {
-    this.algoSecurityService.getAllForTenant().subscribe((algoSecurities: AlgoSecurity[]) => {
-      this.algoSecurities = algoSecurities;
-      this.buildTree();
-      this.prepareTreeTableAndTranslate();
-      this.createTranslateValuesStoreForTranslation(this.treeNodes);
-    });
+    this.replaceAlgoRequest('alerts').add(
+      this.algoSecurityService
+        .getAllForTenant()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((algoSecurities: AlgoSecurity[]) => {
+          this.algoSecurities = algoSecurities;
+          this.buildTree();
+          this.prepareTreeTableAndTranslate();
+          this.createTranslateValuesStoreForTranslation(this.treeNodes());
+        })
+    );
   }
 
   private buildTree(): void {
-    this.treeNodes = this.algoSecurities.map((as) => {
-      (as as any).nodeKey = 'as' + as.idAlgoAssetclassSecurity;
-      const strategyChildren: TreeNode[] = (as.algoStrategyList || []).map((strategy) => {
-        (strategy as any).nodeKey = 'rs' + strategy.idAlgoRuleStrategy;
-        return { data: strategy, leaf: true };
-      });
-      return {
-        data: as,
-        children: strategyChildren,
-        expanded: true
-      } as TreeNode;
-    });
+    const selectedKey = this.selectedNode()?.data.nodeKey;
+    this.treeNodes.set(
+      this.algoSecurities.map((as) => {
+        (as as any).nodeKey = 'as' + as.idAlgoAssetclassSecurity;
+        const strategyChildren: TreeNode[] = (as.algoStrategyList || []).map((strategy) => {
+          (strategy as any).nodeKey = 'rs' + strategy.idAlgoRuleStrategy;
+          return { data: strategy, leaf: true };
+        });
+        return {
+          data: as,
+          children: strategyChildren,
+          expanded: true
+        } as TreeNode;
+      })
+    );
+    this.selectedNode.set(
+      this.treeNodes()
+        .flatMap((node) => [node, ...node.children])
+        .find((node) => node.data.nodeKey === selectedKey) ?? null
+    );
+    if (this.isActivated()) this.resetMenu();
+  }
+
+  private patchAlert(strategy: AlgoStrategy, enabled: boolean): void {
+    this.algoSecurities = this.algoSecurities.map((security) =>
+      Object.assign(new AlgoSecurity(), security, {
+        algoStrategyList: (security.algoStrategyList ?? []).map((row) =>
+          Object.assign(
+            new AlgoStrategy(),
+            row,
+            row.idAlgoRuleStrategy === strategy.idAlgoRuleStrategy ? { alertEnabled: enabled } : {}
+          )
+        )
+      })
+    );
+    this.buildTree();
   }
 
   private getNodeName(dataobject: any, field: ColumnConfig, valueField: any): string {
@@ -198,7 +243,7 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
   }
 
   isCheckboxDisabled(rowData: any, field: ColumnConfig): boolean {
-    return !this.canWrite() || this.savingAlerts.has(rowData.idAlgoRuleStrategy);
+    return !this.canWrite() || this.savingAlerts().has(rowData.idAlgoRuleStrategy);
   }
 
   /** Persists the alert preference through its dedicated endpoint and rolls back when the backend refuses it. */
@@ -209,18 +254,25 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
     }
     const strategy: AlgoStrategy = rowData;
     const previous = strategy.alertEnabled;
-    strategy.alertEnabled = value;
-    this.savingAlerts.add(strategy.idAlgoRuleStrategy);
-    this.algoStrategyService.setAlertEnabled(strategy.idAlgoRuleStrategy, value).subscribe({
-      next: (saved) => {
-        strategy.alertEnabled = saved.alertEnabled;
-        this.savingAlerts.delete(strategy.idAlgoRuleStrategy);
-      },
-      error: () => {
-        strategy.alertEnabled = previous;
-        this.savingAlerts.delete(strategy.idAlgoRuleStrategy);
-      }
-    });
+    this.patchAlert(strategy, value);
+    this.savingAlerts.update((pending) => new Set([...pending, strategy.idAlgoRuleStrategy]));
+    this.algoStrategyService
+      .setAlertEnabled(strategy.idAlgoRuleStrategy, value)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (saved) => {
+          this.patchAlert(strategy, saved.alertEnabled);
+          this.savingAlerts.update(
+            (pending) => new Set([...pending].filter((id) => id !== strategy.idAlgoRuleStrategy))
+          );
+        },
+        error: () => {
+          this.patchAlert(strategy, previous);
+          this.savingAlerts.update(
+            (pending) => new Set([...pending].filter((id) => id !== strategy.idAlgoRuleStrategy))
+          );
+        }
+      });
   }
 
   // ============================================================================
@@ -236,24 +288,28 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
   }
 
   onRowUnselect(event: any): void {
-    this.selectedNode = null;
+    this.selectedNode.set(null);
     this.resetMenu();
   }
 
   private resetMenu(): void {
-    this.contextMenuItems = this.getEditMenu();
-    this.activePanelService.activatePanel(this, {
-      showMenu: null,
-      editMenu: this.contextMenuItems
-    });
+    const menu = this.getEditMenu();
+    this.replaceAlgoRequest('menu').add(
+      TranslateHelper.translateMenuItems$(menu, this.translateService)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((items) => {
+          this.contextMenuItems.set(items);
+          this.activePanelService.activatePanel(this, { showMenu: null, editMenu: items });
+        })
+    );
   }
 
   private getEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    if (!this.selectedNode || !this.canWrite()) {
+    if (!this.selectedNode() || !this.canWrite()) {
       return menuItems;
     }
-    const rowData = this.selectedNode.data;
+    const rowData = this.selectedNode().data;
     if (rowData.security) {
       this.addStrategyCreateMenu(menuItems, rowData as AlgoSecurity);
       menuItems.push({
@@ -270,7 +326,6 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
         command: () => this.handleDeleteStrategy(rowData as AlgoStrategy)
       });
     }
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -285,12 +340,17 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
       createItem.disabled =
         this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(algoSecurity.idAlgoAssetclassSecurity).length === 0;
     } else {
-      this.algoStrategyService
-        .getUnusedStrategiesForManualAdding(algoSecurity.idAlgoAssetclassSecurity)
-        .subscribe((unused) => {
-          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(algoSecurity.idAlgoAssetclassSecurity, unused);
-          createItem.disabled = unused.length === 0;
-        });
+      createItem.disabled = true;
+      this.replaceAlgoRequest('unused-' + algoSecurity.idAlgoAssetclassSecurity).add(
+        this.algoStrategyService
+          .getUnusedStrategiesForManualAdding(algoSecurity.idAlgoAssetclassSecurity)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((unused) => {
+            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(algoSecurity.idAlgoAssetclassSecurity, unused);
+            if (this.selectedNode()?.data.idAlgoAssetclassSecurity === algoSecurity.idAlgoAssetclassSecurity)
+              this.resetMenu();
+          })
+      );
     }
   }
 
@@ -299,15 +359,15 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
   // ============================================================================
 
   private handleAddStrategy(algoSecurity: AlgoSecurity): void {
-    this.algoCallParam = new AlgoCallParam(algoSecurity, null, this.algoStrategyDefinitionForm);
-    this.visibleStrategyDialog = true;
+    this.algoCallParam.set(new AlgoCallParam(algoSecurity, null, this.algoStrategyDefinitionForm));
+    this.visibleStrategyDialog.set(true);
   }
 
   private handleEditStrategy(algoStrategy: AlgoStrategy): void {
     const parentSecurity = this.findParentSecurity(algoStrategy);
     if (parentSecurity) {
-      this.algoCallParam = new AlgoCallParam(parentSecurity, algoStrategy, this.algoStrategyDefinitionForm);
-      this.visibleStrategyDialog = true;
+      this.algoCallParam.set(new AlgoCallParam(parentSecurity, algoStrategy, this.algoStrategyDefinitionForm));
+      this.visibleStrategyDialog.set(true);
     }
   }
 
@@ -317,13 +377,16 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|ALGO_STRATEGY',
       () => {
-        this.algoStrategyService.deleteEntity(algoStrategy.idAlgoRuleStrategy).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.ALGO_STRATEGY)
+        this.algoStrategyService
+          .deleteEntity(algoStrategy.idAlgoRuleStrategy)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.ALGO_STRATEGY)
+            });
+            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.delete(algoStrategy.idAlgoAssetclassSecurity);
+            this.loadData();
           });
-          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.delete(algoStrategy.idAlgoAssetclassSecurity);
-          this.loadData();
-        });
       }
     );
   }
@@ -334,18 +397,21 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|ALGO_SECURITY',
       () => {
-        this.algoSecurityService.deleteEntity(algoSecurity.idAlgoAssetclassSecurity).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.ALGO_SECURITY)
+        this.algoSecurityService
+          .deleteEntity(algoSecurity.idAlgoAssetclassSecurity)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.ALGO_SECURITY)
+            });
+            this.loadData();
           });
-          this.loadData();
-        });
       }
     );
   }
 
   onStrategyDialogClose(processedActionData: ProcessedActionData): void {
-    this.visibleStrategyDialog = false;
+    this.visibleStrategyDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.clear();
       this.loadData();

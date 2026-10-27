@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { signal, Component, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlgoTreeViewBase } from './algo.tree.view.base';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -63,24 +64,25 @@ import {
         'passiv-border': !isActivated()
       }">
       <configurable-tree-table
-        [data]="treeNodes"
+        [data]="treeNodes()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="idTree"
         [(selection)]="selectedNode"
         (nodeSelect)="onNodeSelect($event)"
         (nodeUnselect)="onNodeUnselect($event)"
         [showContextMenu]="!hierarchyReadOnly"
-        [contextMenuItems]="contextMenuItems"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [contextMenuItems]="contextMenuItems()"
+        [valueGetterFn]="valueGetter"
         [baseLocale]="baseLocale"
-        [canEditCellFn]="canEditCell.bind(this)"
+        [canEditCellFn]="canEditCellCallback"
         (cellEditComplete)="onCellEditComplete($event)"
-        [checkboxVisibleFn]="isCheckboxVisible.bind(this)"
-        [checkboxDisabledFn]="isCheckboxDisabled.bind(this)"
+        [checkboxVisibleFn]="isCheckboxVisibleCallback"
+        [checkboxDisabledFn]="isCheckboxDisabledCallback"
         (checkboxChange)="onCheckboxChangeHandler($event)"
         (componentClick)="onComponentClick($event)"
-        [rowClassFn]="getAlgoRowClass.bind(this)"
-        [cellClassFn]="getAlgoCellClass.bind(this)"
+        [rowClassFn]="getAlgoRowClassCallback"
+        [cellClassFn]="getAlgoCellClassCallback"
         [enableSort]="false">
         <h4 caption>{{ 'ALGO_OVERVIEW' | translate }}</h4>
         <ng-template #iconCell let-row let-value="value">
@@ -96,22 +98,22 @@ import {
           }
         </ng-template>
       </configurable-tree-table>
-      @if (readiness) {
-        <div class="readiness">
+      @if (readiness()) {
+        <div class="readiness()">
           <strong>{{
-            (readiness.readyForReplay ? 'ALGO_READY_FOR_REPLAY' : 'ALGO_NOT_READY_FOR_REPLAY') | translate
+            (readiness().readyForReplay ? 'ALGO_READY_FOR_REPLAY' : 'ALGO_NOT_READY_FOR_REPLAY') | translate
           }}</strong>
-          @if (readiness.readyForReplay) {
+          @if (readiness().readyForReplay) {
             <span>
               {{
-                (readiness.readyForRebalancing ? 'ALGO_READY_FOR_REBALANCING' : 'ALGO_NOT_READY_FOR_REBALANCING')
+                (readiness().readyForRebalancing ? 'ALGO_READY_FOR_REBALANCING' : 'ALGO_NOT_READY_FOR_REBALANCING')
                   | translate
               }}
             </span>
           }
-          @if (readiness.issues.length > 0) {
+          @if (readiness().issues.length > 0) {
             <ul>
-              @for (issue of readiness.issues; track $index) {
+              @for (issue of readiness().issues; track $index) {
                 <li [class.readiness-blocking]="issue.blocking">{{ issue.message }}</li>
               }
             </ul>
@@ -119,35 +121,35 @@ import {
         </div>
       }
       <p>{{ 'ALGO_SIMULATION_EXCLUDED_HINT' | translate }}</p>
-      @if (algoStrategyShowParamCall.algoStrategy) {
-        <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall"> </strategy-detail>
+      @if (algoStrategyShowParamCall().algoStrategy) {
+        <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall()"> </strategy-detail>
       }
     </div>
-    @if (visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]) {
+    @if (visibleDialogs()[AlgoDialogVisible.ALGO_ASSETCLASS]) {
       <algo-assetclass-edit
-        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]"
-        [algoCallParam]="algoCallParam"
+        [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_ASSETCLASS]"
+        [algoCallParam]="algoCallParam()"
         (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
       </algo-assetclass-edit>
     }
-    @if (visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]) {
+    @if (visibleDialogs()[AlgoDialogVisible.ALGO_SECURITY]) {
       <algo-security-edit
-        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]"
-        [algoCallParam]="algoCallParam"
+        [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_SECURITY]"
+        [algoCallParam]="algoCallParam()"
         (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
       </algo-security-edit>
     }
-    @if (visibleDialogs[AlgoDialogVisible.ALGO_ADD_INSTRUMENT]) {
+    @if (visibleDialogs()[AlgoDialogVisible.ALGO_ADD_INSTRUMENT]) {
       <algo-assetclass-add-instrument
-        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_ADD_INSTRUMENT]"
+        [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_ADD_INSTRUMENT]"
         [idAlgoAssetclassSecurity]="idAlgoAssetclassAddInstrument"
         (closeDialog)="handleCloseAddInstrumentDialog($event)">
       </algo-assetclass-add-instrument>
     }
-    @if (visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]) {
+    @if (visibleDialogs()[AlgoDialogVisible.ALGO_STRATEGY]) {
       <algo-strategy-edit
-        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]"
-        [algoCallParam]="algoCallParam"
+        [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_STRATEGY]"
+        [algoCallParam]="algoCallParam()"
         (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
       </algo-strategy-edit>
     }
@@ -166,7 +168,6 @@ import {
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AlgoSecurityEditComponent,
     CommonModule,
@@ -181,28 +182,33 @@ import {
   ]
 })
 export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGlobalMenuAttach, OnInit, OnDestroy {
+  readonly canEditCellCallback = (rowData: any, field: ColumnConfig) => this.canEditCell(rowData, field);
+  readonly isCheckboxVisibleCallback = (rowData: any, field: ColumnConfig) => this.isCheckboxVisible(rowData, field);
+  readonly isCheckboxDisabledCallback = (rowData: any, field: ColumnConfig) => this.isCheckboxDisabled(rowData, field);
+  readonly getAlgoRowClassCallback = (rowNode: any, rowData: any) => this.getAlgoRowClass(rowNode, rowData);
+  readonly getAlgoCellClassCallback = (rowData: any, field: ColumnConfig) => this.getAlgoCellClass(rowData, field);
   /** Backend-selected property paths to highlight, keyed by hierarchy node ID. */
-  private invalidFields: Record<number, string[]> = {};
+  private readonly invalidFields = signal<Record<number, string[]>>({});
   /** Backend-selected property paths to display on a yellow background. */
-  private warningFields: Record<number, string[]> = {};
+  private readonly warningFields = signal<Record<number, string[]>>({});
   /** Whether the strategy can be replayed and compared as it stands, refreshed with every hierarchy load. */
-  readiness: AlgoTopReadiness;
+  readonly readiness = signal<AlgoTopReadiness>(undefined);
 
   // Otherwise enum DialogVisible can't be used in a html template
   AlgoDialogVisible: typeof AlgoDialogVisible = AlgoDialogVisible;
 
   // For modal dialogs
-  visibleDialogs: boolean[] = [];
+  readonly visibleDialogs = signal<boolean[]>([]);
   /** The custom category the instrument search dialog adds to. */
   idAlgoAssetclassAddInstrument: number;
 
-  algoCallParam: AlgoCallParam;
+  readonly algoCallParam = signal<AlgoCallParam>(undefined);
 
-  contextMenuItems: MenuItem[] = [];
+  readonly contextMenuItems = signal<MenuItem[]>([]);
   private routeSubscribe: Subscription;
   private monitoringSubscription: Subscription;
-  private alertEditable = false;
-  private savingAlerts = new Set<number>();
+  private readonly alertEditable = signal(false);
+  private readonly savingAlerts = signal(new Set<number>());
   /** True when no create, update or delete action on the hierarchy may be offered. */
   hierarchyReadOnly: boolean;
 
@@ -241,24 +247,34 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   }
 
   ngOnInit(): void {
-    this.monitoringSubscription = this.dataChangedService.dateChanged$.subscribe((change) => {
-      if (change.data instanceof Tenant && this.algoTop) {
-        this.readDataWithoutTopLevel();
-      }
-    });
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      const id = +params['id'];
-      this.translateHeadersAndColumns();
-      this.readHierarchy(id);
-    });
+    this.monitoringSubscription = this.dataChangedService.dateChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((change) => {
+        if (change.data instanceof Tenant && this.algoTop()) {
+          this.readDataWithoutTopLevel();
+        }
+      });
+    this.routeSubscribe = this.activatedRoute.params
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params: Params) => {
+        const id = +params['id'];
+        if (this.algoTop()?.idAlgoAssetclassSecurity !== id) {
+          this.selectedNode.set(null);
+          this.onNodeUnselect(null);
+          this.algoTop.set(null);
+          this.contextMenuItems.set([]);
+        }
+        this.translateHeadersAndColumns();
+        this.readHierarchy(id);
+      });
   }
 
   readDataWithTopLevel(): void {
-    this.readHierarchy(this.algoTop.idAlgoAssetclassSecurity, true);
+    this.readHierarchy(this.algoTop().idAlgoAssetclassSecurity, true);
   }
 
   readDataWithoutTopLevel(): void {
-    this.readHierarchy(this.algoTop.idAlgoAssetclassSecurity);
+    this.readHierarchy(this.algoTop().idAlgoAssetclassSecurity);
   }
 
   /**
@@ -267,21 +283,27 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
    * refreshed as well whenever an edit below the top level changed the readiness of this strategy.
    */
   private readHierarchy(idAlgoTop: number, notifyNavigation = false): void {
-    this.algoTopService.getHierarchy(idAlgoTop).subscribe((hierarchy) => {
-      const readinessChanged =
-        this.readiness != null &&
-        this.algoTop?.idAlgoAssetclassSecurity === hierarchy.algoTop.idAlgoAssetclassSecurity &&
-        JSON.stringify(this.readiness) !== JSON.stringify(hierarchy.algoTop.readiness);
-      this.invalidFields = hierarchy.invalidFields;
-      this.warningFields = hierarchy.warningFields;
-      this.readiness = hierarchy.algoTop.readiness;
-      this.alertEditable = hierarchy.alertEditable;
-      this.buildTree(hierarchy.algoTop, hierarchy.algoAssetclassList);
-      this.refreshSelectedEntity();
-      if (notifyNavigation || readinessChanged) {
-        this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new AlgoTop()));
-      }
-    });
+    this.replaceAlgoRequest('hierarchy').add(
+      this.algoTopService
+        .getHierarchy(idAlgoTop)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((hierarchy) => {
+          const readinessChanged =
+            this.readiness() != null &&
+            this.algoTop()?.idAlgoAssetclassSecurity === hierarchy.algoTop.idAlgoAssetclassSecurity &&
+            JSON.stringify(this.readiness()) !== JSON.stringify(hierarchy.algoTop.readiness);
+          this.invalidFields.set(hierarchy.invalidFields);
+          this.warningFields.set(hierarchy.warningFields);
+          this.readiness.set(hierarchy.algoTop.readiness);
+          this.alertEditable.set(hierarchy.alertEditable);
+          this.buildTree(hierarchy.algoTop, hierarchy.algoAssetclassList);
+          this.refreshSelectedEntity();
+          if (this.isActivated()) this.resetMenu();
+          if (notifyNavigation || readinessChanged) {
+            this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new AlgoTop()));
+          }
+        })
+    );
   }
 
   isActivated(): boolean {
@@ -317,20 +339,29 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     }
     const rowData = event.rowData;
     if (rowData instanceof AlgoTop) {
-      this.algoTopService.update(rowData).subscribe({
-        next: () => this.readDataWithTopLevel(),
-        error: () => (rowData[event.field.field] = event.originalValue)
-      });
+      this.algoTopService
+        .update(rowData)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => this.readDataWithTopLevel(),
+          error: () => this.patchHierarchyRow(rowData, { [event.field.field]: event.originalValue })
+        });
     } else if (rowData instanceof AlgoAssetclass) {
-      this.algoAssetclassService.update(rowData).subscribe({
-        next: () => this.readDataWithoutTopLevel(),
-        error: () => (rowData[event.field.field] = event.originalValue)
-      });
+      this.algoAssetclassService
+        .update(rowData)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => this.readDataWithoutTopLevel(),
+          error: () => this.patchHierarchyRow(rowData, { [event.field.field]: event.originalValue })
+        });
     } else if (rowData instanceof AlgoSecurity) {
-      this.algoSecurityService.update(rowData).subscribe({
-        next: () => this.readDataWithoutTopLevel(),
-        error: () => (rowData[event.field.field] = event.originalValue)
-      });
+      this.algoSecurityService
+        .update(rowData)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => this.readDataWithoutTopLevel(),
+          error: () => this.patchHierarchyRow(rowData, { [event.field.field]: event.originalValue })
+        });
     }
   }
 
@@ -346,11 +377,11 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       return null;
     }
     const classes: string[] = [];
-    if (this.invalidFields[rowData.idAlgoAssetclassSecurity]?.includes(field.field)) {
+    if (this.invalidFields()[rowData.idAlgoAssetclassSecurity]?.includes(field.field)) {
       // A missing coupon rate leaves the distribution cell empty, so only a background can mark it.
       classes.push(field.field === AlgoTreeViewBase.DISTRIBUTION_FIELD ? 'cell-value-invalid' : 'algo-value-invalid');
     }
-    if (this.warningFields[rowData.idAlgoAssetclassSecurity]?.includes(field.field)) {
+    if (this.warningFields()[rowData.idAlgoAssetclassSecurity]?.includes(field.field)) {
       classes.push('algo-value-warning');
     }
     return classes.join(' ') || null;
@@ -370,7 +401,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   isCheckboxDisabled(rowData: any, field: ColumnConfig): boolean {
     return (
       field.field === 'alertEnabled' &&
-      (!this.alertEditable || this.hierarchyReadOnly || this.savingAlerts.has(rowData.idAlgoRuleStrategy))
+      (!this.alertEditable() || this.hierarchyReadOnly || this.savingAlerts().has(rowData.idAlgoRuleStrategy))
     );
   }
 
@@ -384,22 +415,29 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       }
       const strategy: AlgoStrategy = event.rowData;
       const previous = strategy.alertEnabled;
-      strategy.alertEnabled = event.value;
-      this.savingAlerts.add(strategy.idAlgoRuleStrategy);
-      this.algoStrategyService.setAlertEnabled(strategy.idAlgoRuleStrategy, event.value).subscribe({
-        next: (saved) => {
-          strategy.alertEnabled = saved.alertEnabled;
-          this.savingAlerts.delete(strategy.idAlgoRuleStrategy);
-        },
-        error: () => {
-          strategy.alertEnabled = previous;
-          this.savingAlerts.delete(strategy.idAlgoRuleStrategy);
-          this.readDataWithoutTopLevel();
-        }
-      });
+      this.patchHierarchyRow(strategy, { alertEnabled: event.value });
+      this.savingAlerts.update((pending) => new Set([...pending, strategy.idAlgoRuleStrategy]));
+      this.algoStrategyService
+        .setAlertEnabled(strategy.idAlgoRuleStrategy, event.value)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (saved) => {
+            this.patchHierarchyRow(strategy, { alertEnabled: saved.alertEnabled });
+            this.savingAlerts.update(
+              (pending) => new Set([...pending].filter((id) => id !== strategy.idAlgoRuleStrategy))
+            );
+          },
+          error: () => {
+            this.patchHierarchyRow(strategy, { alertEnabled: previous });
+            this.savingAlerts.update(
+              (pending) => new Set([...pending].filter((id) => id !== strategy.idAlgoRuleStrategy))
+            );
+            this.readDataWithoutTopLevel();
+          }
+        });
       return;
     }
-    event.rowData._selected = event.value;
+    this.patchHierarchyRow(event.rowData, { _selected: event.value });
   }
 
   extendMenuWithAlgoStrategy(
@@ -418,17 +456,23 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       algoStrategyMenuItem.disabled =
         this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(selectedNode.idAlgoAssetclassSecurity).length === 0;
     } else {
-      this.algoStrategyService
-        .getUnusedStrategiesForManualAdding(selectedNode.idAlgoAssetclassSecurity)
-        .subscribe((algoStrategyImplementations) => {
-          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(
-            selectedNode.idAlgoAssetclassSecurity,
-            algoStrategyImplementations
-          );
-          algoStrategyMenuItem.disabled =
-            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(selectedNode.idAlgoAssetclassSecurity).length ===
-            0;
-        });
+      algoStrategyMenuItem.disabled = true;
+      this.replaceAlgoRequest('unused-' + selectedNode.idAlgoAssetclassSecurity).add(
+        this.algoStrategyService
+          .getUnusedStrategiesForManualAdding(selectedNode.idAlgoAssetclassSecurity)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((algoStrategyImplementations) => {
+            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(
+              selectedNode.idAlgoAssetclassSecurity,
+              algoStrategyImplementations
+            );
+            algoStrategyMenuItem.disabled =
+              this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(selectedNode.idAlgoAssetclassSecurity)
+                .length === 0;
+            if (this.selectedNode()?.data.idAlgoAssetclassSecurity === selectedNode.idAlgoAssetclassSecurity)
+              this.resetMenu();
+          })
+      );
     }
   }
 
@@ -439,24 +483,27 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + entityMsg,
       () => {
-        deleteService.deleteEntity(entity.getId()).subscribe((response) => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: AppHelper.toUpperCaseWithUnderscore(entity.constructor.name)
+        deleteService
+          .deleteEntity(entity.getId())
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((response) => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: AppHelper.toUpperCaseWithUnderscore(entity.constructor.name)
+            });
+            this.resetMenu();
+            this.readDataWithoutTopLevel();
           });
-          this.resetMenu();
-          this.readDataWithoutTopLevel();
-        });
       }
     );
   }
 
   handleCloseAlgoAssetclassDialog(processedActionData: ProcessedActionData) {
-    this.visibleDialogs = new Array(this.visibleDialogs.length).fill(false);
+    this.visibleDialogs.set(new Array(this.visibleDialogs().length).fill(false));
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       if (processedActionData.data instanceof AlgoTopAssetSecurity) {
         this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.delete(processedActionData.data.idAlgoAssetclassSecurity);
       }
-      if (this.algoCallParam.parentObject.getId() === this.algoTop.idAlgoAssetclassSecurity) {
+      if (this.algoCallParam().parentObject.getId() === this.algoTop().idAlgoAssetclassSecurity) {
         this.readDataWithTopLevel();
       } else {
         this.readDataWithoutTopLevel();
@@ -471,16 +518,18 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
    */
   private openAddInstrumentDialogWhenRequested(processedActionData: ProcessedActionData): void {
     const saved = processedActionData.data;
-    if (this.algoCallParam.addInstrumentsBySearch && saved?.name != null && saved.idAlgoAssetclassSecurity) {
-      this.algoCallParam.addInstrumentsBySearch = false;
+    if (this.algoCallParam().addInstrumentsBySearch && saved?.name != null && saved.idAlgoAssetclassSecurity) {
+      this.algoCallParam.update((param) => ({ ...param, addInstrumentsBySearch: false }));
       this.idAlgoAssetclassAddInstrument = saved.idAlgoAssetclassSecurity;
-      this.visibleDialogs[AlgoDialogVisible.ALGO_ADD_INSTRUMENT] = true;
+      this.visibleDialogs.update((dialogs) =>
+        Object.assign([...dialogs], { [AlgoDialogVisible.ALGO_ADD_INSTRUMENT]: true })
+      );
     }
   }
 
   /** Reloads the hierarchy below the top level, since the search dialog may have added instruments. */
   handleCloseAddInstrumentDialog(processedActionData: ProcessedActionData): void {
-    this.visibleDialogs = new Array(this.visibleDialogs.length).fill(false);
+    this.visibleDialogs.set(new Array(this.visibleDialogs().length).fill(false));
     this.readDataWithoutTopLevel();
   }
 
@@ -512,12 +561,13 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   ngOnDestroy(): void {
     this.routeSubscribe.unsubscribe();
     this.monitoringSubscription.unsubscribe();
+    this.activePanelService.destroyPanel(this);
   }
 
   private getCheckedSecurities(): AlgoSecurity[] {
     const result: AlgoSecurity[] = [];
-    if (this.algoTop?.algoAssetclassList) {
-      for (const ac of this.algoTop.algoAssetclassList) {
+    if (this.algoTop()?.algoAssetclassList) {
+      for (const ac of this.algoTop().algoAssetclassList) {
         if (ac.algoSecurityList) {
           for (const sec of ac.algoSecurityList) {
             if ((sec as any)._selected) {
@@ -543,6 +593,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
         const deleteObs = checked.map((sec) => this.algoSecurityService.deleteEntity(sec.idAlgoAssetclassSecurity));
         concat(...deleteObs)
           .pipe(toArray())
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(() => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: 'AlgoSecurity'
@@ -555,23 +606,33 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   }
 
   private handleNormalizePercentages(idAlgoAssetclassSecurity: number): void {
-    this.algoTopService.normalizePercentages(idAlgoAssetclassSecurity).subscribe(() => {
-      this.readDataWithoutTopLevel();
-    });
+    this.algoTopService
+      .normalizePercentages(idAlgoAssetclassSecurity)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.readDataWithoutTopLevel();
+      });
   }
 
   private handleNormalizeAllPercentages(idAlgoAssetclassSecurity: number): void {
-    this.algoTopService.normalizeAllPercentages(idAlgoAssetclassSecurity).subscribe(() => {
-      this.readDataWithoutTopLevel();
-    });
+    this.algoTopService
+      .normalizeAllPercentages(idAlgoAssetclassSecurity)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.readDataWithoutTopLevel();
+      });
   }
 
   private resetMenu(): void {
-    this.contextMenuItems = this.getEditMenu(this.selectedNode);
-    this.activePanelService.activatePanel(this, {
-      showMenu: this.getMenuShowOptions(),
-      editMenu: this.contextMenuItems
-    });
+    const menu = this.getEditMenu(this.selectedNode());
+    this.replaceAlgoRequest('menu').add(
+      TranslateHelper.translateMenuItems$(menu, this.translateService)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((items) => {
+          this.contextMenuItems.set(items);
+          this.activePanelService.activatePanel(this, { showMenu: null, editMenu: items });
+        })
+    );
   }
 
   private getEditMenu(selectedNode: TreeNode): MenuItem[] {
@@ -590,23 +651,23 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     if (selectedNode instanceof TreeAlgoTop) {
       menuItems.push({
         label: 'ADD_RECORD|ASSETCLASS',
-        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, this.algoTop, null)
+        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, this.algoTop(), null)
       });
       menuItems.push({
         label: 'NORMALIZE_PERCENTAGES',
-        command: () => this.handleNormalizePercentages(this.algoTop.idAlgoAssetclassSecurity),
-        disabled: !this.algoTop.algoAssetclassList || this.algoTop.algoAssetclassList.length === 0
+        command: () => this.handleNormalizePercentages(this.algoTop().idAlgoAssetclassSecurity),
+        disabled: !this.algoTop().algoAssetclassList || this.algoTop().algoAssetclassList.length === 0
       });
       menuItems.push({
         label: 'NORMALIZE_ALL_PERCENTAGES',
-        command: () => this.handleNormalizeAllPercentages(this.algoTop.idAlgoAssetclassSecurity),
-        disabled: !this.algoTop.algoAssetclassList || this.algoTop.algoAssetclassList.length === 0
+        command: () => this.handleNormalizeAllPercentages(this.algoTop().idAlgoAssetclassSecurity),
+        disabled: !this.algoTop().algoAssetclassList || this.algoTop().algoAssetclassList.length === 0
       });
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoAssetclass) {
       menuItems.push({
         label: 'EDIT_RECORD|ASSETCLASS',
-        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, this.algoTop, selectedNode.data)
+        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, this.algoTop(), selectedNode.data)
       });
       menuItems.push({
         label: 'DELETE_RECORD|ASSETCLASS',
@@ -655,7 +716,6 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
         command: (e) => this.handleDeleteEntity(selectedNode.data, this.algoStrategyService)
       });
     }
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -669,29 +729,30 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       algoDialogVisible === AlgoDialogVisible.ALGO_SECURITY &&
       parent instanceof AlgoAssetclass &&
       parent.isCustomCategory()
-        ? this.algoTop.idWatchlist
+        ? this.algoTop().idWatchlist
         : undefined;
-    this.algoCallParam = new AlgoCallParam(
-      parent,
-      thisObject,
-      algoStrategyDefinitionForm,
-      idWatchlist,
-      this.algoTop.referenceDate
+    this.algoCallParam.set(
+      new AlgoCallParam(parent, thisObject, algoStrategyDefinitionForm, idWatchlist, this.algoTop().referenceDate)
     );
     if (algoDialogVisible === AlgoDialogVisible.ALGO_ASSETCLASS) {
-      this.gps.getEntityFormDefinition('AlgoAssetclass').subscribe((definition) => {
-        this.algoCallParam.formDefinition = definition;
-        this.visibleDialogs[algoDialogVisible] = true;
-      });
+      this.replaceAlgoRequest('edit-dialog').add(
+        this.gps
+          .getEntityFormDefinition('AlgoAssetclass')
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((definition) => {
+            this.algoCallParam.update((param) => ({ ...param, formDefinition: definition }));
+            this.visibleDialogs.update((dialogs) => Object.assign([...dialogs], { [algoDialogVisible]: true }));
+          })
+      );
     } else {
-      this.visibleDialogs[algoDialogVisible] = true;
+      this.visibleDialogs.update((dialogs) => Object.assign([...dialogs], { [algoDialogVisible]: true }));
     }
   }
 
   private refreshSelectedEntity(): void {
-    if (this.selectedNode) {
-      this.selectedNode = this.searchTree(this.treeNodes[0], this.selectedNode.data.idTree);
-      setTimeout(() => this.onNodeSelect(null));
+    if (this.selectedNode()) {
+      this.selectedNode.set(this.searchTree(this.treeNodes()[0], this.selectedNode().data.idTree));
+      this.onNodeSelect(null);
     }
   }
 }

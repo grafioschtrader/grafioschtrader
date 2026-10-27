@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { switchMap, combineLatest, Observable } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
 import { AlgoSecurity } from '../model/algo.security';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -7,7 +8,6 @@ import { AlgoSecurityService } from '../service/algo.security.service';
 import { AlgoAssetclass } from '../model/algo.assetclass';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { AlgoAssetclassSecurityBaseEdit } from './algo.assetclass.security.base.edit';
-import { combineLatest, Observable } from 'rxjs';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { Security } from '../../entities/security';
@@ -40,7 +40,6 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoSecurity> implements OnInit {
@@ -93,45 +92,45 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
         'ALGO_SECURITY_STARTS_AFTER_REFERENCE',
         'ALGO_SECURITY_ENDED'
       ])
-    ]).subscribe((data) => {
-      this.configObject.security.referencedDataObject = data[0];
-      this.algoCallParam.thisObject &&
-        this.configObject.security.referencedDataObject.push((<AlgoSecurity>this.algoCallParam.thisObject).security);
-      const dateFields = {
-        activeFromDate: ShowRecordConfigBase.createColumnConfig(
-          DataType.DateString,
-          'activeFromDate',
-          'ACTIVE_FROM_DATE'
-        ),
-        activeToDate: ShowRecordConfigBase.createColumnConfig(DataType.DateString, 'activeToDate', 'ACTIVE_TO_DATE')
-      };
-      this.configObject.security.groupItem = createAlgoSecurityOptions(
-        this.configObject.security.referencedDataObject,
-        this.algoCallParam.referenceDate,
-        (security, field) =>
-          AppHelper.getValueByPathWithField(this.gps, this.translateService, security, dateFields[field], field),
-        {
-          activeFrom: data[2].ACTIVE_FROM_DATE,
-          activeTo: data[2].ACTIVE_TO_DATE,
-          startsAfterReference: data[2].ALGO_SECURITY_STARTS_AFTER_REFERENCE,
-          ended: data[2].ALGO_SECURITY_ENDED
-        }
-      );
-      this.setAccountOptions(data[1]);
-      if (existing) {
-        this.form.transferBusinessObjectToForm(existing);
-        // A saved priority whose account no longer allows the type is cleared, the backend would refuse it.
-        this.setAccountOptions(data[1]);
-      }
-      // The allowed accounts follow the instrument type of the selected security.
-      this.configObject.security.formControl.valueChanges
-        .pipe(distinctUntilChanged())
-        .subscribe((idSecuritycurrency: number) =>
-          this.getAccountOptions(idSecuritycurrency || undefined).subscribe((options) =>
-            this.setAccountOptions(options)
-          )
+    ])
+      .pipe(this.untilDialogClosed())
+      .subscribe((data) => {
+        this.configObject.security.referencedDataObject = [...data[0], ...(existing ? [existing.security] : [])];
+        const dateFields = {
+          activeFromDate: ShowRecordConfigBase.createColumnConfig(
+            DataType.DateString,
+            'activeFromDate',
+            'ACTIVE_FROM_DATE'
+          ),
+          activeToDate: ShowRecordConfigBase.createColumnConfig(DataType.DateString, 'activeToDate', 'ACTIVE_TO_DATE')
+        };
+        this.configObject.security.groupItem = createAlgoSecurityOptions(
+          this.configObject.security.referencedDataObject,
+          this.algoCallParam.referenceDate,
+          (security, field) =>
+            AppHelper.getValueByPathWithField(this.gps, this.translateService, security, dateFields[field], field),
+          {
+            activeFrom: data[2].ACTIVE_FROM_DATE,
+            activeTo: data[2].ACTIVE_TO_DATE,
+            startsAfterReference: data[2].ALGO_SECURITY_STARTS_AFTER_REFERENCE,
+            ended: data[2].ALGO_SECURITY_ENDED
+          }
         );
-    });
+        this.setAccountOptions(data[1]);
+        if (existing) {
+          this.form.transferBusinessObjectToForm(existing);
+          // A saved priority whose account no longer allows the type is cleared, the backend would refuse it.
+          this.setAccountOptions(data[1]);
+        }
+        // The allowed accounts follow the instrument type of the selected security.
+        this.configObject.security.formControl.valueChanges
+          .pipe(
+            distinctUntilChanged(),
+            switchMap((id: number) => this.getAccountOptions(id || undefined)),
+            this.untilDialogClosed()
+          )
+          .subscribe((options) => this.setAccountOptions(options));
+      });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoSecurity {

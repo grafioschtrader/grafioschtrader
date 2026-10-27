@@ -1,4 +1,6 @@
-import { Directive } from '@angular/core';
+import { computed, DestroyRef, inject, signal, Directive } from '@angular/core';
+import { of, Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { plainToClass } from 'class-transformer';
@@ -32,6 +34,17 @@ import { AppHelper } from '../../lib/helper/app.helper';
  */
 @Directive()
 export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
+  protected readonly destroyRef = inject(DestroyRef);
+  private readonly pendingReads = new Map<string, Subscription>();
+  private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
+    this.pendingReads.forEach((request) => request.unsubscribe())
+  );
+  protected replaceAlgoRequest(key: string): Subscription {
+    this.pendingReads.get(key)?.unsubscribe();
+    const request = new Subscription();
+    this.pendingReads.set(key, request);
+    return request;
+  }
   /**
    * Field of the column that shows the distribution icon of an instrument, or the coupon rate of a bond. The path does
    * not exist on the entity, the column takes its value from {@link getCouponRate} alone. The backend readiness check
@@ -39,15 +52,15 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
    */
   static readonly DISTRIBUTION_FIELD = 'security.distribution';
 
-  algoTop: AlgoTop;
-  treeNodes: TreeNode[];
-  selectedNode: TreeNode;
+  readonly algoTop = signal<AlgoTop>(undefined);
+  readonly treeNodes = computed<TreeNode[]>(() => (this.algoTop() ? [new TreeAlgoTop(this.algoTop())] : null));
+  readonly selectedNode = signal<TreeNode>(undefined);
 
   /** Form definitions of the strategy implementations, loaded once per implementation and shared by the dialogs. */
   algoStrategyDefinitionForm = new AlgoStrategyDefinitionForm();
 
   /** Parameters of the strategy shown in the detail below the tree; its algoStrategy is null when none is selected. */
-  algoStrategyShowParamCall: AlgoStrategyParamCall = new AlgoStrategyParamCall();
+  readonly algoStrategyShowParamCall = signal<AlgoStrategyParamCall>(new AlgoStrategyParamCall());
 
   /** Formats the coupon rate of a bond in the distribution column. */
   private readonly couponRateField = ShowRecordConfigBase.createColumnConfig(
@@ -159,10 +172,42 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
    * @param algoAssetclassList - Asset classes with their instruments and strategies
    */
   protected buildTree(algoTop: AlgoTop, algoAssetclassList: AlgoAssetclass[]): void {
-    this.algoTop = plainToClass(AlgoTop, { ...algoTop, algoAssetclassList });
-    this.treeNodes = [new TreeAlgoTop(this.algoTop)];
+    this.algoTop.set(plainToClass(AlgoTop, { ...algoTop, algoAssetclassList }));
     this.translateDataForAssetclass();
     this.translateDataForStrategy();
+  }
+
+  /** Replaces an edited row and its ancestors while keeping expanded branches and the selected node. */
+  protected patchHierarchyRow(row: AlgoTopAssetSecurity | AlgoStrategy, patch: Record<string, any>): void {
+    if (!this.algoTop()) return;
+    const expanded = new Map<string, boolean>();
+    const remember = (nodes: TreeNode[]) =>
+      nodes?.forEach((node) => {
+        expanded.set(node.data.idTree, node.expanded);
+        remember(node.children);
+      });
+    remember(this.treeNodes());
+    const selectedId = this.selectedNode()?.data.idTree;
+    const clone = (entity) => {
+      const copy = Object.assign(
+        Object.create(Object.getPrototypeOf(entity)),
+        entity,
+        entity.idTree === row.idTree ? patch : {}
+      );
+      for (const field of ['algoAssetclassList', 'algoSecurityList', 'algoStrategyList']) {
+        if (entity[field]) copy[field] = entity[field].map(clone);
+      }
+      return copy;
+    };
+    this.algoTop.set(clone(this.algoTop()));
+    const restore = (nodes: TreeNode[], parent?: TreeNode) =>
+      nodes?.forEach((node) => {
+        node.parent = parent;
+        if (!(node instanceof TreeAlgoStrategy)) node.expanded = expanded.get(node.data.idTree) ?? true;
+        if (node.data.idTree === selectedId) this.selectedNode.set(node);
+        restore(node.children, node);
+      });
+    restore(this.treeNodes());
   }
 
   /**
@@ -178,21 +223,35 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
 
   /** Shows the parameters of a selected strategy below the tree and hides them for any other node. */
   onNodeSelect(event): void {
-    if (this.selectedNode instanceof TreeAlgoStrategy) {
-      // Needed to cause ngOnChanges
-      this.algoStrategyShowParamCall = new AlgoStrategyParamCall();
-      this.setFieldDescriptorInputAndShow(
-        (<TreeNode>this.selectedNode).parent.data,
-        this.selectedNode.data,
-        this.algoStrategyShowParamCall
-      );
-    } else {
-      this.algoStrategyShowParamCall.algoStrategy = null;
-    }
+    const request = this.replaceAlgoRequest('detail');
+    this.algoStrategyShowParamCall.set(new AlgoStrategyParamCall());
+    const node = this.selectedNode();
+    if (!(node instanceof TreeAlgoStrategy)) return;
+    const strategy = node.data as AlgoStrategy;
+    const asi = AlgoStrategyImplementationType[strategy.algoStrategyImplementations];
+    const cached = this.algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asi);
+    request.add(
+      (cached ? of(cached) : this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asi))
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((definition) => {
+          this.algoStrategyDefinitionForm.inputAndShowDefinitionMap.set(asi, definition);
+          this.algoStrategyShowParamCall.set(
+            Object.assign(new AlgoStrategyParamCall(), {
+              algoStrategy: strategy,
+              isComplexStrategy: definition.isComplexStrategy,
+              fieldDescriptorShow: AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(
+                (node as TreeNode).parent.data,
+                definition
+              )
+            })
+          );
+        })
+    );
   }
 
   onNodeUnselect(event): void {
-    this.algoStrategyShowParamCall.algoStrategy = null;
+    this.replaceAlgoRequest('detail');
+    this.algoStrategyShowParamCall.set(new AlgoStrategyParamCall());
   }
 
   private translateDataForAssetclass(): void {
@@ -210,7 +269,7 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
       { translateValues: TranslateValue.NORMAL }
     );
 
-    const nonCustomAssetclasses = this.algoTop.algoAssetclassList.filter((ac) => !ac.isCustomCategory());
+    const nonCustomAssetclasses = this.algoTop().algoAssetclassList.filter((ac) => !ac.isCustomCategory());
     TranslateHelper.createTranslatedValueStore(this.translateService, fieldsAssetclass, nonCustomAssetclasses);
   }
 
@@ -220,7 +279,7 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
       translateValues: TranslateValue.NORMAL
     });
     const algoStrategyList: AlgoStrategy[] = [];
-    this.traverseObjectTreeForAlgoStrategy(algoStrategyList, this.algoTop);
+    this.traverseObjectTreeForAlgoStrategy(algoStrategyList, this.algoTop());
     TranslateHelper.createTranslatedValueStore(this.translateService, fieldAlgoStrategy, algoStrategyList);
   }
 
@@ -234,33 +293,6 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
       algoTopAssetSecurityList.forEach((atas) => {
         this.traverseObjectTreeForAlgoStrategy(algoStrategyList, atas);
       });
-    }
-  }
-
-  private setFieldDescriptorInputAndShow<T extends AlgoTopAssetSecurity>(
-    algoTopAssetSecurity: T,
-    algoStrategy: AlgoStrategy,
-    algoStrategyParamCall: AlgoStrategyParamCall
-  ): void {
-    const asiNo: number = AlgoStrategyImplementationType[algoStrategy.algoStrategyImplementations];
-    const inputAndShowDefinition = this.algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asiNo);
-    if (!inputAndShowDefinition) {
-      this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asiNo).subscribe((iasd) => {
-        this.algoStrategyDefinitionForm.inputAndShowDefinitionMap.set(asiNo, iasd);
-        algoStrategyParamCall.isComplexStrategy = iasd.isComplexStrategy;
-        algoStrategyParamCall.fieldDescriptorShow = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(
-          algoTopAssetSecurity,
-          iasd
-        );
-        this.algoStrategyShowParamCall.algoStrategy = algoStrategy;
-      });
-    } else {
-      algoStrategyParamCall.isComplexStrategy = inputAndShowDefinition.isComplexStrategy;
-      algoStrategyParamCall.fieldDescriptorShow = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(
-        algoTopAssetSecurity,
-        inputAndShowDefinition
-      );
-      this.algoStrategyShowParamCall.algoStrategy = algoStrategy;
     }
   }
 }

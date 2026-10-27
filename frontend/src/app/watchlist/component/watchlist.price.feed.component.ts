@@ -1,5 +1,6 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WatchlistTable, WatchListType } from './watchlist.table';
-import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { WatchlistService } from '../service/watchlist.service';
@@ -26,7 +27,6 @@ import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { TenantLimit } from '../../shared/types/tenant.limit';
-import { SecurityCurrencyHelper } from '../../securitycurrency/service/security.currency.helper';
 import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
@@ -76,7 +76,6 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
   ],
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -259,7 +258,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
    * @returns The human-readable name of the feed connector, or undefined if not found
    */
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
-    return this.feedConnectorsKV[valueField];
+    return this.feedConnectorsKV()[valueField];
   }
 
   /**
@@ -272,12 +271,14 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
       this.watchlistService.getWatchlistWithoutUpdateAndMaxHistoryquote(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> =
       this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-    combineLatest([watchListObservable, tenantLimitObservable]).subscribe(
-      (result: [SecuritycurrencyGroup, TenantLimit[]]) => {
-        this.createSecurityPositionList(result[0]);
-        this.tenantLimits = result[1];
-        this.loading = false;
-      }
+    this.replaceWatchlistRequest('data').add(
+      combineLatest([watchListObservable, tenantLimitObservable])
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((result: [SecuritycurrencyGroup, TenantLimit[]]) => {
+          this.createSecurityPositionList(result[0]);
+          this.tenantLimits.set(result[1]);
+          this.loading.set(false);
+        })
     );
   }
 
@@ -300,18 +301,19 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
   protected override getEditMenuItems(
     securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>
   ): MenuItem[] {
-    if (this.securityPositionList && AuditHelper.hasHigherPrivileges(this.gps)) {
+    if (this.securityPositionList() && AuditHelper.hasHigherPrivileges(this.gps)) {
       const menuItems: MenuItem[] = [
         {
           label: 'WATCHLIST_ADD_PROBLEM_INSTRUMENT' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: (e) => (this.visibleAddPriceProblemDialog = true),
-          disabled: this.securityPositionList.length > 0
+          command: (e) => this.visibleAddPriceProblemDialog.set(true),
+          disabled: this.securityPositionList().length > 0
         },
         {
           label: 'REPAIR_HISTORY_LOAD',
           command: (e) =>
             this.watchlistService
               .tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(this.idWatchlist)
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe(() => this.getWatchlistWithoutUpdate()),
           disabled: this.disableUpToDateFeedDataMenu(this.f_retryHistoryLoad, null)
         },
@@ -320,6 +322,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
           command: (e) =>
             this.watchlistService
               .tryUpToIntradayDataWhenRetryIntraLoadGreaterThan0(this.idWatchlist)
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe(() => this.getWatchlistWithoutUpdate()),
           disabled: this.disableUpToDateFeedDataMenu(this.f_retryIntraLoad, new Date())
         },
@@ -337,7 +340,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
    * Sets loading state and refreshes the watchlist to get updated feed information.
    */
   protected override updateAllPrice(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.getWatchlistWithoutUpdate();
   }
 
@@ -350,7 +353,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
    * @returns True if the repair menu should be disabled, false otherwise
    */
   private disableUpToDateFeedDataMenu(propName: string, untilDate: Date): boolean {
-    return this.securityPositionList.every(
+    return this.securityPositionList().every(
       (sp) =>
         sp.securitycurrency[propName] === 0 ||
         (!(sp.securitycurrency instanceof CurrencypairWatchlist) &&
@@ -365,12 +368,12 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
    * then triggers the watchlist data loading process.
    */
   private loadData(): void {
-    SecurityCurrencyHelper.loadAllConnectors(
-      this.securityService,
-      this.currencypairService,
-      this.feedConnectorsKV,
-      this.getWatchlistWithoutUpdate.bind(this)
-    );
+    combineLatest([this.securityService.getFeedConnectors(), this.currencypairService.getFeedConnectors()])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([security, currency]) => {
+        this.feedConnectorsKV.set(Object.fromEntries([...security, ...currency].map((c) => [c.id, c.readableName])));
+        this.getWatchlistWithoutUpdate();
+      });
   }
 
   /**
@@ -380,7 +383,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
    * @param processedActionData - Data about the action performed in the dialog
    */
   override handleCloseAddPriceProblemInstrument(processedActionData: ProcessedActionData): void {
-    this.visibleAddPriceProblemDialog = false;
+    this.visibleAddPriceProblemDialog.set(false);
     this.updateAllPrice();
   }
 }

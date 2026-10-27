@@ -1,4 +1,6 @@
-import { Component, EventEmitter, Output, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, signal, Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService } from '@openng/optimus-ui/api';
@@ -23,7 +25,6 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 @Component({
   selector: 'algo-alert-diagnostics',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -45,14 +46,14 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
     <p-tabs value="evaluation"
       ><p-tablist>
         <p-tab value="evaluation">{{ 'ALERT_EVALUATION' | translate }}</p-tab>
-        <p-tab value="trading">{{ 'TRADING_DECISIONS' | translate }}</p-tab>
-        <p-tab value="notifications">{{ 'ALERT_NOTIFICATIONS' | translate }}</p-tab> </p-tablist
+        <p-tab value="trading()">{{ 'TRADING_DECISIONS' | translate }}</p-tab>
+        <p-tab value="notifications()">{{ 'ALERT_NOTIFICATIONS' | translate }}</p-tab> </p-tablist
       ><p-tabpanels>
-        <p-tabpanel value="evaluation"><algo-alert-diagnostics-table [rows]="evaluations" /></p-tabpanel>
-        <p-tabpanel value="trading"><algo-alert-diagnostics-table [rows]="trading" [trading]="true" /></p-tabpanel>
-        <p-tabpanel value="notifications">
+        <p-tabpanel value="evaluation"><algo-alert-diagnostics-table [rows]="evaluations()" /></p-tabpanel>
+        <p-tabpanel value="trading()"><algo-alert-diagnostics-table [rows]="trading()" [trading]="true" /></p-tabpanel>
+        <p-tabpanel value="notifications()">
           <algo-alert-notification-table
-            [rows]="notifications"
+            [rows]="notifications()"
             (retry)="retry($event)"
             (delete)="deleteNotifications($event)" />
         </p-tabpanel> </p-tabpanels
@@ -63,9 +64,13 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
           <i class="pi pi-question" pButtonIcon></i>
         </p-button>
         <div class="ms-auto">
-          <p-button [label]="'ALERT_REFRESH' | translate" [disabled]="busy" (click)="refresh()" />
+          <p-button [label]="'ALERT_REFRESH' | translate" [disabled]="busy()" (click)="refresh()" />
           @if (!readOnly) {
-            <p-button class="ms-1" [label]="'ALERT_EVALUATE_NOW' | translate" [disabled]="busy" (click)="evaluate()" />
+            <p-button
+              class="ms-1"
+              [label]="'ALERT_EVALUATE_NOW' | translate"
+              [disabled]="busy()"
+              (click)="evaluate()" />
           }
         </div>
       </div>
@@ -73,11 +78,23 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
   </p-dialog>`
 })
 export class AlgoAlertDiagnosticsDialogComponent implements OnInit {
+  private readonly pendingReads = new Map<string, Subscription>();
+  private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
+    this.pendingReads.forEach((request) => request.unsubscribe())
+  );
+  private replaceAlgoRequest(key: string): Subscription {
+    this.pendingReads.get(key)?.unsubscribe();
+    const request = new Subscription();
+    this.pendingReads.set(key, request);
+    return request;
+  }
+
+  protected readonly destroyRef = inject(DestroyRef);
   @Output() closed = new EventEmitter<void>();
-  evaluations: AlertEvaluation[] = [];
-  trading: any[] = [];
-  notifications: AlertNotification[] = [];
-  busy = false;
+  readonly evaluations = signal<AlertEvaluation[]>([]);
+  readonly trading = signal<any[]>([]);
+  readonly notifications = signal<AlertNotification[]>([]);
+  readonly busy = signal(false);
   readOnly: boolean;
   constructor(
     private service: AlgoAlertService,
@@ -92,22 +109,37 @@ export class AlgoAlertDiagnosticsDialogComponent implements OnInit {
     this.refresh();
   }
   refresh(): void {
-    this.service.trading().subscribe((rows) => (this.trading = rows));
-    this.service.evaluations().subscribe((rows) => (this.evaluations = rows));
+    this.replaceAlgoRequest('trading').add(
+      this.service
+        .trading()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((rows) => this.trading.set(rows))
+    );
+    this.replaceAlgoRequest('evaluations').add(
+      this.service
+        .evaluations()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((rows) => this.evaluations.set(rows))
+    );
     this.loadNotifications();
   }
   loadNotifications(): void {
-    this.busy = true;
-    this.service
-      .notifications()
-      .pipe(finalize(() => (this.busy = false)))
-      .subscribe((rows) => (this.notifications = rows));
+    const request = this.replaceAlgoRequest('notifications');
+    this.busy.set(true);
+    request.add(
+      this.service
+        .notifications()
+        .pipe(finalize(() => this.busy.set(false)))
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((rows) => this.notifications.set(rows))
+    );
   }
   evaluate(): void {
-    this.busy = true;
+    this.busy.set(true);
     this.service
       .evaluate()
-      .pipe(finalize(() => (this.busy = false)))
+      .pipe(finalize(() => this.busy.set(false)))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.refresh());
   }
   /** Opens the user manual page on alerts, which also explains evaluation outcomes and notification delivery. */
@@ -116,10 +148,11 @@ export class AlgoAlertDiagnosticsDialogComponent implements OnInit {
   }
   /** Queues the delivery of one failed notification again; the table has already checked that it is retryable. */
   retry(idNotification: number): void {
-    this.busy = true;
+    this.busy.set(true);
     this.service
       .retry(idNotification)
-      .pipe(finalize(() => (this.busy = false)))
+      .pipe(finalize(() => this.busy.set(false)))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.loadNotifications());
   }
   /**
@@ -133,10 +166,11 @@ export class AlgoAlertDiagnosticsDialogComponent implements OnInit {
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORDS|ALERT_NOTIFICATIONS',
       () => {
-        this.busy = true;
+        this.busy.set(true);
         this.service
           .deleteNotifications(ids)
-          .pipe(finalize(() => (this.busy = false)))
+          .pipe(finalize(() => this.busy.set(false)))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(() => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORDS', {
               i18nRecord: 'ALERT_NOTIFICATIONS'

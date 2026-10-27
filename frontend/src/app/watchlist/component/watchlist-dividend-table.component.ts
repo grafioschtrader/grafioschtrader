@@ -1,5 +1,6 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SvgIconRegistryService, AngularSvgIconModule } from 'angular-svg-icon';
-import { Component, Injector, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, Input, OnInit } from '@angular/core';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -20,7 +21,6 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
   selector: 'watchlist-dividend-table',
   templateUrl: '../view/dividend.split.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, ConfigurableTableComponent, AngularSvgIconModule]
 })
 export class WatchlistDividendTableComponent extends DividendSplitTableBase<Dividend> implements OnInit {
@@ -75,8 +75,11 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
 
   /** Initializes the component by loading dividend data for the specified security */
   ngOnInit(): void {
-    this.dividendService.getDividendsByIdSecuritycurrency(this.idSecuritycurrency).subscribe((dividend) => {
-      this.data = dividend;
-    });
+    this.dividendService
+      .getDividendsByIdSecuritycurrency(this.idSecuritycurrency)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((dividend) => {
+        this.data.set(dividend);
+      });
   }
 }

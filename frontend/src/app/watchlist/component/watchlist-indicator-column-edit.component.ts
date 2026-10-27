@@ -1,6 +1,5 @@
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -25,7 +24,6 @@ import { debounceTime, distinctUntilChanged, switchMap, catchError, of } from 'r
 @Component({
   selector: 'watchlist-indicator-column-edit',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ButtonModule, TranslateModule, DialogModule, DynamicFormComponent],
   template: `<p-dialog
     [header]="'WATCHLIST_INDICATOR_COLUMN' | translate"
@@ -101,7 +99,7 @@ export class WatchlistIndicatorColumnEditComponent
         switchMap((expression) =>
           expression?.trim() ? this.indicators.resultType(expression).pipe(catchError(() => of(null))) : of(null)
         ),
-        takeUntilDestroyed(this.destroyRef)
+        this.untilDialogClosed()
       )
       .subscribe((result) => {
         if (result) this.showNumeric(result.resultType === 'NUMBER');
@@ -135,7 +133,7 @@ export class WatchlistIndicatorColumnEditComponent
       closeOnEscape: true,
       data: { supplementCriteria: new SupplementCriteria(false, false) }
     });
-    ref.onClose.subscribe((instrument) => {
+    ref.onClose.pipe(this.untilDialogClosed()).subscribe((instrument) => {
       if (instrument) {
         this.benchmark = instrument.idSecuritycurrency;
         this.configObject.benchmarkName.formControl.setValue(

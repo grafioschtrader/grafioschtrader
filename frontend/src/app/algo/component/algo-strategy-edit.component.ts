@@ -1,4 +1,17 @@
-import { ViewChild, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import {
+  afterNextRender,
+  inject,
+  Injector,
+  DestroyRef,
+  signal,
+  ViewChild,
+  Component,
+  Input,
+  OnInit
+} from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { AlgoStrategy } from '../model/algo.strategy';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
@@ -9,7 +22,6 @@ import { AlgoStrategyService } from '../service/algo.strategy.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { AlgoCallParam } from '../model/algo.dialog.visible';
 import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';
-import { Subscription } from 'rxjs';
 import {
   ClassDescriptorInputAndShow,
   FieldDescriptorInputAndShow
@@ -108,7 +120,7 @@ risk_controls:
     styleClass="big-dialog"
     header="{{ 'ALGO_STRATEGY' | translate }}"
     [visible]="visibleDialog"
-    [style]="{ width: dialogWidth }"
+    [style]="{ width: dialogWidth() }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
     [modal]="true">
@@ -120,14 +132,14 @@ risk_controls:
       (submitBt)="submit($event)">
     </dynamic-form>
 
-    @if (isComplexStrategy) {
+    @if (isComplexStrategy()) {
       <yaml-editor
         #yamlEditor
         format="STRATEGY"
         [activatable]="configObject.activatable?.formControl?.value !== false"
         [(value)]="yamlContent"
         [height]="'500px'"
-        [schema]="configObject.activatable?.formControl?.value === false ? draftYamlSchema : yamlSchema" />
+        [schema]="configObject.activatable?.formControl?.value === false ? draftYamlSchema() : yamlSchema()" />
       <div class="mt-2 text-end">
         <p-button [label]="'LOAD_TEMPLATE' | translate" severity="secondary" (click)="loadTemplate()" styleClass="me-2">
           <i class="pi pi-file" pButtonIcon></i>
@@ -142,31 +154,44 @@ risk_controls:
     }
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DialogModule, DynamicFormComponent, YamlEditorComponent, ButtonModule]
 })
 export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy> implements OnInit {
+  private readonly pendingReads = new Map<string, Subscription>();
+  private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
+    this.pendingReads.forEach((request) => request.unsubscribe())
+  );
+  private replaceAlgoRequest(key: string): Subscription {
+    this.pendingReads.get(key)?.unsubscribe();
+    const request = new Subscription();
+    this.pendingReads.set(key, request);
+    return request;
+  }
+
+  private readonly injector = inject(Injector);
+  private readonly http = inject(HttpClient);
+  private formRender: ReturnType<typeof afterNextRender>;
   @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
   @Input() algoCallParam: AlgoCallParam;
 
   dynamicModel: any = {};
   algoStrategyImplementationsChangedSub: Subscription;
   ignoreValueChanged = false;
-  isComplexStrategy = false;
+  readonly isComplexStrategy = signal(false);
 
   fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[];
 
   /** Fields and cross-field constraints of the selected simple strategy on the level of the edited node. */
   private formDefinition: ClassDescriptorInputAndShow;
 
-  dialogWidth = '700px';
+  readonly dialogWidth = signal('700px');
 
   /** YAML content for complex strategies, bound to the Monaco editor */
-  yamlContent = '';
+  readonly yamlContent = signal('');
 
   /** JSON Schema for the Mean Reversion Dip strategy, loaded from assets */
-  yamlSchema: any;
-  draftYamlSchema: any;
+  readonly yamlSchema = signal<any>(undefined);
+  readonly draftYamlSchema = signal<any>(undefined);
 
   private static readonly FIELD_STRATEGY_CONFIG = 'strategyConfig';
 
@@ -187,12 +212,13 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.viewChanged();
   }
 
   protected override initialize(): void {
-    this.isComplexStrategy = false;
-    this.dialogWidth = '700px';
-    this.yamlContent = '';
+    this.isComplexStrategy.set(false);
+    this.dialogWidth.set('700px');
+    this.yamlContent.set('');
     this.config = [this.config[0], this.config[this.config.length - 1]];
     this.config[this.config.length - 1].invisible = false;
     this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.enable();
@@ -222,7 +248,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    * Provides a complete example configuration as a starting point.
    */
   loadTemplate(): void {
-    this.yamlContent = STRATEGY_TEMPLATE_YAML;
+    this.yamlContent.set(STRATEGY_TEMPLATE_YAML);
   }
 
   /**
@@ -235,11 +261,12 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    */
   async submitComplexStrategy(): Promise<void> {
     if (!(await this.yamlEditor.validateForSubmit())) return;
-    if (this.yamlContent && this.parseYaml(this.yamlContent) === undefined) {
+    if (this.destroyRef.destroyed || !this.visibleDialog) return;
+    if (this.yamlContent() && this.parseYaml(this.yamlContent()) === undefined) {
       return;
     }
     const value = { ...this.form.value };
-    value[AlgoStrategyEditComponent.FIELD_STRATEGY_CONFIG] = this.yamlContent;
+    value[AlgoStrategyEditComponent.FIELD_STRATEGY_CONFIG] = this.yamlContent();
     this.submit(value);
   }
 
@@ -275,35 +302,46 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   private valueChangedOnAlgoStrategyImplementation(): void {
     this.algoStrategyImplementationsChangedSub = this.configObject[
       AlgoStrategyHelper.FIELD_STRATEGY_IMPL
-    ].formControl.valueChanges.subscribe((asi: AlgoStrategyImplementationType) => {
-      if (!this.ignoreValueChanged) {
-        this.createViewFromSelectedEnum(asi);
-      }
-    });
+    ].formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((asi: AlgoStrategyImplementationType) => {
+        if (!this.ignoreValueChanged) {
+          this.createViewFromSelectedEnum(asi);
+        }
+      });
   }
 
   private createViewFromSelectedEnum(asi: string | AlgoStrategyImplementationType): void {
+    const request = this.replaceAlgoRequest('strategy');
+    this.formRender?.destroy();
     const asiNo: number = AlgoStrategyImplementationType[asi];
     const inputAndShowDefinition = this.algoCallParam.algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asiNo);
     if (!inputAndShowDefinition) {
-      this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asiNo).subscribe((iasd) => {
-        this.algoCallParam.algoStrategyDefinitionForm.inputAndShowDefinitionMap.set(asiNo, iasd);
-        if (iasd.isComplexStrategy) {
-          this.isComplexStrategy = true;
-          this.createComplexStrategyInput();
-        } else {
-          this.isComplexStrategy = false;
-          this.setFormDefinition(AlgoStrategyHelper.getFormDefinitionByLevel(this.algoCallParam.parentObject, iasd));
-          this.strategyDefaults = iasd.defaultValues ?? {};
-          this.createDynamicInputFields();
-        }
-      });
+      request.add(
+        this.algoStrategyService
+          .getFormDefinitionsByAlgoStrategy(asiNo)
+          .pipe(this.untilDialogClosed())
+          .subscribe((iasd) => {
+            this.algoCallParam.algoStrategyDefinitionForm.inputAndShowDefinitionMap.set(asiNo, iasd);
+            if (iasd.isComplexStrategy) {
+              this.isComplexStrategy.set(true);
+              this.createComplexStrategyInput();
+            } else {
+              this.isComplexStrategy.set(false);
+              this.setFormDefinition(
+                AlgoStrategyHelper.getFormDefinitionByLevel(this.algoCallParam.parentObject, iasd)
+              );
+              this.strategyDefaults = iasd.defaultValues ?? {};
+              this.createDynamicInputFields();
+            }
+          })
+      );
     } else {
       if (inputAndShowDefinition.isComplexStrategy) {
-        this.isComplexStrategy = true;
+        this.isComplexStrategy.set(true);
         this.createComplexStrategyInput();
       } else {
-        this.isComplexStrategy = false;
+        this.isComplexStrategy.set(false);
         this.setFormDefinition(
           AlgoStrategyHelper.getFormDefinitionByLevel(this.algoCallParam.parentObject, inputAndShowDefinition)
         );
@@ -319,7 +357,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    * The actual submit is handled by a separate button below the editor.
    */
   private createComplexStrategyInput(): void {
-    this.dialogWidth = '1100px';
+    this.dialogWidth.set('1100px');
     const submitButton = this.config[this.config.length - 1];
     submitButton.invisible = true;
     this.config = [
@@ -328,9 +366,10 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       submitButton
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.viewChanged();
 
     if (this.algoCallParam.thisObject) {
-      setTimeout(() => this.setExistingComplexModel());
+      this.formRender = afterNextRender(() => this.setExistingComplexModel(), { injector: this.injector });
     } else {
       this.loadTemplate();
     }
@@ -348,9 +387,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     if (algoStrategy.strategyConfig) {
       try {
         const jsonObj = JSON.parse(algoStrategy.strategyConfig);
-        this.yamlContent = yaml.dump(jsonObj, { lineWidth: 120, noRefs: true });
+        this.yamlContent.set(yaml.dump(jsonObj, { lineWidth: 120, noRefs: true }));
       } catch (e) {
-        this.yamlContent = algoStrategy.strategyConfig;
+        this.yamlContent.set(algoStrategy.strategyConfig);
       }
     }
     this.form.transferBusinessObjectToForm(model);
@@ -375,7 +414,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    * least one threshold, become form groups, so the form refuses what the server would reject.
    */
   private createDynamicInputFields(): void {
-    this.dialogWidth = '700px';
+    this.dialogWidth.set('700px');
     const submitButton = this.config[this.config.length - 1];
     submitButton.invisible = false;
     const fieldConfig = <FieldConfig[]>(
@@ -392,9 +431,10 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     });
     this.config = [this.config[0], ...fieldConfig, submitButton];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.viewChanged();
 
     if (this.algoCallParam.thisObject) {
-      setTimeout(() => this.setExistingModel());
+      this.formRender = afterNextRender(() => this.setExistingModel(), { injector: this.injector });
     }
   }
 
@@ -423,9 +463,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.form.cleanMaskAndTransferValuesToBusinessObject(algoStrategy);
     algoStrategy.idAlgoAssetclassSecurity = this.algoCallParam.parentObject.idAlgoAssetclassSecurity;
 
-    if (this.isComplexStrategy) {
+    if (this.isComplexStrategy()) {
       // submitComplexStrategy has already rejected unparseable content, so this parse cannot fail on the normal path.
-      const parsed = this.yamlContent ? this.parseYaml(this.yamlContent) : undefined;
+      const parsed = this.yamlContent() ? this.parseYaml(this.yamlContent()) : undefined;
       algoStrategy.strategyConfig = parsed === undefined ? null : JSON.stringify(parsed);
       algoStrategy.algoRuleStrategyParamMap = {};
     } else {
@@ -444,19 +484,20 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   }
 
   override onHide(event): void {
+    this.formRender?.destroy();
     this.algoStrategyImplementationsChangedSub && this.algoStrategyImplementationsChangedSub.unsubscribe();
     super.onHide(event);
   }
 
   /** Loads the JSON Schema for YAML autocompletion from the assets directory */
   private loadYamlSchema(): void {
-    fetch(new URL('assets/schemas/mean-reversion-dip-draft-schema.json', document.baseURI).toString())
-      .then((res) => res.json())
-      .then((schema) => (this.draftYamlSchema = schema));
-    const schemaUrl = new URL('assets/schemas/mean-reversion-dip-schema.json', document.baseURI).toString();
-    fetch(schemaUrl)
-      .then((res) => res.json())
-      .then((schema) => (this.yamlSchema = schema))
-      .catch((err) => console.warn('Could not load YAML schema for autocompletion:', err));
+    this.http
+      .get('assets/schemas/mean-reversion-dip-draft-schema.json')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((schema) => this.draftYamlSchema.set(schema));
+    this.http
+      .get('assets/schemas/mean-reversion-dip-schema.json')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((schema) => this.yamlSchema.set(schema));
   }
 }

@@ -1,3 +1,6 @@
+import { DestroyRef, inject, signal, Directive, input } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -10,7 +13,6 @@ import { BusinessHelper } from '../../shared/helper/business.helper';
 import { SecurityCurrencypairDerivedLinks } from '../../securitycurrency/model/security.currencypair.derived.links';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { Currencypair } from '../../entities/currencypair';
-import { Directive, Input } from '@angular/core';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { WatchlistHelper } from './watchlist.helper';
 import { WatchlistService } from '../service/watchlist.service';
@@ -22,11 +24,12 @@ import { WatchlistService } from '../service/watchlist.service';
  */
 @Directive()
 export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigBase {
+  protected readonly destroyRef = inject(DestroyRef);
   /**
    * The security or currency pair to display information for. A watchlist delivers its currency pairs as
    * CurrencypairWatchlist, which the derived classes tell apart with instanceof.
    */
-  @Input() securitycurrency: Security | Currencypair;
+  readonly securitycurrency = input.required<Security | Currencypair>();
 
   /** Prefix for accessing securitycurrency properties in field paths */
   readonly SECURITYCURRENCY = 'securitycurrency.';
@@ -35,11 +38,12 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
   /** Fieldset name for derived data group */
   readonly DERIVED_DATA = 'DERIVED_DATA';
   /** Base instrument for derived securities */
-  protected baseInstrument: Security | CurrencypairWatchlist;
+  protected readonly baseInstrument = signal<Security | CurrencypairWatchlist>(undefined);
   /** Additional instruments mapped by field name for derived securities */
-  protected additionalInstruments: { [fieldName: string]: Security | CurrencypairWatchlist } = {};
+  protected readonly additionalInstruments = signal<{ [fieldName: string]: Security | CurrencypairWatchlist }>({});
   /** Content object containing the security currency data for display */
   content: ContentBase;
+  private derivedLinks: Subscription;
 
   /**
    * Creates a new SecuritycurrencyBaseInfoFields instance.
@@ -82,10 +86,15 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
    * Determines whether to add currency pair fields or security fields based on the presence of fromCurrency property.
    */
   protected initializeFields(): void {
-    if ((<Currencypair>this.securitycurrency).fromCurrency) {
+    this.fields = [];
+    this._fieldSetGroups = null;
+    this.baseInstrument.set(null);
+    this.additionalInstruments.set({});
+    this.derivedLinks?.unsubscribe();
+    if ((<Currencypair>this.securitycurrency()).fromCurrency) {
       this.addCurrencypairFields();
     } else {
-      this.addSecurityFields(<Security>this.securitycurrency);
+      this.addSecurityFields(<Security>this.securitycurrency());
     }
   }
 
@@ -114,9 +123,9 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
    */
   getDerivedValues(dataobject: any, field: ColumnConfig, valueField: any): any {
     if (field.field === this.BASE_PRODUCT_NAME) {
-      return this.baseInstrument ? this.baseInstrument.name : '';
+      return this.baseInstrument() ? this.baseInstrument().name : '';
     } else {
-      return this.additionalInstruments[field.field] ? this.additionalInstruments[field.field].name : '';
+      return this.additionalInstruments()[field.field] ? this.additionalInstruments()[field.field].name : '';
     }
   }
 
@@ -218,15 +227,16 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
         }
         match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(security.formulaPrices);
       }
-      this.securityService
+      this.derivedLinks = this.securityService
         .getDerivedInstrumentsLinksForSecurity(security.idSecuritycurrency)
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((scdl: SecurityCurrencypairDerivedLinks) => {
-          this.baseInstrument = SecurityCurrencypairDerivedLinks.getBaseInstrument(
-            scdl,
-            security.idLinkSecuritycurrency
+          this.baseInstrument.set(
+            SecurityCurrencypairDerivedLinks.getBaseInstrument(scdl, security.idLinkSecuritycurrency)
           );
-          this.additionalInstruments =
-            SecurityCurrencypairDerivedLinks.getAdditionalInstrumentsForExistingSecurity(scdl);
+          this.additionalInstruments.set(
+            SecurityCurrencypairDerivedLinks.getAdditionalInstrumentsForExistingSecurity(scdl)
+          );
         });
     }
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, effect, untracked } from '@angular/core';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -25,10 +25,9 @@ import { ReplacePipe } from '../../shared/pipe/replace.pipe';
   selector: 'securitycurrency-udf',
   templateUrl: '../view/securitycurrency.base.info.fields.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TooltipModule, ReplacePipe]
 })
-export class SecuritycurrencyUdfComponent extends SecuritycurrencyBaseInfoFields implements OnInit {
+export class SecuritycurrencyUdfComponent extends SecuritycurrencyBaseInfoFields {
   protected readonly AppHelper = AppHelper;
 
   constructor(
@@ -38,24 +37,28 @@ export class SecuritycurrencyUdfComponent extends SecuritycurrencyBaseInfoFields
     gps: GlobalparameterService
   ) {
     super(watchlistService, securityService, translateService, gps);
+    effect(() => {
+      this.securitycurrency();
+      untracked(() => this.initializeContent());
+    });
   }
 
-  ngOnInit(): void {
+  private initializeContent(): void {
     super.initializeFields();
     this.addUDFFields();
     this.translateHeadersAndColumns();
-    this.content = new ContentUDF(this.securitycurrency);
+    this.content = new ContentUDF(this.securitycurrency());
     this.createTranslatedValueStore([this.content]);
   }
 
   private addUDFFields(): void {
     const fdSecurityList: FieldDescriptorInputAndShowExtendedSecurity[] =
-      this.securitycurrency instanceof CurrencypairWatchlist
+      this.securitycurrency() instanceof CurrencypairWatchlist
         ? JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)).filter(
             (fd) => fd.entity === AppSettings.CURRENCYPAIR
           )
         : SecurityUDFHelper.getFieldDescriptorInputAndShowExtendedSecurity(
-            (<Security>this.securitycurrency).assetClass,
+            (<Security>this.securitycurrency()).assetClass,
             true
           );
     fdSecurityList.forEach((fds) => {

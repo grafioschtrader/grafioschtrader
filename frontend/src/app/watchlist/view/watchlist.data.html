@@ -6,13 +6,14 @@
 
 <div class="data-table-container" style="height: 100%; overflow: hidden">
   <configurable-table
-    [data]="securityPositionList"
+    [data]="securityPositionList()"
     [fields]="fields"
+    [fieldsRevision]="fieldsRevision()"
     [dataKey]="'securitycurrency.idSecuritycurrency'"
     [selectionMode]="selectMultiMode"
     [(selection)]="singleMultiSelection"
     [multiSortMeta]="multiSortMeta"
-    [customSortFn]="customSort.bind(this)"
+    [customSortFn]="customSorter"
     [hasFilter]="hasFilter && showFilterRow"
     [customMatchModeOptions]="customMatchModeOptions"
     [baseLocale]="baseLocale"
@@ -22,18 +23,18 @@
     [frozenColumnCount]="frozenColumnCount"
     [stripedRows]="true"
     [showGridlines]="true"
-    [loading]="loading"
+    [loading]="loading()"
     [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
     [expandable]="true"
     [expandedRowTemplate]="expandedContent"
-    [canExpandFn]="canExpandRow.bind(this)"
-    [showContextMenu]="contextMenuItems && isActivated()"
-    [contextMenuItems]="contextMenuItems"
-    [ownerHighlightFn]="ownerHighlightFn.bind(this)"
-    [cellStyleFn]="priceCellStyle.bind(this)"
-    [cellMarkFn]="cellMark.bind(this)"
-    [negativeValueFn]="isValueByPathMinus.bind(this)"
-    [valueGetterFn]="getValueByPath.bind(this)"
+    [canExpandFn]="canExpand"
+    [showContextMenu]="contextMenuItems() && isActivated()"
+    [contextMenuItems]="contextMenuItems()"
+    [ownerHighlightFn]="ownerHighlight"
+    [cellStyleFn]="cellStyle"
+    [cellMarkFn]="markCell"
+    [negativeValueFn]="negativeValue"
+    [valueGetterFn]="valueGetter"
     (componentClick)="onComponentClick($event)"
     (filterChange)="onFilterChanged($event)"
     (colResize)="onColResize($event)"
@@ -42,17 +43,17 @@
          below it; the negative margin takes the heading's margin back and half of that padding, so the header keeps a
          small gap above the column headers. A rule on the table header itself would lose against the theme styles. -->
     <h4 caption style="margin-bottom: -0.5rem">
-      {{ 'WATCHLIST' | translate }}: "{{ watchlist.name }}" {{
-      $safeNavigationMigration(securitycurrencyGroup?.lastTimestamp) | date: 'HH:mm dd.MM.yy' }}
+      {{ 'WATCHLIST' | translate }}: "{{ watchlist().name }}" {{
+      $safeNavigationMigration(securitycurrencyGroup()?.lastTimestamp) | date: 'HH:mm dd.MM.yy' }}
       <!-- Position values of the selected row, only shown by the watchlist types which fill positionHeaderFields. Styled
            by the component that fills them. -->
-      @if (positionHeaderFields && selectedSecuritycurrencyPosition?.units) {
+      @if (positionHeaderFields() && selectedSecuritycurrencyPosition()?.units) {
       <span class="position-header">
-        @for (phf of positionHeaderFields; track phf.field) {
+        @for (phf of positionHeaderFields(); track phf.field) {
         <span class="position-header-value">
           {{ phf.headerTranslated }}:
-          <span [style.color]="isValueByPathMinus(selectedSecuritycurrencyPosition, phf) ? 'red' : 'inherit'">
-            {{ getValueByPath(selectedSecuritycurrencyPosition, phf) }}
+          <span [style.color]="isValueByPathMinus(selectedSecuritycurrencyPosition(), phf) ? 'red' : 'inherit'">
+            {{ getValueByPath(selectedSecuritycurrencyPosition(), phf) }}
           </span>
         </span>
         }
@@ -110,7 +111,7 @@
   } @if (watchlistType === WatchListType.UDF) {
   <securitycurrency-udf [securitycurrency]="row.securitycurrency"> </securitycurrency-udf>
   } @if (watchlistType === WatchListType.PRICE_FEED) {
-  <watchlist-price-feed-expanded [position]="row" [feedConnectorsKV]="feedConnectorsKV">
+  <watchlist-price-feed-expanded [position]="row" [feedConnectorsKV]="feedConnectorsKV()">
   </watchlist-price-feed-expanded>
   } @if (watchlistType === WatchListType.DIVIDEND_SPLIT_FEED) {
   <div>
@@ -123,42 +124,42 @@
 </ng-template>
 
 <!-- Dialog Components (unchanged) -->
-@if (visibleSecurityTransactionDialog) {
+@if (visibleSecurityTransactionDialog()) {
 <transaction-security-edit
   (closeDialog)="handleCloseTransactionDialog($event)"
   [transactionCallParam]="transactionCallParam"
-  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
+  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()">
 </transaction-security-edit>
-} @if (visibleAddInstrumentDialog) {
+} @if (visibleAddInstrumentDialog()) {
 <watchlist-add-instrument
   (closeDialog)="handleCloseAddInstrumentDialog($event)"
   [idWatchlist]="idWatchlist"
-  [tenantLimits]="tenantLimits"
-  [visibleAddInstrumentDialog]="visibleAddInstrumentDialog">
+  [tenantLimits]="tenantLimits()"
+  [visibleAddInstrumentDialog]="visibleAddInstrumentDialog()">
 </watchlist-add-instrument>
-} @if (visibleEditCurrencypairDialog) {
+} @if (visibleEditCurrencypairDialog()) {
 <currencypair-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-  [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog">
+  [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog()">
 </currencypair-edit>
-} @if (visibleEditSecurityDialog) {
+} @if (visibleEditSecurityDialog()) {
 <security-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-  [visibleEditSecurityDialog]="visibleEditSecurityDialog">
+  [visibleEditSecurityDialog]="visibleEditSecurityDialog()">
 </security-edit>
-} @if (visibleEditSecurityDerivedDialog) {
+} @if (visibleEditSecurityDerivedDialog()) {
 <security-derived-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [securityCallParam]="securityCallParam"
-  [visibleDialog]="visibleEditSecurityDerivedDialog">
+  [visibleDialog]="visibleEditSecurityDerivedDialog()">
 </security-derived-edit>
-} @if (visibleUDFSecurityDialog) {
+} @if (visibleUDFSecurityDialog()) {
 <udf-security-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [uDFGeneralCallParam]="uDFGeneralCallParam"
-  [visibleDialog]="visibleUDFSecurityDialog">
+  [visibleDialog]="visibleUDFSecurityDialog()">
 </udf-security-edit>
 } @if (alarmSetupService.visibleDialog) {
 <algo-strategy-edit
@@ -166,16 +167,16 @@
   [algoCallParam]="alarmSetupService.algoCallParam"
   (closeDialog)="alarmSetupService.handleCloseDialog($event)">
 </algo-strategy-edit>
-} @if (visibleUDFGeneralDialog) {
+} @if (visibleUDFGeneralDialog()) {
 <udf-general-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [uDFGeneralCallParam]="uDFGeneralCallParam"
-  [visibleDialog]="visibleUDFGeneralDialog">
+  [visibleDialog]="visibleUDFGeneralDialog()">
 </udf-general-edit>
-} @if (watchlistType === WatchListType.PRICE_FEED && visibleAddPriceProblemDialog) {
+} @if (watchlistType === WatchListType.PRICE_FEED && visibleAddPriceProblemDialog()) {
 <watchlist-add-edit-price-problem-instrument
   (closeDialog)="handleCloseAddPriceProblemInstrument($event)"
   [idWatchlist]="idWatchlist"
-  [visibleDialog]="visibleAddPriceProblemDialog">
+  [visibleDialog]="visibleAddPriceProblemDialog()">
 </watchlist-add-edit-price-problem-instrument>
 }

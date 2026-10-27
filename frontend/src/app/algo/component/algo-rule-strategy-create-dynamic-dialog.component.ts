@@ -1,12 +1,12 @@
+import { of, switchMap, distinctUntilChanged, Subscription } from 'rxjs';
+import { afterNextRender, inject, Injector, Component, OnDestroy, OnInit } from '@angular/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { AfterViewInit, Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { WatchlistService } from '../../watchlist/service/watchlist.service';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
-import { Subscription } from 'rxjs';
 import { AssetclassService } from '../../assetclass/service/assetclass.service';
 import { Assetclass } from '../../entities/assetclass';
 import { AlgoTopCreate, AssetclassPercentage } from '../../entities/backend/algo.top.create';
@@ -41,14 +41,14 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule]
 })
 export class AlgoRuleStrategyCreateDynamicDialogComponent
   extends SimpleDynamicEditBase<AlgoTop>
-  implements OnInit, OnDestroy, AfterViewInit
+  implements OnInit, OnDestroy
 {
   static readonly DIALOG_WIDTH = 700;
+  private readonly injector = inject(Injector);
   callParam: CallParam;
   private static readonly ASSETCLASS_FIELD = 'idAssetclass';
   private static readonly PERCENTAGE_FIELD = 'percentage';
@@ -56,7 +56,7 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
   private static readonly NO_OF_BUTTONS = 3;
 
   assetclassCounter = 0;
-  valueKeyHtmlOptionsAssetclasses: ValueKeyHtmlSelectOptions[];
+  valueKeyHtmlOptionsAssetclasses: ValueKeyHtmlSelectOptions[] = [];
   algoTopCreate: AlgoTopCreate;
   protected watchlistChangedSub: Subscription;
   protected assetclassChangeSubList: Subscription[] = new Array(
@@ -106,22 +106,22 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
     ];
     this.addAssetclassPercentageRow(true);
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    afterNextRender(() => this.initializeForm(), { injector: this.injector });
   }
 
-  ngAfterViewInit(): void {
+  private initializeForm(): void {
     this.algoTopCreate = <AlgoTopCreate>this.callParam.thisObject;
     this.helpId = HelpIds.HELP_ALGO_TREE;
     this.assetsclasses = [];
     this.valueChangedOnWatchlist();
-    this.watchlistService.getWatchlistsByIdTenant().subscribe((watchlists) => {
-      // this.configObject.idWatchlist.referencedDataObject = watchlists;
-      this.configObject.idWatchlist.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-        'idWatchlist',
-        'name',
-        watchlists,
-        true
-      );
-    });
+    this.watchlistService
+      .getWatchlistsByIdTenant()
+      .pipe(this.untilDialogClosed())
+      .subscribe((watchlists) => {
+        // this.configObject.idWatchlist.referencedDataObject = watchlists;
+        this.configObject.idWatchlist.valueKeyHtmlOptions =
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idWatchlist', 'name', watchlists, true);
+      });
   }
 
   removeAssetclassPercentageRow(): void {
@@ -167,38 +167,38 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     !addFirstElement && this.fillAndfilterAssetclasses();
-    setTimeout(() => this.valueChangedOnAssetclass());
+    const rowIndex = this.assetclassCounter;
+    afterNextRender(() => this.valueChangedOnAssetclass(rowIndex), { injector: this.injector });
   }
 
-  valueChangedOnAssetclass(): void {
-    const fieldName = AlgoRuleStrategyCreateDynamicDialogComponent.ASSETCLASS_FIELD + this.assetclassCounter;
-    this.assetclassChangeSubList[this.assetclassCounter] = this.configObject[
-      fieldName
-    ].formControl.valueChanges.subscribe((idAssetclass) => {
-      this.disableEnableAssetclasses(this.getUsedAssetclasses());
-    });
+  valueChangedOnAssetclass(rowIndex: number): void {
+    const fieldName = AlgoRuleStrategyCreateDynamicDialogComponent.ASSETCLASS_FIELD + rowIndex;
+    if (!this.configObject[fieldName]?.formControl) return;
+    this.assetclassChangeSubList[rowIndex]?.unsubscribe();
+    this.assetclassChangeSubList[rowIndex] = this.configObject[fieldName].formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((idAssetclass) => {
+        this.disableEnableAssetclasses(this.getUsedAssetclasses());
+      });
   }
 
   valueChangedOnWatchlist(): void {
-    this.watchlistChangedSub = this.configObject.idWatchlist.formControl.valueChanges.subscribe((idWatchlist) => {
-      if (idWatchlist) {
-        this.assetclassService
-          .getInvestableAssetclassesByWatchlist(idWatchlist)
-          .subscribe((assetsclasses: Assetclass[]) => {
-            this.assetsclasses = assetsclasses;
-            this.valueKeyHtmlOptionsAssetclasses =
-              BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-                this.gps,
-                this.translateService,
-                this.assetsclasses
-              );
-            this.fillAndfilterAssetclasses();
-          });
-      } else {
-        this.assetsclasses = [];
+    this.watchlistChangedSub?.unsubscribe();
+    this.watchlistChangedSub = this.configObject.idWatchlist.formControl.valueChanges
+      .pipe(
+        distinctUntilChanged(),
+        switchMap((id) => (id ? this.assetclassService.getInvestableAssetclassesByWatchlist(id) : of([]))),
+        this.untilDialogClosed()
+      )
+      .subscribe((assetclasses: Assetclass[]) => {
+        this.assetsclasses = assetclasses;
+        this.valueKeyHtmlOptionsAssetclasses = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
+          this.gps,
+          this.translateService,
+          assetclasses
+        );
         this.fillAndfilterAssetclasses();
-      }
-    });
+      });
   }
 
   ngOnDestroy(): void {
@@ -217,15 +217,18 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
         )
       );
     }
-    this.algoTopService.create(this.algoTopCreate).subscribe({
-      next: (returnEntity) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-          i18nRecord: this.dynamicDialogConfig.header
-        });
-        this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
-      },
-      error: () => (this.configObject.submit.disabled = false)
-    });
+    this.algoTopService
+      .create(this.algoTopCreate)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (returnEntity) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: this.dynamicDialogConfig.header
+          });
+          this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   private getUsedAssetclasses(): string[] {
@@ -248,10 +251,16 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
     this.disableEnableAssetclasses(this.getUsedAssetclasses());
   }
 
-  private disableEnableAssetclasses(usedAssetclassIds: string[]) {
-    this.valueKeyHtmlOptionsAssetclasses.forEach((vkh) => {
-      vkh.disabled = !!usedAssetclassIds.find((id) => id === '' + vkh.key);
-    });
+  private disableEnableAssetclasses(usedAssetclassIds: string[]): void {
+    this.valueKeyHtmlOptionsAssetclasses = this.valueKeyHtmlOptionsAssetclasses.map((option) => ({
+      ...option,
+      disabled: usedAssetclassIds.some((id) => id === '' + option.key)
+    }));
+    for (let i = 1; i <= this.assetclassCounter; i++) {
+      this.configObject[AlgoRuleStrategyCreateDynamicDialogComponent.ASSETCLASS_FIELD + i].valueKeyHtmlOptions = [
+        ...this.valueKeyHtmlOptionsAssetclasses
+      ];
+    }
   }
 
   protected getNewOrExistingInstanceBeforeSave(value: { [p: string]: any }): AlgoTop {
