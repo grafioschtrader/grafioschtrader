@@ -79,6 +79,23 @@ report remains eager because its shared securities-account base and template req
 Run each file separately with `--project=grafioschtrader-e2e --no-deps` against the verified test stack. They need no
 portfolio or transaction fixtures from earlier browser specs.
 
+## Performance-period notification (249-*)
+
+`249-performance-notification.spec.ts` uses controlled valuation responses from `performance-notification.helpers.ts`.
+It checks a tenant without holdings, delayed initial date bounds, loading completion, first/last/difference cards,
+translated metrics and expanded tree rows, and replacement of year/month columns by week/day columns. Its PDF-dialog
+scenario delays real report metadata, selects the transaction section, checks download failure and a successful
+browser-local retry, and reopens the dialog. Authentication, translations and form definitions use the real test
+backend; no valuation, transaction, PDF request or report-settings write is sent to that backend.
+
+All five performance-period components use the OnPush default. The spec fails with the calculation component's
+eager strategy removed but its old plain result/loading fields retained: the loading indicator stays visible after
+the held response. For the pre-conversion baseline, the tenant tab hosts also need their original eager strategy;
+an eager calculation below the converted OnPush tab hosts already exposes the missing notification.
+
+Run with `npx playwright test e2e/249-performance-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+The spec creates no database rows and requires no earlier portfolio/transaction fixture.
+
 ## Language-model keys (240-*)
 
 `240-ai-providers.spec.ts` drives Settings → Language-model keys as `e2euser`: `TenantAIProviderDialogComponent`,

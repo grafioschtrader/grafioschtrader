@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, inject } from '@angular/core';
+import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { MenuItem } from '@openng/optimus-ui/api';
@@ -26,7 +26,7 @@ export class PerformanceReportDialogService {
   private translate = inject(TranslateService);
 
   /** True while the dialog metadata is loading; a second request in that time is ignored. */
-  opening = false;
+  readonly opening = signal(false);
 
   /**
    * Menu entry of a holdings view for a statement at the view's reporting date.
@@ -54,10 +54,10 @@ export class PerformanceReportDialogService {
    * @param destroyRef - Lifetime of the calling view, which cancels a pending metadata request
    */
   open(window: PerformanceReportScope, destroyRef: DestroyRef): void {
-    if (this.opening) {
+    if (this.opening()) {
       return;
     }
-    this.opening = true;
+    this.opening.set(true);
     forkJoin({
       options: this.holding.getReportOptions(),
       settings: this.tenant.getReportSettings(),
@@ -68,7 +68,7 @@ export class PerformanceReportDialogService {
     })
       .pipe(
         takeUntilDestroyed(destroyRef),
-        finalize(() => (this.opening = false))
+        finalize(() => this.opening.set(false))
       )
       .subscribe({
         next: ({ options, settings, tenant, portfolio, formDefinition }) => {

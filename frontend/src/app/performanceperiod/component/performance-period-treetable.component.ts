@@ -1,4 +1,5 @@
-import { Component, Input, OnChanges, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, effect, inject, input, signal, untracked } from '@angular/core';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -35,7 +36,11 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   selector: 'performance-period-treetable',
   template: `
     <div class="fcontainer">
-      <p-treeTable [value]="periodWindowsNodes" [columns]="fields" selectionMode="single" [(selection)]="selectedNodes">
+      <p-treeTable
+        [value]="periodWindowsNodes()"
+        [columns]="fields"
+        selectionMode="single"
+        [(selection)]="selectedNodes">
         <ng-template #header let-fields>
           <tr>
             @for (field of fields; track field) {
@@ -93,7 +98,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                           getValueColumnTotal(
                             field,
                             0,
-                            $safeNavigationMigration(performancePeriod?.sumPeriodColSteps),
+                            $safeNavigationMigration(performancePeriod()?.sumPeriodColSteps),
                             null
                           )
                         "
@@ -102,7 +107,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                           getValueColumnTotal(
                             field,
                             0,
-                            $safeNavigationMigration(performancePeriod?.sumPeriodColSteps),
+                            $safeNavigationMigration(performancePeriod()?.sumPeriodColSteps),
                             null
                           )
                         }}
@@ -113,7 +118,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                         getValueColumnTotal(
                           field,
                           0,
-                          $safeNavigationMigration(performancePeriod?.sumPeriodColSteps),
+                          $safeNavigationMigration(performancePeriod()?.sumPeriodColSteps),
                           null
                         )
                       }}</span>
@@ -184,11 +189,11 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TreeTableModule, TooltipModule]
 })
-export class TenantPerformanceTreetableComponent extends TreeTableConfigBase implements OnInit, OnChanges {
-  @Input() performancePeriod: PerformancePeriod;
+export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
+  readonly performancePeriod = input<PerformancePeriod>(null);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly GAIN_MC = 'totalGainMC';
   readonly CASH_BALANCE_MC = 'cashBalanceMC';
@@ -200,19 +205,29 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
 
   HolidayMissing: typeof HolidayMissing = HolidayMissing;
 
-  periodWindowsNodes: TreeNode[] = [];
+  readonly periodWindowsNodes = computed(() => this.createPeriodNodes(this.performancePeriod()));
   selectedNodes: TreeNode[] = [];
-  translatedTexts: { [s: string]: string };
+  readonly translatedTexts = signal<{ [s: string]: string }>({});
   lastPeriodSplit: WeekYear | string;
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
+    this.initializeFields();
+    effect(() => {
+      this.performancePeriod();
+      untracked(() => {
+        this.createPeriodTreeTableDefinition();
+        this.fields = [...this.fields];
+        this.notifyViewChanged();
+      });
+    });
   }
 
-  ngOnInit(): void {
+  private initializeFields(): void {
     this.translateService
       .get(['CASH_BALANCE', AppSettings.SECURITY.toUpperCase(), 'MARGIN_CLOSE_GAIN', 'TWR_PERCENT'])
-      .subscribe((translatedTexts) => (this.translatedTexts = translatedTexts));
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((texts) => this.translatedTexts.set(texts));
     this.addColumnFeqH(DataType.String, 'period', true, false, {
       width: 120,
       fieldValueFN: this.getFirstColumnLabel.bind(this),
@@ -233,31 +248,26 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
     this.translateHeadersAndColumns();
   }
 
-  ngOnChanges(): void {
-    this.createPeriodTreeTableDefinition();
-    this.createPeriodNodes();
-  }
-
   getFirstColumnLabel(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
     let colVal: string | number;
 
     switch (dataobject.showField) {
       case this.CASH_BALANCE_MC:
-        colVal = this.translatedTexts['CASH_BALANCE'];
+        colVal = this.translatedTexts()['CASH_BALANCE'];
         break;
 
       case this.TOTAL_SECURITIES_MC:
-        colVal = this.translatedTexts[AppSettings.SECURITY.toUpperCase()];
+        colVal = this.translatedTexts()[AppSettings.SECURITY.toUpperCase()];
         break;
       case this.MARGIN_CLOSE_GAIN_MC:
-        colVal = this.translatedTexts['MARGIN_CLOSE_GAIN'];
+        colVal = this.translatedTexts()['MARGIN_CLOSE_GAIN'];
         break;
       case this.TWR_PERCENT:
-        colVal = this.translatedTexts['TWR_PERCENT'] + ' %';
+        colVal = this.translatedTexts()['TWR_PERCENT'] + ' %';
         break;
 
       default:
-        if (this.performancePeriod.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
+        if (this.performancePeriod().periodSplit === WeekYear[WeekYear.WM_WEEK]) {
           // Date range for week
           colVal =
             moment(dataobject.periodWindow.startDate).format(this.gps.getDateFormatWithoutYear()) +
@@ -298,7 +308,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
     return AppHelper.getValueByPathWithField(
       this.gps,
       this.translateService,
-      this.performancePeriod,
+      this.performancePeriod(),
       columnConfig,
       'metrics.twrPercent'
     );
@@ -374,7 +384,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
     return AppHelper.getValueByPathWithField(
       this.gps,
       this.translateService,
-      this.performancePeriod,
+      this.performancePeriod(),
       columnConfig,
       'difference.totalGainMC'
     );
@@ -390,11 +400,11 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
    */
   isFooterValueMinus(field: ColumnConfig): boolean {
     if (field.field === this.WINDOW_TWR_FIELD) {
-      return this.performancePeriod?.metrics?.twrPercent < 0;
+      return this.performancePeriod()?.metrics?.twrPercent < 0;
     }
     return isNaN(<any>field.field)
-      ? this.performancePeriod?.difference.totalGainMC < 0
-      : this.isValueByPathMinus(this.performancePeriod?.sumPeriodColSteps, field);
+      ? this.performancePeriod()?.difference.totalGainMC < 0
+      : this.isValueByPathMinus(this.performancePeriod()?.sumPeriodColSteps, field);
   }
 
   isValueByPathMinusWithEmptyColor(dataobject: PeriodWindowWithField, field: ColumnConfig): boolean {
@@ -420,11 +430,11 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
   }
 
   private createPeriodTreeTableDefinition(): void {
-    if (this.performancePeriod) {
-      if (this.performancePeriod.periodSplit !== this.lastPeriodSplit) {
+    if (this.performancePeriod()) {
+      if (this.performancePeriod().periodSplit !== this.lastPeriodSplit) {
         this.fields.length > 3 && this.spliceColumns(1, this.fields.length - 3);
         const calendarLang = Helper.CALENDAR_LANG[this.gps.getUserLang()];
-        if (this.performancePeriod.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
+        if (this.performancePeriod().periodSplit === WeekYear[WeekYear.WM_WEEK]) {
           // for week-day
           for (let i = 1; i < calendarLang.dayNamesShort.length - 1; i++) {
             const fieldName = '' + (i - 1);
@@ -447,15 +457,15 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
             this.fields[i + 1].columnGroupConfigs = [new ColumnGroupConfig(fieldName)];
           }
         }
-        this.lastPeriodSplit = this.performancePeriod.periodSplit;
+        this.lastPeriodSplit = this.performancePeriod().periodSplit;
       }
     }
   }
 
-  private createPeriodNodes(): void {
+  private createPeriodNodes(period: PerformancePeriod): TreeNode[] {
     const tn: TreeNode[] = [];
-    if (this.performancePeriod) {
-      this.performancePeriod.periodWindows.forEach((periodWindow) => {
+    if (period) {
+      period.periodWindows.forEach((periodWindow) => {
         // The same data row is shown two times but different values
         const pwTreeNode: TreeNode = {
           data: new PeriodWindowWithField(this.GAIN_MC, periodWindow),
@@ -492,6 +502,6 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
         tn.push(pwTreeNode);
       });
     }
-    this.periodWindowsNodes = tn;
+    return tn;
   }
 }

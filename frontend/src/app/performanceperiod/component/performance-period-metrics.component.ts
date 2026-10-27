@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, input, effect, untracked } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -17,7 +17,7 @@ import { PerformancePeriodMetrics } from '../model/performance.period';
 @Component({
   selector: 'performance-period-metrics',
   template: `
-    @if (metrics) {
+    @if (metrics()) {
       <div class="fcontainer">
         @for (fieldSetName of FIELD_SETS; track fieldSetName) {
           <fieldset class="out-border fbox">
@@ -28,8 +28,8 @@ import { PerformancePeriodMetrics } from '../model/performance.period';
                   {{ field.headerTranslated }}
                 </div>
                 <div class="col-4 text-end">
-                  <span [style.color]="isValueByPathMinus(metrics, field) ? 'red' : 'inherit'">
-                    {{ getValueByPath(metrics, field) }}
+                  <span [style.color]="isValueByPathMinus(metrics(), field) ? 'red' : 'inherit'">
+                    {{ getValueByPath(metrics(), field) }}
                   </span>
                 </div>
               </div>
@@ -40,12 +40,11 @@ import { PerformancePeriodMetrics } from '../model/performance.period';
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, TooltipModule]
 })
-export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase implements OnInit, OnChanges {
+export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase {
   /** Figures of the period, null or undefined while no report was loaded; nothing is rendered then. */
-  @Input() metrics: PerformancePeriodMetrics;
+  readonly metrics = input<PerformancePeriodMetrics>(null);
 
   readonly PERFORMANCE_RETURN = 'PERFORMANCE_RETURN';
   readonly PERFORMANCE_RISK = 'PERFORMANCE_RISK';
@@ -59,8 +58,6 @@ export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase im
     this.PERFORMANCE_DATA_BASIS
   ];
 
-  private fieldsInitialized = false;
-
   /**
    * Creates the metrics display.
    *
@@ -69,9 +66,16 @@ export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase im
    */
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
+    this.initializeFields();
+    effect(() => {
+      const metrics = this.metrics();
+      untracked(() => {
+        if (metrics) this.createTranslatedValueStore([metrics]);
+      });
+    });
   }
 
-  ngOnInit(): void {
+  private initializeFields(): void {
     this.addPercentField('twrPercent', this.PERFORMANCE_RETURN);
     this.addPercentField('twrAnnualizedPercent', this.PERFORMANCE_RETURN);
     this.addPercentField('mwrPercent', this.PERFORMANCE_RETURN);
@@ -108,12 +112,6 @@ export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase im
       translateValues: TranslateValue.NORMAL
     });
     this.translateHeadersAndColumns();
-    this.fieldsInitialized = true;
-    this.translateStatus();
-  }
-
-  ngOnChanges(): void {
-    this.translateStatus();
   }
 
   /**
@@ -131,12 +129,5 @@ export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase im
   /** A counter of the data basis; 0 is meaningful (no gap), so it is shown rather than left empty. */
   private addCountField(field: string, optionalParams: { fieldsetName: string }): void {
     this.addFieldPropertyFeqH(DataType.NumericShowZero, field, { ...optionalParams, maxFractionDigits: 0 });
-  }
-
-  /** The status of the money-weighted return is an NLS key; its text is resolved once the fields exist. */
-  private translateStatus(): void {
-    if (this.fieldsInitialized && this.metrics) {
-      this.createTranslatedValueStore([this.metrics]);
-    }
   }
 }

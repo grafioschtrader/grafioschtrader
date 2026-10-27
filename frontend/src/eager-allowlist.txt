@@ -76,11 +76,6 @@ frontend/src/app/lib/udfmeta/components/udf-general-edit.component.ts
 frontend/src/app/lib/wizard/component/step.component.ts
 frontend/src/app/lib/wizard/component/steps.component.ts
 frontend/src/app/mcp/component/mcp-oauth-authorize.component.ts
-frontend/src/app/performanceperiod/component/performance-period-from-to-diff.component.ts
-frontend/src/app/performanceperiod/component/performance-period-metrics.component.ts
-frontend/src/app/performanceperiod/component/performance-period-treetable.component.ts
-frontend/src/app/performanceperiod/component/performance-report-dialog.component.ts
-frontend/src/app/performanceperiod/component/performance.period.component.ts
 frontend/src/app/portfolio/component/portfolio.cashaccount.summary.component.ts
 frontend/src/app/portfolio/component/portfolio.tab.menu.component.ts
 frontend/src/app/portfolio/component/portfolio.transaction.table.component.ts
