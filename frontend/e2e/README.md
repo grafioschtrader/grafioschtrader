@@ -1028,6 +1028,13 @@ change requests and expects the table to show every returned row; a fresh `grafi
 Run it with
 `npx playwright test e2e/lib/042-user-admin-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
 
+`lib/044-feature-change-relogin.spec.ts` switches `g.gnet.use` off through the REST API, logs in as `admin`, switches
+it on, logs out through the menu bar and logs in again **without reloading the page**, so the same
+`GlobalparameterService` serves both sessions. The GTNet branch of the main tree must appear after the second login;
+it stayed hidden while `clearValues()` kept the feature set of the first. The original value of `g.gnet.use` is
+restored in `finally`. Run it with
+`npx playwright test e2e/lib/044-feature-change-relogin.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
+
 ## Simulation-opening spec (195-*)
 
 `195-simulation-opening.spec.ts` covers the three ways a simulation environment establishes its opening ledger.

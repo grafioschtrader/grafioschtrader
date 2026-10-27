@@ -67,14 +67,30 @@ export class GlobalparameterService
     );
   }
 
+  /**
+   * Forgets every value this service read lazily from sessionStorage or derived from it, so that the next login, also
+   * one in a tab that ran an earlier session, renders from the values of its own session. The members are named one
+   * by one: a member that is still unset when this runs has no type at runtime, and the feature set, the entity keys
+   * and the field sizes are objects. The feature set can differ between two logins, because GTNET, MCP and ACCESSTOKEN
+   * follow global parameters that an administrator changes at runtime.
+   */
   public clearValues(): void {
-    for (const key of Object.keys(this)) {
-      if (typeof this[key] === 'string' || this[key] instanceof NumberFormat) {
-        this[key] = null;
-      }
-    }
+    this._numberFormat = null;
+    this._numberFormatRaw = null;
+    this.thousandsSeparatorSymbol = null;
+    this.decimalSymbol = null;
+    this.timeDateFormat = null;
+    this.timeSecondDateFormat = null;
+    this.dateFormat = null;
+    this.dateFormatCalendar = null;
+    this.dateFormatCalendarTowNumber = null;
+    this.dateFormatWithoutYear = null;
+    this.entityKeyMapping = null;
+    this.fieldSizeMap = null;
+    this.featureCache.clear();
     this.currencyPrecisionMap = null;
     this.numberFormatPrecisionCache.clear();
+    this.formDefinitionCache = {};
   }
 
   /**
