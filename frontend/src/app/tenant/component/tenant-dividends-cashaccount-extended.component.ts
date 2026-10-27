@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Injector, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -27,10 +27,11 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
       <configurable-table
         [data]="cashAccountPositions"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="cashaccount.idSecuritycashAccount"
         [multiSortMeta]="multiSortMeta"
-        [customSortFn]="customSort.bind(this)"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [customSortFn]="customSorter"
+        [valueGetterFn]="valueGetter"
         selectionMode="single"
         [expandable]="true"
         [expandedRowTemplate]="expandedContent"
@@ -49,7 +50,6 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, ConfigurableTableComponent, TransactionCashaccountTableComponent]
 })
 export class TenantDividendsCashaccountExtendedComponent extends TenantDividendsExtendedBase implements OnInit {

@@ -1,4 +1,5 @@
-import { Directive, EventEmitter, Output, ViewChild } from '@angular/core';
+import { DestroyRef, inject, Directive, EventEmitter, Output, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
@@ -27,6 +28,8 @@ import { BaseSettings } from '../../lib/base.settings';
  */
 @Directive()
 export abstract class TenantEditComponent {
+  protected readonly destroyRef = inject(DestroyRef);
+
   existingTenant: Tenant;
 
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
@@ -69,20 +72,23 @@ export abstract class TenantEditComponent {
       Object.assign(tenant, this.existingTenant);
     }
     this.form.cleanMaskAndTransferValuesToBusinessObject(tenant);
-    this.tenantService.update(tenant).subscribe({
-      next: (newTenant) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', { i18nRecord: 'TENANT' });
-        const tenantNew: Tenant = Object.assign(new Tenant(), newTenant);
-        // Update sessionStorage with new closedUntil value
-        sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, tenantNew.closedUntil || '');
-        // Update sessionStorage with the opt-in to the Grafioschtrader import templates
-        this.gpsGT.setTenantUseGtImportTemplates(tenantNew.useGtImportTemplates);
-        // Update sessionStorage with the tenant switch of the disposal cost estimate
-        this.gpsGT.setTenantDisposalCostEstimate(tenantNew.disposalCostEstimate);
-        this.closeInputDialog(tenantNew);
-      },
-      error: () => (this.configObject.submit.disabled = false)
-    });
+    this.tenantService
+      .update(tenant)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (newTenant) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', { i18nRecord: 'TENANT' });
+          const tenantNew: Tenant = Object.assign(new Tenant(), newTenant);
+          // Update sessionStorage with new closedUntil value
+          sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, tenantNew.closedUntil || '');
+          // Update sessionStorage with the opt-in to the Grafioschtrader import templates
+          this.gpsGT.setTenantUseGtImportTemplates(tenantNew.useGtImportTemplates);
+          // Update sessionStorage with the tenant switch of the disposal cost estimate
+          this.gpsGT.setTenantDisposalCostEstimate(tenantNew.disposalCostEstimate);
+          this.closeInputDialog(tenantNew);
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   protected closeInputDialog(tenant: Tenant): void {}
@@ -92,24 +98,26 @@ export abstract class TenantEditComponent {
   }
 
   protected loadData() {
-    forkJoin([this.gpsGT.getCurrencies(), this.gps.getCountriesForSelectBox()]).subscribe(([currencies, countries]) => {
-      this.form.setDefaultValuesAndEnableSubmit();
-      this.configObject.currency.valueKeyHtmlOptions = currencies;
-      if (this.configObject.country) {
-        this.configObject.country.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
-          countries,
-          true
-        );
-      }
-      if (this.existingTenant) {
-        this.form.transferBusinessObjectToForm(this.existingTenant);
-      }
-      if (this.configObject.tenantName) {
-        this.configObject.tenantName.elementRef.nativeElement.focus();
-      } else {
-        this.configObject.currency.elementRef.nativeElement.focus();
-      }
-    });
+    forkJoin([this.gpsGT.getCurrencies(), this.gps.getCountriesForSelectBox()])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([currencies, countries]) => {
+        this.form.setDefaultValuesAndEnableSubmit();
+        this.configObject.currency.valueKeyHtmlOptions = currencies;
+        if (this.configObject.country) {
+          this.configObject.country.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
+            countries,
+            true
+          );
+        }
+        if (this.existingTenant) {
+          this.form.transferBusinessObjectToForm(this.existingTenant);
+        }
+        if (this.configObject.tenantName) {
+          this.configObject.tenantName.elementRef.nativeElement.focus();
+        } else {
+          this.configObject.currency.elementRef.nativeElement.focus();
+        }
+      });
   }
 
   private getFields(onlyCurrency: boolean, isRegistration: boolean): FieldConfig[] {

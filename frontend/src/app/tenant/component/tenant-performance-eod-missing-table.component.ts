@@ -1,14 +1,17 @@
-import { CommonModule } from '@angular/common';
 import {
+  DestroyRef,
+  inject,
+  signal,
   Component,
   EventEmitter,
   Injector,
   Input,
   OnChanges,
   OnInit,
-  Output,
-  ChangeDetectionStrategy
+  Output
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
@@ -31,22 +34,22 @@ import { Helper } from '../../lib/helper/helper';
     <configurable-table
       [data]="securities"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="idSecuritycurrency"
       selectionMode="single"
       [selection]="selectedSecurity"
       (selectionChange)="onSelectionChange($event)"
       [enableCustomSort]="true"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       sortMode="multiple"
       [multiSortMeta]="multiSortMeta"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale"
-      [rowClassFn]="getRowHighlightClass.bind(this)">
+      [rowClassFn]="rowHighlightClass">
       <h5 caption>{{ 'MISSING_DAY_TABLE_MARK' | translate }}</h5>
     </configurable-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, ConfigurableTableComponent]
 })
 export class TenantPerformanceEodMissingTableComponent extends TableConfigBase implements OnInit, OnChanges {
@@ -59,7 +62,9 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   @Output() changedSecurity = new EventEmitter<Security>();
 
   selectedSecurity: Security;
-  private feedConnectorsKV: { [id: string]: string };
+  private readonly feedConnectorsKV = signal<{ [id: string]: string }>({});
+  private readonly destroyRef = inject(DestroyRef);
+  readonly rowHighlightClass = (row: Security) => this.getRowHighlightClass(row);
 
   constructor(
     private securityService: SecurityService,
@@ -91,7 +96,7 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   }
 
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
-    return this.feedConnectorsKV ? this.feedConnectorsKV[valueField] : null;
+    return this.feedConnectorsKV()[valueField] ?? null;
   }
 
   onSelectionChange(selection: Security | Security[]): void {
@@ -105,15 +110,21 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   }
 
   ngOnInit(): void {
-    this.securityService.getFeedConnectors().subscribe((feedConnectors: IFeedConnector[]) => {
-      this.feedConnectorsKV = feedConnectors.reduce(
-        (acc, feedConnector) => {
-          acc[feedConnector.id] = feedConnector.readableName;
-          return acc;
-        },
-        {} as { [key: string]: string }
-      );
-    });
+    this.securityService
+      .getFeedConnectors()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((feedConnectors: IFeedConnector[]) => {
+        this.feedConnectorsKV.set(
+          feedConnectors.reduce(
+            (acc, feedConnector) => {
+              acc[feedConnector.id] = feedConnector.readableName;
+              return acc;
+            },
+            {} as { [key: string]: string }
+          )
+        );
+        this.notifyViewChanged();
+      });
   }
 
   ngOnChanges(): void {

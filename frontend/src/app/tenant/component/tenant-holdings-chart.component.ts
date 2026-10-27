@@ -1,6 +1,9 @@
 import {
+  afterNextRender,
+  DestroyRef,
+  Injector,
+  signal,
   AfterViewInit,
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   inject,
@@ -8,6 +11,7 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -57,10 +61,10 @@ enum HoldingsChartType {
         [translateService]="translateService"
         #form="dynamicForm">
       </dynamic-form>
-      @if (noDataTextKey) {
-        <h4>{{ noDataTextKey | translate }}</h4>
+      @if (noDataTextKey()) {
+        <h4>{{ noDataTextKey() | translate }}</h4>
       }
-      <div #chart class="holdings-chart-plot" [hidden]="!!noDataTextKey"></div>
+      <div #chart class="holdings-chart-plot" [hidden]="!!noDataTextKey()"></div>
     </div>
   `,
   styles: [
@@ -78,7 +82,6 @@ enum HoldingsChartType {
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, DynamicFormModule]
 })
 export class TenantHoldingsChartComponent
@@ -89,7 +92,9 @@ export class TenantHoldingsChartComponent
   @ViewChild('chart', { static: true }) chartElement: ElementRef;
 
   /** Translation key of the hint shown instead of a chart, null when a chart is shown. */
-  noDataTextKey: string = null;
+  readonly noDataTextKey = signal<string>(null);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly renderInjector = inject(Injector);
 
   private chartInput: HoldingsChartInput;
   private formReady = false;
@@ -120,30 +125,42 @@ export class TenantHoldingsChartComponent
     this.plotlyConfig.responsive = true;
     this.createInputFormDefinition();
     this.subscriptions.push(
-      this.tenantHoldingsChartService.chartInput$.pipe(filter((ci) => ci != null)).subscribe((ci) => {
-        this.chartInput = ci;
-        this.drawChart();
-      }),
-      this.viewSizeChangedService.viewSizeChanged$.subscribe(() => this.resizeChart())
+      this.tenantHoldingsChartService.chartInput$
+        .pipe(filter((ci) => ci != null))
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((ci) => {
+          this.chartInput = ci;
+          this.drawChart();
+        }),
+      this.viewSizeChangedService.viewSizeChanged$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.resizeChart())
     );
   }
 
   ngAfterViewInit(): void {
     // The dynamic-form builds its FormGroup in its own ngOnInit, so the controls only exist now.
-    Promise.resolve().then(() => {
-      const storedType = this.usersettingsService.readSingleValue(this.getStoreKey());
-      this.configObject.chartType.formControl.setValue(
-        Object.values(HoldingsChartType).includes(storedType) ? storedType : HoldingsChartType.HOLDINGS_CHART_ASSETCLASS
-      );
-      this.subscriptions.push(
-        this.configObject.chartType.formControl.valueChanges.subscribe((chartType) => {
-          this.usersettingsService.saveSingleValue(this.getStoreKey(), chartType);
-          this.drawChart();
-        })
-      );
-      this.formReady = true;
-      this.drawChart();
-    });
+    afterNextRender(
+      () => {
+        const storedType = this.usersettingsService.readSingleValue(this.getStoreKey());
+        this.configObject.chartType.formControl.setValue(
+          Object.values(HoldingsChartType).includes(storedType)
+            ? storedType
+            : HoldingsChartType.HOLDINGS_CHART_ASSETCLASS
+        );
+        this.subscriptions.push(
+          this.configObject.chartType.formControl.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((chartType) => {
+              this.usersettingsService.saveSingleValue(this.getStoreKey(), chartType);
+              this.drawChart();
+            })
+        );
+        this.formReady = true;
+        this.drawChart();
+      },
+      { injector: this.renderInjector }
+    );
   }
 
   isActivated(): boolean {
@@ -173,11 +190,14 @@ export class TenantHoldingsChartComponent
     this.config = [DynamicFieldHelper.createFieldSelectStringHeqF('chartType', true, { usedLayoutColumns: 6 })];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     const chartTypes = Object.values(HoldingsChartType);
-    this.translateService.get(chartTypes).subscribe((t) => {
-      this.configObject.chartType.valueKeyHtmlOptions = chartTypes.map(
-        (ct) => new ValueKeyHtmlSelectOptions(ct, t[ct])
-      );
-    });
+    this.translateService
+      .get(chartTypes)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((t) => {
+        this.configObject.chartType.valueKeyHtmlOptions = chartTypes.map(
+          (ct) => new ValueKeyHtmlSelectOptions(ct, t[ct])
+        );
+      });
   }
 
   private getStoreKey(): string {
@@ -189,20 +209,22 @@ export class TenantHoldingsChartComponent
       return;
     }
     const figure = this.buildFigure(this.configObject.chartType.formControl.value);
+    const version = ++this.drawVersion;
     this.plotly?.purge(this.chartElement.nativeElement);
     if (figure) {
-      const version = ++this.drawVersion;
       // Wait until the chart element is no longer hidden, otherwise Plotly measures a zero size.
-      setTimeout(() =>
-        this.plotlyLoader.load().then(
-          (plotly) => {
-            if (!this.destroyed && version === this.drawVersion) {
-              this.plotly = plotly;
-              plotly.newPlot(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig);
-            }
-          },
-          () => {}
-        )
+      afterNextRender(
+        () =>
+          this.plotlyLoader.load().then(
+            (plotly) => {
+              if (!this.destroyed && version === this.drawVersion) {
+                this.plotly = plotly;
+                plotly.newPlot(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig);
+              }
+            },
+            () => {}
+          ),
+        { injector: this.renderInjector }
       );
     }
   }
@@ -212,15 +234,15 @@ export class TenantHoldingsChartComponent
    * plain asset class report; with a rebalancing strategy selected the table loads a different report.
    */
   private buildFigure(chartType: HoldingsChartType): { data: any[]; layout: any } {
-    this.noDataTextKey = null;
+    this.noDataTextKey.set(null);
     if (chartType === HoldingsChartType.HOLDINGS_CHART_TREEMAP) {
       const treemap = this.chartInput.summary?.holdingsTreemap;
       if (this.chartInput.rebalancing || !treemap) {
-        this.noDataTextKey = 'HOLDINGS_TREEMAP_NO_STRATEGY';
+        this.noDataTextKey.set('HOLDINGS_TREEMAP_NO_STRATEGY');
         return null;
       }
       if (treemap.nodes.length <= 1) {
-        this.noDataTextKey = 'NO_DATA_AVAILABLE';
+        this.noDataTextKey.set('NO_DATA_AVAILABLE');
         return null;
       }
       return new HoldingsTreemapChart(
@@ -233,7 +255,7 @@ export class TenantHoldingsChartComponent
   }
 
   private resizeChart(): void {
-    if (!this.noDataTextKey && this.chartElement.nativeElement.data) {
+    if (!this.noDataTextKey() && this.chartElement.nativeElement.data) {
       this.plotly?.Plots.resize(this.chartElement.nativeElement);
     }
   }

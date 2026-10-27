@@ -63,6 +63,22 @@ the real login (`alledit`) and NLS bundles but creates no portfolio, account or 
 spec and needs no cleanup. Run with
 `npx playwright test e2e/245-tenant-analysis-tables.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## Tenant view notification (246-* and 247-*)
+
+`246-tenant-notification.spec.ts` checks delayed dividend reports, expanded security/cash account tables, applying
+the account-selection dialog, fee-comparison summaries and FX rows, regrouping the cash summary, transaction costs
+and changing the year of the missing-EOD calendar. `tenant-notification.helpers.ts` holds controlled responses until
+the view is ready. The fee scenario also waits for the independent FX response before releasing the comparison;
+removing the host's eager strategy without adding notifications leaves those FX rows empty.
+
+`247-tenant-chart-notification.spec.ts` checks a delayed income chart, a year without distributions, switching back
+to an aggregate chart, and the holdings chart's empty-treemap hint and subsequent asset-class chart. Both files use
+real login and translations as `alledit`, intercept only report reads and create no database records. The holdings
+report remains eager because its shared securities-account base and template require a separate conversion.
+
+Run each file separately with `--project=grafioschtrader-e2e --no-deps` against the verified test stack. They need no
+portfolio or transaction fixtures from earlier browser specs.
+
 ## Language-model keys (240-*)
 
 `240-ai-providers.spec.ts` drives Settings → Language-model keys as `e2euser`: `TenantAIProviderDialogComponent`,

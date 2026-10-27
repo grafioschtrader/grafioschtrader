@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { afterNextRender, Component, inject, Injector, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { Tenant } from '../../entities/tenant';
@@ -27,11 +28,11 @@ import { TenantEditComponent } from './tenant.edit.component';
     </dynamic-form>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormComponent]
 })
 export class TenantEditDynamicComponent extends TenantEditComponent implements OnInit {
   onlyCurrency: boolean;
+  private readonly renderInjector = inject(Injector);
 
   constructor(
     private dynamicDialogConfig: DynamicDialogConfig,
@@ -49,19 +50,24 @@ export class TenantEditDynamicComponent extends TenantEditComponent implements O
     this.onlyCurrency = this.dynamicDialogConfig.data.onlyCurrency;
     this.existingTenant = this.dynamicDialogConfig.data.tenant;
     super.init(this.onlyCurrency);
-    setTimeout(() => this.loadData());
+    afterNextRender(() => this.loadData(), { injector: this.renderInjector });
   }
 
   override submit(value: { [name: string]: any }) {
     if (this.onlyCurrency) {
-      this.tenantService.changeCurrencyTenantAndPortfolios(value.currency).subscribe({
-        next: (tenant) => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', { i18nRecord: 'TENANT' });
-          const tenantChanged: Tenant = Object.assign(new Tenant(), tenant);
-          this.closeInputDialog(tenantChanged);
-        },
-        error: () => (this.configObject.submit.disabled = false)
-      });
+      this.tenantService
+        .changeCurrencyTenantAndPortfolios(value.currency)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (tenant) => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+              i18nRecord: 'TENANT'
+            });
+            const tenantChanged: Tenant = Object.assign(new Tenant(), tenant);
+            this.closeInputDialog(tenantChanged);
+          },
+          error: () => (this.configObject.submit.disabled = false)
+        });
     } else {
       super.submit(value);
     }

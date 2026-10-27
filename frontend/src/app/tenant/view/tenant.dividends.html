@@ -9,7 +9,7 @@
       [multiSortMeta]="multiSortMeta"
       [paginator]="true"
       [rows]="30"
-      [value]="securityDividendsYearGroup"
+      [value]="securityDividendsYearGroup()"
       [expandedRowKeys]="expandedYearKeys"
       [contextMenu]="cm"
       [(contextMenuSelection)]="securityDividendsGrandTotalSelected"
@@ -21,12 +21,12 @@
       stripedRows
       showGridlines>
       <ng-template #caption>
-        @if (securityDividendsGrandTotal) {
+        @if (securityDividendsGrandTotal()) {
         <h4
-          [translateParams]="{select: selectedSecurityAccounts, total: totalSecurityAccounts}"
+          [translateParams]="{select: selectedSecurityAccounts(), total: totalSecurityAccounts()}"
           [translate]="'PORTFOLIO_DIVIDENDS_YEAR'"></h4>
         <h4
-          [translateParams]="{select: selectedCashAccounts, total: totalCashAccounts}"
+          [translateParams]="{select: selectedCashAccounts(), total: totalCashAccounts()}"
           [translate]="'PORTFOLIO_INTEREST_YEAR'"></h4>
         }
       </ng-template>
@@ -77,7 +77,7 @@
                   || field.dataType===DataType.NumericInteger)? 'text-end': ''"
             [style.width.px]="field.width"
             class="row-total">
-            {{ getValueColumnTotal(field, 0, securityDividendsGrandTotal, null) }}
+            {{ getValueColumnTotal(field, 0, securityDividendsGrandTotal(), null) }}
           </td>
           } }
         </tr>
@@ -88,12 +88,12 @@
           <td [attr.colspan]="numberOfVisibleColumns + 1">
             <tenant-dividends-security-extended
               (dateChanged)="transactionDataChanged($event)"
-              [idsSecurityaccount]="idsAccounts.idsSecurityaccount"
-              [securityDividendsGrandTotal]="securityDividendsGrandTotal"
+              [idsSecurityaccount]="idsAccounts().idsSecurityaccount"
+              [securityDividendsGrandTotal]="securityDividendsGrandTotal()"
               [securityDividendsPositions]="sDYG.securityDividendsPositions"
               [year]="sDYG.year"
               [expandedRowKeys]="getSecurityExpandedKeys(sDYG.year)"
-              [filterTransactionsToYearEnd]="filterTransactionsToYearEnd">
+              [filterTransactionsToYearEnd]="filterTransactionsToYearEnd()">
             </tenant-dividends-security-extended>
           </td>
         </tr>
@@ -101,7 +101,7 @@
           <td [attr.colspan]="numberOfVisibleColumns + 1">
             <tenant-dividends-cashaccount-extended
               (dateChanged)="transactionDataChanged($event)"
-              [securityDividendsGrandTotal]="securityDividendsGrandTotal"
+              [securityDividendsGrandTotal]="securityDividendsGrandTotal()"
               [year]="sDYG.year"
               [cashAccountPositions]="sDYG.cashAccountPositions">
             </tenant-dividends-cashaccount-extended>
@@ -109,23 +109,23 @@
         </tr>
       </ng-template>
     </p-table>
-    <p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+    <p-contextMenu #cm [model]="contextMenuItems()" appendTo="body"></p-contextMenu>
   </div>
 </div>
 
-@if (visibleSecurityaccountDialog) {
+@if (visibleSecurityaccountDialog()) {
 <tenant-dividend-security-account-selection-dialog
   (closeDialog)="handleOnProcessedDialog($event)"
-  [idsAccounts]="idsAccounts"
-  [portfolios]="securityDividendsGrandTotal.portfolioList"
-  [visibleDialog]="visibleSecurityaccountDialog">
+  [idsAccounts]="idsAccounts()"
+  [portfolios]="securityDividendsGrandTotal().portfolioList"
+  [visibleDialog]="visibleSecurityaccountDialog()">
 </tenant-dividend-security-account-selection-dialog>
-} @if (visibleExportDialog) {
+} @if (visibleExportDialog()) {
 <tax-statement-export-dialog
   (closeDialog)="handleExportDialogClose($event)"
-  [idsSecurityaccount]="idsAccounts.idsSecurityaccount"
-  [availableTaxYears]="$safeNavigationMigration(securityDividendsGrandTotal?.availableTaxYears)"
-  [taxExportSettings]="$safeNavigationMigration(securityDividendsGrandTotal?.taxExportSettings)"
-  [visibleDialog]="visibleExportDialog">
+  [idsSecurityaccount]="idsAccounts().idsSecurityaccount"
+  [availableTaxYears]="$safeNavigationMigration(securityDividendsGrandTotal()?.availableTaxYears)"
+  [taxExportSettings]="$safeNavigationMigration(securityDividendsGrandTotal()?.taxExportSettings)"
+  [visibleDialog]="visibleExportDialog()">
 </tax-statement-export-dialog>
 }

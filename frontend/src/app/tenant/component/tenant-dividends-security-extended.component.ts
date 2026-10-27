@@ -1,4 +1,6 @@
-import { Component, EventEmitter, Injector, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { finalize, Subscription } from 'rxjs';
+import { DestroyRef, inject, signal, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SecurityDividendsPosition } from '../../entities/view/securitydividends/security.dividends.position';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -36,6 +38,7 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
 @Component({
   selector: 'tenant-dividends-security-extended',
   template: `
+    @let revision = fieldsRevision();
     <div class="datatable">
       <p-table
         [columns]="fields"
@@ -83,7 +86,8 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
             <td style="text-align:center">
               <p-checkbox
                 [binary]="true"
-                [(ngModel)]="el.excludedFromTax"
+                [ngModel]="el.excludedFromTax"
+                [disabled]="pendingExclusions().has(el.security.idSecuritycurrency)"
                 (onChange)="onExclusionToggle(el)"></p-checkbox>
             </td>
             @for (field of fields; track field) {
@@ -141,10 +145,10 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu #cmSec [model]="contextMenuItems" appendTo="body"></p-contextMenu>
-      @if (visibleCorrectionDialog) {
+      <p-contextMenu #cmSec [model]="contextMenuItems()" appendTo="body"></p-contextMenu>
+      @if (visibleCorrectionDialog()) {
         <tax-year-correction-dialog
-          [visibleDialog]="visibleCorrectionDialog"
+          [visibleDialog]="visibleCorrectionDialog()"
           [security]="dialogSecurity"
           [yearOptions]="correctionYearOptions"
           [suggestedYear]="year"
@@ -154,7 +158,6 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     FormsModule,
@@ -173,7 +176,16 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
 export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
   @Input() idsSecurityaccount: number[];
   @Input() securityDividendsGrandTotal: SecurityDividendsGrandTotal;
-  @Input() securityDividendsPositions: SecurityDividendsPosition[];
+  private readonly positions = signal<SecurityDividendsPosition[]>([]);
+  @Input() set securityDividendsPositions(value: SecurityDividendsPosition[]) {
+    this.positions.set(value ?? []);
+  }
+  get securityDividendsPositions(): SecurityDividendsPosition[] {
+    return this.positions();
+  }
+  private readonly destroyRef = inject(DestroyRef);
+  readonly pendingExclusions = signal<Set<number>>(new Set());
+  private menuRequest: Subscription;
   @Input() year: number;
   @Input() filterTransactionsToYearEnd: boolean;
 
@@ -188,12 +200,12 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   tsop = [TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN];
 
   /** Dialog state for maintaining the tax year corrections of one security. */
-  visibleCorrectionDialog = false;
+  readonly visibleCorrectionDialog = signal(false);
   dialogSecurity: Security;
   correctionYearOptions: number[] = [];
 
   /** Right-click context menu of the security rows (Swiss tenants only). */
-  contextMenuItems: MenuItem[] = [];
+  readonly contextMenuItems = signal<MenuItem[]>([]);
   contextMenuSelectedPosition: SecurityDividendsPosition;
 
   /** True for Swiss tenants; gates the ICTax columns and the tax year correction context menu. */
@@ -222,7 +234,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   }
 
   /** Translated reason texts for the name-cell background colors, keyed by NLS key. */
-  private nameColorReasons: { [key: string]: string } = {};
+  private readonly nameColorReasons = signal<{ [key: string]: string }>({});
 
   ngOnInit(): void {
     this.translateService
@@ -233,7 +245,8 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
         'POSITION_OPENED_YEAR',
         'TAX_YEAR_CORRECTION_EXISTS'
       ])
-      .subscribe((translations) => (this.nameColorReasons = translations));
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((translations) => this.nameColorReasons.set(translations));
     this.addColumn(DataType.String, 'security.name', 'NAME', true, false, {
       width: 200
     });
@@ -358,12 +371,12 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
     const value = this.getValueByPath(row, field);
     if (field.field === 'security.name') {
       const reasonKey = this.getNameColorReasonKey(row);
-      if (reasonKey && this.nameColorReasons[reasonKey]) {
-        return value + '\n' + this.nameColorReasons[reasonKey];
+      if (reasonKey && this.nameColorReasons()[reasonKey]) {
+        return value + '\n' + this.nameColorReasons()[reasonKey];
       }
     }
     if (field.field === 'security.isin' && row.taxYearCorrectionNearby) {
-      return value + '\n' + (row.taxYearCorrectionNote || this.nameColorReasons['TAX_YEAR_CORRECTION_EXISTS'] || '');
+      return value + '\n' + (row.taxYearCorrectionNote || this.nameColorReasons()['TAX_YEAR_CORRECTION_EXISTS'] || '');
     }
     if (
       row.taxYearCorrectionNote &&
@@ -386,8 +399,10 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
         command: () => this.openCorrectionDialog(this.contextMenuSelectedPosition)
       }
     ];
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
-    this.contextMenuItems = menuItems;
+    this.menuRequest?.unsubscribe();
+    this.menuRequest = TranslateHelper.translateMenuItems$(menuItems, this.translateService)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((items) => this.contextMenuItems.set(items));
   }
 
   onContextMenuSelect(event: any): void {
@@ -409,7 +424,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
     this.correctionYearOptions = this.securityDividendsGrandTotal.securityDividendsYearGroup
       .map((yg) => yg.year)
       .sort((a, b) => b - a);
-    this.visibleCorrectionDialog = true;
+    this.visibleCorrectionDialog.set(true);
   }
 
   /**
@@ -420,7 +435,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
    * @param processedActionData always UPDATED, emitted by the dialog on close
    */
   handleCorrectionDialogClose(processedActionData: ProcessedActionData): void {
-    this.visibleCorrectionDialog = false;
+    this.visibleCorrectionDialog.set(false);
     this.dateChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED));
   }
 
@@ -486,11 +501,33 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   }
 
   onExclusionToggle(sdp: SecurityDividendsPosition): void {
-    this.taxDataService.toggleSecurityExclusion(this.year, sdp.security.idSecuritycurrency).subscribe({
-      error: () => {
-        sdp.excludedFromTax = !sdp.excludedFromTax;
-      }
-    });
+    const id = sdp.security.idSecuritycurrency;
+    this.positions.update((rows) =>
+      rows.map((row) =>
+        row.security.idSecuritycurrency === id ? { ...row, excludedFromTax: !sdp.excludedFromTax } : row
+      )
+    );
+    this.pendingExclusions.update((ids) => new Set([...ids, id]));
+    this.taxDataService
+      .toggleSecurityExclusion(this.year, id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() =>
+          this.pendingExclusions.update((ids) => {
+            const next = new Set(ids);
+            next.delete(id);
+            return next;
+          })
+        )
+      )
+      .subscribe({
+        error: () =>
+          this.positions.update((rows) =>
+            rows.map((row) =>
+              row.security.idSecuritycurrency === id ? { ...row, excludedFromTax: sdp.excludedFromTax } : row
+            )
+          )
+      });
   }
 
   transactionDataChanged(event: ProcessedActionData) {

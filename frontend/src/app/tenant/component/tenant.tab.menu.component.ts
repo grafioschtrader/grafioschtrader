@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { TabItem } from '../../lib/types/tab.item';
 import { GlobalGTSessionNames } from '../../shared/global.gt.session.names';
@@ -16,7 +16,6 @@ import { RouterModule } from '@angular/router';
     </app-shared-tab-menu>
   `,
   imports: [SharedTabMenuComponent, RouterModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class TenantTabMenuComponent implements OnInit {
