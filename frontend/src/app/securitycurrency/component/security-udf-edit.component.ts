@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -20,7 +20,6 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
   selector: 'udf-security-edit',
   templateUrl: '../../lib/udfmeta/view/general.udf.data.edit.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DialogModule, DynamicFormComponent]
 })
 export class SecurityUDFEditComponent extends BaseUDFDataEdit implements OnInit {

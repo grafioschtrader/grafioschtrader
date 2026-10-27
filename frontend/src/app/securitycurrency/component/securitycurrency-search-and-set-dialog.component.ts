@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, ViewChild } from '@angular/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SecuritycurrencySearchBase } from './securitycurrency.search.base';
@@ -34,12 +34,11 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
     </securitycurrency-search-and-set-table>
   `,
   imports: [TranslateModule, DynamicFormComponent, SecuritycurrencySearchAndSetTableComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class SecuritycurrencySearchAndSetDialogComponent
   extends SecuritycurrencySearchBase
-  implements CallBackSetSecurity, AfterViewInit
+  implements CallBackSetSecurity
 {
   // Access child components
   @ViewChild(SecuritycurrencySearchAndSetTableComponent)
@@ -54,10 +53,8 @@ export class SecuritycurrencySearchAndSetDialogComponent
   ) {
     super(false, gps, multipleRequestToOneService, translateService);
     this.supplementCriteria = this.dynamicDialogConfig.data.supplementCriteria;
-  }
-
-  ngAfterViewInit(): void {
-    setTimeout(() => this.initialize());
+    // The form and the result table exist once the dialog has rendered for the first time.
+    afterNextRender(() => this.initialize());
   }
 
   setSecurity(security: Security | CurrencypairWatchlist): void {

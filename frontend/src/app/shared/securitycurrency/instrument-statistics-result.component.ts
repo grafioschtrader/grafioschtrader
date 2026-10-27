@@ -1,4 +1,5 @@
-import { Component, inject, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { InstrumentStatisticsResult } from '../../entities/view/instrument.statistics.result';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { InstrumentStatisticsCacheService } from '../../securitycurrency/service/instrument.statistics.cache.service';
@@ -17,30 +18,24 @@ import { InstrumentStatisticsSummaryComponent } from './instrument-statistics-su
       @if (showTitle) {
         <h4>{{ 'RETURN_STATISTICAL_DATA' | translate }}</h4>
       }
-      <div class="fcontainer">
-        @if (isr) {
+      @if (isr(); as result) {
+        <div class="fcontainer">
           <instrument-year-performance-table
-            [values]="isr.annualisedPerformance.lastYears"
+            [values]="result.annualisedPerformance.lastYears"
             class="tabletree"
-            [mainCurrency]="isr.annualisedPerformance.mainCurrency">
+            [mainCurrency]="result.annualisedPerformance.mainCurrency">
           </instrument-year-performance-table>
-        }
-        @if (isr) {
           <instrument-annualised-return-table
-            [values]="isr.annualisedPerformance.annualisedYears"
+            [values]="result.annualisedPerformance.annualisedYears"
             class="tabletree"
-            [mainCurrency]="isr.annualisedPerformance.mainCurrency">
+            [mainCurrency]="result.annualisedPerformance.mainCurrency">
           </instrument-annualised-return-table>
-        }
-        @if (isr) {
           <instrument-statistics-summary
-            [statisticsSummary]="isr.statisticsSummary"
+            [statisticsSummary]="result.statisticsSummary"
             class="tabletree"
-            [mainCurrency]="isr.annualisedPerformance.mainCurrency">
+            [mainCurrency]="result.annualisedPerformance.mainCurrency">
           </instrument-statistics-summary>
-        }
-      </div>
-      @if (isr) {
+        </div>
         <small>{{ 'RETURN_STATISTICAL_DATA_DIVIDENDS' | translate }}</small>
       }
     </div>
@@ -62,7 +57,6 @@ import { InstrumentStatisticsSummaryComponent } from './instrument-statistics-su
     InstrumentAnnualisedReturnComponent,
     InstrumentStatisticsSummaryComponent
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class InstrumentStatisticsResultComponent implements OnInit {
@@ -74,7 +68,8 @@ export class InstrumentStatisticsResultComponent implements OnInit {
    * expanded watchlist row, sets this to false to avoid showing the same title twice.
    */
   @Input() showTitle = true;
-  isr: InstrumentStatisticsResult;
+  readonly isr = signal<InstrumentStatisticsResult>(null);
+  private readonly destroyRef = inject(DestroyRef);
 
   /**
    * Optional cache of a surrounding view. When a component up the injector chain provides it — the watchlist does so
@@ -91,8 +86,8 @@ export class InstrumentStatisticsResultComponent implements OnInit {
     const statistics = this.statisticsCache
       ? this.statisticsCache.getStatistics(this.idSecuritycurrency, this.dateFrom, this.dateTo)
       : this.securityService.getSecurityStatisticsReturnResult(this.idSecuritycurrency, this.dateFrom, this.dateTo);
-    statistics.subscribe((isr: InstrumentStatisticsResult) => {
-      this.isr = isr;
-    });
+    statistics
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((isr: InstrumentStatisticsResult) => this.isr.set(isr));
   }
 }

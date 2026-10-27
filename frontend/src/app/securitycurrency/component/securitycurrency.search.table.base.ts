@@ -1,4 +1,4 @@
-import { Injector } from '@angular/core';
+import { Injector, signal } from '@angular/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -15,7 +15,7 @@ import { AppSettings } from '../../shared/app.settings';
  * Base class to show the search result as result in a table
  */
 export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
-  securitycurrencyList: (Security | Currencypair)[] = [];
+  private readonly securitycurrencyListSignal = signal<(Security | Currencypair)[]>([]);
 
   protected constructor(
     filterService: FilterService,
@@ -30,6 +30,18 @@ export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
     this.prepareTableAndTranslate();
   }
 
+  /**
+   * Search result shown in the table. Backed by a signal, so assigning a new list re-renders OnPush subclasses as well;
+   * always assign a new array instead of changing the current one.
+   */
+  get securitycurrencyList(): (Security | Currencypair)[] {
+    return this.securitycurrencyListSignal();
+  }
+
+  set securitycurrencyList(securitycurrencyList: (Security | Currencypair)[]) {
+    this.securitycurrencyListSignal.set(securitycurrencyList);
+  }
+
   protected addFieldDefinition(): void {
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 250 });
     this.addColumnFeqH(DataType.String, 'isin', true, false);
@@ -41,14 +53,11 @@ export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
     this.addColumnFeqH(DataType.String, 'currency', true, false);
   }
 
+  /** Appends the currency pairs, converted to watchlist rows, to the search result as a new list. */
   transformCurrencypairToCurrencypairWatchlist(currencypairs: Currencypair[]): void {
-    currencypairs.forEach((currencypair) => {
-      const currencypairWatchlist: CurrencypairWatchlist = new CurrencypairWatchlist(
-        currencypair.fromCurrency,
-        currencypair.toCurrency
-      );
-      Object.assign(currencypairWatchlist, currencypair);
-      this.securitycurrencyList.push(currencypairWatchlist);
-    });
+    const currencypairWatchlists = currencypairs.map((currencypair) =>
+      Object.assign(new CurrencypairWatchlist(currencypair.fromCurrency, currencypair.toCurrency), currencypair)
+    );
+    this.securitycurrencyList = [...this.securitycurrencyList, ...currencypairWatchlists];
   }
 }

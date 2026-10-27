@@ -1,4 +1,16 @@
-import { Component, EventEmitter, Injector, Input, OnChanges, Output, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  EventEmitter,
+  inject,
+  Injector,
+  Input,
+  OnChanges,
+  Output,
+  signal
+} from '@angular/core';
+import { Subscription } from 'rxjs';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { SecurityService } from '../service/security.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -18,10 +30,11 @@ import { NgClass } from '@angular/common';
   selector: 'security-historyquote-quality-table',
   template: `
     <p-table
-      [columns]="fields"
-      [value]="hqwspList"
+      [columns]="tableFields()"
+      [value]="hqwspList()"
       selectionMode="single"
-      [(selection)]="selectedSecurity"
+      [selection]="selectedSecurity()"
+      (selectionChange)="selectedSecurity.set($event)"
       (onRowSelect)="onRowSelect($event)"
       (onRowUnselect)="onRowUnselect($event)"
       dataKey="idSecurity"
@@ -34,9 +47,9 @@ import { NgClass } from '@angular/common';
       <ng-template #caption>
         <h5>{{ groupTitle | translate }}</h5>
       </ng-template>
-      <ng-template #header let-fields>
+      <ng-template #header>
         <tr>
-          @for (field of fields; track field) {
+          @for (field of tableFields(); track field) {
             <th [pSortableColumn]="field.field" [style.width.px]="field.width">
               {{ field.headerTranslated }}
               <p-sortIcon [field]="field.field"></p-sortIcon>
@@ -44,9 +57,9 @@ import { NgClass } from '@angular/common';
           }
         </tr>
       </ng-template>
-      <ng-template #body let-el let-columns="fields">
+      <ng-template #body let-el>
         <tr [pSelectableRow]="el">
-          @for (field of fields; track field) {
+          @for (field of tableFields(); track field) {
             <td
               [ngClass]="
                 field.dataType === DataType.Numeric ||
@@ -63,7 +76,6 @@ import { NgClass } from '@angular/common';
     </p-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TableModule, TranslatePipe, NgClass]
 })
 export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase implements OnChanges {
@@ -71,8 +83,15 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
   @Input() groupTitle: string;
   @Output() changedIdSecurity = new EventEmitter<SecurityIdWithCurrency>();
 
-  selectedSecurity: IHistoryquoteQualityWithSecurityProp;
-  hqwspList: IHistoryquoteQualityWithSecurityProp[];
+  readonly selectedSecurity = signal<IHistoryquoteQualityWithSecurityProp>(null);
+  readonly hqwspList = signal<IHistoryquoteQualityWithSecurityProp[]>([]);
+  /** A new columns reference re-renders the header and body templates of the OnPush p-table after translation. */
+  readonly tableFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields];
+  });
+  private readonly destroyRef = inject(DestroyRef);
+  private loadSubscription: Subscription;
 
   constructor(
     private timeSeriesQuotesService: TimeSeriesQuotesService,
@@ -108,22 +127,25 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
     this.addColumnFeqH(DataType.NumericInteger, 'quoteSunday');
     this.multiSortMeta.push({ field: 'name', order: 1 });
     this.prepareTableAndTranslate();
+    this.destroyRef.onDestroy(() => this.loadSubscription?.unsubscribe());
   }
 
+  /** Loads the securities of the selected group; a newer group replaces the request of the previous one. */
   ngOnChanges(): void {
     if (this.historyquoteQualityIds) {
-      this.securityService
+      this.loadSubscription?.unsubscribe();
+      this.loadSubscription = this.securityService
         .getHistoryquoteQualityByIds(this.historyquoteQualityIds)
         .subscribe((historyquoteQualityWithSecurityPropList) => {
-          this.hqwspList = historyquoteQualityWithSecurityPropList;
+          this.selectedSecurity.set(null);
+          this.hqwspList.set(historyquoteQualityWithSecurityPropList);
         });
     }
   }
 
   onRowSelect(event): void {
-    this.changedIdSecurity.emit(
-      new SecurityIdWithCurrency(this.selectedSecurity.idSecurity, this.selectedSecurity.currency)
-    );
+    const selected: IHistoryquoteQualityWithSecurityProp = event.data;
+    this.changedIdSecurity.emit(new SecurityIdWithCurrency(selected.idSecurity, selected.currency));
   }
 
   onRowUnselect(event): void {

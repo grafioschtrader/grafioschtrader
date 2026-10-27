@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, Injector, Input, OnInit } from '@angular/core';
 import { AnnualisedYears } from '../../entities/view/instrument.statistics.result';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
@@ -17,7 +17,6 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   selector: 'instrument-annualised-return-table',
   templateUrl: './view/instrument.statistic.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
 })
 export class InstrumentAnnualisedReturnComponent extends TableConfigBase implements OnInit {
@@ -27,6 +26,11 @@ export class InstrumentAnnualisedReturnComponent extends TableConfigBase impleme
   groupTitle = 'ANNUALISED_RETURN';
   titleRemark = 'WITHOUT_CURRENT_YEAR';
   sortOrder = 1;
+  /** A new columns reference re-renders the header and body templates of the OnPush p-table after translation. */
+  readonly tableFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields];
+  });
 
   constructor(
     filterService: FilterService,

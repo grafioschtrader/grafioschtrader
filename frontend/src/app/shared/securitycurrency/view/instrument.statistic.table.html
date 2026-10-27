@@ -1,6 +1,6 @@
 <div class="datatable nestedtable">
   <p-table
-    [columns]="fields"
+    [columns]="tableFields()"
     [dataKey]="datakey"
     [value]="values"
     selectionMode="single"
@@ -17,9 +17,9 @@
         <p>{{ titleRemark | translate }}</p>
       </div>
     </ng-template>
-    <ng-template #header let-fields>
+    <ng-template #header>
       <tr>
-        @for (field of fields; track field) {
+        @for (field of tableFields(); track field) {
         <th
           [pSortableColumn]="field.field"
           [pTooltip]="field.headerTooltipTranslated"
@@ -32,9 +32,9 @@
       </tr>
     </ng-template>
 
-    <ng-template #body let-columns="fields" let-el>
+    <ng-template #body let-el>
       <tr [pSelectableRow]="el">
-        @for (field of fields; track field) { @if (field.visible) {
+        @for (field of tableFields(); track field) { @if (field.visible) {
         <td
           [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
           [style.max-width.px]="field.width"

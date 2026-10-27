@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { StatisticsSummary } from '../../entities/view/instrument.statistics.result';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -6,7 +6,7 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TreeNode } from '@openng/optimus-ui/api';
-import { TranslateValue } from '../../lib/datashowbase/column.config';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
 
 /**
@@ -22,8 +22,9 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
         [selectionMode]="null"
         [enableSort]="false"
         [showGridlines]="false"
-        [valueGetterFn]="getValueByPath.bind(this)"
-        [negativeValueFn]="isValueByPathMinus.bind(this)">
+        [fieldsRevision]="fieldsRevision()"
+        [valueGetterFn]="valueGetter"
+        [negativeValueFn]="negativeValue">
         <div caption style="text-align:left">
           <h5>{{ 'STATISTICS_DATA' | translate }}</h5>
         </div>
@@ -31,13 +32,13 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
     </div>
   `,
   imports: [TranslateModule, ConfigurableTreeTableComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase implements OnInit {
   @Input() statisticsSummary: StatisticsSummary;
   @Input() mainCurrency: string;
   rootNodes: TreeNode[];
+  readonly negativeValue = (row: any, field: ColumnConfig) => this.isValueByPathMinus(row, field);
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);

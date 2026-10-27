@@ -1,4 +1,5 @@
-import { Component, Injector, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, DestroyRef, inject, Injector, Input, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Security } from '../../entities/security';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
@@ -24,10 +25,11 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="col-md-12">
       <p-table
-        [columns]="fields"
+        [columns]="tableFields()"
         [value]="securitycurrencyList"
         selectionMode="single"
-        [(selection)]="selectedSecurity"
+        [selection]="selectedSecurity()"
+        (selectionChange)="selectedSecurity.set($event)"
         dataKey="idSecuritycurrency"
         [paginator]="true"
         [rows]="10"
@@ -36,9 +38,9 @@ import { CommonModule } from '@angular/common';
         sortMode="multiple"
         stripedRows
         showGridlines>
-        <ng-template #header let-fields>
+        <ng-template #header>
           <tr>
-            @for (field of fields; track field) {
+            @for (field of tableFields(); track field) {
               <th
                 [pSortableColumn]="field.field"
                 [style.max-width.px]="field.width"
@@ -50,9 +52,9 @@ import { CommonModule } from '@angular/common';
           </tr>
         </ng-template>
 
-        <ng-template #body let-el let-columns="fields">
+        <ng-template #body let-el>
           <tr [pSelectableRow]="el">
-            @for (field of fields; track field) {
+            @for (field of tableFields(); track field) {
               @if (field.visible) {
                 <td
                   [style.max-width.px]="field.width"
@@ -74,20 +76,25 @@ import { CommonModule } from '@angular/common';
     </div>
 
     <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
-      <button pButton [disabled]="!selectedSecurity" class="btn float-end" (click)="chooseSecurity()" type="button">
+      <button pButton [disabled]="!selectedSecurity()" class="btn float-end" (click)="chooseSecurity()" type="button">
         {{ 'ASSIGN_SELECTED' | translate }}
       </button>
     </div>
   `,
   imports: [TableModule, ButtonModule, CommonModule, TranslateModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class SecuritycurrencySearchAndSetTableComponent extends SecuritycurrencySearchTableBase {
   @Input() callBackSetSecurity: CallBackSetSecurity;
   @Input() supplementCriteria: SupplementCriteria;
 
-  selectedSecurity: Security;
+  readonly selectedSecurity = signal<Security>(null);
+  /** A new columns reference re-renders the header and body templates of the OnPush p-table after translation. */
+  readonly tableFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields];
+  });
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private securityService: SecurityService,
@@ -108,20 +115,23 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
     ];
     !this.supplementCriteria.onlySecurity &&
       obs.push(this.currencypairService.searchByCriteria(securitycurrencySearch));
-    combineLatest(obs).subscribe((data: (Currencypair | Security)[][]) => {
-      this.securitycurrencyList = data[0];
-      this.createTranslatedValueStoreAndFilterField(data[0]);
-      if (!this.supplementCriteria.onlySecurity) {
-        this.transformCurrencypairToCurrencypairWatchlist(<Currencypair[]>data[1]);
-      }
-    });
+    combineLatest(obs)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: (Currencypair | Security)[][]) => {
+        this.securitycurrencyList = data[0];
+        this.createTranslatedValueStoreAndFilterField(data[0]);
+        if (!this.supplementCriteria.onlySecurity) {
+          this.transformCurrencypairToCurrencypairWatchlist(<Currencypair[]>data[1]);
+        }
+      });
   }
 
   clearList(): void {
     this.securitycurrencyList = [];
+    this.selectedSecurity.set(null);
   }
 
   chooseSecurity(): void {
-    this.callBackSetSecurity.setSecurity(this.selectedSecurity);
+    this.callBackSetSecurity.setSecurity(this.selectedSecurity());
   }
 }

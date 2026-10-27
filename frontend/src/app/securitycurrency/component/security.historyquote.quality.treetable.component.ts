@@ -1,4 +1,6 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, Subscription, switchMap } from 'rxjs';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -45,22 +47,24 @@ import { SharedModule } from '@openng/optimus-ui/api';
       }">
       <p-panel>
         <p-header>
-          <h4>{{ 'SECURITY_HISTORY_QUALITY' | translate }} ({{ 'LAST_UPDATE' | translate }}: {{ lastUpdate }})</h4>
+          <h4>{{ 'SECURITY_HISTORY_QUALITY' | translate }} ({{ 'LAST_UPDATE' | translate }}: {{ lastUpdate() }})</h4>
         </p-header>
         <label class="small-padding control-label" for="groupSelect">{{ 'MAIN_QUALITY_GROUP' | translate }}</label>
         <p-select id="groupSelect" [options]="groups" [(ngModel)]="selectedGroup" (onChange)="groupChanged($event)">
         </p-select>
       </p-panel>
       <configurable-tree-table
-        [data]="qualityNode"
+        [data]="qualityNode()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="uniqueKey"
         sortField="name"
-        [(selection)]="selectedNode"
+        [selection]="selectedNode()"
+        (selectionChange)="selectedNode.set($event)"
         (nodeSelect)="nodeSelect($event)"
-        [contextMenuItems]="contextMenuItems"
-        [showContextMenu]="!!contextMenuItems"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [contextMenuItems]="contextMenuItems()"
+        [showContextMenu]="!!contextMenuItems()"
+        [valueGetterFn]="valueGetter"
         [footerTemplate]="qualityFooter">
       </configurable-tree-table>
       <ng-template #qualityFooter>
@@ -76,21 +80,20 @@ import { SharedModule } from '@openng/optimus-ui/api';
                     field.dataType === DataType.Numeric ||
                     field.dataType === DataType.DateTimeNumeric
                 }">
-                {{ getValueColumnTotal(field, 0, historyquoteQualityHead, null) }}
+                {{ getValueColumnTotal(field, 0, historyquoteQualityHead(), null) }}
               </td>
             }
           }
         </tr>
       </ng-template>
       <security-historyquote-quality-table
-        [historyquoteQualityIds]="historyquoteQualityIds"
-        [groupTitle]="groupTitle"
+        [historyquoteQualityIds]="historyquoteQualityIds()"
+        [groupTitle]="groupTitle()"
         (changedIdSecurity)="handleChangedIdSecurity($event)">
       </security-historyquote-quality-table>
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NgClass,
     TranslatePipe,
@@ -106,18 +109,23 @@ export class SecurityHistoryquoteQualityTreetableComponent
   extends TreeTableConfigBase
   implements OnInit, IGlobalMenuAttach
 {
-  historyquoteQualityIds: HistoryquoteQualityIds;
-  groupTitle: string;
-  contextMenuItems: MenuItem[];
+  readonly historyquoteQualityIds = signal<HistoryquoteQualityIds>(null);
+  readonly groupTitle = signal<string>(null);
+  readonly contextMenuItems = signal<MenuItem[]>(null);
   securityIdWithCurrency: SecurityIdWithCurrency;
 
-  qualityNode: TreeNode[] = [];
-  historyquoteQualityHead: HistoryquoteQualityHead;
-  selectedNode: TreeNode = null;
+  readonly qualityNode = signal<TreeNode[]>([]);
+  readonly historyquoteQualityHead = signal<HistoryquoteQualityHead>(null);
+  readonly selectedNode = signal<TreeNode>(null);
   selectedGroup: string;
-  lastUpdate: string;
+  readonly lastUpdate = signal<string>(null);
 
   groups: SelectItem[] = [];
+
+  private readonly destroyRef = inject(DestroyRef);
+  /** A newer group selection supersedes the request of the previous one. */
+  private readonly groupRequests = new Subject<string>();
+  private menuSubscription: Subscription;
 
   constructor(
     private timeSeriesQuotesService: TimeSeriesQuotesService,
@@ -147,6 +155,13 @@ export class SecurityHistoryquoteQualityTreetableComponent
     this.translateHeadersAndColumns();
 
     SelectOptionsHelper.createSelectItemForEnum(translateService, HistoryquoteQualityGrouped, this.groups);
+    this.groupRequests
+      .pipe(
+        switchMap((grouped) => this.securityService.getHistoryquoteQualityHead(grouped)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((hqg: HistoryquoteQualityHead) => this.showData(hqg));
+    this.destroyRef.onDestroy(() => this.menuSubscription?.unsubscribe());
   }
 
   ngOnInit(): void {
@@ -155,15 +170,7 @@ export class SecurityHistoryquoteQualityTreetableComponent
   }
 
   readData(historyquoteQualityGrouped: string): void {
-    this.securityService
-      .getHistoryquoteQualityHead(historyquoteQualityGrouped)
-      .subscribe((hqg: HistoryquoteQualityHead) => {
-        const tn: TreeNode[] = [];
-        this.historyquoteQualityHead = hqg;
-        this.lastUpdate = AppHelper.getDateByFormat(this.gps, this.historyquoteQualityHead.lastUpdate);
-        this.addTreeNode(tn, hqg, null);
-        this.qualityNode = tn[0].children;
-      });
+    this.groupRequests.next(historyquoteQualityGrouped);
   }
 
   groupChanged(event): void {
@@ -194,34 +201,44 @@ export class SecurityHistoryquoteQualityTreetableComponent
   nodeSelect(event): void {
     const hqg: HistoryquoteQualityGroup = event.node.data;
     if (hqg.categoryType !== null) {
-      this.groupTitle = event.node.parent.parent.data.name + ' / ' + event.node.parent.data.name + ' / ' + hqg.name;
-      this.historyquoteQualityIds = plainToInstance(HistoryquoteQualityIds, event.node.data, {
-        excludeExtraneousValues: true
-      }) as HistoryquoteQualityIds;
-    }
-  }
-
-  protected resetMenu(): void {
-    this.activePanelService.activatePanel(this, {
-      showMenu: this.getMenuShowOptions(),
-      editMenu: null
-    });
-  }
-
-  protected getMenuShowOptions(): MenuItem[] {
-    if (this.securityIdWithCurrency) {
-      const menuItems: MenuItem[] = this.timeSeriesQuotesService.getMenuItems(
-        this.securityIdWithCurrency.idSecurity,
-        this.securityIdWithCurrency.currency,
-        false
+      this.groupTitle.set(event.node.parent.parent.data.name + ' / ' + event.node.parent.data.name + ' / ' + hqg.name);
+      this.historyquoteQualityIds.set(
+        plainToInstance(HistoryquoteQualityIds, event.node.data, {
+          excludeExtraneousValues: true
+        }) as HistoryquoteQualityIds
       );
-      TranslateHelper.translateMenuItems(menuItems, this.translateService);
-      this.contextMenuItems = menuItems;
-      return menuItems;
-    } else {
-      this.contextMenuItems = null;
-      return null;
     }
+  }
+
+  /** Publishes the translated show menu of the selected security as a new array, or no menu without a selection. */
+  protected resetMenu(): void {
+    this.menuSubscription?.unsubscribe();
+    if (this.securityIdWithCurrency) {
+      this.menuSubscription = TranslateHelper.translateMenuItems$(
+        this.timeSeriesQuotesService.getMenuItems(
+          this.securityIdWithCurrency.idSecurity,
+          this.securityIdWithCurrency.currency,
+          false
+        ),
+        this.translateService
+      ).subscribe((menuItems) => this.publishMenu(menuItems));
+    } else {
+      this.publishMenu(null);
+    }
+  }
+
+  private publishMenu(menuItems: MenuItem[]): void {
+    this.contextMenuItems.set(menuItems);
+    this.activePanelService.activatePanel(this, { showMenu: menuItems, editMenu: null });
+  }
+
+  private showData(hqg: HistoryquoteQualityHead): void {
+    const tn: TreeNode[] = [];
+    this.addTreeNode(tn, hqg, null);
+    this.historyquoteQualityHead.set(hqg);
+    this.lastUpdate.set(AppHelper.getDateByFormat(this.gps, hqg.lastUpdate));
+    this.selectedNode.set(null);
+    this.qualityNode.set(tn[0].children);
   }
 
   private addTreeNode(tn: TreeNode[], hqg: HistoryquoteQualityGroup, parentNode: TreeNode): void {

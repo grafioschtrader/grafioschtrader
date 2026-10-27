@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, Injector, Input, OnInit } from '@angular/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
@@ -14,7 +14,6 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   selector: 'instrument-year-performance-table',
   templateUrl: './view/instrument.statistic.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
 })
 export class InstrumentYearPerformanceTableComponent extends TableConfigBase implements OnInit {
@@ -24,6 +23,11 @@ export class InstrumentYearPerformanceTableComponent extends TableConfigBase imp
   groupTitle = 'CALENDAR_YEAR_RETURN';
   titleRemark = 'ALL_EOD_AND_DIVIDEND';
   sortOrder = -1;
+  /** A new columns reference re-renders the header and body templates of the OnPush p-table after translation. */
+  readonly tableFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields];
+  });
 
   constructor(
     filterService: FilterService,

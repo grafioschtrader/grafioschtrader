@@ -350,6 +350,22 @@ An additional read-only scenario always runs, including on an already complete c
 response, supersedes a year request and toggles an existing day twice without saving, checking the save button and
 year-selection lock.
 
+## Instrument statistics and price-quality notification (057-_, 058-_)
+
+`057-instrument-statistics-notification.spec.ts` expands a row of the `Spain` watchlist from 050 on the quote data feed
+tab as `alledit` and opens the return and statistics panel. It holds the statistics request and answers it with fixed
+figures, so the three OnPush tables must appear only after the response, with translated headers, the main-currency
+suffix and red negative values.
+
+`058-historyquote-quality-notification.spec.ts` opens the completeness view of historical prices with intercepted
+responses only. It checks the delayed group tree and its total row, switches the grouping and back while the older
+request is still pending so that its late answer cannot replace the newer tree, then selects an instrument group,
+waits for the delayed security list and verifies the show menu of the selected security in the context menu.
+
+Neither spec writes to the database. Run them with
+`npx playwright test e2e/057-instrument-statistics-notification.spec.ts --project=grafioschtrader-e2e --no-deps` and
+`npx playwright test e2e/058-historyquote-quality-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Security transaction spec (075-*)
 
 `075-create-security-transactions.spec.ts` recreates the ordered security transaction groups tagged `e2e='e'` in
