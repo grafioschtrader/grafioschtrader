@@ -1,19 +1,21 @@
 <configurable-table
-  [data]="cashaccountTransactionPositions"
+  [data]="cashaccountTransactionPositions()"
   [fields]="fields"
+  [fieldsRevision]="fieldsRevision()"
   [dataKey]="'idTransaction'"
-  [(selection)]="pageFirstRowSelectedRow.selectedRow"
-  [customSortFn]="customSort.bind(this)"
+  [selection]="pageFirstRowSelectedRow().selectedRow"
+  (selectionChange)="selectPageRow($event)"
+  [customSortFn]="customSorter"
   [multiSortMeta]="multiSortMeta"
   [paginator]="true"
   [rows]="50"
   [rowsPerPageOptions]="[20,30,50,100]"
-  [firstRowIndex]="pageFirstRowSelectedRow.topPageRow"
+  [firstRowIndex]="pageFirstRowSelectedRow().topPageRow"
   (rowSelect)="onRowSelect($event)"
   (rowUnselect)="onRowUnselect($event)"
   (pageChange)="onPage($event)"
   (componentClick)="onComponentClick($event)"
-  [contextMenuItems]="contextMenuItems"
+  [contextMenuItems]="contextMenuItems()"
   [showContextMenu]="isActivated()"
   [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
   [customClass]="'datatable nestedtable'"
@@ -22,44 +24,44 @@
   [baseLocale]="baseLocale"
   [formLocale]="formLocale"
   [scrollable]="false"
-  [valueGetterFn]="getValueByPath.bind(this)"
-  [negativeValueFn]="isValueByPathMinus.bind(this)"
+  [valueGetterFn]="valueGetter"
+  [negativeValueFn]="negativeValue"
   [contextMenuAppendTo]="'body'">
 </configurable-table>
 
-@if (visibleSecurityTransactionDialog) {
+@if (visibleSecurityTransactionDialog()) {
 <transaction-security-edit
   (closeDialog)="handleCloseTransactionDialog($event)"
   [transactionCallParam]="transactionCallParam"
-  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
+  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()">
 </transaction-security-edit>
-} @if (visibleCashaccountTransactionSingleDialog) {
+} @if (visibleCashaccountTransactionSingleDialog()) {
 <transaction-cashaccount-editsingle
   (closeDialog)="handleCloseTransactionDialog($event)"
   [transactionCallParam]="transactionCallParam"
-  [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog">
+  [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog()">
 </transaction-cashaccount-editsingle>
-} @if (visibleCashaccountTransactionDoubleDialog) {
+} @if (visibleCashaccountTransactionDoubleDialog()) {
 <transaction-cashaccount-editdouble
   (closeDialog)="handleCloseTransactionDialog($event)"
   [transactionCallParam]="transactionCallParam"
-  [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog">
+  [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog()">
 </transaction-cashaccount-editdouble>
-} @if (visibleConnectDebitCreditDialog) {
+} @if (visibleConnectDebitCreditDialog()) {
 <transaction-cashaccount-connect-debit-credit
   (closeDialog)="handleCloseTransactionDialog($event)"
   [transactionCallParam]="transactionCallParam"
-  [visibleDialog]="visibleConnectDebitCreditDialog">
+  [visibleDialog]="visibleConnectDebitCreditDialog()">
 </transaction-cashaccount-connect-debit-credit>
-} @if (visibleStandingOrderCashaccountDialog) {
+} @if (visibleStandingOrderCashaccountDialog()) {
 <standing-order-cashaccount-edit
-  [visibleDialog]="visibleStandingOrderCashaccountDialog"
+  [visibleDialog]="visibleStandingOrderCashaccountDialog()"
   [callParam]="standingOrderCallParam"
   (closeDialog)="handleCloseStandingOrderDialog($event)">
 </standing-order-cashaccount-edit>
-} @if (visibleStandingOrderSecurityDialog) {
+} @if (visibleStandingOrderSecurityDialog()) {
 <standing-order-security-edit
-  [visibleDialog]="visibleStandingOrderSecurityDialog"
+  [visibleDialog]="visibleStandingOrderSecurityDialog()"
   [callParam]="standingOrderCallParam"
   (closeDialog)="handleCloseStandingOrderDialog($event)">
 </standing-order-security-edit>

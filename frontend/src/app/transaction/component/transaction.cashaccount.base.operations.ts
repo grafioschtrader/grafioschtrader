@@ -94,11 +94,11 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
   }
 
   /**
-   * Event handler for dialog show event that triggers pre-initialization with a timeout.
+   * Initialises the dialog once its form has rendered, ending the preceding session first.
    * @param event The dialog show event object
    */
   public onShow(event) {
-    setTimeout(() => this.preInitialize());
+    this.initializeAfterRender(() => this.preInitialize());
   }
 
   /**
@@ -106,6 +106,7 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    * Cleans up value change subscriptions and notifies parent component of dialog closure.
    */
   close(): void {
+    this.endDialogSession();
     this.valueChangedOnValueCalcFieldsSub && this.valueChangedOnValueCalcFieldsSub.unsubscribe();
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }

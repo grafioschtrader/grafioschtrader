@@ -21,7 +21,7 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { AppSettings } from '../../shared/app.settings';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
@@ -51,7 +51,7 @@ import { StandingOrderSecurityEditComponent } from './standing-order-security-ed
       (rowSelect)="onRowSelect($event)"
       (rowUnselect)="onRowUnselect($event)"
       (componentClick)="onComponentClick($event)"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems()"
       [showContextMenu]="isActivated()"
       [containerClass]="{
         'data-container': true,
@@ -66,49 +66,49 @@ import { StandingOrderSecurityEditComponent } from './standing-order-security-ed
       [contextMenuAppendTo]="'body'">
     </configurable-table>
 
-    @if (visibleSecurityTransactionDialog) {
+    @if (visibleSecurityTransactionDialog()) {
       <transaction-security-edit
         (closeDialog)="handleCloseTransactionDialog($event)"
         [transactionCallParam]="transactionCallParam"
-        [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
+        [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()">
       </transaction-security-edit>
     }
 
-    @if (visibleCashaccountTransactionSingleDialog) {
+    @if (visibleCashaccountTransactionSingleDialog()) {
       <transaction-cashaccount-editsingle
         (closeDialog)="handleCloseTransactionDialog($event)"
         [transactionCallParam]="transactionCallParam"
-        [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog">
+        [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog()">
       </transaction-cashaccount-editsingle>
     }
 
-    @if (visibleCashaccountTransactionDoubleDialog) {
+    @if (visibleCashaccountTransactionDoubleDialog()) {
       <transaction-cashaccount-editdouble
         (closeDialog)="handleCloseTransactionDialog($event)"
         [transactionCallParam]="transactionCallParam"
-        [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog">
+        [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog()">
       </transaction-cashaccount-editdouble>
     }
 
-    @if (visibleConnectDebitCreditDialog) {
+    @if (visibleConnectDebitCreditDialog()) {
       <transaction-cashaccount-connect-debit-credit
         (closeDialog)="handleCloseTransactionDialog($event)"
         [transactionCallParam]="transactionCallParam"
-        [visibleDialog]="visibleConnectDebitCreditDialog">
+        [visibleDialog]="visibleConnectDebitCreditDialog()">
       </transaction-cashaccount-connect-debit-credit>
     }
 
-    @if (visibleStandingOrderCashaccountDialog) {
+    @if (visibleStandingOrderCashaccountDialog()) {
       <standing-order-cashaccount-edit
-        [visibleDialog]="visibleStandingOrderCashaccountDialog"
+        [visibleDialog]="visibleStandingOrderCashaccountDialog()"
         [callParam]="standingOrderCallParam"
         (closeDialog)="handleCloseStandingOrderDialog($event)">
       </standing-order-cashaccount-edit>
     }
 
-    @if (visibleStandingOrderSecurityDialog) {
+    @if (visibleStandingOrderSecurityDialog()) {
       <standing-order-security-edit
-        [visibleDialog]="visibleStandingOrderSecurityDialog"
+        [visibleDialog]="visibleStandingOrderSecurityDialog()"
         [callParam]="standingOrderCallParam"
         (closeDialog)="handleCloseStandingOrderDialog($event)">
       </standing-order-security-edit>
@@ -131,7 +131,6 @@ export class StandingOrderTransactionTableComponent extends TransactionContextMe
   @Input() standingOrder: StandingOrder;
 
   readonly transactions = signal<Transaction[]>([]);
-  readonly negativeValue = (row: Transaction, field: ColumnConfig) => this.isValueByPathMinus(row, field);
   private readSubscription?: Subscription;
   private portfolio: Portfolio;
 
@@ -186,7 +185,7 @@ export class StandingOrderTransactionTableComponent extends TransactionContextMe
   }
 
   onRowSelect(event: any): void {
-    this.selectedTransaction = event.data;
+    this.selectedTransaction.set(event.data);
     this.setMenuItemsToActivePanel();
   }
 

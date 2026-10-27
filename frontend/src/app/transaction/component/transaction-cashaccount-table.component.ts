@@ -1,4 +1,5 @@
-import { Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, Input, OnDestroy, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { TransactionService } from '../service/transaction.service';
 import { Transaction } from '../../entities/transaction';
@@ -12,7 +13,7 @@ import { Security } from '../../entities/security';
 import { Portfolio } from '../../entities/portfolio';
 import { TransactionCallParam } from './transaction.call.parm';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, Observable, of, switchMap } from 'rxjs';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -44,7 +45,6 @@ import { StandingOrderSecurityEditComponent } from '../../standingorder/componen
   selector: 'transaction-cashaccount-table',
   templateUrl: '../view/transaction.cashaccount.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ConfigurableTableComponent,
@@ -70,7 +70,7 @@ export class TransactionCashaccountTableComponent
   @Input() cashAccountTableInputFilter: CashAccountTableInputFilter;
 
   /** Array of cash account transaction positions to be displayed in the table */
-  cashaccountTransactionPositions: CashaccountTransactionPosition[];
+  readonly cashaccountTransactionPositions = signal<CashaccountTransactionPosition[]>([]);
 
   /** Currently selected cash account transaction position */
   cashaccountTransactionPositionSelected: CashaccountTransactionPosition;
@@ -146,7 +146,7 @@ export class TransactionCashaccountTableComponent
       currencyPrecisionField: 'transaction.cashaccount.currency'
     });
     this.prepareTableAndTranslate();
-    // this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(this.idSecuritycashAccount);
+    // this.pageFirstRowSelectedRow.set(this.parentChildRegisterService.getRowPostion(this.idSecuritycashAccount));
     this.multiSortMeta.push({
       field: 'transaction.transactionTime',
       order: -1
@@ -167,11 +167,11 @@ export class TransactionCashaccountTableComponent
           (transaction) => transaction.idTransaction === this.cashaccountTransactionPositionSelected.idTransaction
         )
       ) {
-        this.cashaccountTransactionPositionSelected = this.cashaccountTransactionPositions.find(
+        this.cashaccountTransactionPositionSelected = this.cashaccountTransactionPositions().find(
           (ctps) => ctps.idTransaction === transactions[0].idTransaction
         );
         if (!this.cashaccountTransactionPositionSelected && transactions.length > 1) {
-          this.cashaccountTransactionPositionSelected = this.cashaccountTransactionPositions.find(
+          this.cashaccountTransactionPositionSelected = this.cashaccountTransactionPositions().find(
             (ctps) => ctps.idTransaction === transactions[1].idTransaction
           );
         }
@@ -198,7 +198,7 @@ export class TransactionCashaccountTableComponent
    */
   onRowSelect(event): void {
     this.cashaccountTransactionPositionSelected = event.data;
-    this.selectedTransaction = this.cashaccountTransactionPositionSelected.transaction;
+    this.selectedTransaction.set(this.cashaccountTransactionPositionSelected.transaction);
   }
 
   /** Cleans up component resources and unregisters from parent-child service */
@@ -209,14 +209,24 @@ export class TransactionCashaccountTableComponent
 
   /** Initializes component data by loading portfolio information if needed and fetching transaction data */
   protected initialize(): void {
-    if (this.portfolio) {
-      this.loadData();
-    } else {
-      this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount).subscribe((portfolio) => {
-        this.portfolio = portfolio;
-        this.loadData();
+    this.dataSubscription?.unsubscribe();
+    const portfolio = this.portfolio
+      ? of(this.portfolio)
+      : this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount);
+    this.dataSubscription = portfolio
+      .pipe(
+        switchMap((portfolio) => {
+          this.portfolio = portfolio;
+          return this.loadData();
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(([positions, currencypairs]) => {
+        this.goToFirsRowPosition(this.idSecuritycashAccount);
+        this.cashaccountTransactionPositions.set(
+          this.addCurrencypairToCashaccountTransactionPosition(positions, currencypairs)
+        );
       });
-    }
   }
 
   /**
@@ -236,15 +246,7 @@ export class TransactionCashaccountTableComponent
       );
     const currencypairObservable: Observable<Currencypair[]> =
       this.currencypairService.getTransactionCurrencypairsByPortfolioId(this.portfolio.idPortfolio);
-    combineLatest([transactionsObservable, currencypairObservable]).subscribe(
-      (result: [CashaccountTransactionPosition[], Currencypair[]]) => {
-        this.cashaccountTransactionPositions = this.addCurrencypairToCashaccountTransactionPosition(
-          result[0],
-          result[1]
-        );
-        this.goToFirsRowPosition(this.idSecuritycashAccount);
-      }
-    );
+    return combineLatest([transactionsObservable, currencypairObservable]);
   }
 
   /**

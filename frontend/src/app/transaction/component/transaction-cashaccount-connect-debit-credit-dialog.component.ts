@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 import { TransactionCallParam } from './transaction.call.parm';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
@@ -29,7 +29,6 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DialogModule, DynamicFormModule]
 })
 export class TransactionCashaccountConnectDebitCreditDialogComponent extends SimpleEditBase implements OnInit {

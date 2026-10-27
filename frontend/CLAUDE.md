@@ -63,6 +63,11 @@ notifies Angular of every change it makes, so a new component never needs `Eager
   `destroyRef`; do not declare your own.
 - **CRUD tables extend `TableCrudSupportMenu`** (`lib/datashowbase/table.crud.support.menu.ts`):
   `entityList`, `selectedEntity`, `visibleDialog` and `contextMenuItems` are signals. Reference: `TenantAIProviderTableComponent`.
+- **Transaction tables on `TransactionContextMenu`** use signals for selection, translated context menus, dialog
+  visibility and paginator state. Update the selected page row through `selectPageRow()` rather than mutating
+  `pageFirstRowSelectedRow()`. Their edit dialogs use `TransactionBaseOperations`: initialise through
+  `initializeAfterRender()`, bind streams with `untilDialogClosed()` and end the session on hide. Replace competing
+  holdings, quotation and exchange-rate requests through `replaceDialogRequest()`.
 - **Master-detail views on `SingleRecordMasterViewBase`** keep its property API: selection, lists, edit-dialog
   visibility, call parameters and context menus are backed by signals. Always replace records, nested arrays and
   lists; a mutation inside `selectedEntity` does not notify. `valueChangedMainField()` replaces the previous control

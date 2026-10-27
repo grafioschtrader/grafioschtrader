@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpResponse } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -27,25 +28,36 @@ export interface TransactionReceiptDialogData {
 @Component({
   template: `
     <transaction-receipt-table
-      [transactions]="transactions"
-      [marginBased]="marginBased"
-      (selectedChange)="selected = $event">
+      [transactions]="transactions()"
+      [marginBased]="marginBased()"
+      (selectedChange)="selected.set($event)">
     </transaction-receipt-table>
     <div style="text-align: right; margin-top: 1rem;">
-      <p-button [label]="'DOWNLOAD' | translate" [disabled]="selected.length === 0 || downloading" (click)="download()">
+      <p-button
+        [label]="'DOWNLOAD' | translate"
+        [disabled]="selected().length === 0 || downloading()"
+        (click)="download()">
         <i class="pi pi-download" pButtonIcon></i>
       </p-button>
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, ButtonModule, TransactionReceiptTableComponent]
 })
 export class TransactionReceiptDialogComponent implements OnInit {
-  transactions: Transaction[] = [];
-  selected: Transaction[] = [];
-  marginBased = false;
-  downloading = false;
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly summary = signal<SecurityTransactionSummary>(null);
+  readonly transactions = computed(
+    () =>
+      this.summary()
+        ?.transactionPositionList.map((position) => position.transaction)
+        .filter((transaction) => Transaction.isSecurityTransaction(transaction.transactionType)) ?? []
+  );
+  readonly marginBased = computed(() =>
+    this.summary() ? BusinessHelper.isMarginProduct(this.summary().securityPositionSummary.security) : false
+  );
+  readonly selected = signal<Transaction[]>([]);
+  readonly downloading = signal(false);
 
   constructor(
     private dynamicDialogConfig: DynamicDialogConfig,
@@ -62,24 +74,24 @@ export class TransactionReceiptDialogComponent implements OnInit {
       data.idSecurityaccount ? [data.idSecurityaccount] : null,
       data.idPortfolio,
       false
-    ).subscribe((sts: SecurityTransactionSummary) => {
-      this.marginBased = BusinessHelper.isMarginProduct(sts.securityPositionSummary.security);
-      this.transactions = sts.transactionPositionList
-        .map((tp) => tp.transaction)
-        .filter((t) => Transaction.isSecurityTransaction(t.transactionType));
-    });
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((summary) => this.summary.set(summary));
   }
 
   download(): void {
-    this.downloading = true;
-    this.transactionService.downloadReceipts(this.selected.map((t) => t.idTransaction)).subscribe({
-      next: (response: HttpResponse<Blob>) => {
-        saveAs(response.body, this.getFileName(response));
-        this.downloading = false;
-        this.dynamicDialogRef.close();
-      },
-      error: () => (this.downloading = false)
-    });
+    this.downloading.set(true);
+    this.transactionService
+      .downloadReceipts(this.selected().map((t) => t.idTransaction))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: HttpResponse<Blob>) => {
+          saveAs(response.body, this.getFileName(response));
+          this.downloading.set(false);
+          this.dynamicDialogRef.close();
+        },
+        error: () => this.downloading.set(false)
+      });
   }
 
   /** Takes the file name from the Content-Disposition header set by the backend. */

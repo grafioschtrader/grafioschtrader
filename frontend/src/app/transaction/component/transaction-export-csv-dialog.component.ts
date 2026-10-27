@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpResponse } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
@@ -39,10 +40,10 @@ export interface TransactionExportCsvDialogData {
     </dynamic-form>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule]
 })
-export class TransactionExportCsvDialogComponent extends FormBase implements OnInit, AfterViewInit {
+export class TransactionExportCsvDialogComponent extends FormBase implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
   constructor(
@@ -53,6 +54,7 @@ export class TransactionExportCsvDialogComponent extends FormBase implements OnI
     private transactionService: TransactionService
   ) {
     super();
+    afterNextRender(() => this.form.setDefaultValuesAndEnableSubmit());
   }
 
   ngOnInit(): void {
@@ -65,16 +67,13 @@ export class TransactionExportCsvDialogComponent extends FormBase implements OnI
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  ngAfterViewInit(): void {
-    setTimeout(() => this.form.setDefaultValuesAndEnableSubmit());
-  }
-
   submit(value: { [name: string]: any }): void {
     const request: { dateFrom?: string; dateTo?: string } = {};
     this.form.cleanMaskAndTransferValuesToBusinessObject(request, true);
     const data: TransactionExportCsvDialogData = this.dynamicDialogConfig.data || {};
     this.transactionService
       .exportTransactionsCsv(data.idPortfolio ?? null, request.dateFrom ?? null, request.dateTo ?? null)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: HttpResponse<Blob>) => {
           saveAs(response.body, this.getFileName(response));

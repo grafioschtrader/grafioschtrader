@@ -6,7 +6,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TransactionService } from '../service/transaction.service';
-import { Directive, Injector } from '@angular/core';
+import { Directive, Injector, signal } from '@angular/core';
 import { TransactionContextMenu } from './transaction.context.menu';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -22,7 +22,6 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import {
   TransactionExportCsvDialogComponent,
   TransactionExportCsvDialogData
@@ -36,7 +35,7 @@ import {
 @Directive()
 export abstract class TransactionTable extends TransactionContextMenu {
   /** Array of transaction positions displayed in the cash account table */
-  cashaccountTransactionPositions: Transaction[];
+  readonly cashaccountTransactionPositions = signal<Transaction[]>([]);
 
   /**
    * Creates a new TransactionTable instance with comprehensive service dependencies and predefined column configuration.
@@ -156,7 +155,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
    * @param event The row selection event containing the selected transaction data
    */
   onRowSelect(event): void {
-    this.selectedTransaction = event.data;
+    this.selectedTransaction.set(event.data);
     this.setMenuItemsToActivePanel();
   }
 
@@ -170,11 +169,13 @@ export abstract class TransactionTable extends TransactionContextMenu {
     super.handleCloseTransactionDialog(processedActionData);
     if (processedActionData.action === ProcessedAction.UPDATED) {
       if (processedActionData.data instanceof Array) {
-        this.selectedTransaction = (<Transaction[]>processedActionData.data).find(
-          (newTrans) => newTrans.idTransaction === this.selectedTransaction.idTransaction
+        this.selectedTransaction.set(
+          (<Transaction[]>processedActionData.data).find(
+            (newTrans) => newTrans.idTransaction === this.selectedTransaction().idTransaction
+          )
         );
       } else {
-        this.selectedTransaction = processedActionData.data;
+        this.selectedTransaction.set(processedActionData.data);
       }
       this.setMenuItemsToActivePanel();
     }
@@ -187,7 +188,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
    * @param transaction The transaction that was deleted
    */
   override afterDelete(transaction: Transaction): void {
-    this.selectedTransaction = null;
+    this.selectedTransaction.set(null);
     this.initialize();
   }
 
@@ -237,7 +238,6 @@ export abstract class TransactionTable extends TransactionContextMenu {
       label: 'EXPORT_TRANSACTIONS_CSV' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: () => this.openExportCsvDialog()
     };
-    TranslateHelper.translateMenuItems([exportMenuItem], this.translateService);
     menuItems.push(exportMenuItem);
     return menuItems;
   }

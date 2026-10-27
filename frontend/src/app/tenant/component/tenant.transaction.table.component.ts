@@ -1,4 +1,5 @@
-import { Component, Injector, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, Injector, OnInit } from '@angular/core';
 import {
   PageFirstRowSelectedRow,
   ParentChildRegisterService
@@ -16,7 +17,6 @@ import { CurrencypairService } from '../../securitycurrency/service/currencypair
 import { TransactionTable } from '../../transaction/component/transaction.table';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { CashTransferRelinkResult } from '../../transaction/service/transaction.service';
 import { CommonModule } from '@angular/common';
@@ -38,7 +38,6 @@ import { StandingOrderSecurityEditComponent } from '../../standingorder/componen
 @Component({
   templateUrl: '../../transaction/view/transaction.cashaccount.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ConfigurableTableComponent,
@@ -117,7 +116,6 @@ export class TenantTransactionTableComponent extends TransactionTable implements
       label: 'CONNECT_CASH_TRANSFERS',
       command: () => this.handleConnectCashTransfers()
     };
-    TranslateHelper.translateMenuItems([connectMenuItem], this.translateService);
     menuItems.push(connectMenuItem);
     return menuItems;
   }
@@ -129,23 +127,26 @@ export class TenantTransactionTableComponent extends TransactionTable implements
    */
   private handleConnectCashTransfers(): void {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'MSG_CONNECT_CASH_TRANSFERS', () =>
-      this.transactionService.connectCashTransfers().subscribe((result: CashTransferRelinkResult) => {
-        const unmatched = result.checked - 2 * result.linkedPairs - result.ambiguous - 2 * result.failed;
-        this.messageToastService.showMessageI18n(
-          result.failed > 0 ? InfoLevelType.WARNING : InfoLevelType.SUCCESS,
-          'CONNECT_CASH_TRANSFERS_RESULT',
-          {
-            checked: result.checked,
-            linkedPairs: result.linkedPairs,
-            ambiguous: result.ambiguous,
-            failed: result.failed,
-            unmatched
+      this.transactionService
+        .connectCashTransfers()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((result: CashTransferRelinkResult) => {
+          const unmatched = result.checked - 2 * result.linkedPairs - result.ambiguous - 2 * result.failed;
+          this.messageToastService.showMessageI18n(
+            result.failed > 0 ? InfoLevelType.WARNING : InfoLevelType.SUCCESS,
+            'CONNECT_CASH_TRANSFERS_RESULT',
+            {
+              checked: result.checked,
+              linkedPairs: result.linkedPairs,
+              ambiguous: result.ambiguous,
+              failed: result.failed,
+              unmatched
+            }
+          );
+          if (result.linkedPairs > 0) {
+            this.initialize();
           }
-        );
-        if (result.linkedPairs > 0) {
-          this.initialize();
-        }
-      })
+        })
     );
   }
 
@@ -157,19 +158,16 @@ export class TenantTransactionTableComponent extends TransactionTable implements
     const transactionsObservable: Observable<Transaction[]> = this.transactionService.getTransactionByTenant();
     const currencypairObservable: Observable<Currencypair[]> =
       this.currencypairService.getCurrencypairInTransactionByTenant();
-    this.pageFirstRowSelectedRow = new PageFirstRowSelectedRow(0, this.selectedTransaction);
-    combineLatest([transactionsObservable, currencypairObservable]).subscribe(
-      (result: [Transaction[], Currencypair[]]) => {
-        this.cashaccountTransactionPositions = this.addCurrencypairToTransaction(result[0], result[1]);
-        this.prepareFilter(this.cashaccountTransactionPositions);
-        setTimeout(
-          () =>
-            (this.pageFirstRowSelectedRow = new PageFirstRowSelectedRow(
-              this.firstRowIndexOnPage,
-              this.selectedTransaction
-            ))
+    this.pageFirstRowSelectedRow.set(new PageFirstRowSelectedRow(0, this.selectedTransaction()));
+    this.dataSubscription?.unsubscribe();
+    this.dataSubscription = combineLatest([transactionsObservable, currencypairObservable])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result: [Transaction[], Currencypair[]]) => {
+        this.cashaccountTransactionPositions.set(this.addCurrencypairToTransaction(result[0], result[1]));
+        this.prepareFilter(this.cashaccountTransactionPositions());
+        this.pageFirstRowSelectedRow.set(
+          new PageFirstRowSelectedRow(this.firstRowIndexOnPage, this.selectedTransaction())
         );
-      }
-    );
+      });
   }
 }

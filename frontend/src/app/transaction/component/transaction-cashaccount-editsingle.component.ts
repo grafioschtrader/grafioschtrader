@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { Portfolio } from '../../entities/portfolio';
@@ -47,9 +47,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">
-      @if (transactionLocked) {
+      @if (transactionLocked()) {
         <div class="alert alert-warning alert-dialog-wrap">
-          {{ transactionLockedMessage }}
+          {{ transactionLockedMessage() }}
         </div>
       }
 
@@ -63,7 +63,6 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TransactionCashaccountEditSingleComponent extends TransactionCashaccountBaseOperations implements OnInit {
@@ -185,9 +184,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Sets up subscription for transaction type changes to adjust form validation and visibility.
    */
   valueChangedOnTransactionType() {
-    this.transactionTypeChangedSub = this.configObject.transactionType.formControl.valueChanges.subscribe(
-      (data: string) => this.changeTransactionType(data)
-    );
+    this.transactionTypeChangedSub = this.configObject.transactionType.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((data: string) => this.changeTransactionType(data));
   }
 
   /**
@@ -234,53 +233,57 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Change observer on cash account is needed for the currency determination
    */
   valueChangedOnCashaccount(): void {
-    this.chashaccountChangedSub = this.configObject.idCashaccount.formControl.valueChanges.subscribe((data: string) => {
-      const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
-        this.portfolios,
-        +data
-      );
-      this.prepareSecurityaccount(cp.portfolio);
-      this.cashaccountCurrency = cp.cashaccount.currency;
+    this.chashaccountChangedSub = this.configObject.idCashaccount.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((data: string) => {
+        const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
+          this.portfolios,
+          +data
+        );
+        this.prepareSecurityaccount(cp.portfolio);
+        this.cashaccountCurrency = cp.cashaccount.currency;
 
-      // Update transaction time minDate and validator based on portfolio's closedUntil
-      const effectiveClosedUntil = FormDefinitionHelper.getEffectiveClosedUntil(cp.portfolio, this.gpsGT);
-      FormDefinitionHelper.updateTransactionTimeMinDate(this.configObject.transactionTime, effectiveClosedUntil);
-      this.updateTransactionTimeValidator(effectiveClosedUntil);
+        // Update transaction time minDate and validator based on portfolio's closedUntil
+        const effectiveClosedUntil = FormDefinitionHelper.getEffectiveClosedUntil(cp.portfolio, this.gpsGT);
+        FormDefinitionHelper.updateTransactionTimeMinDate(this.configObject.transactionTime, effectiveClosedUntil);
+        this.updateTransactionTimeValidator(effectiveClosedUntil);
 
-      // Check if existing transaction is within closed period
-      if (this.transactionCallParam.transaction) {
-        this.checkTransactionLocked(effectiveClosedUntil, this.transactionCallParam.transaction.transactionTime);
-      }
+        // Check if existing transaction is within closed period
+        if (this.transactionCallParam.transaction) {
+          this.checkTransactionLocked(effectiveClosedUntil, this.transactionCallParam.transaction.transactionTime);
+        }
 
-      const precision = this.gps.getCurrencyPrecision(this.cashaccountCurrency);
-      this.adjustNumberInputFractions(
-        this.configObject.cashaccountAmount,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE,
-        precision
-      );
-      this.adjustNumberInputFractions(this.configObject.debitAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
-      this.adjustNumberInputFractions(
-        this.configObject.transactionCost,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE,
-        precision
-      );
-      this.adjustNumberInputFractions(this.configObject.taxCost, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
-    });
+        const precision = this.gps.getCurrencyPrecision(this.cashaccountCurrency);
+        this.adjustNumberInputFractions(
+          this.configObject.cashaccountAmount,
+          AppSettings.FID_MAX_INT_REAL_DOUBLE,
+          precision
+        );
+        this.adjustNumberInputFractions(this.configObject.debitAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
+        this.adjustNumberInputFractions(
+          this.configObject.transactionCost,
+          AppSettings.FID_MAX_INT_REAL_DOUBLE,
+          precision
+        );
+        this.adjustNumberInputFractions(this.configObject.taxCost, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
+      });
   }
 
   /**
    * Sets up subscription for calculation field changes to update debit amount for withdrawal transactions.
    */
   valueChangedOnCalcFields(): void {
-    this.valueChangedOnValueCalcFieldsSub = this.configObject.calcGroup.formControl.valueChanges.subscribe((data) => {
-      if (!this.configObject.transactionCost.invisible) {
-        const values: any = {};
-        this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
-        this.configObject.debitAmount.formControl.setValue(
-          values.cashaccountAmount + (values.transactionCost ? values.transactionCost : 0)
-        );
-      }
-    });
+    this.valueChangedOnValueCalcFieldsSub = this.configObject.calcGroup.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((data) => {
+        if (!this.configObject.transactionCost.invisible) {
+          const values: any = {};
+          this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
+          this.configObject.debitAmount.formControl.setValue(
+            values.cashaccountAmount + (values.transactionCost ? values.transactionCost : 0)
+          );
+        }
+      });
   }
 
   /**
@@ -311,20 +314,23 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     if (TransactionType[transaction.transactionType] === TransactionType.WITHDRAWAL) {
       transaction.cashaccountAmount = transaction.cashaccountAmount + transaction.transactionCost;
     }
-    this.transactionService.updateCreateSingleCashTrans(transaction).subscribe({
-      next: (newTransaction) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-          i18nRecord: AppSettings.TRANSACTION.toUpperCase()
-        });
-        this.closeDialog.emit(
-          new ProcessedActionData(
-            transaction.idTransaction ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
-            newTransaction
-          )
-        );
-      },
-      error: () => (this.configObject.submit.disabled = false)
-    });
+    this.transactionService
+      .updateCreateSingleCashTrans(transaction)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (newTransaction) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: AppSettings.TRANSACTION.toUpperCase()
+          });
+          this.closeDialog.emit(
+            new ProcessedActionData(
+              transaction.idTransaction ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
+              newTransaction
+            )
+          );
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   helpLink(): void {
@@ -366,9 +372,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.valueChangedOnCashaccount();
     this.valueChangedOnTransactionType();
     this.valueChangedOnCalcFields();
-    this.transactionTimeChangedSub = this.configObject.transactionTime.formControl.valueChanges.subscribe(() =>
-      this.toggleAccountOptionsByTransactionTime()
-    );
+    this.transactionTimeChangedSub = this.configObject.transactionTime.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe(() => this.toggleAccountOptionsByTransactionTime());
   }
 
   /**
@@ -403,6 +409,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     // Portfolio maybe out of date
     this.portfolioService
       .getPortfolioByIdPortfolio(this.transactionCallParam.portfolio.idPortfolio)
+      .pipe(this.untilDialogClosed())
       .subscribe((portfolio: Portfolio) => {
         // this.transactionCallParam.portfolio = portfolio;
         this.portfolios = [portfolio];
@@ -417,13 +424,16 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Loads all portfolios for the tenant and initializes form options.
    */
   private getAllPortfolios(): void {
-    this.portfolioService.getPortfoliosForTenantOrderByName().subscribe((data: Portfolio[]) => {
-      this.portfolios = data;
-      this.configObject.idCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
-      this.setValueChanged();
-      this.toggleAccountOptionsByTransactionTime();
-      this.setExistingTransactionToView();
-    });
+    this.portfolioService
+      .getPortfoliosForTenantOrderByName()
+      .pipe(this.untilDialogClosed())
+      .subscribe((data: Portfolio[]) => {
+        this.portfolios = data;
+        this.configObject.idCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
+        this.setValueChanged();
+        this.toggleAccountOptionsByTransactionTime();
+        this.setExistingTransactionToView();
+      });
   }
 
   /**

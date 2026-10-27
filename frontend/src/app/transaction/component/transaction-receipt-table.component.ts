@@ -1,13 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, EventEmitter, Injector, input, computed, effect, signal, untracked, Output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService, TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableModule } from '@openng/optimus-ui/treetable';
@@ -30,9 +21,9 @@ import { buildTransactionReceiptTree, getSelectedTransactions } from './transact
 @Component({
   selector: 'transaction-receipt-table',
   template: `
-    @if (marginBased) {
+    @if (marginBased()) {
       <p-treeTable
-        [value]="transactionNodes"
+        [value]="transactionNodes()"
         [columns]="fields"
         dataKey="idTransaction"
         selectionMode="checkbox"
@@ -81,15 +72,16 @@ import { buildTransactionReceiptTree, getSelectedTransactions } from './transact
       </p-treeTable>
     } @else {
       <configurable-table
-        [data]="transactions"
+        [data]="transactions()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="idTransaction"
         selectionMode="multiple"
-        [selection]="selected"
+        [selection]="selected()"
         (selectionChange)="onSelectionChange($event)"
-        [customSortFn]="customSort.bind(this)"
+        [customSortFn]="customSorter"
         [multiSortMeta]="multiSortMeta"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [valueGetterFn]="valueGetter"
         [baseLocale]="baseLocale"
         [scrollable]="true"
         scrollHeight="60vh">
@@ -97,22 +89,23 @@ import { buildTransactionReceiptTree, getSelectedTransactions } from './transact
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, TreeTableModule, TooltipModule]
 })
-export class TransactionReceiptTableComponent extends TableConfigBase implements OnChanges {
+export class TransactionReceiptTableComponent extends TableConfigBase {
   /** Transactions of the security shown for selection. */
-  @Input() transactions: Transaction[] = [];
+  readonly transactions = input<Transaction[]>([]);
 
   /** Whether transactions must be grouped into opening and connected margin-position branches. */
-  @Input() marginBased = false;
+  readonly marginBased = input(false);
 
   /** Emits the currently checked transactions whenever the selection changes. */
   @Output() selectedChange = new EventEmitter<Transaction[]>();
 
-  selected: Transaction[] = [];
-  selectedNodes: TreeNode[] = [];
-  transactionNodes: TreeNode[] = [];
+  readonly selected = signal<Transaction[]>([]);
+  readonly selectedNodes = signal<TreeNode[]>([]);
+  readonly transactionNodes = computed(() =>
+    this.marginBased() ? buildTransactionReceiptTree(this.transactions()) : []
+  );
 
   constructor(
     filterService: FilterService,
@@ -136,26 +129,26 @@ export class TransactionReceiptTableComponent extends TableConfigBase implements
     });
     this.multiSortMeta.push({ field: 'transactionTime', order: 1 });
     this.prepareTableAndTranslate();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if ((changes['transactions'] || changes['marginBased']) && this.transactions) {
-      this.selected = [];
-      this.selectedNodes = [];
-      this.transactionNodes = this.marginBased ? buildTransactionReceiptTree(this.transactions) : [];
-      this.selectedChange.emit(this.selected);
-      this.createTranslatedValueStore(this.transactions);
-    }
+    effect(() => {
+      const transactions = this.transactions();
+      this.marginBased();
+      untracked(() => {
+        this.selected.set([]);
+        this.selectedNodes.set([]);
+        this.selectedChange.emit([]);
+        this.createTranslatedValueStore(transactions);
+      });
+    });
   }
 
   onSelectionChange(selection: Transaction | Transaction[] | null): void {
-    this.selected = Array.isArray(selection) ? selection : selection ? [selection] : [];
-    this.selectedChange.emit(this.selected);
+    this.selected.set(Array.isArray(selection) ? selection : selection ? [selection] : []);
+    this.selectedChange.emit(this.selected());
   }
 
   onTreeSelectionChange(selection: TreeNode | TreeNode[] | null): void {
-    this.selectedNodes = Array.isArray(selection) ? selection : selection ? [selection] : [];
-    this.selected = getSelectedTransactions(this.transactions, this.selectedNodes);
-    this.selectedChange.emit(this.selected);
+    this.selectedNodes.set(Array.isArray(selection) ? selection : selection ? [selection] : []);
+    this.selected.set(getSelectedTransactions(this.transactions(), this.selectedNodes()));
+    this.selectedChange.emit(this.selected());
   }
 }

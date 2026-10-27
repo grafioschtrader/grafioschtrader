@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -23,7 +23,6 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     (submitBt)="submit($event)">
   </dynamic-form>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule]
 })
 export class CalcExRateDialogComponent extends FormBase implements OnInit {

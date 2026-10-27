@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, Input, OnDestroy, OnInit, signal, computed } from '@angular/core';
 import { ConfirmationService, FilterService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TransactionContextMenu } from './transaction.context.menu';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
@@ -19,7 +19,6 @@ import { SecurityTransactionSummary } from '../../entities/view/security.transac
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
 import { CloseMarginPosition, TransactionCallParam } from './transaction.call.parm';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { ProposedMarginFinanceCost } from '../model/proposed.margin.finance.cost';
 import { TransactionSecurityFieldDefinition } from './transaction.security.field.definition';
@@ -32,6 +31,7 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { TransactionSecurityEditComponent } from './transaction-security-edit.component';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * Angular component that displays margin-based security transactions in a hierarchical tree table format.
@@ -53,7 +53,7 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
       }">
       <div class="datatable nestedtable">
         <p-treeTable
-          [value]="transactionNodes"
+          [value]="transactionNodes()"
           [columns]="fields"
           [(selection)]="selectedNode"
           selectionMode="single"
@@ -113,19 +113,18 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
             </tr>
           </ng-template>
         </p-treeTable>
-        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems" appendTo="body"> </p-contextMenu>
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems()" appendTo="body"> </p-contextMenu>
       </div>
-      @if (visibleSecurityTransactionDialog) {
+      @if (visibleSecurityTransactionDialog()) {
         <transaction-security-edit
           [transactionCallParam]="transactionCallParam"
-          [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog"
+          [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()"
           (closeDialog)="handleCloseTransactionDialog($event)">
         </transaction-security-edit>
       }
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TreeTableModule, TooltipModule, ContextMenuModule, TransactionSecurityEditComponent]
 })
 export class TransactionSecurityMarginTreetableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
@@ -154,19 +153,19 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   readonly OPEN_HAS_CLOSE_POSITION = 'closeHasOpenPosition';
 
   /** Array of tree nodes representing the hierarchical transaction structure */
-  transactionNodes: TreeNode[] = [];
+  readonly transactionNodes = signal<TreeNode[]>([]);
 
   /** Currently selected node in the tree table */
-  selectedNode: TreeNode;
+  readonly selectedNode = signal<TreeNode>(null);
 
   /** Column configurations for main currency display */
   currencyColumnConfigMC: ColumnConfig[] = [];
 
   /** Summary data containing security information and transaction positions */
-  securityTransactionSummary: SecurityTransactionSummary = new SecurityTransactionSummary(null, null);
+  readonly securityTransactionSummary = signal(new SecurityTransactionSummary(null, null));
 
   /** List of security transaction positions to be displayed in the tree */
-  transactionPositionList: SecurityTransactionPosition[] = [];
+  readonly transactionPositionList = computed(() => this.securityTransactionSummary().transactionPositionList ?? []);
 
   /** Current user language setting for display purposes */
   lang: string;
@@ -237,7 +236,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @returns The security object from the transaction summary
    */
   getSecurity(transaction: Transaction): Security {
-    return this.securityTransactionSummary.securityPositionSummary.security;
+    return this.securityTransactionSummary().securityPositionSummary.security;
   }
 
   /**
@@ -247,7 +246,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    */
   onNodeSelect(event): void {
     const securityTransactionPosition: SecurityTransactionPosition = event.node.data;
-    this.selectedTransaction = securityTransactionPosition.transaction;
+    this.selectedTransaction.set(securityTransactionPosition.transaction);
     this.setMenuItemsToActivePanel();
   }
 
@@ -275,34 +274,36 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * Initializes the component by loading transaction data and setting up the tree structure.
    */
   protected initialize(): void {
-    BusinessHelper.getSecurityTransactionSummary(
+    this.dataSubscription?.unsubscribe();
+    this.dataSubscription = BusinessHelper.getSecurityTransactionSummary(
       this.securityService,
       this.idSecuritycurrency,
       this.idsSecurityaccount,
       this.idPortfolio,
       false,
       this.untilDate
-    ).subscribe((result) => {
-      this.securityTransactionSummary = result;
-      this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary.transactionPositionList);
-      this.transactionPositionList = this.securityTransactionSummary.transactionPositionList;
-      this.currencyColumnConfigMC.forEach((cc) => {
-        cc.headerSuffix = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
-        cc.fixedCurrency = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
-        this.setFieldHeaderTranslation(cc);
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        this.securityTransactionSummary.set(result);
+        this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary().transactionPositionList);
+        this.currencyColumnConfigMC.forEach((cc) => {
+          cc.headerSuffix = this.securityTransactionSummary().securityPositionSummary.mainCurrency;
+          cc.fixedCurrency = this.securityTransactionSummary().securityPositionSummary.mainCurrency;
+          this.setFieldHeaderTranslation(cc);
+        });
+        TransactionSecurityFieldDefinition.applySecurityCurrency(
+          this.fields,
+          this.securityTransactionSummary().securityPositionSummary.security.currency
+        );
+        // Build the tree locally, then set firstRowIndexOnPage BEFORE transactionNodes so
+        // Optimus's TreeTable.updateSerializedValue (triggered by [value]) reads the
+        // correct `first` and slices the right page in one CD cycle. setTimeout would land
+        // first in a later cycle and only update the paginator UI, not the rendered rows.
+        const rootNodes = this.buildTreeNodes();
+        this.firstRowIndexOnPage = this.computeRestoredFirstIndex(rootNodes);
+        this.transactionNodes.set(rootNodes);
       });
-      TransactionSecurityFieldDefinition.applySecurityCurrency(
-        this.fields,
-        this.securityTransactionSummary.securityPositionSummary.security.currency
-      );
-      // Build the tree locally, then set firstRowIndexOnPage BEFORE transactionNodes so
-      // Optimus's TreeTable.updateSerializedValue (triggered by [value]) reads the
-      // correct `first` and slices the right page in one CD cycle. setTimeout would land
-      // first in a later cycle and only update the paginator UI, not the rendered rows.
-      const rootNodes = this.buildTreeNodes();
-      this.firstRowIndexOnPage = this.computeRestoredFirstIndex(rootNodes);
-      this.transactionNodes = rootNodes;
-    });
   }
 
   /**
@@ -317,8 +318,8 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
       localContextMenu.push({
         label: 'CLOSE_MARGIN_POSITION',
         command: (e) =>
-          this.handleClosePosition(transaction, this.selectedNode.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]),
-        disabled: !this.selectedNode.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]
+          this.handleClosePosition(transaction, this.selectedNode().data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]),
+        disabled: !this.selectedNode().data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]
       });
       localContextMenu.push({
         label: 'MARGIN_FINANCE_COST',
@@ -326,7 +327,6 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
       });
       localContextMenu.push({ separator: true });
     }
-    TranslateHelper.translateMenuItems(localContextMenu, this.translateService);
     return localContextMenu.concat(super.getMenuItemsOnTransaction(transaction));
   }
 
@@ -337,7 +337,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @returns True if the transaction can be deleted, false otherwise
    */
   protected override canDeleteTransaction(transaction): boolean {
-    return transaction.connectedIdTransaction !== null || !this.selectedNode.data[this.OPEN_HAS_CLOSE_POSITION];
+    return transaction.connectedIdTransaction !== null || !this.selectedNode().data[this.OPEN_HAS_CLOSE_POSITION];
   }
 
   /**
@@ -418,10 +418,10 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   private buildTreeNodes(): TreeNode[] {
     const rootNodes: TreeNode[] = [];
     let parentNode: TreeNode;
-    this.transactionPositionList.forEach((stp: SecurityTransactionPosition) => {
+    this.transactionPositionList().forEach((stp: SecurityTransactionPosition) => {
       const leaf = stp.transaction.connectedIdTransaction !== null;
       const treeNode: TreeNode = {
-        data: stp,
+        data: { ...stp },
         children: leaf ? null : [],
         expanded: !leaf,
         leaf,
@@ -487,6 +487,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   private handleFinanceCost(openTransaction: Transaction): void {
     this.transactionService
       .getEstimatedMarginFinanceCost(openTransaction.idTransaction)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((pMFC: ProposedMarginFinanceCost) => {
         const fcTransaction = this.getNewTransaction(openTransaction);
         fcTransaction.units = pMFC.daysToPay;

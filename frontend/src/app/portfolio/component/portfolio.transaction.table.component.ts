@@ -1,5 +1,6 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TransactionTable } from '../../transaction/component/transaction.table';
-import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import {
   PageFirstRowSelectedRow,
   ParentChildRegisterService
@@ -35,7 +36,6 @@ import { StandingOrderSecurityEditComponent } from '../../standingorder/componen
 @Component({
   templateUrl: '../../transaction/view/transaction.cashaccount.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ConfigurableTableComponent,
@@ -106,10 +106,12 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
   ngOnInit(): void {
     this.multiSortMeta.push({ field: 'transactionTime', order: -1 });
     this.prepareTableAndTranslate();
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.idPortfolio = +params['id'];
-      this.initialize();
-    });
+    this.routeSubscribe = this.activatedRoute.params
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params: Params) => {
+        this.idPortfolio = +params['id'];
+        this.initialize();
+      });
   }
 
   /**
@@ -141,19 +143,16 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
     );
     const currencypairObservable: Observable<Currencypair[]> =
       this.currencypairService.getCurrencypairInTransactionByTenant();
-    this.pageFirstRowSelectedRow = new PageFirstRowSelectedRow(0, this.selectedTransaction);
-    combineLatest([transactionsObservable, currencypairObservable]).subscribe(
-      (result: [Transaction[], Currencypair[]]) => {
-        this.cashaccountTransactionPositions = this.addCurrencypairToTransaction(result[0], result[1]);
-        this.prepareFilter(this.cashaccountTransactionPositions);
-        setTimeout(
-          () =>
-            (this.pageFirstRowSelectedRow = new PageFirstRowSelectedRow(
-              this.firstRowIndexOnPage,
-              this.selectedTransaction
-            ))
+    this.pageFirstRowSelectedRow.set(new PageFirstRowSelectedRow(0, this.selectedTransaction()));
+    this.dataSubscription?.unsubscribe();
+    this.dataSubscription = combineLatest([transactionsObservable, currencypairObservable])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result: [Transaction[], Currencypair[]]) => {
+        this.cashaccountTransactionPositions.set(this.addCurrencypairToTransaction(result[0], result[1]));
+        this.prepareFilter(this.cashaccountTransactionPositions());
+        this.pageFirstRowSelectedRow.set(
+          new PageFirstRowSelectedRow(this.firstRowIndexOnPage, this.selectedTransaction())
         );
-      }
-    );
+      });
   }
 }

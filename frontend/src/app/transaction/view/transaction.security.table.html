@@ -1,37 +1,39 @@
 <configurable-table
-  [data]="transactionPositionList"
+  [data]="transactionPositionList()"
   [fields]="fields"
+  [fieldsRevision]="fieldsRevision()"
   [dataKey]="'transaction.idTransaction'"
-  [(selection)]="pageFirstRowSelectedRow.selectedRow"
-  [customSortFn]="customSort.bind(this)"
+  [selection]="pageFirstRowSelectedRow().selectedRow"
+  (selectionChange)="selectPageRow($event)"
+  [customSortFn]="customSorter"
   [multiSortMeta]="multiSortMeta"
   [paginator]="true"
   [rows]="20"
-  [firstRowIndex]="pageFirstRowSelectedRow.topPageRow"
+  [firstRowIndex]="pageFirstRowSelectedRow().topPageRow"
   (rowSelect)="onRowSelect($event)"
   (rowUnselect)="onRowUnselect($event)"
   (pageChange)="onPage($event)"
   (componentClick)="onComponentClick($event)"
-  [contextMenuItems]="contextMenuItems"
+  [contextMenuItems]="contextMenuItems()"
   [showContextMenu]="isActivated()"
   [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
   [customClass]="'datatable nestedtable'"
   [scrollable]="false"
-  [valueGetterFn]="getValueByPath.bind(this)"
-  [negativeValueFn]="isValueByPathMinus.bind(this)"
-  [cellStyleFn]="getCellStyle.bind(this)"
+  [valueGetterFn]="valueGetter"
+  [negativeValueFn]="negativeValue"
+  [cellStyleFn]="cellStyle"
   [contextMenuAppendTo]="'body'">
 </configurable-table>
 
-@if (visibleSecurityTransactionDialog) {
+@if (visibleSecurityTransactionDialog()) {
 <transaction-security-edit
   (closeDialog)="handleCloseTransactionDialog($event)"
   [transactionCallParam]="transactionCallParam"
-  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
+  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()">
 </transaction-security-edit>
-} @if (visibleStandingOrderSecurityDialog) {
+} @if (visibleStandingOrderSecurityDialog()) {
 <standing-order-security-edit
-  [visibleDialog]="visibleStandingOrderSecurityDialog"
+  [visibleDialog]="visibleStandingOrderSecurityDialog()"
   [callParam]="standingOrderCallParam"
   (closeDialog)="handleCloseStandingOrderDialog($event)">
 </standing-order-security-edit>

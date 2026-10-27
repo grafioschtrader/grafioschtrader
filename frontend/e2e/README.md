@@ -693,6 +693,24 @@ With the backend and frontend from an earlier run still active, execute only thi
 `npx playwright test e2e/120-bank-account-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 The `--no-deps` flag avoids rerunning the create-only user-registration setup against the populated database.
 
+## Transaction notification spec (121-*)
+
+`121-transaction-notification.spec.ts` checks delayed tenant transaction rows, CSV download failure and retry,
+the locked-period warning after delayed portfolio loading across repeated cash-dialog openings, connected-transfer
+lookups with retained accounts and amounts, and receipt
+selection and download failure/retry for both cash and margin instruments. The receipt case fails against the
+old dialog with only `Eager` removed: its delayed rows never reach the table.
+
+Authentication and translations use the real test backend. Transactions, portfolio options, receipt summaries and
+downloads are intercepted; the spec creates no database rows. It uses the Spain watchlist and Banco Santander
+instrument from 040/050 to open the receipt dialog, without requiring transactions from 122/123. It enters the
+tenant transaction view through the tab, since initialising the tab host navigates to its saved/default route.
+Menu selection tolerates the watchlist's row-selection toggle on reopening. Download button names include the
+projected icon; date assertions use the fixture user's locale.
+
+Run it individually with
+`npx playwright test e2e/121-transaction-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Cash-security buy/sell spec (122-*)
 
 `122-cash-security-transactions.spec.ts` drives `TransactionSecurityEditComponent` for an ordinary cash equity and

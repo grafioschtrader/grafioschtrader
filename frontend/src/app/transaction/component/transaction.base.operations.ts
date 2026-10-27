@@ -11,13 +11,22 @@ import { HistoryquoteService } from '../../historyquote/service/historyquote.ser
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import moment from 'moment';
+import { afterNextRender, AfterRenderRef, DestroyRef, Directive, inject, Injector, signal } from '@angular/core';
+import { MonoTypeOperatorFunction, Subscription } from 'rxjs';
+import { untilSessionEnds } from '../../lib/edit/dialog.session';
 
 /**
  * Abstract base class providing common operations for transaction handling, including cash account lookups,
  * currency exchange rate calculations, and form field management. Serves as a foundation for various
  * transaction-related components that need standardized portfolio and currency conversion functionality.
  */
+@Directive()
 export abstract class TransactionBaseOperations {
+  protected readonly destroyRef = inject(DestroyRef);
+  protected readonly injector = inject(Injector);
+  private dialogSession = new Subscription();
+  private initializeRender?: AfterRenderRef;
+  private readonly requests = new Map<string, Subscription>();
   /** Field configurations mapped by field name for form management */
   configObject: { [name: string]: FieldConfig };
 
@@ -25,10 +34,10 @@ export abstract class TransactionBaseOperations {
   protected currencypair?: Currencypair;
 
   /** Indicates if the transaction is locked due to being within a closed period */
-  transactionLocked = false;
+  readonly transactionLocked = signal(false);
 
   /** Message displayed when the transaction is locked */
-  transactionLockedMessage = '';
+  readonly transactionLockedMessage = signal('');
 
   /**
    * Creates a new TransactionBaseOperations instance with required services.
@@ -44,7 +53,37 @@ export abstract class TransactionBaseOperations {
     public historyquoteService: HistoryquoteService,
     public translateService: TranslateService,
     protected gps: GlobalparameterService
-  ) {}
+  ) {
+    this.destroyRef.onDestroy(() => this.endDialogSession());
+  }
+
+  protected initializeAfterRender(initialize: () => void): void {
+    this.endDialogSession();
+    this.dialogSession = new Subscription();
+    this.initializeRender = afterNextRender(() => initialize(), { injector: this.injector });
+  }
+
+  protected endDialogSession(): void {
+    this.initializeRender?.destroy();
+    this.dialogSession.unsubscribe();
+    this.requests.clear();
+  }
+
+  protected replaceDialogRequest(key: string, subscribe: () => Subscription): void {
+    this.cancelDialogRequest(key);
+    const request = subscribe();
+    this.requests.set(key, request);
+    this.dialogSession.add(request);
+  }
+
+  protected cancelDialogRequest(key: string): void {
+    this.requests.get(key)?.unsubscribe();
+    this.requests.delete(key);
+  }
+
+  protected untilDialogClosed<T>(): MonoTypeOperatorFunction<T> {
+    return untilSessionEnds<T>(this.dialogSession);
+  }
 
   /** Returns whether the transaction dialog is currently visible */
   abstract isVisibleDialog(): boolean;
@@ -132,21 +171,25 @@ export abstract class TransactionBaseOperations {
   getTimeDependingExchangeRate(event): void {
     const transactionTime: Date = this.configObject.transactionTime.formControl.value;
     if (this.currencypair.idSecuritycurrency) {
-      BusinessHelper.setHistoryquoteCloseToFormControl(
-        this.messageToastService,
-        this.historyquoteService,
-        this.gps,
-        transactionTime,
-        this.currencypair.idSecuritycurrency,
-        false,
-        this.configObject.currencyExRate.formControl
+      this.replaceDialogRequest('exchangeRate', () =>
+        BusinessHelper.setHistoryquoteCloseToFormControl(
+          this.messageToastService,
+          this.historyquoteService,
+          this.gps,
+          transactionTime,
+          this.currencypair.idSecuritycurrency,
+          false,
+          this.configObject.currencyExRate.formControl
+        )
       );
     } else {
-      BusinessHelper.getAndSetQuotationCurrencypair(
-        this.currencypairService,
-        this.currencypair,
-        transactionTime,
-        this.configObject.currencyExRate.formControl
+      this.replaceDialogRequest('exchangeRate', () =>
+        BusinessHelper.getAndSetQuotationCurrencypair(
+          this.currencypairService,
+          this.currencypair,
+          transactionTime,
+          this.configObject.currencyExRate.formControl
+        )
       );
     }
   }
@@ -184,8 +227,11 @@ export abstract class TransactionBaseOperations {
    * Resets the transaction locked state. Should be called when initializing for a new transaction.
    */
   protected resetTransactionLocked(): void {
-    this.transactionLocked = false;
-    this.transactionLockedMessage = '';
+    this.transactionLocked.set(false);
+    this.transactionLockedMessage.set('');
+    if (this.configObject?.submit) {
+      this.configObject.submit.invisible = false;
+    }
   }
 
   /**
@@ -211,11 +257,12 @@ export abstract class TransactionBaseOperations {
       );
 
       if (transactionDateOnly <= closedUntilDateOnly) {
-        this.transactionLocked = true;
+        this.transactionLocked.set(true);
         const formattedDate = moment(effectiveClosedUntil).format(this.gps.getDateFormat());
         this.translateService
           .get('TRANSACTION_LOCKED_MESSAGE', { date: formattedDate })
-          .subscribe((msg) => (this.transactionLockedMessage = msg));
+          .pipe(this.untilDialogClosed())
+          .subscribe((msg) => this.transactionLockedMessage.set(msg));
         // Hide the submit button
         if (this.configObject.submit) {
           this.configObject.submit.invisible = true;

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Injector, Input, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
@@ -7,7 +7,6 @@ import { Table, TableModule } from '@openng/optimus-ui/table';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -93,19 +92,18 @@ import { TransactionService } from '../../transaction/service/transaction.servic
             </tr>
           </ng-template>
         </p-table>
-        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems()" appendTo="body"></p-contextMenu>
       </div>
     </div>
-    @if (visibleSecurityTransactionDialog) {
+    @if (visibleSecurityTransactionDialog()) {
       <transaction-security-edit
         [transactionCallParam]="transactionCallParam"
-        [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog"
+        [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()"
         (closeDialog)="handleCloseTransactionDialog($event)">
       </transaction-security-edit>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -218,7 +216,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
     this.prepareTableAndTranslate();
     this.createTranslatedValueStoreAndFilterField(this.transactionCostPositions);
     if (this.baseSelectedRow) {
-      this.selectedTransaction = this.baseSelectedRow.transaction;
+      this.selectedTransaction.set(this.baseSelectedRow.transaction);
     }
   }
 
@@ -239,7 +237,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
    */
   onRowSelect(event): void {
     this.selectedTransactionCostPosition = event.data;
-    this.selectedTransaction = this.selectedTransactionCostPosition.transaction;
+    this.selectedTransaction.set(this.selectedTransactionCostPosition.transaction);
     this.setMenuItemsToActivePanel();
   }
 
@@ -261,7 +259,6 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
       { separator: true },
       { label: 'EXPORT_CSV', command: (e) => this.dataTable.exportCSV() }
     ];
-    TranslateHelper.translateMenuItems(localContextMenu, this.translateService);
     return super.getMenuItemsOnTransaction(transaction).concat(localContextMenu);
   }
 

@@ -6,7 +6,7 @@ import { AbstractControl } from '@angular/forms';
 import moment from 'moment';
 import { CurrencypairWithHistoryquote } from '../../entities/view/currencypair.with.historyquote';
 import { SecurityService } from '../../securitycurrency/service/security.service';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { HistoryquoteService } from '../../historyquote/service/historyquote.service';
@@ -145,8 +145,8 @@ export class BusinessHelper {
     currencypair: Currencypair,
     transactionTime: Date,
     currencyExRateFormControl: AbstractControl
-  ): void {
-    currencypairService
+  ): Subscription {
+    return currencypairService
       .getCurrencypairWithHistoryquoteByIdSecuritycurrencyAndDate(
         currencypair,
         moment(transactionTime).format('YYYYMMDD')
@@ -264,8 +264,8 @@ export class BusinessHelper {
     idSecuritycurrency: number,
     asTraded: boolean,
     formControl: AbstractControl
-  ): void {
-    historyquoteService
+  ): Subscription {
+    return historyquoteService
       .getCertainOrOlderDayInHistoryquoteByIdSecuritycurrency(
         idSecuritycurrency,
         moment(transactionTime).format('YYYYMMDD'),

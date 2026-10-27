@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, Input, OnDestroy, OnInit, signal, computed } from '@angular/core';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
 import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
 import { TranslateService } from '@ngx-translate/core';
@@ -28,6 +28,7 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
 import { TransactionSecurityEditComponent } from './transaction-security-edit.component';
 import { StandingOrderSecurityEditComponent } from '../../standingorder/component/standing-order-security-edit.component';
 import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * Component that displays transaction data for a single security instrument in a tabular format. This component serves as a
@@ -39,7 +40,6 @@ import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
   selector: 'transaction-security-table',
   templateUrl: '../view/transaction.security.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ConfigurableTableComponent,
@@ -70,10 +70,12 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   currencyColumnConfigMC: ColumnConfig[] = [];
 
   /** Complete security transaction summary containing position and transaction data */
-  securityTransactionSummary: SecurityTransactionSummary = new SecurityTransactionSummary(null, null);
+  readonly securityTransactionSummary = signal(new SecurityTransactionSummary(null, null));
 
   /** List of transaction positions to be displayed in the table */
-  transactionPositionList: SecurityTransactionPosition[] = [];
+  readonly transactionPositionList = computed(() => this.securityTransactionSummary().transactionPositionList ?? []);
+  readonly cellStyle = (position: SecurityTransactionPosition, field: ColumnConfig) =>
+    this.getCellStyle(position, field);
 
   /**
    * Creates an instance of TransactionSecurityTableComponent with required dependencies.
@@ -139,8 +141,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
    */
   override onPage(event: any): void {
     super.onPage(event);
-    this.pageFirstRowSelectedRow.topPageRow = event.first;
-    this.parentChildRegisterService.saveRowPosition(this.idSecuritycurrency, this.pageFirstRowSelectedRow);
+    this.parentChildRegisterService.saveRowPosition(this.idSecuritycurrency, this.pageFirstRowSelectedRow());
   }
 
   /**
@@ -150,7 +151,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
    * @returns The security object associated with the transaction
    */
   getSecurity(transaction: Transaction): Security {
-    return this.securityTransactionSummary.securityPositionSummary.security;
+    return this.securityTransactionSummary().securityPositionSummary.security;
   }
 
   /**
@@ -160,7 +161,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
    */
   onRowSelect(event): void {
     const transactionPosition: TransactionPosition = event.data;
-    this.selectedTransaction = transactionPosition.transaction;
+    this.selectedTransaction.set(transactionPosition.transaction);
     this.setMenuItemsToActivePanel();
   }
 
@@ -193,34 +194,30 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
 
   /** Initializes the component data by loading security transaction summary and configuring display columns. */
   protected initialize(): void {
-    BusinessHelper.getSecurityTransactionSummary(
+    this.dataSubscription?.unsubscribe();
+    this.dataSubscription = BusinessHelper.getSecurityTransactionSummary(
       this.securityService,
       this.idSecuritycurrency,
       this.idsSecurityaccount,
       this.idPortfolio,
       false,
       this.untilDate
-    ).subscribe((result) => {
-      this.securityTransactionSummary = result;
-      this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary.transactionPositionList);
-      // Restore the paginator page/selected-row saved for this security BEFORE assigning the transaction list,
-      // synchronously in the same change-detection cycle as the data — mirrors
-      // TransactionSecurityMarginTreetableComponent.initialize(). A setTimeout-deferred restore
-      // (goToFirsRowPosition, still used by TransactionCashaccountTableComponent, whose instance survives
-      // reloads instead of being recreated) is unreliable here: this instance is freshly constructed and may be
-      // destroyed again by a subsequent cascading reload hop before the deferred callback ever runs.
-      this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPosition(this.idSecuritycurrency);
-      this.transactionPositionList = this.securityTransactionSummary.transactionPositionList;
-      this.currencyColumnConfigMC.forEach((cc) => {
-        cc.headerSuffix = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
-        cc.fixedCurrency = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
-        this.setFieldHeaderTranslation(cc);
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        this.securityTransactionSummary.set(result);
+        this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary().transactionPositionList);
+        this.goToFirsRowPosition(this.idSecuritycurrency);
+        this.currencyColumnConfigMC.forEach((cc) => {
+          cc.headerSuffix = this.securityTransactionSummary().securityPositionSummary.mainCurrency;
+          cc.fixedCurrency = this.securityTransactionSummary().securityPositionSummary.mainCurrency;
+          this.setFieldHeaderTranslation(cc);
+        });
+        TransactionSecurityFieldDefinition.applySecurityCurrency(
+          this.fields,
+          this.securityTransactionSummary().securityPositionSummary.security.currency
+        );
       });
-      TransactionSecurityFieldDefinition.applySecurityCurrency(
-        this.fields,
-        this.securityTransactionSummary.securityPositionSummary.security.currency
-      );
-    });
   }
 
   /**
