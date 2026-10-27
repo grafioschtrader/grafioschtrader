@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -36,11 +36,12 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
     </dynamic-form>
   </p-dialog>`,
   imports: [TranslateModule, DialogModule, DynamicFormComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class CorrelationSetEditComponent extends SimpleEntityEditBase<CorrelationSet> implements OnInit {
   /** Dialog configuration parameters containing entity data and operation context */
+  private readonly injector = inject(Injector);
+
   @Input() callParam: CallParam;
 
   /** Correlation set limits and configuration constraints for validation */
@@ -70,6 +71,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
       messageToastService,
       correlationSetService
     );
+    this.destroyRef.onDestroy(() => this.correlationEditingSupport.destroy());
   }
 
   /**
@@ -95,7 +97,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
     if (this.callParam.thisObject != null) {
       this.form.transferBusinessObjectToForm(this.callParam.thisObject);
     }
-    setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
+    afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }
 
   /**

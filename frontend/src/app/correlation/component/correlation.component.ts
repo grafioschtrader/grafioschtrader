@@ -1,4 +1,16 @@
-import { AfterViewInit, Component, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, Subscription } from 'rxjs';
+import {
+  afterNextRender,
+  AfterViewInit,
+  Component,
+  computed,
+  inject,
+  Injector,
+  OnDestroy,
+  signal,
+  ViewChild
+} from '@angular/core';
 import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
 import {
   CorrelationLimit,
@@ -61,17 +73,17 @@ import { CorrelationSetEditComponent } from './correlation-set-edit.component';
       </dynamic-form>
       <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
       <br />
-      @if (timePeriod) {
+      @if (timePeriod()) {
         <p>
-          {{ 'TIME_PERIOD' | translate }} {{ timePeriod }}
+          {{ 'TIME_PERIOD' | translate }} {{ timePeriod() }}
           {{ 'INSTRUMENT_OVERLAPPING_PRICE_DATA' | translate }}
         </p>
       }
-      @if (nonOverlappingDates) {
+      @if (nonOverlappingDates()) {
         <p style="color:tomato;">{{ 'NON_OVERLAPPING_DATES' | translate }}</p>
       }
-      @if (dividendMissingNames) {
-        <p style="color:tomato;">{{ 'CORRELATION_DIVIDEND_MISSING' | translate }} {{ dividendMissingNames }}</p>
+      @if (dividendMissingNames()) {
+        <p style="color:tomato;">{{ 'CORRELATION_DIVIDEND_MISSING' | translate }} {{ dividendMissingNames() }}</p>
       }
       <correlation-table [childToParent]="this"> </correlation-table>
     </div>
@@ -79,13 +91,12 @@ import { CorrelationSetEditComponent } from './correlation-set-edit.component';
       <correlation-set-edit
         [visibleDialog]="visibleEditDialog"
         [callParam]="callParam"
-        [correlationLimit]="correlationLimit"
+        [correlationLimit]="correlationLimit()"
         (closeDialog)="handleCloseEditDialog($event)">
       </correlation-set-edit>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     FormsModule,
@@ -109,25 +120,42 @@ export class CorrelationComponent
   correlationTableComponent: CorrelationTableComponent;
 
   /** Formatted time period string showing date range of overlapping price data */
-  timePeriod: string = null;
+  readonly timePeriod = computed(() => {
+    const result = this.correlationResult();
+    return result?.firstAvailableDate
+      ? AppHelper.getDateByFormat(this.gps, result.firstAvailableDate) +
+          ' - ' +
+          AppHelper.getDateByFormat(this.gps, result.lastAvailableDate)
+      : null;
+  });
 
   /** Flag indicating whether instruments have non-overlapping date ranges */
-  nonOverlappingDates = false;
+  readonly nonOverlappingDates = computed(
+    () => !!this.correlationResult() && !this.correlationResult().firstAvailableDate
+  );
 
   /**
    * Names of the distributing securities without dividend data in the period, when dividends are included. Their total
    * return equals their price return, which the user is told below the time period.
    */
-  dividendMissingNames: string = null;
+  readonly dividendMissingNames = computed(() =>
+    this.selectedEntity && this.correlationResult()
+      ? this.getDividendMissingNames(this.selectedEntity, this.correlationResult())
+      : null
+  );
 
   /** Field name for ticker symbol property */
   private readonly tickerSymbol = 'tickerSymbol';
 
   /** Correlation limits and configuration settings */
-  correlationLimit: CorrelationLimit;
+  readonly correlationLimit = signal<CorrelationLimit>(null);
 
   /** Current correlation calculation results */
-  private correlationResult: CorrelationResult;
+  private readonly correlationResult = signal<CorrelationResult>(null);
+  private readonly injector = inject(Injector);
+  private readSubscription?: Subscription;
+  private calculationSubscription?: Subscription;
+  private correlationMenuSubscription?: Subscription;
 
   /** Helper class for correlation form configuration and value changes */
   private correlationEditingSupport: CorrelationEditingSupport = new CorrelationEditingSupport();
@@ -162,7 +190,7 @@ export class CorrelationComponent
       activePanelService,
       translateService
     );
-    this.formConfig = this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
     this.config = this.correlationEditingSupport.getCorrelationFieldDefinition(
       CorrelationComponent.MAIN_FIELD,
       6,
@@ -180,12 +208,15 @@ export class CorrelationComponent
    * Angular lifecycle hook called after view initialization. Loads correlation limits and sets up form configuration.
    */
   ngAfterViewInit(): void {
-    this.correlationSetService.getCorrelationSetLimit().subscribe((correlationLimit: CorrelationLimit) => {
-      this.correlationLimit = correlationLimit;
-      this.readData();
-      this.valueChangedMainField();
-      this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit);
-    });
+    this.correlationSetService
+      .getCorrelationSetLimit()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((correlationLimit: CorrelationLimit) => {
+        this.correlationLimit.set(correlationLimit);
+        this.readData();
+        this.valueChangedMainField();
+        this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit());
+      });
   }
 
   /**
@@ -194,8 +225,11 @@ export class CorrelationComponent
    */
   refreshData(correlationSet: CorrelationSet): void {
     if (correlationSet) {
-      this.selectedEntity.securitycurrencyList = correlationSet.securitycurrencyList;
-      this.setChildDataAndCalculateWhenPossible(correlationSet, this.nonOverlappingDates);
+      if (this.selectedEntity?.idCorrelationSet !== correlationSet.idCorrelationSet) return;
+      this.selectedEntity = Object.assign(new CorrelationSet(), this.selectedEntity, {
+        securitycurrencyList: [...correlationSet.securitycurrencyList]
+      });
+      this.setChildDataAndCalculateWhenPossible(this.selectedEntity, true);
     } else {
       this.readData();
     }
@@ -213,22 +247,29 @@ export class CorrelationComponent
    * Loads correlation sets from the backend and updates form dropdown options.
    */
   override readData(): void {
-    this.correlationSetService.getCorrelationSetByTenant().subscribe((correlationSets: CorrelationSet[]) => {
-      this.entityList = correlationSets;
-      this.correlationLimit.tenantLimit.actual = this.entityList.length;
-      this.configObject[CorrelationComponent.MAIN_FIELD].valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-          CorrelationComponent.MAIN_FIELD,
-          'name',
-          correlationSets,
-          false
-        );
-      this.selectedEntity &&
-        (this.selectedEntity = this.entityList.find(
-          (entity) => entity[CorrelationComponent.MAIN_FIELD] === this.selectedEntity[CorrelationComponent.MAIN_FIELD]
-        ));
-      setTimeout(() => this.setFieldValues());
-    });
+    this.readSubscription?.unsubscribe();
+    this.readSubscription = this.correlationSetService
+      .getCorrelationSetByTenant()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((correlationSets: CorrelationSet[]) => {
+        this.entityList = correlationSets;
+        this.correlationLimit.update((limit) => ({
+          ...limit,
+          tenantLimit: { ...limit.tenantLimit, actual: this.entityList.length }
+        }));
+        this.configObject[CorrelationComponent.MAIN_FIELD].valueKeyHtmlOptions =
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+            CorrelationComponent.MAIN_FIELD,
+            'name',
+            correlationSets,
+            false
+          );
+        this.selectedEntity &&
+          (this.selectedEntity = this.entityList.find(
+            (entity) => entity[CorrelationComponent.MAIN_FIELD] === this.selectedEntity[CorrelationComponent.MAIN_FIELD]
+          ));
+        afterNextRender(() => this.setFieldValues(), { injector: this.injector });
+      });
   }
 
   /**
@@ -236,15 +277,25 @@ export class CorrelationComponent
    * @param event - Form submission event
    */
   saveAndCalculate(event): void {
-    this.form.cleanMaskAndTransferValuesToBusinessObject(this.selectedEntity);
-    this.correlationSetService.update(this.selectedEntity).subscribe({
-      next: (cs) => {
-        Object.assign(this.selectedEntity, cs);
-        this.setChildData(this.selectedEntity);
-        this.configObject.submit.disabled = false;
-      },
-      error: (errorBackend) => (this.configObject.submit.disabled = false)
-    });
+    const edited = Object.assign(new CorrelationSet(), this.selectedEntity);
+    this.form.cleanMaskAndTransferValuesToBusinessObject(edited);
+    this.correlationSetService
+      .update(edited)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (cs) => {
+          const updated = Object.assign(new CorrelationSet(), edited, cs);
+          this.entityList = this.entityList.map((set) =>
+            set.idCorrelationSet === updated.idCorrelationSet ? updated : set
+          );
+          if (this.selectedEntity?.idCorrelationSet === updated.idCorrelationSet) {
+            this.selectedEntity = updated;
+            this.setChildData(updated);
+          }
+          this.configObject.submit.disabled = false;
+        },
+        error: (errorBackend) => (this.configObject.submit.disabled = false)
+      });
   }
 
   /**
@@ -253,6 +304,7 @@ export class CorrelationComponent
   ngOnDestroy(): void {
     super.destroy();
     this.correlationEditingSupport.destroy();
+    this.correlationMenuSubscription?.unsubscribe();
   }
 
   /**
@@ -268,7 +320,8 @@ export class CorrelationComponent
    * @returns True if creation is allowed, false if limit is reached
    */
   protected override canCreate(): boolean {
-    return this.correlationLimit.tenantLimit.actual < this.correlationLimit.tenantLimit.limit;
+    const limit = this.correlationLimit()?.tenantLimit;
+    return !!limit && limit.actual < limit.limit;
   }
 
   /**
@@ -277,32 +330,18 @@ export class CorrelationComponent
    * @param calculate - Whether to perform correlation calculation
    */
   setChildDataAndCalculateWhenPossible(selectedEntity: CorrelationSet, calculate: boolean): void {
-    this.timePeriod = null;
-    this.nonOverlappingDates = false;
-    this.dividendMissingNames = null;
-    if (selectedEntity) {
-      this.childEntityList = selectedEntity.securitycurrencyList;
-      if (selectedEntity.securitycurrencyList.length >= 2 && calculate) {
-        this.correlationSetService
-          .getCalculationByCorrelationSet(selectedEntity.idCorrelationSet)
-          .subscribe((correlationResult: CorrelationResult) => {
-            this.correlationResult = correlationResult;
-            this.correlationTableComponent.parentSelectionChanged(selectedEntity, correlationResult);
-            this.dividendMissingNames = this.getDividendMissingNames(selectedEntity, correlationResult);
-            if (correlationResult.firstAvailableDate) {
-              this.timePeriod =
-                AppHelper.getDateByFormat(this.gps, correlationResult.firstAvailableDate) +
-                ' - ' +
-                AppHelper.getDateByFormat(this.gps, correlationResult.lastAvailableDate);
-            } else {
-              this.nonOverlappingDates = true;
-            }
-          });
-      } else {
-        this.correlationTableComponent.parentSelectionChanged(selectedEntity, this.correlationResult);
-      }
-    } else {
-      this.correlationTableComponent.parentSelectionChanged(selectedEntity, this.correlationResult);
+    this.calculationSubscription?.unsubscribe();
+    this.correlationResult.set(null);
+    this.childEntityList = selectedEntity?.securitycurrencyList ?? [];
+    this.correlationTableComponent.parentSelectionChanged(selectedEntity, null);
+    if (selectedEntity?.securitycurrencyList.length >= 2 && calculate) {
+      this.calculationSubscription = this.correlationSetService
+        .getCalculationByCorrelationSet(selectedEntity.idCorrelationSet)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((result) => {
+          this.correlationResult.set(result);
+          this.correlationTableComponent.parentSelectionChanged(selectedEntity, result);
+        });
     }
   }
 
@@ -324,10 +363,16 @@ export class CorrelationComponent
    * Refreshes context menus by combining edit and show menu items from base class and child table component.
    */
   override refreshMenus(): void {
-    const editMenu = this.prepareEditMenu();
-    const showMenu = this.prepareShowMenu();
-    this.contextMenuItems = [...editMenu, ...showMenu];
-    this.activePanelService.activatePanel(this, { editMenu, showMenu });
+    this.correlationMenuSubscription?.unsubscribe();
+    this.correlationMenuSubscription = forkJoin({
+      editMenu: TranslateHelper.translateMenuItems$(this.prepareEditMenu(), this.translateService),
+      showMenu: TranslateHelper.translateMenuItems$(this.prepareShowMenu(), this.translateService)
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((menus) => {
+        this.contextMenuItems = [...menus.editMenu, ...menus.showMenu];
+        this.activePanelService.activatePanel(this, menus);
+      });
   }
 
   /**
@@ -337,7 +382,6 @@ export class CorrelationComponent
   override prepareEditMenu(): MenuItem[] {
     const menuItems = this.getBaseEditMenu('CORRELATION_SET');
     menuItems.push(...this.correlationTableComponent.prepareEditMenu());
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -347,7 +391,6 @@ export class CorrelationComponent
    */
   protected override prepareShowMenu(): MenuItem[] {
     const menuItems = this.correlationTableComponent.prepareShowMenu();
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 

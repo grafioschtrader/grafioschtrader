@@ -40,9 +40,17 @@ async function gotoCorrelationView(page: Page): Promise<void> {
     })
     .first();
   await root.waitFor({ state: 'visible', timeout: 15_000 });
+  const loaded = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'GET' && new URL(response.url()).pathname === '/api/correlationset/tenant'
+  );
   await root.click();
   await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
   await expect(page.locator('h4.singleRowTableHeader')).toBeVisible({ timeout: 10_000 });
+  const response = await loaded;
+  expect(response.ok(), 'loading existing correlation sets').toBeTruthy();
+  const sets = await response.json();
+  await expect(page.locator('select#idCorrelationSet option')).toHaveCount(sets.length);
 }
 
 /** Left-click to activate the panel, then right-click to open the context menu; returns the menu. */
