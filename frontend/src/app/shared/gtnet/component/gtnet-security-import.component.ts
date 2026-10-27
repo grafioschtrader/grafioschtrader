@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Params } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
@@ -64,7 +65,6 @@ import { GTNetSecurityImportEditHeadComponent } from './gtnet-security-import-ed
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     DynamicFormModule,
@@ -85,6 +85,7 @@ export class GTNetSecurityImportComponent
 
   /** Import transaction head ID passed from transaction import context */
   private idTransactionHead: number = null;
+  private readonly injector = inject(Injector);
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -126,7 +127,7 @@ export class GTNetSecurityImportComponent
 
   ngOnInit(): void {
     // Subscribe to route params to read idTransactionHead (passed from transaction import context)
-    this.activatedRoute.params.subscribe((params: Params) => {
+    this.activatedRoute.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params: Params) => {
       if (params[AppSettings.ID_TRANSACTION_HEAD]) {
         this.idTransactionHead = Number(params[AppSettings.ID_TRANSACTION_HEAD]);
         this.reSetHelpId(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT_GTNET);
@@ -140,28 +141,34 @@ export class GTNetSecurityImportComponent
       localStorage.removeItem(AppSettings.ID_TRANSACTION_HEAD); // Clear after reading
     }
 
-    // Use setTimeout to ensure dynamic-form has created the form controls
-    setTimeout(() => {
-      this.valueChangedMainField();
-      this.readData();
-    });
+    // dynamic-form creates the form controls while rendering
+    afterNextRender(
+      () => {
+        this.valueChangedMainField();
+        this.readData();
+      },
+      { injector: this.injector }
+    );
   }
 
   readData(): void {
-    this.gtNetSecurityImpHeadService.getAll().subscribe((heads: GTNetSecurityImpHead[]) => {
-      this.entityList = heads;
-      this.configObject.idGtNetSecurityImpHead.valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idGtNetSecurityImpHead', 'name', heads, true);
+    this.gtNetSecurityImpHeadService
+      .getAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((heads: GTNetSecurityImpHead[]) => {
+        this.entityList = heads;
+        this.configObject.idGtNetSecurityImpHead.valueKeyHtmlOptions =
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idGtNetSecurityImpHead', 'name', heads, true);
 
-      // Restore selection from localStorage if no entity is selected
-      if (!this.selectedEntity) {
-        const savedHeadId = localStorage.getItem(GTNetSecurityImportComponent.STORAGE_KEY_SELECTED_HEAD);
-        if (savedHeadId) {
-          this.selectedEntity = this.entityList.find((h) => h.idGtNetSecurityImpHead === Number(savedHeadId));
+        // Restore selection from localStorage if no entity is selected
+        if (!this.selectedEntity) {
+          const savedHeadId = localStorage.getItem(GTNetSecurityImportComponent.STORAGE_KEY_SELECTED_HEAD);
+          if (savedHeadId) {
+            this.selectedEntity = this.entityList.find((h) => h.idGtNetSecurityImpHead === Number(savedHeadId));
+          }
         }
-      }
-      this.setFieldValues();
-    });
+        this.setFieldValues();
+      });
   }
 
   protected override setFieldValues(): void {
@@ -202,7 +209,6 @@ export class GTNetSecurityImportComponent
       }
     }
 
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -210,7 +216,7 @@ export class GTNetSecurityImportComponent
    * Checks if there are positions without linked securities.
    */
   private hasUnmatchedPositions(): boolean {
-    return this.tableComponent?.positions?.some((p) => !p.security) ?? false;
+    return this.tableComponent?.positions().some((p) => !p.security) ?? false;
   }
 
   /**

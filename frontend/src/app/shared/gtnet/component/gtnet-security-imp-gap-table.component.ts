@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -30,13 +30,13 @@ const GAP_CODE_TRANSLATION_KEYS: { [key: number]: string } = {
     <configurable-table
       [data]="gaps"
       [fields]="fields"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [fieldsRevision]="fieldsRevision()"
+      [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale"
       [containerClass]="''">
     </configurable-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, ConfigurableTableComponent]
 })
 export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase implements OnInit, OnChanges {

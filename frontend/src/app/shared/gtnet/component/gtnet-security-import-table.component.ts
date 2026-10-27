@@ -1,13 +1,6 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
@@ -62,12 +55,13 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
         #editableTable
         [(data)]="positions"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="idGtNetSecurityImpPos"
         [selectionMode]="'single'"
         [(selection)]="selectedPosition"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [valueGetterFn]="valueGetter"
         [baseLocale]="baseLocale"
-        [createNewEntityFn]="createNewEntity.bind(this)"
+        [createNewEntityFn]="createNewEntity"
         [contextMenuEnabled]="false"
         [containerClass]="''"
         [expandable]="true"
@@ -79,8 +73,8 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
         (rowSelect)="onRowSelect($event)"
         (rowUnselect)="onRowUnselect($event)">
       </editable-table>
-      @if (selectedHead && contextMenuItems.length > 0) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      @if (selectedHead && contextMenuItems()?.length > 0) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems()"></p-contextMenu>
       }
     </div>
 
@@ -96,30 +90,29 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
           [splitUrl]="getUrlForPosition(position, 'splitUrl')">
         </securitycurrency-extended-info>
       } @else if (position.gaps?.length > 0) {
-        <gtnet-security-imp-gap-table [gaps]="position.gaps" [gtNetsMap]="gtNetsMap"> </gtnet-security-imp-gap-table>
+        <gtnet-security-imp-gap-table [gaps]="position.gaps" [gtNetsMap]="gtNetsMap()"> </gtnet-security-imp-gap-table>
       }
     </ng-template>
 
     <!-- Security Edit Dialog -->
-    @if (visibleEditSecurityDialog) {
+    @if (visibleEditSecurityDialog()) {
       <security-edit
         (closeDialog)="handleCloseEditSecurityDialog($event)"
         [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-        [visibleEditSecurityDialog]="visibleEditSecurityDialog">
+        [visibleEditSecurityDialog]="visibleEditSecurityDialog()">
       </security-edit>
     }
 
     <!-- CSV Upload Dialog -->
-    @if (visibleUploadDialog) {
+    @if (visibleUploadDialog()) {
       <upload-file-dialog
-        [visibleDialog]="visibleUploadDialog"
+        [visibleDialog]="visibleUploadDialog()"
         [fileUploadParam]="fileUploadParam"
         (closeDialog)="handleCloseUploadDialog($event)">
       </upload-file-dialog>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     EditableTableComponent,
@@ -137,17 +130,18 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   @Input() selectedHead: GTNetSecurityImpHead;
   @Output() positionChanged = new EventEmitter<void>();
 
-  positions: GTNetSecurityImpPos[] = [];
-  selectedPosition: GTNetSecurityImpPos;
-  contextMenuItems: MenuItem[] = [];
+  readonly positions = signal<GTNetSecurityImpPos[]>([]);
+  readonly selectedPosition = signal<GTNetSecurityImpPos>(null);
+  /** Translated menu of the positions, shown as context menu and in the menu bar */
+  readonly contextMenuItems = signal<MenuItem[]>([]);
 
   /** Controls visibility of the security edit dialog */
-  visibleEditSecurityDialog = false;
+  readonly visibleEditSecurityDialog = signal(false);
   /** Security parameter for the edit dialog */
   securityCurrencypairCallParam: Security;
 
   /** Controls visibility of the CSV upload dialog */
-  visibleUploadDialog = false;
+  readonly visibleUploadDialog = signal(false);
   /** Configuration for the file upload dialog */
   fileUploadParam: FileUploadParam;
 
@@ -160,7 +154,13 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   feedConnectorsKV: { [id: string]: string } = {};
 
   /** Map of GTNet IDs to GTNet entities for displaying domain names in gap table */
-  gtNetsMap: Map<number, GTNet> = new Map();
+  readonly gtNetsMap = signal<Map<number, GTNet>>(new Map());
+
+  private readonly destroyRef = inject(DestroyRef);
+  /** Positions of the latest head; a newer head replaces a request still outstanding */
+  private positionsSubscription: Subscription;
+  /** Translation of the latest menu; a newer menu replaces one that is still being translated */
+  private menuSubscription: Subscription;
 
   /** Cache of data provider URLs keyed by security ID */
   private dataProviderUrlsCache: {
@@ -176,7 +176,6 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     private confirmationService: ConfirmationService,
     private securityService: SecurityService,
     private currencypairService: CurrencypairService,
-    private cdr: ChangeDetectorRef,
     filterService: FilterService,
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
@@ -229,12 +228,19 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
 
   ngOnInit(): void {
     // Load feed connectors for SecuritycurrencyExtendedInfoComponent
-    SecurityCurrencyHelper.loadAllConnectors(this.securityService, this.currencypairService, this.feedConnectorsKV);
+    SecurityCurrencyHelper.loadAllConnectors(
+      this.securityService,
+      this.currencypairService,
+      this.feedConnectorsKV,
+      () => this.notifyViewChanged()
+    );
+    this.destroyRef.onDestroy(() => this.menuSubscription?.unsubscribe());
 
     // Load GTNets for displaying domain names in gap table
-    this.gtNetService.getAllGTNetsWithMessages().subscribe((result) => {
-      this.gtNetsMap = new Map(result.gtNetList.map((gtNet) => [gtNet.idGtNet, gtNet]));
-    });
+    this.gtNetService
+      .getAllGTNetsWithMessages()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => this.gtNetsMap.set(new Map(result.gtNetList.map((gtNet) => [gtNet.idGtNet, gtNet]))));
 
     // Load currency options
     this.globalparameterGTService.getCurrencies().subscribe((currencies: ValueKeyHtmlSelectOptions[]) => {
@@ -268,8 +274,8 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
           (position as any).dataProviderUrls = urls;
           // Also cache for potential reuse
           this.dataProviderUrlsCache[position.security.idSecuritycurrency] = urls;
-          // Trigger change detection to update the template bindings
-          this.cdr.markForCheck();
+          // The expanded row reads the URLs from the position
+          this.notifyViewChanged();
         });
     }
   }
@@ -289,26 +295,29 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    */
   loadPositions(head: GTNetSecurityImpHead): void {
     this.selectedHead = head;
-    this.selectedPosition = null;
+    this.selectedPosition.set(null);
     this.resetMenu();
+    this.positionsSubscription?.unsubscribe();
 
     if (head) {
-      this.gtNetSecurityImpPosService
+      this.positionsSubscription = this.gtNetSecurityImpPosService
         .getByHead(head.idGtNetSecurityImpHead)
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((positions: GTNetSecurityImpPos[]) => {
-          this.positions = positions.map((pos) => {
+          const rows = positions.map((pos) => {
             (pos as any).rowKey = pos.idGtNetSecurityImpPos
               ? `existing_${pos.idGtNetSecurityImpPos}`
               : `new_${this.newRowCounter++}`;
             return pos;
           });
           // Create translated value store for asset class enum columns
-          this.createTranslatedValueStore(this.positions);
+          this.createTranslatedValueStore(rows);
+          this.positions.set(rows);
           this.resetMenu();
           this.positionChanged.emit();
         });
     } else {
-      this.positions = [];
+      this.positions.set([]);
       this.positionChanged.emit();
     }
   }
@@ -389,9 +398,11 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
         // following row's controls retain bindings from the saved row.
         const savedEntity = Object.assign(new GTNetSecurityImpPos(), saved);
         (savedEntity as any).rowKey = `existing_${saved.idGtNetSecurityImpPos}`;
-        this.positions = this.positions.map((position) => (position === entity ? savedEntity : position));
-        if (this.selectedPosition === entity) {
-          this.selectedPosition = savedEntity;
+        this.positions.update((positions) =>
+          positions.map((position) => (position === entity ? savedEntity : position))
+        );
+        if (this.selectedPosition() === entity) {
+          this.selectedPosition.set(savedEntity);
         }
         this.messageToastService.showMessageI18n(
           InfoLevelType.SUCCESS,
@@ -446,23 +457,22 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       });
       menuItems.push({
         label: 'DELETE_RECORD|' + this.ENTITY_NAME,
-        disabled: !this.selectedPosition || !this.selectedPosition.idGtNetSecurityImpPos,
+        disabled: !this.selectedPosition()?.idGtNetSecurityImpPos,
         command: () => this.handleDeletePosition()
       });
       menuItems.push({ separator: true });
       menuItems.push({
         label: 'EDIT|' + AppSettings.SECURITY.toUpperCase() + BaseSettings.DIALOG_MENU_SUFFIX,
-        disabled: !this.selectedPosition?.security,
+        disabled: !this.selectedPosition()?.security,
         command: () => this.handleEditSecurity()
       });
       menuItems.push({
         label: 'DELETE_LINKED_SECURITY',
-        disabled: !this.selectedPosition?.security,
+        disabled: !this.selectedPosition()?.security,
         command: () => this.handleDeleteLinkedSecurity()
       });
     }
 
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -470,9 +480,9 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * Opens the security edit dialog for the selected position's linked security.
    */
   handleEditSecurity(): void {
-    if (this.selectedPosition?.security) {
-      this.securityCurrencypairCallParam = this.selectedPosition.security;
-      this.visibleEditSecurityDialog = true;
+    if (this.selectedPosition()?.security) {
+      this.securityCurrencypairCallParam = this.selectedPosition().security;
+      this.visibleEditSecurityDialog.set(true);
     }
   }
 
@@ -481,7 +491,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * Reloads positions if the security was updated to reflect any changes.
    */
   handleCloseEditSecurityDialog(processedActionData: ProcessedActionData): void {
-    this.visibleEditSecurityDialog = false;
+    this.visibleEditSecurityDialog.set(false);
     if (processedActionData.action === ProcessedAction.UPDATED) {
       // Reload positions to get updated security data
       this.loadPositions(this.selectedHead);
@@ -501,7 +511,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       this.gtNetSecurityImpPosService,
       this.selectedHead.idGtNetSecurityImpHead
     );
-    this.visibleUploadDialog = true;
+    this.visibleUploadDialog.set(true);
   }
 
   /**
@@ -509,7 +519,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * Reloads positions if upload was successful.
    */
   handleCloseUploadDialog(processedActionData: ProcessedActionData): void {
-    this.visibleUploadDialog = false;
+    this.visibleUploadDialog.set(false);
     if (processedActionData.action === ProcessedAction.UPDATED) {
       this.loadPositions(this.selectedHead);
     }
@@ -519,7 +529,8 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * Handles position deletion.
    */
   private handleDeletePosition(): void {
-    if (!this.selectedPosition?.idGtNetSecurityImpPos) {
+    const selected = this.selectedPosition();
+    if (!selected?.idGtNetSecurityImpPos) {
       return;
     }
 
@@ -528,12 +539,13 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|GTNET_SECURITY_IMP_POS',
       () => {
-        this.gtNetSecurityImpPosService.deleteEntity(this.selectedPosition.idGtNetSecurityImpPos).subscribe(() => {
+        this.gtNetSecurityImpPosService.deleteEntity(selected.idGtNetSecurityImpPos).subscribe(() => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
             i18nRecord: 'GTNET_SECURITY_IMP_POS'
           });
-          this.positions = this.positions.filter((p) => p !== this.selectedPosition);
-          this.selectedPosition = null;
+          this.positions.update((positions) => positions.filter((p) => p !== selected));
+          this.selectedPosition.set(null);
+          this.resetMenu();
           this.positionChanged.emit();
         });
       }
@@ -545,7 +557,8 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * The position remains and can be queried again via GTNet.
    */
   private handleDeleteLinkedSecurity(): void {
-    if (!this.selectedPosition?.idGtNetSecurityImpPos || !this.selectedPosition?.security) {
+    const selected = this.selectedPosition();
+    if (!selected?.idGtNetSecurityImpPos || !selected?.security) {
       return;
     }
 
@@ -555,18 +568,17 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       'MSG_CONFIRM_DELETE_LINKED_SECURITY',
       () => {
         this.gtNetSecurityImpPosService
-          .deleteLinkedSecurity(this.selectedPosition.idGtNetSecurityImpPos)
+          .deleteLinkedSecurity(selected.idGtNetSecurityImpPos)
           .subscribe((updatedPosition: GTNetSecurityImpPos) => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_LINKED_SECURITY_DELETED');
-            // Update the position in the list
-            const index = this.positions.findIndex(
-              (p) => p.idGtNetSecurityImpPos === updatedPosition.idGtNetSecurityImpPos
+            // Replace the position in the list
+            (updatedPosition as any).rowKey = `existing_${updatedPosition.idGtNetSecurityImpPos}`;
+            this.positions.update((positions) =>
+              positions.map((p) =>
+                p.idGtNetSecurityImpPos === updatedPosition.idGtNetSecurityImpPos ? updatedPosition : p
+              )
             );
-            if (index >= 0) {
-              this.positions[index] = updatedPosition;
-              (this.positions[index] as any).rowKey = `existing_${updatedPosition.idGtNetSecurityImpPos}`;
-            }
-            this.selectedPosition = updatedPosition;
+            this.selectedPosition.set(updatedPosition);
             this.resetMenu();
             this.positionChanged.emit();
           });
@@ -579,11 +591,15 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * This method must be called from onComponentClick, onRowSelect, and onRowUnselect
    * to ensure menu items appear both in the context menu and the application's main menu bar.
    */
+  /** Publishes the translated menu of the positions as context menu and in the menu bar. */
   private resetMenu(): void {
-    this.contextMenuItems = this.prepareEditMenu();
-    this.activePanelService.activatePanel(this, {
-      showMenu: null,
-      editMenu: this.contextMenuItems
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = TranslateHelper.translateMenuItems$(
+      this.prepareEditMenu(),
+      this.translateService
+    ).subscribe((menuItems) => {
+      this.contextMenuItems.set(menuItems);
+      this.activePanelService.activatePanel(this, { showMenu: null, editMenu: menuItems });
     });
   }
 }

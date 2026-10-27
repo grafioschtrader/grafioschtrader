@@ -86,10 +86,6 @@ frontend/src/app/securityaccount/component/securityaccount.empty.component.ts
 frontend/src/app/securityaccount/component/securityaccount.summaries.component.ts
 frontend/src/app/securityaccount/component/securityaccount.summary.component.ts
 frontend/src/app/securityaccount/component/securityaccount.tab.menu.component.ts
-frontend/src/app/shared/gtnet/component/gtnet-security-imp-gap-table.component.ts
-frontend/src/app/shared/gtnet/component/gtnet-security-import-edit-head.component.ts
-frontend/src/app/shared/gtnet/component/gtnet-security-import-table.component.ts
-frontend/src/app/shared/gtnet/component/gtnet-security-import.component.ts
 frontend/src/app/tenant/component/fee-model-comparison.component.ts
 frontend/src/app/tenant/component/tenant-dividend-account-selection.component.ts
 frontend/src/app/tenant/component/tenant-dividend-security-account-selection-dialog.component.ts

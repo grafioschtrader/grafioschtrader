@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
@@ -38,11 +38,12 @@ import { GTNetSecurityImpHeadService } from '../service/gtnet-security-imp-head.
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<GTNetSecurityImpHead> implements OnInit {
   @Input() entity: GTNetSecurityImpHead;
+
+  private readonly injector = inject(Injector);
 
   constructor(
     translateService: TranslateService,
@@ -76,7 +77,7 @@ export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<G
     if (this.entity) {
       this.form.transferBusinessObjectToForm(this.entity);
     }
-    setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
+    afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetSecurityImpHead {
