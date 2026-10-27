@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   CrossRateRequest,
@@ -164,9 +164,9 @@ interface Data {
       <div #chart class="plot-container"></div>
       <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container"></p-contextMenu>
     </div>
-    @if (visibleTaDialog) {
+    @if (visibleTaDialog()) {
       <indicator-edit
-        [visibleDialog]="visibleTaDialog"
+        [visibleDialog]="visibleTaDialog()"
         [taEditParam]="taEditParam"
         (closeDialog)="handleCloseTaDialog($event)">
       </indicator-edit>
@@ -176,7 +176,6 @@ interface Data {
     'button { border: 0; margin-left: 3px} .input-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }'
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [NgClass, FormsModule, DatePicker, Select, ContextMenu, TranslatePipe, IndicatorEditComponent]
 })
 export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
@@ -205,7 +204,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   subscriptionViewSizeChanged: Subscription;
   subscriptionLatest: Subscription;
   taEditParam: TaEditParam;
-  visibleTaDialog: boolean;
+  /** Also opened from the menu bar, which is outside this view, therefore a signal. */
+  readonly visibleTaDialog = signal(false);
   contextMenuItems: MenuItem[] = [];
   requestedCurrency = '';
   currenciesOptions: SelectItem[] = [{ value: '', label: '' }];
@@ -280,6 +280,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   get youngestDate(): Date {
     return this.youngestMatchDate ? new Date(this.youngestMatchDate) : null;
   }
+
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   readonly compareHistoricalFN = (h, o) => (h.date === o ? Comparison.EQ : h.date > o ? Comparison.GT : Comparison.LT);
   readonly compareXaxisFN = (x, b) => (x === b ? Comparison.EQ : x > b ? Comparison.GT : Comparison.LT);
@@ -577,6 +579,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       // A replot caused by the user keeps the drawings at the current history position on screen.
       this.plotWithShapes(element, traces, this.shapeController.getCurrentShapes());
     }
+    // Loading, the dividend toggle and the indicators change the date range, the options and the checkboxes of the
+    // template outside a template event; they are kept in plain fields, so the view is marked here.
+    this.changeDetectorRef.markForCheck();
   }
 
   /**
@@ -1090,7 +1095,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   handleCloseTaDialog(processedActionData: ProcessedActionData): void {
-    this.visibleTaDialog = false;
+    this.visibleTaDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       const taEditReturn: TaEditReturn = processedActionData.data;
       const taFormDefinition: TaFormDefinition = this.taFormDefinitions[taEditReturn.taIndicators];
@@ -1214,7 +1219,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         'APPLY'
       )
     );
-    this.visibleTaDialog = true;
+    this.visibleTaDialog.set(true);
   }
 
   private loadAndShowIndicatorDataWithMenu(taIndicators: string, iDef: IndicatorDefinition): void {

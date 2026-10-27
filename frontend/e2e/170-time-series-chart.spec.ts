@@ -554,4 +554,28 @@ test.describe.serial('time-series chart interaction', () => {
     expect(deleteResponse.ok(), `deleting shapes: ${await deleteResponse.text()}`).toBeTruthy();
     await expect.poll(async () => (await plotState(page)).shapes.length, { timeout: 10_000 }).toBe(0);
   });
+
+  test('opens an indicator definition from the menu bar, which lies outside the chart', async ({ page }) => {
+    await loginAsFixtureUser(page, LOGIN_NICKNAME);
+    await openChart(page, HPQ);
+    // Activating the chart publishes its indicator menu as the show menu of the menu bar.
+    await page
+      .locator('.fullChart')
+      .first()
+      .click({ position: { x: 8, y: 8 } });
+    const menubar = page.locator('p-menubar');
+    await menubar
+      .getByRole('menuitem', { name: /^(View|Ansicht)$/ })
+      .first()
+      .click();
+    await menubar.getByRole('menuitem', { name: RX.sma }).first().hover();
+    await menubar
+      .getByRole('menuitem', { name: /^(Bearbeiten|Edit)\s+SMA$/i })
+      .first()
+      .click();
+    const dialog = page.locator('indicator-edit .p-dialog').first();
+    await expect(dialog).toBeVisible();
+    await dialog.locator('.p-dialog-close-button').click();
+    await expect(page.locator('indicator-edit')).toHaveCount(0);
+  });
 });

@@ -859,7 +859,9 @@ The comparison flow adds DIS and NESN to HPQ, verifies the single-instrument con
 unavailable, and switches the three traces between USD and CHF. The drawing flow creates a line, rectangle, and circle,
 then covers erase, undo, redo, reload, and confirmed delete-all through the real `userchartshape` REST calls. It deletes
 only `alledit`'s HPQ shape row at the start and leaves it absent at the end, so interrupted and completed runs are
-repeatable without changing shared securities, quotes, or watchlists.
+repeatable without changing shared securities, quotes, or watchlists. The last scenario opens the SMA definition
+dialog from the menu bar instead of the chart's context menu; the menu bar lies outside the OnPush chart, so the dialog
+only appears when its visibility notifies the chart.
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/170-time-series-chart.spec.ts --project=grafioschtrader-e2e --no-deps`.
