@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { MessageToastService } from './message.toast.service';
 import { InfoLevelType } from './info.leve.type';
 import { TranslateService } from '@ngx-translate/core';
@@ -37,7 +37,6 @@ import { ToastModule } from '@openng/optimus-ui/toast';
       </ng-template>
     </p-toast>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [ToastModule]
 })

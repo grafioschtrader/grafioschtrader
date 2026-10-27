@@ -1035,6 +1035,12 @@ it stayed hidden while `clearValues()` kept the feature set of the first. The or
 restored in `finally`. Run it with
 `npx playwright test e2e/lib/044-feature-change-relogin.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
 
+`lib/046-collapse-tree-icon.spec.ts` toggles the navigation tree with the first entry of the menu bar and checks that
+its icon points the other way. The second test collapses the tree by dragging the gutter, where no event inside the
+menu bar marks it for check: the icon follows only because the menu bar republishes the top menu. Clicking the entry
+afterwards restores the tree. Run it with
+`npx playwright test e2e/lib/046-collapse-tree-icon.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
+
 ## Simulation-opening spec (195-*)
 
 `195-simulation-opening.spec.ts` covers the three ways a simulation environment establishes its opening ledger.

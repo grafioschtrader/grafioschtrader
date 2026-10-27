@@ -7,7 +7,8 @@ import { Subject } from 'rxjs';
 @Injectable()
 export class ViewSizeChangedService {
   private splitTreeMain;
-  private lastSplitSize: number[];
+  /** Sizes restored by the collapse entry; the initial split also covers a tree collapsed by dragging the gutter */
+  private lastSplitSize: number[] = [20, 80];
 
   private viewSizeChanged = new Subject<ChangedViewSizeType>();
   viewSizeChanged$ = this.viewSizeChanged.asObservable();

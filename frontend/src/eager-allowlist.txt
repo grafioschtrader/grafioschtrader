@@ -43,11 +43,6 @@ frontend/src/app/lib/dynamic-form/containers/dynamic-form/error-message.compoent
 frontend/src/app/lib/fullyearcalendar/fullyearcalendar-lib.component.ts
 frontend/src/app/lib/fullyearcalendar/month-calendar/monthly-calendar.component.ts
 frontend/src/app/lib/layout/component/split.layout.component.ts
-frontend/src/app/lib/mainmenubar/component/main-dialog.component.ts
-frontend/src/app/lib/mainmenubar/component/menubar.component.ts
-frontend/src/app/lib/maintree/component/main-tree.component.ts
-frontend/src/app/lib/message/message.toast.component.ts
-frontend/src/app/lib/tabmenu/component/shared.tab.menu.component.ts
 frontend/src/app/watchlist/component/securitycurrency-extended-info.component.ts
 frontend/src/app/watchlist/component/securitycurrency-udf.component.ts
 frontend/src/app/watchlist/component/watchlist-add-edit-price-problem-instrument.component.ts

@@ -1,4 +1,4 @@
-import { Component, Inject, Optional, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, Optional, OnDestroy, OnInit } from '@angular/core';
 import { SETTINGS_MENU_EXTENSIONS, SettingsMenuExtension } from '../service/settings-menu-extensions';
 import { LoginService } from '../../login/service/log-in.service';
 import { ActivePanelService } from '../service/active.panel.service';
@@ -37,7 +37,6 @@ import { GlobalSessionNames } from '../../global.session.names';
   template: ` <p-menubar [model]="activePanelService.topMenuItems()"></p-menubar> `,
   standalone: true,
   imports: [MenubarModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class MenubarComponent implements OnInit, OnDestroy {
@@ -326,6 +325,8 @@ export class MenubarComponent implements OnInit, OnDestroy {
     !setOnlyIcon && this.viewSizeChangedService.toggleMainTree();
     this.menuItems[TopMenuTypes.COLLAPSE_TREE].icon =
       'pi ' + (this.viewSizeChangedService.isMainTreeVisible() ? 'pi-chevron-left' : 'pi-chevron-right');
+    // The item is shared with the published model, which is republished as a new array so the menubar shows the icon
+    this.activePanelService.topMenuItems.update((items) => [...items]);
   }
 
   private contextHelp() {

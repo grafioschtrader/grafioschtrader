@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -55,7 +55,6 @@ import { TabsModule } from '@openng/optimus-ui/tabs';
   ],
   standalone: true,
   imports: [TabsModule, TranslateModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [TabMenuService]
 })
 export class SharedTabMenuComponent implements OnInit, OnDestroy {

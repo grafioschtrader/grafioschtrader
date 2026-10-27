@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, Inject, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
@@ -34,7 +34,6 @@ import { DialogComponentLoader } from '../handler/lazy-dialog';
   selector: 'main-tree',
   templateUrl: '../view/maintree.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TreeModule,
@@ -55,9 +54,10 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
    */
   lastRoute: string;
   lastId: number;
-  portfolioTrees: TreeNode[] = [];
+  /** The rendered tree; replaced by a deep clone after every refresh, which the async contributor calls trigger */
+  readonly portfolioTrees = signal<TreeNode[]>([]);
   selectedNode: TreeNode;
-  contextMenuItems: MenuItem[];
+  readonly contextMenuItems = signal<MenuItem[]>(null);
 
   private subscription: Subscription;
 
@@ -86,7 +86,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   ngOnInit(): void {
     // Build the tree using the service
     this.mainTreeService.buildTree().subscribe((trees) => {
-      this.portfolioTrees = trees;
+      this.portfolioTrees.set(trees);
       // Trigger initial refresh
       this.mainTreeService.refreshAllNodes().subscribe(() => {
         this.triggerTreeUpdate();
@@ -110,7 +110,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
    * Optimus Tree's OnPush change detection strategy.
    */
   private triggerTreeUpdate(): void {
-    this.portfolioTrees = this.mainTreeService.getClonedPortfolioTrees();
+    this.portfolioTrees.set(this.mainTreeService.getClonedPortfolioTrees());
   }
 
   getEditMenuItemsByTypeNode(treeNode: TreeNode): MenuItem[] {
@@ -124,8 +124,8 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
   onNodeContextMenuSelect(event) {
     const typeNodeData: TypeNodeData = event.node.data;
-    this.contextMenuItems = this.getEditMenuItemsByTypeNode(event.node);
-    if (!this.contextMenuItems) {
+    this.contextMenuItems.set(this.getEditMenuItemsByTypeNode(event.node));
+    if (!this.contextMenuItems()) {
       this.contextMenu.hide();
     }
   }

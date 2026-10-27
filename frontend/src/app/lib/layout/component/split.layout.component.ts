@@ -11,6 +11,9 @@ declare function Split(ids, options);
 /**
  * This component defines the global split layout of GT. There is a division into navigation, main and additional area.
  * The size of these areas can be adjusted.
+ *
+ * It stays Eager while routed views below its own router outlets are still Eager: an OnPush host would no longer
+ * check them when an event outside them occurs.
  */
 @Component({
   selector: 'split-layout',

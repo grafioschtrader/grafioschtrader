@@ -8,7 +8,7 @@
     (onNodeSelect)="onNodeSelect($event)"
     [(selection)]="selectedNode"
     [contextMenu]="cm"
-    [value]="portfolioTrees"
+    [value]="portfolioTrees()"
     selectionMode="single">
     <ng-template let-node pTemplate="default">
       <span (dragover)="dragOver($event, node)" (dragenter)="dragOver($event, node)" (drop)="drop($event, node)">
@@ -17,7 +17,7 @@
     </ng-template>
   </p-tree>
   <!-- Context menu is always visible -->
-  <p-contextMenu #cm [model]="contextMenuItems"></p-contextMenu>
+  <p-contextMenu #cm [model]="contextMenuItems()"></p-contextMenu>
 </div>
 
 <p-confirmDialog #cd header="Confirmation" icon="fa fa-question-circle" width="425">

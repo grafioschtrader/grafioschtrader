@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { MainDialogService } from '../service/main.dialog.service';
 import { PasswordEditComponent } from '../../login/component/password-edit.component';
 import { NicknameLangEditComponent } from '../../login/component/nickname-lang-edit.component';
@@ -10,19 +10,18 @@ import { UserSettingsDialogs } from './user-settings-dialogs';
 @Component({
   selector: 'main-dialog',
   template: `
-    @if (mainDialogService.visibleDialogs[UserSettingsDialogs.Password]) {
+    @if (mainDialogService.visibleDialogs()[UserSettingsDialogs.Password]) {
       <password-edit
         [forcePasswordChange]="false"
-        [visibleDialog]="mainDialogService.visibleDialogs[UserSettingsDialogs.Password]">
+        [visibleDialog]="mainDialogService.visibleDialogs()[UserSettingsDialogs.Password]">
       </password-edit>
     }
-    @if (mainDialogService.visibleDialogs[UserSettingsDialogs.NicknameLocale]) {
-      <nickname-lang-edit [visibleDialog]="mainDialogService.visibleDialogs[UserSettingsDialogs.NicknameLocale]">
+    @if (mainDialogService.visibleDialogs()[UserSettingsDialogs.NicknameLocale]) {
+      <nickname-lang-edit [visibleDialog]="mainDialogService.visibleDialogs()[UserSettingsDialogs.NicknameLocale]">
       </nickname-lang-edit>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [PasswordEditComponent, NicknameLangEditComponent]
 })
 export class MainDialogComponent {

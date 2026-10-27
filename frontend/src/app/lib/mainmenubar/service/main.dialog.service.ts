@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { UserSettingsDialogs } from '../component/user-settings-dialogs';
 
 /**
@@ -7,9 +7,10 @@ import { UserSettingsDialogs } from '../component/user-settings-dialogs';
  */
 @Injectable()
 export class MainDialogService {
-  visibleDialogs: boolean[] = [false, false];
+  /** Visibility per {@link UserSettingsDialogs}; a signal, so the dialog host follows a menu command or a close */
+  readonly visibleDialogs = signal<boolean[]>([false, false]);
 
   visibleDialog(visible: boolean, userSettingsDialogs: UserSettingsDialogs) {
-    this.visibleDialogs[userSettingsDialogs] = visible;
+    this.visibleDialogs.update((dialogs) => dialogs.map((v, i) => (i === userSettingsDialogs ? visible : v)));
   }
 }
