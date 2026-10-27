@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -35,7 +35,6 @@ import { Portfolio } from '../../entities/portfolio';
     </dynamic-form>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule]
 })
 export class SecurityTransferCreateDialogComponent
@@ -92,32 +91,35 @@ export class SecurityTransferCreateDialogComponent
 
   ngAfterViewInit(): void {
     const data = this.dynamicDialogConfig.data;
-    this.portfolioService.getPortfoliosForTenantOrderByName().subscribe((portfolios) => {
-      this.portfolios = portfolios;
-      const eligiblePortfolios = portfolios.filter((p) => {
-        const accounts = p.securityaccountList || [];
-        const targetAccounts = accounts.filter((sa) => sa.idSecuritycashAccount !== this.idSecurityaccountSource);
-        return targetAccounts.length > 0;
+    this.portfolioService
+      .getPortfoliosForTenantOrderByName()
+      .pipe(this.untilDialogClosed())
+      .subscribe((portfolios) => {
+        this.portfolios = portfolios;
+        const eligiblePortfolios = portfolios.filter((p) => {
+          const accounts = p.securityaccountList || [];
+          const targetAccounts = accounts.filter((sa) => sa.idSecuritycashAccount !== this.idSecurityaccountSource);
+          return targetAccounts.length > 0;
+        });
+        this.configObject.idPortfolioTarget.valueKeyHtmlOptions = eligiblePortfolios.map(
+          (p) => new ValueKeyHtmlSelectOptions(p.idPortfolio, p.name)
+        );
+        this.setupPortfolioChangeListener();
+        this.form.setDefaultValuesAndEnableSubmit();
+        if (this.configObject.securityName) {
+          this.configObject.securityName.formControl.setValue(data.securityName || '');
+        }
+        if (this.configObject.sourceAccount) {
+          const sourceAccountName = data.sourceAccountName || this.findAccountName(this.idSecurityaccountSource) || '';
+          this.configObject.sourceAccount.formControl.setValue(sourceAccountName);
+        }
       });
-      this.configObject.idPortfolioTarget.valueKeyHtmlOptions = eligiblePortfolios.map(
-        (p) => new ValueKeyHtmlSelectOptions(p.idPortfolio, p.name)
-      );
-      this.setupPortfolioChangeListener();
-      this.form.setDefaultValuesAndEnableSubmit();
-      if (this.configObject.securityName) {
-        this.configObject.securityName.formControl.setValue(data.securityName || '');
-      }
-      if (this.configObject.sourceAccount) {
-        const sourceAccountName = data.sourceAccountName || this.findAccountName(this.idSecurityaccountSource) || '';
-        this.configObject.sourceAccount.formControl.setValue(sourceAccountName);
-      }
-    });
   }
 
   private setupPortfolioChangeListener(): void {
-    this.configObject.idPortfolioTarget.formControl.valueChanges.subscribe((idPortfolio) => {
-      this.updateSecurityaccountOptions(idPortfolio);
-    });
+    this.configObject.idPortfolioTarget.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((idPortfolio) => this.updateSecurityaccountOptions(idPortfolio));
   }
 
   private findAccountName(idSecurityaccount: number): string | null {

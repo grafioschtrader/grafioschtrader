@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription, switchMap } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
@@ -51,25 +53,25 @@ enum NodeLevel {
         </p-header>
       </p-panel>
       <configurable-tree-table
-        [data]="treeNodes"
+        [data]="treeNodes()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         dataKey="nodeKey"
         sortField="name"
         [(selection)]="tableSelection"
         (nodeSelect)="onNodeSelect($event)"
         (nodeUnselect)="onNodeUnselect($event)"
-        [contextMenuItems]="contextMenuItems"
-        [showContextMenu]="!!contextMenuItems"
-        [valueGetterFn]="getValueByPath.bind(this)">
+        [contextMenuItems]="contextMenuItems()"
+        [showContextMenu]="!!contextMenuItems()"
+        [valueGetterFn]="valueGetter">
       </configurable-tree-table>
-      @if (visibleCreateDialog) {
-        <security-action-create [visibleDialog]="visibleCreateDialog" (closeDialog)="handleCloseCreateDialog($event)">
+      @if (visibleCreateDialog()) {
+        <security-action-create [visibleDialog]="visibleCreateDialog()" (closeDialog)="handleCloseCreateDialog($event)">
         </security-action-create>
       }
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NgClass,
     TranslatePipe,
@@ -83,15 +85,21 @@ export class SecurityActionTreetableComponent
   extends TreeTableConfigBase
   implements OnInit, OnDestroy, IGlobalMenuAttach
 {
-  treeNodes: TreeNode[] = [];
+  readonly treeNodes = signal<TreeNode[]>([]);
   /** Row highlighted by the single-selection tree table. */
   tableSelection: TreeNode = null;
-  contextMenuItems: MenuItem[];
+  /** Translated menu of the selected node, shown as context menu and in the menu bar */
+  readonly contextMenuItems = signal<MenuItem[]>(null);
   isAdmin: boolean;
-  visibleCreateDialog = false;
+  readonly visibleCreateDialog = signal(false);
 
   private selectedNode: TreeNode;
   private treeData: SecurityActionTreeData;
+  private readonly destroyRef = inject(DestroyRef);
+  /** Latest tree request; a reload replaces one still outstanding */
+  private loadSubscription: Subscription;
+  /** Translation of the latest menu; a newer menu replaces one that is still being translated */
+  private menuSubscription: Subscription;
 
   constructor(
     private securityActionService: SecurityActionService,
@@ -136,6 +144,7 @@ export class SecurityActionTreetableComponent
   }
 
   ngOnDestroy(): void {
+    this.menuSubscription?.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
 
@@ -166,13 +175,21 @@ export class SecurityActionTreetableComponent
   }
 
   private readData(): void {
-    this.securityActionService.getTree().subscribe((data: SecurityActionTreeData) => {
-      this.treeData = data;
-      this.translateService.get(['SYSTEM_ACTIONS', 'CLIENT_TRANSFERS']).subscribe((t) => {
-        this.treeNodes = this.buildTree(data, t);
-        this.createTranslateValuesStoreForTranslation(this.treeNodes);
+    this.loadSubscription?.unsubscribe();
+    this.loadSubscription = this.securityActionService
+      .getTree()
+      .pipe(
+        switchMap((data: SecurityActionTreeData) => {
+          this.treeData = data;
+          return this.translateService.get(['SYSTEM_ACTIONS', 'CLIENT_TRANSFERS']);
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((t) => {
+        const treeNodes = this.buildTree(this.treeData, t);
+        this.createTranslateValuesStoreForTranslation(treeNodes);
+        this.treeNodes.set(treeNodes);
       });
-    });
   }
 
   private buildTree(data: SecurityActionTreeData, translations: any): TreeNode[] {
@@ -263,11 +280,15 @@ export class SecurityActionTreetableComponent
     return [systemRoot, clientRoot];
   }
 
+  /** Publishes the translated menu of the selected node as context menu and in the menu bar. */
   private resetMenu(): void {
-    this.contextMenuItems = this.prepareEditMenu();
-    this.activePanelService.activatePanel(this, {
-      showMenu: null,
-      editMenu: this.contextMenuItems
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = TranslateHelper.translateMenuItems$(
+      this.prepareEditMenu(),
+      this.translateService
+    ).subscribe((menuItems) => {
+      this.contextMenuItems.set(menuItems);
+      this.activePanelService.activatePanel(this, { showMenu: null, editMenu: menuItems });
     });
   }
 
@@ -320,16 +341,15 @@ export class SecurityActionTreetableComponent
       });
     }
 
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
   private createIsinChange(): void {
-    this.visibleCreateDialog = true;
+    this.visibleCreateDialog.set(true);
   }
 
   handleCloseCreateDialog(processedActionData: ProcessedActionData): void {
-    this.visibleCreateDialog = false;
+    this.visibleCreateDialog.set(false);
     if (processedActionData?.action === ProcessedAction.CREATED) {
       this.readData();
     }

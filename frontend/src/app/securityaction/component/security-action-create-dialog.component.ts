@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -49,7 +49,6 @@ import { DialogService } from '@openng/optimus-ui/dynamicdialog';
   `,
   standalone: true,
   imports: [DialogModule, DynamicFormModule, TranslateModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class SecurityActionCreateDialogComponent extends SimpleEditBase implements OnInit {

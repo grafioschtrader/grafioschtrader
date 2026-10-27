@@ -89,9 +89,6 @@ frontend/src/app/securityaccount/component/securityaccount.empty.component.ts
 frontend/src/app/securityaccount/component/securityaccount.summaries.component.ts
 frontend/src/app/securityaccount/component/securityaccount.summary.component.ts
 frontend/src/app/securityaccount/component/securityaccount.tab.menu.component.ts
-frontend/src/app/securityaction/component/security-action-create-dialog.component.ts
-frontend/src/app/securityaction/component/security-action-treetable.component.ts
-frontend/src/app/securityaction/component/security-transfer-create-dialog.component.ts
 frontend/src/app/securitylookup/component/security-lookup-dialog.component.ts
 frontend/src/app/shared/gtnet/component/gtnet-security-imp-gap-table.component.ts
 frontend/src/app/shared/gtnet/component/gtnet-security-import-edit-head.component.ts
