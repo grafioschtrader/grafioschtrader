@@ -1,5 +1,5 @@
+import { computed, signal, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -75,9 +75,11 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
         </p-footer>
       </p-panel>
       <tenant-performance-eod-missing-table
-        [securities]="securities"
-        [selectedDayIdSecurities]="selectedDayIdSecurities"
-        [countIdSecurityMissingsMap]="$safeNavigationMigration(missingQuotesWithSecurities?.countIdSecurityMissingsMap)"
+        [securities]="securities()"
+        [selectedDayIdSecurities]="selectedDayIdSecurities()"
+        [countIdSecurityMissingsMap]="
+          $safeNavigationMigration(missingQuotesWithSecurities()?.countIdSecurityMissingsMap)
+        "
         (changedSecurity)="handleChangedSecurity($event)">
       </tenant-performance-eod-missing-table>
 
@@ -87,7 +89,6 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     FormsModule,
@@ -101,12 +102,18 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
   ]
 })
 export class TenantPerformanceEodMissingComponent extends CalendarNavigation implements IGlobalMenuAttach, OnInit {
-  missingQuotesWithSecurities: MissingQuotesWithSecurities;
-  securities: Security[] = [];
+  readonly missingQuotesWithSecurities = signal<MissingQuotesWithSecurities>(null);
+  readonly securities = computed(() => {
+    const report = this.missingQuotesWithSecurities();
+    return [
+      ...(report?.securities ?? []),
+      ...(report?.currencypairs ?? []).map((cp) => ({ ...cp, currency: cp.toCurrency }) as unknown as Security)
+    ];
+  });
   allMissingDays: Date[] = [];
   securityMissingDays: Date[] = [];
   selectedDayByUser: Date;
-  selectedDayIdSecurities: number[] = [];
+  readonly selectedDayIdSecurities = signal<number[]>([]);
   foundDayMarkedRange: boolean;
   selectedSecurity: Security;
 
@@ -141,18 +148,11 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((mqws: MissingQuotesWithSecurities) => {
         this.clearDaySelection(this.selectedDayByUser);
-        this.missingQuotesWithSecurities = mqws;
+        this.missingQuotesWithSecurities.set(mqws);
         // Securities and currency pairs share one table, because a day without an exchange rate is as unusable for the
         // performance report as a day without a security quote. The pair carries no 'currency' of its own, so the
         // quote currency stands in for it and keeps the price chart of the context menu working.
-        this.securities = [
-          ...(mqws.securities ?? []),
-          ...(mqws.currencypairs ?? []).map((cp) => ({ ...cp, currency: cp.toCurrency }) as unknown as Security)
-        ];
-        this.allMissingDays = [];
-        Object.keys(mqws.dateSecurityMissingMap).forEach((e) => {
-          this.allMissingDays.push(new Date(e));
-        });
+        this.allMissingDays = Object.keys(mqws.dateSecurityMissingMap).map((day) => new Date(day));
         this.markGroundDays(this.allMissingDays);
         if (!yearChange) {
           const currentYear = moment().year();
@@ -200,10 +200,11 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
       }
       this.addRemoveOnOffDay(range.start);
       this.selectedDayByUser = range.start;
-      this.selectedDayIdSecurities =
-        this.missingQuotesWithSecurities.dateSecurityMissingMap[
+      this.selectedDayIdSecurities.set(
+        this.missingQuotesWithSecurities().dateSecurityMissingMap[
           moment(range.start).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)
-        ];
+        ] ?? []
+      );
     }
   }
 
@@ -213,7 +214,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     this.clearDaySelection(this.selectedDayByUser);
     this.clearCalendarFromTableSelection();
     if (security) {
-      Object.entries(this.missingQuotesWithSecurities.dateSecurityMissingMap).forEach(([date, idsSecurity]) => {
+      Object.entries(this.missingQuotesWithSecurities().dateSecurityMissingMap).forEach(([date, idsSecurity]) => {
         if (idsSecurity.indexOf(security.idSecuritycurrency) >= 0) {
           const tradingDay = new Date(date);
           tradingDay.setHours(0, 0, 0, 0);
@@ -255,7 +256,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
   private clearDaySelection(day: Date): void {
     if (this.selectedDayByUser) {
       this.selectedDayByUser = null;
-      this.selectedDayIdSecurities = [];
+      this.selectedDayIdSecurities.set([]);
       this.addRemoveOnOffDay(day);
     }
   }

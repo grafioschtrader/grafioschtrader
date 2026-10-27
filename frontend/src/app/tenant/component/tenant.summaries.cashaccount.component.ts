@@ -1,13 +1,13 @@
-import { DestroyRef, inject } from '@angular/core';
+import { AccountPositionSummary } from '../../entities/view/account.position.summary';
+import { computed, signal, DestroyRef, inject, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
-import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
 import { AccountPositionGrandSummary } from '../../entities/view/account.position.grand.summary';
-import { AccountPositionSummary } from '../../entities/view/account.position.summary';
 import { Subscription } from 'rxjs';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -21,7 +21,6 @@ import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 import { HelpIds } from '../../lib/help/help.ids';
 import { TenantPortfolioSummary } from '../model/tenant.portfolio.summary';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { FilterService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { BaseSettings } from '../../lib/base.settings';
@@ -41,7 +40,6 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 @Component({
   templateUrl: '../view/tenant.summaries.cashaccount.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TableModule, DatePicker, FormsModule, SelectModule, TooltipModule]
 })
 export class TenantSummariesCashaccountComponent
@@ -52,11 +50,26 @@ export class TenantSummariesCashaccountComponent
 
   readonly CASHBALANCE_MC = 'cashBalanceMC';
   readonly VALUE_SECURITIES_MAIN_CURRENCY = 'valueSecuritiesMC';
-  public groupChangeIndexMap: Map<number, AccountPositionGroupSummary> = new Map();
+  readonly groupChangeIndexMap = computed(() => {
+    const groups = new Map<number, AccountPositionGroupSummary>();
+    let row = -1;
+    for (const group of this.accountPositionGrandSummary()?.accountPositionGroupSummaryList ?? []) {
+      row += group.accountPositionSummaryList.length;
+      groups.set(row, group);
+    }
+    return groups;
+  });
   untilDate: Date;
-  accountPositionGrandSummary: AccountPositionGrandSummary;
-  accountPositionSummaryAll: AccountPositionSummary[] = [];
-  groupOptions: SelectItem[] = [];
+  readonly accountPositionGrandSummary = signal<AccountPositionGrandSummary>(null);
+  readonly accountPositionSummaryAll = computed(
+    () =>
+      this.accountPositionGrandSummary()?.accountPositionGroupSummaryList.flatMap(
+        (group) => group.accountPositionSummaryList
+      ) ?? []
+  );
+  readonly groupOptions = signal<SelectItem[]>([]);
+  private readRequest: Subscription;
+  private menuRequest: Subscription;
   selectedGroup: string = TenantPortfolioSummary[TenantPortfolioSummary.GROUP_BY_CURRENCY];
   private idTenant: number;
   private routeSubscribe: Subscription;
@@ -201,11 +214,22 @@ export class TenantSummariesCashaccountComponent
 
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
 
-    SelectOptionsHelper.createSelectItemForEnum(translateService, TenantPortfolioSummary, this.groupOptions);
+    this.translateService
+      .get(['GROUP_BY_CURRENCY', 'GROUP_BY_PORTFOLIO'])
+      .pipe(takeUntilDestroyed(this.reportDestroyRef))
+      .pipe(takeUntilDestroyed(this.reportDestroyRef))
+      .subscribe((labels) =>
+        this.groupOptions.set(
+          ['GROUP_BY_CURRENCY', 'GROUP_BY_PORTFOLIO'].map((value) => ({ value, label: labels[value] }))
+        )
+      );
   }
 
   ngOnInit(): void {
-    this.translateService.get(this.CHART_TITLE).subscribe((translated) => (this.CHART_TITLE = translated));
+    this.translateService
+      .get(this.CHART_TITLE)
+      .pipe(takeUntilDestroyed(this.reportDestroyRef))
+      .subscribe((translated) => (this.CHART_TITLE = translated));
     this.idTenant = this.gps.getIdTenant();
     this.onComponentClick(null);
     this.readData();
@@ -240,7 +264,6 @@ export class TenantSummariesCashaccountComponent
       command: (event) => this.navigateToChartRoute()
     });
 
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -268,20 +291,22 @@ export class TenantSummariesCashaccountComponent
    * @returns the affected pairs as a readable enumeration, for example 'BTC/CHF', or null when nothing is missing
    */
   get missingCurrenciesText(): string {
-    const missingExchangeRates = this.accountPositionGrandSummary?.missingExchangeRates;
+    const missingExchangeRates = this.accountPositionGrandSummary()?.missingExchangeRates;
     return missingExchangeRates?.length
       ? missingExchangeRates.map((mer) => `${mer.fromCurrency}/${mer.toCurrency}`).join(', ')
       : null;
   }
 
   onComponentClick(event): void {
-    this.activePanelService.activatePanel(this, {
-      showMenu: this.getMenuShowOptions()
-    });
+    this.menuRequest?.unsubscribe();
+    this.menuRequest = TranslateHelper.translateMenuItems$(this.getMenuShowOptions(), this.translateService)
+      .pipe(takeUntilDestroyed(this.reportDestroyRef))
+      .subscribe((showMenu) => this.activePanelService.activatePanel(this, { showMenu }));
   }
 
   ngOnDestroy(): void {
     BusinessHelper.saveUntilDateInSessionStorage(this.untilDate);
+    this.readRequest?.unsubscribe();
     this.activePanelService.destroyPanel(this);
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
     this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
@@ -323,7 +348,7 @@ export class TenantSummariesCashaccountComponent
   getGrandCellStyle(field: ColumnConfig): { [key: string]: string } {
     const widthStyle = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
     return DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) &&
-      this.accountPositionGrandSummary?.grandDisposalComplete === false
+      this.accountPositionGrandSummary()?.grandDisposalComplete === false
       ? { ...widthStyle, ...DisposalCostHelper.INCOMPLETE_STYLE }
       : widthStyle;
   }
@@ -373,33 +398,20 @@ export class TenantSummariesCashaccountComponent
   }
 
   private readData(): void {
-    this.portfolioService
+    this.readRequest?.unsubscribe();
+    this.readRequest = this.portfolioService
       .getGroupedAccountsSecuritiesTenantSummary(this.untilDate, TenantPortfolioSummary[this.selectedGroup])
+      .pipe(takeUntilDestroyed(this.reportDestroyRef))
       .subscribe((result) => {
-        this.transformToFlatArray(result);
+        this.accountPositionGrandSummary.set(result);
         this.excludedDivTaxColumn.visible = result.accountPositionGroupSummaryList.some((g) => g.excludeDivTax);
         this.columnConfigs.forEach((columnConfig) => {
-          columnConfig.headerSuffix = this.accountPositionGrandSummary.mainCurrency;
-          columnConfig.fixedCurrency = this.accountPositionGrandSummary.mainCurrency;
+          columnConfig.headerSuffix = this.accountPositionGrandSummary().mainCurrency;
+          columnConfig.fixedCurrency = this.accountPositionGrandSummary().mainCurrency;
         });
         this.prepareTableAndTranslate();
         this.changeToOpenChart();
       });
-  }
-
-  private transformToFlatArray(accountPositionGrandSummary: AccountPositionGrandSummary) {
-    this.accountPositionGrandSummary = accountPositionGrandSummary;
-    const aPSA: AccountPositionSummary[] = [];
-    this.groupChangeIndexMap = new Map();
-    let rowIndex = -1;
-    for (const accountPositionGroupSummary of accountPositionGrandSummary.accountPositionGroupSummaryList) {
-      for (const accountPositionSummary of accountPositionGroupSummary.accountPositionSummaryList) {
-        aPSA.push(accountPositionSummary);
-        rowIndex++;
-      }
-      this.groupChangeIndexMap.set(rowIndex, accountPositionGroupSummary);
-    }
-    this.accountPositionSummaryAll = aPSA;
   }
 
   private changeToOpenChart(): void {
@@ -419,11 +431,13 @@ export class TenantSummariesCashaccountComponent
   }
 
   private prepareChartDataWithRequest(): void {
-    this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$.subscribe((id) => {
-      if (id === AppSettings.PORTFOLIO_KEY) {
-        this.chartDataService.sentToChart(this.getChartDefinition());
-      }
-    });
+    this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$
+      .pipe(takeUntilDestroyed(this.reportDestroyRef))
+      .subscribe((id) => {
+        if (id === AppSettings.PORTFOLIO_KEY) {
+          this.chartDataService.sentToChart(this.getChartDefinition());
+        }
+      });
   }
 
   private getChartDefinition(): any {
@@ -437,7 +451,7 @@ export class TenantSummariesCashaccountComponent
     );
     const data = [securityBar, cashBalance];
 
-    for (const accountPositionGroupSummary of this.accountPositionGrandSummary.accountPositionGroupSummaryList) {
+    for (const accountPositionGroupSummary of this.accountPositionGrandSummary().accountPositionGroupSummaryList) {
       if (
         Math.abs(accountPositionGroupSummary.groupValueSecuritiesMC) > 0.02 ||
         Math.abs(accountPositionGroupSummary.groupCashBalanceMC) > 0.02

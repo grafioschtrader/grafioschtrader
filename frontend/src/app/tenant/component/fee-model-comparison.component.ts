@@ -1,9 +1,21 @@
+import {
+  afterNextRender,
+  computed,
+  DestroyRef,
+  inject,
+  Injector,
+  signal,
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppSettings } from '../../shared/app.settings';
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { FeeModelComparisonDetail, FeeModelComparisonResponse } from '../../entities/fee.model.comparison';
+import { FeeModelComparisonResponse } from '../../entities/fee.model.comparison';
 import { Portfolio } from '../../entities/portfolio';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
@@ -47,7 +59,7 @@ import { TenantService } from '../service/tenant.service';
         [translateService]="translateService"
         #form="dynamicForm">
       </dynamic-form>
-      @if (comparisonResponse && comparisonResponse.totalTransactions > 0) {
+      @if (comparisonResponse() && comparisonResponse().totalTransactions > 0) {
         <div class="fcontainer">
           <fieldset class="out-border fbox">
             <legend class="out-border-legend">
@@ -57,7 +69,7 @@ import { TenantService } from '../service/tenant.service';
               <div class="row">
                 <div class="col-md-5 showlabel text-end">{{ field.headerTranslated }}:</div>
                 <div class="col-md-7 nopadding wrap">
-                  {{ getValueByPath(comparisonResponse, field) }}
+                  {{ getValueByPath(comparisonResponse(), field) }}
                 </div>
               </div>
             }
@@ -70,24 +82,23 @@ import { TenantService } from '../service/tenant.service';
               <div class="row">
                 <div class="col-md-5 showlabel text-end">{{ field.headerTranslated }}:</div>
                 <div class="col-md-7 nopadding wrap">
-                  {{ getValueByPath(comparisonResponse, field) }}
+                  {{ getValueByPath(comparisonResponse(), field) }}
                 </div>
               </div>
             }
           </fieldset>
         </div>
       }
-      <fee-model-comparison-table [details]="details"></fee-model-comparison-table>
+      <fee-model-comparison-table [details]="details()"></fee-model-comparison-table>
       <h3>{{ 'FX_OBSERVATION_ACCOUNT' | translate }}</h3>
       <p>{{ 'FX_OBSERVATION_LIMITATION' | translate }}</p>
-      <fx-observation-table [groups]="accountFxGroups"></fx-observation-table>
+      <fx-observation-table [groups]="accountFxGroups()"></fx-observation-table>
       <h3>{{ 'FX_OBSERVATION_TRANSFERS' | translate }}</h3>
       <p>{{ 'FX_OBSERVATION_TRANSFER_LIMITATION' | translate }}</p>
-      <fx-observation-table [groups]="transferFxGroups"></fx-observation-table>
+      <fx-observation-table [groups]="transferFxGroups()"></fx-observation-table>
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -105,10 +116,12 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   config: FieldFormGroup[] = [];
   configObject: { [name: string]: FieldConfig };
 
-  comparisonResponse: FeeModelComparisonResponse;
-  details: FeeModelComparisonDetail[] = [];
-  accountFxGroups: FxObservationGroup[] = [];
-  transferFxGroups: FxObservationGroup[] = [];
+  readonly comparisonResponse = signal<FeeModelComparisonResponse>(null);
+  readonly details = computed(() => this.comparisonResponse()?.details ?? []);
+  readonly accountFxGroups = signal<FxObservationGroup[]>([]);
+  readonly transferFxGroups = signal<FxObservationGroup[]>([]);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly renderInjector = inject(Injector);
   private comparisonRequest: Subscription;
   private observationRequest: Subscription;
 
@@ -141,21 +154,31 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   ngOnInit(): void {
     this.initSummaryFields();
     this.subscriptions.push(
-      this.tenantService.getFxObservations().subscribe((response) => {
-        this.transferFxGroups = response.groups;
-      })
+      this.tenantService
+        .getFxObservations()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((response) => {
+          this.transferFxGroups.set(response.groups);
+        })
     );
-    setTimeout(() => {
-      this.configObject.excludeZeroCost.formControl.setValue(true);
-      this.subscriptions.push(
-        this.configObject.idSecuritycashAccount.formControl.valueChanges.subscribe(() => {
-          this.loadComparison();
-          this.loadObservations();
-        }),
-        this.configObject.excludeZeroCost.formControl.valueChanges.subscribe(() => this.loadComparison())
-      );
-      this.loadSecurityaccounts();
-    });
+    afterNextRender(
+      () => {
+        this.configObject.excludeZeroCost.formControl.setValue(true);
+        this.subscriptions.push(
+          this.configObject.idSecuritycashAccount.formControl.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+              this.loadComparison();
+              this.loadObservations();
+            }),
+          this.configObject.excludeZeroCost.formControl.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.loadComparison())
+        );
+        this.loadSecurityaccounts();
+      },
+      { injector: this.renderInjector }
+    );
     this.onComponentClick(null);
   }
 
@@ -221,37 +244,43 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
     ];
     const allFields = [...this.summaryInfoFields, ...this.summaryStatFields];
     const headerKeys = allFields.map((f) => f.headerKey);
-    this.translateService.get(headerKeys).subscribe((translations) => {
-      allFields.forEach((f) => (f.headerTranslated = translations[f.headerKey]));
-    });
+    this.translateService
+      .get(headerKeys)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((translations) => {
+        allFields.forEach((f) => (f.headerTranslated = translations[f.headerKey]));
+        this.notifyViewChanged();
+      });
   }
 
   private loadSecurityaccounts(): void {
-    this.portfolioService.getPortfoliosForTenantOrderByName().subscribe((portfolios: Portfolio[]) => {
-      const options: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
-      for (const portfolio of portfolios) {
-        if (portfolio.securityaccountList) {
-          for (const sa of portfolio.securityaccountList) {
-            options.push(new ValueKeyHtmlSelectOptions(sa.idSecuritycashAccount, portfolio.name + ' / ' + sa.name));
+    this.portfolioService
+      .getPortfoliosForTenantOrderByName()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((portfolios: Portfolio[]) => {
+        const options: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
+        for (const portfolio of portfolios) {
+          if (portfolio.securityaccountList) {
+            for (const sa of portfolio.securityaccountList) {
+              options.push(new ValueKeyHtmlSelectOptions(sa.idSecuritycashAccount, portfolio.name + ' / ' + sa.name));
+            }
           }
         }
-      }
-      this.configObject.idSecuritycashAccount.valueKeyHtmlOptions = options;
-    });
+        this.configObject.idSecuritycashAccount.valueKeyHtmlOptions = options;
+      });
   }
 
   private loadComparison(): void {
     this.comparisonRequest?.unsubscribe();
-    this.comparisonResponse = null;
-    this.details = [];
+    this.comparisonResponse.set(null);
     const idSecuritycashAccount = this.configObject.idSecuritycashAccount.formControl.value;
     const excludeZeroCost = this.configObject.excludeZeroCost.formControl.value ?? true;
     if (idSecuritycashAccount) {
       this.comparisonRequest = this.securityaccountService
         .getFeeModelComparison(+idSecuritycashAccount, excludeZeroCost)
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((response: FeeModelComparisonResponse) => {
-          this.comparisonResponse = response;
-          this.details = response.details || [];
+          this.comparisonResponse.set(response);
         });
     }
   }
@@ -259,12 +288,15 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   /** Independent request: absent or failing commission models cannot suppress observed FX conversions. */
   private loadObservations(): void {
     this.observationRequest?.unsubscribe();
-    this.accountFxGroups = [];
+    this.accountFxGroups.set([]);
     const idAccount = this.configObject.idSecuritycashAccount.formControl.value;
     if (idAccount) {
-      this.observationRequest = this.securityaccountService.getFxObservations(+idAccount).subscribe((response) => {
-        this.accountFxGroups = response.groups;
-      });
+      this.observationRequest = this.securityaccountService
+        .getFxObservations(+idAccount)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((response) => {
+          this.accountFxGroups.set(response.groups);
+        });
     }
   }
 }

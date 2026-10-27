@@ -8,13 +8,13 @@
       {{ 'MISSING_EXCHANGE_RATE_WARNING' | translate: {currencies: missingCurrenciesText} }}
     </div>
     }
-    <p-table [columns]="fields" [value]="accountPositionSummaryAll" selectionMode="single" stripedRows showGridlines>
+    <p-table [columns]="fields" [value]="accountPositionSummaryAll()" selectionMode="single" stripedRows showGridlines>
       <ng-template #caption>
         <div class="flex-two-columns">
           <div class="left-half">
             <h4>
               {{ 'PORTFOLIOS' | translate }}:
-              <p-select (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup" [options]="groupOptions">
+              <p-select (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup" [options]="groupOptions()">
               </p-select>
             </h4>
           </div>
@@ -73,19 +73,19 @@
           </td>
           } }
         </tr>
-        @if (groupChangeIndexMap.get(rowIndex)) {
+        @if (groupChangeIndexMap().get(rowIndex)) {
         <tr class="rowgroup-total">
           @for (columnConfig of fields; track columnConfig) { @if (columnConfig.visible) {
           <td
             [class]="(columnConfig.dataType===DataType.Numeric || columnConfig.dataType===DataType.NumericInteger
                   || columnConfig.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
-            [ngStyle]="getGroupCellStyle(columnConfig, groupChangeIndexMap.get(rowIndex))">
+            [ngStyle]="getGroupCellStyle(columnConfig, groupChangeIndexMap().get(rowIndex))">
             @switch (columnConfig.templateName) { @case ('greenRed') {
             <span
-              [style.color]='isColumnTotalByRowIndexMinus(columnConfig, 0, groupChangeIndexMap, rowIndex)? "red": "inherit"'>
-              {{ getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap, rowIndex) }}
+              [style.color]='isColumnTotalByRowIndexMinus(columnConfig, 0, groupChangeIndexMap(), rowIndex)? "red": "inherit"'>
+              {{ getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap(), rowIndex) }}
             </span>
-            } @default { {{ getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap, rowIndex) }} } }
+            } @default { {{ getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap(), rowIndex) }} } }
           </td>
           } }
         </tr>
@@ -106,11 +106,11 @@
             class="row-total">
             @switch (field.templateName) { @case ('greenRed') {
             <span
-              [style.color]='isValueColumnTotalMinus(field, 1, accountPositionGrandSummary, null)? "red": "inherit"'>
-              {{ getValueColumnTotal(field, 1, accountPositionGrandSummary, null) }}
+              [style.color]='isValueColumnTotalMinus(field, 1, accountPositionGrandSummary(), null)? "red": "inherit"'>
+              {{ getValueColumnTotal(field, 1, accountPositionGrandSummary(), null) }}
             </span>
             } @default {
-            <span>{{ getValueColumnTotal(field, 1, accountPositionGrandSummary, null) }}</span>
+            <span>{{ getValueColumnTotal(field, 1, accountPositionGrandSummary(), null) }}</span>
             } }
           </td>
           } }

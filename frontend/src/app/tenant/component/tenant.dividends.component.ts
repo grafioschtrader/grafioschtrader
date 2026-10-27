@@ -1,4 +1,6 @@
-import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { computed, DestroyRef, inject, signal, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -39,7 +41,6 @@ import { TenantDividendsChartService } from '../service/tenant.dividends.chart.s
 @Component({
   templateUrl: '../view/tenant.dividends.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -53,15 +54,17 @@ import { TenantDividendsChartService } from '../service/tenant.dividends.chart.s
   ]
 })
 export class TenantDividendsComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
-  securityDividendsGrandTotal: SecurityDividendsGrandTotal;
-  securityDividendsYearGroup: SecurityDividendsYearGroup[];
+  readonly securityDividendsGrandTotal = signal<SecurityDividendsGrandTotal>(null);
+  readonly securityDividendsYearGroup = computed(
+    () => this.securityDividendsGrandTotal()?.securityDividendsYearGroup ?? []
+  );
 
   securityDividendsGrandTotalSelected: SecurityDividendsYearGroup;
-  visibleSecurityaccountDialog: boolean;
-  visibleExportDialog: boolean;
-  idsAccounts: IdsAccounts;
-  filterTransactionsToYearEnd = false;
-  contextMenuItems: MenuItem[] = [];
+  readonly visibleSecurityaccountDialog = signal(false);
+  readonly visibleExportDialog = signal(false);
+  readonly idsAccounts = signal<IdsAccounts>(null);
+  readonly filterTransactionsToYearEnd = signal(false);
+  readonly contextMenuItems = signal<MenuItem[]>([]);
 
   /**
    * Tracks which year rows are expanded, keyed by the {@code year} dataKey value. Bound two-way on the top table so the
@@ -75,6 +78,11 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
    * Outer key is the {@code year}; inner key is {@code security.idSecuritycurrency}.
    */
   securityExpandedKeysByYear: { [year: string]: { [id: string]: boolean } } = {};
+
+  private readonly destroyRef = inject(DestroyRef);
+  private readRequest: Subscription;
+  private menuRequest: Subscription;
+  private contextMenuRequest: Subscription;
 
   private columnConfigs: ColumnConfig[] = [];
 
@@ -95,29 +103,29 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     super(filterService, usersettingsService, translateService, gps, injector);
   }
 
-  get selectedSecurityAccounts(): number {
-    return this.idsAccounts.idsSecurityaccount.length === 0
-      ? this.securityDividendsGrandTotal.numberOfSecurityAccounts
-      : this.idsAccounts.idsSecurityaccount.length;
-  }
+  readonly selectedSecurityAccounts = computed(() =>
+    this.idsAccounts().idsSecurityaccount.length === 0
+      ? this.securityDividendsGrandTotal().numberOfSecurityAccounts
+      : this.idsAccounts().idsSecurityaccount.length
+  );
 
-  get selectedCashAccounts(): number {
-    return this.idsAccounts.idsCashaccount.length === 1 && this.idsAccounts.idsCashaccount[0] === -1
-      ? this.securityDividendsGrandTotal.numberOfCashAccounts
-      : this.idsAccounts.idsCashaccount.length;
-  }
+  readonly selectedCashAccounts = computed(() =>
+    this.idsAccounts().idsCashaccount.length === 1 && this.idsAccounts().idsCashaccount[0] === -1
+      ? this.securityDividendsGrandTotal().numberOfCashAccounts
+      : this.idsAccounts().idsCashaccount.length
+  );
 
-  get totalSecurityAccounts(): number {
-    return this.securityDividendsGrandTotal ? this.securityDividendsGrandTotal.numberOfSecurityAccounts : 0;
-  }
+  readonly totalSecurityAccounts = computed(() =>
+    this.securityDividendsGrandTotal() ? this.securityDividendsGrandTotal().numberOfSecurityAccounts : 0
+  );
 
-  get totalCashAccounts(): number {
-    return this.securityDividendsGrandTotal ? this.securityDividendsGrandTotal.numberOfCashAccounts : 0;
-  }
+  readonly totalCashAccounts = computed(() =>
+    this.securityDividendsGrandTotal() ? this.securityDividendsGrandTotal().numberOfCashAccounts : 0
+  );
 
   /** True for Swiss tenants; gates the ICTax columns and the eCH-0196 tax statement export. */
   private get isSwissTenant(): boolean {
-    return this.securityDividendsGrandTotal?.tenantCountry === 'CH';
+    return this.securityDividendsGrandTotal()?.tenantCountry === 'CH';
   }
 
   ngOnInit(): void {
@@ -192,11 +200,13 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     this.addColumn(DataType.Numeric, 'yearIctaxTotalTaxValueChf', 'ICTAX_TOTAL_TAX_VALUE', false, true);
 
     const idsCashaccount = this.getAccountSettings(AppSettings.DIV_CASHACCOUNTS);
-    this.idsAccounts = new IdsAccounts(
-      this.getAccountSettings(AppSettings.DIV_SECURITYACCOUNTS),
-      idsCashaccount.length === 0 ? [-1] : idsCashaccount
+    this.idsAccounts.set(
+      new IdsAccounts(
+        this.getAccountSettings(AppSettings.DIV_SECURITYACCOUNTS),
+        idsCashaccount.length === 0 ? [-1] : idsCashaccount
+      )
     );
-    this.tenantDividendsChartService.setAccounts(this.idsAccounts);
+    this.tenantDividendsChartService.setAccounts(this.idsAccounts());
     this.readData();
     this.multiSortMeta.push({ field: 'year', order: 1 });
     this.onComponentClick(null);
@@ -225,9 +235,10 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
 
   onComponentClick(event): void {
     if (!event || !event[this.consumedGT]) {
-      this.activePanelService.activatePanel(this, {
-        showMenu: this.getMenuShowOptions()
-      });
+      this.menuRequest?.unsubscribe();
+      this.menuRequest = TranslateHelper.translateMenuItems$(this.getMenuShowOptions(), this.translateService)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((showMenu) => this.activePanelService.activatePanel(this, { showMenu }));
     }
   }
 
@@ -246,7 +257,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
         command: (event) => this.showPortfolioSelectionDialog()
       }
     ];
-    if (this.isSwissTenant && this.securityDividendsGrandTotal?.availableTaxYears?.length > 0) {
+    if (this.isSwissTenant && this.securityDividendsGrandTotal()?.availableTaxYears?.length > 0) {
       menuItems.push({
         label: 'EXPORT_TAX_STATEMENT',
         command: (event) => this.showExportDialog()
@@ -261,10 +272,11 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       {
         label: 'FILTER_TRANSACTIONS_TO_YEAR_END',
         command: (event) => this.handleFilterTransactionsToggle(event),
-        icon: this.filterTransactionsToYearEnd ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY
+        icon: this.filterTransactionsToYearEnd()
+          ? BaseSettings.ICONNAME_SQUARE_CHECK
+          : BaseSettings.ICONNAME_SQUARE_EMTPY
       }
     );
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -274,7 +286,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
    */
   private buildContextMenu(): void {
     const year = this.securityDividendsGrandTotalSelected?.year;
-    const hasTaxData = year != null && !!this.securityDividendsGrandTotal?.availableTaxYears?.includes(year);
+    const hasTaxData = year != null && !!this.securityDividendsGrandTotal()?.availableTaxYears?.includes(year);
     const menuItems: MenuItem[] = [
       {
         label: 'SET_EX_DATE_FROM_TAX_DATA',
@@ -282,8 +294,10 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
         disabled: !hasTaxData
       }
     ];
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
-    this.contextMenuItems = menuItems;
+    this.contextMenuRequest?.unsubscribe();
+    this.contextMenuRequest = TranslateHelper.translateMenuItems$(menuItems, this.translateService)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((items) => this.contextMenuItems.set(items));
   }
 
   /**
@@ -316,50 +330,47 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     if (year == null) {
       return;
     }
-    this.transactionService.applyExDatesFromTaxData(year).subscribe((result: ExDateFromTaxDataResult) => {
-      this.messageToastService.showMessageI18n(InfoLevelType.INFO, 'EX_DATE_FROM_TAX_DATA_RESULT', {
-        assigned: result.exDateAssigned,
-        alreadySet: result.alreadySet,
-        unmatched: result.unmatched
+    this.transactionService
+      .applyExDatesFromTaxData(year)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result: ExDateFromTaxDataResult) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.INFO, 'EX_DATE_FROM_TAX_DATA_RESULT', {
+          assigned: result.exDateAssigned,
+          alreadySet: result.alreadySet,
+          unmatched: result.unmatched
+        });
+        this.readData();
+        this.tenantDividendsChartService.notifyDataChanged();
       });
-      this.readData();
-      this.tenantDividendsChartService.notifyDataChanged();
-    });
   }
 
   handleFilterTransactionsToggle(event: any): void {
-    if (event.item.icon === BaseSettings.ICONNAME_SQUARE_EMTPY) {
-      event.item.icon = BaseSettings.ICONNAME_SQUARE_CHECK;
-      this.filterTransactionsToYearEnd = true;
-    } else {
-      event.item.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
-      this.filterTransactionsToYearEnd = false;
-    }
+    this.filterTransactionsToYearEnd.update((value) => !value);
     this.onComponentClick(null);
   }
 
   showExportDialog(): void {
-    this.visibleExportDialog = true;
+    this.visibleExportDialog.set(true);
   }
 
   handleExportDialogClose(processedActionData: ProcessedActionData): void {
-    this.visibleExportDialog = false;
-    if (processedActionData.action === ProcessedAction.UPDATED && this.securityDividendsGrandTotal) {
-      this.securityDividendsGrandTotal.taxExportSettings = processedActionData.data;
+    this.visibleExportDialog.set(false);
+    if (processedActionData.action === ProcessedAction.UPDATED && this.securityDividendsGrandTotal()) {
+      this.securityDividendsGrandTotal.update((total) => ({ ...total, taxExportSettings: processedActionData.data }));
     }
   }
 
   showPortfolioSelectionDialog(): void {
-    this.visibleSecurityaccountDialog = true;
+    this.visibleSecurityaccountDialog.set(true);
   }
 
   handleOnProcessedDialog(processedActionData: ProcessedActionData) {
-    this.visibleSecurityaccountDialog = false;
+    this.visibleSecurityaccountDialog.set(false);
     if (processedActionData.action === ProcessedAction.CREATED) {
-      this.idsAccounts = processedActionData.data;
-      this.writeAccountSettings(AppSettings.DIV_SECURITYACCOUNTS, this.idsAccounts.idsSecurityaccount);
-      this.writeAccountSettings(AppSettings.DIV_CASHACCOUNTS, this.idsAccounts.idsCashaccount);
-      this.tenantDividendsChartService.setAccounts(this.idsAccounts);
+      this.idsAccounts.set(processedActionData.data);
+      this.writeAccountSettings(AppSettings.DIV_SECURITYACCOUNTS, this.idsAccounts().idsSecurityaccount);
+      this.writeAccountSettings(AppSettings.DIV_CASHACCOUNTS, this.idsAccounts().idsCashaccount);
+      this.tenantDividendsChartService.setAccounts(this.idsAccounts());
       this.readData();
     }
   }
@@ -385,14 +396,15 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
   }
 
   private readData(): void {
-    this.portfolioService
-      .getSecurityDividendsGrandTotalByTenant(this.idsAccounts.idsSecurityaccount, this.idsAccounts.idsCashaccount)
+    this.readRequest?.unsubscribe();
+    this.readRequest = this.portfolioService
+      .getSecurityDividendsGrandTotalByTenant(this.idsAccounts().idsSecurityaccount, this.idsAccounts().idsCashaccount)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data: SecurityDividendsGrandTotal) => {
-        this.securityDividendsGrandTotal = data;
-        this.securityDividendsYearGroup = this.securityDividendsGrandTotal.securityDividendsYearGroup;
+        this.securityDividendsGrandTotal.set(data);
         this.columnConfigs.forEach((columnConfig) => {
-          columnConfig.headerSuffix = this.securityDividendsGrandTotal.mainCurrency;
-          columnConfig.fixedCurrency = this.securityDividendsGrandTotal.mainCurrency;
+          columnConfig.headerSuffix = this.securityDividendsGrandTotal().mainCurrency;
+          columnConfig.fixedCurrency = this.securityDividendsGrandTotal().mainCurrency;
         });
         const marginCol = this.fields.find((f) => f.field === 'yearFinanceCostMC');
         if (marginCol) {

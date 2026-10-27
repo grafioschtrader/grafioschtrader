@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, inject, Injector, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { Portfolio } from '../../entities/portfolio';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -65,7 +65,6 @@ import { TranslateModule } from '@ngx-translate/core';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, ButtonModule, TranslateModule, TenantDividendAccountSelectionComponent]
 })
 export class TenantDividendSecurityAccountSelectionDialogComponent {
@@ -79,6 +78,8 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   securityaccountTree: TenantDividendAccountSelectionComponent;
   @ViewChild('cashaccountTree', { static: true })
   cashaccountTree: TenantDividendAccountSelectionComponent;
+
+  private readonly renderInjector = inject(Injector);
 
   saColumnConfig: ColumnConfig[] = [];
   caColumnConfig: ColumnConfig[] = [];
@@ -97,7 +98,7 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   }
 
   public onShow(event): void {
-    setTimeout(() => this.prepareData());
+    afterNextRender(() => this.prepareData(), { injector: this.renderInjector });
   }
 
   submit(event) {

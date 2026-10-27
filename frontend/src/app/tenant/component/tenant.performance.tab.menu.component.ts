@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AppSettings } from '../../shared/app.settings';
 import { TabItem } from '../../lib/types/tab.item';
@@ -13,7 +13,6 @@ import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.m
     </app-shared-tab-menu>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [SharedTabMenuComponent, RouterOutlet]
 })
 export class TenantPerformanceTabMenuComponent {

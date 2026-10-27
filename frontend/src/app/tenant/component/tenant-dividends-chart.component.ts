@@ -1,6 +1,10 @@
 import {
+  afterNextRender,
+  computed,
+  DestroyRef,
+  Injector,
+  signal,
   AfterViewInit,
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   inject,
@@ -8,6 +12,7 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { combineLatest, Subscription } from 'rxjs';
@@ -103,13 +108,13 @@ const TAX_OPACITY = 0.4;
         [translateService]="translateService"
         #form="dynamicForm">
       </dynamic-form>
-      @if (chartNeedsYear) {
+      @if (chartNeedsYear()) {
         <small>{{ 'DIVIDENDS_CHART_YEAR_HINT' | translate }}</small>
       }
-      @if (noDataTextKey) {
-        <h4>{{ noDataTextKey | translate }}</h4>
+      @if (noDataTextKey()) {
+        <h4>{{ noDataTextKey() | translate }}</h4>
       }
-      <div #chart class="dividends-chart-plot" [hidden]="!!noDataTextKey"></div>
+      <div #chart class="dividends-chart-plot" [hidden]="!!noDataTextKey()"></div>
     </div>
   `,
   styles: [
@@ -127,7 +132,6 @@ const TAX_OPACITY = 0.4;
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, DynamicFormModule]
 })
 export class TenantDividendsChartComponent
@@ -138,10 +142,14 @@ export class TenantDividendsChartComponent
   @ViewChild('chart', { static: true }) chartElement: ElementRef;
 
   /** Translation key of the hint shown instead of an empty chart, null when the chart has data. */
-  noDataTextKey: string = null;
+  readonly noDataTextKey = signal<string>(null);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly renderInjector = inject(Injector);
 
   /** True when the shown chart refers to one year; the year is then chosen in the dividends table. */
-  chartNeedsYear = false;
+  private readonly selectedChartType = signal(IncomeChartType.INCOME_CHART_MONTHLY);
+  readonly chartNeedsYear = computed(() => CHART_NEEDS_YEAR[this.selectedChartType()]);
+  private readRequest: Subscription;
 
   /** Year the year based charts refer to; set by clicking a year row of the dividends table. */
   private selectedYear: number = null;
@@ -179,34 +187,47 @@ export class TenantDividendsChartComponent
     this.plotlyConfig.responsive = true;
     this.createInputFormDefinition();
     this.subscriptions.push(
-      this.tenantDividendsChartService.accounts$.pipe(filter((ids) => ids != null)).subscribe((ids) => {
-        this.idsAccounts = ids;
-        this.readData();
-      }),
-      this.tenantDividendsChartService.dataChanged$.subscribe(() => this.readData()),
+      this.tenantDividendsChartService.accounts$
+        .pipe(filter((ids) => ids != null))
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((ids) => {
+          this.idsAccounts = ids;
+          this.readData();
+        }),
+      this.tenantDividendsChartService.dataChanged$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.readData()),
       this.tenantDividendsChartService.yearSelected$
         .pipe(filter((year) => year != null))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((year) => this.selectYear(year)),
-      this.viewSizeChangedService.viewSizeChanged$.subscribe(() => this.resizeChart())
+      this.viewSizeChangedService.viewSizeChanged$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.resizeChart())
     );
   }
 
   ngAfterViewInit(): void {
     // The dynamic-form builds its FormGroup in its own ngOnInit, so the controls only exist now.
-    Promise.resolve().then(() => {
-      const storedType = this.usersettingsService.readSingleValue(this.getStoreKey(AppSettings.DIV_CHART_TYPE));
-      this.configObject.chartType.formControl.setValue(
-        Object.values(IncomeChartType).includes(storedType) ? storedType : IncomeChartType.INCOME_CHART_MONTHLY
-      );
-      this.subscriptions.push(
-        this.configObject.chartType.formControl.valueChanges.subscribe((chartType) => {
-          this.usersettingsService.saveSingleValue(this.getStoreKey(AppSettings.DIV_CHART_TYPE), chartType);
-          this.drawChart();
-        })
-      );
-      this.formReady = true;
-      this.drawChart();
-    });
+    afterNextRender(
+      () => {
+        const storedType = this.usersettingsService.readSingleValue(this.getStoreKey(AppSettings.DIV_CHART_TYPE));
+        this.configObject.chartType.formControl.setValue(
+          Object.values(IncomeChartType).includes(storedType) ? storedType : IncomeChartType.INCOME_CHART_MONTHLY
+        );
+        this.subscriptions.push(
+          this.configObject.chartType.formControl.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((chartType) => {
+              this.usersettingsService.saveSingleValue(this.getStoreKey(AppSettings.DIV_CHART_TYPE), chartType);
+              this.drawChart();
+            })
+        );
+        this.formReady = true;
+        this.drawChart();
+      },
+      { injector: this.renderInjector }
+    );
   }
 
   isActivated(): boolean {
@@ -236,11 +257,14 @@ export class TenantDividendsChartComponent
     this.config = [DynamicFieldHelper.createFieldSelectStringHeqF('chartType', true, { usedLayoutColumns: 6 })];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     const chartTypes = Object.values(IncomeChartType);
-    this.translateService.get(chartTypes).subscribe((t) => {
-      this.configObject.chartType.valueKeyHtmlOptions = chartTypes.map(
-        (ct) => new ValueKeyHtmlSelectOptions(ct, t[ct])
-      );
-    });
+    this.translateService
+      .get(chartTypes)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((t) => {
+        this.configObject.chartType.valueKeyHtmlOptions = chartTypes.map(
+          (ct) => new ValueKeyHtmlSelectOptions(ct, t[ct])
+        );
+      });
   }
 
   private getStoreKey(propertyKey: string): string {
@@ -248,8 +272,10 @@ export class TenantDividendsChartComponent
   }
 
   private readData(): void {
-    this.portfolioService
+    this.readRequest?.unsubscribe();
+    this.readRequest = this.portfolioService
       .getSecurityDividendsChartByTenant(this.idsAccounts.idsSecurityaccount, this.idsAccounts.idsCashaccount)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data: SecurityDividendsChart) => {
         this.chartData = data;
         this.resolveSelectedYear();
@@ -286,29 +312,31 @@ export class TenantDividendsChartComponent
       return;
     }
     const chartType: IncomeChartType = this.configObject.chartType.formControl.value;
-    this.chartNeedsYear = CHART_NEEDS_YEAR[chartType];
+    this.selectedChartType.set(chartType);
     const figure = this.buildFigure(chartType, this.selectedYear);
-    this.noDataTextKey = figure ? null : CHART_NEEDS_YEAR[chartType] ? 'NO_INCOME_IN_YEAR' : 'NO_DATA_AVAILABLE';
+    this.noDataTextKey.set(figure ? null : CHART_NEEDS_YEAR[chartType] ? 'NO_INCOME_IN_YEAR' : 'NO_DATA_AVAILABLE');
+    const version = ++this.drawVersion;
     this.plotly?.purge(this.chartElement.nativeElement);
     if (figure) {
-      const version = ++this.drawVersion;
       // Wait until the chart element is no longer hidden, otherwise Plotly measures a zero size.
-      setTimeout(() =>
-        this.plotlyLoader.load().then(
-          (plotly) => {
-            if (!this.destroyed && version === this.drawVersion) {
-              this.plotly = plotly;
-              plotly.newPlot(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig);
-            }
-          },
-          () => {}
-        )
+      afterNextRender(
+        () =>
+          this.plotlyLoader.load().then(
+            (plotly) => {
+              if (!this.destroyed && version === this.drawVersion) {
+                this.plotly = plotly;
+                plotly.newPlot(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig);
+              }
+            },
+            () => {}
+          ),
+        { injector: this.renderInjector }
       );
     }
   }
 
   private resizeChart(): void {
-    if (!this.noDataTextKey && this.chartElement.nativeElement.data) {
+    if (!this.noDataTextKey() && this.chartElement.nativeElement.data) {
       this.plotly?.Plots.resize(this.chartElement.nativeElement);
     }
   }

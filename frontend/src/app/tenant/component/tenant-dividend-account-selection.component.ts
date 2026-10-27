@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { signal, Component, Input, OnInit } from '@angular/core';
 import { Portfolio } from '../../entities/portfolio';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -15,10 +15,11 @@ import { TreeTableModule } from '@openng/optimus-ui/treetable';
   selector: 'tenant-dividend-account-selection',
   template: `
     <p-treeTable
-      [value]="portfolioAccounts"
+      [value]="portfolioAccounts()"
       [columns]="fields"
       selectionMode="checkbox"
-      [(selection)]="selectedNodes"
+      [selection]="selectedNodes()"
+      (selectionChange)="onSelectionChange($event)"
       [scrollable]="true"
       scrollHeight="600px">
       <ng-template #caption>
@@ -53,7 +54,7 @@ import { TreeTableModule } from '@openng/optimus-ui/treetable';
         </tr>
       </ng-template>
     </p-treeTable>
-    @if (selectionRequired && selectedNodes.length === 0) {
+    @if (selectionRequired && selectedNodes().length === 0) {
       <div>
         <div class="alert alert-danger">
           {{ 'selectionrequried' | translate }}
@@ -62,7 +63,6 @@ import { TreeTableModule } from '@openng/optimus-ui/treetable';
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TreeTableModule, TranslateModule]
 })
 export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase implements OnInit {
@@ -73,8 +73,8 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
   @Input() title: string;
   @Input() selectionRequired: boolean;
 
-  portfolioAccounts: TreeNode[] = [];
-  selectedNodes: TreeNode[] = [];
+  readonly portfolioAccounts = signal<TreeNode[]>([]);
+  readonly selectedNodes = signal<TreeNode[]>([]);
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
@@ -89,6 +89,7 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
     const markAll = (this.idsAccount.length === 1 && this.idsAccount[0] === -1) || this.idsAccount.length === 0;
 
     const psa: TreeNode[] = [];
+    const selected: TreeNode[] = [];
     this.portfolios.forEach((portfolio) => {
       if (portfolio[this.listAttributeName].length > 0) {
         const portfolioTreeNode: TreeNode = {
@@ -103,21 +104,26 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
           const accountTeeNode = { data: account, leaf: true };
           portfolioTreeNode.children.push(accountTeeNode);
           if (markAll || this.idsAccount.indexOf(account.idSecuritycashAccount) >= 0) {
-            this.selectedNodes.push(accountTeeNode);
+            selected.push(accountTeeNode);
             childSelectionCount++;
           }
         });
         if (childSelectionCount > 0 && portfolio[this.listAttributeName].length === childSelectionCount) {
-          this.selectedNodes.push(portfolioTreeNode);
+          selected.push(portfolioTreeNode);
         }
       }
     });
 
-    this.portfolioAccounts = psa;
+    this.portfolioAccounts.set(psa);
+    this.selectedNodes.set(selected);
+  }
+
+  onSelectionChange(selection: TreeNode | TreeNode[]): void {
+    this.selectedNodes.set(Array.isArray(selection) ? selection : selection ? [selection] : []);
   }
 
   getSelectedAccountIds(): number[] {
-    return this.selectedNodes
+    return this.selectedNodes()
       .filter((treeNode) => treeNode.leaf)
       .map((treeNode) => treeNode.data.idSecuritycashAccount);
   }

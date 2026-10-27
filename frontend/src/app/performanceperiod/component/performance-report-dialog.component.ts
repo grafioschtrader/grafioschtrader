@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, signal, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -62,7 +62,7 @@ export interface PerformanceReportDialogData {
       [formConfig]="formConfig"
       [translateService]="translateService"
       (submitBt)="submit()" />
-    @if (transactionsSelected) {
+    @if (transactionsSelected()) {
       <p role="status">{{ 'gt.report.transactions.length.warning' | translate }}</p>
     }
     <details open>
@@ -74,13 +74,12 @@ export interface PerformanceReportDialogData {
         </p>
       }
     </details>
-    @if (downloading) {
+    @if (downloading()) {
       <p-progressBar mode="indeterminate" [style]="{ height: '6px' }" />
     }
-    <p-button [label]="'REPORT_CANCEL' | translate" [disabled]="downloading" (click)="close()" />
+    <p-button [label]="'REPORT_CANCEL' | translate" [disabled]="downloading()" (click)="close()" />
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DynamicFormModule, ButtonModule, ProgressBarModule]
 })
 export class PerformanceReportDialogComponent extends FormBase implements OnInit, AfterViewInit, OnDestroy {
@@ -90,9 +89,10 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
   dateFrom: string;
   dateTo: string;
   bookingFrom: string;
-  downloading = false;
+  readonly downloading = signal(false);
   droppedSections = false;
-  transactionsSelected = false;
+  private readonly selectedSections = signal<string[]>([]);
+  readonly transactionsSelected = computed(() => this.selectedSections().includes('TRANSACTIONS'));
   private subscriptions = new Subscription();
 
   constructor(
@@ -179,7 +179,7 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
     }
     this.configObject.annualYears.invisible = !sections.includes('ANNUAL_RETURNS');
     this.configObject.detailColumns.invisible = !sections.includes('HOLDINGS');
-    this.transactionsSelected = sections.includes('TRANSACTIONS');
+    this.selectedSections.set([...sections]);
     if (this.data.window.reportDate) {
       this.reportDate = AppHelper.getDateByFormat(this.gps, this.data.window.reportDate);
       return;
@@ -204,30 +204,32 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
         if (preset !== 'CUSTOM') {
           const sections = this.data.options.presetSections[preset] || [];
           this.configObject.sections.formControl.setValue(sections, { emitEvent: false });
+          this.form.notifier.notify();
           this.configObject.annualYears.invisible = !sections.includes('ANNUAL_RETURNS');
           this.configObject.detailColumns.invisible = !sections.includes('HOLDINGS');
-          this.transactionsSelected = sections.includes('TRANSACTIONS');
+          this.selectedSections.set([...sections]);
         }
       })
     );
     this.subscriptions.add(
       this.configObject.sections.formControl.valueChanges.subscribe((sections: string[]) => {
         this.configObject.preset.formControl.setValue('CUSTOM', { emitEvent: false });
+        this.form.notifier.notify();
         this.configObject.annualYears.invisible = !sections?.includes('ANNUAL_RETURNS');
         this.configObject.detailColumns.invisible = !sections?.includes('HOLDINGS');
-        this.transactionsSelected = !!sections?.includes('TRANSACTIONS');
+        this.selectedSections.set([...(sections ?? [])]);
       })
     );
   }
 
   submit(): void {
-    if (this.downloading) {
+    if (this.downloading()) {
       return;
     }
     const request = { ...this.data.window } as PerformanceReportRequest;
     this.form.cleanMaskAndTransferValuesToBusinessObject(request, true);
     request.idPortfolio = this.data.window.idPortfolio || null;
-    this.downloading = true;
+    this.downloading.set(true);
     this.subscriptions.add(
       this.holdingService.downloadPeriodPerformancePdf(request).subscribe({
         next: (response) => {
@@ -249,7 +251,7 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
   }
 
   private reset(): void {
-    this.downloading = false;
+    this.downloading.set(false);
     this.configObject.submit.disabled = false;
   }
   close(): void {

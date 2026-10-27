@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Tenant } from '../../entities/tenant';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -29,7 +29,6 @@ import { TenantEditComponent } from './tenant.edit.component';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DynamicFormComponent]
 })
 export class TenantEditFullPageComponent extends TenantEditComponent implements OnInit, AfterViewInit {
