@@ -1,4 +1,5 @@
-import { Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal, TemplateRef, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
@@ -26,8 +27,9 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
   imports: [TranslateModule, ConfigurableTableComponent, ConfigurableTreeTableComponent],
   template: `
     <configurable-table
-      [data]="exchangeLogTrees"
+      [data]="exchangeLogTrees()"
       [fields]="mainTableFields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="'idGtNet'"
       [expandable]="true"
       [expandedRowTemplate]="expandedContent"
@@ -37,10 +39,10 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
         'passiv-border': !isActivated()
       }"
       [selectionMode]="null"
-      [valueGetterFn]="getMainTableValue.bind(this)"
+      [valueGetterFn]="mainTableValueGetter"
       [baseLocale]="baseLocale"
       (componentClick)="onComponentClick($event)">
-      <h4 caption>{{ titleKey | translate }}</h4>
+      <h4 caption>{{ titleKey() | translate }}</h4>
     </configurable-table>
 
     <ng-template #expandedContent let-tree>
@@ -54,7 +56,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
             [selectionMode]="null"
             [enableSort]="false"
             [scrollable]="true"
-            [valueGetterFn]="getValueByPath.bind(this)">
+            [valueGetterFn]="valueGetter">
           </configurable-tree-table>
         } @else {
           <p class="no-data">{{ 'NO_DATA_AVAILABLE' | translate }}</p>
@@ -69,7 +71,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
             [selectionMode]="null"
             [enableSort]="false"
             [scrollable]="true"
-            [valueGetterFn]="getValueByPath.bind(this)">
+            [valueGetterFn]="valueGetter">
           </configurable-tree-table>
         } @else {
           <p class="no-data">{{ 'NO_DATA_AVAILABLE' | translate }}</p>
@@ -77,7 +79,6 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
       </div>
     </ng-template>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       h5 {
@@ -100,15 +101,21 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
     `
   ]
 })
-export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
+export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
   @Input() entityKind = 'LAST_PRICE';
   @ViewChild('expandedContent') expandedContent: TemplateRef<any>;
 
-  exchangeLogTrees: GTNetExchangeLogTree[] = [];
+  readonly exchangeLogTrees = signal<GTNetExchangeLogTree[]>([]);
   mainTableFields: ColumnConfig[] = [];
-  titleKey: string = 'GT_NET_EXCHANGE_LOG';
+  readonly titleKey = signal('GT_NET_EXCHANGE_LOG');
 
-  private routeSubscription: Subscription;
+  /** Stable value getter of the outer table, which shows plain properties of the tree */
+  readonly mainTableValueGetter = (row: GTNetExchangeLogTree, field: ColumnConfig) =>
+    this.getMainTableValue(row, field);
+
+  private readonly destroyRef = inject(DestroyRef);
+  /** Request of the current entity kind; a newer kind replaces one still outstanding */
+  private loadSubscription: Subscription;
   private supplierNodesCache: Map<number, TreeNode[]> = new Map();
   private consumerNodesCache: Map<number, TreeNode[]> = new Map();
 
@@ -143,16 +150,12 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
     // The three tabs of GTNetExchangeLogTabMenuComponent all resolve to the same ':entityKind' route,
     // so Angular reuses this component instance and ngOnInit runs only once. The entity kind must
     // therefore be re-derived on every parameter change, not read from the route snapshot.
-    this.routeSubscription = this.route.params.subscribe((params: Params) => {
+    this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params: Params) => {
       const entityKindParam = params['entityKind'];
       this.entityKind = entityKindParam ? decodeURIComponent(entityKindParam).toUpperCase() : 'LAST_PRICE';
-      this.titleKey = this.entityKind;
+      this.titleKey.set(this.entityKind);
       this.loadData();
     });
-  }
-
-  ngOnDestroy(): void {
-    this.routeSubscription?.unsubscribe();
   }
 
   getMainTableValue(row: GTNetExchangeLogTree, field: ColumnConfig): any {
@@ -181,9 +184,11 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
     this.supplierNodesCache.clear();
     this.consumerNodesCache.clear();
 
-    this.gtNetExchangeLogService.getAllExchangeLogTrees(this.entityKind).subscribe((trees) => {
-      this.exchangeLogTrees = trees;
-    });
+    this.loadSubscription?.unsubscribe();
+    this.loadSubscription = this.gtNetExchangeLogService
+      .getAllExchangeLogTrees(this.entityKind)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((trees) => this.exchangeLogTrees.set(trees));
   }
 
   private buildTreeNodes(node: GTNetExchangeLogNode): TreeNode[] {

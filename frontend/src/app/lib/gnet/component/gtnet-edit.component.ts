@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, signal, ViewChild } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import {
   AcceptRequestTypes,
@@ -17,7 +17,6 @@ import { GTNetService } from '../service/gtnet.service';
 import { AppHelper } from '../../helper/app.helper';
 import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
-import { Subscription } from 'rxjs';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { DataType } from '../../dynamic-form/models/data.type';
@@ -48,7 +47,6 @@ import { BaseSettings } from '../../base.settings';
   selector: 'gtnet-edit',
   standalone: true,
   imports: [DialogModule, ButtonModule, DynamicFormComponent, TranslateModule, EditableTableComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <p-dialog
       header="{{ 'GT_NET_NET_AND_MESSAGE' | translate }}"
@@ -65,13 +63,13 @@ import { BaseSettings } from '../../base.settings';
         (submitBt)="submit($event)">
       </dynamic-form>
 
-      @if (callParam?.isMyEntry && entityFieldsReady) {
+      @if (callParam?.isMyEntry && entityFieldsReady()) {
         <h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">
           {{ 'ENTITY_CONFIGURATIONS' | translate }}
         </h4>
         <editable-table
           #entityTable
-          [data]="gtNetEntities"
+          [data]="gtNetEntities()"
           [fields]="entityFields"
           dataKey="entityKind"
           [batchMode]="true"
@@ -79,7 +77,7 @@ import { BaseSettings } from '../../base.settings';
           [showEditColumn]="false"
           [selectionMode]="null"
           [contextMenuEnabled]="false"
-          [valueGetterFn]="getEntityValueByPath.bind(this)"
+          [valueGetterFn]="entityValueGetter"
           [baseLocale]="baseLocale"
           [scrollable]="false"
           [containerClass]="''"
@@ -100,13 +98,15 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
   @ViewChild('entityTable') entityTable: EditableTableComponent<GTNetEntity>;
 
   private readonly BASE_SETTING = 'BASE_SETTING';
-  private domainRemoteNameSubscribe: Subscription;
 
   // Entity table configuration
   entityFields: ColumnConfig[] = [];
   /** Entity data with string enum values for dropdown binding */
-  gtNetEntities: any[] = [];
-  entityFieldsReady = false;
+  readonly gtNetEntities = signal<any[]>([]);
+  /** True once the entity table headers are translated */
+  readonly entityFieldsReady = signal(false);
+  /** Stable value getter of the entity table */
+  readonly entityValueGetter = (row: GTNetEntity, field: ColumnConfig) => this.getEntityValueByPath(row, field);
   baseLocale: { language: string; dateFormat: string };
 
   // Exchange kind types from backend
@@ -275,28 +275,31 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       this.entityFields.forEach((field) => {
         field.headerTranslated = translations[field.headerKey] || field.headerKey;
       });
-      this.entityFieldsReady = true;
+      this.entityFieldsReady.set(true);
     });
   }
 
   protected override initialize(): void {
     if (this.callParam.isMyEntry) {
-      this.gps.getTimezones().subscribe((timezones: ValueKeyHtmlSelectOptions[]) => {
-        this.configObject.timeZone.valueKeyHtmlOptions = timezones;
-        this.configObject.serverOnline.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-          this.translateService,
-          GTNetServerOnlineStatusTypes
-        );
-        // A new entry keeps the field defaults; transferring an empty GTNet would overwrite them with null
-        if (this.callParam.gtNet) {
-          this.form.transferBusinessObjectToForm(this.callParam.gtNet);
-        } else {
-          this.form.setDefaultValues();
-        }
+      this.gps
+        .getTimezones()
+        .pipe(this.untilDialogClosed())
+        .subscribe((timezones: ValueKeyHtmlSelectOptions[]) => {
+          this.configObject.timeZone.valueKeyHtmlOptions = timezones;
+          this.configObject.serverOnline.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+            this.translateService,
+            GTNetServerOnlineStatusTypes
+          );
+          // A new entry keeps the field defaults; transferring an empty GTNet would overwrite them with null
+          if (this.callParam.gtNet) {
+            this.form.transferBusinessObjectToForm(this.callParam.gtNet);
+          } else {
+            this.form.setDefaultValues();
+          }
 
-        // Initialize entity table data
-        this.initializeEntities();
-      });
+          // Initialize entity table data
+          this.initializeEntities();
+        });
     }
   }
 
@@ -307,7 +310,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     const existingEntities = this.callParam.gtNet?.gtNetEntities || [];
 
     this.kindTypes = this.callParam.exchangeKindTypes;
-    this.gtNetEntities = this.kindTypes.map((kind) => this.findOrCreateEntity(existingEntities, kind));
+    this.gtNetEntities.set(this.kindTypes.map((kind) => this.findOrCreateEntity(existingEntities, kind)));
 
     // Create translated value store for entityKind display
     this.createEntityKindTranslations();
@@ -353,11 +356,13 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
           entityKindField.translatedValueMap[key] = translations[key] || key;
         });
         // Also add $ suffixed field for sorting
-        this.gtNetEntities.forEach((entity) => {
+        // In place: the editable table in batch mode keeps editing the same row objects
+        this.gtNetEntities().forEach((entity) => {
           const kindStr =
             typeof entity.entityKind === 'number' ? this.kindValueToName(entity.entityKind) : entity.entityKind;
           (entity as any)['entityKind$'] = translations[kindStr] || kindStr;
         });
+        this.viewChanged();
       });
     }
   }
@@ -446,7 +451,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       gtNet.serverOnline = GTNetServerOnlineStatusTypes[value['serverOnline']] as any;
 
       // Get entity configurations from the table
-      const entities = this.entityTable?.getData() || this.gtNetEntities;
+      const entities = this.entityTable?.getData() || this.gtNetEntities();
       gtNet.gtNetEntities = entities.map((entity) => this.convertEntityForSave(entity));
     }
 
@@ -472,10 +477,5 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       maxLimit: entity.maxLimit,
       gtNetConfigEntity: entity.gtNetConfigEntity
     };
-  }
-
-  override onHide(event): void {
-    this.domainRemoteNameSubscribe && this.domainRemoteNameSubscribe.unsubscribe();
-    super.onHide(event);
   }
 }

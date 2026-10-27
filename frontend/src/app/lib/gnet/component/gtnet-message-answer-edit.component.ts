@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { GTNetMessageAnswer, GTNetMessageAnswerCallParam } from '../model/gtnet.message.answer';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -9,7 +9,6 @@ import { GTNetMessageAnswerService } from '../service/gtnet.message.answer.servi
 import { GTNetProtocolService } from '../service/gtnet.protocol.service';
 import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
-import { Subscription } from 'rxjs';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { DataType } from '../../dynamic-form/models/data.type';
@@ -81,7 +80,6 @@ const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
   selector: 'gtnet-message-answer-edit',
   standalone: true,
   imports: [DialogModule, DynamicFormComponent, TranslateModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <p-dialog
       header="{{ 'GT_NET_MESSAGE_ANSWER' | translate }}"
@@ -103,7 +101,7 @@ const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
 export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetMessageAnswer> implements OnInit {
   @Input() callParam: GTNetMessageAnswerCallParam;
 
-  private requestMsgCodeSubscription: Subscription;
+  private readonly injector = inject(Injector);
   private currentTypeFilter: EvalExType = 'ANY';
   private textareaEventsBound = false;
 
@@ -148,7 +146,10 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
   protected override initialize(): void {
     // Which codes a rule may be written for, and which answers it may send, are the backend's decision: the same
     // registry rejects the pairing when the rule is saved.
-    this.gtNetProtocolService.whenLoaded().subscribe(() => this.initializeFromProtocol());
+    this.gtNetProtocolService
+      .whenLoaded()
+      .pipe(this.untilDialogClosed())
+      .subscribe(() => this.initializeFromProtocol());
   }
 
   /** Fills the two dropdowns once the protocol is available. */
@@ -164,11 +165,9 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     this.configObject.responseMsgCode.valueKeyHtmlOptions = [];
 
     // Subscribe to request code changes to update response code options
-    this.requestMsgCodeSubscription = this.configObject.requestMsgCode.formControl.valueChanges.subscribe(
-      (requestCode: string) => {
-        this.updateResponseCodeOptions(requestCode);
-      }
-    );
+    this.configObject.requestMsgCode.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((requestCode: string) => this.updateResponseCodeOptions(requestCode));
 
     // Load existing entity or set defaults
     const entity = this.callParam?.gtNetMessageAnswer ?? new GTNetMessageAnswer();
@@ -202,7 +201,6 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
   }
 
   override onHide(event): void {
-    this.requestMsgCodeSubscription?.unsubscribe();
     this.textareaEventsBound = false;
     this.currentTypeFilter = 'ANY';
     super.onHide(event);
@@ -511,20 +509,23 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
   }
 
   /**
-   * Binds event listeners to the textarea for cursor tracking.
+   * Binds event listeners to the textarea for cursor tracking once the form has rendered it.
    */
   private bindTextareaEvents(): void {
     if (this.textareaEventsBound) return;
 
-    setTimeout(() => {
-      const textarea = document.getElementById('responseMsgConditional') as HTMLTextAreaElement;
-      if (textarea) {
-        const handler = () => this.onTextareaInput();
-        textarea.addEventListener('click', handler);
-        textarea.addEventListener('keyup', handler);
-        textarea.addEventListener('contextmenu', handler);
-        this.textareaEventsBound = true;
-      }
-    }, 100);
+    afterNextRender(
+      () => {
+        const textarea = document.getElementById('responseMsgConditional') as HTMLTextAreaElement;
+        if (textarea && !this.textareaEventsBound) {
+          const handler = () => this.onTextareaInput();
+          textarea.addEventListener('click', handler);
+          textarea.addEventListener('keyup', handler);
+          textarea.addEventListener('contextmenu', handler);
+          this.textareaEventsBound = true;
+        }
+      },
+      { injector: this.injector }
+    );
   }
 }

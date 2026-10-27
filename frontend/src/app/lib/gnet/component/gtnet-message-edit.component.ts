@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import {
   getAvailableMessageCodes,
   getRequestableKindNames,
@@ -15,7 +15,6 @@ import { AppHelper } from '../../helper/app.helper';
 import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
-import { Subscription } from 'rxjs';
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
@@ -41,7 +40,6 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
   selector: 'gtnet-message-edit',
   standalone: true,
   imports: [DialogModule, DynamicFormComponent, TranslateModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <p-dialog
       header="{{ 'GT_NET_MESSAGE_SEND' | translate }}"
@@ -65,7 +63,6 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   private readonly MESSAGE_CODE = 'messageCode';
   private readonly VISIBILITY = 'visibility';
   private classDescriptorInputAndShows: ClassDescriptorInputAndShow;
-  messageCodeSubscription: Subscription;
 
   constructor(
     public translateService: TranslateService,
@@ -178,13 +175,13 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   }
 
   private valueChangedOnMessageCode(): void {
-    this.messageCodeSubscription = this.configObject[this.MESSAGE_CODE].formControl.valueChanges.subscribe(
-      (messageCode: GTNetMessageCodeType) => {
+    this.configObject[this.MESSAGE_CODE].formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((messageCode: GTNetMessageCodeType) => {
         this.createViewFromSelectedEnum(messageCode);
         this.updateVisibilityFieldDisplay(messageCode);
         this.updateWaitDaysApplyDisplay(messageCode);
-      }
-    );
+      });
   }
 
   /**
@@ -266,6 +263,8 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.configObject[this.VISIBILITY].formControl.disable();
     }
     this.configObject[this.VISIBILITY].invisible = visibilityWasInvisible;
+    // The template binds the replaced config array
+    this.viewChanged();
 
     if (this.msgCallParam.gtNetMessage) {
       setTimeout(() => this.setExistingModel());
@@ -358,10 +357,5 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
         gtNetMessageParamMap[fDIAS.fieldName] = new BaseParam(paramValue);
       });
     return gtNetMessageParamMap;
-  }
-
-  override onHide(event): void {
-    this.messageCodeSubscription && this.messageCodeSubscription.unsubscribe();
-    super.onHide(event);
   }
 }

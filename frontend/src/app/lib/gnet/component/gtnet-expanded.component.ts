@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { AccordionModule } from '@openng/optimus-ui/accordion';
@@ -116,8 +116,7 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
         </p-accordion-content>
       </p-accordion-panel>
     </p-accordion>
-  `,
-  changeDetection: ChangeDetectionStrategy.Eager
+  `
 })
 export class GTNetExpandedComponent {
   /** The peer of the expanded row. */

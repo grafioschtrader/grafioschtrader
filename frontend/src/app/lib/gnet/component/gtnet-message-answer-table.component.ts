@@ -1,6 +1,7 @@
-import { Component, Injector, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HelpIds } from '../../help/help.ids';
-import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
 import { GTNetMessageAnswer, GTNetMessageAnswerCallParam } from '../model/gtnet.message.answer';
 import { GTNetMessageAnswerService } from '../service/gtnet.message.answer.service';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
@@ -27,13 +28,14 @@ import { GTNetMessageCodeType } from '../model/gtnet.message';
   imports: [ConfigurableTableComponent, TranslateModule, GTNetMessageAnswerEditComponent],
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="'idGtNetMessageAnswer'"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollable]="false"
       [stripedRows]="true"
       [showGridlines]="true"
@@ -42,25 +44,24 @@ import { GTNetMessageCodeType } from '../model/gtnet.message';
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }"
-      [showContextMenu]="!!contextMenuItems && contextMenuItems.length > 0"
-      [contextMenuItems]="contextMenuItems"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [showContextMenu]="contextMenuItems()?.length > 0"
+      [contextMenuItems]="contextMenuItems()"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ 'GT_NET_MESSAGE_ANSWER' | translate }}</h4>
     </configurable-table>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <gtnet-message-answer-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         (closeDialog)="handleCloseDialog($event)">
       </gtnet-message-answer-edit>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
-export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenu<GTNetMessageAnswer> implements OnInit {
+export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenuSignal<GTNetMessageAnswer> implements OnInit {
   callParam: GTNetMessageAnswerCallParam;
 
   constructor(
@@ -87,7 +88,7 @@ export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenu<GTNet
       gps,
       usersettingsService,
       injector,
-      gps.hasRole(BaseSettings.ROLE_ADMIN) ? TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS : []
+      gps.hasRole(BaseSettings.ROLE_ADMIN) ? TableCrudSupportMenuSignal.ALLOW_ALL_CRUD_OPERATIONS : []
     );
   }
 
@@ -124,20 +125,23 @@ export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenu<GTNet
   }
 
   protected override readData(): void {
-    this.gtNetMessageAnswerService.getAllGTNetMessageAnswers().subscribe((data) => {
-      // Convert enum values to string names for display
-      data.forEach((item) => {
-        if (typeof item.requestMsgCode === 'number') {
-          item.requestMsgCode = GTNetMessageCodeType[item.requestMsgCode] as any;
-        }
-        if (typeof item.responseMsgCode === 'number') {
-          item.responseMsgCode = GTNetMessageCodeType[item.responseMsgCode] as any;
-        }
+    this.gtNetMessageAnswerService
+      .getAllGTNetMessageAnswers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        // Convert enum values to string names for display
+        data.forEach((item) => {
+          if (typeof item.requestMsgCode === 'number') {
+            item.requestMsgCode = GTNetMessageCodeType[item.requestMsgCode] as any;
+          }
+          if (typeof item.responseMsgCode === 'number') {
+            item.responseMsgCode = GTNetMessageCodeType[item.responseMsgCode] as any;
+          }
+        });
+        this.entityList.set(data);
+        this.prepareTableAndTranslate();
+        this.createTranslatedValueStoreAndFilterField(data);
+        this.refreshSelectedEntity();
       });
-      this.entityList = data;
-      this.prepareTableAndTranslate();
-      this.createTranslatedValueStoreAndFilterField(data);
-      this.refreshSelectedEntity();
-    });
   }
 }

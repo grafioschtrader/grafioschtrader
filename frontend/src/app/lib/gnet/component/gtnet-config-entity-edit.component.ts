@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { GTNetConfigEntity, SupplierConsumerLogTypes } from '../model/gtnet';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -41,7 +41,6 @@ import { GTNetConfigEntityDisplay } from './gtnet-config-entity-table.component'
       </dynamic-form>
     </p-dialog>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [GTNetConfigEntityService]
 })
 export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetConfigEntity> implements OnInit {

@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output, signal, ViewChild } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
@@ -60,7 +61,6 @@ import { FilterType } from '../../datashowbase/filter.type';
     GTNetMessageEditComponent,
     AngularSvgIconModule
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div
       #cmDiv
@@ -150,7 +150,7 @@ import { FilterType } from '../../datashowbase/filter.type';
                   @if (rowData.canDelete && !rowData.replyTo) {
                     <p-checkbox
                       [binary]="true"
-                      [ngModel]="selectedDeletableIds.has(rowData.idGtNetMessage)"
+                      [ngModel]="selectedDeletableIds().has(rowData.idGtNetMessage)"
                       (onChange)="onDeleteCheckChange($event, rowData)">
                     </p-checkbox>
                   }
@@ -201,12 +201,12 @@ import { FilterType } from '../../datashowbase/filter.type';
             </tr>
           </ng-template>
         </p-treeTable>
-        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems" appendTo="body"> </p-contextMenu>
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems()" appendTo="body"> </p-contextMenu>
       </div>
     </div>
-    @if (visibleDialogMsg) {
+    @if (visibleDialogMsg()) {
       <gtnet-message-edit
-        [visibleDialog]="visibleDialogMsg"
+        [visibleDialog]="visibleDialogMsg()"
         [msgCallParam]="msgCallParam"
         (closeDialog)="handleCloseDialogMsg($event)">
       </gtnet-message-edit>
@@ -238,14 +238,17 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   rootNode: TreeNode = { children: [] };
   selectedNode: TreeNode;
-  selectedGTNetMessage: GTNetMessage;
-  contextMenuItems: MenuItem[] = [];
-  visibleDialogMsg = false;
+  /** Translated menu of the selection, shown as context menu and in the menu bar */
+  readonly contextMenuItems = signal<MenuItem[]>([]);
+  readonly visibleDialogMsg = signal(false);
   msgCallParam: MsgCallParam;
   protected readonly canAdministerGTNet: boolean;
 
-  /** Set of message IDs selected for batch deletion */
-  selectedDeletableIds: Set<number> = new Set();
+  /** IDs of the messages selected for batch deletion; every change publishes a new set */
+  readonly selectedDeletableIds = signal<ReadonlySet<number>>(new Set());
+
+  /** Translation of the latest menu; a newer menu replaces one that is still being translated */
+  private menuSubscription: Subscription;
 
   constructor(
     private activePanelService: ActivePanelService,
@@ -260,6 +263,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     super(translateService, gps, filterService);
     this.canAdministerGTNet = gps.hasRole(BaseSettings.ROLE_ADMIN);
     GTNetMessageTreeTableComponent.registerIcons(this.iconReg);
+    inject(DestroyRef).onDestroy(() => this.menuSubscription?.unsubscribe());
   }
 
   private static registerIcons(iconReg: SvgIconRegistryService): void {
@@ -412,6 +416,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       this.gtNetMessageService.markAsRead(msg.idGtNetMessage).subscribe(() => {
         // Update local state immediately
         msg.hasBeenRead = true;
+        this.notifyViewChanged();
       });
     }
   }
@@ -432,11 +437,15 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   callMeDeactivate(): void {}
 
+  /** Publishes the translated menu of the selection as context menu and in the menu bar. */
   private setMenuItemsToActivePanel(): void {
-    this.activePanelService.activatePanel(this, {
-      editMenu: this.getMenuItems()
-    });
-    this.contextMenuItems = this.getMenuItems();
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = TranslateHelper.translateMenuItems$(this.getMenuItems(), this.translateService).subscribe(
+      (menuItems) => {
+        this.contextMenuItems.set(menuItems);
+        this.activePanelService.activatePanel(this, { editMenu: menuItems });
+      }
+    );
   }
 
   public getHelpContextId(): string {
@@ -466,7 +475,6 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
         command: () => this.deleteSelected()
       });
     }
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
@@ -519,7 +527,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       null,
       parentVisibility
     );
-    this.visibleDialogMsg = true;
+    this.visibleDialogMsg.set(true);
   }
 
   /**
@@ -608,7 +616,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   }
 
   handleCloseDialogMsg(processedActionData: ProcessedActionData): void {
-    this.visibleDialogMsg = false;
+    this.visibleDialogMsg.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.dataChanged.emit(processedActionData);
     }
@@ -644,11 +652,13 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     if (!this.canAdministerGTNet) {
       return;
     }
+    const selected = new Set(this.selectedDeletableIds());
     if (event.checked) {
-      this.selectedDeletableIds.add(rowData.idGtNetMessage);
+      selected.add(rowData.idGtNetMessage);
     } else {
-      this.selectedDeletableIds.delete(rowData.idGtNetMessage);
+      selected.delete(rowData.idGtNetMessage);
     }
+    this.selectedDeletableIds.set(selected);
     // Update menu items to reflect selection state
     this.setMenuItemsToActivePanel();
   }
@@ -691,7 +701,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     if (deletable.length === 0) {
       return false;
     }
-    return deletable.every((msg) => this.selectedDeletableIds.has(msg.idGtNetMessage));
+    const selected = this.selectedDeletableIds();
+    return deletable.every((msg) => selected.has(msg.idGtNetMessage));
   }
 
   /**
@@ -703,13 +714,15 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       return;
     }
     const deletable = this.getFilteredDeletableMessages();
+    const selected = new Set(this.selectedDeletableIds());
     if (event.checked) {
       // Select all deletable messages
-      deletable.forEach((msg) => this.selectedDeletableIds.add(msg.idGtNetMessage));
+      deletable.forEach((msg) => selected.add(msg.idGtNetMessage));
     } else {
       // Deselect all deletable messages
-      deletable.forEach((msg) => this.selectedDeletableIds.delete(msg.idGtNetMessage));
+      deletable.forEach((msg) => selected.delete(msg.idGtNetMessage));
     }
+    this.selectedDeletableIds.set(selected);
     // Update menu items to reflect selection state
     this.setMenuItemsToActivePanel();
   }
@@ -718,7 +731,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * Checks if there are any messages selected for deletion.
    */
   canDeleteSelected(): boolean {
-    return this.canAdministerGTNet && this.selectedDeletableIds.size > 0;
+    return this.canAdministerGTNet && this.selectedDeletableIds().size > 0;
   }
 
   /**
@@ -729,12 +742,12 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     if (!this.canDeleteSelected()) {
       return;
     }
-    const idsToDelete = Array.from(this.selectedDeletableIds);
+    const idsToDelete = Array.from(this.selectedDeletableIds());
     // Get idGtNet from the first message (all messages in this component belong to the same GTNet)
     const idGtNet = this.gtNetMessages?.[0]?.idGtNet;
     this.gtNetService.deleteMessageBatch(idsToDelete).subscribe({
       next: () => {
-        this.selectedDeletableIds.clear();
+        this.selectedDeletableIds.set(new Set());
         this.dataChanged.emit(new ProcessedActionData(ProcessedAction.DELETED, idGtNet));
       }
     });
@@ -745,7 +758,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * Called from parent component when messages are reloaded.
    */
   clearSelection(): void {
-    this.selectedDeletableIds.clear();
+    this.selectedDeletableIds.set(new Set());
     this.setMenuItemsToActivePanel();
   }
 }

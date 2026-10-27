@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { GTNetConfig } from '../model/gtnet';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -23,7 +23,6 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
   selector: 'gtnet-config-edit',
   standalone: true,
   imports: [DialogModule, DynamicFormComponent, TranslateModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <p-dialog
       header="{{ 'GT_NET_CONFIG_EDIT' | translate }}"

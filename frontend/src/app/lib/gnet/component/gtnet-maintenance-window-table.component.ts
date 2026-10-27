@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Injector, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -26,13 +26,13 @@ import { GTNetMaintenanceWindow } from '../model/gtnet';
       [fields]="fields"
       [dataKey]="'idGtNetMaintenanceWindow'"
       [containerClass]="{ 'data-container-full': true, 'nested-table': true }"
-      [valueGetterFn]="getValueByPath.bind(this)"
-      [customSortFn]="customSort.bind(this)"
+      [fieldsRevision]="fieldsRevision()"
+      [valueGetterFn]="valueGetter"
+      [customSortFn]="customSorter"
       [multiSortMeta]="multiSortMeta"
       [baseLocale]="baseLocale">
     </configurable-table>
-  `,
-  changeDetection: ChangeDetectionStrategy.Eager
+  `
 })
 export class GTNetMaintenanceWindowTableComponent extends TableConfigBase implements OnChanges {
   @Input() maintenanceWindows: GTNetMaintenanceWindow[] = [];

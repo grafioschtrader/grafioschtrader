@@ -1,7 +1,8 @@
-import { Component, Injector, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, computed, Injector, QueryList, signal, ViewChildren } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
 import { GTNet, GTNetWithMessages } from '../model/gtnet';
 import {
   GTNetMessage,
@@ -54,12 +55,13 @@ import { ProcessedActionData } from '../../types/processed.action.data';
   ],
   template: `
     <configurable-table
-      [data]="getFilteredGtNetList()"
+      [data]="filteredGtNetList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="'idGtNet'"
       [selectionMode]="'multiple'"
       [(selection)]="selectedEntities"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems()"
       [showContextMenu]="isUserAdmin"
       [containerClass]="{
         'data-container-full': true,
@@ -68,9 +70,9 @@ import { ProcessedActionData } from '../../types/processed.action.data';
       }"
       [expandable]="true"
       [expandedRowTemplate]="expandedRow"
-      [canExpandFn]="canExpand.bind(this)"
-      [ownerHighlightFn]="isMyEntry.bind(this)"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [canExpandFn]="canExpand"
+      [ownerHighlightFn]="isMyEntry"
+      [valueGetterFn]="valueGetter"
       [contextMenuAppendTo]="'body'"
       (componentClick)="onComponentClick($event)"
       (rowExpand)="onRowExpand($event)">
@@ -78,13 +80,9 @@ import { ProcessedActionData } from '../../types/processed.action.data';
     </configurable-table>
 
     <ng-template #expandedRow let-row>
-      @if (isLoadingMessages(row.idGtNet)) {
-        <div style="padding: 1rem; text-align: center;">
-          <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
-        </div>
-      } @else if (gtNetMessageMap[row.idGtNet]?.length) {
+      @if (gtNetMessageMap()[row.idGtNet]?.length) {
         <gtnet-message-treetable
-          [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
+          [gtNetMessages]="gtNetMessageMap()[row.idGtNet]"
           [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
           [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
           [formDefinitions]="formDefinitions"
@@ -98,39 +96,48 @@ import { ProcessedActionData } from '../../types/processed.action.data';
       }
     </ng-template>
 
-    @if (visibleDialogMsg) {
+    @if (visibleDialogMsg()) {
       <gtnet-message-edit
-        [visibleDialog]="visibleDialogMsg"
+        [visibleDialog]="visibleDialogMsg()"
         [msgCallParam]="msgCallParam"
         (closeDialog)="handleCloseDialogMsg($event)">
       </gtnet-message-edit>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
-export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
+export class GTNetAdminMessagesComponent extends TableCrudSupportMenuSignal<GTNet> {
   @ViewChildren(GTNetMessageTreeTableComponent)
   messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
 
   private readonly domainRemoteName = 'domainRemoteName';
-  gtNetList: GTNet[] = [];
-  gtNetMyEntryId: number;
+  readonly gtNetMyEntryId = signal<number>(null);
   /** Selected entities for multi-select checkbox mode */
-  selectedEntities: GTNet[] = [];
+  readonly selectedEntities = signal<GTNet[]>([]);
+  /**
+   * The peers an admin message can go to: every entry except the own one with a completed handshake (both tokens
+   * present, not merely a configuration row).
+   */
+  readonly filteredGtNetList = computed(() =>
+    this.entityList().filter(
+      (gtNet) => gtNet.idGtNet !== this.gtNetMyEntryId() && !!gtNet.gtNetConfig?.authorizedRemoteEntry
+    )
+  );
   /** Message count per idGtNet from admin message counts */
   gtNetMessageCountMap: { [key: number]: number } = {};
-  /** Cache for loaded admin messages (lazy loaded when row is expanded) */
-  gtNetMessageMap: { [key: number]: GTNetMessage[] } = {};
-  /** Set of idGtNet values for which messages have been loaded */
-  loadedMessageIds = new Set<number>();
-  /** Set of idGtNet values currently being loaded */
-  loadingMessageIds = new Set<number>();
+  /** Admin messages per idGtNet of the expanded rows; every change publishes a new map */
+  readonly gtNetMessageMap = signal<{ [key: number]: GTNetMessage[] }>({});
   outgoingPendingReplies: { [key: number]: number[] } = {};
   incomingPendingReplies: { [key: number]: number[] } = {};
   formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
-  visibleDialogMsg = false;
+  readonly visibleDialogMsg = signal(false);
   msgCallParam: MsgCallParam;
+
+  /** Only rows with admin messages have something to expand */
+  readonly canExpand = (row: GTNet): boolean => (this.gtNetMessageCountMap[row.idGtNet] ?? 0) > 0;
+
+  /** Highlights the own entry */
+  readonly isMyEntry = (row: GTNet, field: ColumnConfig): boolean => row.idGtNet === this.gtNetMyEntryId();
   /** All admin messages loaded from backend */
   private allAdminMessages: GTNetMessage[] = [];
   /** Whether current user has admin role (only admins can send admin messages) */
@@ -202,41 +209,35 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
       ...(!this.formDefinitions ? [this.gtNetMessageService.getAllFormDefinitionsWithClass()] : [])
     ];
 
-    combineLatest(observable).subscribe((data) => {
-      const gtNetWithMessages = <GTNetWithMessages>data[1];
-      this.allAdminMessages = <GTNetMessage[]>data[2];
-      this.gtNetMessageCountMap = <{ [key: number]: number }>data[3];
-      this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[4];
+    combineLatest(observable)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        const gtNetWithMessages = <GTNetWithMessages>data[1];
+        this.allAdminMessages = <GTNetMessage[]>data[2];
+        this.gtNetMessageCountMap = <{ [key: number]: number }>data[3];
+        this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[4];
 
-      // Show all GTNet domains so admins can send messages to any of them
-      this.gtNetList = gtNetWithMessages.gtNetList;
+        // Calculate pending replies from admin messages only
+        this.calculatePendingReplies();
 
-      this.gtNetMyEntryId = gtNetWithMessages.gtNetMyEntryId;
+        this.createTranslatedValueStoreAndFilterField(gtNetWithMessages.gtNetList);
 
-      // Calculate pending replies from admin messages only
-      this.calculatePendingReplies();
+        // Re-populate messages for previously expanded rows
+        const gtNetMessageMap: { [key: number]: GTNetMessage[] } = {};
+        Object.keys(this.gtNetMessageMap()).forEach((key) => {
+          const idGtNet = Number(key);
+          const messages = this.allAdminMessages.filter((msg) => msg.idGtNet === idGtNet);
+          if (messages.length > 0) {
+            gtNetMessageMap[idGtNet] = messages;
+          }
+        });
+        this.gtNetMessageMap.set(gtNetMessageMap);
 
-      this.createTranslatedValueStoreAndFilterField(this.gtNetList);
-
-      // Save previously expanded row IDs before clearing
-      const previouslyLoadedIds = new Set(this.loadedMessageIds);
-
-      // Clear message cache on data refresh
-      this.gtNetMessageMap = {};
-      this.loadedMessageIds.clear();
-      this.loadingMessageIds.clear();
-
-      // Re-populate messages for previously expanded rows
-      previouslyLoadedIds.forEach((idGtNet) => {
-        const messages = this.allAdminMessages.filter((msg) => msg.idGtNet === idGtNet);
-        if (messages.length > 0) {
-          this.gtNetMessageMap[idGtNet] = messages;
-          this.loadedMessageIds.add(idGtNet);
-        }
+        this.gtNetMyEntryId.set(gtNetWithMessages.gtNetMyEntryId);
+        // Show all GTNet domains so admins can send messages to any of them
+        this.entityList.set(gtNetWithMessages.gtNetList);
+        this.prepareTableAndTranslate();
       });
-
-      this.prepareTableAndTranslate();
-    });
   }
 
   /**
@@ -283,43 +284,32 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
   override onComponentClick(event): void {
     if (!event[GTNetMessageTreeTableComponent.consumedGT]) {
-      this.resetMenu(this.selectedEntities?.length > 0 ? this.selectedEntities[0] : null);
+      this.resetMenu(this.selectedEntities()[0] ?? null);
     }
   }
 
-  public override getEditMenuItems(): MenuItem[] {
+  protected override getEditMenuItems(entity: GTNet): MenuItem[] {
     const menuItems: MenuItem[] = [];
     // Only admins can send admin messages
     if (this.isUserAdmin) {
       menuItems.push({
         label: 'GT_NET_ADMIN_MESSAGE_SEND',
         command: (e) => this.sendAdminMsg(),
-        disabled: this.selectedEntities.length === 0
+        disabled: this.selectedEntities().length === 0
       });
     }
     return menuItems;
-  }
-
-  /**
-   * Returns the list of GTNet entries filtered for multi-select:
-   * - Excludes the local server's own entry
-   * - Only includes entries with completed handshake (both tokens present, not merely a configuration row)
-   */
-  getFilteredGtNetList(): GTNet[] {
-    return this.gtNetList.filter(
-      (gtNet) => gtNet.idGtNet !== this.gtNetMyEntryId && !!gtNet.gtNetConfig?.authorizedRemoteEntry
-    );
   }
 
   private sendAdminMsg(): void {
     if (!this.isUserAdmin) {
       return;
     }
-    const targetIds = this.selectedEntities.map((e) => e.idGtNet);
+    const targetIds = this.selectedEntities().map((e) => e.idGtNet);
     this.msgCallParam = new MsgCallParam(this.formDefinitions, null, null, null, false, null, null);
     this.msgCallParam.targetIds = targetIds;
     this.msgCallParam.preselectedMessageCode = GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C;
-    this.visibleDialogMsg = true;
+    this.visibleDialogMsg.set(true);
   }
 
   public override getHelpContextId(): string {
@@ -327,55 +317,34 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   handleCloseDialogMsg(processedActionData: ProcessedActionData): void {
-    this.visibleDialogMsg = false;
+    this.visibleDialogMsg.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
   }
 
-  canExpand(row: GTNet): boolean {
-    return (this.gtNetMessageCountMap[row.idGtNet] ?? 0) > 0;
-  }
-
   /**
-   * Handles row expansion event - filters admin messages for this GTNet from cached data.
+   * Handles row expansion event - takes the admin messages of this GTNet from the data loaded with the table.
    */
   onRowExpand(event: { data: GTNet }): void {
     const idGtNet = event.data.idGtNet;
     const hasMessages = (this.gtNetMessageCountMap[idGtNet] ?? 0) > 0;
-
-    // Only process if there are messages and not already loaded
-    if (hasMessages && !this.loadedMessageIds.has(idGtNet) && !this.loadingMessageIds.has(idGtNet)) {
-      this.loadingMessageIds.add(idGtNet);
-
-      // Filter admin messages for this GTNet from already loaded data
-      setTimeout(() => {
-        this.gtNetMessageMap[idGtNet] = this.allAdminMessages.filter((msg) => msg.idGtNet === idGtNet);
-        this.loadedMessageIds.add(idGtNet);
-        this.loadingMessageIds.delete(idGtNet);
-        this.clearTreeTableSelection();
-      });
+    if (hasMessages && !this.gtNetMessageMap()[idGtNet]) {
+      this.gtNetMessageMap.update((map) => ({
+        ...map,
+        [idGtNet]: this.allAdminMessages.filter((msg) => msg.idGtNet === idGtNet)
+      }));
+      this.clearTreeTableSelection();
     }
   }
 
   /**
-   * Clears the selection in all message tree table components.
+   * Clears the selection in all message tree table components once the expanded row is rendered.
    */
   private clearTreeTableSelection(): void {
-    setTimeout(() => {
-      this.messageTreeTables?.forEach((treeTable) => treeTable.clearSelection());
+    afterNextRender(() => this.messageTreeTables?.forEach((treeTable) => treeTable.clearSelection()), {
+      injector: this.injector
     });
-  }
-
-  /**
-   * Checks if messages are currently being loaded for a GTNet.
-   */
-  isLoadingMessages(idGtNet: number): boolean {
-    return this.loadingMessageIds.has(idGtNet);
-  }
-
-  isMyEntry(row: GTNet, field: ColumnConfig): boolean {
-    return row.idGtNet === this.gtNetMyEntryId;
   }
 
   protected override hasRightsForUpdateEntity(row: GTNet): boolean {

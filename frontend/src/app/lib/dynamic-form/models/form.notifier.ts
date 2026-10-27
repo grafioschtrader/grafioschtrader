@@ -39,7 +39,8 @@ export const FIELD_DISPLAY_PROPERTIES = [
   'calendarConfig',
   'inputNumberSettings',
   'usedLayoutColumns',
-  'buttonInForm'
+  'buttonInForm',
+  'contextMenuItems'
 ] as const;
 
 /** The FormGroupDefinition properties a template reads; its error-message shows the cross-field errors. */

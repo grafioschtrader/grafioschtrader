@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Injector, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Injector, Input, OnInit, Output, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { TableConfigBase } from '../../datashowbase/table.config.base';
 import { ExchangeKindTypeInfo, GTNetConfigEntity, GTNetEntity, SupplierConsumerLogTypes } from '../model/gtnet';
@@ -40,28 +41,28 @@ import { BaseSettings } from '../../base.settings';
         {{ 'GT_NET_CONFIG_ENTITY_TABLE' | translate }}
       </h5>
       <configurable-table
-        [data]="configEntities"
+        [data]="configEntities()"
         [fields]="fields"
+        [fieldsRevision]="fieldsRevision()"
         [dataKey]="'idGtNetEntity'"
-        [(selection)]="selectedEntity"
-        [contextMenuItems]="contextMenuItems"
+        [selection]="selectedEntity()"
+        [contextMenuItems]="contextMenuItems()"
         [contextMenuAppendTo]="'body'"
         [showContextMenu]="canAdministerGTNet"
         [containerClass]="{ 'data-container-full': true, 'nested-table': true }"
-        [valueGetterFn]="getValueByPath.bind(this)"
+        [valueGetterFn]="valueGetter"
         (selectionChange)="onSelectionChange($event)">
       </configurable-table>
     </div>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <gtnet-config-entity-edit
-        [visibleDialog]="visibleDialog"
-        [gtNetConfigEntity]="selectedEntity"
+        [visibleDialog]="visibleDialog()"
+        [gtNetConfigEntity]="selectedEntity()"
         (closeDialog)="handleCloseDialog($event)">
       </gtnet-config-entity-edit>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .nested-table-container {
@@ -84,11 +85,15 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   @Input() exchangeKindTypes: ExchangeKindTypeInfo[] = [];
   @Output() dataChanged = new EventEmitter<ProcessedActionData>();
 
-  configEntities: GTNetConfigEntityDisplay[] = [];
-  selectedEntity: GTNetConfigEntityDisplay = null;
-  contextMenuItems: MenuItem[] = [];
-  visibleDialog = false;
+  readonly configEntities = signal<GTNetConfigEntityDisplay[]>([]);
+  readonly selectedEntity = signal<GTNetConfigEntityDisplay>(null);
+  /** Translated context menu of the selected row */
+  readonly contextMenuItems = signal<MenuItem[]>([]);
+  readonly visibleDialog = signal(false);
   protected readonly canAdministerGTNet: boolean;
+
+  /** Translation of the latest menu; a newer menu replaces one that is still being translated */
+  private menuSubscription: Subscription;
 
   constructor(
     filterService: FilterService,
@@ -99,6 +104,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.canAdministerGTNet = gps.hasRole(BaseSettings.ROLE_ADMIN);
+    inject(DestroyRef).onDestroy(() => this.menuSubscription?.unsubscribe());
   }
 
   ngOnInit(): void {
@@ -118,14 +124,15 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
     });
     this.addColumnFeqH(DataType.NumericInteger, 'consumerUsage', true, false);
 
-    this.prepareData();
-    this.createTranslatedValueStore(this.configEntities);
+    const configEntities = this.prepareData();
+    this.createTranslatedValueStore(configEntities);
+    this.configEntities.set(configEntities);
     this.translateHeadersAndColumns();
     this.updateContextMenu();
   }
 
-  private prepareData(): void {
-    this.configEntities = this.gtNetEntities
+  private prepareData(): GTNetConfigEntityDisplay[] {
+    return this.gtNetEntities
       .filter((entity) => entity.gtNetConfigEntity != null)
       .map((entity) => this.createDisplayEntity(entity));
   }
@@ -160,29 +167,32 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   }
 
   onSelectionChange(entity: GTNetConfigEntityDisplay | GTNetConfigEntityDisplay[]): void {
-    this.selectedEntity = Array.isArray(entity) ? entity[0] : entity;
+    this.selectedEntity.set((Array.isArray(entity) ? entity[0] : entity) ?? null);
     this.updateContextMenu();
   }
 
   private updateContextMenu(): void {
-    this.contextMenuItems = [];
-    if (this.canAdministerGTNet && this.selectedEntity) {
-      this.contextMenuItems.push({
+    const menuItems: MenuItem[] = [];
+    if (this.canAdministerGTNet && this.selectedEntity()) {
+      menuItems.push({
         label: 'EDIT_RECORD|GT_NET_CONFIG_ENTITY_EDIT',
         command: () => this.openEditDialog()
       });
     }
-    TranslateHelper.translateMenuItems(this.contextMenuItems, this.translateService);
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = TranslateHelper.translateMenuItems$(menuItems, this.translateService).subscribe(
+      (translated) => this.contextMenuItems.set(translated)
+    );
   }
 
   private openEditDialog(): void {
-    if (this.canAdministerGTNet && this.selectedEntity) {
-      this.visibleDialog = true;
+    if (this.canAdministerGTNet && this.selectedEntity()) {
+      this.visibleDialog.set(true);
     }
   }
 
   handleCloseDialog(processedActionData: ProcessedActionData): void {
-    this.visibleDialog = false;
+    this.visibleDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.dataChanged.emit(processedActionData);
     }

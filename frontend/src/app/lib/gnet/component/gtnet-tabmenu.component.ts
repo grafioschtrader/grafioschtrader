@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 import { SharedTabMenuComponent } from '../../tabmenu/component/shared.tab.menu.component';
@@ -14,7 +14,6 @@ import { BaseSettings } from '../../base.settings';
   standalone: true,
   imports: [SharedTabMenuComponent, RouterModule],
   styles: [':host { display: block; height: 100%; }'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
       <router-outlet></router-outlet>
