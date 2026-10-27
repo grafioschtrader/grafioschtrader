@@ -60,6 +60,12 @@ async function addExistingCurrencypair(page: Page, row: CurrencypairRow, pairPat
   await addDialog.locator('button[type="submit"]').click();
 
   const resultRow = addDialog.locator('add-instrument-table tbody tr').filter({ hasText: pairPattern });
+  // A populated test database can have more than one page of pairs for the selected currency.
+  await expect(addDialog.locator('add-instrument-table tbody tr').first()).toBeVisible();
+  const nextPage = addDialog.getByRole('button', { name: 'Next Page', exact: true });
+  while ((await resultRow.count()) === 0 && (await nextPage.isEnabled())) {
+    await nextPage.click();
+  }
   await expect(resultRow).toHaveCount(1, { timeout: 15_000 });
   await resultRow.locator('p-tablecheckbox').click();
 

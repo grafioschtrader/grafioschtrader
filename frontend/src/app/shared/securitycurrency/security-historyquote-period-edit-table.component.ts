@@ -1,4 +1,4 @@
-import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -20,7 +20,6 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   selector: 'security-historyquote-period-edit-table',
   templateUrl: './view/split.period.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TableModule, ButtonModule, AngularSvgIconModule]
 })
 export class SecurityHistoryquotePeriodEditTableComponent extends SplitPeriodTableBase<HistoryquotePeriod> {

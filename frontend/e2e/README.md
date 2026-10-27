@@ -292,7 +292,8 @@ dialog. Both search modes retain existing rows and add only missing instruments,
 `backend/grafioschtrader-server/src/test/resources/testdata/currencypair.csv` and adds them to `alledit`'s retained
 `currencypair` watchlist. A rerun accepts an existing watchlist row; if the pair exists globally but is absent from
 the watchlist, the spec adds it through the existing-instrument dialog. Creation involves two sequential writes:
-`POST /api/currencypair`, followed by `PUT /api/watchlist/{id}/addSecuritycurrency`. The spec explicitly awaits the
+`POST /api/currencypair`, followed by `PUT /api/watchlist/{id}/addSecuritycurrency`. The existing-instrument search
+advances through its result pages so a populated database cannot hide the matching pair on a later page. The spec explicitly awaits the
 second response before waiting for the dialog to close and the row to refresh. A failed creation POST also ends
 the wait and reports its HTTP status and response body, so server errors are not misreported as dialog timeouts.
 If the response reports a missing compiler-generated class such as `BaseFeedConnector$1`, stop the backend,
@@ -322,6 +323,20 @@ These checks cover the three OnPush child tables of the lookup dialog.
 The spec deletes its own watchlist before and after the run; it never saves a security. It needs the Spanish direct
 investment asset class and Madrid exchange from the preceding master-data specs. Run with
 `npx playwright test e2e/053-security-lookup.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Instrument editor notification spec (054-*)
+
+`054-instrument-editor-notification.spec.ts` opens unsaved currency-pair, security and derived-instrument drafts
+from its own `Instrument OnPush e2e` watchlist as `alledit`. It holds real helper responses to verify cancellation
+when closing, reopening before an older response arrives, and preserving the newer draft. A failed helper request
+must show a toast and allow reopening. The remaining scenarios cover split and price-period add/edit/delete,
+translated table headers, a late instrument limit, delayed bond-form metadata with a manually overridden coupon,
+and repeated addition/removal of formula-driven instrument controls.
+
+The test requires the Spanish equity, Austrian bond and fixed-deposit asset classes plus the Madrid and Private
+Papers exchanges. It deletes its own empty watchlist before each scenario and in teardown; no instrument, split,
+price period, price-download task or transaction is persisted. Run against the verified test services with
+`npx playwright test e2e/054-instrument-editor-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## Global trading calendar spec (055-*)
 

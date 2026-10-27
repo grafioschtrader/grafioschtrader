@@ -1,12 +1,20 @@
-import { Component, Input, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnInit,
+  ViewChild,
+  afterNextRender,
+  AfterRenderRef,
+  inject,
+  Injector,
+  signal
+} from '@angular/core';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MainDialogService } from '../../lib/mainmenubar/service/main.dialog.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { Security } from '../../entities/security';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -16,14 +24,13 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { SecuritycurrencySearchAndSetDialogComponent } from './securitycurrency-search-and-set-dialog.component';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { combineLatest, Observable, Subscription } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { Stockexchange } from '../../entities/stockexchange';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { Assetclass } from '../../entities/assetclass';
 import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
 import { StockexchangeService } from '../../stockexchange/service/stockexchange.service';
 import { AssetclassService } from '../../assetclass/service/assetclass.service';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { DistributionFrequency } from '../../shared/types/distribution.frequency';
 import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
@@ -31,7 +38,6 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { SecurityService } from '../service/security.service';
 import { AssetclassType } from '../../shared/types/assetclass.type';
-import { CurrencypairService } from '../service/currencypair.service';
 import { SupplementCriteria } from '../model/supplement.criteria';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { SecurityDerivedLink } from '../../entities/security.derived.link';
@@ -40,7 +46,8 @@ import { AppSettings } from '../../shared/app.settings';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 
 /**
  * To create a derived instrument a base instrument is required. Additionally, a formula can be added. Prices depend on other instrument,
@@ -57,7 +64,7 @@ import { DialogService } from '@openng/optimus-ui/dynamicdialog';
       (onHide)="onHide($event)"
       [modal]="true">
       <dynamic-form
-        [config]="config"
+        [config]="formFields()"
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
@@ -67,7 +74,6 @@ import { DialogService } from '@openng/optimus-ui/dynamicdialog';
   `,
   standalone: true,
   imports: [TranslateModule, DialogModule, DynamicFormComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class SecurityDerivedEditComponent extends SimpleEditBase implements OnInit {
@@ -81,9 +87,11 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
 
   readonly derivedData = 'DERIVED_DATA';
   supplementCriteria: SupplementCriteria;
-  formulaSubscribe: Subscription;
+  readonly formFields = signal<FieldConfig[]>([]);
+  private readonly injector = inject(Injector);
+  private pendingRender: AfterRenderRef;
+  private instrumentDialog: DynamicDialogRef;
 
-  private dialogSecurityTargetFieldname: string;
   private baseInstrument: Security | CurrencypairWatchlist;
   private additionalInstruments: {
     [fieldName: string]: Security | CurrencypairWatchlist;
@@ -99,28 +107,30 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     public translateService: TranslateService,
     private gpsGT: GlobalparameterGTService,
     private messageToastService: MessageToastService,
-    private loginService: LoginService,
-    private mainDialogService: MainDialogService,
     private stockexchangeService: StockexchangeService,
     private assetclassService: AssetclassService,
     private securityService: SecurityService,
-    private currencypairService: CurrencypairService,
     private dialogService: DialogService,
     gps: GlobalparameterService
   ) {
     super(HelpIds.HELP_WATCHLIST_DERIVED_INSTRUMENT, gps);
     this.supplementCriteria = new SupplementCriteria(false, true);
+    this.destroyRef.onDestroy(() => {
+      this.pendingRender?.destroy();
+      this.instrumentDialog?.close();
+      this.securityEditSupport?.destroy();
+    });
   }
 
   ngOnInit(): void {
     this.securityEditSupport = new SecurityEditSupport(this.translateService, this.gps, null);
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
 
-    this.config = [
+    const fields = [
       DynamicFieldHelper.createFieldInputButtonHeqF(
         DataType.String,
         this.BASE_PRODUCT_NAME,
-        this.handleSecurityClick.bind(this),
+        this.chooseInstrument,
         true,
         { fieldsetName: this.derivedData }
       ),
@@ -129,66 +139,95 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       })
     ];
 
-    this.config.push(...SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Derived, this.gps));
-    this.config.push(...SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Derived, this.gps));
-    this.config.push(...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this));
+    fields.push(...SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Derived, this.gps));
+    fields.push(...SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Derived, this.gps));
+    fields.push(...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this));
 
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    this.configObject.distributionFrequency.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService,
-      DistributionFrequency
-    );
+    this.formFields.set(fields);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, fields);
+    const frequencies = Object.keys(DistributionFrequency).filter((key) => Number.isNaN(Number(key)));
+    this.translateService
+      .get(frequencies)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((texts) => {
+        this.configObject.distributionFrequency.valueKeyHtmlOptions = frequencies
+          .map((key) => new ValueKeyHtmlSelectOptions(key, texts[key]))
+          .sort((a, b) => a.value.localeCompare(b.value));
+      });
+  }
+
+  readonly chooseInstrument = (field: FieldConfig): void => this.handleSecurityClick(field);
+
+  override onShow(event): void {
+    this.renewDialogSession();
+    this.securityEditSupport.destroy();
+    this.baseInstrument = null;
+    this.additionalInstruments = {};
+    this.usedFormulaVars = [];
+    this.addInvestmentInstrumentFieldRow();
+    this.scheduleAfterRender(() => this.initialize());
+  }
+
+  private scheduleAfterRender(work: () => void): void {
+    this.pendingRender?.destroy();
+    this.pendingRender = afterNextRender(work, { injector: this.injector });
   }
 
   disableBaseInstrumentFields(): void {
     if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securityCallParam)) {
-      this.config
+      this.formFields()
         .filter((fieldConfig) => fieldConfig.fieldsetName === this.derivedData)
         .forEach((fieldConfig) => fieldConfig.formControl.disable());
     }
   }
 
   valueChangedOnFormula(): void {
-    this.formulaSubscribe = this.configObject[this.FORMULA_PRICES].formControl.valueChanges.subscribe(
-      (formulaPrices: string) => {
+    this.configObject[this.FORMULA_PRICES].formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((formulaPrices: string) => {
         if (!this.configObject[this.FORMULA_PRICES].formControl.disabled) {
+          this.usedFormulaVars = [];
           if (formulaPrices) {
             let match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
-            this.usedFormulaVars = [];
             while (match != null) {
               this.usedFormulaVars.push(match[1]);
               match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
             }
-            this.addInvestmentInstrumentFieldRow();
           }
+          this.usedFormulaVars = [...new Set(this.usedFormulaVars)];
+          this.addInvestmentInstrumentFieldRow();
           this.reduceExpandChoosableAssetclass();
         }
-      }
-    );
+      });
   }
 
   handleSecurityClick(fieldConfig: FieldConfig): void {
-    this.dialogSecurityTargetFieldname = fieldConfig.field;
-    this.translateService.get('SET_SECURITY').subscribe((title) => {
-      const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
-        header: title,
-        width: '720px',
-        resizable: false,
-        closable: true,
-        closeOnEscape: true,
-        data: { supplementCriteria: this.supplementCriteria }
-      });
-      ref.onClose.subscribe((security: Security | CurrencypairWatchlist) => {
-        if (security) {
-          if (this.dialogSecurityTargetFieldname === this.BASE_PRODUCT_NAME) {
-            this.setSecurityBaseInstrument(security);
-          } else {
-            this.additionalInstruments[this.dialogSecurityTargetFieldname] = security;
+    const targetField = fieldConfig.field;
+    this.translateService
+      .get('SET_SECURITY')
+      .pipe(this.untilDialogClosed())
+      .subscribe((title) => {
+        this.instrumentDialog?.close();
+        const ref = (this.instrumentDialog = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
+          header: title,
+          width: '720px',
+          resizable: false,
+          modal: true,
+          closable: true,
+          closeOnEscape: true,
+          data: { supplementCriteria: this.supplementCriteria }
+        }));
+        ref.onClose.pipe(this.untilDialogClosed()).subscribe((security: Security | CurrencypairWatchlist) => {
+          if (security) {
+            if (targetField === this.BASE_PRODUCT_NAME) {
+              this.setSecurityBaseInstrument(security);
+            } else {
+              this.additionalInstruments[targetField] = security;
+            }
+            this.configObject[targetField].formControl.setValue(security.name);
           }
-          this.configObject[this.dialogSecurityTargetFieldname].formControl.setValue(security.name);
-        }
+        });
       });
-    });
   }
 
   submit(value: { [name: string]: any }): void {
@@ -204,26 +243,30 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     }
     this.translateFormulaFromUserLanguage(security);
     this.setSecurityDerivedLinks(security);
-    this.securityService.update(security).subscribe({
-      next: (newSecurity) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-          i18nRecord: AppSettings.SECURITY.toUpperCase()
-        });
-        this.closeDialog.emit(
-          new ProcessedActionData(
-            this.securityCallParam ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
-            newSecurity
-          )
-        );
-      },
-      error: () => (this.configObject.submit.disabled = false)
-    });
+    this.securityService
+      .update(security)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (newSecurity) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: AppSettings.SECURITY.toUpperCase()
+          });
+          this.closeDialog.emit(
+            new ProcessedActionData(
+              this.securityCallParam ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
+              newSecurity
+            )
+          );
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   override onHide(event): void {
     this.securityEditSupport.destroy();
-    this.formulaSubscribe && this.formulaSubscribe.unsubscribe();
-    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+    this.pendingRender?.destroy();
+    super.onHide(event);
+    this.instrumentDialog?.close();
   }
 
   protected initialize(): void {
@@ -252,32 +295,34 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       );
     }
 
-    combineLatest(observables).subscribe((data: any[]) => {
-      this.securityEditSupport.assignLoadedValues(
-        this.configObject,
-        <Stockexchange[]>data[0],
-        <ValueKeyHtmlSelectOptions[]>data[1],
-        <Assetclass[]>data[2]
-      );
-      this.securityEditSupport.setStockexchangeOptions(
-        this.configObject,
-        idxCategoryLocked >= 0 && <boolean>data[idxCategoryLocked]
-          ? this.securityCallParam.stockexchange.noMarketValue
-          : null
-      );
-      this.form.setDefaultValuesAndEnableSubmit();
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-        this.translateService,
-        this.gps,
-        this.securityCallParam,
-        this.form,
-        this.configObject,
-        this.proposeChangeEntityWithEntity
-      );
-      this.securityCallParam &&
-        this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[idxDerivedLinks]);
-      this.disableEnableInputForExisting(!!this.securityCallParam);
-    });
+    combineLatest(observables)
+      .pipe(this.untilDialogClosed())
+      .subscribe((data: any[]) => {
+        this.securityEditSupport.assignLoadedValues(
+          this.configObject,
+          <Stockexchange[]>data[0],
+          <ValueKeyHtmlSelectOptions[]>data[1],
+          <Assetclass[]>data[2]
+        );
+        this.securityEditSupport.setStockexchangeOptions(
+          this.configObject,
+          idxCategoryLocked >= 0 && <boolean>data[idxCategoryLocked]
+            ? this.securityCallParam.stockexchange.noMarketValue
+            : null
+        );
+        this.form.setDefaultValuesAndEnableSubmit();
+        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
+          this.translateService,
+          this.gps,
+          this.securityCallParam,
+          this.form,
+          this.configObject,
+          this.proposeChangeEntityWithEntity
+        );
+        this.securityCallParam &&
+          this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[idxDerivedLinks]);
+        this.disableEnableInputForExisting(!!this.securityCallParam);
+      });
   }
 
   private addInvestmentInstrumentFieldRow(): void {
@@ -295,7 +340,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
               DataType.String,
               fieldName,
               'ADDITIONAL_INSTRUMENT_NAME',
-              this.handleSecurityClick.bind(this),
+              this.chooseInstrument,
               true,
               { fieldsetName: this.derivedData, labelSuffix: `(${ufv})` }
             )
@@ -304,26 +349,21 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       }
     });
 
-    const unusedInstruments = this.config.filter(
-      (fc) =>
-        fc.field.startsWith(SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_') &&
-        this.usedFormulaVars.indexOf(fc.field.charAt(fc.field.length - 1)) < 0
+    const retained = this.formFields().filter(
+      (field) =>
+        !field.field.startsWith(SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_') ||
+        this.usedFormulaVars.includes(field.field.at(-1))
     );
-    unusedInstruments.forEach((ffc) =>
-      this.config.splice(
-        this.config.findIndex((fc) => fc.field === ffc.field),
-        1
-      )
-    );
-    if (fieldConfig.length > 0 || unusedInstruments.length > 0) {
-      this.config = [...this.config.slice(0, 2), ...fieldConfig, ...this.config.slice(2, this.config.length)];
-      this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    if (fieldConfig.length || retained.length !== this.formFields().length) {
+      const fields = [...retained.slice(0, 2), ...fieldConfig, ...retained.slice(2)];
+      this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, fields);
+      this.formFields.set(fields);
     }
   }
 
   private setInstrumentsForExistingSecurity(scdl: SecurityCurrencypairDerivedLinks): void {
     this.setBaseInstrumentForExistingSecurity(scdl);
-    setTimeout(() => this.setAdditionalInstrumentsForExistingSecurity(scdl));
+    this.scheduleAfterRender(() => this.setAdditionalInstrumentsForExistingSecurity(scdl));
   }
 
   private setBaseInstrumentForExistingSecurity(scdl: SecurityCurrencypairDerivedLinks): void {

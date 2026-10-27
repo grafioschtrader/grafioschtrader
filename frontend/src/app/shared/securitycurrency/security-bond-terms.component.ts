@@ -1,5 +1,10 @@
 import {
-  ChangeDetectionStrategy,
+  afterNextRender,
+  AfterRenderRef,
+  DestroyRef,
+  inject,
+  Injector,
+  signal,
   Component,
   Input,
   OnChanges,
@@ -9,7 +14,8 @@ import {
   ViewChild
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { forkJoin, Subscription } from 'rxjs';
+import { forkJoin, map, Subscription, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Security, SecurityBondTerms, SecuritySimulationMetadata } from '../../entities/security';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
@@ -17,7 +23,7 @@ import { InputType } from '../../lib/dynamic-form/models/input.type';
 import { FormBase } from '../../lib/edit/form.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { CouponDayCountDefaults, TaxDataService } from '../../taxdata/service/tax-data.service';
@@ -65,11 +71,10 @@ export function defaultCouponDayCount(defaults: CouponDayCountDefaults, currency
 @Component({
   selector: 'security-bond-terms',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormComponent, TranslateModule],
   template: `
     <p>{{ 'SIMULATION_BOND_TERMS_HELP' | translate }}</p>
-    @if (ready) {
+    @if (ready()) {
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" />
     }
   `
@@ -80,7 +85,10 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
   /** Currency of the edited security, the basis of the proposed day-count convention. */
   @Input() currency: string;
 
-  ready = false;
+  readonly ready = signal(false);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private initializeAfterRender: AfterRenderRef;
   private dynamicForm: DynamicFormComponent;
   private couponRateSubscribe: Subscription;
   private applyingCouponRatePrefill = false;
@@ -95,7 +103,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
   @ViewChild(DynamicFormComponent) set form(form: DynamicFormComponent) {
     this.dynamicForm = form;
     if (form) {
-      queueMicrotask(() => this.initializeForm());
+      this.scheduleInitialization();
     }
   }
 
@@ -111,27 +119,43 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 3, null);
     forkJoin([
       this.gps.getEntityFormDefinition('SecurityBondTerms'),
-      this.taxDataService.taxOptions('coupondaycounts'),
+      this.taxDataService
+        .taxOptions('coupondaycounts')
+        .pipe(
+          switchMap((options) =>
+            this.translateService
+              .get(options.map((option) => option.value))
+              .pipe(
+                map((texts) => [
+                  new ValueKeyHtmlSelectOptions('', ''),
+                  ...options.map((option) => new ValueKeyHtmlSelectOptions(option.key, texts[option.value]))
+                ])
+              )
+          )
+        ),
       this.taxDataService.getCouponDayCountDefaults()
-    ]).subscribe(([descriptor, conventions, couponDayCountDefaults]) => {
-      this.config = DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
-        this.translateService,
-        descriptor,
-        '',
-        false
-      ) as FieldConfig[];
-      this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-      this.configObject.couponDayCount.inputType = InputType.Select;
-      this.configObject.couponDayCount.valueKeyHtmlOptions =
-        SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(this.translateService, conventions, true);
-      this.couponDayCountDefaults = couponDayCountDefaults;
-      this.ready = true;
-    });
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([descriptor, conventions, couponDayCountDefaults]) => {
+        this.config = DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+          this.translateService,
+          descriptor,
+          '',
+          false
+        ) as FieldConfig[];
+        this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+        this.configObject.couponDayCount.inputType = InputType.Select;
+        this.configObject.couponDayCount.valueKeyHtmlOptions = [...conventions].sort((a, b) =>
+          a.value.localeCompare(b.value)
+        );
+        this.couponDayCountDefaults = couponDayCountDefaults;
+        this.ready.set(true);
+      });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.entity && this.dynamicForm) {
-      queueMicrotask(() => this.initializeForm());
+      this.scheduleInitialization();
       return;
     }
     if (changes.securityName) {
@@ -143,6 +167,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
   }
 
   ngOnDestroy(): void {
+    this.initializeAfterRender?.destroy();
     this.couponRateSubscribe?.unsubscribe();
     this.couponDayCountSubscribe?.unsubscribe();
   }
@@ -169,6 +194,12 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
     }
     target.simulationMetadata = Object.keys(metadata).length ? metadata : null;
     return true;
+  }
+
+  /** Replaces pending form initialization when inputs or the rendered form change. */
+  private scheduleInitialization(): void {
+    this.initializeAfterRender?.destroy();
+    this.initializeAfterRender = afterNextRender(() => this.initializeForm(), { injector: this.injector });
   }
 
   private initializeForm(): void {

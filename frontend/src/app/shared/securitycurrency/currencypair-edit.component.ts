@@ -1,11 +1,9 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { StockexchangeService } from '../../stockexchange/service/stockexchange.service';
-import { AssetclassService } from '../../assetclass/service/assetclass.service';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { SecuritycurrencyEdit } from './securitycurrency.edit';
-import { combineLatest, Observable, Subscription } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { FeedIdentifier, IFeedConnector } from './ifeed.connector';
 import { Currencypair } from '../../entities/currencypair';
@@ -48,7 +46,6 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DialogModule, DynamicFormComponent]
 })
 export class CurrencypairEditComponent extends SecuritycurrencyEdit implements OnInit {
@@ -57,14 +54,9 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
 
   existingCurrencypairs: Currencypair[];
 
-  // Observer subscribe
-  private fromCurrencyChangedSub: Subscription;
-
   constructor(
     private messageToastService: MessageToastService,
     private gpsGT: GlobalparameterGTService,
-    private stockexchangeService: StockexchangeService,
-    private assetclassService: AssetclassService,
     private currencypairService: CurrencypairService,
     translateService: TranslateService,
     gps: GlobalparameterService
@@ -99,7 +91,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   }
 
   valueChangedOnFromCurrency(): void {
-    this.fromCurrencyChangedSub = this.configObject.fromCurrency.formControl.valueChanges.subscribe((data: string) => {
+    this.configObject.fromCurrency.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((data: string) => {
       const existingFromCurrencies: Currencypair[] = this.existingCurrencypairs.filter(
         (currencypair) => currencypair.fromCurrency === data
       );
@@ -118,25 +110,23 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     AuditHelper.copyProposeChangeEntityToEntityAfterEdit(this, currencypair, this.proposeChangeEntityWithEntity);
     this.dynamicForm.cleanMaskAndTransferValuesToBusinessObject(currencypair);
 
-    this.currencypairService.update(currencypair).subscribe({
-      next: (newSecurity) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
-          i18nRecord: AppSettings.CURRENCYPAIR.toUpperCase()
-        });
-        this.closeDialog.emit(
-          new ProcessedActionData(
-            this.securityCurrencypairCallParam ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
-            newSecurity
-          )
-        );
-      },
-      error: () => (this.configObject.submit.disabled = false)
-    });
-  }
-
-  override onHide(event): void {
-    this.fromCurrencyChangedSub && this.fromCurrencyChangedSub.unsubscribe();
-    super.onHide(event);
+    this.currencypairService
+      .update(currencypair)
+      .pipe(this.untilDialogClosed())
+      .subscribe({
+        next: (newSecurity) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: AppSettings.CURRENCYPAIR.toUpperCase()
+          });
+          this.closeDialog.emit(
+            new ProcessedActionData(
+              this.securityCurrencypairCallParam ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
+              newSecurity
+            )
+          );
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   helpLink(): void {
@@ -157,20 +147,22 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
         ? this.currencypairService.getFeedConnectors('CURRENCY_PAIR', isCrypto ? 'CFD' : 'FOREX')
         : this.currencypairService.getFeedConnectors();
     const observableAllCurrencypairs: Observable<Currencypair[]> = this.currencypairService.getAllCurrencypairs();
-    combineLatest([observableCurrencies, observableFeedConnectors, observableAllCurrencypairs]).subscribe(
-      ([currencies, feedConnectors, allCurrencypairs]: [
-        ValueKeyHtmlSelectOptions[],
-        IFeedConnector[],
-        Currencypair[]
-      ]) => {
-        this.configObject.fromCurrency.valueKeyHtmlOptions = currencies;
-        this.prepareFeedConnectors(feedConnectors, true);
-        this.existingCurrencypairs = allCurrencypairs;
-        this.removeByUpdateFormExstingCurrency();
-        this.valueChangedOnFromCurrency();
-        this.disableEnableInputForExisting(!!this.securityCurrencypairCallParam);
-      }
-    );
+    combineLatest([observableCurrencies, observableFeedConnectors, observableAllCurrencypairs])
+      .pipe(this.untilDialogClosed())
+      .subscribe(
+        ([currencies, feedConnectors, allCurrencypairs]: [
+          ValueKeyHtmlSelectOptions[],
+          IFeedConnector[],
+          Currencypair[]
+        ]) => {
+          this.configObject.fromCurrency.valueKeyHtmlOptions = currencies;
+          this.prepareFeedConnectors(feedConnectors, true);
+          this.existingCurrencypairs = allCurrencypairs;
+          this.removeByUpdateFormExstingCurrency();
+          this.valueChangedOnFromCurrency();
+          this.disableEnableInputForExisting(!!this.securityCurrencypairCallParam);
+        }
+      );
   }
 
   private removeByUpdateFormExstingCurrency(): void {

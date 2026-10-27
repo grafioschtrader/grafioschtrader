@@ -1,11 +1,22 @@
-import { Directive, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+  afterNextRender,
+  DestroyRef,
+  Directive,
+  EventEmitter,
+  inject,
+  Injector,
+  Input,
+  Output,
+  ViewChild
+} from '@angular/core';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FeedIdentifier, FeedSupport, IFeedConnector } from './ifeed.connector';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
+import { MonoTypeOperatorFunction, Subscription } from 'rxjs';
+import { untilSessionEnds } from '../../lib/edit/dialog.session';
 import { Validators } from '@angular/forms';
 import { FormBase } from '../../lib/edit/form.base';
 import { AuditHelper } from '../../lib/helper/audit.helper';
@@ -20,6 +31,9 @@ import { AppHelper } from '../../lib/helper/app.helper';
 
 @Directive()
 export abstract class SecuritycurrencyEdit extends FormBase {
+  protected readonly destroyRef = inject(DestroyRef);
+  protected readonly injector = inject(Injector);
+  private dialogSession = new Subscription();
   // Input from parent component
   @Input() securityCurrencypairCallParam: Security | Securitycurrency;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
@@ -45,10 +59,14 @@ export abstract class SecuritycurrencyEdit extends FormBase {
     public gps: GlobalparameterService
   ) {
     super();
+    this.destroyRef.onDestroy(() => this.dialogSession.unsubscribe());
   }
 
   public onShow(event): void {
-    setTimeout(() => this.loadHelperData());
+    this.dialogSession.unsubscribe();
+    this.dialogSession = new Subscription();
+    const render = afterNextRender(() => this.loadHelperData(), { injector: this.injector });
+    this.dialogSession.add(() => render.destroy());
   }
 
   public hideVisibleFeedConnectorsFields(
@@ -72,8 +90,18 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   }
 
   onHide(event): void {
-    Object.values(this.connectorSubscribe).forEach((cs) => cs && cs.unsubscribe);
+    this.dialogSession.unsubscribe();
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+  }
+
+  /** Ends requests and control subscriptions when this opening closes or the component is destroyed. */
+  protected untilDialogClosed<T>(): MonoTypeOperatorFunction<T> {
+    return untilSessionEnds<T>(this.dialogSession);
+  }
+
+  /** Registers cleanup for helpers which own subscriptions outside the component. */
+  protected onDialogClosed(cleanup: () => void): void {
+    this.dialogSession.add(cleanup);
   }
 
   protected abstract loadHelperData(): void;
@@ -137,10 +165,12 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   ): void {
     for (let i = 0; i < connectorIdConfigs.length; i++) {
       const connectorConfig = connectorIdConfigs[i];
+      this.connectorSubscribe[connectorConfig.field]?.unsubscribe();
       // Only the very first pass sees the generic text, later passes would capture a connector help text.
       this.connectorHelpFallback[connectorConfig.field] ??= connectorConfig.labelHelpText;
-      this.connectorSubscribe[connectorConfig.field] = connectorConfig.formControl.valueChanges.subscribe(
-        (connector) => {
+      this.connectorSubscribe[connectorConfig.field] = connectorConfig.formControl.valueChanges
+        .pipe(this.untilDialogClosed())
+        .subscribe((connector) => {
           const foundConnector = this.feedPriceConnectors.find((fc) => fc.id === connector);
           if (foundConnector) {
             connectorConfig.labelHelpText =
@@ -186,8 +216,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
           if (connectorConfig.labelShowText) {
             connectorConfig.labelShowText = connectorConfig.labelHelpText;
           }
-        }
-      );
+        });
     }
   }
 

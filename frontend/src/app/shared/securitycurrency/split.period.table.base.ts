@@ -1,5 +1,6 @@
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { Directive, EventEmitter, Injector, Input, Output } from '@angular/core';
+import { computed, DestroyRef, inject, Directive, EventEmitter, Injector, Input, Output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
@@ -15,13 +16,20 @@ import { BaseSettings } from '../../lib/base.settings';
 
 @Directive()
 export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
+  protected readonly destroyRef = inject(DestroyRef);
+
   @Input() maxRows: number;
   @Output() editData: EventEmitter<T> = new EventEmitter<any>();
   @Output() savedData: EventEmitter<SaveSecuritySuccess> = new EventEmitter<any>();
 
-  selectedRow: T;
+  readonly selectedRow = signal<T>(null);
   dataChanged = false;
-  _dataList: T[] = [];
+  readonly dataList = signal<T[]>([]);
+  /** A new columns reference also updates the projected templates of the OnPush table. */
+  readonly tableFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields];
+  });
 
   protected constructor(
     public dataSortKey: string,
@@ -39,27 +47,25 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
     this.multiSortMeta.push({ field: dataSortKey, order: 1 });
   }
 
-  get dataList(): T[] {
-    return this._dataList;
-  }
-
   setDataList(securitysplitList: T[], dataChanged) {
     this.dataChanged = dataChanged;
-    this._dataList = securitysplitList;
-    this.createTranslatedValueStoreAndFilterField(this._dataList);
+    this.selectedRow.set(null);
+    this.dataList.set([...securitysplitList]);
+    this.createTranslatedValueStoreAndFilterField(this.dataList());
   }
 
   public addDataRow(rowData: T): void {
     const dateStr = moment(rowData[this.dataSortKey]).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
-    const replacePos = this._dataList.findIndex(
+    const rows = this.dataList();
+    const replacePos = rows.findIndex(
       (ss) =>
         ss[this.dataSortKey] === dateStr ||
         moment(ss[this.dataSortKey]).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) === dateStr
     );
 
     if (replacePos === -1) {
-      if (this._dataList.length < this.maxRows) {
-        this._dataList = [...this._dataList, rowData];
+      if (rows.length < this.maxRows) {
+        this.dataList.set([...rows, rowData]);
       } else {
         this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'SECURITY_SPLITS_MAX_REACHED', {
           maxSplits: this.maxRows
@@ -67,22 +73,24 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
         return;
       }
     } else {
-      this._dataList = Object.assign([], this._dataList, { [replacePos]: rowData });
+      this.dataList.set(rows.map((row, index) => (index === replacePos ? rowData : row)));
+      if (this.selectedRow() === rows[replacePos]) {
+        this.selectedRow.set(rowData);
+      }
     }
 
     this.dataChanged = true;
-    this.createTranslatedValueStoreAndFilterField(this._dataList);
+    this.createTranslatedValueStoreAndFilterField(this.dataList());
   }
 
   onClickDelete() {
-    const i = this._dataList.indexOf(this.selectedRow);
-    this._dataList = [...this.dataList.slice(0, i), ...this._dataList.slice(i + 1, this._dataList.length)];
-    this.selectedRow = null;
+    this.dataList.update((rows) => rows.filter((row) => row !== this.selectedRow()));
+    this.selectedRow.set(null);
     this.dataChanged = true;
   }
 
   onClickEdit() {
-    this.editData.emit(this.selectedRow);
+    this.editData.emit(this.selectedRow());
   }
 
   createEntity(type: new () => T, item?: any): T {
@@ -91,11 +99,12 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
 
   save(security: Security, noteRequest: string): void {
     if (this.dataChanged) {
-      const securitySplitsCleaned = plainToInstance(this.classz, this._dataList, <any>{
+      const securitySplitsCleaned = plainToInstance(this.classz, this.dataList(), <any>{
         excludeExtraneousValues: true
       });
       this.deleteCreateMultipleService
         .deleteAndCreateMultiple(security.idSecuritycurrency, securitySplitsCleaned, noteRequest)
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((savedEntity) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
             i18nRecord: 'SECURITY_SPLITS'

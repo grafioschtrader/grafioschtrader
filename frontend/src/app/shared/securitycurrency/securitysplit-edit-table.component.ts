@@ -1,4 +1,4 @@
-import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -22,7 +22,6 @@ import { ButtonModule } from '@openng/optimus-ui/button';
   selector: 'securitysplit-edit-table',
   templateUrl: './view/split.period.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TableModule, ButtonModule, AngularSvgIconModule]
 })
 export class SecuritysplitEditTableComponent extends SplitPeriodTableBase<Securitysplit> {

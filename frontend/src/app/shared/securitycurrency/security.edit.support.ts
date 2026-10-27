@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -43,7 +44,15 @@ export class SecurityEditSupport {
   public connectorDividendConfig: FieldConfig[];
   public connectorSplitConfig: FieldConfig[];
 
-  public hasMarketValue = true;
+  private readonly marketValue = signal(true);
+
+  get hasMarketValue(): boolean {
+    return this.marketValue();
+  }
+
+  set hasMarketValue(value: boolean) {
+    this.marketValue.set(value);
+  }
 
   private assetClassSubscribe: Subscription;
   private activeFromDateSubscribe: Subscription;
@@ -394,6 +403,7 @@ export class SecurityEditSupport {
   }
 
   registerValueOnChanged(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
+    this.destroy();
     this.valueChangedOnAssetClass(securityDerived, configObject);
     this.valueChangedOnaActiveFromDate(configObject);
     !configObject.isTenantPrivate.formControl.disabled &&

@@ -1,18 +1,19 @@
 <p-table
-  [(selection)]="selectedRow"
-  [columns]="fields"
+  [selection]="selectedRow()"
+  (selectionChange)="selectedRow.set($event)"
+  [columns]="tableFields()"
   [dataKey]="dataSortKey"
   [multiSortMeta]="multiSortMeta"
   [paginator]="true"
   [rows]="10"
-  [value]="_dataList"
+  [value]="dataList()"
   selectionMode="single"
   sortMode="multiple"
   stripedRows
   showGridlines>
-  <ng-template #header let-fields>
+  <ng-template #header>
     <tr>
-      @for (field of fields; track field) {
+      @for (field of tableFields(); track field) {
       <th
         [pSortableColumn]="field.field"
         [style.max-width.px]="field.width"
@@ -23,9 +24,9 @@
       }
     </tr>
   </ng-template>
-  <ng-template #body let-columns="fields" let-el>
+  <ng-template #body let-el>
     <tr [pSelectableRow]="el">
-      @for (field of fields; track field) { @if (field.visible) {
+      @for (field of tableFields(); track field) { @if (field.visible) {
       <td
         [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                   || field.dataType===DataType.NumericInteger)? 'text-end': ''"
@@ -39,20 +40,20 @@
     </tr>
   </ng-template>
   <ng-template let-state pTemplate="paginatorleft">
-    {{_dataList.length}} {{maxRowMessageKey | translate}} {{maxRows}}
+    {{dataList().length}} {{maxRowMessageKey | translate}} {{maxRows}}
   </ng-template>
 </p-table>
 
 <button
   (click)="onClickDelete()"
-  [disabled]="!selectedRow"
+  [disabled]="!selectedRow()"
   class="btn btn-primary mr-1"
   label="{{ 'DELETE' | translate }}"
   pButton
   type="button"></button>
 <button
   (click)="onClickEdit()"
-  [disabled]="!selectedRow"
+  [disabled]="!selectedRow()"
   class="btn btn-primary"
   label="{{ 'EDIT' | translate }}"
   pButton
