@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, signal } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import moment from 'moment';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -44,7 +44,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
       [modal]="true">
       @if (fillGapsBounds?.calendarOutdated) {
         <div class="alert alert-warning alert-dialog-wrap">
-          {{ calendarLimitMessage }}
+          {{ calendarLimitMessage() }}
         </div>
       }
 
@@ -58,7 +58,6 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase implements OnInit {
@@ -71,7 +70,7 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
   readonly fillUpToDate = 'fillUpToDate';
 
   /** Translated warning shown when the trading calendar limits the proposed end date. */
-  calendarLimitMessage = '';
+  readonly calendarLimitMessage = signal('');
 
   constructor(
     public translateService: TranslateService,
@@ -134,9 +133,9 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
     !hasWeekendDays && this.configObject[this.moveWeekendToFriday].formControl.disable();
     // The function button is outside the form and therefore not disabled by an invalid form on its own. Without this
     // the user could send a cleared or out of range date, which the server would only answer with a validation error.
-    this.configObject[this.fillUpToDate].formControl.statusChanges.subscribe(
-      (status) => (this.configObject.execute.disabled = status !== 'VALID')
-    );
+    this.configObject[this.fillUpToDate].formControl.statusChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((status) => (this.configObject.execute.disabled = status !== 'VALID'));
   }
 
   /**
@@ -164,7 +163,8 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
           ).format(this.gps.getDateFormat()),
           missingTradingDays: this.fillGapsBounds.missingTradingDays
         })
-        .subscribe((msg) => (this.calendarLimitMessage = msg));
+        .pipe(this.untilDialogClosed())
+        .subscribe((msg) => this.calendarLimitMessage.set(msg));
     }
   }
 }

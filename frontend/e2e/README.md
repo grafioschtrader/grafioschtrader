@@ -1000,6 +1000,15 @@ repeatable without resetting `grafioschtrader_t`.
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/062-historyquote-bulk-tools.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## History quote notification spec (063-*)
+
+`063-historyquote-legacy-notification.spec.ts` opens the EOD table of Nestlé from the `Switzerland` watchlist of 060 as
+`alledit`. It holds the real quote response, so the rows must appear only after its delivery, and raises the archive
+count of the response to check the translated menu entry with that count. It then switches to the archive view, whose
+rows are intercepted, opens and closes the apply-split dialog and the edit dialog of an archived row, and returns to the
+live view. Nothing is written to the database. Run it with
+`npx playwright test e2e/063-historyquote-legacy-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Derived instrument spec (065-*)
 
 `065-create-derived-security.spec.ts` uses the `Derived` watchlist created by 040 for user `alledit` and

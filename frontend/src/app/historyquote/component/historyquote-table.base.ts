@@ -1,6 +1,9 @@
 import { Directive } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { SvgIconRegistryService } from 'angular-svg-icon';
-import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { BaseID } from '../../lib/entities/base.id';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -28,7 +31,7 @@ import { HistoryquoteCreateType } from '../../entities/historyquote';
  * </pre>
  */
 @Directive()
-export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudSupportMenu<T> {
+export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudSupportMenuSignal<T> {
   /**
    * Maps each HistoryquoteCreateType byte value to an SVG icon name. Both the live view and
    * the legacy view render this column the same way — same icons, same lookup.
@@ -43,6 +46,9 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
   };
   private static iconLoadDone = false;
 
+  /** Translation of the latest table menu; a newer menu replaces one that is still being translated. */
+  private tableMenuSubscription: Subscription;
+
   /**
    * Registers the create_type SVG icons exactly once per browser session. Safe to call from
    * any number of subclasses' constructors — the static guard ensures the underlying
@@ -56,6 +62,29 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
       iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + iconName + BaseSettings.SVG, iconName);
     }
     HistoryquoteTableBase.iconLoadDone = true;
+  }
+
+  /**
+   * Selects the entity and publishes the menu of both views, which combines the CRUD items with view specific
+   * actions. The menu is translated as a copy and published as a new reference once every label is resolved.
+   *
+   * @param entity - Selected row, or null
+   * @param menuItems - Untranslated menu, or null for no menu
+   * @param adjustTranslated - Optional change of the translated copy before it is published
+   */
+  protected publishTableMenu(entity: T, menuItems: MenuItem[], adjustTranslated?: (menu: MenuItem[]) => void): void {
+    this.selectedEntity.set(entity ?? null);
+    if (!this.tableMenuSubscription) {
+      this.destroyRef.onDestroy(() => this.tableMenuSubscription.unsubscribe());
+    }
+    this.tableMenuSubscription?.unsubscribe();
+    this.tableMenuSubscription = TranslateHelper.translateMenuItems$(menuItems, this.translateService).subscribe(
+      (translated) => {
+        translated && adjustTranslated?.(translated);
+        this.contextMenuItems.set(translated);
+        this.activePanelService.activatePanel(this, { editMenu: translated });
+      }
+    );
   }
 
   /** Adds the date column with the standard like-filter and export configuration. */

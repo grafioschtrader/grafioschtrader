@@ -32,16 +32,6 @@ frontend/src/app/gtnet/component/gtnet-exchange-tabmenu.component.ts
 frontend/src/app/gtnet/component/gtnet-security-lookup-dialog.component.ts
 frontend/src/app/gtnet/component/gtnet-security-lookup-table.component.ts
 frontend/src/app/gtnet/component/gtnet-supplier-detail-table.component.ts
-frontend/src/app/historyquote/component/historyquote-delete-dialog.component.ts
-frontend/src/app/historyquote/component/historyquote-edit.component.ts
-frontend/src/app/historyquote/component/historyquote-host.component.ts
-frontend/src/app/historyquote/component/historyquote-legacy-apply-split-dialog.component.ts
-frontend/src/app/historyquote/component/historyquote-legacy-edit.component.ts
-frontend/src/app/historyquote/component/historyquote-legacy.component.ts
-frontend/src/app/historyquote/component/historyquote-quality-fill-gaps-dialog.component.ts
-frontend/src/app/historyquote/component/historyquote-quality.component.ts
-frontend/src/app/historyquote/component/historyquote-table.component.ts
-frontend/src/app/historyquote/component/indicator-edit.component.ts
 frontend/src/app/historyquote/component/seasonality-table.component.ts
 frontend/src/app/historyquote/component/seasonality.component.ts
 frontend/src/app/historyquote/component/time.series.chart.component.ts

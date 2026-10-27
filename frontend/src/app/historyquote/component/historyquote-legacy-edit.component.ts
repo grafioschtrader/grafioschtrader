@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -38,7 +38,6 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class HistoryquoteLegacyEditComponent extends HistoryquoteEditBase<HistoryquoteLegacy> {

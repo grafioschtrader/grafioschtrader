@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   Component,
   EventEmitter,
   Injector,
@@ -6,8 +7,8 @@ import {
   OnChanges,
   OnDestroy,
   Output,
-  SimpleChanges,
-  ChangeDetectionStrategy
+  signal,
+  SimpleChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Historyquote } from '../../entities/historyquote';
@@ -16,7 +17,7 @@ import { HistoryquoteService } from '../service/historyquote.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
-import { combineLatest } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
@@ -39,7 +40,6 @@ import { HistoryquoteTableBase } from './historyquote-table.base';
 import { Security } from '../../entities/security';
 import { plainToClass } from 'class-transformer';
 import { BusinessHelper } from '../../shared/helper/business.helper';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { HistoryquotesWithMissings } from '../model/historyquotes.with.missings';
@@ -48,6 +48,7 @@ import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui
 import { FileUploadParam } from '../../lib/generaldialog/model/file.upload.param';
 import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BaseSettings } from '../../lib/base.settings';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { HistoryquoteQualityComponent } from './historyquote-quality.component';
@@ -75,16 +76,17 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
       }">
       <div class="datatable">
         <configurable-table
-          [data]="entityList"
+          [data]="entityList()"
           [fields]="fields"
+          [fieldsRevision]="fieldsRevision()"
           [dataKey]="entityKeyName"
           [selectionMode]="'single'"
           [(selection)]="selectedEntity"
           [multiSortMeta]="multiSortMeta"
-          [customSortFn]="customSort.bind(this)"
+          [customSortFn]="customSorter"
           [paginator]="true"
           [rows]="20"
-          [firstRowIndex]="firstRow"
+          [firstRowIndex]="firstRow()"
           (pageChange)="onPage($event)"
           [stripedRows]="true"
           [showGridlines]="true"
@@ -95,25 +97,25 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
           [baseLocale]="baseLocale"
           [formLocale]="formLocale"
           [containerClass]="''"
-          [contextMenuEnabled]="!!contextMenuItems"
+          [contextMenuEnabled]="!!contextMenuItems()"
           [showContextMenu]="isActivated()"
-          [contextMenuItems]="contextMenuItems"
-          [valueGetterFn]="getValueByPath.bind(this)">
+          [contextMenuItems]="contextMenuItems()"
+          [valueGetterFn]="valueGetter">
           <!-- Caption content projected into table header -->
           <div caption>
             <h4>
               {{ entityNameUpper | translate }}
-              {{ nameSecuritycurrency?.getName() }}
+              {{ nameSecuritycurrency()?.getName() }}
             </h4>
-            @if (security) {
+            @if (security(); as security) {
               <span
                 >{{ 'TRADING_FROM_TO' | translate }}: {{ getDateByFormat(security.activeFromDate) }} -
                 {{ getDateByFormat(security.activeToDate) }}</span
               >
             }
             <historyquote-quality
-              [historyquoteQuality]="$safeNavigationMigration(historyquotesWithMissings?.historyquoteQuality)"
-              [securitycurrency]="$safeNavigationMigration(historyquotesWithMissings?.securitycurrency)">
+              [historyquoteQuality]="historyquotesWithMissings()?.historyquoteQuality"
+              [securitycurrency]="historyquotesWithMissings()?.securitycurrency">
             </historyquote-quality>
           </div>
 
@@ -124,37 +126,37 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
         </configurable-table>
       </div>
     </div>
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <historyquote-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         (closeDialog)="handleCloseDialog($event)">
       </historyquote-edit>
     }
 
-    @if (visibleUploadFileDialog) {
+    @if (visibleUploadFileDialog()) {
       <upload-file-dialog
-        [visibleDialog]="visibleUploadFileDialog"
+        [visibleDialog]="visibleUploadFileDialog()"
         [fileUploadParam]="fileUploadParam"
         (closeDialog)="handleCloseDialogAndRead($event)">
       </upload-file-dialog>
     }
 
-    @if (visibleFillGapsDialog) {
+    @if (visibleFillGapsDialog()) {
       <historyquote-quality-fill-gaps
-        [visibleDialog]="visibleFillGapsDialog"
-        [historyquoteQuality]="$safeNavigationMigration(historyquotesWithMissings?.historyquoteQuality)"
-        [securitycurrency]="$safeNavigationMigration(historyquotesWithMissings?.securitycurrency)"
+        [visibleDialog]="visibleFillGapsDialog()"
+        [historyquoteQuality]="historyquotesWithMissings()?.historyquoteQuality"
+        [securitycurrency]="historyquotesWithMissings()?.securitycurrency"
         [fillGapsBounds]="fillGapsBounds"
         (closeDialog)="handleCloseDialogAndRead($event)">
       </historyquote-quality-fill-gaps>
     }
 
-    @if (visibleDeleteHistoryquotes) {
+    @if (visibleDeleteHistoryquotes()) {
       <historyquote-delete-dialog
-        [visibleDialog]="visibleDeleteHistoryquotes"
-        [idSecuritycurrency]="historyquotesWithMissings.securitycurrency.idSecuritycurrency"
-        [historyquoteQuality]="historyquotesWithMissings.historyquoteQuality"
+        [visibleDialog]="visibleDeleteHistoryquotes()"
+        [idSecuritycurrency]="historyquotesWithMissings().securitycurrency.idSecuritycurrency"
+        [historyquoteQuality]="historyquotesWithMissings().historyquoteQuality"
         [deleteBounds]="deleteBounds"
         (closeDialog)="handleCloseDialogAndRead($event)">
       </historyquote-delete-dialog>
@@ -162,7 +164,6 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -184,38 +185,27 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   );
   maxDate: Date = new Date('2099-12-31');
 
-  callParam: HistoryquoteSecurityCurrency;
-  firstRow: number;
+  /** Id of the legacy menu item, whose translated label receives the number of archived rows. */
+  private static readonly SHOW_LEGACY_MENU_ID = 'showLegacy';
 
-  nameSecuritycurrency: INameSecuritycurrency;
-  historyquotesWithMissings: HistoryquotesWithMissings;
-  security: Security;
-  visibleUploadFileDialog = false;
+  callParam: HistoryquoteSecurityCurrency;
+  readonly firstRow = signal(0);
+
+  readonly nameSecuritycurrency = signal<INameSecuritycurrency>(null);
+  readonly historyquotesWithMissings = signal<HistoryquotesWithMissings>(null);
+  /** The instrument when it is a security, null for a currency pair and undefined until the first response. */
+  readonly security = signal<Security>(undefined);
+  readonly visibleUploadFileDialog = signal(false);
   fileUploadParam: FileUploadParam;
-  visibleFillGapsDialog = false;
+  readonly visibleFillGapsDialog = signal(false);
   /** Date boundaries of the fill gaps dialog, loaded before it is shown so its date field can be built at once. */
   fillGapsBounds: HistoryquoteFillGapsBounds;
-  visibleDeleteHistoryquotes = false;
+  readonly visibleDeleteHistoryquotes = signal(false);
   /** Oldest and most recent stored price, loaded before the delete dialog is shown. */
   deleteBounds: HistoryquoteDeleteBounds;
-  importQuotesMenu: MenuItem = {
-    label: 'IMPORT_QUOTES' + BaseSettings.DIALOG_MENU_SUFFIX,
-    command: (event) => this.uploadImportQuotes()
-  };
-  fillGapsMenu: MenuItem = {
-    label: 'HISTORYQUOTE_FILL_GAPS' + BaseSettings.DIALOG_MENU_SUFFIX,
-    command: (event) => this.fillLinearGap()
-  };
-  deleteCreateTypesMenu: MenuItem = {
-    label: 'DELETE_CREATE_TYPES_QUOTES' + BaseSettings.DIALOG_MENU_SUFFIX,
-    command: (event) => this.deleteCreateTypeQuotes()
-  };
-  showLegacyMenu: MenuItem = {
-    label: 'HISTORYQUOTE_SHOW_LEGACY',
-    command: (event) => this.showLegacyRequested.emit()
-  };
   protected transactionPositionList: SecurityTransactionPosition[] = [];
-  private historyquoteSpecMenuItems: MenuItem[];
+  /** Request of the shown instrument; a newer instrument replaces a request that is still pending. */
+  private loadSubscription: Subscription;
 
   constructor(
     private iconReg: SvgIconRegistryService,
@@ -254,6 +244,7 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
     this.addOhlcvColumns();
     this.applyDefaultDateSort();
     this.prepareTableAndTranslate();
+    this.destroyRef.onDestroy(() => this.loadSubscription?.unsubscribe());
   }
 
   readData(): void {
@@ -277,28 +268,6 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
     }
   }
 
-  prepareMenu(): void {
-    // Both bulk-quote actions are always rendered. Permission state is reflected by the .disabled flag set in
-    // resetMenu() rather than by hiding the item, so a limited-edit user without rights on the parent security still
-    // sees the menu but cannot trigger the action.
-    this.historyquoteSpecMenuItems = [this.deleteCreateTypesMenu, this.fillGapsMenu];
-    // Always show the legacy menu (even when legacyCount is 0) so the user can
-    // reach the legacy view to import a CSV when the shadow archive is empty.
-    // Reset the label to the translation key on every prepareMenu invocation —
-    // we append the live count below after translation.
-    this.showLegacyMenu.label = 'HISTORYQUOTE_SHOW_LEGACY';
-    this.historyquoteSpecMenuItems.push(this.showLegacyMenu);
-    this.historyquoteSpecMenuItems.push({ separator: true });
-    this.historyquoteSpecMenuItems.push(this.importQuotesMenu);
-    this.historyquoteSpecMenuItems.push({
-      label: 'EXPORT_CSV',
-      command: (event) => this.downloadCSvFile(this.historyquotesWithMissings.historyquoteList)
-    });
-    TranslateHelper.translateMenuItems(this.historyquoteSpecMenuItems, this.translateService);
-    const legacyCount = this.historyquotesWithMissings?.legacyCount ?? 0;
-    this.showLegacyMenu.label = `${this.showLegacyMenu.label} (${legacyCount})`;
-  }
-
   uploadImportQuotes(): void {
     this.fileUploadParam = new FileUploadParam(
       HelpIds.HELP_WATCHLIST_HISTORYQUOTES,
@@ -307,12 +276,12 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
       'IMPORT_QUOTES',
       false,
       this.historyquoteService,
-      this.nameSecuritycurrency.getSecuritycurrency().idSecuritycurrency,
-      this.historyquotesWithMissings.supportedCSVFormats,
+      this.nameSecuritycurrency().getSecuritycurrency().idSecuritycurrency,
+      this.historyquotesWithMissings().supportedCSVFormats,
       BaseSettings.CSV_EXPORT_FORMAT
     );
 
-    this.visibleUploadFileDialog = true;
+    this.visibleUploadFileDialog.set(true);
   }
 
   override handleCloseDialog(processedActionData: ProcessedActionData): void {
@@ -320,9 +289,9 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   }
 
   handleCloseDialogAndRead(processedActionData: ProcessedActionData): void {
-    this.visibleUploadFileDialog = false;
-    this.visibleFillGapsDialog = false;
-    this.visibleDeleteHistoryquotes = false;
+    this.visibleUploadFileDialog.set(false);
+    this.visibleFillGapsDialog.set(false);
+    this.visibleDeleteHistoryquotes.set(false);
     this.readDataAndProposeDataChangedEvent(processedActionData);
   }
 
@@ -332,10 +301,11 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
    */
   deleteCreateTypeQuotes(): void {
     this.historyquoteService
-      .getDeleteBounds(this.historyquotesWithMissings.securitycurrency.idSecuritycurrency)
+      .getDeleteBounds(this.historyquotesWithMissings().securitycurrency.idSecuritycurrency)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((deleteBounds) => {
         this.deleteBounds = deleteBounds;
-        this.visibleDeleteHistoryquotes = true;
+        this.visibleDeleteHistoryquotes.set(true);
       });
   }
 
@@ -345,40 +315,37 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
    */
   fillLinearGap(): void {
     this.securityService
-      .getFillGapsBounds(this.historyquotesWithMissings.securitycurrency.idSecuritycurrency)
+      .getFillGapsBounds(this.historyquotesWithMissings().securitycurrency.idSecuritycurrency)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((fillGapsBounds) => {
         this.fillGapsBounds = fillGapsBounds;
-        this.visibleFillGapsDialog = true;
+        this.visibleFillGapsDialog.set(true);
       });
   }
 
   override resetMenu(historyquote: Historyquote): void {
+    const historyquotesWithMissings = this.historyquotesWithMissings();
     // security is null for a currency pair (see readAndShowData) and undefined until the first response arrives;
     // only a security whose quotes are derived from another instrument (idLinkSecuritycurrency) has no own menu.
-    if (this.historyquotesWithMissings && !this.security?.idLinkSecuritycurrency) {
-      this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
-      this.contextMenuItems.push({ separator: true });
-      this.importQuotesMenu.disabled = !this.hasRightsForDeleteEntity(null);
-      // Both bulk-quote actions require owner-or-higher-privileges on the parent security (mirroring the backend
-      // gate hasRightsOrPrivilegesForEditingOrDelete). The data-quality preconditions follow.
-      const noEditRights = !this.hasRightsForCreateEntity(null);
-      this.fillGapsMenu.disabled =
-        noEditRights ||
-        !this.historyquotesWithMissings.historyquoteQuality ||
-        (this.historyquotesWithMissings.historyquoteQuality.totalMissing === 0 &&
-          this.historyquotesWithMissings.historyquoteQuality.toManyAsCalendar === 0);
-      this.deleteCreateTypesMenu.disabled =
-        noEditRights ||
-        !this.historyquotesWithMissings.historyquoteQuality ||
-        (!this.historyquotesWithMissings.historyquoteQuality.filledLinear &&
-          !this.historyquotesWithMissings.historyquoteQuality.manualImported);
-      this.contextMenuItems.push(...this.historyquoteSpecMenuItems);
+    if (historyquotesWithMissings && !this.security()?.idLinkSecuritycurrency) {
+      const legacyCount = historyquotesWithMissings.legacyCount ?? 0;
+      this.publishTableMenu(
+        historyquote,
+        [
+          ...(this.prepareEditMenu(historyquote) ?? []),
+          { separator: true },
+          ...this.createHistoryquoteMenuItems(historyquotesWithMissings)
+        ],
+        (translated) => {
+          const showLegacy = translated.find(
+            (menuItem) => menuItem.id === HistoryquoteTableComponent.SHOW_LEGACY_MENU_ID
+          );
+          showLegacy && (showLegacy.label = `${showLegacy.label} (${legacyCount})`);
+        }
+      );
     } else {
-      this.contextMenuItems = null;
+      this.publishTableMenu(historyquote, null);
     }
-    this.activePanelService.activatePanel(this, {
-      editMenu: this.contextMenuItems
-    });
   }
 
   getDateByFormat(date: string): string {
@@ -394,7 +361,7 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
 
   protected prepareCallParam(entity: Historyquote) {
     // For a new history quote the idSecuritycurrency is needed
-    this.callParam = new HistoryquoteSecurityCurrency(entity, this.nameSecuritycurrency.getSecuritycurrency());
+    this.callParam = new HistoryquoteSecurityCurrency(entity, this.nameSecuritycurrency().getSecuritycurrency());
   }
 
   protected override getId(entity: Historyquote): number {
@@ -409,14 +376,59 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
    * The creation of a history quote depends on the right on the security or currency
    */
   protected override hasRightsForCreateEntity(historyquote: Historyquote): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.nameSecuritycurrency.getSecuritycurrency());
+    return AuditHelper.hasRightsForEditingOrDeleteAuditable(
+      this.gps,
+      this.nameSecuritycurrency().getSecuritycurrency()
+    );
   }
 
   /**
    * The deletion of a history quote depends on the right on the security or currency
    */
   protected override hasRightsForDeleteEntity(historyquote: Historyquote): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.nameSecuritycurrency.getSecuritycurrency());
+    return AuditHelper.hasRightsForEditingOrDeleteAuditable(
+      this.gps,
+      this.nameSecuritycurrency().getSecuritycurrency()
+    );
+  }
+
+  /**
+   * The view specific actions after the CRUD items. Both bulk-quote actions are always shown; missing rights or data
+   * quality preconditions disable them, so a limited-edit user still sees them. The legacy view is always reachable,
+   * also with an empty archive, so a CSV can be imported there.
+   */
+  private createHistoryquoteMenuItems(historyquotesWithMissings: HistoryquotesWithMissings): MenuItem[] {
+    const quality = historyquotesWithMissings.historyquoteQuality;
+    // Both bulk-quote actions require owner-or-higher-privileges on the parent security (mirroring the backend
+    // gate hasRightsOrPrivilegesForEditingOrDelete). The data-quality preconditions follow.
+    const noEditRights = !this.hasRightsForCreateEntity(null);
+    return [
+      {
+        label: 'DELETE_CREATE_TYPES_QUOTES' + BaseSettings.DIALOG_MENU_SUFFIX,
+        disabled: noEditRights || !quality || (!quality.filledLinear && !quality.manualImported),
+        command: () => this.deleteCreateTypeQuotes()
+      },
+      {
+        label: 'HISTORYQUOTE_FILL_GAPS' + BaseSettings.DIALOG_MENU_SUFFIX,
+        disabled: noEditRights || !quality || (quality.totalMissing === 0 && quality.toManyAsCalendar === 0),
+        command: () => this.fillLinearGap()
+      },
+      {
+        id: HistoryquoteTableComponent.SHOW_LEGACY_MENU_ID,
+        label: 'HISTORYQUOTE_SHOW_LEGACY',
+        command: () => this.showLegacyRequested.emit()
+      },
+      { separator: true },
+      {
+        label: 'IMPORT_QUOTES' + BaseSettings.DIALOG_MENU_SUFFIX,
+        disabled: !this.hasRightsForDeleteEntity(null),
+        command: () => this.uploadImportQuotes()
+      },
+      {
+        label: 'EXPORT_CSV',
+        command: () => this.downloadCSvFile(this.historyquotesWithMissings().historyquoteList)
+      }
+    ];
   }
 
   private readAndShowData(timeSeriesParam: TimeSeriesParam): void {
@@ -434,20 +446,25 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
       !timeSeriesParam.currencySecurity
     );
 
-    this.firstRow = 0;
-    combineLatest([stsObservable, historyquoteObservable]).subscribe((data: any[]) => {
-      this.nameSecuritycurrency = timeSeriesParam.currencySecurity
-        ? new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary)
-        : new CurrencypairWithTransaction(data[0]);
-      this.historyquotesWithMissings = data[1];
-      this.entityList = this.historyquotesWithMissings.historyquoteList;
-      this.applyPriceFractionDigits(this.historyquotesWithMissings.securitycurrency.priceFractionDigits);
-      this.security = <Security>(
-        (timeSeriesParam.currencySecurity ? this.historyquotesWithMissings.securitycurrency : null)
+    this.loadSubscription?.unsubscribe();
+    this.loadSubscription = combineLatest([stsObservable, historyquoteObservable]).subscribe((data: any[]) => {
+      const historyquotesWithMissings: HistoryquotesWithMissings = data[1];
+      this.nameSecuritycurrency.set(
+        timeSeriesParam.currencySecurity
+          ? new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary)
+          : new CurrencypairWithTransaction(data[0])
       );
-      this.prepareMenu();
+      this.historyquotesWithMissings.set(historyquotesWithMissings);
+      this.applyPriceFractionDigits(historyquotesWithMissings.securitycurrency.priceFractionDigits);
+      this.notifyViewChanged();
+      this.security.set(
+        <Security>(timeSeriesParam.currencySecurity ? historyquotesWithMissings.securitycurrency : null)
+      );
+      this.entityList.set(historyquotesWithMissings.historyquoteList);
       this.refreshSelectedEntity();
-      setTimeout(() => (this.firstRow = this.firstRowIndexOnPage));
+      // New rows reset the paginator; the page the user was on is restored once they are rendered.
+      this.firstRow.set(0);
+      afterNextRender(() => this.firstRow.set(this.firstRowIndexOnPage), { injector: this.injector });
     });
   }
 

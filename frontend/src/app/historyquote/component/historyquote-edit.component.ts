@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Historyquote } from '../../entities/historyquote';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { HistoryquoteService } from '../service/historyquote.service';
@@ -35,7 +35,6 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote> {

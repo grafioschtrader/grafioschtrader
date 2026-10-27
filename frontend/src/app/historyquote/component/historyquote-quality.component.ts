@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { TranslateService } from '@ngx-translate/core';
@@ -32,7 +32,6 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TooltipModule]
 })
 export class HistoryquoteQualityComponent extends SingleRecordConfigBase implements OnInit {
@@ -75,7 +74,12 @@ export class HistoryquoteQualityComponent extends SingleRecordConfigBase impleme
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'userModified');
 
     this.translateHeadersAndColumns();
-    SecurityCurrencyHelper.loadAllConnectors(this.securityService, this.currencypairService, this.feedConnectorsKV);
+    SecurityCurrencyHelper.loadAllConnectors(
+      this.securityService,
+      this.currencypairService,
+      this.feedConnectorsKV,
+      () => this.notifyViewChanged()
+    );
   }
 
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {

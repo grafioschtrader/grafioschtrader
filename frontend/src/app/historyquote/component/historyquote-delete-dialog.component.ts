@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import moment from 'moment';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -56,7 +56,6 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements OnInit {
@@ -156,14 +155,14 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     );
     // Each picker limits the other, so a period whose start lies after its end can not be produced. A value that was
     // already chosen is not corrected by a changed boundary, therefore the opposite date is dragged along.
-    this.configObject[this.dateFrom].formControl.valueChanges.subscribe((dateFrom) => {
+    this.configObject[this.dateFrom].formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((dateFrom) => {
       this.configObject[this.dateTo].calendarConfig.minDate = dateFrom;
       const dateToControl = this.configObject[this.dateTo].formControl;
       if (dateFrom && dateToControl.value && dateToControl.value < dateFrom) {
         dateToControl.setValue(dateFrom);
       }
     });
-    this.configObject[this.dateTo].formControl.valueChanges.subscribe((dateTo) => {
+    this.configObject[this.dateTo].formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((dateTo) => {
       this.configObject[this.dateFrom].calendarConfig.maxDate = dateTo;
       const dateFromControl = this.configObject[this.dateFrom].formControl;
       if (dateTo && dateFromControl.value && dateFromControl.value > dateTo) {
@@ -172,7 +171,9 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     });
     // The function button is outside the form and therefore not disabled by an invalid form on its own. Without this
     // the user could send a cleared or out of range date, which the server would only answer with a validation error.
-    this.form.form.statusChanges.subscribe((status) => (this.configObject.execute.disabled = status !== 'VALID'));
+    this.form.form.statusChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((status) => (this.configObject.execute.disabled = status !== 'VALID'));
   }
 
   /**

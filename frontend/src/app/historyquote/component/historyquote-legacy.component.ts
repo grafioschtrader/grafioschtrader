@@ -6,15 +6,15 @@ import {
   OnChanges,
   OnDestroy,
   Output,
-  SimpleChanges,
-  ChangeDetectionStrategy
+  signal,
+  SimpleChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
-import { combineLatest } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 import { plainToClass } from 'class-transformer';
 import { HistoryquoteTableBase } from './historyquote-table.base';
 import { HistoryquoteLegacy } from '../../entities/historyquote.legacy';
@@ -33,7 +33,6 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { AuditHelper } from '../../lib/helper/audit.helper';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { HistoryquoteService } from '../service/historyquote.service';
@@ -71,23 +70,24 @@ import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy
       }">
       <div class="datatable">
         <configurable-table
-          [data]="entityList"
+          [data]="entityList()"
           [fields]="fields"
+          [fieldsRevision]="fieldsRevision()"
           [dataKey]="entityKeyName"
           [selectionMode]="'single'"
           [(selection)]="selectedEntity"
           [multiSortMeta]="multiSortMeta"
-          [customSortFn]="customSort.bind(this)"
+          [customSortFn]="customSorter"
           [paginator]="true"
           [rows]="20"
           [stripedRows]="true"
           [showGridlines]="true"
           [hasFilter]="hasFilter"
           [containerClass]="''"
-          [contextMenuEnabled]="!!contextMenuItems"
+          [contextMenuEnabled]="!!contextMenuItems()"
           [showContextMenu]="isActivated()"
-          [contextMenuItems]="contextMenuItems"
-          [valueGetterFn]="getValueByPath.bind(this)">
+          [contextMenuItems]="contextMenuItems()"
+          [valueGetterFn]="valueGetter">
           <div caption>
             <h4>{{ 'HISTORYQUOTE_LEGACY' | translate }}</h4>
           </div>
@@ -100,25 +100,25 @@ import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy
       </div>
     </div>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <historyquote-legacy-edit
-        [visibleDialog]="visibleDialog"
+        [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         (closeDialog)="handleCloseDialog($event)">
       </historyquote-legacy-edit>
     }
 
-    @if (visibleApplySplitDialog) {
+    @if (visibleApplySplitDialog()) {
       <historyquote-legacy-apply-split-dialog
-        [visibleDialog]="visibleApplySplitDialog"
+        [visibleDialog]="visibleApplySplitDialog()"
         [idSecuritycurrency]="idSecuritycurrency"
         (closeDialog)="handleSplitDialogClose($event)">
       </historyquote-legacy-apply-split-dialog>
     }
 
-    @if (visibleUploadFileDialog) {
+    @if (visibleUploadFileDialog()) {
       <upload-file-dialog
-        [visibleDialog]="visibleUploadFileDialog"
+        [visibleDialog]="visibleUploadFileDialog()"
         [fileUploadParam]="fileUploadParam"
         (closeDialog)="handleUploadDialogClose($event)">
       </upload-file-dialog>
@@ -126,7 +126,6 @@ import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -145,13 +144,15 @@ export class HistoryquoteLegacyComponent
   @Output() showLiveRequested = new EventEmitter<void>();
 
   callParam: HistoryquoteLegacySecurityCurrency;
-  visibleApplySplitDialog = false;
-  visibleUploadFileDialog = false;
+  readonly visibleApplySplitDialog = signal(false);
+  readonly visibleUploadFileDialog = signal(false);
   fileUploadParam: FileUploadParam;
 
   private securitycurrency: Securitycurrency;
-  private legacySpecMenuItems: MenuItem[];
   private supportedCSVFormats: SupportedCSVFormats;
+  /** Requests of the shown instrument and of its rows; a newer one replaces a request that is still pending. */
+  private instrumentSubscription: Subscription;
+  private rowsSubscription: Subscription;
   private readonly legacyUploadAdapter: UploadServiceFunction = {
     uploadFiles: (id, fd) => this.historyquoteLegacyService.uploadFilesLegacy(id, fd)
   };
@@ -196,6 +197,10 @@ export class HistoryquoteLegacyComponent
     this.addOhlcvColumns();
     this.applyDefaultDateSort();
     this.prepareTableAndTranslate();
+    this.destroyRef.onDestroy(() => {
+      this.instrumentSubscription?.unsubscribe();
+      this.rowsSubscription?.unsubscribe();
+    });
   }
 
   public override getHelpContextId(): string {
@@ -216,22 +221,25 @@ export class HistoryquoteLegacyComponent
     if (this.idSecuritycurrency == null) {
       return;
     }
-    this.historyquoteLegacyService.getLegacyForSecurity(this.idSecuritycurrency).subscribe((rows) => {
-      this.entityList = rows ?? [];
-      this.prepareMenu();
-      this.refreshSelectedEntity();
-    });
+    this.rowsSubscription?.unsubscribe();
+    this.rowsSubscription = this.historyquoteLegacyService
+      .getLegacyForSecurity(this.idSecuritycurrency)
+      .subscribe((rows) => {
+        this.entityList.set(rows ?? []);
+        this.refreshSelectedEntity();
+      });
   }
 
-  prepareMenu(): void {
-    this.legacySpecMenuItems = [
+  /** The legacy specific actions after the CRUD items, untranslated. */
+  private createLegacyMenuItems(): MenuItem[] {
+    return [
       {
         label: 'HISTORYQUOTE_SHOW_LIVE',
         command: () => this.showLiveRequested.emit()
       },
       {
         label: 'HISTORYQUOTE_LEGACY_APPLY_SPLIT',
-        command: () => (this.visibleApplySplitDialog = true)
+        command: () => this.visibleApplySplitDialog.set(true)
       },
       {
         label: 'HISTORYQUOTE_LEGACY_DELETE_ALL',
@@ -244,25 +252,22 @@ export class HistoryquoteLegacyComponent
       },
       {
         label: 'EXPORT_CSV',
-        command: () => this.downloadCSvFile(this.entityList)
+        command: () => this.downloadCSvFile(this.entityList())
       }
     ];
-    TranslateHelper.translateMenuItems(this.legacySpecMenuItems, this.translateService);
   }
 
   override resetMenu(entity: HistoryquoteLegacy): void {
-    this.selectedEntity = entity;
     const editMenuItems = this.prepareEditMenu(entity) ?? [];
-    const specItems = this.legacySpecMenuItems ?? [];
-    this.contextMenuItems =
-      editMenuItems.length > 0 ? [...editMenuItems, { separator: true }, ...specItems] : [...specItems];
-    this.activePanelService.activatePanel(this, {
-      editMenu: this.contextMenuItems
-    });
+    const specItems = this.createLegacyMenuItems();
+    this.publishTableMenu(
+      entity,
+      editMenuItems.length > 0 ? [...editMenuItems, { separator: true }, ...specItems] : specItems
+    );
   }
 
   handleSplitDialogClose(processedActionData: ProcessedActionData): void {
-    this.visibleApplySplitDialog = false;
+    this.visibleApplySplitDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
@@ -280,7 +285,7 @@ export class HistoryquoteLegacyComponent
   }
 
   handleUploadDialogClose(processedActionData: ProcessedActionData): void {
-    this.visibleUploadFileDialog = false;
+    this.visibleUploadFileDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
@@ -298,7 +303,7 @@ export class HistoryquoteLegacyComponent
       this.supportedCSVFormats,
       BaseSettings.CSV_EXPORT_FORMAT
     );
-    this.visibleUploadFileDialog = true;
+    this.visibleUploadFileDialog.set(true);
   }
 
   protected prepareCallParam(entity: HistoryquoteLegacy): void {
@@ -326,7 +331,8 @@ export class HistoryquoteLegacyComponent
   private loadSecuritycurrencyAndData(): void {
     const cpObservable = this.currencypairService.getCurrencypairByIdSecuritycurrency(this.idSecuritycurrency);
     const securityObservable = this.securityService.getSecurityByIdSecuritycurrency(this.idSecuritycurrency);
-    combineLatest([cpObservable, securityObservable]).subscribe((data: any[]) => {
+    this.instrumentSubscription?.unsubscribe();
+    this.instrumentSubscription = combineLatest([cpObservable, securityObservable]).subscribe((data: any[]) => {
       this.securitycurrency = data[0]
         ? Object.assign(new Currencypair(), data[0])
         : Object.assign(new Security(), data[1]);
@@ -342,7 +348,7 @@ export class HistoryquoteLegacyComponent
       () => {
         this.historyquoteLegacyService.deleteAllLegacyForSecurity(this.idSecuritycurrency).subscribe(() => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'HISTORYQUOTE_LEGACY_DELETE_ALL');
-          this.entityList = [];
+          this.entityList.set([]);
           this.showLiveRequested.emit();
         });
       }

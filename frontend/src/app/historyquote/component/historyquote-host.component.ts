@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TimeSeriesParam } from '../model/time.series.param';
 import { HistoryquoteTableComponent } from './historyquote-table.component';
@@ -16,43 +16,38 @@ import { HistoryquoteLegacyComponent } from './historyquote-legacy.component';
  */
 @Component({
   template: `
-    @if (viewMode === 'live') {
-      <historyquote-table [timeSeriesParams]="timeSeriesParams" (showLegacyRequested)="showLegacy()">
+    @if (viewMode() === 'live') {
+      <historyquote-table [timeSeriesParams]="timeSeriesParams()" (showLegacyRequested)="showLegacy()">
       </historyquote-table>
-    } @else if (idSecuritycurrency != null) {
-      <historyquote-legacy [idSecuritycurrency]="idSecuritycurrency" (showLiveRequested)="viewMode = 'live'">
+    } @else if (idSecuritycurrency() != null) {
+      <historyquote-legacy [idSecuritycurrency]="idSecuritycurrency()" (showLiveRequested)="viewMode.set('live')">
       </historyquote-legacy>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [HistoryquoteTableComponent, HistoryquoteLegacyComponent]
 })
-export class HistoryquoteHostComponent implements OnInit, OnDestroy {
-  viewMode: 'live' | 'legacy' = 'live';
-  timeSeriesParams: TimeSeriesParam[] = [];
-  idSecuritycurrency: number;
+export class HistoryquoteHostComponent implements OnInit {
+  readonly viewMode = signal<'live' | 'legacy'>('live');
+  readonly timeSeriesParams = signal<TimeSeriesParam[]>([]);
+  readonly idSecuritycurrency = signal<number>(null);
 
-  private routeSubscribe: Subscription;
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(private activatedRoute: ActivatedRoute) {}
 
   ngOnInit(): void {
-    this.routeSubscribe = this.activatedRoute.paramMap.subscribe((paramMap: ParamMap) => {
-      const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
-      this.timeSeriesParams = paramObject.allParam;
-      this.idSecuritycurrency = this.timeSeriesParams?.[0]?.idSecuritycurrency;
-      this.viewMode = 'live';
+    this.activatedRoute.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((paramMap: ParamMap) => {
+      const timeSeriesParams: TimeSeriesParam[] = AppHelper.createParamObjectFromParamMap(paramMap).allParam;
+      this.timeSeriesParams.set(timeSeriesParams);
+      this.idSecuritycurrency.set(timeSeriesParams?.[0]?.idSecuritycurrency ?? null);
+      this.viewMode.set('live');
     });
   }
 
-  ngOnDestroy(): void {
-    this.routeSubscribe && this.routeSubscribe.unsubscribe();
-  }
-
   showLegacy(): void {
-    if (this.idSecuritycurrency != null) {
-      this.viewMode = 'legacy';
+    if (this.idSecuritycurrency() != null) {
+      this.viewMode.set('legacy');
     }
   }
 }

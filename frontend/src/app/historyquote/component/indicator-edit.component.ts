@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -29,11 +29,11 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [Dialog, DynamicFormComponent, TranslatePipe]
 })
 export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implements OnInit {
   @Input() taEditParam: TaEditParam;
+  private readonly injector = inject(Injector);
 
   constructor(
     public translateService: TranslateService,
@@ -55,10 +55,9 @@ export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implement
 
   protected override initialize(): void {
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    // Use requestAnimationFrame to ensure Angular has completed rendering the form controls
-    // before transferring the data model values to the form
-    requestAnimationFrame(() => {
-      this.form.transferBusinessObjectToForm(this.taEditParam.taDynamicDataModel);
+    // The form controls of the indicator fields exist only after the next render.
+    afterNextRender(() => this.form.transferBusinessObjectToForm(this.taEditParam.taDynamicDataModel), {
+      injector: this.injector
     });
   }
 }

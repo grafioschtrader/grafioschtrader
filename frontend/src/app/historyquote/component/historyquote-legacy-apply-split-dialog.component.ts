@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
@@ -43,7 +43,6 @@ import { ProcessedAction } from '../../lib/types/processed.action';
     </p-dialog>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class HistoryquoteLegacyApplySplitDialogComponent extends SimpleEditBase implements OnInit {
