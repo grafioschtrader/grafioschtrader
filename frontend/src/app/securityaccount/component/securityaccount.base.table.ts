@@ -247,6 +247,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     });
     this.extendTransactionParamData(this.transactionCallParam);
     this.visibleSecurityTransactionDialog = true;
+    // The command may come from the menu bar, outside this view
+    this.notifyViewChanged();
   }
 
   handleCloseTransactionDialog(processedActionData: ProcessedActionData) {
@@ -524,6 +526,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.securityPositionSummary = data;
     this.securityPositionAll = [];
     this.transformToFlatArray(this.securityPositionSummary);
+    // The reports keep their positions in plain fields shared by one template; a load marks the view
+    this.notifyViewChanged();
   }
 
   protected initTableTextTranslation() {
@@ -535,6 +539,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.securityaccountGroupBase.translateGroupValues(
       <any[]>this.securityPositionSummary.securityPositionGroupSummaryList
     );
+    this.notifyViewChanged();
     this.changeToOpenChart();
   }
 

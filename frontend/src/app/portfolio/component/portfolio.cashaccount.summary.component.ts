@@ -1,6 +1,6 @@
 import { DestroyRef, inject } from '@angular/core';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
-import { Component, Injector, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CashaccountService } from '../../cashaccount/service/cashaccount.service';
@@ -52,7 +52,6 @@ import { TransactionCashaccountTableComponent } from '../../transaction/componen
 @Component({
   templateUrl: '../view/portfolio.cashaccount.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     FormsModule,
@@ -257,6 +256,7 @@ export class PortfolioCashaccountSummaryComponent
         });
         this.prepareTableAndTranslate();
         this.isActivated() && this.resetMenu(null);
+        this.notifyViewChanged();
       });
   }
 
@@ -345,6 +345,8 @@ export class PortfolioCashaccountSummaryComponent
       cashaccount
     });
     this.visibleCashaccountTransactionSingleDialog = true;
+    // The command may come from the menu bar, outside this view
+    this.notifyViewChanged();
   }
 
   handleDoubleAccountTransaction(cashaccount: Cashaccount): void {
@@ -352,6 +354,7 @@ export class PortfolioCashaccountSummaryComponent
       cashaccount
     });
     this.visibleCashaccountTransactionDoubleDialog = true;
+    this.notifyViewChanged();
   }
 
   /**
@@ -462,6 +465,7 @@ export class PortfolioCashaccountSummaryComponent
         formDefinition
       });
       this.visibleCashaccountDialog = true;
+      this.notifyViewChanged();
     });
   }
 

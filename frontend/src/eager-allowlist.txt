@@ -72,13 +72,6 @@ frontend/src/app/lib/tabmenu/component/shared.tab.menu.component.ts
 frontend/src/app/lib/udfmeta/components/udf-general-edit.component.ts
 frontend/src/app/lib/wizard/component/step.component.ts
 frontend/src/app/lib/wizard/component/steps.component.ts
-frontend/src/app/portfolio/component/portfolio.cashaccount.summary.component.ts
-frontend/src/app/securityaccount/component/securityaccount.empty.component.ts
-frontend/src/app/securityaccount/component/securityaccount.summaries.component.ts
-frontend/src/app/securityaccount/component/securityaccount.summary.component.ts
-frontend/src/app/securityaccount/component/securityaccount.tab.menu.component.ts
-frontend/src/app/tenant/component/tenant.summaries.assetclass.component.ts
-frontend/src/app/tenant/component/tenant.summaries.securityaccount.component.ts
 frontend/src/app/watchlist/component/securitycurrency-extended-info.component.ts
 frontend/src/app/watchlist/component/securitycurrency-udf.component.ts
 frontend/src/app/watchlist/component/watchlist-add-edit-price-problem-instrument.component.ts

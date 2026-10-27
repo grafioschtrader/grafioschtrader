@@ -1,7 +1,7 @@
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { DestroyRef, inject } from '@angular/core';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
-import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import { SecurityaccountTable } from '../../securityaccount/component/securityaccountTable';
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 
@@ -40,7 +40,6 @@ import { NgxFileDropModule } from 'ngx-file-drop';
 @Component({
   templateUrl: '../../securityaccount/view/securityaccount.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,

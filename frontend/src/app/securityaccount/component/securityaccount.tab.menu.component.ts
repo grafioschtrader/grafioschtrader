@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Params, Router, RouterOutlet } from '@angular/router';
 import { AppSettings } from '../../shared/app.settings';
@@ -34,7 +34,6 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [Tabs, TabList, Tab, RouterOutlet, TranslatePipe]
 })
 export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {

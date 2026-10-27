@@ -1,4 +1,4 @@
-import { Component, Injector, NgZone, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { SecurityaccountService } from '../service/securityaccount.service';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 
@@ -52,7 +52,6 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 @Component({
   templateUrl: '../view/securityaccount.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,

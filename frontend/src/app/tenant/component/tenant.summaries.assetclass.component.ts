@@ -5,7 +5,7 @@ import { SecurityaccountService } from '../../securityaccount/service/securityac
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
-import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -61,7 +61,6 @@ import { NgxFileDropModule } from 'ngx-file-drop';
 @Component({
   templateUrl: '../../securityaccount/view/securityaccount.table.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -134,9 +133,10 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
   }
 
   ngOnInit() {
-    this.translateService
-      .get('SECURITY_ASSETCLASS_WITH_CASH')
-      .subscribe((translatedTitle) => (this.translatedTitle = translatedTitle));
+    this.translateService.get('SECURITY_ASSETCLASS_WITH_CASH').subscribe((translatedTitle) => {
+      this.translatedTitle = translatedTitle;
+      this.notifyViewChanged();
+    });
     this.parentChildRegisterService.initRegistry();
     this.loadAlgoTopOptions();
     this.preselectAlgoTop();
@@ -165,6 +165,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
         // before it can show or sort them.
         this.createTranslatedValueStore(this.securityPositionAll);
       }
+      this.notifyViewChanged();
     });
   }
 
@@ -287,6 +288,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
             { label: noStrategy, value: null },
             ...algoTops.map((algoTop) => this.algoTopOption(algoTop))
           ];
+          this.notifyViewChanged();
         });
       }
     });
@@ -401,8 +403,9 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     ];
     this.translateService
       .get(this.rebalancingSummaryFields.map((field) => field.headerKey))
-      .subscribe((translations: { [key: string]: string }) =>
-        this.rebalancingSummaryFields.forEach((field) => (field.headerTranslated = translations[field.headerKey]))
-      );
+      .subscribe((translations: { [key: string]: string }) => {
+        this.rebalancingSummaryFields.forEach((field) => (field.headerTranslated = translations[field.headerKey]));
+        this.notifyViewChanged();
+      });
   }
 }

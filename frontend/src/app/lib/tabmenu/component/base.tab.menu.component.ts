@@ -1,4 +1,4 @@
-import { Directive, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Directive, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -41,6 +41,8 @@ export abstract class BaseTabMenuComponent implements OnInit, OnDestroy {
   // Private subscription for cleanup
   private routerSubscription: Subscription;
 
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
   protected constructor(
     protected router: Router,
     protected activatedRoute: ActivatedRoute,
@@ -60,6 +62,8 @@ export abstract class BaseTabMenuComponent implements OnInit, OnDestroy {
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.updateActiveRoute();
+        // A navigation is no event of this template; an OnPush subclass shows the new tab only when marked
+        this.changeDetectorRef.markForCheck();
       });
 
     // Navigate to default route
