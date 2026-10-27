@@ -1,12 +1,18 @@
 import {
-  ChangeDetectorRef,
   Component,
+  ComponentRef,
+  DestroyRef,
+  inject,
   Injector,
   OnInit,
+  reflectComponentType,
+  signal,
+  Type,
   ViewChild,
-  ViewContainerRef,
-  ChangeDetectionStrategy
+  ViewContainerRef
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { UserSettingsService } from '../../services/user.settings.service';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -45,12 +51,13 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
   template: `
     <configurable-table
       (componentClick)="onComponentClick($event)"
-      [data]="proposeChangeEntityWithEntityList"
+      [data]="proposeChangeEntityWithEntityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="'proposeChangeEntity.idProposeRequest'"
       [(selection)]="selectedEntity"
       [contextMenuAppendTo]="'body'"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems()"
       [showContextMenu]="isActivated()"
       [containerClass]="{
         'active-border': isActivated(),
@@ -62,17 +69,21 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
     <ng-template #editDialogContainer></ng-template>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, TranslateModule]
 })
 export class RequestForYouTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
   @ViewChild('editDialogContainer', { read: ViewContainerRef })
   editDialogContainer: ViewContainerRef;
 
-  contextMenuItems: MenuItem[] = [];
+  /** Translated menu of the selected request, shown as context menu and in the menu bar */
+  readonly contextMenuItems = signal<MenuItem[]>([]);
   entityMappingArr: { [key: string]: EntityMapping } = {};
-  proposeChangeEntityWithEntityList: ProposeChangeEntityWithEntity[];
-  selectedEntity: ProposeChangeEntityWithEntity;
+  readonly proposeChangeEntityWithEntityList = signal<ProposeChangeEntityWithEntity[]>([]);
+  readonly selectedEntity = signal<ProposeChangeEntityWithEntity>(null);
+
+  private readonly destroyRef = inject(DestroyRef);
+  /** Translation of the latest menu; a newer menu replaces one that is still being translated */
+  private menuSubscription: Subscription;
 
   /**
    * Creates the request for you table component.
@@ -92,7 +103,6 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     private proposeChangeEntityService: ProposeChangeEntityService,
     private activePanelService: ActivePanelService,
     private messageToastService: MessageToastService,
-    private cdr: ChangeDetectorRef,
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
@@ -109,6 +119,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     this.addColumn(DataType.NumericInteger, 'proposeChangeEntity.idOwnerEntity', 'OWNER_ENTITY', true, false);
     this.addColumnFeqH(DataType.DateTimeSecondString, 'proposeChangeEntity.creationTime', true, false);
     this.prepareTableAndTranslate();
+    this.destroyRef.onDestroy(() => this.menuSubscription?.unsubscribe());
   }
 
   ngOnInit(): void {
@@ -121,10 +132,11 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
   readData(): void {
     this.proposeChangeEntityService
       .getProposeChangeEntityWithEntity()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((proposeChangeEntityWithEntityList) => {
-        this.proposeChangeEntityWithEntityList = proposeChangeEntityWithEntityList;
         this.prepareTableAndTranslate();
-        this.createTranslatedValueStoreAndFilterField(this.proposeChangeEntityWithEntityList);
+        this.createTranslatedValueStoreAndFilterField(proposeChangeEntityWithEntityList);
+        this.proposeChangeEntityWithEntityList.set(proposeChangeEntityWithEntityList);
       });
   }
 
@@ -194,54 +206,46 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     if (this.editDialogContainer) {
       this.editDialogContainer.clear();
 
-      // Create component with proper type casting to avoid TypeScript error
-      const componentRef = this.editDialogContainer.createComponent(entityMapping.editComponentType as any);
-      const instance = componentRef.instance;
-
-      // Set inputs based on component type
-      // This assumes all edit components follow a common interface pattern
-      if (instance) {
-        this.setComponentInputs(instance, entityMapping, proposeChangeEntityWithEntity);
-        this.setComponentOutputs(instance, proposeChangeEntityWithEntity);
-
-        // Manually trigger change detection to ensure inputs are processed
-        componentRef.changeDetectorRef.detectChanges();
-
-        // Also trigger parent change detection
-        this.cdr.detectChanges();
-      }
+      const componentRef = this.editDialogContainer.createComponent(entityMapping.editComponentType as Type<any>);
+      // setInput marks the created component and this view for check, whatever change detection strategy they use
+      this.setComponentInputs(componentRef, entityMapping, proposeChangeEntityWithEntity);
+      this.setComponentOutputs(componentRef.instance, proposeChangeEntityWithEntity);
     }
   }
 
   /**
-   * Sets inputs on the dynamically created edit component.
-   * Each edit component type may have different input properties, so we check for their existence.
+   * Sets the inputs of the dynamically created edit component through setInput. The edit components of the entity
+   * types name their inputs differently, so only the inputs the component type declares are set.
    *
-   * @param instance - The component instance
+   * @param componentRef - Reference of the created component
    * @param entityMapping - The entity mapping with parameters
    * @param proposeChangeEntityWithEntity - The proposed change entity
    * @protected
    */
   protected setComponentInputs(
-    instance: any,
+    componentRef: ComponentRef<any>,
     entityMapping: EntityMapping,
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
   ): void {
-    // Common inputs - directly set without checking (Angular @Input properties might not be enumerable)
-    instance.visibleDialog = entityMapping.visibleDialog;
-    instance.callParam = entityMapping.callParam;
-    instance.proposeChangeEntityWithEntity = proposeChangeEntityWithEntity;
-
-    // Entity-specific inputs
+    // The edit components name their inputs differently; only the inputs a component declares are set
+    const declared = new Set(
+      (reflectComponentType(componentRef.componentType)?.inputs ?? []).map((input) => input.templateName)
+    );
+    const inputs: { [name: string]: unknown } = {
+      visibleDialog: entityMapping.visibleDialog,
+      callParam: entityMapping.callParam,
+      proposeChangeEntityWithEntity,
+      visibleEditCurrencypairDialog: entityMapping.visibleDialog,
+      securityCurrencypairCallParam: entityMapping.callParam,
+      visibleEditSecurityDialog: entityMapping.visibleDialog,
+      securityCallParam: entityMapping.callParam
+    };
     if (entityMapping.option) {
-      instance.platformTransactionImportHtmlOptions = entityMapping.option;
+      inputs['platformTransactionImportHtmlOptions'] = entityMapping.option;
     }
-
-    // Alternative property names for different component types
-    instance.visibleEditCurrencypairDialog = entityMapping.visibleDialog;
-    instance.securityCurrencypairCallParam = entityMapping.callParam;
-    instance.visibleEditSecurityDialog = entityMapping.visibleDialog;
-    instance.securityCallParam = entityMapping.callParam;
+    Object.entries(inputs)
+      .filter(([name]) => declared.has(name))
+      .forEach(([name, value]) => componentRef.setInput(name, value));
   }
 
   /**
@@ -315,22 +319,15 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
    * @param event - The click event
    */
   onComponentClick(event): void {
-    if (this.selectedEntity) {
-      this.contextMenuItems = [
-        {
-          label: 'EDIT',
-          command: () => this.handleEditEntity(this.selectedEntity)
-        }
-      ];
-      TranslateHelper.translateMenuItems(this.contextMenuItems, this.translateService);
-    } else {
-      this.contextMenuItems = null;
-    }
-
-    this.activePanelService.activatePanel(this, {
-      showMenu: this.getMenuShowOptions(),
-      editMenu: this.contextMenuItems
-    });
+    const selected = this.selectedEntity();
+    const menuItems: MenuItem[] = selected ? [{ label: 'EDIT', command: () => this.handleEditEntity(selected) }] : null;
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = TranslateHelper.translateMenuItems$(menuItems, this.translateService).subscribe(
+      (translated) => {
+        this.contextMenuItems.set(translated ?? []);
+        this.activePanelService.activatePanel(this, { showMenu: this.getMenuShowOptions(), editMenu: translated });
+      }
+    );
   }
 
   hideContextMenu(): void {}

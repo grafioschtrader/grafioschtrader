@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormBase } from '../../edit/form.base';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -32,7 +32,6 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
       (submitBt)="submit($event)">
     </dynamic-form>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule]
 })
 export class LimitTransactionRequestDynamicDialogComponent extends FormBase implements OnInit {
@@ -40,6 +39,7 @@ export class LimitTransactionRequestDynamicDialogComponent extends FormBase impl
 
   private readonly ENTITY_NAME = 'entity';
   private readonly NOTE_REQUEST = 'noteRequest';
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   constructor(
     public translateService: TranslateService,
@@ -74,6 +74,8 @@ export class LimitTransactionRequestDynamicDialogComponent extends FormBase impl
         this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
         this.configObject[this.ENTITY_NAME].readonly = true;
         this.configObject[this.ENTITY_NAME].defaultValue = this.dynamicDialogConfig.data.entityName;
+        // The template binds the form configuration built here
+        this.changeDetectorRef.markForCheck();
       });
   }
 

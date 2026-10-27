@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { AppHelper } from '../../helper/app.helper';
 import { TabItem } from '../../types/tab.item';
 import { BaseSettings } from '../../base.settings';
@@ -19,7 +19,6 @@ import { SharedTabMenuComponent } from '../../tabmenu/component/shared.tab.menu.
     </app-shared-tab-menu>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterModule, SharedTabMenuComponent]
 })
 export class SendRecvForwardTabMenuComponent {

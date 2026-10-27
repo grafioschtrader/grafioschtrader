@@ -1,5 +1,5 @@
 import { BaseUDFDataEdit } from './base.udf.data.edit';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MessageToastService } from '../../message/message.toast.service';
 import { UDFDataService } from '../service/udf.data.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -21,7 +21,6 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
   selector: 'udf-general-edit',
   templateUrl: '../view/general.udf.data.edit.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UDFGeneralEditComponent extends BaseUDFDataEdit implements OnInit {

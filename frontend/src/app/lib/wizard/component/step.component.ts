@@ -1,22 +1,22 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'pe-step',
   styles: ['.pe-step-container {padding: 45px 25px 45px 25px; margin-bottom: 20px;}'],
   template: `
-    @if (active) {
+    @if (active()) {
       <div [ngClass]="'ui-widget-content ui-corner-all pe-step-container'" [class]="styleClass">
         <ng-content></ng-content>
       </div>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule]
 })
 export class StepComponent {
   @Input() styleClass: string;
   @Input() label: string;
-  active = false;
+  /** Set by the surrounding StepsComponent */
+  readonly active = signal(false);
 }

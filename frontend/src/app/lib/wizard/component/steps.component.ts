@@ -7,8 +7,7 @@ import {
   OnChanges,
   Output,
   QueryList,
-  SimpleChanges,
-  ChangeDetectionStrategy
+  SimpleChanges
 } from '@angular/core';
 
 import { StepperModule } from '@openng/optimus-ui/stepper';
@@ -49,7 +48,6 @@ import { StepComponent } from './step.component';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [StepperModule, ButtonModule]
 })
 export class StepsComponent implements AfterContentInit, OnChanges {
@@ -81,9 +79,9 @@ export class StepsComponent implements AfterContentInit, OnChanges {
         step.styleClass = this.stepClass;
       }
 
-      step.active = index === this.activeIndex;
+      step.active.set(index === this.activeIndex);
 
-      if (step.active) {
+      if (step.active()) {
         this.activeLabelChange.emit(step.label);
       }
     });

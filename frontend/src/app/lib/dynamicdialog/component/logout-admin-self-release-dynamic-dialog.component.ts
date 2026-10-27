@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
@@ -19,16 +19,15 @@ import { ButtonModule } from '@openng/optimus-ui/button';
 @Component({
   template: ` <p>{{ 'ADMIN_SELF_RELEASE_QUESTION' | translate }}</p>
     <div class="flex justify-content-end mt-3">
-      <p-button [label]="'ADMIN_SELF_RELEASE_CONFIRM' | translate" (click)="confirm()" [loading]="loading">
+      <p-button [label]="'ADMIN_SELF_RELEASE_CONFIRM' | translate" (click)="confirm()" [loading]="loading()">
         <i class="pi pi-check" pButtonIcon></i>
       </p-button>
     </div>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, ButtonModule]
 })
 export class LogoutAdminSelfReleaseDynamicDialogComponent {
-  loading = false;
+  readonly loading = signal(false);
 
   constructor(
     private translateService: TranslateService,
@@ -41,7 +40,7 @@ export class LogoutAdminSelfReleaseDynamicDialogComponent {
   ) {}
 
   confirm(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.loginService
       .login(this.dynamicDialogConfig.data.email, this.dynamicDialogConfig.data.password, 'ADMIN_SELF_RELEASE')
       .subscribe({
@@ -55,7 +54,7 @@ export class LogoutAdminSelfReleaseDynamicDialogComponent {
             this.router.navigate([`/${BaseSettings.TENANT_KEY}`]);
           }
         },
-        error: () => (this.loading = false)
+        error: () => this.loading.set(false)
       });
   }
 }

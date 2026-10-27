@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { MainDialogService } from '../../mainmenubar/service/main.dialog.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LoginService } from '../service/log-in.service';
@@ -42,7 +42,6 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class PasswordEditComponent extends PasswordBaseComponent implements OnInit {

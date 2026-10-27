@@ -3,7 +3,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Textarea } from '@openng/optimus-ui/textarea';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -30,14 +31,15 @@ import { ConfigurableTreeTableComponent } from '../../datashowbase/configurable-
 @Component({
   template: `
     <configurable-tree-table
-      [data]="sendRecvRootNode"
+      [data]="sendRecvRootNode()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="idMailSendRecv"
       [(selection)]="selectedNode"
       (nodeSelect)="nodeSelect($event)"
       sortField="sendRecvTime"
       [sortOrder]="sortOrder"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems()"
       [showContextMenu]="true"
       [contextMenuAppendTo]="'body'"
       [containerClass]="{
@@ -45,8 +47,8 @@ import { ConfigurableTreeTableComponent } from '../../datashowbase/configurable-
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }"
-      [rowClassFn]="getRowClass.bind(this)"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [rowClassFn]="rowClass"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <div caption style="text-align:left">
         <h5>
@@ -58,12 +60,11 @@ import { ConfigurableTreeTableComponent } from '../../datashowbase/configurable-
         <svg-icon [name]="value" [svgStyle]="{ 'width.px': 16, 'height.px': 16 }"></svg-icon>
       </ng-template>
     </configurable-tree-table>
-    <textarea [rows]="15" pTextarea readonly="true">{{ selectedNode ? selectedNode.data.message : '' }}</textarea>
+    <textarea [rows]="15" pTextarea readonly="true">{{ selectedNode() ? selectedNode().data.message : '' }}</textarea>
   `,
   styles: ['textarea { width:100%; }'],
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, Textarea, AngularSvgIconModule, TranslateModule, ConfigurableTreeTableComponent]
 })
 export class SendRecvTreetableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
@@ -95,9 +96,12 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
 
   private static iconLoadDone = false;
 
-  sendRecvRootNode: TreeNode[] = [];
-  contextMenuItems: MenuItem[];
-  selectedNode: TreeNode;
+  readonly sendRecvRootNode = signal<TreeNode[]>([]);
+  readonly contextMenuItems = signal<MenuItem[]>(null);
+  readonly selectedNode = signal<TreeNode>(null);
+  /** Stable row class callback of the tree table */
+  readonly rowClass = (rowNode: any, rowData: any): string | null => this.getRowClass(rowNode, rowData);
+  private readonly destroyRef = inject(DestroyRef);
   sortOrder = -1;
   private sendRecvParentMap: { [idMailInOut: number]: TreeNode } = {};
 
@@ -161,28 +165,28 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   }
 
   private readData(): void {
-    this.sendRecvService.getMailsByUserOrRole().subscribe((miws: MailInboxWithSend) => {
-      this.sendRecvParentMap = {};
-      const tn: TreeNode[] = [];
-      miws.mailSendRecvList.forEach((mailSendRecv) => {
-        const parent: TreeNode = mailSendRecv.idReplyToLocal && this.sendRecvParentMap[mailSendRecv.idReplyToLocal];
-        if (parent) {
-          parent.children.push({
-            data: mailSendRecv,
-            expanded: false,
-            leaf: true
-          });
-          parent.expanded = !this.hasBeenRead(mailSendRecv);
-        } else {
-          this.createParentNode(tn, miws, mailSendRecv);
-        }
+    this.sendRecvService
+      .getMailsByUserOrRole()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((miws: MailInboxWithSend) => {
+        this.sendRecvParentMap = {};
+        const tn: TreeNode[] = [];
+        miws.mailSendRecvList.forEach((mailSendRecv) => {
+          const parent: TreeNode = mailSendRecv.idReplyToLocal && this.sendRecvParentMap[mailSendRecv.idReplyToLocal];
+          if (parent) {
+            parent.children.push({
+              data: mailSendRecv,
+              expanded: false,
+              leaf: true
+            });
+            parent.expanded = !this.hasBeenRead(mailSendRecv);
+          } else {
+            this.createParentNode(tn, miws, mailSendRecv);
+          }
+        });
+        this.createTranslateValuesStoreForTranslation(tn);
+        this.sendRecvRootNode.set(tn);
       });
-      setTimeout(() => {
-        this.sendRecvRootNode = tn;
-        this.createTranslateValuesStoreForTranslation(this.sendRecvRootNode);
-        this.changeDetectorRef.detectChanges();
-      });
-    });
   }
 
   private hasBeenRead(mailSendRecv: MailSendRecv): boolean {
@@ -197,7 +201,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
       children: [],
       expanded: false,
       leaf: false,
-      parent: this.sendRecvRootNode[0]
+      parent: this.sendRecvRootNode()[0]
     };
     this.sendRecvParentMap[parentId] = tnParent;
     tn.push(tnParent);
@@ -208,6 +212,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     if (!this.hasBeenRead(mailSendRecv)) {
       this.sendRecvService.markForRead(mailSendRecv.idMailSendRecv).subscribe((mailSendRecvRc) => {
         event.node.data = mailSendRecvRc;
+        this.notifyViewChanged();
       });
     }
   }
@@ -232,7 +237,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     DynamicDialogs.getOpenedMailSendComponent(
       this.translateService,
       this.dialogService,
-      new MailSendParam(this.selectedNode.data.idUserFrom, this.selectedNode.data)
+      new MailSendParam(this.selectedNode().data.idUserFrom, this.selectedNode().data)
     ).onClose.subscribe((mailSendRecv: MailSendRecv) => {
       mailSendRecv && this.readData();
     });
@@ -252,13 +257,13 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
-      this.selectedNode.parent ? 'MSG_CONFIRM_DELETE_MESSAGE' : 'MSG_CONFIRM_DELETE_MESSAGE_GROUP',
+      this.selectedNode().parent ? 'MSG_CONFIRM_DELETE_MESSAGE' : 'MSG_CONFIRM_DELETE_MESSAGE_GROUP',
       () => {
-        this.sendRecvService.deleteSingleOrGroup(this.selectedNode.data.idMailSendRecv).subscribe((response) => {
+        this.sendRecvService.deleteSingleOrGroup(this.selectedNode().data.idMailSendRecv).subscribe((response) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
             i18nRecord: 'MAIL_SEND_RECV'
           });
-          this.selectedNode = null;
+          this.selectedNode.set(null);
           this.readData();
         });
       }
@@ -274,22 +279,22 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   }
 
   private setMenuItemsToActivePanel(): void {
-    this.activePanelService.activatePanel(this, {
-      editMenu: this.prepareEditMenu()
-    });
-    this.contextMenuItems = this.prepareEditMenu();
+    const menuItems = this.prepareEditMenu();
+    this.contextMenuItems.set(menuItems);
+    this.activePanelService.activatePanel(this, { editMenu: menuItems });
   }
 
   private prepareEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [this.sendToUserRoleMenuItem].concat(
       this.gps.hasRole(BaseSettings.ROLE_ADMIN) ? [this.sendToUserMenuItem] : []
     );
-    if (this.selectedNode) {
-      if (this.selectedNode.data.sendRecv === SendRecvType.RECEIVE) {
+    const selected = this.selectedNode();
+    if (selected) {
+      if (selected.data.sendRecv === SendRecvType.RECEIVE) {
         menuItems.push(this.replyMenuItem);
         menuItems.push({ separator: true });
       }
-      menuItems.push(this.selectedNode.parent ? this.deleteMenuItem : this.deleteGroupMenuItem);
+      menuItems.push(selected.parent ? this.deleteMenuItem : this.deleteGroupMenuItem);
     }
     return menuItems;
   }

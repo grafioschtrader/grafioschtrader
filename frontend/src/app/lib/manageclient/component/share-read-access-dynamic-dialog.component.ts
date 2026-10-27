@@ -1,4 +1,4 @@
-import { afterNextRender, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { combineLatest } from 'rxjs';
@@ -41,7 +41,6 @@ import { ManageClientService } from '../service/manage-client.service';
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule]
 })
 export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent implements OnInit {

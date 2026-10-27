@@ -1,4 +1,4 @@
-import { Component, Injector, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
@@ -30,7 +30,7 @@ import { TenantAccessInfo } from '../model/tenant-access-info';
           <i class="pi pi-question" pButtonIcon></i>
         </p-button>
       </div>
-      <p-table [columns]="fields" [value]="managedClients" selectionMode="single" stripedRows showGridlines>
+      <p-table [columns]="fields" [value]="managedClients()" selectionMode="single" stripedRows showGridlines>
         <ng-template #header>
           <tr>
             @for (field of fields; track field) {
@@ -74,11 +74,10 @@ import { TenantAccessInfo } from '../model/tenant-access-info';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TableModule, ButtonModule, TooltipModule]
 })
 export class ManagedClientsTableDialogComponent extends TableConfigBase implements OnInit {
-  managedClients: TenantAccessInfo[] = [];
+  readonly managedClients = signal<TenantAccessInfo[]>([]);
   currentIdTenant: number;
 
   constructor(
@@ -123,7 +122,7 @@ export class ManagedClientsTableDialogComponent extends TableConfigBase implemen
   private loadData(): void {
     // Exclude the home tenant and the client the advisor is currently in (no point switching to where you already are).
     this.manageClientService.getAccessibleTenants().subscribe((list) => {
-      this.managedClients = list.filter((t) => !t.home && t.idTenant !== this.currentIdTenant);
+      this.managedClients.set(list.filter((t) => !t.home && t.idTenant !== this.currentIdTenant));
     });
   }
 }

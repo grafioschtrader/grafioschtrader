@@ -1,13 +1,4 @@
-import {
-  afterNextRender,
-  Component,
-  DestroyRef,
-  inject,
-  Injector,
-  OnInit,
-  ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { afterNextRender, Component, DestroyRef, inject, Injector, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBase } from '../../edit/form.base';
 import { AppHelper } from '../../helper/app.helper';
@@ -41,7 +32,6 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
     (submitBt)="submit($event)">
   </dynamic-form>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule]
 })
 export class MailSendDynamicDialogComponent extends FormBase implements OnInit {

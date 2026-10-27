@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 import { ProcessedActionData } from '../../types/processed.action.data';
 import { ProcessedAction } from '../../types/processed.action';
@@ -13,7 +13,6 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
-import { Subscription } from 'rxjs';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { MessageToastService } from '../../message/message.toast.service';
 import { UserSettingsService } from '../../services/user.settings.service';
@@ -54,15 +53,11 @@ import { BaseSettings } from '../../base.settings';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UploadFileDialogComponent extends SimpleEditBase implements OnInit {
   /** Configuration parameters passed from parent component defining dialog behavior and upload settings */
   @Input() fileUploadParam: FileUploadParam;
-
-  /** Subscription to decimal separator value changes, used to update thousand separator options dynamically */
-  decimalSeparatorSub: Subscription;
 
   /** Currently selected file for upload (used in single-file mode, kept for backward compatibility) */
   fileToUpload: File = null;
@@ -79,7 +74,6 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
     public translateService: TranslateService,
     private messageToastService: MessageToastService,
     private userSettingsService: UserSettingsService,
-    private cdr: ChangeDetectorRef,
     gps: GlobalparameterService
   ) {
     super(null, gps);
@@ -187,14 +181,16 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    * to exclude the chosen decimal separator.
    */
   valueChangedOnDecimalSeparator(): void {
-    this.decimalSeparatorSub = this.configObject.decimalSeparator.formControl.valueChanges.subscribe((data: string) => {
-      const thousandSeparators: string[] = this.fileUploadParam.supportedCSVFormats.thousandSeparators.filter(
-        (separator) => separator !== this.configObject.decimalSeparator.formControl.value
-      );
+    this.configObject.decimalSeparator.formControl.valueChanges
+      .pipe(this.untilDialogClosed())
+      .subscribe((data: string) => {
+        const thousandSeparators: string[] = this.fileUploadParam.supportedCSVFormats.thousandSeparators.filter(
+          (separator) => separator !== this.configObject.decimalSeparator.formControl.value
+        );
 
-      this.configObject.thousandSeparator.valueKeyHtmlOptions =
-        SelectOptionsHelper.createHtmlOptionsFromStringArray(thousandSeparators);
-    });
+        this.configObject.thousandSeparator.valueKeyHtmlOptions =
+          SelectOptionsHelper.createHtmlOptionsFromStringArray(thousandSeparators);
+      });
   }
 
   /**
@@ -203,11 +199,6 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    *
    * @param event - Optimus dialog hide event
    */
-  override onHide(event) {
-    super.onHide(event);
-    this.decimalSeparatorSub && this.decimalSeparatorSub.unsubscribe();
-  }
-
   /**
    * Initializes dialog state when shown. For dialogs with CSV format support, this method:
    * - Populates dropdown options for decimal separators, thousand separators, and date formats
@@ -234,7 +225,6 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
       if (supportedCSVFormat) {
         this.form.transferBusinessObjectToForm(supportedCSVFormat);
       }
-      this.cdr.detectChanges();
     }
   }
 

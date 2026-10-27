@@ -1,4 +1,4 @@
-import { afterNextRender, Component, OnDestroy, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
+import { afterNextRender, Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../service/log-in.service';
@@ -64,7 +64,6 @@ import { ApplicationInfoComponent } from './application-info.component';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule, ProgressBarModule, ApplicationInfoComponent]
 })
 export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {

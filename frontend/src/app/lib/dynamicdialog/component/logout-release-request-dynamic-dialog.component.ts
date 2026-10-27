@@ -1,5 +1,5 @@
 import { FormBase } from '../../edit/form.base';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -26,7 +26,6 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
       (submitBt)="submit($event)">
     </dynamic-form>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule]
 })
 export class LogoutReleaseRequestDynamicDialogComponent extends FormBase implements OnInit {

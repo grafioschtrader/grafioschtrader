@@ -1,4 +1,5 @@
-import { Component, Injector, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, Injector, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TableConfigBase } from '../datashowbase/table.config.base';
 import { Globalparameters } from '../entities/globalparameters';
@@ -28,27 +29,28 @@ import { HelpIds } from '../help/help.ids';
 @Component({
   template: `
     <configurable-table
-      [data]="globalparametersList"
+      [data]="globalparametersList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       [dataKey]="'propertyName'"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
-      [customSortFn]="customSort.bind(this)"
+      [customSortFn]="customSorter"
       [scrollable]="false"
       [stripedRows]="true"
       [showGridlines]="true"
       [expandable]="true"
-      [canExpandFn]="canExpandRow.bind(this)"
+      [canExpandFn]="canExpandRow"
       [expandedRowTemplate]="expandedContent"
       [containerClass]="{
         'data-container': true,
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }"
-      [showContextMenu]="!!contextMenuItems && contextMenuItems.length > 0"
-      [contextMenuItems]="contextMenuItems"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [showContextMenu]="contextMenuItems().length > 0"
+      [contextMenuItems]="contextMenuItems()"
+      [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">
       <h4 caption>{{ 'GLOBAL_SETTINGS' | translate }}</h4>
     </configurable-table>
@@ -58,25 +60,28 @@ import { HelpIds } from '../help/help.ids';
       <textarea [rows]="10" pTextarea style="width: 100%;" readonly="true">{{ gp.propertyBlobAsText }}</textarea>
     </ng-template>
 
-    @if (visibleDialog) {
+    @if (visibleDialog()) {
       <globalsettings-edit
-        [visibleDialog]="visibleDialog"
-        [globalparameters]="selectedEntity"
+        [visibleDialog]="visibleDialog()"
+        [globalparameters]="selectedEntity()"
         (closeDialog)="handleGlobalparameterCloseDialog($event)">
       </globalsettings-edit>
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, Textarea, TranslateModule, GlobalSettingsEditComponent]
 })
 export class GlobalSettingsTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
-  contextMenuItems: MenuItem[] = [];
+  readonly contextMenuItems = signal<MenuItem[]>([]);
   editMenu: MenuItem;
-  globalparametersList: Globalparameters[];
-  selectedEntity: Globalparameters;
+  readonly globalparametersList = signal<Globalparameters[]>([]);
+  readonly selectedEntity = signal<Globalparameters>(null);
   callParam: User;
-  visibleDialog = false;
+  readonly visibleDialog = signal(false);
+  private readonly destroyRef = inject(DestroyRef);
+
+  /** Only a parameter with a text blob has something to expand */
+  readonly canExpandRow = (gp: Globalparameters): boolean => !!gp.propertyBlobAsText;
   private readonly PROPERTY_NAME = 'propertyName';
 
   constructor(
@@ -109,7 +114,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
     );
     this.editMenu = {
       label: 'EDIT_RECORD|GLOBAL_SETTINGS' + BaseSettings.DIALOG_MENU_SUFFIX,
-      command: (event) => this.handleEditEntity(this.selectedEntity),
+      command: (event) => this.handleEditEntity(this.selectedEntity()),
       disabled: !AuditHelper.hasAdminRole(this.gps)
     };
     TranslateHelper.translateMenuItems([this.editMenu], translateService);
@@ -142,20 +147,16 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
     return this.activePanelService.isActivated(this);
   }
 
-  canExpandRow(gp: Globalparameters): boolean {
-    return !!gp.propertyBlobAsText;
-  }
-
   onComponentClick(event): void {
-    this.resetMenu(this.selectedEntity);
+    this.resetMenu(this.selectedEntity());
   }
 
   handleEditEntity(globalparameters: Globalparameters): void {
-    this.visibleDialog = true;
+    this.visibleDialog.set(true);
   }
 
   handleGlobalparameterCloseDialog(processedActionData: ProcessedActionData): void {
-    this.visibleDialog = false;
+    this.visibleDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
@@ -170,26 +171,28 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
   }
 
   protected getEditMenu(): MenuItem[] {
-    this.contextMenuItems = [];
-    if (this.selectedEntity) {
-      this.contextMenuItems.push(this.editMenu);
-    }
-    return this.contextMenuItems;
+    const menuItems = this.selectedEntity() ? [this.editMenu] : [];
+    this.contextMenuItems.set(menuItems);
+    return menuItems;
   }
 
   private readData(): void {
-    (this.gps as any).getAllGlobalparameters().subscribe((globalparametersList) => {
-      this.globalparametersList = globalparametersList;
-      this.prepareTableAndTranslate();
-      this.createTranslatedValueStoreAndFilterField(globalparametersList);
-      if (this.selectedEntity) {
-        this.resetMenu(this.globalparametersList.find((gp) => gp.propertyName === this.selectedEntity.propertyName));
-      }
-    });
+    (this.gps as any)
+      .getAllGlobalparameters()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((globalparametersList: Globalparameters[]) => {
+        this.prepareTableAndTranslate();
+        this.createTranslatedValueStoreAndFilterField(globalparametersList);
+        this.globalparametersList.set(globalparametersList);
+        const selected = this.selectedEntity();
+        if (selected) {
+          this.resetMenu(globalparametersList.find((gp) => gp.propertyName === selected.propertyName));
+        }
+      });
   }
 
   private resetMenu(gp: Globalparameters): void {
-    this.selectedEntity = gp;
+    this.selectedEntity.set(gp ?? null);
     this.activePanelService.activatePanel(this, {
       showMenu: this.getMenuShowOptions(),
       editMenu: this.getEditMenu()

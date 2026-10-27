@@ -1,4 +1,6 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
@@ -36,14 +38,15 @@ import { TranslateModule } from '@ngx-translate/core';
     <editable-table
       [(data)]="mailSettingForwardList"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="rowKey"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale"
-      [customSortFn]="customSort.bind(this)"
-      [createNewEntityFn]="createNewEntity.bind(this)"
-      [contextMenuItems]="contextMenuItems"
+      [customSortFn]="customSorter"
+      [createNewEntityFn]="createNewEntity"
+      [contextMenuItems]="contextMenuItems()"
       [contextMenuAppendTo]="'body'"
       [showContextMenu]="isActivated()"
       [containerClass]="{
@@ -60,13 +63,17 @@ import { TranslateModule } from '@ngx-translate/core';
     </editable-table>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [EditableTableComponent, TranslateModule]
 })
 export class MailForwardSettingTableEditComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
-  contextMenuItems: MenuItem[] = [];
-  mailSettingForwardList: MailSettingForward[] = [];
-  selectedEntity: MailSettingForward;
+  /** Translated menu of the selection, shown as context menu and in the menu bar */
+  readonly contextMenuItems = signal<MenuItem[]>([]);
+  readonly mailSettingForwardList = signal<MailSettingForward[]>([]);
+  readonly selectedEntity = signal<MailSettingForward>(null);
+
+  private readonly destroyRef = inject(DestroyRef);
+  /** Translation of the latest menu; a newer menu replaces one that is still being translated */
+  private menuSubscription: Subscription;
 
   private mailSendForwardDefault: MailSendForwardDefault;
   private newRowCounter = 0;
@@ -110,6 +117,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
     redirectCol.cec.dependsOnField = MailSettingForwardVar.MESSAGE_COM_TYPE;
     redirectCol.cec.optionsProviderFn = (row: MailSettingForward) => this.getRedirectUserOptions(row);
     redirectCol.cec.canEditFn = (row: MailSettingForward) => this.canRedirect(row);
+    this.destroyRef.onDestroy(() => this.menuSubscription?.unsubscribe());
   }
 
   // ============================================================================
@@ -133,10 +141,13 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
   // ============================================================================
 
   ngOnInit(): void {
-    this.mailSettingForwardService.getSendForwardDefault().subscribe((msfd: MailSendForwardDefault) => {
-      this.mailSendForwardDefault = msfd;
-      this.readData();
-    });
+    this.mailSettingForwardService
+      .getSendForwardDefault()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((msfd: MailSendForwardDefault) => {
+        this.mailSendForwardDefault = msfd;
+        this.readData();
+      });
   }
 
   // ============================================================================
@@ -144,18 +155,21 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
   // ============================================================================
 
   private readData(): void {
-    this.mailSettingForwardService.getMailSettingForwardByUser().subscribe((msfList: MailSettingForward[]) => {
-      this.mailSettingForwardList = msfList.map((msf) => {
-        (msf as any).rowKey = msf.idMailSettingForward
-          ? `existing_${msf.idMailSettingForward}`
-          : `new_${this.newRowCounter++}`;
-        return msf;
+    this.mailSettingForwardService
+      .getMailSettingForwardByUser()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((msfList: MailSettingForward[]) => {
+        const rows = msfList.map((msf) => {
+          (msf as any).rowKey = msf.idMailSettingForward
+            ? `existing_${msf.idMailSettingForward}`
+            : `new_${this.newRowCounter++}`;
+          return msf;
+        });
+        this.mailSettingForwardList.set(rows);
+        this.refreshMessageComTypeOptions();
+        this.prepareTableAndTranslate();
+        this.createTranslatedValueStoreAndFilterField(rows);
       });
-
-      this.refreshMessageComTypeOptions();
-      this.prepareTableAndTranslate();
-      this.createTranslatedValueStoreAndFilterField(this.mailSettingForwardList);
-    });
   }
 
   // ============================================================================
@@ -184,7 +198,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
 
   /** Updates available MESSAGE_COM_TYPE options (excludes already used types) */
   private refreshMessageComTypeOptions(): void {
-    const usedTypes = this.mailSettingForwardList
+    const usedTypes = this.mailSettingForwardList()
       .filter((msf) => msf.messageComType != null)
       .map((msf) => MessageComType[MessageComType[msf.messageComType]]);
 
@@ -248,24 +262,26 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
     this.resetMenu();
   }
 
+  /** Publishes the translated menu as context menu and in the menu bar. */
   private resetMenu(): void {
-    this.contextMenuItems = this.getEditMenu();
-    this.activePanelService.activatePanel(this, {
-      showMenu: null,
-      editMenu: this.contextMenuItems
-    });
+    this.menuSubscription?.unsubscribe();
+    this.menuSubscription = TranslateHelper.translateMenuItems$(this.getEditMenu(), this.translateService).subscribe(
+      (menuItems) => {
+        this.contextMenuItems.set(menuItems);
+        this.activePanelService.activatePanel(this, { showMenu: null, editMenu: menuItems });
+      }
+    );
   }
 
   private getEditMenu(): MenuItem[] {
-    const menuItems: MenuItem[] = [
+    const selected = this.selectedEntity();
+    return [
       {
         label: 'DELETE_RECORD|' + this.MAIL_SETTING_FORWARD,
-        command: () => this.handleDeleteEntity(this.selectedEntity),
-        disabled: !this.selectedEntity || !this.selectedEntity.idMailSettingForward
+        command: () => this.handleDeleteEntity(selected),
+        disabled: !selected?.idMailSettingForward
       }
     ];
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
-    return menuItems;
   }
 
   // ============================================================================
@@ -335,7 +351,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
             i18nRecord: this.MAIL_SETTING_FORWARD
           });
-          this.selectedEntity = null;
+          this.selectedEntity.set(null);
           this.resetMenu();
           this.readData();
         });

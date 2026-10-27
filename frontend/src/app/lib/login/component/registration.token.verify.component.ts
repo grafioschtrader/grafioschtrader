@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GlobalparameterService } from '../../services/globalparameter.service';
 import { LoginService } from '../service/log-in.service';
@@ -13,7 +13,6 @@ import { TranslateModule } from '@ngx-translate/core';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule]
 })
 export class RegistrationTokenVerifyComponent implements OnInit, OnDestroy {

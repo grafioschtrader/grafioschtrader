@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ApplicationInfo } from '../../services/actuator.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -17,7 +17,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     }
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule]
 })
 export class ApplicationInfoComponent {

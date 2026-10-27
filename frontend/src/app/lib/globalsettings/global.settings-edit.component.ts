@@ -1,7 +1,7 @@
 /**
  * Component for editing global parameter values.
  */
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 import { SimpleEntityEditBase } from '../edit/simple.entity.edit.base';
 import { Globalparameters } from '../entities/globalparameters';
@@ -44,7 +44,6 @@ import { ValidatorFn } from '@angular/forms';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalparameters> implements OnInit {

@@ -1,13 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-  ChangeDetectionStrategy,
-  signal
-} from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../service/log-in.service';
@@ -83,7 +74,6 @@ import { PasswordEditComponent } from './password-edit.component';
   `,
   providers: [DialogService],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule, CardModule, ApplicationInfoComponent, PasswordEditComponent]
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {

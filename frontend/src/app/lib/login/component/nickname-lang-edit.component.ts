@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { SimpleEditBase } from '../../edit/simple.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
@@ -40,7 +40,6 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
     </dynamic-form>
   </p-dialog>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class NicknameLangEditComponent extends SimpleEditBase implements OnInit {
@@ -87,12 +86,12 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
   }
 
   protected override initialize(): void {
-    combineLatest([this.gps.getSupportedLocales(), this.loginService.getOwnUser()]).subscribe(
-      ([locales, user]: [ValueKeyHtmlSelectOptions[], UserOwnProjection]) => {
+    combineLatest([this.gps.getSupportedLocales(), this.loginService.getOwnUser()])
+      .pipe(this.untilDialogClosed())
+      .subscribe(([locales, user]: [ValueKeyHtmlSelectOptions[], UserOwnProjection]) => {
         this.configObject.localeStr.valueKeyHtmlOptions = locales;
         this.form.transferBusinessObjectToForm(user);
         this.configObject.nickname.elementRef.nativeElement.focus();
-      }
-    );
+      });
   }
 }

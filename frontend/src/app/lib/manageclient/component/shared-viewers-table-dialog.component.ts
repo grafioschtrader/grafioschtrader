@@ -1,4 +1,4 @@
-import { Component, Injector, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
@@ -31,7 +31,7 @@ import { SharedViewerInfo } from '../model/shared-viewer-info';
           <i class="pi pi-question" pButtonIcon></i>
         </p-button>
       </div>
-      <p-table [columns]="fields" [value]="sharedViewers" selectionMode="single" stripedRows showGridlines>
+      <p-table [columns]="fields" [value]="sharedViewers()" selectionMode="single" stripedRows showGridlines>
         <ng-template #header>
           <tr>
             @for (field of fields; track field) {
@@ -64,11 +64,10 @@ import { SharedViewerInfo } from '../model/shared-viewer-info';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TableModule, ButtonModule, TooltipModule]
 })
 export class SharedViewersTableDialogComponent extends TableConfigBase implements OnInit {
-  sharedViewers: SharedViewerInfo[] = [];
+  readonly sharedViewers = signal<SharedViewerInfo[]>([]);
 
   constructor(
     filterService: FilterService,
@@ -113,8 +112,8 @@ export class SharedViewersTableDialogComponent extends TableConfigBase implement
 
   private loadData(): void {
     this.manageClientService.getSharedViewers().subscribe((list) => {
-      this.sharedViewers = list;
-      this.createTranslatedValueStore(this.sharedViewers);
+      this.createTranslatedValueStore(list);
+      this.sharedViewers.set(list);
     });
   }
 }
