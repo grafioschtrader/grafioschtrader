@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, NgZone, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, NgZone, OnDestroy, signal } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
 import { Subscription, finalize } from 'rxjs';
@@ -25,13 +25,13 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
       appendTo="body"
       (onShow)="onShow()"
       (onHide)="close()">
-      @if (loading) {
+      @if (loading()) {
         <div class="flex justify-content-center align-items-center" style="min-height: 200px">
           <p-progressSpinner></p-progressSpinner>
         </div>
         <p>{{ 'UDF_FILL_PROPOSE_WAITING' | translate }}</p>
       } @else {
-        @if (preview) {
+        @if (preview(); as preview) {
           @if (preview.examples.length === 0) {
             <p>{{ 'UDF_FILL_PROPOSE_NONE' | translate }}</p>
           } @else {
@@ -41,7 +41,7 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
                 <label class="proposal-example">
                   <input
                     type="checkbox"
-                    [checked]="selected.has(e.idSecuritycurrency)"
+                    [checked]="selected().has(e.idSecuritycurrency)"
                     (change)="toggle(e.idSecuritycurrency)" />
                   <b>{{ e.name }}</b> {{ e.isin }} {{ e.ticker }} {{ e.mic }} {{ e.currency }}: {{ e.value }}
                 </label>
@@ -49,11 +49,11 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
             </div>
             <p-button
               [label]="'UDF_FILL_PROPOSE_SEND' | translate"
-              [disabled]="selected.size === 0 || loading"
+              [disabled]="selected().size === 0 || loading()"
               (onClick)="send()"></p-button>
           }
         }
-        @if (result) {
+        @if (result(); as result) {
           <hr />
           @if (result.rule) {
             <pre class="proposal-rule">{{ result.rule }}</pre>
@@ -87,7 +87,6 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, ButtonModule, TranslateModule, ProgressSpinnerModule, UDFFillTestResultComponent]
 })
 export class UDFFillRuleProposalDialogComponent implements OnDestroy {
@@ -103,10 +102,11 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   /** Emits when the dialog closes */
   @Output() closeDialog = new EventEmitter<void>();
 
-  preview: RuleProposalPreview;
-  result: RuleProposalResult;
-  selected = new Set<number>();
-  loading = false;
+  readonly preview = signal<RuleProposalPreview>(null);
+  readonly result = signal<RuleProposalResult>(null);
+  /** Examples ticked for sending; every change publishes a new set */
+  readonly selected = signal<ReadonlySet<number>>(new Set());
+  readonly loading = signal(false);
   private pendingRequest: Subscription;
 
   /**
@@ -126,16 +126,16 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   onShow(): void {
     this.ngZone.run(() => {
       this.cancelPendingRequest();
-      this.preview = null;
-      this.result = null;
-      this.loading = true;
+      this.preview.set(null);
+      this.result.set(null);
+      this.loading.set(true);
       this.pendingRequest = this.uDFMetadataSecurityService
         .previewRuleProposal(this.idUDFMetadata)
-        .pipe(finalize(() => (this.loading = false)))
+        .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
           next: (preview) => {
-            this.preview = preview;
-            this.selected = new Set(preview.examples.map((e) => e.idSecuritycurrency));
+            this.selected.set(new Set(preview.examples.map((e) => e.idSecuritycurrency)));
+            this.preview.set(preview);
           },
           error: () => {} // The authenticated service displays the translated error.
         });
@@ -143,8 +143,8 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   }
 
   providerLabels(): string {
-    return this.preview.providers
-      .map(
+    return this.preview()
+      .providers.map(
         (p) =>
           p.label +
           ', ' +
@@ -154,33 +154,33 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   }
 
   toggle(idSecuritycurrency: number): void {
-    this.selected.has(idSecuritycurrency)
-      ? this.selected.delete(idSecuritycurrency)
-      : this.selected.add(idSecuritycurrency);
+    this.selected.update((selected) => {
+      const next = new Set(selected);
+      next.has(idSecuritycurrency) ? next.delete(idSecuritycurrency) : next.add(idSecuritycurrency);
+      return next;
+    });
   }
 
   /**
    * Sends the selected examples; one paid request.
    */
   send(): void {
-    if (this.loading || this.selected.size === 0) {
+    if (this.loading() || this.selected().size === 0) {
       return;
     }
-    this.loading = true;
-    this.result = null;
+    this.loading.set(true);
+    this.result.set(null);
     this.pendingRequest = this.uDFMetadataSecurityService
-      .proposeRule(this.idUDFMetadata, [...this.selected])
-      .pipe(finalize(() => (this.loading = false)))
+      .proposeRule(this.idUDFMetadata, [...this.selected()])
+      .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (result) => {
-          this.result = result;
-        },
+        next: (result) => this.result.set(result),
         error: () => {}
       });
   }
 
   accept(): void {
-    this.ruleAccepted.emit(this.result.rule);
+    this.ruleAccepted.emit(this.result().rule);
     this.close();
   }
 
@@ -194,7 +194,7 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   private cancelPendingRequest(): void {
     this.pendingRequest?.unsubscribe();
     this.pendingRequest = null;
-    this.loading = false;
+    this.loading.set(false);
   }
 
   ngOnDestroy(): void {

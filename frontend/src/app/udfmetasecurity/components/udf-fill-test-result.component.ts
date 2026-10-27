@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { UDFFillTestResult } from '../model/udf.metadata.security';
 
@@ -58,7 +58,6 @@ import { UDFFillTestResult } from '../model/udf.metadata.security';
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule]
 })
 export class UDFFillTestResultComponent {

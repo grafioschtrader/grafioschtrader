@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
 import { GlobalSessionNames } from '../../lib/global.session.names';
@@ -27,11 +27,10 @@ import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.m
     </app-shared-tab-menu>
   `,
   imports: [SharedTabMenuComponent, RouterModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
-  tabs: TabItem[] = [
+  readonly tabs: TabItem[] = [
     {
       label: AppSettings.PORTFOLIO.toUpperCase(),
       route: AppSettings.PORTFOLIO_SUMMARY_KEY,

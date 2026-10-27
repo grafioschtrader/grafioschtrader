@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, signal, SimpleChanges } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
 import { Subscription, concatMap, finalize, from, switchMap, tap } from 'rxjs';
@@ -17,20 +17,20 @@ import { UDFFillTestRequest, UDFSuggestTestCandidate, UDFSuggestTestResult } fro
   template: `
     <div>
       <p>{{ 'UDF_FILL_TEST_LLM_INFO' | translate }}</p>
-      @if (candidates?.length === 0) {
+      @if (candidates()?.length === 0) {
         <p>{{ 'UDF_FILL_TEST_LLM_NONE' | translate }}</p>
       }
-      @if (running && candidates?.length > 0) {
+      @if (running() && candidates()?.length > 0) {
         <div class="test-progress">
           <p-progressSpinner [style]="{ width: '2rem', height: '2rem' }"></p-progressSpinner>
           <span>{{
-            'UDF_FILL_TEST_LLM_PROGRESS' | translate: { current: results.size + 1, total: candidates.length }
+            'UDF_FILL_TEST_LLM_PROGRESS' | translate: { current: results().size + 1, total: candidates().length }
           }}</span>
         </div>
       }
       <ul>
-        @for (c of candidates; track c.idSecuritycurrency) {
-          @let r = results.get(c.idSecuritycurrency);
+        @for (c of candidates(); track c.idSecuritycurrency) {
+          @let r = results().get(c.idSecuritycurrency);
           @if (r) {
             <li>
               <b>{{ c.name }}</b
@@ -103,7 +103,6 @@ import { UDFFillTestRequest, UDFSuggestTestCandidate, UDFSuggestTestResult } fro
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, ProgressSpinnerModule]
 })
 export class UDFFillSuggestTestResultComponent implements OnChanges, OnDestroy {
@@ -111,13 +110,13 @@ export class UDFFillSuggestTestResultComponent implements OnChanges, OnDestroy {
   @Input() request: UDFFillTestRequest;
 
   /** The securities picked by the server, null while they are loading */
-  candidates: UDFSuggestTestCandidate[];
+  readonly candidates = signal<UDFSuggestTestCandidate[]>(null);
 
-  /** The answers received so far, by security */
-  results = new Map<number, UDFSuggestTestResult>();
+  /** The answers received so far, by security; every arriving answer publishes a new map */
+  readonly results = signal<ReadonlyMap<number, UDFSuggestTestResult>>(new Map());
 
   /** True while securities are still being asked */
-  running = false;
+  readonly running = signal(false);
 
   private subscription: Subscription;
 
@@ -140,18 +139,18 @@ export class UDFFillSuggestTestResultComponent implements OnChanges, OnDestroy {
    */
   private start(request: UDFFillTestRequest): void {
     this.subscription?.unsubscribe();
-    this.candidates = null;
-    this.results = new Map();
-    this.running = true;
+    this.candidates.set(null);
+    this.results.set(new Map());
+    this.running.set(true);
     this.subscription = this.uDFMetadataSecurityService
       .getSuggestTestCandidates(request)
       .pipe(
-        tap((candidates) => (this.candidates = candidates)),
+        tap((candidates) => this.candidates.set(candidates)),
         switchMap((candidates) => from(candidates)),
         concatMap((c) => this.uDFMetadataSecurityService.testSuggestion(request, c.idSecuritycurrency)),
-        finalize(() => (this.running = false))
+        finalize(() => this.running.set(false))
       )
-      .subscribe((result) => this.results.set(result.idSecuritycurrency, result));
+      .subscribe((result) => this.results.update((results) => new Map(results).set(result.idSecuritycurrency, result)));
   }
 
   ngOnDestroy(): void {

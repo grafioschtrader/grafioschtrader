@@ -82,7 +82,6 @@ frontend/src/app/performanceperiod/component/performance-period-treetable.compon
 frontend/src/app/performanceperiod/component/performance-report-dialog.component.ts
 frontend/src/app/performanceperiod/component/performance.period.component.ts
 frontend/src/app/portfolio/component/portfolio.cashaccount.summary.component.ts
-frontend/src/app/portfolio/component/portfolio.tab.menu.component.ts
 frontend/src/app/portfolio/component/portfolio.transaction.table.component.ts
 frontend/src/app/riskfreeratemapping/component/risk.free.rate.mapping.table.component.ts
 frontend/src/app/securityaccount/component/securityaccount.empty.component.ts
@@ -126,10 +125,6 @@ frontend/src/app/transaction/component/transaction-receipt-table.component.ts
 frontend/src/app/transaction/component/transaction-security-edit.component.ts
 frontend/src/app/transaction/component/transaction-security-margin-treetable.component.ts
 frontend/src/app/transaction/component/transaction-security-table.component.ts
-frontend/src/app/udfmetasecurity/components/udf-fill-proposals-dialog.component.ts
-frontend/src/app/udfmetasecurity/components/udf-fill-rule-proposal-dialog.component.ts
-frontend/src/app/udfmetasecurity/components/udf-fill-suggest-test-result.component.ts
-frontend/src/app/udfmetasecurity/components/udf-fill-test-result.component.ts
 frontend/src/app/watchlist/component/securitycurrency-extended-info.component.ts
 frontend/src/app/watchlist/component/securitycurrency-udf.component.ts
 frontend/src/app/watchlist/component/watchlist-add-edit-price-problem-instrument.component.ts

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -29,18 +30,18 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
         <p-button [label]="'UDF_FILL_SUGGEST' | translate" (onClick)="suggest()"></p-button>
         <p-button [label]="'UDF_FILL_RETRY' | translate" severity="secondary" (onClick)="retry()"></p-button>
       </div>
-      @if (decisionText) {
-        <p class="bg-info">{{ decisionText }}</p>
+      @if (decisionText()) {
+        <p class="bg-info">{{ decisionText() }}</p>
       }
-      @if (proposals.length === 0) {
+      @if (proposals().length === 0) {
         <p>{{ 'UDF_FILL_PROPOSALS_NONE' | translate }}</p>
       } @else {
         <div class="proposal-list">
-          @for (p of proposals; track p.idSecuritycurrency) {
+          @for (p of proposals(); track p.idSecuritycurrency) {
             <label class="proposal-row">
               <input
                 type="checkbox"
-                [checked]="selected.has(p.idSecuritycurrency)"
+                [checked]="selected().has(p.idSecuritycurrency)"
                 (change)="toggle(p.idSecuritycurrency)" />
               <b>{{ p.name }}</b
               >: <i>{{ p.value }}</i>
@@ -56,13 +57,13 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
         <div class="proposal-actions">
           <p-button
             [label]="'UDF_FILL_ACCEPT_SELECTED' | translate"
-            [disabled]="selected.size === 0"
+            [disabled]="selected().size === 0"
             (onClick)="decide(true, false)"></p-button>
           <p-button [label]="'UDF_FILL_ACCEPT_ALL' | translate" (onClick)="decide(true, true)"></p-button>
           <p-button
             [label]="'UDF_FILL_REJECT_SELECTED' | translate"
             severity="secondary"
-            [disabled]="selected.size === 0"
+            [disabled]="selected().size === 0"
             (onClick)="decide(false, false)"></p-button>
         </div>
       }
@@ -90,7 +91,6 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, ButtonModule, TranslateModule]
 })
 export class UDFFillProposalsDialogComponent {
@@ -103,9 +103,12 @@ export class UDFFillProposalsDialogComponent {
   /** Emits when the dialog closes */
   @Output() closeDialog = new EventEmitter<void>();
 
-  proposals: UDFFillProposal[] = [];
-  selected = new Set<number>();
-  decisionText: string;
+  readonly proposals = signal<UDFFillProposal[]>([]);
+  /** Securities whose proposal is ticked; every change publishes a new set */
+  readonly selected = signal<ReadonlySet<number>>(new Set());
+  readonly decisionText = signal<string>(null);
+
+  private readonly destroyRef = inject(DestroyRef);
 
   /**
    * Creates the dialog.
@@ -121,16 +124,23 @@ export class UDFFillProposalsDialogComponent {
   ) {}
 
   load(): void {
-    this.uDFMetadataSecurityService.getProposals(this.field.idUDFMetadata).subscribe((proposals) => {
-      this.proposals = proposals;
-      this.selected = new Set([...this.selected].filter((id) => proposals.some((p) => p.idSecuritycurrency === id)));
-    });
+    this.uDFMetadataSecurityService
+      .getProposals(this.field.idUDFMetadata)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((proposals) => {
+        this.proposals.set(proposals);
+        this.selected.update(
+          (selected) => new Set([...selected].filter((id) => proposals.some((p) => p.idSecuritycurrency === id)))
+        );
+      });
   }
 
   toggle(idSecuritycurrency: number): void {
-    this.selected.has(idSecuritycurrency)
-      ? this.selected.delete(idSecuritycurrency)
-      : this.selected.add(idSecuritycurrency);
+    this.selected.update((selected) => {
+      const next = new Set(selected);
+      next.has(idSecuritycurrency) ? next.delete(idSecuritycurrency) : next.add(idSecuritycurrency);
+      return next;
+    });
   }
 
   /** Starts a paid run of the language model. */
@@ -152,15 +162,16 @@ export class UDFFillProposalsDialogComponent {
    * @param all - True to decide about every listed proposal
    */
   decide(accept: boolean, all: boolean): void {
-    const decisions = this.proposals
-      .filter((p) => all || this.selected.has(p.idSecuritycurrency))
+    const selected = this.selected();
+    const decisions = this.proposals()
+      .filter((p) => all || selected.has(p.idSecuritycurrency))
       .map((p) => ({ idSecuritycurrency: p.idSecuritycurrency, ruleVersion: p.ruleVersion, value: p.value }));
     const call = accept
       ? this.uDFMetadataSecurityService.acceptProposals(this.field.idUDFMetadata, decisions)
       : this.uDFMetadataSecurityService.rejectProposals(this.field.idUDFMetadata, decisions);
-    call.subscribe((results) => {
-      this.decisionText = this.summarize(results);
-      this.selected.clear();
+    call.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((results) => {
+      this.decisionText.set(this.summarize(results));
+      this.selected.set(new Set());
       this.load();
     });
   }

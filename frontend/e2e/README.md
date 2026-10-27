@@ -857,6 +857,17 @@ initialisation move the button by themselves. It saves no data. Run it with
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/150-udf-metadata.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## UDF fill by language model notification (152-*)
+
+`152-udf-fill-llm-notification.spec.ts` covers the language-model parts of the security UDF metadata: the proposals
+dialog of an LLM field, the rule-proposal dialog of a saved manual field and the value-suggestion test in the edit
+dialog. It adds two fabricated own fields (`E2E LLM proposals`, `E2E rule proposal`, ids 990001/990002) to the table
+response, offers rule proposal and value suggestion in the `fillsources` response and answers every language-model
+endpoint itself after a held delay. Each test checks that the dialog renders the delayed answer: proposals and the
+reload after a decision, the preview examples and the proposed rule with its test result, and the suggestion results
+one by one. It needs no provider key, depends on no other spec and writes nothing to the database. Run with
+`npx playwright test e2e/152-udf-fill-llm-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## UDF data spec (155-*)
 
 `155-udf-data.spec.ts` consumes the user-owned definitions created by `150-*` and recreates the values exported from
