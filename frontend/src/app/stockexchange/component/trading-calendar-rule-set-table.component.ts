@@ -14,7 +14,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
 import { TradingCalendarRuleSet } from '../../entities/trading.calendar.rule.set';
@@ -77,7 +77,7 @@ import { StockexchangeService } from '../service/stockexchange.service';
   standalone: true,
   imports: [TranslateModule, TooltipModule, ConfigurableTableComponent, TradingCalendarRuleSetEditComponent]
 })
-export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenuSignal<TradingCalendarRuleSet> {
+export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenu<TradingCalendarRuleSet> {
   callParam: TradingCalendarRuleSet;
   readonly ownerHighlight = (entity: TradingCalendarRuleSet, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);

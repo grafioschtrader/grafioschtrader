@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.menu.component';
@@ -13,7 +13,6 @@ import { AppSettings } from '../../shared/app.settings';
   selector: 'gtnet-exchange-tabmenu',
   standalone: true,
   imports: [SharedTabMenuComponent, RouterModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
       <router-outlet></router-outlet>

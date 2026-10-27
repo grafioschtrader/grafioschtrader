@@ -11,7 +11,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
@@ -72,7 +72,7 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
   standalone: true,
   imports: [TranslateModule, ConfigurableTableComponent, BankruptSecurityEditComponent]
 })
-export class BankruptSecurityTableComponent extends TableCrudSupportMenuSignal<BankruptSecurity> {
+export class BankruptSecurityTableComponent extends TableCrudSupportMenu<BankruptSecurity> {
   readonly callParam = signal<BankruptSecurityCallParam>(null);
 
   private readDataSub?: Subscription;

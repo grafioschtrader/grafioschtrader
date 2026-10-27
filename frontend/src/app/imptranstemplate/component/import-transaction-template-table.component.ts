@@ -9,8 +9,7 @@ import { ImportTransactionTemplateService } from '../service/import.transaction.
 import { ParentChildRowSelection } from '../../lib/datashowbase/parent.child.row.selection';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { ImportTransactionPlatform } from '../../entities/import.transaction.platform';
-import { CrudMenuOptions } from '../../lib/datashowbase/table.crud.support.menu.helper';
-import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
+import { CrudMenuOptions, TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
@@ -63,7 +62,7 @@ import { ImportTransactionEditTemplateComponent } from './import-transaction-edi
   standalone: true,
   imports: [TranslateModule, ConfigurableTableComponent, ImportTransactionEditTemplateComponent]
 })
-export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenuSignal<ImportTransactionTemplate> {
+export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenu<ImportTransactionTemplate> {
   callParam: CallParam;
   readonly ownerHighlight = (entity: ImportTransactionTemplate, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);
@@ -99,7 +98,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
       gps,
       usersettingsService,
       injector,
-      [CrudMenuOptions.ParentControl, ...TableCrudSupportMenuSignal.ALLOW_ALL_CRUD_OPERATIONS]
+      [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]
     );
 
     this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {

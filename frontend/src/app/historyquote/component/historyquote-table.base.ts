@@ -2,7 +2,7 @@ import { Directive } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { SvgIconRegistryService } from 'angular-svg-icon';
-import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { BaseID } from '../../lib/entities/base.id';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
@@ -31,7 +31,7 @@ import { HistoryquoteCreateType } from '../../entities/historyquote';
  * </pre>
  */
 @Directive()
-export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudSupportMenuSignal<T> {
+export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudSupportMenu<T> {
   /**
    * Maps each HistoryquoteCreateType byte value to an SVG icon name. Both the live view and
    * the legacy view render this column the same way — same icons, same lookup.

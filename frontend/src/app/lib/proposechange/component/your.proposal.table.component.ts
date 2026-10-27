@@ -1,7 +1,6 @@
 import { Component, Injector } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
-import { CrudMenuOptions } from '../../datashowbase/table.crud.support.menu.helper';
+import { TableCrudSupportMenu, CrudMenuOptions } from '../../datashowbase/table.crud.support.menu';
 import { ProposeChangeEntity } from '../../entities/propose.change.entity';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
 import { GlobalparameterService } from '../../services/globalparameter.service';
@@ -45,7 +44,7 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
   standalone: true,
   imports: [TranslateModule, ConfigurableTableComponent]
 })
-export class YourProposalTableComponent extends TableCrudSupportMenuSignal<ProposeChangeEntity> {
+export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChangeEntity> {
   constructor(
     private proposeChangeEntityService: ProposeChangeEntityService,
     confirmationService: ConfirmationService,

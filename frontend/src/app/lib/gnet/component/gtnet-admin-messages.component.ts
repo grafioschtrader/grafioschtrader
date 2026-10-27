@@ -2,7 +2,7 @@ import { afterNextRender, Component, computed, Injector, QueryList, signal, View
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { GTNet, GTNetWithMessages } from '../model/gtnet';
 import {
   GTNetMessage,
@@ -106,7 +106,7 @@ import { ProcessedActionData } from '../../types/processed.action.data';
   `,
   providers: [DialogService]
 })
-export class GTNetAdminMessagesComponent extends TableCrudSupportMenuSignal<GTNet> {
+export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   @ViewChildren(GTNetMessageTreeTableComponent)
   messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
 

@@ -1,9 +1,13 @@
 import { TableConfigBase } from './table.config.base';
-import { Directive, Injector, OnInit } from '@angular/core';
+import { DestroyRef, Directive, inject, Injector, OnInit, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { Subscription } from 'rxjs';
 import { UserSettingsService } from '../services/user.settings.service';
 import { AppHelper } from '../helper/app.helper';
 import { MessageToastService } from '../message/message.toast.service';
+import { InfoLevelType } from '../message/info.leve.type';
 import { BaseID } from '../entities/base.id';
 import { ProcessedAction } from '../types/processed.action';
 import { ProcessedActionData } from '../types/processed.action.data';
@@ -13,61 +17,66 @@ import { DeleteService } from './delete.service';
 import { GlobalparameterService } from '../services/globalparameter.service';
 import { AuditHelper } from '../helper/audit.helper';
 import { TranslateHelper } from '../helper/translate.helper';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import {
-  ALLOW_ALL_CRUD_OPERATIONS,
-  confirmAndDeleteEntity,
-  createCrudMenuItems,
-  CrudMenuOptions,
-  downloadCsv,
-  openLimitRequestOnLimitError
-} from './table.crud.support.menu.helper';
+import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
+import { DynamicDialogs } from '../dynamicdialog/component/dynamic.dialogs';
+import { BaseSettings } from '../base.settings';
+import saveAs from '../filesaver/filesaver';
 
-export { CrudMenuOptions } from './table.crud.support.menu.helper';
+export enum CrudMenuOptions {
+  Allow_Create,
+  Allow_Edit,
+  Allow_Delete,
+  /**
+   *  Avoid to add this menu directly
+   */
+  ParentControl
+}
+
+/** All CRUD operations, the default for crudMenuOptions. */
+const ALLOW_ALL_CRUD_OPERATIONS: CrudMenuOptions[] = [
+  CrudMenuOptions.Allow_Create,
+  CrudMenuOptions.Allow_Edit,
+  CrudMenuOptions.Allow_Delete
+];
 
 /**
- * Abstract base class providing comprehensive CRUD (Create, Read, Update, Delete) operations
- * for table-based data management with integrated menu support, dialog handling, and export functionality.
+ * CRUD table base with its template state held in signals; the base class of every CRUD table. Entity list,
+ * selection, dialog visibility and context menu are signals and the menu is published translated and as a new array,
+ * so a table runs as OnPush without further notification.
  *
- * This class extends TableConfigBase to add entity management capabilities including:
- * - Context menus with create/edit/delete operations
- * - Modal dialog integration for entity editing
- * - Permission-based operation control
- * - CSV export functionality
- * - Global menu integration through ActivePanelService
- *
- * The class expects entities to implement BaseID interface and provides hooks for
- * customizing behavior through abstract and protected methods.
+ * A signal is changed with a new reference only, `entityList.update((list) => [...list, x])`, never by pushing into
+ * the current array.
  */
 @Directive()
 export abstract class TableCrudSupportMenu<T extends BaseID>
   extends TableConfigBase
   implements OnInit, IGlobalMenuAttach
 {
-  /**
-   * Predefined configuration allowing all CRUD operations.
-   * Convenience constant for the common situation where all operations are permitted.
-   */
+  /** All CRUD operations, the default for crudMenuOptions */
   public static readonly ALLOW_ALL_CRUD_OPERATIONS = ALLOW_ALL_CRUD_OPERATIONS;
 
-  /** Array containing all entities currently displayed in the table */
-  entityList: T[] = [];
+  /** All entities currently displayed in the table */
+  readonly entityList = signal<T[]>([]);
 
-  /** Context menu items for the currently selected entity */
-  contextMenuItems: MenuItem[];
+  /** Translated context menu of the selected entity, null when there is none */
+  readonly contextMenuItems = signal<MenuItem[]>(null);
 
   /** Currently selected entity in the table */
-  selectedEntity: T;
+  readonly selectedEntity = signal<T>(null);
 
   /** Controls visibility of the edit/create dialog */
-  visibleDialog = false;
+  readonly visibleDialog = signal(false);
 
   /** Uppercase entity name used for translation keys and messages */
   entityNameUpper: string;
 
   /** Primary key field name for the entity type */
   entityKeyName: string;
+
+  protected readonly destroyRef = inject(DestroyRef);
+
+  /** Translation of the latest menu; a newer menu replaces one that is still being translated */
+  private menuSubscription: Subscription;
 
   /**
    * Creates a new table with CRUD support and menu integration.
@@ -97,65 +106,65 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
     injector: Injector,
-    private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS
+    private crudMenuOptions: CrudMenuOptions[] = ALLOW_ALL_CRUD_OPERATIONS
   ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.entityNameUpper = AppHelper.toUpperCaseWithUnderscore(this.entityName);
     this.entityKeyName = this.gps.getKeyNameByEntityName(entityName);
+    this.destroyRef.onDestroy(() => {
+      this.menuSubscription?.unsubscribe();
+      this.activePanelService.destroyPanel(this);
+    });
   }
 
-  /**
-   * Angular lifecycle hook - initializes the component and loads data.
-   */
+  /** Angular lifecycle hook - initializes the component and loads data. */
   ngOnInit(): void {
     this.initialize();
   }
 
   /**
-   * Handles entity editing by opening the edit dialog.
-   * Creates a deep copy of the entity to prevent accidental modifications to the original.
+   * Opens the edit dialog with a deep copy of the entity, so the dialog never changes the displayed row.
    *
    * @param entity - Entity to edit, or null for creating a new entity
    */
   handleEditEntity(entity: T): void {
-    // need a copy of the entity
     this.prepareCallParam(JSON.parse(JSON.stringify(entity)));
-    this.visibleDialog = true;
+    this.visibleDialog.set(true);
   }
 
   /**
-   * Handles entity deletion with user confirmation.
-   * Shows confirmation dialog and performs delete operation if confirmed.
-   * Updates UI and reloads data after successful deletion.
+   * Deletes the entity after the user confirmed, then clears the selection and reloads the data. A failed deletion
+   * also clears the selection: the toast is written by BaseAuthService.handleError, and the menu must not keep
+   * offering the failed action.
    *
    * @param entity - Entity to delete
    */
-  handleDeleteEntity(entity: T) {
-    confirmAndDeleteEntity(
-      {
-        translateService: this.translateService,
-        confirmationService: this.confirmationService,
-        deleteService: this.deleteService,
-        messageToastService: this.messageToastService
-      },
-      this.entityNameUpper,
-      () => this.beforeDelete(entity)[this.entityKeyName],
-      () => {
-        this.resetMenu(null);
-        this.readData();
-      },
-      () => this.resetMenu(null)
+  handleDeleteEntity(entity: T): void {
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|' + this.entityNameUpper,
+      () =>
+        this.deleteService.deleteEntity(this.beforeDelete(entity)[this.entityKeyName]).subscribe({
+          next: () => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: this.entityNameUpper
+            });
+            this.resetMenu(null);
+            this.readData();
+          },
+          error: () => this.resetMenu(null)
+        })
     );
   }
 
   /**
-   * Handles dialog close events and processes the result.
-   * Refreshes data if changes were made, or handles specific error cases.
+   * Closes the edit dialog and reloads the data when something changed; a limit violation opens the limit request.
    *
    * @param processedActionData - Result data from dialog operations
    */
   handleCloseDialog(processedActionData: ProcessedActionData): void {
-    this.visibleDialog = false;
+    this.visibleDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     } else {
@@ -163,43 +172,22 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
     }
   }
 
-  protected checkLimitError(processedActionData: ProcessedActionData): void {
-    openLimitRequestOnLimitError(processedActionData, this.translateService, this.dialogService, this.entityName);
-  }
-
-  /**
-   * Checks if this component is currently the active panel.
-   * Used for global menu integration and focus management.
-   *
-   * @returns True if this component is currently active
-   */
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }
 
-  /**
-   * Handles component click events for menu management.
-   * Updates context menu based on current selection.
-   *
-   * @param event - DOM click event
-   */
   onComponentClick(event): void {
-    this.resetMenu(this.selectedEntity);
+    this.resetMenu(this.selectedEntity());
   }
 
-  /**
-   * Called when component is deactivated. Override to perform cleanup operations.
-   */
+  /** Called when another panel becomes active. Override to perform cleanup operations. */
   callMeDeactivate(): void {}
 
-  /**
-   * Hides context menu. Override to perform custom menu hiding logic.
-   */
+  /** Hides context menu. Override to perform custom menu hiding logic. */
   hideContextMenu(): void {}
 
   /**
-   * Returns help context ID for this component.
-   * Override to provide context-sensitive help.
+   * Returns help context ID for this component. Override to provide context-sensitive help.
    *
    * @returns Help context identifier or null if no help available
    */
@@ -207,185 +195,175 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
     return null;
   }
 
-  /**
-   * Checks if the entity list is empty.
-   *
-   * @returns True if no entities are currently loaded
-   */
+  /** @returns True if no entities are currently loaded */
   public isEmpty(): boolean {
-    return this.entityList.length === 0;
+    return this.entityList().length === 0;
   }
 
   /**
-   * Exports table data to CSV file format. Only exports columns marked with export flag and handles null values
-   * appropriately. Uses platform-specific line separators for compatibility.
+   * Exports table data to a CSV file. Only columns marked with the export flag are written, null values are left
+   * empty. Uses the platform-specific line separator.
    *
    * @param data - Array of data objects to export
    */
-  downloadCSvFile(data: any[]) {
-    downloadCsv(data, (field) => this.getColumnConfigByField(field), this.entityName);
+  downloadCSvFile(data: any[]): void {
+    const lineSeparator = navigator.appVersion.indexOf('Win') !== -1 ? '\r\n' : '\n';
+    const replacer = (key, value) => (value === null ? undefined : value);
+    const header: string[] = Object.keys(data[0]).filter((name) => this.getColumnConfigByField(name)?.export);
+    const csv = data.map((row) => header.map((fieldName) => JSON.stringify(row[fieldName], replacer)).join(';'));
+    csv.unshift(header.join(';'));
+    const blob = new Blob([csv.join(lineSeparator)], { type: 'text/csv' });
+    saveAs(blob, this.entityName.toLocaleLowerCase() + '.csv');
   }
 
-  /**
-   * Initializes the component by loading data. Called during ngOnInit lifecycle.
-   */
+  /** Initializes the component by loading data. Called during ngOnInit. */
   protected initialize(): void {
     this.readData();
   }
 
   /**
    * Prepares parameters for the edit dialog.
-   * Must be implemented by subclasses to configure dialog parameters.
    *
    * @param entity - Entity to edit or null for new entity creation
    */
   protected abstract prepareCallParam(entity: T);
 
-  /**
-   * Loads entity data from the backend.
-   * Must be implemented by subclasses to fetch and populate entityList.
-   */
+  /** Loads entity data from the backend and sets entityList. */
   protected abstract readData(): void;
 
   /**
-   * Prepares items for the show menu (view-related operations).
-   * Override to provide custom show menu items.
+   * Opens the dialog for requesting a higher limit when the edit dialog closed because of a limit violation.
    *
-   * @returns Array of menu items or null if no show menu needed
+   * @param processedActionData - Result of the closed edit dialog
+   */
+  protected checkLimitError(processedActionData: ProcessedActionData): void {
+    if (processedActionData.transformedError?.errorClass instanceof LimitEntityTransactionError) {
+      DynamicDialogs.getOpenedLimitTransactionRequestDynamicComponent(
+        this.translateService,
+        this.dialogService,
+        this.entityName
+      );
+    }
+  }
+
+  /**
+   * Prepares items for the show menu (view-related operations).
+   *
+   * @returns Array of untranslated menu items or null if no show menu is needed
    */
   protected prepareShowMenu(): MenuItem[] {
     return null;
   }
 
   /**
-   * Prepares the edit menu based on current entity selection and permissions.
-   * Translates menu items and returns only if items are available.
+   * Builds the untranslated edit menu for the entity; {@link resetMenu} translates it.
    *
    * @param entity - Currently selected entity or null
-   * @returns Array of translated menu items or null if no items available
+   * @returns Array of menu items or null if no items are available
    */
   protected prepareEditMenu(entity: T): MenuItem[] {
-    const menuItems: MenuItem[] = this.getEditMenuItems(entity);
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
+    const menuItems = this.getEditMenuItems(entity);
     return menuItems.length > 0 ? menuItems : null;
   }
 
   /**
-   * Builds the standard CRUD menu items based on configuration and permissions.
-   * Creates menu items for create, edit, and delete operations as configured.
+   * Builds the untranslated create, edit and delete entries based on configuration and permissions. A read-only user
+   * (managed client account, or advisor in a READ-level tenant) cannot create, update or delete tenant data, so these
+   * entries are not shown at all rather than shown disabled. The backend enforces this regardless.
    *
-   * @param entity - Currently selected entity or null
-   * @returns Array of menu items for CRUD operations
+   * @param entity - Currently selected entity or null; edit and delete need one
+   * @returns Array of menu items for CRUD operations, possibly empty
    */
   protected getEditMenuItems(entity: T): MenuItem[] {
-    const menuItems = createCrudMenuItems<T>(
-      {
-        crudMenuOptions: this.crudMenuOptions,
-        entityNameUpper: this.entityNameUpper,
-        readOnly: this.gps.isReadOnlyUser(),
-        onEdit: (e) => this.handleEditEntity(e),
-        onDelete: (e) => this.handleDeleteEntity(e),
-        canCreate: (e) => this.hasRightsForCreateEntity(e),
-        canUpdate: (e) => this.hasRightsForUpdateEntity(e),
-        canDelete: (e) => this.hasRightsForDeleteEntity(e)
-      },
-      entity
-    );
+    const menuItems: MenuItem[] = [];
+    const readOnly = this.gps.isReadOnlyUser();
+    const allows = (option: CrudMenuOptions) => !readOnly && this.crudMenuOptions.indexOf(option) >= 0;
+    if (allows(CrudMenuOptions.Allow_Create)) {
+      menuItems.push({
+        label: 'CREATE|' + this.entityNameUpper + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.handleEditEntity(null),
+        disabled: !this.hasRightsForCreateEntity(entity)
+      });
+    }
     if (entity) {
+      if (allows(CrudMenuOptions.Allow_Edit)) {
+        menuItems.push({
+          label: 'EDIT_RECORD|' + this.entityNameUpper + BaseSettings.DIALOG_MENU_SUFFIX,
+          command: () => this.handleEditEntity(entity),
+          disabled: !this.hasRightsForUpdateEntity(entity)
+        });
+      }
+      if (allows(CrudMenuOptions.Allow_Delete)) {
+        menuItems.push({
+          label: 'DELETE_RECORD|' + this.entityNameUpper,
+          command: () => this.handleDeleteEntity(entity),
+          disabled: !this.hasRightsForDeleteEntity(entity)
+        });
+      }
       this.addCustomMenusToSelectedEntity(entity, menuItems);
     }
     return menuItems;
   }
 
   /**
-   * Adds custom menu items specific to the selected entity.
-   * Override to add entity-specific menu options beyond standard CRUD operations.
+   * Adds menu items specific to the selected entity beyond the standard CRUD operations.
    *
    * @param entity - Currently selected entity
    * @param menuItems - Array to add custom menu items to
    */
   protected addCustomMenusToSelectedEntity(entity: T, menuItems: MenuItem[]): void {}
 
-  /**
-   * Checks if user has permission to create new entities.
-   * Override to implement custom creation permission logic.
-   *
-   * @param entity - Context entity (may be null)
-   * @returns True if creation is allowed
-   */
   protected hasRightsForCreateEntity(entity: T): boolean {
     return true;
   }
 
-  /**
-   * Checks if user has permission to update the specified entity.
-   * Override to implement custom update permission logic.
-   *
-   * @param entity - Entity to check update permissions for
-   * @returns True if update is allowed
-   */
   protected hasRightsForUpdateEntity(entity: T): boolean {
     return true;
   }
 
-  /**
-   * Checks if user has permission to delete the specified entity.
-   * Uses AuditHelper for standard audit-based permission checking.
-   *
-   * @param entity - Entity to check delete permissions for
-   * @returns True if deletion is allowed
-   */
   protected hasRightsForDeleteEntity(entity: T): boolean {
     return AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, entity);
   }
 
-  /**
-   * Extracts the primary key value from an entity.
-   *
-   * @param entity - Entity to get ID from
-   * @returns Primary key value
-   */
   protected getId(entity: T): number {
     return entity[this.entityKeyName];
   }
 
   /**
-   * Pre-processes entity before deletion.
-   * Override to perform any necessary modifications before delete operation.
+   * Pre-processes the entity before deletion.
    *
    * @param entity - Entity to be deleted
-   * @returns Modified entity ready for deletion
+   * @returns Entity ready for deletion
    */
   protected beforeDelete(entity: T): T {
     return entity;
   }
 
-  /**
-   * Refreshes the currently selected entity from the entity list.
-   * Updates selection to reflect any changes made to the entity.
-   */
+  /** Selects the reloaded version of the selected entity and rebuilds the menus. */
   protected refreshSelectedEntity(): void {
-    if (this.selectedEntity) {
-      this.resetMenu(
-        this.entityList.find((entity) => entity[this.entityKeyName] === this.selectedEntity[this.entityKeyName])
-      );
+    const selected = this.selectedEntity();
+    if (selected) {
+      this.resetMenu(this.entityList().find((entity) => entity[this.entityKeyName] === selected[this.entityKeyName]));
     }
   }
 
   /**
-   * Updates the selected entity and rebuilds context menus.
-   * Integrates with ActivePanelService for global menu management.
+   * Selects the entity and publishes its context menu and the top menus once they are translated.
    *
    * @param entity - New selected entity or null to clear selection
    */
   protected resetMenu(entity: T): void {
-    this.selectedEntity = entity;
+    this.selectedEntity.set(entity ?? null);
     if (this.crudMenuOptions.indexOf(CrudMenuOptions.ParentControl) < 0) {
-      this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
-      this.activePanelService.activatePanel(this, {
-        editMenu: this.contextMenuItems,
-        showMenu: this.prepareShowMenu()
-      });
+      const editMenu = this.prepareEditMenu(entity);
+      const showMenu = this.prepareShowMenu();
+      this.menuSubscription?.unsubscribe();
+      this.menuSubscription = TranslateHelper.translateMenuItems$(editMenu, this.translateService).subscribe(
+        (translatedEditMenu) => {
+          this.contextMenuItems.set(translatedEditMenu);
+          this.activePanelService.activatePanel(this, { editMenu: translatedEditMenu, showMenu });
+        }
+      );
     }
   }
 }

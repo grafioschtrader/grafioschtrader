@@ -1,4 +1,5 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GTNetExchangeService } from '../service/gtnet-exchange.service';
 import { GTNetExchangeKindType, GTNetSupplierWithDetails } from '../../lib/gnet/model/gtnet';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -18,14 +19,14 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
   selector: 'gtnet-supplier-detail-table',
   standalone: true,
   imports: [ConfigurableTreeTableComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <configurable-tree-table
-      [data]="treeNodes"
+      [data]="treeNodes()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="uniqueKey"
       [selectionMode]="null"
-      [valueGetterFn]="getValueByPath.bind(this)">
+      [valueGetterFn]="valueGetter">
     </configurable-tree-table>
   `
 })
@@ -34,7 +35,9 @@ export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase imple
   /** Discriminator type: 'S' for Security, 'C' for Currencypair */
   @Input() dtype: string;
 
-  treeNodes: TreeNode[] = [];
+  readonly treeNodes = signal<TreeNode[]>([]);
+
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private gtNetExchangeService: GTNetExchangeService,
@@ -67,9 +70,9 @@ export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase imple
         ? this.gtNetExchangeService.getSecuritySupplierDetails(this.idSecuritycurrency)
         : this.gtNetExchangeService.getCurrencypairSupplierDetails(this.idSecuritycurrency);
 
-    observable.subscribe((data) => {
-      this.treeNodes = this.buildTreeNodes(data);
-    });
+    observable
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => this.treeNodes.set(this.buildTreeNodes(data)));
   }
 
   /**

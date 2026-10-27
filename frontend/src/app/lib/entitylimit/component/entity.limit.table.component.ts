@@ -6,7 +6,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin, Subscription } from 'rxjs';
 
-import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { EntityLimitEditComponent } from './entity.limit.edit.component';
 import { EntityLimit } from '../../entities/entity.limit';
@@ -83,7 +83,7 @@ import { TranslateHelper } from '../../helper/translate.helper';
   standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, TooltipModule, EntityLimitEditComponent]
 })
-export class EntityLimitTableComponent extends TableCrudSupportMenuSignal<EntityLimit> {
+export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit> {
   /** The row the edit dialog works on, null when a new one is created. */
   callParam: EntityLimit;
 

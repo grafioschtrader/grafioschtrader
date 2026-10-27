@@ -5,7 +5,7 @@ import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { Subscription } from 'rxjs';
-import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { TranslateValue } from '../../datashowbase/column.config';
@@ -64,7 +64,7 @@ import { UserAccessTokenCreateDialogComponent } from './user-access-token-create
     }
   `
 })
-export class UserAccessTokenTableComponent extends TableCrudSupportMenuSignal<UserAccessToken> {
+export class UserAccessTokenTableComponent extends TableCrudSupportMenu<UserAccessToken> {
   readonly formDefinition = signal<ClassDescriptorInputAndShow>(null);
   private readDataSub?: Subscription;
 

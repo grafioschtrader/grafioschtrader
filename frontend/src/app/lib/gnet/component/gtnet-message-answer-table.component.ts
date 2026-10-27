@@ -1,7 +1,7 @@
 import { Component, Injector, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HelpIds } from '../../help/help.ids';
-import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { GTNetMessageAnswer, GTNetMessageAnswerCallParam } from '../model/gtnet.message.answer';
 import { GTNetMessageAnswerService } from '../service/gtnet.message.answer.service';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
@@ -61,7 +61,7 @@ import { GTNetMessageCodeType } from '../model/gtnet.message';
   `,
   providers: [DialogService]
 })
-export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenuSignal<GTNetMessageAnswer> implements OnInit {
+export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenu<GTNetMessageAnswer> implements OnInit {
   callParam: GTNetMessageAnswerCallParam;
 
   constructor(
@@ -88,7 +88,7 @@ export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenuSignal
       gps,
       usersettingsService,
       injector,
-      gps.hasRole(BaseSettings.ROLE_ADMIN) ? TableCrudSupportMenuSignal.ALLOW_ALL_CRUD_OPERATIONS : []
+      gps.hasRole(BaseSettings.ROLE_ADMIN) ? TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS : []
     );
   }
 

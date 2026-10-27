@@ -14,7 +14,7 @@ import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { forkJoin, Observable, Subscription } from 'rxjs';
 import { plainToInstance } from 'class-transformer';
 import { ClassConstructor } from 'class-transformer/types/interfaces';
-import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { UDFSpecialTypeDisableUserService } from '../service/udf.special.type.disable.user.service';
 import { UDFSpecialTypeRegistry } from '../model/udf.special.type.registry';
 
@@ -24,7 +24,7 @@ import { UDFSpecialTypeRegistry } from '../model/udf.special.type.registry';
  * data loading, special type toggling, and edit rights management. Subclasses implement entity-specific
  * column additions and parameter preparation for editing dialogs.
  */
-export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSupportMenuSignal<T> {
+export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSupportMenu<T> {
   /**
    * Array of UDF special type values that the current user has disabled (hidden in UI).
    * Each entry is a numeric value corresponding to a registered IUDFSpecialType.

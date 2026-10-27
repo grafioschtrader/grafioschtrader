@@ -1,9 +1,9 @@
-import { Directive, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { computed, Directive, Injector, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem, SortEvent } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 
-import { CrudMenuOptions, TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
+import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { GTNetExchangeFields } from '../../lib/gnet/model/gtnet';
@@ -35,17 +35,23 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
   extends TableCrudSupportMenu<T>
   implements OnInit, OnDestroy
 {
-  /** Set of modified item IDs for batch save tracking */
-  modifiedItems: Set<number> = new Set();
+  /** IDs of the modified items for the batch save; every change publishes a new set */
+  readonly modifiedItems = signal<ReadonlySet<number>>(new Set());
 
   /** Tracks if any saves occurred during component lifetime for triggering sync on destroy */
   private savesOccurred: boolean = false;
 
-  /** The entity list the cached multi select decision was taken for */
-  private multiSelectAllowedForList: T[] = null;
+  /**
+   * Whether the header checkboxes are offered at all. They walk the filtered rows and skip every disabled cell, so
+   * they act only on the instruments the user may change; the strip is therefore useless only for a user who may
+   * change nothing in the current list.
+   */
+  private readonly multiSelectAllowed = computed(
+    () => AuditHelper.hasHigherPrivileges(this.gps) || this.entityList().some((item) => this.canEditRow(item))
+  );
 
-  /** Cached result of the scan for at least one editable row */
-  private multiSelectAllowed = false;
+  /** Stable sort callback of the table */
+  readonly exchangeSorter = (event: SortEvent) => this.doCustomSort(event);
 
   /** Entity for dialog calls (required by base class) */
   callParam: T;
@@ -77,7 +83,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
       gps,
       usersettingsService,
       injector,
-      [CrudMenuOptions.ParentControl]
+      []
     );
     this.rowsPerPage = 50;
   }
@@ -123,7 +129,14 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Tracks by idSecuritycurrency directly on the entity.
    */
   onCheckboxChange(item: T): void {
-    this.modifiedItems.add(item.idSecuritycurrency);
+    this.markModified([item.idSecuritycurrency]);
+  }
+
+  /** Adds instruments to the modified set with a single new set. */
+  private markModified(ids: number[]): void {
+    if (ids.length > 0) {
+      this.modifiedItems.update((modified) => new Set([...modified, ...ids]));
+    }
   }
 
   /**
@@ -152,7 +165,8 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Get the list of modified entities for batch save.
    */
   protected getModifiedList(): T[] {
-    return this.entityList.filter((item) => this.modifiedItems.has(item.idSecuritycurrency));
+    const modified = this.modifiedItems();
+    return this.entityList().filter((item) => modified.has(item.idSecuritycurrency));
   }
 
   /**
@@ -165,14 +179,10 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Handle successful save response.
    */
   protected handleSaveSuccess(updatedItems: T[]): void {
-    // Update entityList with returned items
-    for (const updated of updatedItems) {
-      const index = this.entityList.findIndex((e) => e.idSecuritycurrency === updated.idSecuritycurrency);
-      if (index >= 0) {
-        this.entityList[index] = updated;
-      }
-    }
-    this.modifiedItems.clear();
+    // Replace the saved rows with the returned items
+    const updatedById = new Map(updatedItems.map((updated) => [updated.idSecuritycurrency, updated]));
+    this.entityList.update((list) => list.map((item) => updatedById.get(item.idSecuritycurrency) ?? item));
+    this.modifiedItems.set(new Set());
     this.savesOccurred = true;
     this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_EXCHANGE_SAVE_SUCCESS');
   }
@@ -188,7 +198,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Check if there are unsaved changes.
    */
   hasUnsavedChanges(): boolean {
-    return this.modifiedItems.size > 0;
+    return this.modifiedItems().size > 0;
   }
 
   /**
@@ -242,38 +252,16 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
   }
 
   /**
-   * Override to build edit menu. Can be overridden by derived classes.
+   * Builds the untranslated edit menu of the selected instrument; the base class translates and publishes it.
+   * Derived classes add their entries.
    */
   protected override prepareEditMenu(entity: T): MenuItem[] {
     return null;
   }
 
-  /**
-   * Reset menu based on selection. Can be overridden by derived classes.
-   */
-  protected override resetMenu(entity: T): void {
-    this.selectedEntity = entity;
-    this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
-    this.activePanelService.activatePanel(this, {
-      editMenu: this.contextMenuItems
-    });
-  }
-
-  /**
-   * Whether the header checkboxes are offered at all. They walk the filtered rows and skip every disabled cell, so
-   * they act only on the instruments the user may change; the strip is therefore useless only for a user who may
-   * change nothing in the current list. The template asks on every change detection cycle, so the scan over the list
-   * is remembered until the next load replaces it.
-   */
+  /** Whether the header checkboxes are offered at all, see {@link multiSelectAllowed}. */
   isUserAllowedToMultiSelect(): boolean {
-    if (AuditHelper.hasHigherPrivileges(this.gps)) {
-      return true;
-    }
-    if (this.multiSelectAllowedForList !== this.entityList) {
-      this.multiSelectAllowedForList = this.entityList;
-      this.multiSelectAllowed = (this.entityList ?? []).some((item) => this.canEditRow(item));
-    }
-    return this.multiSelectAllowed;
+    return this.multiSelectAllowed();
   }
 
   /**
@@ -297,14 +285,16 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
     const data = table.filteredValue || table.value;
 
     if (data) {
+      const changed: number[] = [];
       data.forEach((row) => {
         if (!this.isCheckboxDisabled(row, field)) {
           if (row[field] !== state) {
             row[field] = state;
-            this.onCheckboxChange(row);
+            changed.push(row.idSecuritycurrency);
           }
         }
       });
+      this.markModified(changed);
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { CheckboxChangeEvent, CheckboxModule } from '@openng/optimus-ui/checkbox';
@@ -77,7 +77,6 @@ export interface CheckboxToggleEvent {
       </div>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .gtnet-checkboxes-container {

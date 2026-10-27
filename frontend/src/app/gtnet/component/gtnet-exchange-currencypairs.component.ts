@@ -1,4 +1,5 @@
-import { Component, Injector, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -23,7 +24,6 @@ import { CurrencypairEditComponent } from '../../shared/securitycurrency/currenc
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { Currencypair } from '../../entities/currencypair';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { BaseSettings } from '../../lib/base.settings';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { GTNetSupplierDetailTableComponent } from './gtnet-supplier-detail-table.component';
@@ -56,8 +56,9 @@ import { Helper } from '../../lib/helper/helper';
   ],
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="idSecuritycurrency"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
@@ -65,14 +66,14 @@ import { Helper } from '../../lib/helper/helper';
       [sortMode]="'multiple'"
       [multiSortMeta]="multiSortMeta"
       [enableCustomSort]="true"
-      [customSortFn]="doCustomSort.bind(this)"
+      [customSortFn]="exchangeSorter"
       [paginator]="true"
       [rows]="rowsPerPage"
       [rowsPerPageOptions]="[20, 50, 100, 150]"
       [hasFilter]="true"
       (componentClick)="onComponentClick($event)"
       [contextMenuEnabled]="true"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems()"
       [containerClass]="{
         'data-container-full': true,
         'active-border': isActivated(),
@@ -80,7 +81,7 @@ import { Helper } from '../../lib/helper/helper';
       }"
       [showContextMenu]="true"
       [expandable]="true"
-      [canExpandFn]="canExpand.bind(this)"
+      [canExpandFn]="canExpand"
       [expandedRowTemplate]="expandedRow">
       <div caption class="caption-toolbar">
         <h4 class="caption-title">{{ getTitleKey() | translate }}</h4>
@@ -123,11 +124,11 @@ import { Helper } from '../../lib/helper/helper';
       </ng-template>
     </configurable-table>
 
-    @if (visibleEditCurrencypairDialog) {
+    @if (visibleEditCurrencypairDialog()) {
       <currencypair-edit
         (closeDialog)="handleCloseEditCurrencypairDialog($event)"
         [securityCurrencypairCallParam]="currencypairCallParam"
-        [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog">
+        [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog()">
       </currencypair-edit>
     }
   `,
@@ -189,7 +190,6 @@ import { Helper } from '../../lib/helper/helper';
       }
     `
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseComponent<Currencypair> {
@@ -197,7 +197,7 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   configurableTable: ConfigurableTableComponent;
 
   /** Visibility flag for currency pair edit dialog */
-  visibleEditCurrencypairDialog = false;
+  readonly visibleEditCurrencypairDialog = signal(false);
 
   idSecuritycurreniesWithDetails: Set<number> = new Set();
 
@@ -251,12 +251,16 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   }
 
   protected loadData(): void {
-    this.gtNetExchangeService.getCurrencypairs().subscribe((data) => {
-      this.entityList = data.securitiescurrenciesList;
-      this.idSecuritycurreniesWithDetails = new Set(data.idSecuritycurrenies);
-      this.modifiedItems.clear();
-      this.createTranslatedValueStoreAndFilterField(this.entityList);
-    });
+    this.gtNetExchangeService
+      .getCurrencypairs()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        this.idSecuritycurreniesWithDetails = new Set(data.idSecuritycurrenies);
+        this.modifiedItems.set(new Set());
+        this.createTranslatedValueStoreAndFilterField(data.securitiescurrenciesList);
+        this.entityList.set(data.securitiescurrenciesList);
+        this.refreshSelectedEntity();
+      });
   }
 
   /**
@@ -285,7 +289,6 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
       });
     }
 
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems.length > 0 ? menuItems : null;
   }
 
@@ -294,14 +297,14 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
    */
   editCurrencypair(entity: Currencypair): void {
     this.currencypairCallParam = entity;
-    this.visibleEditCurrencypairDialog = true;
+    this.visibleEditCurrencypairDialog.set(true);
   }
 
   /**
    * Handle close of currency pair edit dialog.
    */
   handleCloseEditCurrencypairDialog(processedActionData: ProcessedActionData): void {
-    this.visibleEditCurrencypairDialog = false;
+    this.visibleEditCurrencypairDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       // Reload data to reflect any changes
       this.loadData();
@@ -329,9 +332,8 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
     return this.configurableTable;
   }
 
-  canExpand(row: Currencypair): boolean {
-    return this.idSecuritycurreniesWithDetails.has(row.idSecuritycurrency);
-  }
+  /** Only instruments with supplier details have something to expand */
+  readonly canExpand = (row: Currencypair): boolean => this.idSecuritycurreniesWithDetails.has(row.idSecuritycurrency);
 
   public override getHelpContextId(): string {
     return HelpIds.HELP_GT_NET_EXCHANGE;

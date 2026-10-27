@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map, of, Subscription, switchMap } from 'rxjs';
 
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { ConnectorApiKey, SubscriptionTypeReadableName } from '../types/connector.api.key';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { MessageToastService } from '../../message/message.toast.service';
@@ -61,7 +61,7 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
   standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, ConnectorApiKeyEditComponent]
 })
-export class ConnectorApiKeyTableComponent extends TableCrudSupportMenuSignal<ConnectorApiKey> {
+export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<ConnectorApiKey> {
   connectorApiKey: ConnectorApiKey;
 
   readonly strn = signal<Record<string, SubscriptionTypeReadableName>>({});

@@ -3,8 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable, of } from 'rxjs';
-import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
-import { CrudMenuOptions } from '../../datashowbase/table.crud.support.menu.helper';
+import { TableCrudSupportMenu, CrudMenuOptions } from '../../datashowbase/table.crud.support.menu';
 import {
   AcceptRequestTypes,
   ExchangeKindTypeInfo,
@@ -204,7 +203,7 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
   ],
   providers: [DialogService, GTNetConfigService]
 })
-export class GTNetSetupTableComponent extends TableCrudSupportMenuSignal<GTNet> {
+export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   @ViewChildren(GTNetExpandedComponent)
   expandedRows: QueryList<GTNetExpandedComponent>;
 

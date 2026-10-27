@@ -19,13 +19,6 @@ frontend/src/app/algo/component/strategy-detail.component.ts
 frontend/src/app/app.component.ts
 frontend/src/app/dashboard/component/algo-monitoring-widget.component.ts
 frontend/src/app/dashboard/component/holding-movers-widget.component.ts
-frontend/src/app/gtnet/component/gtnet-exchange-checkboxes.component.ts
-frontend/src/app/gtnet/component/gtnet-exchange-currencypairs.component.ts
-frontend/src/app/gtnet/component/gtnet-exchange-securities.component.ts
-frontend/src/app/gtnet/component/gtnet-exchange-tabmenu.component.ts
-frontend/src/app/gtnet/component/gtnet-security-lookup-dialog.component.ts
-frontend/src/app/gtnet/component/gtnet-security-lookup-table.component.ts
-frontend/src/app/gtnet/component/gtnet-supplier-detail-table.component.ts
 frontend/src/app/lib/dashboard/dashboard.component.ts
 frontend/src/app/lib/datashowbase/column-visibility-dialog.component.ts
 frontend/src/app/lib/datashowbase/configurable-table.component.ts

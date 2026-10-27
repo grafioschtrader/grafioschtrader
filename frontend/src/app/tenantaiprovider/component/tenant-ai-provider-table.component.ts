@@ -6,7 +6,7 @@ import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { MessageModule } from '@openng/optimus-ui/message';
 import { forkJoin, finalize } from 'rxjs';
-import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ClassDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
@@ -83,7 +83,7 @@ import { TenantAIProviderEditComponent } from './tenant-ai-provider-edit.compone
     }
   `
 })
-export class TenantAIProviderTableComponent extends TableCrudSupportMenuSignal<TenantAIProvider> {
+export class TenantAIProviderTableComponent extends TableCrudSupportMenu<TenantAIProvider> {
   readonly options = signal<TenantAIProviderOptions>(null);
   readonly formDefinition = signal<ClassDescriptorInputAndShow>(null);
   readonly testResult = signal<AIKeyTestResult>(null);

@@ -1,14 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnChanges,
-  OnInit,
-  Output,
-  SimpleChanges,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -42,6 +32,7 @@ import { AppSettings } from '../../shared/app.settings';
     <configurable-table
       [data]="securities"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="_uniqueKey"
       [selectionMode]="'single'"
       [(selection)]="selectedSecurity"
@@ -49,7 +40,7 @@ import { AppSettings } from '../../shared/app.settings';
       [paginator]="securities.length > 10"
       [rows]="10"
       [enableCustomSort]="true"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [valueGetterFn]="valueGetter"
       [contextMenuEnabled]="false"
       [baseLocale]="baseLocale"
       [expandable]="true"
@@ -132,7 +123,6 @@ import { AppSettings } from '../../shared/app.settings';
       </p-button>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .connector-expansion {
@@ -306,7 +296,12 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
     this.fieldsInitialized = true;
 
     // Load connector readable names
-    SecurityCurrencyHelper.loadAllConnectors(this.securityService, this.currencypairService, this.feedConnectorsKV);
+    SecurityCurrencyHelper.loadAllConnectors(
+      this.securityService,
+      this.currencypairService,
+      this.feedConnectorsKV,
+      () => this.notifyViewChanged()
+    );
 
     // If data was already provided before ngOnInit, create translated value store now
     if (this.securities?.length > 0) {

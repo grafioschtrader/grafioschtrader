@@ -2,7 +2,7 @@ import { Component, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TableCrudSupportMenuSignal } from '../../lib/datashowbase/table.crud.support.menu.signal';
+import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
 import { TradingPlatformPlan } from '../../entities/tradingplatformplan';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -69,7 +69,7 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
   standalone: true,
   imports: [TranslateModule, ConfigurableTableComponent, TradingPlatformPlanEditComponent, FeeModelEditComponent]
 })
-export class TradingPlatformPlanTableComponent extends TableCrudSupportMenuSignal<TradingPlatformPlan> {
+export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<TradingPlatformPlan> {
   callParam: TradingPlatformPlan;
   readonly visibleFeeModelDialog = signal(false);
   feeModelCallParam: TradingPlatformPlan;

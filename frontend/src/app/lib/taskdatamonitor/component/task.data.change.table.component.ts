@@ -16,8 +16,7 @@ import { HelpIds } from '../../help/help.ids';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { TaskDataChangeService } from '../service/task.data.change.service';
-import { CrudMenuOptions } from '../../datashowbase/table.crud.support.menu.helper';
-import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
+import { CrudMenuOptions, TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { MessageToastService } from '../../message/message.toast.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { FilterType } from '../../datashowbase/filter.type';
@@ -128,7 +127,7 @@ import { GlobalSessionNames } from '../../global.session.names';
     TaskFilterDialogComponent
   ]
 })
-export class TaskDataChangeTableComponent extends TableCrudSupportMenuSignal<TaskDataChange> implements OnDestroy {
+export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataChange> implements OnDestroy {
   private static readonly STORE_KEY = 'u_taskdatachange';
 
   minDate: Date = new Date(

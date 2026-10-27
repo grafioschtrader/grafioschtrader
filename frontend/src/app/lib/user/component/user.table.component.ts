@@ -1,5 +1,4 @@
-import { TableCrudSupportMenuSignal } from '../../datashowbase/table.crud.support.menu.signal';
-import { CrudMenuOptions } from '../../datashowbase/table.crud.support.menu.helper';
+import { TableCrudSupportMenu, CrudMenuOptions } from '../../datashowbase/table.crud.support.menu';
 import { Component, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -105,7 +104,7 @@ import { BaseSettings } from '../../base.settings';
     UserChangeOwnerEntitiesDialogComponent
   ]
 })
-export class UserTableComponent extends TableCrudSupportMenuSignal<User> {
+export class UserTableComponent extends TableCrudSupportMenu<User> {
   private static createTypeIconMap: { [key: number]: string } = {
     [UserTaskType.RELEASE_LOGOUT]: 'user_update',
     [UserTaskType.LIMIT_CUD_CHANGE]: 'user_limit_update'

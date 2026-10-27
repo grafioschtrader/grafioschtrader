@@ -1,4 +1,5 @@
-import { Component, Injector, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, signal, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -25,7 +26,6 @@ import { SecurityEditComponent } from '../../shared/securitycurrency/security-ed
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { Security } from '../../entities/security';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { BaseSettings } from '../../lib/base.settings';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { GTNetSupplierDetailTableComponent } from './gtnet-supplier-detail-table.component';
@@ -57,8 +57,9 @@ import { HelpIds } from '../../lib/help/help.ids';
   ],
   template: `
     <configurable-table
-      [data]="entityList"
+      [data]="entityList()"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="idSecuritycurrency"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
@@ -66,14 +67,14 @@ import { HelpIds } from '../../lib/help/help.ids';
       [sortMode]="'multiple'"
       [multiSortMeta]="multiSortMeta"
       [enableCustomSort]="true"
-      [customSortFn]="doCustomSort.bind(this)"
+      [customSortFn]="exchangeSorter"
       [paginator]="true"
       [rows]="rowsPerPage"
       [rowsPerPageOptions]="[20, 50, 100, 150]"
       [hasFilter]="true"
       (componentClick)="onComponentClick($event)"
       [contextMenuEnabled]="true"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems()"
       [showContextMenu]="true"
       [containerClass]="{
         'data-container-full': true,
@@ -81,7 +82,7 @@ import { HelpIds } from '../../lib/help/help.ids';
         'passiv-border': !isActivated()
       }"
       [expandable]="true"
-      [canExpandFn]="canExpand.bind(this)"
+      [canExpandFn]="canExpand"
       [expandedRowTemplate]="expandedRow">
       <div caption class="flex justify-content-between align-items-center w-full">
         <h4>{{ getTitleKey() | translate }}</h4>
@@ -138,16 +139,15 @@ import { HelpIds } from '../../lib/help/help.ids';
       </ng-template>
     </configurable-table>
 
-    @if (visibleEditSecurityDialog) {
+    @if (visibleEditSecurityDialog()) {
       <security-edit
         (closeDialog)="handleCloseEditSecurityDialog($event)"
         [securityCurrencypairCallParam]="securityCallParam"
-        [visibleEditSecurityDialog]="visibleEditSecurityDialog">
+        [visibleEditSecurityDialog]="visibleEditSecurityDialog()">
       </security-edit>
     }
   `,
   styles: [],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent<Security> {
@@ -160,7 +160,7 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   idSecuritycurreniesWithDetails: Set<number> = new Set();
 
   /** Visibility flag for security edit dialog */
-  visibleEditSecurityDialog = false;
+  readonly visibleEditSecurityDialog = signal(false);
 
   /** Security to edit */
   securityCallParam: Security;
@@ -237,12 +237,16 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   }
 
   protected loadData(): void {
-    this.gtNetExchangeService.getSecurities(this.activeOnly).subscribe((data) => {
-      this.entityList = data.securitiescurrenciesList;
-      this.idSecuritycurreniesWithDetails = new Set(data.idSecuritycurrenies);
-      this.modifiedItems.clear();
-      this.createTranslatedValueStoreAndFilterField(this.entityList);
-    });
+    this.gtNetExchangeService
+      .getSecurities(this.activeOnly)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        this.idSecuritycurreniesWithDetails = new Set(data.idSecuritycurrenies);
+        this.modifiedItems.set(new Set());
+        this.createTranslatedValueStoreAndFilterField(data.securitiescurrenciesList);
+        this.entityList.set(data.securitiescurrenciesList);
+        this.refreshSelectedEntity();
+      });
   }
 
   /**
@@ -290,7 +294,6 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
       });
     }
 
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems.length > 0 ? menuItems : null;
   }
 
@@ -299,14 +302,14 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
    */
   editSecurity(entity: Security): void {
     this.securityCallParam = entity;
-    this.visibleEditSecurityDialog = true;
+    this.visibleEditSecurityDialog.set(true);
   }
 
   /**
    * Handle close of security edit dialog.
    */
   handleCloseEditSecurityDialog(processedActionData: ProcessedActionData): void {
-    this.visibleEditSecurityDialog = false;
+    this.visibleEditSecurityDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       // Reload data to reflect any changes
       this.loadData();
@@ -334,9 +337,8 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
     this.resetMenu(entity as Security);
   }
 
-  canExpand(row: Security): boolean {
-    return this.idSecuritycurreniesWithDetails.has(row.idSecuritycurrency);
-  }
+  /** Only instruments with supplier details have something to expand */
+  readonly canExpand = (row: Security): boolean => this.idSecuritycurreniesWithDetails.has(row.idSecuritycurrency);
 
   public override getHelpContextId(): string {
     return HelpIds.HELP_GT_NET_EXCHANGE;

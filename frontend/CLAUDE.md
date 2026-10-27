@@ -61,7 +61,7 @@ notifies Angular of every change it makes, so a new component never needs `Eager
   `initialize()` of an edit dialog (ended when the dialog hides or shows anew), `takeUntilDestroyed(this.destroyRef)`
   for the component lifetime outside an injection context. The edit base classes and `PasswordBaseComponent` provide
   `destroyRef`; do not declare your own.
-- **New CRUD tables extend `TableCrudSupportMenuSignal`** (`lib/datashowbase/table.crud.support.menu.signal.ts`):
+- **CRUD tables extend `TableCrudSupportMenu`** (`lib/datashowbase/table.crud.support.menu.ts`):
   `entityList`, `selectedEntity`, `visibleDialog` and `contextMenuItems` are signals. Reference: `TenantAIProviderTableComponent`.
 - **Master-detail views on `SingleRecordMasterViewBase`** keep its property API: selection, lists, edit-dialog
   visibility, call parameters and context menus are backed by signals. Always replace records, nested arrays and
@@ -103,13 +103,13 @@ Child: @Input() data changes → ngOnChanges → createTranslatedValueStore(data
 
 Components that use Optimus UI tables (`p-table`) or trees (`p-tree`, `p-treeTable`) **MUST** extend one of the following base classes:
 
-| Base Class                   | Use Case                                                                                                                                   |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ShowRecordConfigBase`       | Single record display or simple dialog tables without sorting/filtering needs                                                              |
-| `TableConfigBase`            | **Standalone table view components** - tables with filtering, sorting, column visibility, user settings persistence                        |
-| `TableEditConfigBase`        | **Editable table components** using `EditableTableComponent` - provides `addEditColumnFeqH()`, sorting, translated values                  |
-| `TableCrudSupportMenuSignal` | Full CRUD tables with context menus, dialogs, and entity management — **every new CRUD table** (`TableCrudSupportMenu` is its predecessor) |
-| `TableTreetableTotalBase`    | Tables or tree-tables with total/subtotal calculations                                                                                     |
+| Base Class                | Use Case                                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `ShowRecordConfigBase`    | Single record display or simple dialog tables without sorting/filtering needs                                             |
+| `TableConfigBase`         | **Standalone table view components** - tables with filtering, sorting, column visibility, user settings persistence       |
+| `TableEditConfigBase`     | **Editable table components** using `EditableTableComponent` - provides `addEditColumnFeqH()`, sorting, translated values |
+| `TableCrudSupportMenu`    | Full CRUD tables with context menus, dialogs, and entity management                                                       |
+| `TableTreetableTotalBase` | Tables or tree-tables with total/subtotal calculations                                                                    |
 
 **IMPORTANT**: Standalone table view components (e.g., `*TableComponent`) should extend at least `TableConfigBase`, not `ShowRecordConfigBase`. Use `ShowRecordConfigBase` only for single record displays or simple embedded tables in dialogs where filtering/sorting is not needed.
 
