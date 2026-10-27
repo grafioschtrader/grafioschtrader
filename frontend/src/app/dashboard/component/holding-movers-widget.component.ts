@@ -1,12 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  Input,
-  OnChanges,
-  OnDestroy,
-  ViewChild
-} from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, OnDestroy, signal, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { DashboardConfig, DashboardResult } from '../../lib/dashboard/dashboard.types';
@@ -42,11 +34,10 @@ import { HoldingMoversTreetableComponent } from './holding-movers-treetable.comp
  */
 @Component({
   selector: 'holding-movers-widget',
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [TranslateModule, DynamicFormModule, HoldingMoversTreetableComponent],
   template: `
-    @if (movers) {
+    @if (movers(); as movers) {
       <dynamic-form
         [config]="config"
         [formConfig]="formConfig"
@@ -59,7 +50,7 @@ import { HoldingMoversTreetableComponent } from './holding-movers-treetable.comp
           [branches]="movers.branches"
           ranking="byPercentage"
           [currency]="movers.currency"
-          [expanded]="expandedBranches"
+          [expanded]="expandedBranches()"
           (expandedChange)="onExpandedChange($event)" />
       </section>
       <section class="mb-3">
@@ -68,10 +59,10 @@ import { HoldingMoversTreetableComponent } from './holding-movers-treetable.comp
           [branches]="movers.branches"
           ranking="byAmount"
           [currency]="movers.currency"
-          [expanded]="expandedBranches"
+          [expanded]="expandedBranches()"
           (expandedChange)="onExpandedChange($event)" />
       </section>
-      @for (note of notes; track note.key) {
+      @for (note of notes(); track note.key) {
         <small class="d-block">{{ note.key | translate: note.params }}</small>
       }
     }
@@ -82,14 +73,16 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
 
   @ViewChild('form') form: DynamicFormComponent;
 
-  movers: HoldingMovers;
-  expandedBranches: string[] = [];
-  notes: { key: string; params: { count: number } }[] = [];
+  readonly movers = signal<HoldingMovers>(null);
+  readonly expandedBranches = signal<string[]>([]);
+  readonly notes = signal<{ key: string; params: { count: number } }[]>([]);
   config: FieldConfig[];
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig;
 
   private chosenDateSubscription: Subscription;
+  /** Refresh for the latest chosen date; a newer date replaces a request still outstanding */
+  private refreshSubscription: Subscription;
 
   constructor(
     public translateService: TranslateService,
@@ -105,14 +98,15 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
   }
 
   ngOnChanges(): void {
-    this.movers = this.result?.payload?.custom as HoldingMovers;
+    const movers = this.result?.payload?.custom as HoldingMovers;
+    this.movers.set(movers);
     // A stored empty list means every period was deliberately closed, which is why the absence of the entry - and not
     // its emptiness - is what opens them all on a first visit.
     const stored = this.userSettingsService.retrieveObject(this.storeKey());
-    this.expandedBranches = stored
-      ? (stored.branches ?? [])
-      : (this.movers?.branches ?? []).map((branch) => branch.branch);
-    this.notes = this.collectNotes();
+    this.expandedBranches.set(
+      stored ? (stored.branches ?? []) : (movers?.branches ?? []).map((branch) => branch.branch)
+    );
+    this.notes.set(this.collectNotes(movers));
   }
 
   ngAfterViewInit(): void {
@@ -121,6 +115,7 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
 
   ngOnDestroy(): void {
     this.chosenDateSubscription?.unsubscribe();
+    this.refreshSubscription?.unsubscribe();
   }
 
   /**
@@ -140,21 +135,24 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
       configOverride,
       true
     );
-    this.dashboardService.refresh(this.result.instanceId, configOverride).subscribe((result) => {
-      const movers = result?.payload?.custom as HoldingMovers;
-      if (movers) {
-        this.movers = movers;
-        this.notes = this.collectNotes();
-      }
-    });
+    this.refreshSubscription?.unsubscribe();
+    this.refreshSubscription = this.dashboardService
+      .refresh(this.result.instanceId, configOverride)
+      .subscribe((result) => {
+        const movers = result?.payload?.custom as HoldingMovers;
+        if (movers) {
+          this.notes.set(this.collectNotes(movers));
+          this.movers.set(movers);
+        }
+      });
   }
 
   /**
    * Collects what the card could not rank. The counts are the largest over the branches rather than their sum: the same
    * instrument is normally missing in every period, and adding those up would overstate the gap.
    */
-  private collectNotes(): { key: string; params: { count: number } }[] {
-    const branches = this.movers?.branches ?? [];
+  private collectNotes(movers: HoldingMovers): { key: string; params: { count: number } }[] {
+    const branches = movers?.branches ?? [];
     const omitted = Math.max(0, ...branches.map((branch) => branch.omittedCount));
     const margin = Math.max(0, ...branches.map((branch) => branch.marginCount));
     const notes = [];
@@ -168,10 +166,10 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
   }
 
   onExpandedChange(change: { branch: string; open: boolean }): void {
-    const open = new Set(this.expandedBranches);
+    const open = new Set(this.expandedBranches());
     change.open ? open.add(change.branch) : open.delete(change.branch);
-    this.expandedBranches = [...open];
-    this.userSettingsService.saveObject(this.storeKey(), { branches: this.expandedBranches });
+    this.expandedBranches.set([...open]);
+    this.userSettingsService.saveObject(this.storeKey(), { branches: this.expandedBranches() });
   }
 
   /** Per card, so the winners and the losers card are opened independently. */

@@ -177,6 +177,22 @@ for (const nickname of ['admin', 'alledit', 'user', 'limit1'] as DashboardUser[]
   });
 }
 
+// The menu bar runs the dashboard commands outside the dashboard view, which must still re-render as OnPush.
+test('menu bar edit and cancel switch the dashboard in and out of editing', async ({ page, dashboard }) => {
+  const editButton = page.getByRole('button', { name: RX.edit });
+  const cancelButton = page.getByRole('button', { name: /^(Cancel editing|Bearbeitung abbrechen)$/ });
+  await expect(editButton).toBeEnabled();
+  const topEdit = page.locator('p-menubar').getByRole('menuitem', { name: /^(Edit|Bearbeiten)$/ });
+  await topEdit.click();
+  await page.getByRole('menuitem', { name: RX.edit }).click();
+  await expect(cancelButton).toBeVisible();
+  await expect(editButton).toHaveCount(0);
+  await topEdit.click();
+  await page.getByRole('menuitem', { name: /^(Cancel editing|Bearbeitung abbrechen)$/ }).click();
+  await expect(editButton).toBeVisible();
+  await expect(cancelButton).toHaveCount(0);
+});
+
 test('dashboard drag handle changes and persists the reading order', async ({ page, dashboard }) => {
   await editDashboard(page);
   // A single-column layout gives an unambiguous vertical drop target independently of the worker's viewport.

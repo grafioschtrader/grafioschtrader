@@ -161,10 +161,11 @@ its saved `config` must stay `{}` — `SETTINGS` in `dashboard.helpers.ts` lists
 labels are supported. No dashboard responses or role checks are mocked, and assertions do not depend on live prices,
 inbox counts or proposal counts.
 
-The eleven scenarios cover numeric settings (`maxRows`, `topN`, `days`), required/min/max validation, closing and
+The twelve scenarios cover numeric settings (`maxRows`, `topN`, `days`), required/min/max validation, closing and
 reopening configuration dialogs, save/reload persistence, widths, movement buttons, drag-and-drop, removing and
 re-adding a card without losing its settings, cancelling edits, draft/saved reset, isolation between users, atomic
-rejection of string-valued numbers, and a real revision conflict between two browser sessions. The numeric request
+rejection of string-valued numbers, a real revision conflict between two browser sessions, and entering and
+cancelling the edit mode through the menu bar, whose commands run outside the OnPush dashboard view. The numeric request
 assertions and dialog-unmount assertions protect against the dashboard bugs where edited integers were sent as
 strings and a closed dialog prevented later configuration dialogs from opening.
 

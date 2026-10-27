@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  HostListener,
-  Inject,
-  NgZone,
-  OnDestroy,
-  OnInit,
-  Type,
-  signal
-} from '@angular/core';
+import { Component, ElementRef, HostListener, Inject, NgZone, OnDestroy, OnInit, Type, signal } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -50,7 +39,6 @@ import { ProcessedAction } from '../types/processed.action';
 /** Personal layout draft and independent card loading, hosted inside either application's split pane. */
 @Component({
   selector: 'dashboard',
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [
     TranslateModule,
@@ -513,12 +501,17 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   callMeDeactivate(): void {}
   onComponentClick(event: any): void {
     if (event?.consumedGT) return;
+    // The menu bar runs these commands outside this view, so each one marks the view itself.
+    const viaMenu = (action: () => void) => () => {
+      action();
+      this.notifyViewChanged();
+    };
     const items = this.editing
       ? [
-          { label: 'DASHBOARD_SAVE', command: () => this.save() },
-          { label: 'DASHBOARD_CANCEL', command: () => this.cancel() }
+          { label: 'DASHBOARD_SAVE', command: viaMenu(() => this.save()) },
+          { label: 'DASHBOARD_CANCEL', command: viaMenu(() => this.cancel()) }
         ]
-      : [{ label: 'DASHBOARD_EDIT', command: () => this.edit(), disabled: !this.canEdit }];
+      : [{ label: 'DASHBOARD_EDIT', command: viaMenu(() => this.edit()), disabled: !this.canEdit }];
     TranslateHelper.translateMenuItems(items, this.translateService);
     this.activePanel.activatePanel(this, { editMenu: items, showMenu: null });
   }

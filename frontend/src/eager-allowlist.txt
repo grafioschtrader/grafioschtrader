@@ -17,9 +17,6 @@ frontend/src/app/algo/component/algo.top.data.view.component.ts
 frontend/src/app/algo/component/simulation-run-tab-menu.component.ts
 frontend/src/app/algo/component/strategy-detail.component.ts
 frontend/src/app/app.component.ts
-frontend/src/app/dashboard/component/algo-monitoring-widget.component.ts
-frontend/src/app/dashboard/component/holding-movers-widget.component.ts
-frontend/src/app/lib/dashboard/dashboard.component.ts
 frontend/src/app/lib/datashowbase/column-visibility-dialog.component.ts
 frontend/src/app/lib/datashowbase/configurable-table.component.ts
 frontend/src/app/lib/datashowbase/configurable-tree-table.component.ts

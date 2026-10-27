@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -23,7 +23,6 @@ import { AlgoMonitoringSummary } from '../model/algo.monitoring.summary';
  */
 @Component({
   selector: 'algo-monitoring-widget',
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
   imports: [TranslateModule, ButtonModule],
   template: `
@@ -133,8 +132,9 @@ export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase implemen
     ];
     this.translateService
       .get(this.summaryFields.map((field) => field.headerKey))
-      .subscribe((translations: { [key: string]: string }) =>
-        this.summaryFields.forEach((field) => (field.headerTranslated = translations[field.headerKey]))
-      );
+      .subscribe((translations: { [key: string]: string }) => {
+        this.summaryFields.forEach((field) => (field.headerTranslated = translations[field.headerKey]));
+        this.notifyViewChanged();
+      });
   }
 }
