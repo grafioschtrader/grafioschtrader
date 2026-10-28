@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, output } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, output, input } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -22,7 +22,7 @@ import { Helper } from '../../lib/helper/helper';
   selector: 'algo-alert-notification-table',
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
-    [data]="rows"
+    [data]="rows()"
     [fields]="fields"
     [fieldsRevision]="fieldsRevision()"
     dataKey="id"
@@ -46,7 +46,7 @@ export class AlgoAlertNotificationTableComponent extends TableConfigBase impleme
   private static readonly RETRYABLE_STATES = ['FAILED', 'REVIEW_REQUIRED'];
 
   /** All recorded notifications of the tenant. */
-  @Input() rows: AlertNotification[] = [];
+  readonly rows = input<AlertNotification[]>([]);
 
   /** Emits the id of the notification the user wants to be delivered again. */
   readonly retry = output<number>();
@@ -91,11 +91,12 @@ export class AlgoAlertNotificationTableComponent extends TableConfigBase impleme
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['rows'] && this.rows) {
+    const rows = this.rows();
+    if (changes['rows'] && rows) {
       // A reloaded list holds new row objects, so a previous selection no longer refers to a displayed row.
       this.selectedNotifications = [];
-      this.createTranslatedValueStoreAndFilterField(this.rows);
-      this.prepareFilter(this.rows);
+      this.createTranslatedValueStoreAndFilterField(rows);
+      this.prepareFilter(rows);
       this.resetMenu();
     }
   }

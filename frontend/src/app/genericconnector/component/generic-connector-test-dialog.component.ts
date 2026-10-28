@@ -1,4 +1,4 @@
-import { Component, computed, Input, OnInit, signal } from '@angular/core';
+import { Component, computed, OnInit, signal, input } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
@@ -87,8 +87,8 @@ import { Subscription } from 'rxjs';
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS, FieldsetModule, TableModule]
 })
 export class GenericConnectorTestDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() endpoint: GenericConnectorEndpoint;
-  @Input() connectorDef: GenericConnectorDef;
+  readonly endpoint = input<GenericConnectorEndpoint>(undefined);
+  readonly connectorDef = input<GenericConnectorDef>(undefined);
 
   readonly testResult = signal<GenericConnectorTestResult>(null);
   readonly parsedColumns = computed(() => {
@@ -146,9 +146,10 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
   }
 
   private applyFieldVisibility(): void {
+    const endpoint = this.endpoint();
     const isCurrencyPairStrategy =
-      this.endpoint.tickerBuildStrategy === 'CURRENCY_PAIR' && this.endpoint.instrumentType === 'CURRENCY';
-    const isHistory = this.endpoint.feedSupport === 'FS_HISTORY';
+      endpoint.tickerBuildStrategy === 'CURRENCY_PAIR' && endpoint.instrumentType === 'CURRENCY';
+    const isHistory = this.endpoint().feedSupport === 'FS_HISTORY';
 
     this.configObject.ticker.invisible = isCurrencyPairStrategy;
     this.configObject.fromCurrency.invisible = !isCurrencyPairStrategy;
@@ -159,19 +160,20 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
 
   submit(value: { [key: string]: any }): void {
     const request: GenericConnectorTestRequest = {
-      idGenericConnector: this.connectorDef.idGenericConnector,
-      feedSupport: this.endpoint.feedSupport,
-      instrumentType: this.endpoint.instrumentType
+      idGenericConnector: this.connectorDef().idGenericConnector,
+      feedSupport: this.endpoint().feedSupport,
+      instrumentType: this.endpoint().instrumentType
     };
 
-    if (this.endpoint.tickerBuildStrategy === 'CURRENCY_PAIR' && this.endpoint.instrumentType === 'CURRENCY') {
+    const endpoint = this.endpoint();
+    if (endpoint.tickerBuildStrategy === 'CURRENCY_PAIR' && endpoint.instrumentType === 'CURRENCY') {
       request.fromCurrency = value.fromCurrency;
       request.toCurrency = value.toCurrency;
     } else {
       request.ticker = value.ticker;
     }
 
-    if (this.endpoint.feedSupport === 'FS_HISTORY') {
+    if (endpoint.feedSupport === 'FS_HISTORY') {
       if (value.fromDate) {
         request.fromDate = moment(value.fromDate).format('YYYY-MM-DD');
       }

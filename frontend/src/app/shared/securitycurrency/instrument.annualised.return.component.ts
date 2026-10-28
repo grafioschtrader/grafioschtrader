@@ -1,4 +1,4 @@
-import { Component, computed, Injector, Input, OnInit } from '@angular/core';
+import { Component, computed, Injector, OnInit, input } from '@angular/core';
 import { AnnualisedYears } from '../../entities/view/instrument.statistics.result';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
@@ -19,8 +19,8 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   imports: [TranslateModule, TableModule, TooltipModule]
 })
 export class InstrumentAnnualisedReturnComponent extends TableConfigBase implements OnInit {
-  @Input() values: AnnualisedYears[];
-  @Input() mainCurrency: string;
+  readonly values = input<AnnualisedYears[]>(undefined);
+  readonly mainCurrency = input<string>(undefined);
   datakey = 'numberOfYears';
   groupTitle = 'ANNUALISED_RETURN';
   titleRemark = 'WITHOUT_CURRENT_YEAR';
@@ -47,14 +47,15 @@ export class InstrumentAnnualisedReturnComponent extends TableConfigBase impleme
       templateName: 'greenRed',
       headerSuffix: '%'
     });
+    const mainCurrency = this.mainCurrency();
     this.addColumn(DataType.Numeric, 'performanceAnnualisedMC', 'PERFORMANCE', true, false, {
       templateName: 'greenRed',
-      headerSuffix: (this.mainCurrency ? this.mainCurrency + ' ' : '') + '%'
+      headerSuffix: (mainCurrency ? mainCurrency + ' ' : '') + '%'
     });
     this.addColumn(DataType.Numeric, 'sharpeRatio', 'SHARPE_RATIO', true, false, { templateName: 'greenRed' });
     this.addColumn(DataType.Numeric, 'sharpeRatioMC', 'SHARPE_RATIO', true, false, {
       templateName: 'greenRed',
-      headerSuffix: this.mainCurrency ? this.mainCurrency : ''
+      headerSuffix: mainCurrency ? mainCurrency : ''
     });
     this.prepareTableAndTranslate();
   }

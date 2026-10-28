@@ -5,7 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { UDFMetadataSecurityService } from '../service/udf.metadata.security.service';
-import { Component, computed, Input, OnInit, signal } from '@angular/core';
+import { Component, computed, OnInit, signal, input } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -81,7 +81,7 @@ import { UDFFillSuggestTestResultComponent } from './udf-fill-suggest-test-resul
     </p-dialog>
     @if (visibleProposalDialog()) {
       <udf-fill-rule-proposal-dialog
-        [idUDFMetadata]="callParam.uDFMetadataSecurity?.idUDFMetadata"
+        [idUDFMetadata]="callParam().uDFMetadataSecurity?.idUDFMetadata"
         [visibleDialog]="visibleProposalDialog()"
         (ruleAccepted)="acceptProposedRule($event)"
         (closeDialog)="visibleProposalDialog.set(false)" />
@@ -128,7 +128,7 @@ export class UDFMetadataSecurityEditComponent
   readonly suggestTestRequest = signal<UDFFillTestRequest>(null);
 
   /** Parameters containing security UDF metadata to edit and validation exclusion lists */
-  @Input() callParam: UDFMetadataSecurityParam;
+  readonly callParam = input<UDFMetadataSecurityParam>(undefined);
 
   /** Result of the last test of the fill rule, shown below the form */
   readonly testResult = signal<UDFFillTestResult>(null);
@@ -188,7 +188,7 @@ export class UDFMetadataSecurityEditComponent
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
     this.configDataTypeFields = UDFMetadataHelper.createDataTypeFields();
     this.config = [
-      ...UDFMetadataHelper.createMetadataBaseFields(this.configDataTypeFields, this.callParam.excludeFieldNames),
+      ...UDFMetadataHelper.createMetadataBaseFields(this.configDataTypeFields, this.callParam().excludeFieldNames),
       DynamicFieldHelper.createFieldMultiSelectString('categoryTypeEnums', AppSettings.ASSETCLASS.toUpperCase(), true),
       DynamicFieldHelper.createFieldMultiSelectString('specialInvestmentInstrumentEnums', 'FINANCIAL_INSTRUMENT', true),
       DynamicFieldHelper.createFieldSelectStringHeqF(UDFMetadataSecurityEditComponent.FILL_SOURCE, true),
@@ -260,16 +260,17 @@ export class UDFMetadataSecurityEditComponent
       new ValueKeyHtmlSelectOptions(UDFFillSource.MANUAL, this.translateService.instant(UDFFillSource.MANUAL))
     ];
     this.offerLoaded.set(false);
+    const callParam = this.callParam();
     UDFMetadataHelper.prepareDataTypeFields(
       this.translateService,
       this.form(),
       this.configObject,
-      this.callParam.excludeUiOrders,
-      this.callParam.uDFMetadataSecurity,
+      callParam.excludeUiOrders,
+      callParam.uDFMetadataSecurity,
       this.configDataTypeFields,
       this.untilDialogClosed()
     );
-    const existing = this.callParam.uDFMetadataSecurity;
+    const existing = callParam.uDFMetadataSecurity;
     this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE].formControl.setValue(
       existing?.fillSource ?? UDFFillSource.MANUAL
     );
@@ -392,7 +393,7 @@ export class UDFMetadataSecurityEditComponent
     ]);
     this.setFillPeriodOptions(fillSource);
     // A rule is proposed from the stored values of a saved field that is filled manually or by a template
-    const existing = this.callParam.uDFMetadataSecurity;
+    const existing = this.callParam().uDFMetadataSecurity;
     const proposable =
       template &&
       this.ruleProposal() &&
@@ -461,7 +462,7 @@ export class UDFMetadataSecurityEditComponent
       manual: status.manual,
       notFound: count(UDFFillState.NOT_FOUND)
     });
-    if (existingIsLLM(this.callParam.uDFMetadataSecurity)) {
+    if (existingIsLLM(this.callParam().uDFMetadataSecurity)) {
       text += this.translateService.instant('UDF_FILL_STATUS_PROPOSALS', {
         proposed: count(UDFFillState.PROPOSED),
         rejected: count(UDFFillState.REJECTED),
@@ -498,7 +499,7 @@ export class UDFMetadataSecurityEditComponent
   private createTestRequest(ruleField: string): UDFFillTestRequest {
     const value = (field: string) => this.configObject[field].formControl.value;
     return {
-      idUDFMetadata: this.callParam.uDFMetadataSecurity?.idUDFMetadata ?? null,
+      idUDFMetadata: this.callParam().uDFMetadataSecurity?.idUDFMetadata ?? null,
       udfDataType: this.groupControl(UDFMetadataHelper.UDF_DATA_TYPE).value,
       fieldSize: this.groupControl(UDFMetadataHelper.FIELD_SIZE).value,
       categoryTypeEnums: value('categoryTypeEnums'),
@@ -525,7 +526,7 @@ export class UDFMetadataSecurityEditComponent
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): UDFMetadataSecurity {
     const uDFMetadataSecurity: UDFMetadataSecurity = this.copyFormToPrivateBusinessObject(
       new UDFMetadataSecurity(),
-      this.callParam.uDFMetadataSecurity
+      this.callParam().uDFMetadataSecurity
     );
     uDFMetadataSecurity.idUser = this.gps.getIdUser();
     // Resolver, argument and description are form fields only; the entity has no such properties, so the form copy

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
@@ -49,11 +49,11 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataChange> implements OnInit {
-  @Input() callParam: TaskDataChange;
-  @Input() tdcFormConstraints: TaskDataChangeFormConstraints;
-  @Input() taskTypeEnum: any = TaskTypeBase; // Application can provide extended enum
+  readonly callParam = input<TaskDataChange>(undefined);
+  readonly tdcFormConstraints = input<TaskDataChangeFormConstraints>(undefined);
+  readonly taskTypeEnum = input<any>(TaskTypeBase); // Application can provide extended enum
   /** The queue of the monitor tab; only its task types can be created there */
-  @Input() queue: string = MAIN_TASK_QUEUE;
+  readonly queue = input<string>(MAIN_TASK_QUEUE);
 
   constructor(
     translateService: TranslateService,
@@ -84,7 +84,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateTimeNumeric, 'earliestStartTime', true, {
         calendarConfig: {
           minDate: new Date(),
-          maxDate: moment(new Date()).add(this.tdcFormConstraints.maxDaysInFuture, 'd').toDate()
+          maxDate: moment(new Date()).add(this.tdcFormConstraints().maxDaysInFuture, 'd').toDate()
         }
       }),
       DynamicFieldHelper.createSubmitButton()
@@ -100,7 +100,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     const idTaskName = this.configObject.idTask.formControl.value;
     this.gps.toExternalHelpWebpage(
       this.gps.getUserLang(),
-      getTaskTypeHelpId(idTaskName ? this.taskTypeEnum[idTaskName] : null)
+      getTaskTypeHelpId(idTaskName ? this.taskTypeEnum()[idTaskName] : null)
     );
   }
 
@@ -108,7 +108,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     this.configObject.idTask.formControl.valueChanges
       .pipe(
         switchMap((idTask) => {
-          const taskConfig = this.tdcFormConstraints.taskTypeConfig[idTask];
+          const taskConfig = this.tdcFormConstraints().taskTypeConfig[idTask];
           this.configObject.entity.valueKeyHtmlOptions = [];
           // An empty entity in the list is the "no entity" choice, not a selectable one. A configuration that holds
           // nothing else offers the user no choice at all, so it is treated like a task without entity configuration.
@@ -144,9 +144,10 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
         switchMap((entity) => {
           this.configObject.idEntity.valueKeyHtmlOptions = [];
           // Options are task-scoped: pick the option map of the currently selected task first.
+          const tdcFormConstraints = this.tdcFormConstraints();
           const optionsForTask =
-            this.tdcFormConstraints.entityIdOptions &&
-            this.tdcFormConstraints.entityIdOptions[this.configObject.idTask.formControl.value];
+            tdcFormConstraints.entityIdOptions &&
+            tdcFormConstraints.entityIdOptions[this.configObject.idTask.formControl.value];
           if (!entity || entity.length === 0) {
             // No entity selected: hide both idEntity fields
             this.hideIdEntityFields();
@@ -190,19 +191,16 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     this.hideField(this.configObject.entity);
     this.hideIdEntityFields();
     this.loadTaskTypeOptions();
-    if (this.callParam) {
-      this.form().transferBusinessObjectToForm(this.callParam);
+    const callParam = this.callParam();
+    if (callParam) {
+      this.form().transferBusinessObjectToForm(callParam);
       // For number input case, transferBusinessObjectToForm sets idEntity on the select field.
       // Move the value to the number input if it's now visible (no task-scoped options for this entity).
+      const tdcFormConstraints = this.tdcFormConstraints();
       const optionsForTask =
-        this.tdcFormConstraints.entityIdOptions &&
-        this.tdcFormConstraints.entityIdOptions[this.callParam.idTask as string];
-      if (
-        this.callParam.idEntity != null &&
-        this.callParam.entity &&
-        !(optionsForTask && optionsForTask[this.callParam.entity])
-      ) {
-        this.configObject.idEntityNum.formControl.setValue(this.callParam.idEntity);
+        tdcFormConstraints.entityIdOptions && tdcFormConstraints.entityIdOptions[callParam.idTask as string];
+      if (callParam.idEntity != null && callParam.entity && !(optionsForTask && optionsForTask[callParam.entity])) {
+        this.configObject.idEntityNum.formControl.setValue(callParam.idEntity);
       }
     }
     this.configObject.earliestStartTime.formControl.setValue(moment().add(1, 'm').toDate());
@@ -220,17 +218,17 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
    * Translation belongs to this dialog session, including when it closes before the texts arrive.
    */
   private loadTaskTypeOptions(): void {
-    const names = Object.keys(this.taskTypeEnum).filter(
+    const names = Object.keys(this.taskTypeEnum()).filter(
       (key) =>
-        this.taskTypeEnum[key] <= this.tdcFormConstraints.maxUserCreateTask &&
-        (this.tdcFormConstraints.taskTypeQueue?.[key] ?? MAIN_TASK_QUEUE) === this.queue
+        this.taskTypeEnum()[key] <= this.tdcFormConstraints().maxUserCreateTask &&
+        (this.tdcFormConstraints().taskTypeQueue?.[key] ?? MAIN_TASK_QUEUE) === this.queue()
     );
     this.translateOptions(names.map((name) => new ValueKeyHtmlSelectOptions(name, name)))
       .pipe(this.untilDialogClosed())
       .subscribe((options) => {
         this.configObject.idTask.groupItem = options
           .map((option) => {
-            const label = `${option.value} - ${this.taskTypeEnum[option.key]}`;
+            const label = `${option.value} - ${this.taskTypeEnum()[option.key]}`;
             return new GroupItem(option.key, label, label, null);
           })
           .sort((a, b) => a.value.localeCompare(b.value));

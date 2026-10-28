@@ -1,4 +1,4 @@
-import { Component, contentChild, input, Input, OnChanges, SimpleChanges, TemplateRef, output } from '@angular/core';
+import { Component, contentChild, input, OnChanges, SimpleChanges, TemplateRef, output, model } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { toClassString } from '../helper/css-class.helper';
 import { FormsModule } from '@angular/forms';
@@ -91,29 +91,33 @@ export interface TreeTableCellEditEvent {
     NgTemplateOutlet
   ],
   template: `
+    @let footerTemplateValue = footerTemplate();
+    @let checkboxDisabledFnValue = checkboxDisabledFn();
+    @let expandedRowTemplateValue = expandedRowTemplate();
+
     <div
       #cmDiv
       (click)="onComponentClick($event)"
       (contextmenu)="onComponentClick($event)"
-      [class]="toClassString(containerClass, customClass)">
+      [class]="toClassString(containerClass(), customClass())">
       <p-treeTable
-        [value]="data"
+        [value]="data()"
         [columns]="renderedFields"
-        [dataKey]="dataKey"
-        [selectionMode]="selectionMode"
-        [(selection)]="selection"
+        [dataKey]="dataKey()"
+        [selectionMode]="selectionMode()"
+        [selection]="selection()"
         (selectionChange)="onTreeSelectionChange($event)"
         (onNodeSelect)="nodeSelect.emit($event)"
         (onNodeUnselect)="nodeUnselect.emit($event)"
         (onNodeExpand)="nodeExpand.emit($event)"
         (onNodeCollapse)="nodeCollapse.emit($event)"
-        [sortField]="sortField"
-        [sortOrder]="sortOrder"
-        [paginator]="paginator"
-        [rows]="rows"
-        [scrollable]="scrollable"
-        [scrollHeight]="scrollHeight"
-        [showGridlines]="showGridlines"
+        [sortField]="sortField()"
+        [sortOrder]="sortOrder()"
+        [paginator]="paginator()"
+        [rows]="rows()"
+        [scrollable]="scrollable()"
+        [scrollHeight]="scrollHeight()"
+        [showGridlines]="showGridlines()"
         (onEditInit)="onCellEditInit($event)"
         (onEditComplete)="onCellEditCompleteHandler($event)"
         (onEditCancel)="onCellEditCancelHandler($event)">
@@ -125,17 +129,17 @@ export interface TreeTableCellEditEvent {
         <!-- Header template -->
         <ng-template pTemplate="header" let-columns>
           <tr>
-            @if (expandable) {
-              <th [style.width.px]="expansionColumnWidth"></th>
+            @if (expandable()) {
+              <th [style.width.px]="expansionColumnWidth()"></th>
             }
             @for (field of columns; track field.field) {
               @if (field.visible) {
                 <th
-                  [ttSortableColumn]="enableSort ? field.field : null"
+                  [ttSortableColumn]="enableSort() ? field.field : null"
                   [pTooltip]="field.headerTooltipTranslated"
                   [style.width.px]="field.width">
                   {{ field.headerTranslated }}
-                  @if (enableSort) {
+                  @if (enableSort()) {
                     <p-treeTableSortIcon [field]="field.field" />
                   }
                 </th>
@@ -151,11 +155,11 @@ export interface TreeTableCellEditEvent {
             [class]="getRowClass(rowNode, rowData)"
             [style.background-color]="getRowStyle(rowData)"
             (contextmenu)="onRowContextMenu(rowNode)">
-            @if (expandable) {
-              <td [style.width.px]="expansionColumnWidth">
+            @if (expandable()) {
+              <td [style.width.px]="expansionColumnWidth()">
                 @if (canExpand(rowData)) {
                   <a href="#" (click)="toggleRow(rowData, $event)">
-                    <i [class]="isRowExpanded(rowData) ? expandedIcon : collapsedIcon"></i>
+                    <i [class]="isRowExpanded(rowData) ? expandedIcon() : collapsedIcon()"></i>
                   </a>
                 }
               </td>
@@ -178,7 +182,7 @@ export interface TreeTableCellEditEvent {
                           @case (EditInputType.InputNumber) {
                             <p-inputNumber
                               [(ngModel)]="rowData[field.field]"
-                              [locale]="$safeNavigationMigration(baseLocale?.locale)"
+                              [locale]="$safeNavigationMigration(baseLocale()?.locale)"
                               [minFractionDigits]="field.minFractionDigits || 0"
                               [maxFractionDigits]="field.cec?.maxFractionDigits || field.maxFractionDigits || 2"
                               [min]="$safeNavigationMigration(field.cec?.min)"
@@ -236,11 +240,11 @@ export interface TreeTableCellEditEvent {
                           aria-hidden="true"></i
                       ></span>
                     } @else if (field.templateName === 'editableCheck') {
-                      @if (!checkboxVisibleFn || checkboxVisibleFn(rowData, field)) {
+                      @if (!checkboxVisibleFn() || checkboxVisibleFn()(rowData, field)) {
                         <p-checkbox
                           [ngModel]="getValue(rowData, field)"
                           [binary]="true"
-                          [disabled]="checkboxDisabledFn ? checkboxDisabledFn(rowData, field) : false"
+                          [disabled]="checkboxDisabledFnValue ? checkboxDisabledFnValue(rowData, field) : false"
                           (onChange)="onCheckboxChange(rowData, field, $event)" />
                       }
                     } @else if (field.templateName === 'icon') {
@@ -270,26 +274,26 @@ export interface TreeTableCellEditEvent {
           </tr>
 
           <!-- Expanded detail row. p-treeTable has no rowexpansion slot, so it is rendered here. -->
-          @if (expandable && expandedRowTemplate && canExpand(rowData) && isRowExpanded(rowData)) {
+          @if (expandable() && expandedRowTemplateValue && canExpand(rowData) && isRowExpanded(rowData)) {
             <tr>
               <td [attr.colspan]="getExpandedColspan()">
-                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: rowData }" />
+                <ng-container *ngTemplateOutlet="expandedRowTemplateValue; context: { $implicit: rowData }" />
               </td>
             </tr>
           }
         </ng-template>
 
         <!-- Footer template (content-projected) -->
-        @if (footerTemplate) {
+        @if (footerTemplateValue) {
           <ng-template pTemplate="footer">
-            <ng-container *ngTemplateOutlet="footerTemplate" />
+            <ng-container *ngTemplateOutlet="footerTemplateValue" />
           </ng-template>
         }
       </p-treeTable>
 
       <!-- Context menu -->
-      @if (showContextMenu) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" [appendTo]="contextMenuAppendTo" />
+      @if (showContextMenu()) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems()" [appendTo]="contextMenuAppendTo()" />
       }
     </div>
   `
@@ -301,16 +305,16 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   // ============================================================================
 
   /** Array of TreeNode objects to display in the tree table. */
-  @Input() data: TreeNode[] = [];
+  readonly data = input<TreeNode[]>([]);
 
   /** Array of column configurations defining tree table structure. */
-  @Input() fields: ColumnConfig[] = [];
+  readonly fields = input<ColumnConfig[]>([]);
   /** New reference carries in-place column changes into the Optimus OnPush tree table. */
   renderedFields: ColumnConfig[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['fields'] || changes['fieldsRevision']) {
-      this.renderedFields = [...this.fields];
+      this.renderedFields = [...this.fields()];
     }
   }
 
@@ -321,20 +325,19 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   readonly fieldsRevision = input(0);
 
   /** Property name used as the unique identifier for each node. */
-  @Input() dataKey: string;
+  readonly dataKey = input<string>(undefined);
 
   // ============================================================================
   // Selection Configuration
   // ============================================================================
 
   /** Row selection mode: 'single' allows one row selection, null disables selection. */
-  @Input() selectionMode: 'single' | null = 'single';
+  readonly selectionMode = input<'single' | null>('single');
 
   /** Currently selected TreeNode. */
-  @Input() selection: TreeNode | null = null;
+  readonly selection = model<TreeNode | null>(null);
 
   /** Emits when selection changes. Used for two-way binding with [(selection)]. */
-  readonly selectionChange = output<TreeNode | null>();
 
   /**
    * Forwards the selection of the inner tree table, which types it for every selection mode, as the one node this
@@ -343,7 +346,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @param selection - Selection reported by p-treeTable
    */
   onTreeSelectionChange(selection: TreeNode | TreeNode[] | null): void {
-    this.selectionChange.emit(Helper.singleSelection(selection));
+    this.selection.set(Helper.singleSelection(selection));
   }
 
   /** Emits when a tree node is selected (user action). */
@@ -363,59 +366,65 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   // ============================================================================
 
   /** Field name for default sort column. */
-  @Input() sortField: string;
+  readonly sortField = input<string>(undefined);
 
   /** Sort order: 1 = ascending, -1 = descending. */
-  @Input() sortOrder = 1;
+  readonly sortOrder = input(1);
 
   /** Enable sort icons and sorting on columns. Set to false to disable all sorting. */
-  @Input() enableSort = true;
+  readonly enableSort = input(true);
 
   // ============================================================================
   // Pagination Configuration
   // ============================================================================
 
   /** Enable pagination controls at the bottom of the tree table. */
-  @Input() paginator = false;
+  readonly paginator = input(false);
 
   /** Number of rows to display per page when pagination is enabled. */
-  @Input() rows = 20;
+  readonly rows = input(20);
 
   // ============================================================================
   // Scrolling Configuration
   // ============================================================================
 
   /** Enable tree table scrolling mode. */
-  @Input() scrollable = false;
+  readonly scrollable = input(false);
 
   /** Height of the scrollable viewport. */
-  @Input() scrollHeight: string;
+  readonly scrollHeight = input<string>(undefined);
 
   // ============================================================================
   // Visual Styling
   // ============================================================================
 
   /** Show grid lines between cells. */
-  @Input() showGridlines = true;
+  readonly showGridlines = input(true);
 
   /** CSS class applied to the outer container div. */
-  @Input() containerClass: string | string[] | { [key: string]: boolean } = {};
+  readonly containerClass = input<
+    | string
+    | string[]
+    | {
+        [key: string]: boolean;
+      }
+  >({});
 
   /** Additional CSS classes applied to the container. */
-  @Input() customClass = '';
+  readonly customClass = input('');
 
   // ============================================================================
   // Context Menu Configuration
   // ============================================================================
 
   /** Array of menu items for the context menu. */
-  @Input() contextMenuItems: MenuItem[] = [];
+  readonly contextMenuItems = input<MenuItem[]>([]);
 
   /** Controls visibility of the context menu. */
-  @Input() showContextMenu = false;
+  readonly showContextMenu = input(false);
 
   /** Determines where to append the context menu in the DOM. */
-  @Input() contextMenuAppendTo: string | null = null;
+  readonly contextMenuAppendTo = input<string | null>(null);
 
   // ============================================================================
   // Template Customization
@@ -428,69 +437,69 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   readonly iconTemplate = contentChild<TemplateRef<any>>('iconCell');
 
   /** Footer template projected into p-treeTable footer slot. */
-  @Input() footerTemplate?: TemplateRef<any>;
+  readonly footerTemplate = input<TemplateRef<any>>(undefined);
 
   // ============================================================================
   // Cell Behavior Callbacks
   // ============================================================================
 
   /** Callback to determine if owner cell should be highlighted (bold). */
-  @Input() ownerHighlightFn?: (row: any, field: ColumnConfig) => boolean;
+  readonly ownerHighlightFn = input<(row: any, field: ColumnConfig) => boolean>(undefined);
 
   /**
    * Callback to control per-row visibility of editableCheck checkboxes.
    * When not provided, all rows render checkboxes (backward compatible).
    * When provided, only rows where the callback returns true show a checkbox.
    */
-  @Input() checkboxVisibleFn?: (rowData: any, field: ColumnConfig) => boolean;
+  readonly checkboxVisibleFn = input<(rowData: any, field: ColumnConfig) => boolean>(undefined);
 
   /** Keeps a checkbox visible while a row-specific capability or pending save prevents changes. */
-  @Input() checkboxDisabledFn?: (rowData: any, field: ColumnConfig) => boolean;
+  readonly checkboxDisabledFn = input<(rowData: any, field: ColumnConfig) => boolean>(undefined);
 
   /** Callback to determine if a numeric value is negative. Used with greenRed template. */
-  @Input() negativeValueFn?: (row: any, field: ColumnConfig) => boolean;
+  readonly negativeValueFn = input<(row: any, field: ColumnConfig) => boolean>(undefined);
 
   /** Custom function to retrieve cell values. */
-  @Input() valueGetterFn?: (row: any, field: ColumnConfig) => any;
+  readonly valueGetterFn = input<(row: any, field: ColumnConfig) => any>(undefined);
 
   /**
    * Callback returning additional CSS class(es) for a single cell, evaluated per row and column.
    * The returned class is appended to the alignment class derived from the column data type, so a
    * caller can mark individual values without losing the numeric right alignment.
    */
-  @Input() cellClassFn?: (rowData: any, field: ColumnConfig) => string | null;
+  readonly cellClassFn = input<(rowData: any, field: ColumnConfig) => string | null>(undefined);
 
   // ============================================================================
   // Row Behavior Callbacks
   // ============================================================================
 
   /** Callback returning CSS class(es) for a row based on rowNode and rowData. */
-  @Input() rowClassFn?: (rowNode: any, rowData: any) => string | null;
+  readonly rowClassFn = input<(rowNode: any, rowData: any) => string | null>(undefined);
 
   /** Callback returning inline background-color for a row. */
-  @Input() rowStyleFn?: (rowData: any) => string | null;
+  readonly rowStyleFn = input<(rowData: any) => string | null>(undefined);
 
   // ============================================================================
   // Row Expansion Configuration
   // ============================================================================
 
   /** Adds a leading toggle column that expands a detail row below the node. */
-  @Input() expandable = false;
+  readonly expandable = input(false);
 
   /** Template rendered inside the expanded detail row; receives the node data as $implicit. */
-  @Input() expandedRowTemplate?: TemplateRef<any>;
+  readonly expandedRowTemplate = input<TemplateRef<any>>(undefined);
 
   /** Callback deciding which nodes may be expanded. Without it every node carries a toggle. */
-  @Input() canExpandFn?: (rowData: any) => boolean;
+  readonly canExpandFn = input<(rowData: any) => boolean>(undefined);
 
   /** Icon class of the toggle while the detail row is open. */
-  @Input() expandedIcon = 'fa fa-chevron-down';
+  readonly expandedIcon = input('fa fa-chevron-down');
 
   /** Icon class of the toggle while the detail row is closed. */
-  @Input() collapsedIcon = 'fa fa-chevron-right';
+  readonly collapsedIcon = input('fa fa-chevron-right');
 
   /** Width in pixels of the leading toggle column. */
-  @Input() expansionColumnWidth = 40;
+  readonly expansionColumnWidth = input(40);
 
   /** Emits the node data when its detail row is opened. */
   readonly rowExpand = output<any>();
@@ -500,7 +509,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   // ============================================================================
 
   /** Locale configuration for date and number formatting in cell editors. */
-  @Input() baseLocale: BaseLocale;
+  readonly baseLocale = input<BaseLocale>(undefined);
 
   // ============================================================================
   // Cell Editing Configuration
@@ -515,7 +524,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @param field - The column configuration
    * @returns true if the cell should be editable
    */
-  @Input() canEditCellFn?: (rowData: any, field: ColumnConfig) => boolean;
+  readonly canEditCellFn = input<(rowData: any, field: ColumnConfig) => boolean>(undefined);
 
   // ============================================================================
   // Click and Edit Events
@@ -561,7 +570,8 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @returns true when the toggle is rendered for this node
    */
   canExpand(rowData: any): boolean {
-    return this.canExpandFn ? this.canExpandFn(rowData) : true;
+    const canExpandFn = this.canExpandFn();
+    return canExpandFn ? canExpandFn(rowData) : true;
   }
 
   /**
@@ -571,7 +581,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @returns true when the detail row is rendered
    */
   isRowExpanded(rowData: any): boolean {
-    return this.expandedRowKeys.has(rowData?.[this.dataKey]);
+    return this.expandedRowKeys.has(rowData?.[this.dataKey()]);
   }
 
   /**
@@ -582,7 +592,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    */
   toggleRow(rowData: any, event: Event): void {
     event.preventDefault();
-    const key = rowData?.[this.dataKey];
+    const key = rowData?.[this.dataKey()];
     if (this.expandedRowKeys.has(key)) {
       this.expandedRowKeys.delete(key);
     } else {
@@ -597,7 +607,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @returns the colspan of the detail cell
    */
   getExpandedColspan(): number {
-    return this.fields.filter((field) => field.visible).length + (this.expandable ? 1 : 0);
+    return this.fields().filter((field) => field.visible).length + (this.expandable() ? 1 : 0);
   }
 
   /**
@@ -625,9 +635,8 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    */
   onRowContextMenu(rowNode: any): void {
     const node = rowNode.node ?? rowNode;
-    if (this.selection !== node) {
-      this.selection = node;
-      this.selectionChange.emit(node);
+    if (this.selection() !== node) {
+      this.selection.set(node);
     }
     this.nodeSelect.emit({ originalEvent: null, node });
   }
@@ -661,8 +670,9 @@ export class ConfigurableTreeTableComponent implements OnChanges {
     if (field.cec.inputType === EditInputType.ReadOnly) {
       return false;
     }
-    if (this.canEditCellFn) {
-      return this.canEditCellFn(rowData, field);
+    const canEditCellFn = this.canEditCellFn();
+    if (canEditCellFn) {
+      return canEditCellFn(rowData, field);
     }
     if (field.cec.canEditFn) {
       return field.cec.canEditFn(rowData, field);
@@ -708,7 +718,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @param event - Optimus TreeTable edit complete event with {field, data}
    */
   onCellEditCompleteHandler(event: any): void {
-    const fieldConfig = this.fields.find((f) => f.field === event.field);
+    const fieldConfig = this.fields().find((f) => f.field === event.field);
     if (fieldConfig) {
       this.cellEditComplete.emit({
         rowData: event.data,
@@ -726,7 +736,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @param event - Optimus TreeTable edit cancel event with {field, data}
    */
   onCellEditCancelHandler(event: any): void {
-    const fieldConfig = this.fields.find((f) => f.field === event.field);
+    const fieldConfig = this.fields().find((f) => f.field === event.field);
     if (fieldConfig) {
       event.data[event.field] = this.editingOriginalValue;
       this.cellEditCancel.emit({
@@ -750,8 +760,9 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @returns Formatted cell value
    */
   getValue(row: any, field: ColumnConfig): any {
-    if (this.valueGetterFn) {
-      return this.valueGetterFn(row, field);
+    const valueGetterFn = this.valueGetterFn();
+    if (valueGetterFn) {
+      return valueGetterFn(row, field);
     }
     if (field.fieldValueFN) {
       return field.fieldValueFN(row, field, null);
@@ -776,7 +787,8 @@ export class ConfigurableTreeTableComponent implements OnChanges {
       field.dataType === DataType.DateTimeNumeric
         ? 'text-end'
         : '';
-    const cellClass = rowData !== undefined && this.cellClassFn ? this.cellClassFn(rowData, field) : null;
+    const cellClassFn = this.cellClassFn();
+    const cellClass = rowData !== undefined && cellClassFn ? cellClassFn(rowData, field) : null;
     return cellClass ? (alignClass ? alignClass + ' ' + cellClass : cellClass) : alignClass;
   }
 
@@ -788,8 +800,9 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @returns True if value should be colored red
    */
   isNegativeValue(row: any, field: ColumnConfig): boolean {
-    if (this.negativeValueFn) {
-      return this.negativeValueFn(row, field);
+    const negativeValueFn = this.negativeValueFn();
+    if (negativeValueFn) {
+      return negativeValueFn(row, field);
     }
     const value = this.getValue(row, field);
     return value != null && String(value).startsWith('-');
@@ -803,7 +816,8 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @returns True if cell should be highlighted
    */
   isOwnerHighlighted(row: any, field: ColumnConfig): boolean {
-    return this.ownerHighlightFn ? this.ownerHighlightFn(row, field) : false;
+    const ownerHighlightFn = this.ownerHighlightFn();
+    return ownerHighlightFn ? ownerHighlightFn(row, field) : false;
   }
 
   /**
@@ -814,7 +828,8 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @returns CSS class string or null
    */
   getRowClass(rowNode: any, rowData: any): string | null {
-    return this.rowClassFn ? this.rowClassFn(rowNode, rowData) : null;
+    const rowClassFn = this.rowClassFn();
+    return rowClassFn ? rowClassFn(rowNode, rowData) : null;
   }
 
   /**
@@ -824,6 +839,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
    * @returns CSS color string or null
    */
   getRowStyle(rowData: any): string | null {
-    return this.rowStyleFn ? this.rowStyleFn(rowData) : null;
+    const rowStyleFn = this.rowStyleFn();
+    return rowStyleFn ? rowStyleFn(rowData) : null;
   }
 }

@@ -1,5 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, computed, Input, OnInit, signal, viewChild } from '@angular/core';
+import { Component, computed, OnInit, signal, viewChild, input } from '@angular/core';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
@@ -68,7 +68,7 @@ export function isManualIssuerCountryChange(
   template: ` <p-dialog
       styleClass="big-dialog"
       header="{{ 'SECURITY' | translate }}"
-      [visible]="visibleEditSecurityDialog"
+      [visible]="visibleEditSecurityDialog()"
       [style]="{ width: '600px' }"
       [resizable]="false"
       (onShow)="onShow($event)"
@@ -123,7 +123,7 @@ export function isManualIssuerCountryChange(
           </p-tabpanel>
           <p-tabpanel value="bondTerms">
             <security-bond-terms
-              [entity]="$any(securityCurrencypairCallParam)"
+              [entity]="$any(securityCurrencypairCallParam())"
               [securityName]="currentSecurityName()"
               [currency]="currentSecurityCurrency()" />
           </p-tabpanel>
@@ -175,7 +175,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   readonly maxHistoryquotePeriods = signal(20);
 
   // Input from parent view
-  @Input() visibleEditSecurityDialog: boolean;
+  readonly visibleEditSecurityDialog = input<boolean>(undefined);
 
   // Tab management
   activeTabValue: string = 'security';
@@ -403,8 +403,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   submit(value: { [name: string]: any }): void {
     const security = this.securityEditSupport.prepareForSave(
       this,
-      this.proposeChangeEntityWithEntity,
-      <Security>this.securityCurrencypairCallParam,
+      this.proposeChangeEntityWithEntity(),
+      <Security>this.securityCurrencypairCallParam(),
       this.dynamicForm(),
       value
     );
@@ -451,7 +451,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     if (saveSecuritySuccess.success) {
       this.closeDialog.emit(
         new ProcessedActionData(
-          this.securityCurrencypairCallParam ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
+          this.securityCurrencypairCallParam() ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
           saveSecuritySuccess.security
         )
       );
@@ -762,18 +762,19 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     >[] = [];
     observables.push(this.stockexchangeService.getAllStockexchanges(false));
     observables.push(this.gpsGT.getCurrencies());
+    const securityCurrencypairCallParam = this.securityCurrencypairCallParam();
     observables.push(
-      this.securityCurrencypairCallParam
+      securityCurrencypairCallParam
         ? this.assetclassService.getPossibleAssetclassForExistingSecurityOrAll(
-            this.securityCurrencypairCallParam.idSecuritycurrency
+            securityCurrencypairCallParam.idSecuritycurrency
           )
         : this.assetclassService.getAllAssetclass()
     );
     // Pre-filter the connector list only in gt.force.connector.match mode 2, and only when editing an existing
     // security (create mode has no stockexchange/asset class chosen yet — the save-time check still catches
     // incompatible picks).
-    if (this.gpsGT.getForceConnectorMatch() === 2 && this.securityCurrencypairCallParam) {
-      const existing = <Security>this.securityCurrencypairCallParam;
+    if (this.gpsGT.getForceConnectorMatch() === 2 && securityCurrencypairCallParam) {
+      const existing = <Security>securityCurrencypairCallParam;
       observables.push(
         this.securityService.getFeedConnectors(
           existing.stockexchange?.idStockexchange,
@@ -787,43 +788,42 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     const idxCountries = observables.length;
     observables.push(this.gps.getCountriesForSelectBox());
 
-    if (this.securityCurrencypairCallParam) {
-      this.securityEditSupport.hasMarketValue = !(<Security>this.securityCurrencypairCallParam).stockexchange
-        .noMarketValue;
+    if (securityCurrencypairCallParam) {
+      this.securityEditSupport.hasMarketValue = !(<Security>securityCurrencypairCallParam).stockexchange.noMarketValue;
     }
 
     // The offer of stock exchanges is narrowed to the own kind once this instrument carries prices or transactions.
     let idxCategoryLocked = -1;
-    if (this.securityCurrencypairCallParam) {
+    if (securityCurrencypairCallParam) {
       idxCategoryLocked = observables.length;
       observables.push(
-        this.securityService.isStockexchangeCategoryLocked(this.securityCurrencypairCallParam.idSecuritycurrency)
+        this.securityService.isStockexchangeCategoryLocked(securityCurrencypairCallParam.idSecuritycurrency)
       );
     }
 
     let idxSplitPeriod = -1;
-    if (this.securityCurrencypairCallParam) {
+    if (securityCurrencypairCallParam) {
       if (this.securityEditSupport.hasMarketValue) {
         // Only load security splits for an existing security
-        if ((<Security>this.securityCurrencypairCallParam).splitPropose) {
+        if ((<Security>securityCurrencypairCallParam).splitPropose) {
           // Propose change
-          this.seetc().setDataList((<Security>this.securityCurrencypairCallParam).splitPropose, true);
+          this.seetc().setDataList((<Security>securityCurrencypairCallParam).splitPropose, true);
         } else {
           idxSplitPeriod = observables.length;
           observables.push(
             this.securitysplitService.getSecuritysplitsByIdSecuritycurrency(
-              this.securityCurrencypairCallParam.idSecuritycurrency
+              securityCurrencypairCallParam.idSecuritycurrency
             )
           );
         }
       } else {
-        if ((<Security>this.securityCurrencypairCallParam).hpPropose) {
-          this.shpetc().setDataList((<Security>this.securityCurrencypairCallParam).hpPropose, true);
+        if ((<Security>securityCurrencypairCallParam).hpPropose) {
+          this.shpetc().setDataList((<Security>securityCurrencypairCallParam).hpPropose, true);
         } else {
           idxSplitPeriod = observables.length;
           observables.push(
             this.historyquotePeriodService.getHistoryquotePeriodByIdSecuritycurrency(
-              this.securityCurrencypairCallParam.idSecuritycurrency
+              securityCurrencypairCallParam.idSecuritycurrency
             )
           );
         }
@@ -848,8 +848,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           true
         );
         this.prepareExistingSecuritycurrency(this.configObject.name);
+        const securityCurrencypairCallParamValue = this.securityCurrencypairCallParam();
         const isPrivatePaper =
-          this.securityCurrencypairCallParam && (<Security>this.securityCurrencypairCallParam).idTenantPrivate !== null;
+          securityCurrencypairCallParamValue && (<Security>securityCurrencypairCallParamValue).idTenantPrivate !== null;
         this.configObject.isTenantPrivate.formControl.setValue(isPrivatePaper);
 
         if (idxSplitPeriod >= 0) {
@@ -862,7 +863,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         this.dataLoaded.set(true);
         this.currentSecurityName.set(this.configObject.name.formControl.value ?? '');
         this.currentSecurityCurrency.set(this.configObject.currency.formControl.value ?? '');
-        this.issuerCountryOverridden = !!(<Security>this.securityCurrencypairCallParam)?.issuerCountry;
+        this.issuerCountryOverridden = !!(<Security>this.securityCurrencypairCallParam())?.issuerCountry;
         this.disableEnableInputForExisting();
         const assetClass = this.securityEditSupport.disableEnableFieldsOnAssetclass(
           SecurityDerived.Security,
@@ -889,7 +890,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private restrictStockexchangeOptions(categoryLocked: boolean): void {
     this.securityEditSupport.setStockexchangeOptions(
       this.configObject,
-      categoryLocked ? (<Security>this.securityCurrencypairCallParam).stockexchange.noMarketValue : null
+      categoryLocked ? (<Security>this.securityCurrencypairCallParam()).stockexchange.noMarketValue : null
     );
   }
 
@@ -1037,7 +1038,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   private disableEnableInputForExisting(): void {
-    if (this.securityCurrencypairCallParam !== null) {
+    if (this.securityCurrencypairCallParam() !== null) {
       FormHelper.disableEnableFieldConfigsWhenAlreadySet(true, [
         this.configObject.isTenantPrivate,
         this.configObject.isin,

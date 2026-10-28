@@ -198,7 +198,8 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
   }
 
   protected override setExistingValues(): void {
-    const so = this.callParam?.standingOrder as StandingOrderSecurity;
+    const callParam = this.callParam();
+    const so = callParam?.standingOrder as StandingOrderSecurity;
     if (so) {
       if (so.idSecurityaccount) {
         this.configObject.idSecurityaccount.formControl.setValue(so.idSecurityaccount);
@@ -212,8 +213,8 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
       const mode = so.investAmount != null ? InvestMode.INVEST_MODE_AMOUNT : InvestMode.INVEST_MODE_UNITS;
       this.configObject.investMode.formControl.setValue(InvestMode[mode]);
       this.applyInvestMode(mode);
-    } else if (this.callParam?.transaction) {
-      const t = this.callParam.transaction;
+    } else if (callParam?.transaction) {
+      const t = callParam.transaction;
       this.configObject.transactionType.formControl.setValue(t.transactionType);
       if (t.idSecurityaccount) {
         this.configObject.idSecurityaccount.formControl.setValue(t.idSecurityaccount);
@@ -272,7 +273,7 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): StandingOrderSecurity {
     const so = new StandingOrderSecurity();
-    const existing = this.callParam?.standingOrder as StandingOrderSecurity;
+    const existing = this.callParam()?.standingOrder as StandingOrderSecurity;
     this.copyFormToPrivateBusinessObject(so, existing);
     so.dtype = 'S';
     // Clear the field not selected by investMode

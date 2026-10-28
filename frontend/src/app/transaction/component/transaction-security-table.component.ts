@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnDestroy, OnInit, signal, computed } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, signal, computed, input } from '@angular/core';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
 import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
 import { TranslateService } from '@ngx-translate/core';
@@ -43,22 +43,22 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class TransactionSecurityTableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   /** Array of security account identifiers to filter transactions */
-  @Input() idsSecurityaccount: number[];
+  readonly idsSecurityaccount = input<number[]>(undefined);
 
   /** Unique identifier of the security currency for transaction filtering */
-  @Input() idSecuritycurrency: number;
+  readonly idSecuritycurrency = input<number>(undefined);
 
   /** Portfolio identifier for scoping transaction data */
-  @Input() idPortfolio: number;
+  readonly idPortfolio = input<number>(undefined);
 
   /** Tenant identifier for multi-tenant data isolation */
-  @Input() idTenant: number;
+  readonly idTenant = input<number>(undefined);
 
   /** Optional parameters for customizing transaction security display features */
-  @Input() transactionSecurityOptionalParam: TransactionSecurityOptionalParam[];
+  readonly transactionSecurityOptionalParam = input<TransactionSecurityOptionalParam[]>(undefined);
 
   /** Optional cutoff date (yyyy-MM-dd) to limit transactions */
-  @Input() untilDate: string;
+  readonly untilDate = input<string>(undefined);
 
   /** Column configuration for main currency display formatting */
   currencyColumnConfigMC: ColumnConfig[] = [];
@@ -119,9 +119,9 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
     this.multiSortMeta.push({ field: 'transaction.transactionTime', order: 1 });
     this.currencyColumnConfigMC = TransactionSecurityFieldDefinition.getFieldDefinition(
       this,
-      this.idTenant,
+      this.idTenant(),
       false,
-      this.transactionSecurityOptionalParam,
+      this.transactionSecurityOptionalParam(),
       this.gps
     );
     this.initialize();
@@ -135,7 +135,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
    */
   override onPage(event: any): void {
     super.onPage(event);
-    this.parentChildRegisterService.saveRowPosition(this.idSecuritycurrency, this.pageFirstRowSelectedRow());
+    this.parentChildRegisterService.saveRowPosition(this.idSecuritycurrency(), this.pageFirstRowSelectedRow());
   }
 
   /**
@@ -191,17 +191,17 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
     this.dataSubscription?.unsubscribe();
     this.dataSubscription = BusinessHelper.getSecurityTransactionSummary(
       this.securityService,
-      this.idSecuritycurrency,
-      this.idsSecurityaccount,
-      this.idPortfolio,
+      this.idSecuritycurrency(),
+      this.idsSecurityaccount(),
+      this.idPortfolio(),
       false,
-      this.untilDate
+      this.untilDate()
     )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         this.securityTransactionSummary.set(result);
         this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary().transactionPositionList);
-        this.goToFirsRowPosition(this.idSecuritycurrency);
+        this.goToFirsRowPosition(this.idSecuritycurrency());
         this.currencyColumnConfigMC.forEach((cc) => {
           cc.headerSuffix = this.securityTransactionSummary().securityPositionSummary.mainCurrency;
           cc.fixedCurrency = this.securityTransactionSummary().securityPositionSummary.mainCurrency;

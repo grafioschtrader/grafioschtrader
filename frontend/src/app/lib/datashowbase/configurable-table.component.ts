@@ -5,14 +5,14 @@ import {
   ElementRef,
   inject,
   input,
-  Input,
   NgZone,
   OnChanges,
   OnDestroy,
   SimpleChanges,
   TemplateRef,
   output,
-  viewChild
+  viewChild,
+  model
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -147,31 +147,35 @@ export interface CellMark {
     `
   ],
   template: `
-    <div #cmDiv (click)="onComponentClick($event)" [class]="toClassString(containerClass, customClass)">
+    @let expandedRowTemplateValue = expandedRowTemplate();
+    @let cellMarkFnValue = cellMarkFn();
+    @let footerValueFnValue = footerValueFn();
+
+    <div #cmDiv (click)="onComponentClick($event)" [class]="toClassString(containerClass(), customClass())">
       <p-table
         #table
         [columns]="renderedFields"
-        [value]="data"
-        [dataKey]="dataKey"
-        [selectionMode]="selectionMode"
-        [(selection)]="selection"
-        [rowSelectable]="rowSelectableFn ? isRowSelectable : undefined"
-        (selectionChange)="selectionChange.emit($event)"
-        [sortMode]="sortMode"
-        [multiSortMeta]="multiSortMeta"
-        [customSort]="enableCustomSort"
+        [value]="data()"
+        [dataKey]="dataKey()"
+        [selectionMode]="selectionMode()"
+        [selection]="selection()"
+        [rowSelectable]="rowSelectableFn() ? isRowSelectable : undefined"
+        (selectionChange)="selection.set($event)"
+        [sortMode]="sortMode()"
+        [multiSortMeta]="multiSortMeta()"
+        [customSort]="enableCustomSort()"
         (sortFunction)="onSort($event)"
         [paginator]="effectivePaginator"
-        [rows]="rows"
-        [first]="firstRowIndex"
+        [rows]="rows()"
+        [first]="firstRowIndex()"
         (onPage)="onPage($event)"
-        [rowsPerPageOptions]="rowsPerPageOptions"
-        [scrollable]="scrollable"
-        [scrollHeight]="scrollHeight"
-        [loading]="loading"
-        [stripedRows]="stripedRows"
-        [showGridlines]="showGridlines"
-        [expandedRowKeys]="expandedRowKeys"
+        [rowsPerPageOptions]="rowsPerPageOptions()"
+        [scrollable]="scrollable()"
+        [scrollHeight]="scrollHeight()"
+        [loading]="loading()"
+        [stripedRows]="stripedRows()"
+        [showGridlines]="showGridlines()"
+        [expandedRowKeys]="expandedRowKeys()"
         (onRowExpand)="onRowExpand($event)"
         (onRowCollapse)="onRowCollapse($event)"
         (onRowSelect)="rowSelect.emit($event)"
@@ -188,14 +192,14 @@ export interface CellMark {
           @if (hasGroups) {
             <!-- Row 1: Group headers + ungrouped columns (with rowspan=2) -->
             <tr>
-              @if (expandable) {
+              @if (expandable()) {
                 <th
                   [rowSpan]="2"
-                  [style.width.px]="expansionColumnWidth"
+                  [style.width.px]="expansionColumnWidth()"
                   [class.p-datatable-frozen-column]="expansionFrozenSlot >= 0"
                   [style.left]="frozenLeft(expansionFrozenSlot)"></th>
               }
-              @if (selectionMode === 'multiple') {
+              @if (selectionMode() === 'multiple') {
                 <th
                   [rowSpan]="2"
                   [style.width.em]="2.25"
@@ -217,7 +221,7 @@ export interface CellMark {
                     [style.max-width.px]="item.field.width"
                     [style]="item.field.width ? { 'flex-basis': '0 0 ' + item.field.width + 'px' } : {}"
                     class="word-break-header"
-                    [attr.lang]="baseLocale.language">
+                    [attr.lang]="baseLocale().language">
                     {{ item.field.headerTranslated }}
                     <p-sortIcon [field]="item.field.field" />
                   </th>
@@ -237,7 +241,7 @@ export interface CellMark {
                   [style.max-width.px]="field.width"
                   [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
                   class="word-break-header"
-                  [attr.lang]="baseLocale.language">
+                  [attr.lang]="baseLocale().language">
                   {{ field.headerTranslated }}
                   <p-sortIcon [field]="field.field" />
                 </th>
@@ -246,13 +250,13 @@ export interface CellMark {
           } @else {
             <!-- Standard single-row header (unchanged) -->
             <tr>
-              @if (expandable) {
+              @if (expandable()) {
                 <th
-                  [style.width.px]="expansionColumnWidth"
+                  [style.width.px]="expansionColumnWidth()"
                   [class.p-datatable-frozen-column]="expansionFrozenSlot >= 0"
                   [style.left]="frozenLeft(expansionFrozenSlot)"></th>
               }
-              @if (selectionMode === 'multiple') {
+              @if (selectionMode() === 'multiple') {
                 <th
                   [style.width.em]="2.25"
                   [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
@@ -272,7 +276,7 @@ export interface CellMark {
                     [style.max-width.px]="field.width"
                     [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
                     class="word-break-header"
-                    [attr.lang]="baseLocale.language">
+                    [attr.lang]="baseLocale().language">
                     {{ field.headerTranslated }}
                     <p-sortIcon [field]="field.field" />
                   </th>
@@ -282,18 +286,18 @@ export interface CellMark {
           }
 
           <!-- Filter row -->
-          @if (hasFilter) {
+          @if (hasFilter()) {
             <tr>
               <!-- Empty cell for expansion column -->
-              @if (expandable) {
+              @if (expandable()) {
                 <th
-                  [style.width.px]="expansionColumnWidth"
+                  [style.width.px]="expansionColumnWidth()"
                   [class.p-datatable-frozen-column]="expansionFrozenSlot >= 0"
                   [style.left]="frozenLeft(expansionFrozenSlot)"></th>
               }
 
               <!-- Empty cell for multi-select checkbox column -->
-              @if (selectionMode === 'multiple') {
+              @if (selectionMode() === 'multiple') {
                 <th
                   [style.width.em]="2.25"
                   [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
@@ -328,16 +332,16 @@ export interface CellMark {
                               display="menu"
                               [showOperator]="true"
                               appendTo="body"
-                              [matchModeOptions]="customMatchModeOptions"
+                              [matchModeOptions]="customMatchModeOptions()"
                               [matchMode]="'gtNoFilter'">
                               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                 <p-datepicker
                                   #cal
                                   [ngModel]="value"
-                                  [dateFormat]="baseLocale.dateFormat"
+                                  [dateFormat]="baseLocale().dateFormat"
                                   (onSelect)="filter($event)"
-                                  [minDate]="minDate"
-                                  [maxDate]="maxDate"
+                                  [minDate]="minDate()"
+                                  [maxDate]="maxDate()"
                                   (onInput)="filter(cal.value)" />
                               </ng-template>
                             </p-columnFilter>
@@ -346,7 +350,7 @@ export interface CellMark {
                             <p-columnFilter
                               type="numeric"
                               [field]="field.field"
-                              [locale]="formLocale"
+                              [locale]="formLocale()"
                               appendTo="body"
                               minFractionDigits="2"
                               display="menu" />
@@ -355,7 +359,7 @@ export interface CellMark {
                             <p-columnFilter
                               type="numeric"
                               [field]="field.field"
-                              [locale]="formLocale"
+                              [locale]="formLocale()"
                               appendTo="body"
                               minFractionDigits="0"
                               display="menu" />
@@ -364,7 +368,7 @@ export interface CellMark {
                             <p-columnFilter
                               type="numeric"
                               [field]="field.field"
-                              [locale]="formLocale"
+                              [locale]="formLocale()"
                               appendTo="body"
                               minFractionDigits="0"
                               display="menu" />
@@ -402,24 +406,24 @@ export interface CellMark {
         <ng-template pTemplate="body" let-rowData let-expanded="expanded" let-columns="columns">
           <tr
             [pSelectableRow]="rowData"
-            [pContextMenuRow]="contextMenuEnabled ? rowData : null"
+            [pContextMenuRow]="contextMenuEnabled() ? rowData : null"
             [class]="getRowClass(rowData)">
             <!-- Expansion toggle cell -->
-            @if (expandable) {
+            @if (expandable()) {
               <td
-                [style.width.px]="expansionColumnWidth"
+                [style.width.px]="expansionColumnWidth()"
                 [class.p-datatable-frozen-column]="expansionFrozenSlot >= 0"
                 [style.left]="frozenLeft(expansionFrozenSlot)">
                 @if (canExpand(rowData)) {
                   <a [pRowToggler]="rowData" href="#" (click)="$event.preventDefault()">
-                    <i [class]="expanded ? expandedIcon : collapsedIcon"></i>
+                    <i [class]="expanded ? expandedIcon() : collapsedIcon()"></i>
                   </a>
                 }
               </td>
             }
 
             <!-- Multi-select checkbox cell -->
-            @if (selectionMode === 'multiple') {
+            @if (selectionMode() === 'multiple') {
               <td
                 [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
                 [style.left]="frozenLeft(selectionFrozenSlot)">
@@ -439,8 +443,8 @@ export interface CellMark {
                   [style.max-width.px]="field.width"
                   [class]="getCellClass(field)">
                   <!-- Optional mark before the content, for example for an automatically filled value -->
-                  @if (cellMarkFn) {
-                    @if (cellMarkFn(rowData, field); as mark) {
+                  @if (cellMarkFnValue) {
+                    @if (cellMarkFnValue(rowData, field); as mark) {
                       <i
                         [class]="mark.iconClass"
                         [pTooltip]="mark.tooltip"
@@ -529,44 +533,44 @@ export interface CellMark {
         </ng-template>
 
         <!-- Expanded row template -->
-        @if (expandable && expandedRowTemplate) {
+        @if (expandable() && expandedRowTemplateValue) {
           <ng-template #expandedrow let-row let-columns="fields">
             <tr>
               <td [attr.colspan]="getExpandedColspan()">
-                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: row }" />
+                <ng-container *ngTemplateOutlet="expandedRowTemplateValue; context: { $implicit: row }" />
               </td>
             </tr>
           </ng-template>
         }
 
         <!-- Footer template -->
-        @if (footerValueFn) {
+        @if (footerValueFnValue) {
           <ng-template pTemplate="footer">
             <tr class="gt-footer-row">
-              @if (expandable) {
+              @if (expandable()) {
                 <td
-                  [class]="footerCellClass"
+                  [class]="footerCellClass()"
                   [class.p-datatable-frozen-column]="expansionFrozenSlot >= 0"
                   [style.left]="frozenLeft(expansionFrozenSlot)"></td>
               }
-              @if (selectionMode === 'multiple') {
+              @if (selectionMode() === 'multiple') {
                 <td
-                  [class]="footerCellClass"
+                  [class]="footerCellClass()"
                   [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
                   [style.left]="frozenLeft(selectionFrozenSlot)"></td>
               }
-              @for (field of fields; track field.field) {
+              @for (field of fields(); track field.field) {
                 @if (field.visible) {
                   @let slot = frozenSlot(field);
                   <td
-                    [class]="footerCellClass"
+                    [class]="footerCellClass()"
                     [class.p-datatable-frozen-column]="slot >= 0"
                     [class.gt-frozen-last]="slot === lastFrozenSlot"
                     [style.left]="frozenLeft(slot)"
                     [class]="getCellClass(field)"
                     [style.max-width.px]="field.width"
                     [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
-                    {{ footerValueFn(field) }}
+                    {{ footerValueFnValue(field) }}
                   </td>
                 }
               }
@@ -576,8 +580,8 @@ export interface CellMark {
       </p-table>
 
       <!-- Context menu -->
-      @if (contextMenuEnabled && showContextMenu) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" [appendTo]="contextMenuAppendTo" />
+      @if (contextMenuEnabled() && showContextMenu()) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems()" [appendTo]="contextMenuAppendTo()" />
       }
     </div>
   `
@@ -592,22 +596,13 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * Array of data objects to display in the table.
    * Each object represents one row of data. Missing async data is treated as an empty table.
    */
-  @Input()
-  set data(value: T[] | null | undefined) {
-    this.tableData = value ?? [];
-  }
-
-  get data(): T[] {
-    return this.tableData;
-  }
-
-  private tableData: T[] = [];
+  readonly data = input<T[], T[] | null | undefined>([], { transform: (value) => value ?? [] });
 
   /**
    * Array of column configurations defining table structure.
    * Uses ColumnConfig from lib/datashowbase for consistent column definitions.
    */
-  @Input() fields: ColumnConfig[] = [];
+  readonly fields = input<ColumnConfig[]>([]);
   /** New array on a column revision, so the Optimus OnPush table refreshes its embedded templates too. */
   renderedFields: ColumnConfig[] = [];
 
@@ -622,7 +617,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * Property name used as the unique identifier for each row.
    * Used by Optimus for tracking rows during updates and selections.
    */
-  @Input() dataKey: string;
+  readonly dataKey = input<string>(undefined);
 
   // ============================================================================
   // Selection Configuration
@@ -632,19 +627,18 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * Row selection mode: 'single' allows one row selection, 'multiple' allows multiple,
    * null disables selection entirely.
    */
-  @Input() selectionMode: 'single' | 'multiple' | null = 'single';
+  readonly selectionMode = input<'single' | 'multiple' | null>('single');
 
   /**
    * Currently selected row(s). Type depends on selectionMode:
    * - single mode: T | null
    * - multiple mode: T[]
    */
-  @Input() selection: T | T[] | null = null;
+  readonly selection = model<T | T[] | null>(null);
 
   /**
    * Emits when selection changes. Used for two-way binding with [(selection)].
    */
-  readonly selectionChange = output<T | T[] | null>();
 
   /**
    * Emits when a row is selected (user action).
@@ -663,24 +657,24 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Sorting mode: 'single' for single-column sort, 'multiple' for multi-column sort.
    */
-  @Input() sortMode: 'single' | 'multiple' = 'multiple';
+  readonly sortMode = input<'single' | 'multiple'>('multiple');
 
   /**
    * Array of sort metadata for multi-column sorting.
    * Each entry specifies field name and sort order (1 = ascending, -1 = descending).
    */
-  @Input() multiSortMeta: any[] = [];
+  readonly multiSortMeta = input<any[]>([]);
 
   /**
    * Enable custom sorting logic instead of Optimus's default sorting.
    */
-  @Input() enableCustomSort = true;
+  readonly enableCustomSort = input(true);
 
   /**
    * Callback function for custom sorting logic.
    * Receives SortEvent and should sort the data array in place.
    */
-  @Input() customSortFn?: (event: SortEvent) => void;
+  readonly customSortFn = input<(event: SortEvent) => void>(undefined);
 
   // ============================================================================
   // Filtering Configuration
@@ -690,35 +684,35 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * Enable column filtering functionality.
    * When true, displays filter row below column headers.
    */
-  @Input() hasFilter = false;
+  readonly hasFilter = input(false);
 
   /**
    * Custom match mode options for date filtering.
    * Array of SelectItem objects defining filter operators like 'equals', 'before', 'after'.
    */
-  @Input() customMatchModeOptions: SelectItem[] = [];
+  readonly customMatchModeOptions = input<SelectItem[]>([]);
 
   /**
    * Minimum date allowed in date filter pickers.
    */
-  @Input() minDate: Date = new Date(
-    sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+  readonly minDate = input<Date>(
+    new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK)
   );
 
   /**
    * Maximum date allowed in date filter pickers.
    */
-  @Input() maxDate: Date = new Date('2099-12-31');
+  readonly maxDate = input<Date>(new Date('2099-12-31'));
 
   /**
    * Locale configuration for date formatting in filters.
    */
-  @Input() baseLocale: BaseLocale = { language: 'en', dateFormat: 'yy-mm-dd' };
+  readonly baseLocale = input<BaseLocale>({ language: 'en', dateFormat: 'yy-mm-dd' });
 
   /**
    * Locale string for numeric filter formatting (e.g., 'en-US', 'de-DE').
    */
-  @Input() formLocale = 'en-US';
+  readonly formLocale = input('en-US');
 
   /**
    * Emits whenever the applied column filters change. The event is Optimus's filter event, its `filters` property is
@@ -748,30 +742,30 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Enable pagination controls at the bottom of the table.
    */
-  @Input() paginator = false;
+  readonly paginator = input(false);
 
   /**
    * Number of rows to display per page when pagination is enabled.
    */
-  @Input() rows = 20;
+  readonly rows = input(20);
 
   /**
    * Options for rows per page dropdown.
    */
-  @Input() rowsPerPageOptions: number[] = [10, 20, 50, 100];
+  readonly rowsPerPageOptions = input<number[]>([10, 20, 50, 100]);
 
   /**
    * Returns true only when the paginator input is enabled AND data exceeds the smallest page size option.
    * Auto-hides the paginator when all rows fit on a single page.
    */
   get effectivePaginator(): boolean {
-    return this.paginator && this.data.length > Math.min(...this.rowsPerPageOptions);
+    return this.paginator() && this.data().length > Math.min(...this.rowsPerPageOptions());
   }
 
   /**
    * Index of the first row on the current page (0-based).
    */
-  @Input() firstRowIndex = 0;
+  readonly firstRowIndex = input(0);
 
   /**
    * Emits when pagination changes (page number or rows per page).
@@ -785,12 +779,12 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Enable table scrolling mode (virtual scrolling or fixed header scrolling).
    */
-  @Input() scrollable = true;
+  readonly scrollable = input(true);
 
   /**
    * Height of the scrollable viewport. Can be 'flex' for flexbox layout or a specific value like '400px'.
    */
-  @Input() scrollHeight: string = 'flex';
+  readonly scrollHeight = input<string>('flex');
 
   // ============================================================================
   // Visual Styling
@@ -799,29 +793,35 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Show alternating row background colors for better readability.
    */
-  @Input() stripedRows = true;
+  readonly stripedRows = input(true);
 
   /**
    * Show grid lines between cells.
    */
-  @Input() showGridlines = true;
+  readonly showGridlines = input(true);
 
   /**
    * Show loading spinner overlay when data is being fetched.
    */
-  @Input() loading = false;
+  readonly loading = input(false);
 
   /**
    * CSS class applied to the outer container div.
    */
-  @Input() containerClass: string | string[] | { [key: string]: boolean } = {
+  readonly containerClass = input<
+    | string
+    | string[]
+    | {
+        [key: string]: boolean;
+      }
+  >({
     'data-container': true
-  };
+  });
 
   /**
    * Additional CSS classes applied to the container.
    */
-  @Input() customClass = '';
+  readonly customClass = input('');
 
   // ============================================================================
   // Row Expansion Configuration
@@ -830,39 +830,41 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Enable row expansion functionality. When true, adds a toggle column.
    */
-  @Input() expandable = false;
+  readonly expandable = input(false);
 
   /**
    * Template for expanded row content. Receives the row data as context.
    */
-  @Input() expandedRowTemplate?: TemplateRef<any>;
+  readonly expandedRowTemplate = input<TemplateRef<any>>(undefined);
 
   /**
    * Callback function to determine if a specific row can be expanded.
    * If not provided, all rows are expandable when expandable=true.
    */
-  @Input() canExpandFn?: (row: T) => boolean;
+  readonly canExpandFn = input<(row: T) => boolean>(undefined);
 
   /**
    * Width in pixels of the expansion toggle column.
    */
-  @Input() expansionColumnWidth = 24;
+  readonly expansionColumnWidth = input(24);
 
   /**
    * CSS class for the expanded row icon (default: Font Awesome chevron down).
    */
-  @Input() expandedIcon = 'fa fa-fw fa-chevron-circle-down';
+  readonly expandedIcon = input('fa fa-fw fa-chevron-circle-down');
 
   /**
    * CSS class for the collapsed row icon (default: Font Awesome chevron right).
    */
-  @Input() collapsedIcon = 'fa fa-fw fa-chevron-circle-right';
+  readonly collapsedIcon = input('fa fa-fw fa-chevron-circle-right');
 
   /**
    * Object tracking which rows are currently expanded. Keys are the dataKey values.
    * Managed internally by Optimus when rows are toggled.
    */
-  @Input() expandedRowKeys: { [key: string]: boolean } = {};
+  readonly expandedRowKeys = input<{
+    [key: string]: boolean;
+  }>({});
 
   /**
    * Emits when a row is expanded. Event contains the row data.
@@ -885,17 +887,17 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Enable context menu on right-click.
    */
-  @Input() contextMenuEnabled = true;
+  readonly contextMenuEnabled = input(true);
 
   /**
    * Array of menu items for the context menu. Uses Optimus MenuItem interface.
    */
-  @Input() contextMenuItems: MenuItem[] = [];
+  readonly contextMenuItems = input<MenuItem[]>([]);
 
   /**
    * Controls visibility of the context menu. Typically bound to isActivated() logic.
    */
-  @Input() showContextMenu = false;
+  readonly showContextMenu = input(false);
 
   /**
    * Determines where to append the context menu in the DOM.
@@ -904,7 +906,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    *
    * Usage: [contextMenuAppendTo]="'body'" for nested tables
    */
-  @Input() contextMenuAppendTo: string | null = null;
+  readonly contextMenuAppendTo = input<string | null>(null);
 
   // ============================================================================
   // Template Customization
@@ -943,61 +945,70 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * Callback to determine if owner cell should be highlighted.
    * Used with templateName='owner' to apply bold font weight.
    */
-  @Input() ownerHighlightFn?: (row: T, field: ColumnConfig) => boolean;
+  readonly ownerHighlightFn = input<(row: T, field: ColumnConfig) => boolean>(undefined);
 
   /**
    * Callback to determine if a numeric value is negative.
    * Used with templateName='greenRed' to apply red color.
    */
-  @Input() negativeValueFn?: (row: T, field: ColumnConfig) => boolean;
+  readonly negativeValueFn = input<(row: T, field: ColumnConfig) => boolean>(undefined);
 
   /**
    * Custom function to retrieve cell values. If not provided, uses field configuration or Helper.getValueByPath.
    */
-  @Input() valueGetterFn?: (row: T, field: ColumnConfig) => any;
+  readonly valueGetterFn = input<(row: T, field: ColumnConfig) => any>(undefined);
 
   /**
    * Custom function to compute inline styles for individual table cells.
    * Receives the row data and column configuration, returns a style object or null.
    * Useful for conditional cell background coloring (e.g., color gradients based on values).
    */
-  @Input() cellStyleFn?: (row: T, field: ColumnConfig) => { [key: string]: string } | null;
+  readonly cellStyleFn = input<
+    (
+      row: T,
+      field: ColumnConfig
+    ) => {
+      [key: string]: string;
+    } | null
+  >(undefined);
 
   /**
    * Optional function returning a small mark shown before the content of a cell, with a tooltip. Returns null for a
    * cell without mark. Used for example to flag values that were filled automatically.
    */
-  @Input() cellMarkFn?: (row: T, field: ColumnConfig) => CellMark | null;
+  readonly cellMarkFn = input<(row: T, field: ColumnConfig) => CellMark | null>(undefined);
 
   // ============================================================================
   // Row Behavior Callbacks
   // ============================================================================
 
   /** Callback returning CSS class(es) for a row based on row data. */
-  @Input() rowClassFn?: (row: T) => string | null;
+  readonly rowClassFn = input<(row: T) => string | null>(undefined);
 
   /**
    * Callback deciding whether a row can be selected; a row it rejects ignores clicks. Without it every row is
    * selectable. Combine it with {@link rowClassFn} to show such rows as unavailable.
    */
-  @Input() rowSelectableFn?: (row: T) => boolean;
+  readonly rowSelectableFn = input<(row: T) => boolean>(undefined);
 
   /**
    * Adapts {@link rowSelectableFn} to the signature of the table, which passes the row with its index. An arrow
    * function, so that the table can call it without losing this component.
    */
-  readonly isRowSelectable = (row: { data: T; index: number }): boolean =>
-    !this.rowSelectableFn || this.rowSelectableFn(row.data);
+  readonly isRowSelectable = (row: { data: T; index: number }): boolean => {
+    const rowSelectableFn = this.rowSelectableFn();
+    return !rowSelectableFn || rowSelectableFn(row.data);
+  };
 
   // ============================================================================
   // Footer Configuration
   // ============================================================================
 
   /** Callback returning the display value for each footer cell. When provided, a footer row is rendered. */
-  @Input() footerValueFn?: (field: ColumnConfig) => string;
+  readonly footerValueFn = input<(field: ColumnConfig) => string>(undefined);
 
   /** CSS class applied to each footer cell (e.g., 'row-total' for lightskyblue background). */
-  @Input() footerCellClass?: string;
+  readonly footerCellClass = input<string>(undefined);
 
   // ============================================================================
   // Column Resizing
@@ -1051,7 +1062,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * when one of these cells changes its width, which a single ResizeObserver reports. A directive per cell, as the
    * pFrozenColumn of Optimus UI, would observe and measure every cell of the table and makes a large table slow.
    */
-  @Input() frozenColumnCount = 0;
+  readonly frozenColumnCount = input(0);
 
   /** Frozen slot of each fixed data column, the expansion and checkbox columns take the first slots */
   private frozenSlotByField = new Map<string, number>();
@@ -1100,7 +1111,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['fields'] || changes['fieldsRevision']) {
-      this.renderedFields = [...this.fields];
+      this.renderedFields = [...this.fields()];
     }
     if (changes['fields'] || changes['data'] || changes['fieldsRevision']) {
       this.computeHeaderGroups();
@@ -1112,7 +1123,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
 
   /** Recomputes the frozen slots when the number of fixed columns or the set of visible columns changed. */
   private updateFrozenSlots(): void {
-    const count = Math.max(0, Math.min(this.frozenColumnCount ?? 0, this.fields.length));
+    const count = Math.max(0, Math.min(this.frozenColumnCount() ?? 0, this.fields().length));
     const signature = count === 0 ? '' : this.createFrozenSignature(count);
     if (signature !== this.frozenSignature) {
       this.frozenSignature = signature;
@@ -1162,8 +1173,8 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * @returns The signature
    */
   private createFrozenSignature(count: number): string {
-    let signature = `${count}|${this.expandable}|${this.selectionMode}`;
-    for (const field of this.fields) {
+    let signature = `${count}|${this.expandable()}|${this.selectionMode()}`;
+    for (const field of this.fields()) {
       if (field.visible) {
         signature += '|' + field.field + (field.headerGroupKey ? '#' : '');
       }
@@ -1179,9 +1190,9 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    */
   private assignFrozenSlots(count: number): void {
     this.frozenSlotByField.clear();
-    const leadSlots = (this.expandable ? 1 : 0) + (this.selectionMode === 'multiple' ? 1 : 0);
+    const leadSlots = (this.expandable() ? 1 : 0) + (this.selectionMode() === 'multiple' ? 1 : 0);
     let slot = leadSlots;
-    for (const field of this.fields) {
+    for (const field of this.fields()) {
       if (slot - leadSlots >= count || (field.visible && field.headerGroupKey)) {
         break;
       }
@@ -1190,8 +1201,8 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
       }
     }
     const fixed = slot > leadSlots;
-    this.expansionFrozenSlot = fixed && this.expandable ? 0 : -1;
-    this.selectionFrozenSlot = fixed && this.selectionMode === 'multiple' ? leadSlots - 1 : -1;
+    this.expansionFrozenSlot = fixed && this.expandable() ? 0 : -1;
+    this.selectionFrozenSlot = fixed && this.selectionMode() === 'multiple' ? leadSlots - 1 : -1;
     this.lastFrozenSlot = fixed ? slot - 1 : -1;
   }
 
@@ -1250,8 +1261,9 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * @param event - Optimus sort event containing sort metadata
    */
   onSort(event: SortEvent): void {
-    if (this.customSortFn) {
-      this.customSortFn(event);
+    const customSortFn = this.customSortFn();
+    if (customSortFn) {
+      customSortFn(event);
     }
   }
 
@@ -1338,8 +1350,9 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * @returns Formatted cell value
    */
   getValue(row: T, field: ColumnConfig): any {
-    if (this.valueGetterFn) {
-      return this.valueGetterFn(row, field);
+    const valueGetterFn = this.valueGetterFn();
+    if (valueGetterFn) {
+      return valueGetterFn(row, field);
     }
     // Use field's custom value function if available
     if (field.fieldValueFN) {
@@ -1356,7 +1369,8 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * @returns CSS class string or null
    */
   getRowClass(row: T): string | null {
-    return this.rowClassFn ? this.rowClassFn(row) : null;
+    const rowClassFn = this.rowClassFn();
+    return rowClassFn ? rowClassFn(row) : null;
   }
 
   /**
@@ -1371,10 +1385,11 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
     const widthStyle: { [key: string]: string } = field.width
       ? { 'flex-basis': '0 0 ' + field.width + 'px' }
       : ({} as { [key: string]: string });
-    if (!this.cellStyleFn) {
+    const cellStyleFn = this.cellStyleFn();
+    if (!cellStyleFn) {
       return widthStyle;
     }
-    const customStyle = this.cellStyleFn(row, field);
+    const customStyle = cellStyleFn(row, field);
     if (!customStyle) {
       return widthStyle;
     }
@@ -1411,7 +1426,8 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * @returns True if row can be expanded
    */
   canExpand(row: T): boolean {
-    return this.canExpandFn ? this.canExpandFn(row) : true;
+    const canExpandFn = this.canExpandFn();
+    return canExpandFn ? canExpandFn(row) : true;
   }
 
   /**
@@ -1421,11 +1437,11 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * @returns Number of columns to span
    */
   getExpandedColspan(): number {
-    let count = this.fields.filter((f) => f.visible).length;
-    if (this.expandable) {
+    let count = this.fields().filter((f) => f.visible).length;
+    if (this.expandable()) {
       count++;
     }
-    if (this.selectionMode === 'multiple') {
+    if (this.selectionMode() === 'multiple') {
       count++;
     }
     return count;
@@ -1440,7 +1456,8 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * @returns True if cell should be highlighted
    */
   isOwnerHighlighted(row: T, field: ColumnConfig): boolean {
-    return this.ownerHighlightFn ? this.ownerHighlightFn(row, field) : false;
+    const ownerHighlightFn = this.ownerHighlightFn();
+    return ownerHighlightFn ? ownerHighlightFn(row, field) : false;
   }
 
   /**
@@ -1461,7 +1478,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * Splits visible columns into ungrouped (rowspan=2) and grouped (colspan) items.
    */
   private computeHeaderGroups(): void {
-    const visibleFields = this.fields.filter((f) => f.visible);
+    const visibleFields = this.fields().filter((f) => f.visible);
     this.hasGroups = visibleFields.some((f) => !!f.headerGroupKey);
     if (!this.hasGroups) {
       this.headerGroupRow = [];
@@ -1502,8 +1519,9 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * @returns True if value should be colored red
    */
   isNegativeValue(row: T, field: ColumnConfig): boolean {
-    if (this.negativeValueFn) {
-      return this.negativeValueFn(row, field);
+    const negativeValueFn = this.negativeValueFn();
+    if (negativeValueFn) {
+      return negativeValueFn(row, field);
     }
     const value = this.getValue(row, field);
     return value != null && String(value).startsWith('-');

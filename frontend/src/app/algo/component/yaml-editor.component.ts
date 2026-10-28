@@ -2,13 +2,14 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  Input,
   OnDestroy,
   OnChanges,
   SimpleChanges,
   signal,
   output,
-  viewChild
+  viewChild,
+  input,
+  model
 } from '@angular/core';
 import * as yaml from 'js-yaml';
 import { HttpClient } from '@angular/common/http';
@@ -37,8 +38,8 @@ export interface YamlDiagnostic {
   selector: 'yaml-editor',
   imports: [TranslateModule],
   template: `
-    <div #editorContainer [style.height]="height" style="border: 1px solid #dee2e6; border-radius: 4px;"></div>
-    @if (format) {
+    <div #editorContainer [style.height]="height()" style="border: 1px solid #dee2e6; border-radius: 4px;"></div>
+    @if (format()) {
       <button type="button" class="btn btn-secondary mt-2" [disabled]="validating" (click)="validateForSubmit()">
         {{ 'YAML_VALIDATE' | translate }}
       </button>
@@ -54,7 +55,7 @@ export interface YamlDiagnostic {
       }
       @if (validated() && diagnostics().length === 0) {
         <div>
-          {{ (format === 'CUSTODY' || format === 'CALENDAR' ? 'YAML_STRUCTURE_VALID' : 'YAML_VALID') | translate }}
+          {{ (format() === 'CUSTODY' || format() === 'CALENDAR' ? 'YAML_STRUCTURE_VALID' : 'YAML_VALID') | translate }}
         </div>
       }
     </div>
@@ -67,8 +68,10 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
     super();
   }
 
-  @Input() format: 'FEES' | 'FEES_ACCOUNT' | 'TOKENS' | 'CALENDAR' | 'TAXES' | 'STRATEGY' | 'CUSTODY';
-  @Input() activatable = true;
+  readonly format = input<'FEES' | 'FEES_ACCOUNT' | 'TOKENS' | 'CALENDAR' | 'TAXES' | 'STRATEGY' | 'CUSTODY'>(
+    undefined
+  );
+  readonly activatable = input(true);
   readonly syntaxValidChange = output<boolean>();
   readonly validationPendingChange = output<boolean>();
   readonly diagnostics = signal<YamlDiagnostic[]>([]);
@@ -98,6 +101,12 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
     // A value emitted by Monaco comes back through the two-way input binding. It is already validated locally;
     // receiving that same value or a late completion schema must not erase its diagnostics.
     if (changes['format'] || changes['activatable']) this.invalidateValidation();
+    if (changes['value']) {
+      const value = this.value() ?? '';
+      if (this._value !== value) this.invalidateValidation();
+      this._value = value;
+      if (this.editor && this.editor.getValue() !== value) this.editor.setValue(value);
+    }
   }
 
   private invalidateValidation(): void {
@@ -111,7 +120,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
   checkSyntax(): boolean {
     this.diagnostics.set([]);
     try {
-      if (this.value.trim()) yaml.load(this.value);
+      if (this.value()?.trim()) yaml.load(this.value());
       this.syntaxValidity.set(true);
     } catch (error: any) {
       this.syntaxValidity.set(false);
@@ -132,9 +141,10 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
   async validateForSubmit(): Promise<boolean> {
     clearTimeout(this.validationTimer);
     if (!this.checkSyntax()) return false;
-    if (!this.format || !this.http) return true;
+    const format = this.format();
+    if (!format || !this.http) return true;
     const revision = ++this.revision;
-    const text = this.value;
+    const text = this.value() ?? '';
     this.validating = true;
     this.validated.set(false);
     try {
@@ -142,12 +152,12 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
         this.http
           .post<YamlDiagnostic[]>(
             `${BaseSettings.API_ENDPOINT}yaml/validate`,
-            { format: this.format, yaml: text, activatable: this.activatable },
+            { format: format, yaml: text, activatable: this.activatable() },
             this.getHeaders()
           )
           .pipe(takeUntil(this.destroyed$))
       );
-      if (this.destroyed || revision !== this.revision || text !== this.value) return false;
+      if (this.destroyed || revision !== this.revision || text !== (this.value() ?? '')) return false;
       this.diagnostics.set(errors);
       this.validated.set(true);
       return errors.length === 0;
@@ -160,24 +170,12 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
     }
   }
 
-  @Input() height = '500px';
+  readonly height = input('500px');
 
-  @Input() set value(val: string) {
-    if (this._value !== (val || '')) this.invalidateValidation();
-    this._value = val || '';
-    if (this.editor && this.editor.getValue() !== this._value) {
-      this.editor.setValue(this._value);
-    }
-  }
-
-  get value(): string {
-    return this._value;
-  }
-
-  readonly valueChange = output<string>();
+  readonly value = model('');
 
   /** JSON Schema object for autocompletion and hover documentation */
-  @Input() schema: any;
+  readonly schema = input<any>(undefined);
 
   /**
    * Optional map of YAML field names to completion items for inline value autocompletion.
@@ -187,7 +185,9 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
    * Each entry maps a field name (e.g., 'condition', 'expression') to an array of
    * {@link YamlFieldCompletion} objects describing variables, functions, or keywords.
    */
-  @Input() fieldCompletions: { [fieldName: string]: YamlFieldCompletion[] };
+  readonly fieldCompletions = input<{
+    [fieldName: string]: YamlFieldCompletion[];
+  }>(undefined);
 
   private _value = '';
   private editor: any;
@@ -268,7 +268,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
       this.invalidateValidation();
       this._value = this.editor.getValue();
       this.checkSyntax();
-      this.valueChange.emit(this._value);
+      this.value.set(this._value);
       this.scheduleValidation(monaco);
     });
 
@@ -373,7 +373,8 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
 
             // Offer field-specific inline completions (e.g., EvalEx variables/functions)
             const path = this.fieldPath(model, position.lineNumber, fieldName);
-            const completions = this.fieldCompletions?.[path] ?? this.fieldCompletions?.[fieldName];
+            const fieldCompletions = this.fieldCompletions();
+            const completions = fieldCompletions?.[path] ?? fieldCompletions?.[fieldName];
             if (completions) {
               for (const c of completions) {
                 const kindKey = c.kind || 'Variable';
@@ -433,7 +434,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
    */
   private findSchemaContext(model: any, lineNumber: number, currentIndent: number): any {
     if (currentIndent === 0) {
-      return this.schema;
+      return this.schema();
     }
 
     // Walk upward to find parent keys
@@ -453,7 +454,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
     }
 
     // Traverse schema following parent keys
-    let context: any = this.schema;
+    let context: any = this.schema();
     for (const key of parentKeys) {
       const prop = this.getEffectiveProperties(context)?.[key] ?? context?.additionalProperties;
       if (!prop || typeof prop !== 'object') break;
@@ -503,7 +504,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
         : null;
     if (!prefix) return null;
     const defName = ref.substring(prefix.length);
-    return (prefix === '#/$defs/' ? this.schema?.$defs : this.schema?.definitions)?.[defName];
+    return (prefix === '#/$defs/' ? this.schema()?.$defs : this.schema()?.definitions)?.[defName];
   }
 
   /** Returns the schema of a scalar sequence item below the nearest enclosing array property. */
@@ -570,7 +571,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
 
   private findFieldInSchema(fieldName: string): any {
     // Search all draft-7 definitions and newer $defs for a property matching the field name.
-    const definitions = { ...(this.schema?.definitions ?? {}), ...(this.schema?.$defs ?? {}) };
+    const definitions = { ...(this.schema()?.definitions ?? {}), ...(this.schema()?.$defs ?? {}) };
     for (const def of Object.values<any>(definitions)) {
       if (def.properties?.[fieldName]) {
         return def.properties[fieldName];
@@ -587,7 +588,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
     const editorModel = this.editor.getModel();
     this.hoverDisposable = monaco.languages.registerHoverProvider('yaml', {
       provideHover: (model: any, position: any) => {
-        if (model !== editorModel || !this.schema) return null;
+        if (model !== editorModel || !this.schema()) return null;
         const lineContent = model.getLineContent(position.lineNumber);
         const keyMatch = lineContent.match(/^(\s*)(-\s+)?([^:#]+?)\s*:/);
         if (!keyMatch) return null;

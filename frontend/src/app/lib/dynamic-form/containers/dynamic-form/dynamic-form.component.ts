@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, output } from '@angular/core';
+import { Component, OnChanges, OnDestroy, OnInit, output, input } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { merge, Subscription } from 'rxjs';
 import { FormNotifier } from '../../models/form.notifier';
@@ -35,7 +35,7 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
               </legend>
               <div class="row">
                 @for (field of fieldsetConfig.fieldConfig; track field) {
-                  <dynamic-form-layout [config]="field" [formConfig]="formConfig" [group]="form" />
+                  <dynamic-form-layout [config]="field" [formConfig]="formConfig()" [group]="form" />
                 }
               </div>
             </fieldset>
@@ -44,11 +44,14 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
           <div class="row">
             @for (field of controlsWithGroups; track field) {
               @if ('inputType' in field) {
-                <dynamic-form-layout [config]="field" [formConfig]="formConfig" [group]="form" />
+                <dynamic-form-layout [config]="field" [formConfig]="formConfig()" [group]="form" />
               } @else {
                 <ng-container [formGroupName]="field.formGroupName">
                   @for (childField of field.fieldConfig; track childField) {
-                    <dynamic-form-layout [config]="childField" [formConfig]="formConfig" [group]="field.formControl" />
+                    <dynamic-form-layout
+                      [config]="childField"
+                      [formConfig]="formConfig()"
+                      [group]="field.formControl" />
                   }
                 </ng-container>
                 <div class="col-12">
@@ -60,8 +63,8 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
         }
 
         <!-- Buttons -->
-        <div class="d-flex align-items-center" [class.ui-widget-content]="!formConfig.nonModal">
-          @if (formConfig.helpLinkFN) {
+        <div class="d-flex align-items-center" [class.ui-widget-content]="!formConfig().nonModal">
+          @if (formConfig().helpLinkFN) {
             <p-button [rounded]="true" (click)="helpLink($event)">
               <i class="pi pi-question" pButtonIcon></i>
             </p-button>
@@ -69,7 +72,7 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
           <div class="ms-auto">
             @for (field of buttons; track field) {
               @if (!field.invisible) {
-                <dynamicField [config]="field" [formConfig]="formConfig" [group]="form" />
+                <dynamicField [config]="field" [formConfig]="formConfig()" [group]="form" />
               }
             }
           </div>
@@ -87,10 +90,10 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
   ]
 })
 export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
-  @Input() formConfig: FormConfig;
-  @Input() config: FieldFormGroup[] = [];
-  @Input() formGroupDefinition: FormGroupDefinition;
-  @Input() translateService: TranslateService;
+  readonly formConfig = input<FormConfig>(undefined);
+  readonly config = input<FieldFormGroup[]>([]);
+  readonly formGroupDefinition = input<FormGroupDefinition>(undefined);
+  readonly translateService = input<TranslateService>(undefined);
 
   readonly submitBt = output<any>();
 
@@ -111,11 +114,11 @@ export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
   constructor(private _formBuilder: UntypedFormBuilder) {}
 
   get formGroups(): FormGroupDefinition[] {
-    return this.config.filter((fieldFormGroup: any) => !!fieldFormGroup.formGroupName) as FormGroupDefinition[];
+    return this.config().filter((fieldFormGroup: any) => !!fieldFormGroup.formGroupName) as FormGroupDefinition[];
   }
 
   get controlsWithGroups(): FieldFormGroup[] {
-    return this.config.filter(
+    return this.config().filter(
       (fieldFormGroup: any) =>
         fieldFormGroup.formGroupName ||
         fieldFormGroup.buttonInForm ||
@@ -124,26 +127,26 @@ export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   get controlsFlatten(): FieldConfig[] {
-    return FormHelper.flattenConfigMap(this.config).filter(
+    return FormHelper.flattenConfigMap(this.config()).filter(
       ({ inputType }) => inputType !== InputType.Button && inputType !== InputType.Pbutton
     );
   }
 
   get controls(): FieldConfig[] {
-    return FormHelper.getFieldConfigs(this.config).filter(
+    return FormHelper.getFieldConfigs(this.config()).filter(
       ({ inputType }) => inputType !== InputType.Button && inputType !== InputType.Pbutton
     );
   }
 
   get buttons(): FieldConfig[] {
-    return FormHelper.getFieldConfigs(this.config).filter(
+    return FormHelper.getFieldConfigs(this.config()).filter(
       (config) =>
         !config.buttonInForm && (config.inputType === InputType.Button || config.inputType === InputType.Pbutton)
     );
   }
 
   get submitButton(): FieldConfig {
-    return FormHelper.getFieldConfigs(this.config).find(
+    return FormHelper.getFieldConfigs(this.config()).find(
       (config) => (config.inputType === InputType.Button || config.inputType === InputType.Pbutton) && !config.buttonFN
     );
   }
@@ -161,14 +164,14 @@ export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.notifier = FormNotifier.instrument(this.config, this.notifier);
-    if (this.form && this.config.length > 0) {
+    this.notifier = FormNotifier.instrument(this.config(), this.notifier);
+    if (this.form && this.config().length > 0) {
       this.buildForm();
     }
   }
 
   ngOnChanges(): void {
-    this.notifier = FormNotifier.instrument(this.config, this.notifier);
+    this.notifier = FormNotifier.instrument(this.config(), this.notifier);
     this.buildForm();
   }
 
@@ -272,7 +275,7 @@ export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
 
   cleanMaskAndTransferValuesToBusinessObject(targetObject: any, createProperty: boolean = false): void {
     this.controlsFlatten.forEach((fieldConfig) =>
-      Helper.copyFormSingleFormConfigToBusinessObject(this.formConfig, fieldConfig, targetObject, createProperty)
+      Helper.copyFormSingleFormConfigToBusinessObject(this.formConfig(), fieldConfig, targetObject, createProperty)
     );
   }
 
@@ -307,7 +310,7 @@ export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
 
   setDisableAll(disable: boolean) {
     const method = disable ? 'disable' : 'enable';
-    FormHelper.flattenConfigMap(this.config).forEach((fieldConfig) => {
+    FormHelper.flattenConfigMap(this.config()).forEach((fieldConfig) => {
       if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
         fieldConfig.formControl[method]();
       }
@@ -321,7 +324,7 @@ export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
       const method = disable ? 'disable' : 'enable';
       this.form.controls[name][method]();
     } else {
-      FormHelper.getFieldConfigs(this.config).forEach((item) => {
+      FormHelper.getFieldConfigs(this.config()).forEach((item) => {
         if (item.field === name) {
           item.disabled = disable;
         }
@@ -356,7 +359,7 @@ export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   helpLink(event): void {
-    this.formConfig.helpLinkFN();
+    this.formConfig().helpLinkFN();
   }
 }
 

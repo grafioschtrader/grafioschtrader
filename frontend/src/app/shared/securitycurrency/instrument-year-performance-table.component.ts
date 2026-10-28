@@ -1,4 +1,4 @@
-import { Component, computed, Injector, Input, OnInit } from '@angular/core';
+import { Component, computed, Injector, OnInit, input } from '@angular/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
@@ -16,8 +16,8 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   imports: [TranslateModule, TableModule, TooltipModule]
 })
 export class InstrumentYearPerformanceTableComponent extends TableConfigBase implements OnInit {
-  @Input() values: LastYears[];
-  @Input() mainCurrency: string;
+  readonly values = input<LastYears[]>(undefined);
+  readonly mainCurrency = input<string>(undefined);
   datakey = 'year';
   groupTitle = 'CALENDAR_YEAR_RETURN';
   titleRemark = 'ALL_EOD_AND_DIVIDEND';
@@ -44,9 +44,10 @@ export class InstrumentYearPerformanceTableComponent extends TableConfigBase imp
       templateName: 'greenRed',
       headerSuffix: '%'
     });
+    const mainCurrency = this.mainCurrency();
     this.addColumn(DataType.Numeric, 'performanceYearMC', 'PERFORMANCE', true, false, {
       templateName: 'greenRed',
-      headerSuffix: (this.mainCurrency ? this.mainCurrency + ' ' : '') + '%'
+      headerSuffix: (mainCurrency ? mainCurrency + ' ' : '') + '%'
     });
     this.prepareTableAndTranslate();
   }

@@ -1,5 +1,5 @@
 import { AppSettings } from '../../shared/app.settings';
-import { Component, Input, OnChanges, output } from '@angular/core';
+import { Component, OnChanges, output, input } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
@@ -28,7 +28,7 @@ import { HoldingMoversBranch, HoldingMoversRanking, HoldingMoversRow } from '../
       dataKey="nodeKey"
       [enableSort]="false"
       [scrollable]="true"
-      [scrollHeight]="scrollHeight"
+      [scrollHeight]="scrollHeight()"
       [valueGetterFn]="valueGetter"
       (nodeExpand)="onBranchToggled($event, true)"
       (nodeCollapse)="onBranchToggled($event, false)" />
@@ -36,19 +36,19 @@ import { HoldingMoversBranch, HoldingMoversRanking, HoldingMoversRow } from '../
 })
 export class HoldingMoversTreetableComponent extends TreeTableConfigBase implements OnChanges {
   /** Branches in display order, as delivered by the server. */
-  @Input() branches: HoldingMoversBranch[] = [];
+  readonly branches = input<HoldingMoversBranch[]>([]);
 
   /** Which of the two per-branch orderings this table renders. */
-  @Input() ranking: HoldingMoversRanking = 'byPercentage';
+  readonly ranking = input<HoldingMoversRanking>('byPercentage');
 
   /** Currency of the amount column; a movers card reports one currency for the whole client. */
-  @Input() currency: string;
+  readonly currency = input<string>(undefined);
 
   /** Branch codes the reader has open, owned by the card so both tables of a card open together. */
-  @Input() expanded: string[] = [];
+  readonly expanded = input<string[]>([]);
 
   /** Height at which the table starts to scroll, so a card cannot grow past its neighbours. */
-  @Input() scrollHeight = '220px';
+  readonly scrollHeight = input('220px');
 
   /** Emits the branch code and its new state when the reader opens or closes a branch. */
   readonly expandedChange = output<{
@@ -79,8 +79,8 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase impleme
   }
 
   ngOnChanges(): void {
-    this.fields.find((field) => field.field === 'amountMC').fixedCurrency = this.currency;
-    this.treeNodes = this.branches.map((branch) => this.branchNode(branch));
+    this.fields.find((field) => field.field === 'amountMC').fixedCurrency = this.currency();
+    this.treeNodes = this.branches().map((branch) => this.branchNode(branch));
     this.createTranslateValuesStoreForTranslation(this.treeNodes);
   }
 
@@ -89,7 +89,7 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase impleme
    * own: a period has no single move, and summing the rows would invent one.
    */
   private branchNode(branch: HoldingMoversBranch): TreeNode {
-    const rows = branch[this.ranking] ?? [];
+    const rows = branch[this.ranking()] ?? [];
     return {
       data: {
         nodeKey: branch.branch,
@@ -98,7 +98,7 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase impleme
         amountMC: null,
         branchData: branch
       },
-      expanded: this.expanded.includes(branch.branch),
+      expanded: this.expanded().includes(branch.branch),
       leaf: false,
       children: rows.length ? rows.map((row) => this.rowNode(branch, row)) : this.reasonNode(branch)
     };

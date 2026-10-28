@@ -1,6 +1,5 @@
 import {
   Component,
-  Input,
   OnInit,
   Optional,
   afterNextRender,
@@ -8,7 +7,8 @@ import {
   inject,
   Injector,
   signal,
-  viewChild
+  viewChild,
+  input
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
@@ -123,7 +123,7 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
         <fx-markup-preview
           [yaml]="feeModelYamlValue()"
           [idSecurityaccount]="securityaccount?.idSecuritycashAccount"
-          [idTradingPlatformPlan]="callParam?.idTradingPlatformPlan" />
+          [idTradingPlatformPlan]="callParam()?.idTradingPlatformPlan" />
       </p-fieldset>
     </ng-template>
   `,
@@ -142,7 +142,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
   readonly yamlEditor = viewChild(YamlEditorComponent);
   static readonly DIALOG_WIDTH = 900;
 
-  @Input() callParam: TradingPlatformPlan;
+  readonly callParam = input<TradingPlatformPlan>(undefined);
 
   isDynamic = false;
   readonly feeModelYamlValue = signal('');
@@ -214,7 +214,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
     if (this.isDynamic) {
       this.feeModelYamlValue.set(this.securityaccount?.feeModelYaml || '');
     } else {
-      this.feeModelYamlValue.set(this.callParam?.feeModelYaml || '');
+      this.feeModelYamlValue.set(this.callParam()?.feeModelYaml || '');
     }
     this.testResult.set(null);
     this.form().setDefaultValuesAndEnableSubmit();
@@ -271,7 +271,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
         });
     } else {
       const tradingPlatformPlan = new TradingPlatformPlan();
-      Object.assign(tradingPlatformPlan, this.callParam);
+      Object.assign(tradingPlatformPlan, this.callParam());
       tradingPlatformPlan.feeModelYaml = this.feeModelYamlValue().trim() || null;
       this.tradingPlatformPlanService
         .update(tradingPlatformPlan)
@@ -326,7 +326,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       idSecurityaccount: this.securityaccount?.idSecuritycashAccount,
       idTradingPlatformPlan: this.isDynamic
         ? this.securityaccount?.tradingPlatformPlan?.idTradingPlatformPlan
-        : this.callParam?.idTradingPlatformPlan,
+        : this.callParam()?.idTradingPlatformPlan,
       tradeValue: this.configObject.tradeValue.formControl.value || 0,
       units: this.configObject.units.formControl.value || 0,
       specInvestInstrument: this.configObject.specInvestInstrument.formControl.value,

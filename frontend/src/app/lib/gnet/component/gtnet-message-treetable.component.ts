@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, OnInit, signal, output, viewChild } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, output, viewChild, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { FormsModule } from '@angular/forms';
@@ -97,7 +97,7 @@ import { FilterType } from '../../datashowbase/filter.type';
                 </th>
               }
             </tr>
-            @if (showFilter && hasFilter) {
+            @if (showFilter() && hasFilter) {
               <tr>
                 @if (canAdministerGTNet) {
                   <th></th>
@@ -206,12 +206,14 @@ import { FilterType } from '../../datashowbase/filter.type';
   `
 })
 export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
-  @Input() gtNetMessages: GTNetMessage[];
-  @Input() incomingPendingIds: Set<number>;
-  @Input() outgoingPendingIds: Set<number>;
-  @Input() formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
+  readonly gtNetMessages = input<GTNetMessage[]>(undefined);
+  readonly incomingPendingIds = input<Set<number>>(undefined);
+  readonly outgoingPendingIds = input<Set<number>>(undefined);
+  readonly formDefinitions = input<{
+    [type: string]: ClassDescriptorInputAndShow;
+  }>(undefined);
   /** Controls whether the filter row is displayed. Default is true. */
-  @Input() showFilter: boolean = true;
+  readonly showFilter = input<boolean>(true);
   readonly dataChanged = output<ProcessedActionData>();
   readonly contextMenu = viewChild<any>('cm');
   readonly treeTable = viewChild<TreeTable>('tt');
@@ -334,13 +336,13 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     // First pass: create all nodes and populate the nodeMap
     // This ensures all nodes exist before we establish parent-child relationships,
     // regardless of the order messages arrive from the backend (timestamp DESC).
-    this.gtNetMessages.forEach((gtMessage) => {
+    this.gtNetMessages().forEach((gtMessage) => {
       const node: TreeNode = { data: gtMessage, leaf: true };
       nodeMap.set(gtMessage.idGtNetMessage, node);
     });
 
     // Second pass: establish parent-child relationships
-    this.gtNetMessages.forEach((gtMessage) => {
+    this.gtNetMessages().forEach((gtMessage) => {
       const node = nodeMap.get(gtMessage.idGtNetMessage);
       if (gtMessage.replyTo) {
         const parentNode = nodeMap.get(gtMessage.replyTo);
@@ -499,7 +501,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       return true;
     }
     // For other message types, require pending status
-    const isPending = this.incomingPendingIds?.has(msg.idGtNetMessage) ?? false;
+    const isPending = this.incomingPendingIds()?.has(msg.idGtNetMessage) ?? false;
     return isPending;
   }
 
@@ -512,7 +514,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     // Get parent's visibility for inheritance rules
     const parentVisibility = this.getParentVisibility(msg);
     this.msgCallParam = new MsgCallParam(
-      this.formDefinitions,
+      this.formDefinitions(),
       msg.idGtNet,
       msg.idGtNetMessage,
       null,
@@ -627,10 +629,10 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     if (rowData.deliveryStatus === DeliveryStatus.FAILED || rowData.deliveryStatus === 'FAILED') {
       return 'red';
     }
-    if (this.incomingPendingIds?.has(rowData.idGtNetMessage)) {
+    if (this.incomingPendingIds()?.has(rowData.idGtNetMessage)) {
       return 'greenyellow';
     }
-    if (this.outgoingPendingIds?.has(rowData.idGtNetMessage)) {
+    if (this.outgoingPendingIds()?.has(rowData.idGtNetMessage)) {
       return 'yellow';
     }
     return null;
@@ -738,7 +740,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     }
     const idsToDelete = Array.from(this.selectedDeletableIds());
     // Get idGtNet from the first message (all messages in this component belong to the same GTNet)
-    const idGtNet = this.gtNetMessages?.[0]?.idGtNet;
+    const idGtNet = this.gtNetMessages()?.[0]?.idGtNet;
     this.gtNetService.deleteMessageBatch(idsToDelete).subscribe({
       next: () => {
         this.selectedDeletableIds.set(new Set());

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { Historyquote } from '../../entities/historyquote';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { HistoryquoteService } from '../service/historyquote.service';
@@ -20,7 +20,7 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
 @Component({
   selector: 'historyquote-edit',
   template: ` <p-dialog
-    header="{{ 'HISTORY_QUOTE_FOR' | translate }} {{ callParam.showName }}"
+    header="{{ 'HISTORY_QUOTE_FOR' | translate }} {{ callParam().showName }}"
     [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
@@ -36,7 +36,7 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote> {
-  @Input() callParam: HistoryquoteSecurityCurrency;
+  readonly callParam = input<HistoryquoteSecurityCurrency>(undefined);
 
   constructor(
     translateService: TranslateService,
@@ -55,11 +55,11 @@ export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote
   }
 
   protected getSecuritycurrency(): Securitycurrency {
-    return this.callParam.securitycurrency;
+    return this.callParam().securitycurrency;
   }
 
   protected getExistingEntity(): Historyquote {
-    return this.callParam.historyquote;
+    return this.callParam().historyquote;
   }
 
   protected createEntityInstance(): Historyquote {
@@ -67,8 +67,9 @@ export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote
   }
 
   protected transferAndToggleImmutableFields(): void {
-    if (this.callParam.historyquote) {
-      this.form().transferBusinessObjectToForm(this.callParam.historyquote);
+    const callParam = this.callParam();
+    if (callParam.historyquote) {
+      this.form().transferBusinessObjectToForm(callParam.historyquote);
       FormHelper.disableEnableFieldConfigs(true, [this.configObject.date]);
     } else {
       this.form().setDefaultValuesAndEnableSubmit();

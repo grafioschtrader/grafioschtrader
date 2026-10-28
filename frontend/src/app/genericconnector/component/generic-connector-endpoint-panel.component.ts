@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, output } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, output, input } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -30,12 +30,12 @@ import { GenericConnectorFieldMappingTableComponent } from './generic-connector-
                   @case ('check') {
                     <span
                       ><i
-                        [class.fa]="getValueByPath(endpoint, field)"
-                        [class.fa-check]="getValueByPath(endpoint, field)"></i
+                        [class.fa]="getValueByPath(endpoint(), field)"
+                        [class.fa-check]="getValueByPath(endpoint(), field)"></i
                     ></span>
                   }
                   @default {
-                    {{ getValueByPath(endpoint, field) }}
+                    {{ getValueByPath(endpoint(), field) }}
                   }
                 }
               </div>
@@ -46,17 +46,17 @@ import { GenericConnectorFieldMappingTableComponent } from './generic-connector-
     </div>
     <br />
     <generic-connector-field-mapping-table
-      [fieldMappings]="$safeNavigationMigration(endpoint?.fieldMappings)"
-      [feedSupport]="$safeNavigationMigration(endpoint?.feedSupport)"
-      [responseFormat]="$safeNavigationMigration(endpoint?.responseFormat)"
-      [editable]="editable"
+      [fieldMappings]="$safeNavigationMigration(endpoint()?.fieldMappings)"
+      [feedSupport]="$safeNavigationMigration(endpoint()?.feedSupport)"
+      [responseFormat]="$safeNavigationMigration(endpoint()?.responseFormat)"
+      [editable]="editable()"
       (fieldMappingsChange)="onFieldMappingsChange($event)" />
   `,
   imports: [TranslateModule, GenericConnectorFieldMappingTableComponent]
 })
 export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBase implements OnChanges {
-  @Input() endpoint: GenericConnectorEndpoint;
-  @Input() editable: boolean = true;
+  readonly endpoint = input<GenericConnectorEndpoint>(undefined);
+  readonly editable = input<boolean>(true);
   readonly editEndpoint = output<void>();
   readonly fieldMappingsChange = output<GenericConnectorFieldMapping[]>();
 
@@ -161,9 +161,10 @@ export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBa
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['endpoint'] && this.endpoint) {
+    const endpoint = this.endpoint();
+    if (changes['endpoint'] && endpoint) {
       this._fieldSetGroups = null;
-      this.createTranslatedValueStore([this.endpoint]);
+      this.createTranslatedValueStore([endpoint]);
     }
   }
 

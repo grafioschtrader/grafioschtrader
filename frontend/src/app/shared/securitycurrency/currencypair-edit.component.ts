@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
@@ -32,7 +32,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
   selector: 'currencypair-edit',
   template: ` <p-dialog
     header="{{ 'CURRENCYPAIR' | translate }}"
-    [visible]="visibleEditCurrencypairDialog"
+    [visible]="visibleEditCurrencypairDialog()"
     [style]="{ width: '600px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -48,7 +48,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
 })
 export class CurrencypairEditComponent extends SecuritycurrencyEdit implements OnInit {
   // Input from parent component
-  @Input() visibleEditCurrencypairDialog: boolean;
+  readonly visibleEditCurrencypairDialog = input<boolean>(undefined);
 
   existingCurrencypairs: Currencypair[];
 
@@ -101,11 +101,12 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
 
   submit(value: { [name: string]: any }): void {
     const currencypair: Currencypair = new Currencypair();
-    if (this.securityCurrencypairCallParam) {
-      Object.assign(currencypair, this.securityCurrencypairCallParam);
+    const securityCurrencypairCallParam = this.securityCurrencypairCallParam();
+    if (securityCurrencypairCallParam) {
+      Object.assign(currencypair, securityCurrencypairCallParam);
     }
     UDFMetadataHelper.removeUDFPropertiesFromObject(currencypair);
-    AuditHelper.copyProposeChangeEntityToEntityAfterEdit(this, currencypair, this.proposeChangeEntityWithEntity);
+    AuditHelper.copyProposeChangeEntityToEntityAfterEdit(this, currencypair, this.proposeChangeEntityWithEntity());
     this.dynamicForm().cleanMaskAndTransferValuesToBusinessObject(currencypair);
 
     this.currencypairService
@@ -118,7 +119,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
           });
           this.closeDialog.emit(
             new ProcessedActionData(
-              this.securityCurrencypairCallParam ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
+              this.securityCurrencypairCallParam() ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
               newSecurity
             )
           );
@@ -137,7 +138,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     // Mode 2 (frontend pre-filter): tell the backend whether this pair is crypto so it can pick FOREX vs CFD.
     // For a new pair we don't know the currencies yet — fall back to the unfiltered list; the save-time check
     // still rejects mismatches.
-    const cp = <Currencypair>this.securityCurrencypairCallParam;
+    const cp = <Currencypair>this.securityCurrencypairCallParam();
     const isCrypto =
       !!cp && (this.gpsGT.isCryptocurrency(cp.fromCurrency) || this.gpsGT.isCryptocurrency(cp.toCurrency));
     const observableFeedConnectors: Observable<IFeedConnector[]> =
@@ -158,15 +159,15 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
           this.existingCurrencypairs = allCurrencypairs;
           this.removeByUpdateFormExstingCurrency();
           this.valueChangedOnFromCurrency();
-          this.disableEnableInputForExisting(!!this.securityCurrencypairCallParam);
+          this.disableEnableInputForExisting(!!this.securityCurrencypairCallParam());
         }
       );
   }
 
   private removeByUpdateFormExstingCurrency(): void {
-    if (this.securityCurrencypairCallParam) {
+    if (this.securityCurrencypairCallParam()) {
       this.existingCurrencypairs = this.existingCurrencypairs.filter(
-        (currencypair) => currencypair.idSecuritycurrency !== this.securityCurrencypairCallParam.idSecuritycurrency
+        (currencypair) => currencypair.idSecuritycurrency !== this.securityCurrencypairCallParam().idSecuritycurrency
       );
     }
   }

@@ -138,6 +138,30 @@ function collectSources(dir: string, extensions = ['.ts'], out: string[] = []): 
 }
 
 describe('Angular API ratchet', () => {
+  it('matches input decorators, including aliases and namespace imports', () => {
+    for (const source of [
+      'class Example { @Input() value: string; }',
+      "import { Input as In } from '@angular/core'; class Example { @In('publicName') value: string; }",
+      "import * as ng from '@angular/core'; class Example { @ng.Input() value: string; }"
+    ]) {
+      expect(hasAngularDecorator(source, ['Input']), source).toBe(true);
+    }
+    for (const source of [
+      'class Example { readonly value = input<string>(); readonly selection = model<string>(); }',
+      '// @Input() value',
+      'const example = `@Input()`;'
+    ]) {
+      expect(hasAngularDecorator(source, ['Input']), source).toBe(false);
+    }
+  });
+
+  it('finds no input decorators in either host or the shared library', () => {
+    const violations = collectSources(SRC)
+      .filter((file) => hasAngularDecorator(fs.readFileSync(file, 'utf8'), ['Input']))
+      .map((file) => path.relative(SRC, file).replace(/\\/g, '/'));
+    expect(violations, 'Declare inputs with input() or model(). See frontend/CLAUDE.md.').toEqual([]);
+  });
+
   it('matches query decorators, including aliases and namespace imports', () => {
     const queries = ['ViewChild', 'ViewChildren', 'ContentChild', 'ContentChildren'];
     for (const query of queries) {

@@ -1,4 +1,14 @@
-import { Component, DestroyRef, inject, Input, OnInit, signal, TemplateRef, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+  TemplateRef,
+  viewChild,
+  input,
+  linkedSignal
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
@@ -101,7 +111,8 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
   ]
 })
 export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
-  @Input() entityKind = 'LAST_PRICE';
+  readonly entityKindInput = input('LAST_PRICE', { alias: 'entityKind' });
+  readonly entityKind = linkedSignal(() => this.entityKindInput());
   readonly expandedContent = viewChild<TemplateRef<any>>('expandedContent');
 
   readonly exchangeLogTrees = signal<GTNetExchangeLogTree[]>([]);
@@ -151,8 +162,8 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
     // therefore be re-derived on every parameter change, not read from the route snapshot.
     this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params: Params) => {
       const entityKindParam = params['entityKind'];
-      this.entityKind = entityKindParam ? decodeURIComponent(entityKindParam).toUpperCase() : 'LAST_PRICE';
-      this.titleKey.set(this.entityKind);
+      this.entityKind.set(entityKindParam ? decodeURIComponent(entityKindParam).toUpperCase() : 'LAST_PRICE');
+      this.titleKey.set(this.entityKind());
       this.loadData();
     });
   }
@@ -185,7 +196,7 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
 
     this.loadSubscription?.unsubscribe();
     this.loadSubscription = this.gtNetExchangeLogService
-      .getAllExchangeLogTrees(this.entityKind)
+      .getAllExchangeLogTrees(this.entityKind())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((trees) => this.exchangeLogTrees.set(trees));
   }

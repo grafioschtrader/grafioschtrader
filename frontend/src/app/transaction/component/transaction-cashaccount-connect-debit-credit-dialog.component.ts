@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 import { TransactionCallParam } from './transaction.call.parm';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
@@ -30,7 +30,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class TransactionCashaccountConnectDebitCreditDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() transactionCallParam: TransactionCallParam;
+  readonly transactionCallParam = input<TransactionCallParam>(undefined);
 
   constructor(
     public translateService: TranslateService,

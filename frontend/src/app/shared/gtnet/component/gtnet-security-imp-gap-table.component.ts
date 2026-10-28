@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, OnChanges, OnInit, SimpleChanges, input } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
 
@@ -28,7 +28,7 @@ const GAP_CODE_TRANSLATION_KEYS: { [key: number]: string } = {
   selector: 'gtnet-security-imp-gap-table',
   template: `
     <configurable-table
-      [data]="gaps"
+      [data]="gaps()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       [valueGetterFn]="valueGetter"
@@ -41,12 +41,12 @@ export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase impl
   /**
    * The list of gap records to display.
    */
-  @Input() gaps: GTNetSecurityImpGap[] = [];
+  readonly gaps = input<GTNetSecurityImpGap[]>([]);
 
   /**
    * Map of GTNet IDs to GTNet entities for displaying domain names.
    */
-  @Input() gtNetsMap: Map<number, GTNet> = new Map();
+  readonly gtNetsMap = input<Map<number, GTNet>>(new Map());
 
   private fieldsInitialized = false;
 
@@ -67,13 +67,13 @@ export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase impl
     this.translateHeadersAndColumns();
     this.fieldsInitialized = true;
 
-    if (this.gaps?.length > 0) {
+    if (this.gaps()?.length > 0) {
       this.prepareGapsForDisplay();
     }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['gaps'] && this.gaps && this.fieldsInitialized) {
+    if (changes['gaps'] && this.gaps() && this.fieldsInitialized) {
       this.prepareGapsForDisplay();
     }
   }
@@ -83,14 +83,14 @@ export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase impl
    * numeric gap codes to translation keys.
    */
   private prepareGapsForDisplay(): void {
-    this.gaps.forEach((gap) => {
+    this.gaps().forEach((gap) => {
       // Convert numeric gapCode to translation key
       (gap as any).gapCode = GAP_CODE_TRANSLATION_KEYS[gap.gapCode] || 'GAP_CODE_ASSET_CLASS';
       // Add GTNet domain name as computed field
-      const gtNet = this.gtNetsMap.get(gap.idGtNet);
+      const gtNet = this.gtNetsMap().get(gap.idGtNet);
       (gap as any).gtNetDomain = gtNet?.domainRemoteName || '?';
     });
 
-    this.createTranslatedValueStore(this.gaps);
+    this.createTranslatedValueStore(this.gaps());
   }
 }

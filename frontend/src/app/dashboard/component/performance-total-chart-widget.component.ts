@@ -3,14 +3,14 @@ import {
   Component,
   ElementRef,
   inject,
-  Input,
   NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
   signal,
   SimpleChanges,
-  viewChild
+  viewChild,
+  input
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription, merge } from 'rxjs';
@@ -57,7 +57,7 @@ const INVESTED_COLOR = '#eb6834';
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS],
   template: `
     @let shown = chart();
-    <div class="total-chart" [class.total-chart-maximized]="maximized">
+    <div class="total-chart" [class.total-chart-maximized]="maximized()">
       <dynamic-form
         [config]="config"
         [formConfig]="formConfig"
@@ -106,9 +106,9 @@ export class PerformanceTotalChartWidgetComponent
   extends ShowRecordConfigBase
   implements OnInit, OnChanges, AfterViewInit, OnDestroy
 {
-  @Input() result: DashboardResult;
+  readonly result = input<DashboardResult>(undefined);
   /** Set by the dashboard while this card takes over the whole dashboard area. */
-  @Input() maximized = false;
+  readonly maximized = input(false);
 
   readonly plotElement = viewChild<ElementRef<HTMLDivElement>>('plot');
 
@@ -174,7 +174,7 @@ export class PerformanceTotalChartWidgetComponent
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['result']) {
-      this.show(this.result?.payload?.custom as PerformanceTotalChart);
+      this.show(this.result()?.payload?.custom as PerformanceTotalChart);
     }
   }
 
@@ -207,7 +207,8 @@ export class PerformanceTotalChartWidgetComponent
    * than blanking it; the dashboard reports failures through its own refresh path.
    */
   private reload(): void {
-    if (!this.result?.instanceId) {
+    const resultValue = this.result();
+    if (!resultValue?.instanceId) {
       return;
     }
     // A select of the browser answers with text; turning it into a portfolio id or null belongs to the field.
@@ -219,7 +220,7 @@ export class PerformanceTotalChartWidgetComponent
       true
     );
     configOverride['range'] = this.configObject.range.formControl.value;
-    this.dashboardService.refresh(this.result.instanceId, configOverride).subscribe((result) => {
+    this.dashboardService.refresh(resultValue.instanceId, configOverride).subscribe((result) => {
       const chart = result?.payload?.custom as PerformanceTotalChart;
       if (chart) {
         this.show(chart);

@@ -80,6 +80,14 @@ periodic `ApplicationRef.tick()`.
 - **Outputs use `readonly name = output<T>()`** and emit with `name.emit(value)`. Keep an existing public alias with
   `output<T>({ alias: 'publicName' })`. The Angular API ratchet forbids `@Output` and `new EventEmitter` in both hosts
   and the library.
+- **Inputs use `readonly name = input<T>()`** (or `input(defaultValue)`); use `input.required<T>()` only when every
+  consumer supplies the value. Read inputs with `name()`. The Angular API ratchet forbids `@Input`.
+  A two-way value uses `model()` and its generated `nameChange` output; do not declare that output separately.
+  When a component edits a local draft or derives state from an input, keep the input and a `linkedSignal`
+  separately, for example `valueInput = input<T>(initial, { alias: 'value' })` and
+  `value = linkedSignal(() => this.valueInput())`. Replace local state with `.set()` / `.update()`.
+  `ngOnChanges` uses the declared property name (`valueInput`), not the public alias (`value`). A pure input
+  normalization belongs in `transform`; optional values narrowed in a template use `@let value = source()`.
 - **Queries use `readonly child = viewChild(Child)` / `contentChild(Child)`**, read with `child()`.
   `viewChildren(Child)` and `contentChildren(Child)` return signals of readonly arrays; use `children()` directly
   instead of `QueryList.toArray()`. Query decorators are forbidden by the Angular API ratchet. Optional projected
@@ -87,9 +95,8 @@ periodic `ApplicationRef.tick()`.
   `static` option: access view results in `ngAfterViewInit` or a render callback, never in `ngOnInit`. Replace a query
   setter's side effects with an `effect`, using `untracked` for work that must not become another dependency.
 - **Signal APIs only in new and reworked code.** Use `input()`, `output()`, `model()`, `viewChild()` and
-  `contentChild()`; never add an `@Input`, `@Output`, `EventEmitter`, `@ViewChild` or `@ContentChild`. The remaining
-  input decorators are converted with the Angular `signal-input-migration` schematic, so do not convert unrelated
-  components by hand on the side. `dynamic-form` stays on
+  `contentChild()`; the Angular API ratchet forbids the corresponding legacy decorators and `EventEmitter`.
+  `dynamic-form` stays on
   reactive forms, because its fields are built at runtime from `ClassDescriptorInputAndShow`; a new form whose fields
   are known statically may use Signal Forms.
 - **New services use `@Service()` and `inject()`.** `@Service()` is the Angular 22 shorthand for a root-provided,
@@ -152,7 +159,7 @@ periodic `ApplicationRef.tick()`.
 **CRITICAL**: Never combine form inputs (dropdowns, checkboxes, etc.) and a data table into a single monolithic component. Always split them:
 
 1. **Parent component** — Uses `dynamic-form` (with `{nonModal: true}`) for input controls (dropdowns, checkboxes, etc.). Handles data loading and passes results to the child. For summary/statistics display, extend `ShowRecordConfigBase` and use `getValueByPath()` with `ColumnConfig`.
-2. **Child table component** — Extends `TableConfigBase` (or appropriate base class). Receives data via `@Input()` and implements `OnChanges`. All column definitions, sorting, filtering, and translated value stores belong here.
+2. **Child table component** — Extends `TableConfigBase` (or appropriate base class). Receives data via `input()`; an `effect` prepares rows after the columns are defined. All column definitions, sorting, filtering, and translated value stores belong here.
 
 This separation ensures that the table gets proper sorting, filtering, column visibility, and translated value support from its base class. Mixing form logic with table logic in one component leads to missing functionality and violations of GT's data type formatting patterns.
 
@@ -162,9 +169,9 @@ This separation ensures that the table gets proper sorting, filtering, column vi
 
 ```
 Parent: dynamic-form input changes → loadData() → response received
-  → pass details to child via @Input() binding
+  → pass details to the child's signal input binding
   → display summary stats in fieldsets using ShowRecordConfigBase.createColumnConfig() + getValueByPath()
-Child: @Input() data changes → ngOnChanges → createTranslatedValueStore(data)
+Child: data() changes → effect → createTranslatedValueStore(data)
 ```
 
 ## Optimus UI Table and Tree Components
@@ -340,7 +347,7 @@ this.addColumnFeqH(DataType.String, 'securityName', true, false, { filterType: F
 
 **How `prepareFilter` works internally**: For translated columns, it reads `field.translatedValueMap` (built by `createTranslatedValueStore`) and creates sorted dropdown options with translated labels — the option _value_ stays the raw key, so the filter compares against the raw data. For plain string columns, it extracts unique values from the data. In both cases it populates `field.filterValues` which the template's `<p-multiSelect>` binds to. The list carries no empty "no filter" entry; the multi-select is reset with its clear icon.
 
-In components using `OnChanges` with `@Input()` data, note that `ngOnChanges` is called **before** `ngOnInit`. Use a flag to ensure proper ordering:
+In existing components using `OnChanges` with signal inputs, `ngOnChanges` is called **before** `ngOnInit`. Keep the initialization guard until the component is converted to the effect pattern below:
 
 ```typescript
 private fieldsInitialized = false;
@@ -355,9 +362,9 @@ constructor(...) {
 }
 
 ngOnChanges(changes: SimpleChanges): void {
-  if (changes['data'] && this.data && this.fieldsInitialized) {
-    this.createTranslatedValueStoreAndFilterField(this.data);
-    this.prepareFilter(this.data);
+  if (changes['data'] && this.data() && this.fieldsInitialized) {
+    this.createTranslatedValueStoreAndFilterField(this.data());
+    this.prepareFilter(this.data());
   }
 }
 ```
@@ -586,7 +593,7 @@ protected abstract initialize(): void;  // Called on dialog show
   </p-dialog>`
 })
 export class MyDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() customInput: string;
+  readonly customInput = input<string>();
 
   constructor(
     public translateService: TranslateService,
@@ -638,7 +645,7 @@ protected abstract getNewOrExistingInstanceBeforeSave(value: { [name: string]: a
 
 ```typescript
 export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote> implements OnInit {
-  @Input() callParam: HistoryquoteCallParam;
+  readonly callParam = input<HistoryquoteCallParam>();
 
   constructor(
     translateService: TranslateService,
@@ -651,7 +658,7 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
 
   protected override getNewOrExistingInstanceBeforeSave(value: any): Historyquote {
     const historyquote = new Historyquote();
-    this.copyFormToPrivateBusinessObject(historyquote, this.callParam.existingEntity);
+    this.copyFormToPrivateBusinessObject(historyquote, this.callParam().existingEntity);
     return historyquote;
   }
 }
@@ -1030,7 +1037,7 @@ Before writing code, find and read an existing dialog that matches your use case
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class MyDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() myInput: SomeType;
+  readonly myInput = input<SomeType>();
 
   constructor(
     public translateService: TranslateService,

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -23,7 +23,7 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
 @Component({
   selector: 'historyquote-legacy-edit',
   template: ` <p-dialog
-    header="{{ 'HISTORYQUOTE_LEGACY' | translate }} {{ callParam.showName }}"
+    header="{{ 'HISTORYQUOTE_LEGACY' | translate }} {{ callParam().showName }}"
     [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
@@ -39,7 +39,7 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteLegacyEditComponent extends HistoryquoteEditBase<HistoryquoteLegacy> {
-  @Input() callParam: HistoryquoteLegacySecurityCurrency;
+  readonly callParam = input<HistoryquoteLegacySecurityCurrency>(undefined);
 
   constructor(
     translateService: TranslateService,
@@ -58,11 +58,11 @@ export class HistoryquoteLegacyEditComponent extends HistoryquoteEditBase<Histor
   }
 
   protected getSecuritycurrency(): Securitycurrency {
-    return this.callParam.securitycurrency;
+    return this.callParam().securitycurrency;
   }
 
   protected getExistingEntity(): HistoryquoteLegacy {
-    return this.callParam.historyquoteLegacy;
+    return this.callParam().historyquoteLegacy;
   }
 
   protected createEntityInstance(): HistoryquoteLegacy {
@@ -76,7 +76,7 @@ export class HistoryquoteLegacyEditComponent extends HistoryquoteEditBase<Histor
   }
 
   protected transferAndToggleImmutableFields(): void {
-    this.form().transferBusinessObjectToForm(this.callParam.historyquoteLegacy);
+    this.form().transferBusinessObjectToForm(this.callParam().historyquoteLegacy);
     // Trading date and archival transferDate are immutable; only prices may change.
     FormHelper.disableEnableFieldConfigs(true, [this.configObject.date, this.configObject.transferDate]);
   }

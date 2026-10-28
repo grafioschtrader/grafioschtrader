@@ -124,12 +124,13 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
   }
 
   protected override setExistingValues(): void {
-    const so = this.callParam?.standingOrder as StandingOrderCashaccount;
+    const callParam = this.callParam();
+    const so = callParam?.standingOrder as StandingOrderCashaccount;
     if (so) {
       this.form().transferBusinessObjectToForm(so);
       this.disableFieldsForEdit(so);
-    } else if (this.callParam?.transaction) {
-      const t = this.callParam.transaction;
+    } else if (callParam?.transaction) {
+      const t = callParam.transaction;
       this.configObject.transactionType.formControl.setValue(t.transactionType);
       if (t.cashaccount) {
         this.configObject.idCashaccount.formControl.setValue(t.cashaccount.idSecuritycashAccount);
@@ -142,7 +143,7 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): StandingOrderCashaccount {
     const so = new StandingOrderCashaccount();
-    const existing = this.callParam?.standingOrder as StandingOrderCashaccount;
+    const existing = this.callParam()?.standingOrder as StandingOrderCashaccount;
     this.copyFormToPrivateBusinessObject(so, existing);
     so.dtype = 'C';
     so.cashaccount = {

@@ -1,4 +1,4 @@
-import { afterNextRender, inject, Injector, Component, Input, output, viewChild } from '@angular/core';
+import { afterNextRender, inject, Injector, Component, output, viewChild, input } from '@angular/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { Portfolio } from '../../entities/portfolio';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -21,7 +21,7 @@ import { TranslateModule } from '@ngx-translate/core';
   template: `
     <p-dialog
       header="{{ 'DIV_INCLUDE_SECURITYACCOUNT' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '600px' }"
       [contentStyle]="{ 'max-height': '800px' }"
       (onShow)="onShow($event)"
@@ -33,8 +33,8 @@ import { TranslateModule } from '@ngx-translate/core';
             <tenant-dividend-account-selection
               #securityaccountTree
               [columnConfig]="saColumnConfig"
-              [portfolios]="portfolios"
-              [idsAccount]="idsAccounts.idsSecurityaccount"
+              [portfolios]="portfolios()"
+              [idsAccount]="idsAccounts().idsSecurityaccount"
               [selectionRequired]="true"
               listAttributeName="securityaccountList"
               title="SECURITYACCOUNTS" />
@@ -43,8 +43,8 @@ import { TranslateModule } from '@ngx-translate/core';
             <tenant-dividend-account-selection
               #cashaccountTree
               [columnConfig]="caColumnConfig"
-              [portfolios]="portfolios"
-              [idsAccount]="idsAccounts.idsCashaccount"
+              [portfolios]="portfolios()"
+              [idsAccount]="idsAccounts().idsCashaccount"
               [selectionRequired]="false"
               listAttributeName="cashaccountList"
               title="CASHACCOUNTS" />
@@ -65,9 +65,9 @@ import { TranslateModule } from '@ngx-translate/core';
   imports: [DialogModule, ButtonModule, TranslateModule, TenantDividendAccountSelectionComponent]
 })
 export class TenantDividendSecurityAccountSelectionDialogComponent {
-  @Input() portfolios: Portfolio[];
-  @Input() idsAccounts: IdsAccounts;
-  @Input() visibleDialog;
+  readonly portfolios = input<Portfolio[]>(undefined);
+  readonly idsAccounts = input<IdsAccounts>(undefined);
+  readonly visibleDialog = input(undefined);
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
 

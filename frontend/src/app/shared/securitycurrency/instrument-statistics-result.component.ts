@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { InstrumentStatisticsResult } from '../../entities/view/instrument.statistics.result';
 import { SecurityService } from '../../securitycurrency/service/security.service';
@@ -15,7 +15,7 @@ import { InstrumentStatisticsSummaryComponent } from './instrument-statistics-su
   selector: 'instrument-statistics-result',
   template: `
     <div>
-      @if (showTitle) {
+      @if (showTitle()) {
         <h4>{{ 'RETURN_STATISTICAL_DATA' | translate }}</h4>
       }
       @if (isr(); as result) {
@@ -56,14 +56,14 @@ import { InstrumentStatisticsSummaryComponent } from './instrument-statistics-su
   ]
 })
 export class InstrumentStatisticsResultComponent implements OnInit {
-  @Input() idSecuritycurrency: number;
-  @Input() dateFrom: Date | string;
-  @Input() dateTo: Date | string;
+  readonly idSecuritycurrency = input<number>(undefined);
+  readonly dateFrom = input<Date | string>(undefined);
+  readonly dateTo = input<Date | string>(undefined);
   /**
    * Whether the heading is rendered. A caller which already labels this block, for example the accordion panel of an
    * expanded watchlist row, sets this to false to avoid showing the same title twice.
    */
-  @Input() showTitle = true;
+  readonly showTitle = input(true);
   readonly isr = signal<InstrumentStatisticsResult>(null);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -80,8 +80,12 @@ export class InstrumentStatisticsResultComponent implements OnInit {
 
   ngOnInit(): void {
     const statistics = this.statisticsCache
-      ? this.statisticsCache.getStatistics(this.idSecuritycurrency, this.dateFrom, this.dateTo)
-      : this.securityService.getSecurityStatisticsReturnResult(this.idSecuritycurrency, this.dateFrom, this.dateTo);
+      ? this.statisticsCache.getStatistics(this.idSecuritycurrency(), this.dateFrom(), this.dateTo())
+      : this.securityService.getSecurityStatisticsReturnResult(
+          this.idSecuritycurrency(),
+          this.dateFrom(),
+          this.dateTo()
+        );
     statistics
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((isr: InstrumentStatisticsResult) => this.isr.set(isr));

@@ -29,7 +29,7 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
       #form="dynamicForm"
       (submitBt)="submit($event)" />
     <br />
-    <securitycurrency-search-and-set-table [callBackSetSecurity]="this" [supplementCriteria]="supplementCriteria" />
+    <securitycurrency-search-and-set-table [callBackSetSecurity]="this" [supplementCriteria]="supplementCriteria()" />
   `,
   imports: [TranslateModule, DynamicFormComponent, SecuritycurrencySearchAndSetTableComponent]
 })
@@ -48,7 +48,7 @@ export class SecuritycurrencySearchAndSetDialogComponent
     private dynamicDialogRef: DynamicDialogRef
   ) {
     super(false, gps, multipleRequestToOneService, translateService);
-    this.supplementCriteria = this.dynamicDialogConfig.data.supplementCriteria;
+    this.supplementCriteria.set(this.dynamicDialogConfig.data.supplementCriteria);
     // The form and the result table exist once the dialog has rendered for the first time.
     afterNextRender(() => this.initialize());
   }

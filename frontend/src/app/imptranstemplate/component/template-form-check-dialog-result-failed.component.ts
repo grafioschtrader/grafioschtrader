@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnInit } from '@angular/core';
+import { Component, Injector, OnInit, input } from '@angular/core';
 
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -20,7 +20,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
     <div class="datatable">
       <p-table
         [columns]="fields"
-        [value]="failedParsedTemplateStateList"
+        [value]="failedParsedTemplateStateList()"
         selectionMode="single"
         sortField="security.name"
         stripedRows
@@ -66,7 +66,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   imports: [TranslateModule, TableModule, TooltipModule]
 })
 export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBase implements OnInit {
-  @Input() failedParsedTemplateStateList: FailedParsedTemplateState[];
+  readonly failedParsedTemplateStateList = input<FailedParsedTemplateState[]>(undefined);
 
   constructor(
     filterService: FilterService,

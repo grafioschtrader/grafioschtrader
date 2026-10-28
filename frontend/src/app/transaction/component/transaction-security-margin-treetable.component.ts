@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnDestroy, OnInit, signal, computed } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, signal, computed, input } from '@angular/core';
 import { ConfirmationService, FilterService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TransactionContextMenu } from './transaction.context.menu';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
@@ -124,22 +124,22 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class TransactionSecurityMarginTreetableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   /** Array of security account IDs to filter transactions */
-  @Input() idsSecurityaccount: number[];
+  readonly idsSecurityaccount = input<number[]>(undefined);
 
   /** ID of the specific security currency to display transactions for */
-  @Input() idSecuritycurrency: number;
+  readonly idSecuritycurrency = input<number>(undefined);
 
   /** Portfolio ID for filtering transactions by portfolio */
-  @Input() idPortfolio: number;
+  readonly idPortfolio = input<number>(undefined);
 
   /** Tenant ID for filtering transactions by tenant */
-  @Input() idTenant: number;
+  readonly idTenant = input<number>(undefined);
 
   /** Optional parameters for configuring transaction security display options */
-  @Input() transactionSecurityOptionalParam: TransactionSecurityOptionalParam[];
+  readonly transactionSecurityOptionalParam = input<TransactionSecurityOptionalParam[]>(undefined);
 
   /** Optional cutoff date (yyyy-MM-dd) to limit transactions */
-  @Input() untilDate: string;
+  readonly untilDate = input<string>(undefined);
 
   /** Property key used to store hypothetical transaction data in tree node data */
   readonly HYPOTHETICAL_TRANSACTION_PROPERTY = 'hypotheticalTransactionProperty';
@@ -216,9 +216,9 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   ngOnInit(): void {
     this.currencyColumnConfigMC = TransactionSecurityFieldDefinition.getFieldDefinition(
       this,
-      this.idTenant,
+      this.idTenant(),
       true,
-      this.transactionSecurityOptionalParam,
+      this.transactionSecurityOptionalParam(),
       this.gps
     );
     this.initialize();
@@ -272,11 +272,11 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     this.dataSubscription?.unsubscribe();
     this.dataSubscription = BusinessHelper.getSecurityTransactionSummary(
       this.securityService,
-      this.idSecuritycurrency,
-      this.idsSecurityaccount,
-      this.idPortfolio,
+      this.idSecuritycurrency(),
+      this.idsSecurityaccount(),
+      this.idPortfolio(),
       false,
-      this.untilDate
+      this.untilDate()
     )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
@@ -354,7 +354,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
         : processedActionData.data;
       if (tx?.idTransaction != null) {
         this.parentChildRegisterService.saveRowPosition(
-          this.idSecuritycurrency,
+          this.idSecuritycurrency(),
           new PageFirstRowSelectedRow(this.firstRowIndexOnPage, tx.idTransaction)
         );
       }
@@ -368,7 +368,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    */
   override afterDelete(transaction: Transaction): void {
     this.parentChildRegisterService.saveRowPosition(
-      this.idSecuritycurrency,
+      this.idSecuritycurrency(),
       new PageFirstRowSelectedRow(this.firstRowIndexOnPage, null)
     );
     super.afterDelete(transaction);
@@ -380,7 +380,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * back to the previously saved page (e.g. on delete or when no target id was stored).
    */
   private computeRestoredFirstIndex(rootNodes: TreeNode[]): number {
-    const saved = this.parentChildRegisterService.getRowPosition(this.idSecuritycurrency);
+    const saved = this.parentChildRegisterService.getRowPosition(this.idSecuritycurrency());
     const targetId = saved?.selectedRow as number | null;
     let rootIndex = -1;
     if (targetId != null) {

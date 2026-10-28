@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -41,9 +41,9 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TaxStatementExportDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() idsSecurityaccount: number[] = [];
-  @Input() availableTaxYears: number[] = [];
-  @Input() taxExportSettings: TaxStatementExportRequest;
+  readonly idsSecurityaccount = input<number[]>([]);
+  readonly availableTaxYears = input<number[]>([]);
+  readonly taxExportSettings = input<TaxStatementExportRequest>(undefined);
 
   constructor(
     public translateService: TranslateService,
@@ -71,14 +71,15 @@ export class TaxStatementExportDialogComponent extends SimpleEditBase implements
   }
 
   protected override initialize(): void {
-    this.configObject.taxYear.valueKeyHtmlOptions = this.availableTaxYears.map(
+    this.configObject.taxYear.valueKeyHtmlOptions = this.availableTaxYears().map(
       (y) => new ValueKeyHtmlSelectOptions(String(y), String(y))
     );
     this.form().setDefaultValuesAndEnableSubmit();
-    if (this.taxExportSettings) {
+    const taxExportSettings = this.taxExportSettings();
+    if (taxExportSettings) {
       this.form().transferBusinessObjectToForm({
-        ...this.taxExportSettings,
-        taxYear: String(this.taxExportSettings.taxYear)
+        ...taxExportSettings,
+        taxYear: String(taxExportSettings.taxYear)
       });
     }
     this.taxDataService
@@ -100,7 +101,7 @@ export class TaxStatementExportDialogComponent extends SimpleEditBase implements
       clientFirstName: value.clientFirstName || undefined,
       clientLastName: value.clientLastName || undefined,
       clientTin: value.clientTin || undefined,
-      idsSecurityaccount: this.idsSecurityaccount
+      idsSecurityaccount: this.idsSecurityaccount()
     };
 
     this.configObject.submit.disabled = true;

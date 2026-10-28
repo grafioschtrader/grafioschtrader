@@ -1,13 +1,13 @@
 import {
   Component,
-  Input,
   OnInit,
   afterNextRender,
   AfterRenderRef,
   inject,
   Injector,
   signal,
-  viewChild
+  viewChild,
+  input
 } from '@angular/core';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
@@ -76,8 +76,8 @@ import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialo
 })
 export class SecurityDerivedEditComponent extends SimpleEditBase implements OnInit {
   // Input from parent component
-  @Input() securityCallParam: Security;
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  readonly securityCallParam = input<Security>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
   // Access child components
   readonly dynamicForm = viewChild(DynamicFormComponent);
@@ -171,7 +171,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   }
 
   disableBaseInstrumentFields(): void {
-    if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securityCallParam)) {
+    if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securityCallParam())) {
       this.formFields()
         .filter((fieldConfig) => fieldConfig.fieldsetName === this.derivedData)
         .forEach((fieldConfig) => fieldConfig.formControl.disable());
@@ -230,8 +230,8 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   submit(value: { [name: string]: any }): void {
     const security = this.securityEditSupport.prepareForSave(
       this,
-      this.proposeChangeEntityWithEntity,
-      this.securityCallParam,
+      this.proposeChangeEntityWithEntity(),
+      this.securityCallParam(),
       this.dynamicForm(),
       value
     );
@@ -250,7 +250,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
           });
           this.closeDialog.emit(
             new ProcessedActionData(
-              this.securityCallParam ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
+              this.securityCallParam() ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
               newSecurity
             )
           );
@@ -283,12 +283,13 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     // The offer of stock exchanges is narrowed to the own kind once this instrument carries prices or transactions.
     let idxCategoryLocked = -1;
     let idxDerivedLinks = -1;
-    if (this.securityCallParam) {
+    const securityCallParam = this.securityCallParam();
+    if (securityCallParam) {
       idxCategoryLocked = observables.length;
-      observables.push(this.securityService.isStockexchangeCategoryLocked(this.securityCallParam.idSecuritycurrency));
+      observables.push(this.securityService.isStockexchangeCategoryLocked(securityCallParam.idSecuritycurrency));
       idxDerivedLinks = observables.length;
       observables.push(
-        this.securityService.getDerivedInstrumentsLinksForSecurity(this.securityCallParam.idSecuritycurrency)
+        this.securityService.getDerivedInstrumentsLinksForSecurity(securityCallParam.idSecuritycurrency)
       );
     }
 
@@ -301,24 +302,25 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
           <ValueKeyHtmlSelectOptions[]>data[1],
           <Assetclass[]>data[2]
         );
+        const securityCallParamValue = this.securityCallParam();
         this.securityEditSupport.setStockexchangeOptions(
           this.configObject,
           idxCategoryLocked >= 0 && <boolean>data[idxCategoryLocked]
-            ? this.securityCallParam.stockexchange.noMarketValue
+            ? securityCallParamValue.stockexchange.noMarketValue
             : null
         );
         this.form().setDefaultValuesAndEnableSubmit();
         AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
           this.translateService,
           this.gps,
-          this.securityCallParam,
+          securityCallParamValue,
           this.form(),
           this.configObject,
-          this.proposeChangeEntityWithEntity
+          this.proposeChangeEntityWithEntity()
         );
-        this.securityCallParam &&
+        securityCallParamValue &&
           this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[idxDerivedLinks]);
-        this.disableEnableInputForExisting(!!this.securityCallParam);
+        this.disableEnableInputForExisting(!!securityCallParamValue);
       });
   }
 
@@ -367,7 +369,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     this.configObject[this.BASE_PRODUCT_NAME].disabled = true;
     this.baseInstrument = SecurityCurrencypairDerivedLinks.getBaseInstrument(
       scdl,
-      this.securityCallParam.idLinkSecuritycurrency
+      this.securityCallParam().idLinkSecuritycurrency
     );
     this.reduceExpandChoosableAssetclass();
     this.configObject[this.BASE_PRODUCT_NAME].formControl.setValue(this.baseInstrument.name);
@@ -423,9 +425,10 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
           ufv !== SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES[0]
         ) {
           const fieldName = SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_' + ufv;
+          const securityCallParam = this.securityCallParam();
           security.securityDerivedLinks.push(
             new SecurityDerivedLink(
-              this.securityCallParam ? this.securityCallParam.idSecuritycurrency : null,
+              securityCallParam ? securityCallParam.idSecuritycurrency : null,
               ufv,
               this.additionalInstruments[fieldName].idSecuritycurrency
             )

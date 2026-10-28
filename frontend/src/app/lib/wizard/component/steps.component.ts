@@ -1,4 +1,13 @@
-import { AfterContentInit, Component, contentChildren, Input, OnChanges, output, SimpleChanges } from '@angular/core';
+import {
+  AfterContentInit,
+  Component,
+  contentChildren,
+  OnChanges,
+  output,
+  SimpleChanges,
+  model,
+  input
+} from '@angular/core';
 
 import { StepperModule } from '@openng/optimus-ui/stepper';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -7,11 +16,11 @@ import { StepComponent } from './step.component';
 @Component({
   selector: 'pe-steps',
   template: `
-    <p-stepper [value]="activeIndex + 1" [class]="styleClass">
+    <p-stepper [value]="activeIndex() + 1" [class]="styleClass()">
       <p-step-list>
         @for (step of steps(); track step; let i = $index) {
-          <p-step [value]="i + 1" [class]="step.styleClass || stepClass" (click)="onStepClick(i)">
-            {{ step.label }}
+          <p-step [value]="i + 1" [class]="step.styleClass() || stepClass()" (click)="onStepClick(i)">
+            {{ step.label() }}
           </p-step>
         }
       </p-step-list>
@@ -22,14 +31,14 @@ import { StepComponent } from './step.component';
 
     <!-- Navigation buttons -->
     <div class="flex pt-6 justify-between">
-      @if (activeIndex > 0) {
+      @if (activeIndex() > 0) {
         <p-button type="button" (click)="previous()" severity="secondary">
           <i class="pi pi-chevron-left mr-2"></i>
           Previous
         </p-button>
       }
 
-      @if (activeIndex < steps().length - 1) {
+      @if (activeIndex() < steps().length - 1) {
         <p-button type="button" (click)="next()">
           Next
           <i class="pi pi-chevron-right ml-2"></i>
@@ -40,10 +49,9 @@ import { StepComponent } from './step.component';
   imports: [StepperModule, ButtonModule]
 })
 export class StepsComponent implements AfterContentInit, OnChanges {
-  @Input() activeIndex = 0;
-  @Input() styleClass: string;
-  @Input() stepClass: string;
-  readonly activeIndexChange = output<number>();
+  readonly activeIndex = model(0);
+  readonly styleClass = input<string>(undefined);
+  readonly stepClass = input<string>(undefined);
   readonly activeLabelChange = output<string>();
 
   readonly steps = contentChildren(StepComponent);
@@ -60,36 +68,33 @@ export class StepsComponent implements AfterContentInit, OnChanges {
 
   private updateSteps() {
     this.steps().forEach((step: StepComponent, index: number) => {
-      if (!step.styleClass) {
-        step.styleClass = this.stepClass;
+      if (!step.styleClass()) {
+        step.styleClass.set(this.stepClass());
       }
 
-      step.active.set(index === this.activeIndex);
+      step.active.set(index === this.activeIndex());
 
       if (step.active()) {
-        this.activeLabelChange.emit(step.label);
+        this.activeLabelChange.emit(step.label());
       }
     });
   }
 
   onStepClick(index: number) {
-    this.activeIndex = index;
-    this.activeIndexChange.emit(this.activeIndex);
+    this.activeIndex.set(index);
     this.updateSteps();
   }
 
   previous() {
-    if (this.activeIndex > 0) {
-      this.activeIndex--;
-      this.activeIndexChange.emit(this.activeIndex);
+    if (this.activeIndex() > 0) {
+      this.activeIndex.update((value) => value - 1);
       this.updateSteps();
     }
   }
 
   next() {
-    if (this.activeIndex < this.steps().length - 1) {
-      this.activeIndex++;
-      this.activeIndexChange.emit(this.activeIndex);
+    if (this.activeIndex() < this.steps().length - 1) {
+      this.activeIndex.update((value) => value + 1);
       this.updateSteps();
     }
   }

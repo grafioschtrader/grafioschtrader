@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal, output, viewChild } from '@angular/core';
+import { Component, OnInit, signal, output, viewChild, input } from '@angular/core';
 
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
@@ -73,7 +73,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   selector: 'transaction-security-edit',
   template: `
     <p-dialog
-      [visible]="visibleSecurityTransactionDialog"
+      [visible]="visibleSecurityTransactionDialog()"
       [style]="{ width: '720px' }"
       [resizable]="false"
       (onShow)="onShow($event)"
@@ -82,7 +82,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
       <ng-template #header>
         <div>
           <h4>{{ 'INVESTMENT_TRANSACTION' | translate }}</h4>
-          @if (isOpenMarginInstrument() && !transactionCallParam.transaction) {
+          @if (isOpenMarginInstrument() && !transactionCallParam().transaction) {
             <p class="big-size">{{ 'MARGIN_BUY_SELL' | translate }}</p>
           }
         </div>
@@ -106,8 +106,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class TransactionSecurityEditComponent extends TransactionBaseOperations implements OnInit {
   // InputMask from parent view
-  @Input() visibleSecurityTransactionDialog: boolean;
-  @Input() transactionCallParam: TransactionCallParam;
+  readonly visibleSecurityTransactionDialog = input<boolean>(undefined);
+  readonly transactionCallParam = input<TransactionCallParam>(undefined);
 
   // Access the form
   readonly form = viewChild(DynamicFormComponent);
@@ -173,14 +173,14 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   ngOnInit(): void {
-    if (this.transactionCallParam.transaction) {
-      this.transactionCallParam.transactionType =
-        TransactionType[this.transactionCallParam.transaction.transactionType];
-      this.transactionCallParam.idSecuritycurrency = this.transactionCallParam.security.idSecuritycurrency;
-      this.transactionCallParam.transaction.security = this.transactionCallParam.security;
+    const transactionCallParam = this.transactionCallParam();
+    if (transactionCallParam.transaction) {
+      transactionCallParam.transactionType = TransactionType[transactionCallParam.transaction.transactionType];
+      transactionCallParam.idSecuritycurrency = transactionCallParam.security.idSecuritycurrency;
+      transactionCallParam.transaction.security = transactionCallParam.security;
       this.historyquoteCheck.hasChanged(
-        this.transactionCallParam.idSecuritycurrency,
-        this.transactionCallParam.transaction.transactionTime
+        transactionCallParam.idSecuritycurrency,
+        transactionCallParam.transaction.transactionTime
       );
     }
 
@@ -204,8 +204,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         true,
         AppSettings.FID_MAX_INT_REAL_DOUBLE,
         this.gps.getMaxFractionDigits(),
-        this.transactionCallParam.transactionType === TransactionType.DIVIDEND ||
-          this.transactionCallParam.transactionType === TransactionType.FINANCE_COST,
+        transactionCallParam.transactionType === TransactionType.DIVIDEND ||
+          transactionCallParam.transactionType === TransactionType.FINANCE_COST,
         { userDefinedValue: 'S', usedLayoutColumns: 8 }
       ),
       DynamicFieldHelper.createFieldInputNumber(
@@ -331,11 +331,11 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
           this.createSecurityaccountHtmlSelect();
         }
       });
-    this.setCurrencyPrefixOnFields(null, this.transactionCallParam.transaction?.cashaccount.currency);
+    this.setCurrencyPrefixOnFields(null, transactionCallParam.transaction?.cashaccount.currency);
   }
 
   isVisibleDialog(): boolean {
-    return this.visibleSecurityTransactionDialog;
+    return this.visibleSecurityTransactionDialog();
   }
 
   valueChangedOnCalcFields(): void {
@@ -372,10 +372,11 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         if (this.configObject.idSecuritycurrency.formControl.value != null) {
           this.selectedSecurity = this.getSecurityById(+this.configObject.idSecuritycurrency.formControl.value);
           if (this.selectedSecurity) {
-            this.transactionCallParam.idSecuritycurrency = this.selectedSecurity.idSecuritycurrency;
+            const transactionCallParam = this.transactionCallParam();
+            transactionCallParam.idSecuritycurrency = this.selectedSecurity.idSecuritycurrency;
             if (
-              !this.transactionCallParam.transaction &&
-              this.transactionCallParam.transactionType !== TransactionType.DIVIDEND
+              !transactionCallParam.transaction &&
+              transactionCallParam.transactionType !== TransactionType.DIVIDEND
             ) {
               this.getAndSetQuotationSecurity(this.selectedSecurity);
             }
@@ -420,13 +421,14 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
           this.updateTransactionTimeValidator(effectiveClosedUntil);
 
           // Check if existing transaction is within closed period
-          if (this.transactionCallParam.transaction) {
-            this.checkTransactionLocked(effectiveClosedUntil, this.transactionCallParam.transaction.transactionTime);
+          const transactionCallParam = this.transactionCallParam();
+          if (transactionCallParam.transaction) {
+            this.checkTransactionLocked(effectiveClosedUntil, transactionCallParam.transaction.transactionTime);
           }
 
           this.selectedSecurity = this.getSecurityById(this.configObject.idSecuritycurrency.formControl.value);
 
-          if (this.selectedSecurity && !this.transactionCallParam.transaction) {
+          if (this.selectedSecurity && !transactionCallParam.transaction) {
             // select default cashaccount depending on selected currency of the security
             const cashaccounts: Cashaccount[] = portfolio.cashaccountList.filter(
               (cashaccount) => cashaccount.currency === this.selectedSecurity.currency
@@ -469,16 +471,17 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   prepareSecurityOptions(): void {
-    if (this.transactionCallParam.security) {
+    const transactionCallParam = this.transactionCallParam();
+    if (transactionCallParam.security) {
       const securitiesHtmlSelect: ValueKeyHtmlSelectOptions[] = [];
       securitiesHtmlSelect.push(
         new ValueKeyHtmlSelectOptions(
-          this.transactionCallParam.security.idSecuritycurrency,
-          this.transactionCallParam.security.name + ' / ' + this.transactionCallParam.security.currency
+          transactionCallParam.security.idSecuritycurrency,
+          transactionCallParam.security.name + ' / ' + transactionCallParam.security.currency
         )
       );
-      this.transactionCallParam.idSecuritycurrency = this.transactionCallParam.security.idSecuritycurrency;
-      this.securities.push(this.transactionCallParam.security);
+      transactionCallParam.idSecuritycurrency = transactionCallParam.security.idSecuritycurrency;
+      this.securities.push(transactionCallParam.security);
       this.configObject.idSecuritycurrency.valueKeyHtmlOptions = securitiesHtmlSelect;
       this.selectSecurity();
     } else {
@@ -487,7 +490,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   selectSecurity(): void {
-    this.setValueToControl(this.configObject.idSecuritycurrency, this.transactionCallParam.idSecuritycurrency);
+    this.setValueToControl(this.configObject.idSecuritycurrency, this.transactionCallParam().idSecuritycurrency);
     this.selectedSecurity = this.getSecurityById(this.configObject.idSecuritycurrency.formControl.value);
     this.loadStrategyAssignments();
     this.setMarginFlags();
@@ -564,7 +567,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private createQuotationField(): FieldConfig {
-    if (this.transactionCallParam.transactionType === TransactionType.FINANCE_COST) {
+    if (this.transactionCallParam().transactionType === TransactionType.FINANCE_COST) {
       return DynamicFieldHelper.createFieldInputNumber('units', 'NUMBER_OF_DAYS', true, 4, 0, false);
     } else {
       return DynamicFieldHelper.createFieldInputNumber('units', 'QUANTITY', true, 9, 3, false);
@@ -634,7 +637,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     } else if (this.isCloseMarginInstrument) {
       if (this.securityOpenPositionPerSecurityaccount) {
         quotation -=
-          this.transactionCallParam.closeMarginPosition.quotationOpenPosition /
+          this.transactionCallParam().closeMarginPosition.quotationOpenPosition /
           this.securityOpenPositionPerSecurityaccount.securityPositionSummary.splitFactorFromBaseTransaction;
       }
     }
@@ -648,7 +651,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     if (this.isMarginInstrument) {
       valuePerPoint = data.assetInvestmentValue2
         ? data.assetInvestmentValue2
-        : this.transactionCallParam.transaction.assetInvestmentValue2;
+        : this.transactionCallParam().transaction.assetInvestmentValue2;
     }
     const rawTotal = this.transactionEditType.calcPosTotal(
       quotation,
@@ -700,7 +703,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         // Calc the difference
         if (this.securityOpenPositionPerSecurityaccount) {
           quotation -=
-            this.transactionCallParam.closeMarginPosition.quotationOpenPosition /
+            this.transactionCallParam().closeMarginPosition.quotationOpenPosition /
             this.securityOpenPositionPerSecurityaccount.securityPositionSummary.splitFactorFromBaseTransaction;
         }
       }
@@ -717,7 +720,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     if (this.isMarginInstrument) {
       valuePerPoint = data.assetInvestmentValue2
         ? data.assetInvestmentValue2
-        : this.transactionCallParam.transaction.assetInvestmentValue2;
+        : this.transactionCallParam().transaction.assetInvestmentValue2;
     }
 
     return BusinessHelper.divideMultiplyExchangeRate(
@@ -793,11 +796,12 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setVisibilityOnFields(): void {
+    const transactionCallParam = this.transactionCallParam();
     AppHelper.invisibleAndHide(
       this.configObject.assetInvestmentValue1,
       !(
-        (this.transactionCallParam.transactionType === TransactionType.REDUCE ||
-          this.transactionCallParam.transactionType === TransactionType.ACCUMULATE) &&
+        (transactionCallParam.transactionType === TransactionType.REDUCE ||
+          transactionCallParam.transactionType === TransactionType.ACCUMULATE) &&
         (this.isBondOrConvertibleBondAndDirectInvestment() || this.isOpenMarginInstrument())
       )
     );
@@ -812,7 +816,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     }
     AppHelper.invisibleAndHide(
       this.configObject.exDate,
-      this.transactionCallParam.transactionType !== TransactionType.DIVIDEND ||
+      transactionCallParam.transactionType !== TransactionType.DIVIDEND ||
         this.isBondOrConvertibleBondAndDirectInvestment()
     );
     AppHelper.invisibleAndHide(this.configObject.securityRisk, !this.isMarginInstrument);
@@ -822,11 +826,11 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     AppHelper.invisibleAndHide(this.configObject.assetInvestmentValue2, !this.isMarginInstrument);
     AppHelper.invisibleAndHide(
       this.configObject.taxCost,
-      this.transactionCallParam.transactionType === TransactionType.FINANCE_COST
+      transactionCallParam.transactionType === TransactionType.FINANCE_COST
     );
     AppHelper.invisibleAndHide(
       this.configObject.transactionCost,
-      this.transactionCallParam.transactionType === TransactionType.FINANCE_COST
+      transactionCallParam.transactionType === TransactionType.FINANCE_COST
     );
 
     if (this.isMarginInstrument) {
@@ -849,7 +853,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     this.subObj[propertySub] = control.valueChanges.pipe(this.untilDialogClosed()).subscribe((value) => {
       if (!this.configObject.exDate.formControl.value || hasPriority) {
         if (value != null && !moment(value).isBefore(DynamicFieldHelper.minDateCalendar)) {
-          if (this.transactionCallParam.security == null) {
+          if (this.transactionCallParam().security == null) {
             this.prepareAsyncActiveSecurityOptions();
           } else {
             this.portfolios && this.readSecurityaccountAndHoldings();
@@ -864,16 +868,18 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private setMarginFlags(): void {
     this.isMarginInstrument =
       BusinessHelper.isMarginProduct(this.selectedSecurity) &&
-      this.transactionCallParam.transactionType !== TransactionType.FINANCE_COST;
+      this.transactionCallParam().transactionType !== TransactionType.FINANCE_COST;
+    const transactionCallParam = this.transactionCallParam();
     this.isCloseMarginInstrument =
       this.isMarginInstrument &&
-      ((!!this.transactionCallParam.transaction && !!this.transactionCallParam.transaction.connectedIdTransaction) ||
-        !!this.transactionCallParam.closeMarginPosition);
+      ((!!transactionCallParam.transaction && !!transactionCallParam.transaction.connectedIdTransaction) ||
+        !!transactionCallParam.closeMarginPosition);
+    const transactionCallParamValue = this.transactionCallParam();
     this.isOpenMarginInstrument.set(
       this.isMarginInstrument &&
         !this.isCloseMarginInstrument &&
-        (this.transactionCallParam.transactionType === TransactionType.ACCUMULATE ||
-          this.transactionCallParam.transactionType === TransactionType.REDUCE)
+        (transactionCallParamValue.transactionType === TransactionType.ACCUMULATE ||
+          transactionCallParamValue.transactionType === TransactionType.REDUCE)
     );
   }
 
@@ -897,15 +903,16 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setHoldingsForTime(requiredTransactionTime: number): void {
-    const transaction = this.transactionCallParam.transaction;
-    if (this.holdingCheck.hasChanged(this.transactionCallParam.idSecuritycurrency, requiredTransactionTime)) {
+    const transaction = this.transactionCallParam().transaction;
+    const transactionCallParam = this.transactionCallParam();
+    if (this.holdingCheck.hasChanged(transactionCallParam.idSecuritycurrency, requiredTransactionTime)) {
       const holdingsSecurityaccountObserable: Observable<SecurityOpenPositionPerSecurityaccount> =
         this.securityService.getOpenPositionByIdSecuritycurrencyAndIdTenant(
-          this.transactionCallParam.idSecuritycurrency,
+          transactionCallParam.idSecuritycurrency,
           moment(requiredTransactionTime).format('YYYYMMDDHHmm'),
           transaction !== null,
           transaction ? transaction.idTransaction : null,
-          this.isCloseMarginInstrument ? this.transactionCallParam.closeMarginPosition.idOpenMarginTransaction : null
+          this.isCloseMarginInstrument ? transactionCallParam.closeMarginPosition.idOpenMarginTransaction : null
         );
       this.replaceDialogRequest('holdings', () =>
         holdingsSecurityaccountObserable
@@ -934,9 +941,10 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       this.configObject.idSecurityaccount,
       this.portfolios.flatMap((p) => p.securityaccountList || [])
     );
+    const transactionCallParam = this.transactionCallParam();
     const financeCostAccount =
-      this.transactionCallParam.transactionType === TransactionType.FINANCE_COST
-        ? this.transactionCallParam.transaction?.idSecurityaccount
+      transactionCallParam.transactionType === TransactionType.FINANCE_COST
+        ? transactionCallParam.transaction?.idSecurityaccount
         : null;
     if (financeCostAccount != null) {
       this.setValueToControl(this.configObject.idSecurityaccount, financeCostAccount);
@@ -953,8 +961,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       !(this.closedMarginPosition?.hasPosition === true) && this.configObject.idSecurityaccount.formControl.enable();
       this.selectAccumulateSecurityaccountWhenAvailable(securityaccountsHtmlSelect);
     }
-    this.transactionCallParam.transaction &&
-      this.setCurrencyOnSecurityAndCashaccount(this.transactionCallParam.transaction.security);
+    const transactionCallParamValue = this.transactionCallParam();
+    transactionCallParamValue.transaction &&
+      this.setCurrencyOnSecurityAndCashaccount(transactionCallParamValue.transaction.security);
   }
 
   /**
@@ -978,7 +987,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private getExDate(): number {
-    return this.transactionCallParam.transactionType === TransactionType.DIVIDEND &&
+    return this.transactionCallParam().transactionType === TransactionType.DIVIDEND &&
       this.configObject.exDate.formControl.value
       ? +this.configObject.exDate.formControl.value
       : null;
@@ -1000,14 +1009,14 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   private loadSecuritiesOnce(timeValue: number): void {
     this.securityService
-      .getTradableSecuritiesByTenantAndIdWatchlist(this.transactionCallParam.idWatchList)
+      .getTradableSecuritiesByTenantAndIdWatchlist(this.transactionCallParam().idWatchList)
       .pipe(this.untilDialogClosed())
       .subscribe((securities: Security[]) => {
         this.securities = securities;
 
         const securitiesF = this.securities.filter(
           (security) =>
-            security.idSecuritycurrency === this.transactionCallParam.idSecuritycurrency ||
+            security.idSecuritycurrency === this.transactionCallParam().idSecuritycurrency ||
             !this.transactionEditType.securityOnlyParentSelected()
         );
         BusinessSelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(
@@ -1025,8 +1034,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   private getTransactionByForm(): Transaction {
     const transaction = new Transaction();
-    if (this.transactionCallParam.transaction) {
-      Object.assign(transaction, this.transactionCallParam.transaction);
+    const transactionCallParam = this.transactionCallParam();
+    if (transactionCallParam.transaction) {
+      Object.assign(transaction, transactionCallParam.transaction);
     }
 
     this.form().cleanMaskAndTransferValuesToBusinessObject(transaction);
@@ -1037,7 +1047,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       ).cashaccount;
     }
     transaction.security = this.getSecurityById(+transaction.idSecuritycurrency);
-    transaction.transactionType = BusinessHelper.getTransactionTypeAsName(this.transactionCallParam.transactionType);
+    transaction.transactionType = BusinessHelper.getTransactionTypeAsName(transactionCallParam.transactionType);
     return transaction;
   }
 
@@ -1056,21 +1066,22 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
     this.form().setDefaultValuesAndEnableSubmit();
 
-    if (this.transactionCallParam.transactionType === TransactionType.FINANCE_COST) {
-      this.transactionEditType = new TransactionSecurityEditFinanceCost(this.transactionCallParam);
-    } else if (this.transactionCallParam.transactionType === TransactionType.ACCUMULATE) {
-      this.transactionEditType = new TransactionSecurityEditAccumulate(this.transactionCallParam);
+    const transactionCallParam = this.transactionCallParam();
+    if (transactionCallParam.transactionType === TransactionType.FINANCE_COST) {
+      this.transactionEditType = new TransactionSecurityEditFinanceCost(transactionCallParam);
+    } else if (transactionCallParam.transactionType === TransactionType.ACCUMULATE) {
+      this.transactionEditType = new TransactionSecurityEditAccumulate(transactionCallParam);
       this.isAccumaulteOrReduce = true;
     } else {
-      this.isAccumaulteOrReduce = this.transactionCallParam.transactionType === TransactionType.REDUCE;
-      this.transactionEditType = new TransactionSecurityEditDividendReduce(this.transactionCallParam);
+      this.isAccumaulteOrReduce = transactionCallParam.transactionType === TransactionType.REDUCE;
+      this.transactionEditType = new TransactionSecurityEditDividendReduce(transactionCallParam);
     }
 
     this.maxTransactionDate =
-      this.transactionCallParam.security &&
-      new Date(this.transactionCallParam.security.activeToDate).getTime() < new Date().getTime()
-        ? new Date(this.transactionCallParam.security.activeToDate)
-        : this.transactionCallParam.defaultTransactionTime;
+      transactionCallParam.security &&
+      new Date(transactionCallParam.security.activeToDate).getTime() < new Date().getTime()
+        ? new Date(transactionCallParam.security.activeToDate)
+        : transactionCallParam.defaultTransactionTime;
     this.maxTransactionDate = this.maxTransactionDate || new Date();
 
     this.setValueToControl(this.configObject.transactionTime, this.maxTransactionDate);
@@ -1093,9 +1104,10 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private changeExistingOpenMarginPos(): void {
-    if (this.transactionCallParam.transaction && this.isOpenMarginInstrument()) {
+    const transactionCallParam = this.transactionCallParam();
+    if (transactionCallParam.transaction && this.isOpenMarginInstrument()) {
       this.transactionService
-        .getConnectedMarginPositionByIdTransaction(this.transactionCallParam.transaction.idTransaction)
+        .getConnectedMarginPositionByIdTransaction(transactionCallParam.transaction.idTransaction)
         .pipe(this.untilDialogClosed())
         .subscribe((cmp) => {
           this.closedMarginPosition = cmp;
@@ -1105,17 +1117,14 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setTransactionValue(): void {
-    this.setValueToControl(
-      this.configObject.transactionType,
-      TransactionType[this.transactionCallParam.transactionType]
-    );
+    const transactionCallParam = this.transactionCallParam();
+    this.setValueToControl(this.configObject.transactionType, TransactionType[transactionCallParam.transactionType]);
     this.configObject.transactionType.formControl.disable();
     AppHelper.invisibleAndHide(
       this.configObject.taxableInterest,
-      this.transactionCallParam.transactionType !== TransactionType.DIVIDEND
+      transactionCallParam.transactionType !== TransactionType.DIVIDEND
     );
-    this.transactionCallParam.transaction &&
-      this.form().transferBusinessObjectToForm(this.transactionCallParam.transaction);
+    transactionCallParam.transaction && this.form().transferBusinessObjectToForm(transactionCallParam.transaction);
   }
 
   private loadStrategyAssignments(): void {
@@ -1124,10 +1133,11 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     const security = this.selectedSecurity?.idSecuritycurrency;
     AppHelper.invisibleAndHide(this.configObject.idAlgoStrategy, !this.isAccumaulteOrReduce);
     if (!security || !this.isAccumaulteOrReduce) return;
-    if (this.transactionCallParam.closeMarginPosition) {
+    const transactionCallParam = this.transactionCallParam();
+    if (transactionCallParam.closeMarginPosition) {
       this.configObject.idAlgoStrategy.formControl.disable();
       this.subObj['meanReversionOpening'] = this.transactionService
-        .getTransactionByIdTransaction(this.transactionCallParam.closeMarginPosition.idOpenMarginTransaction)
+        .getTransactionByIdTransaction(transactionCallParam.closeMarginPosition.idOpenMarginTransaction)
         .pipe(this.untilDialogClosed())
         .subscribe((opening) => this.configObject.idAlgoStrategy.formControl.setValue(opening.idAlgoStrategy));
     }
@@ -1155,11 +1165,12 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       this.cancelDialogRequest('quotation');
       return;
     }
+    const transactionCallParam = this.transactionCallParam();
     if (
-      this.transactionCallParam.transactionType === TransactionType.ACCUMULATE ||
-      this.transactionCallParam.transactionType === TransactionType.REDUCE
+      transactionCallParam.transactionType === TransactionType.ACCUMULATE ||
+      transactionCallParam.transactionType === TransactionType.REDUCE
     ) {
-      if (!this.transactionCallParam.transaction) {
+      if (!transactionCallParam.transaction) {
         const transactionTime: Date = this.configObject.transactionTime.formControl.value;
         if (
           moment(transactionTime).isAfter(moment(security.sTimestamp)) ||
@@ -1209,8 +1220,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
    * There are more than one Securityaccount for a portfolio, that one with open position will be selected.
    */
   private selectAccumulateSecurityaccountWhenAvailable(securityaccountsHtmlSelect: ValueKeyHtmlSelectOptions[]) {
-    if (this.transactionCallParam.portfolio) {
-      const securityaccount = this.transactionCallParam.portfolio.securityaccountList.filter((sa) =>
+    const transactionCallParam = this.transactionCallParam();
+    if (transactionCallParam.portfolio) {
+      const securityaccount = transactionCallParam.portfolio.securityaccountList.filter((sa) =>
         this.getUnitsForSecurityAccount(sa)
       )[0];
       securityaccount &&
@@ -1320,7 +1332,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private hasChangedOnExistingTransaction(): boolean {
-    const t = this.transactionCallParam.transaction;
+    const t = this.transactionCallParam().transaction;
     return (
       t === null ||
       (t !== null &&
@@ -1344,7 +1356,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
           securityaccount,
           securityaccountOpenPositionUnits,
           this.isOpenMarginInstrument(),
-          this.transactionCallParam?.closeMarginPosition?.idSecurityaccount
+          this.transactionCallParam()?.closeMarginPosition?.idSecurityaccount
         )
       ) {
         valueKeyHtmlSelect.push(
@@ -1364,13 +1376,14 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private getUnitsForSecurityAccountAsString(securityaccount: Securityaccount): string {
     const units = this.getUnitsForSecurityAccount(securityaccount);
 
+    const transactionCallParam = this.transactionCallParam();
     if (
       this.isCloseMarginInstrument &&
-      securityaccount.idSecuritycashAccount === this.transactionCallParam?.transaction.idSecurityaccount
+      securityaccount.idSecuritycashAccount === transactionCallParam?.transaction.idSecurityaccount
     ) {
       let existingUnits = Math.abs(units);
-      if (this.transactionCallParam?.transaction.idTransaction) {
-        existingUnits = Math.min(existingUnits, this.transactionCallParam?.transaction.units);
+      if (transactionCallParam?.transaction.idTransaction) {
+        existingUnits = Math.min(existingUnits, transactionCallParam?.transaction.units);
       }
       this.configObject.units.formControl.setValue(existingUnits);
     }

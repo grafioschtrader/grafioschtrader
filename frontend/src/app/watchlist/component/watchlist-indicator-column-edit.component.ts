@@ -1,5 +1,5 @@
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -45,7 +45,7 @@ export class WatchlistIndicatorColumnEditComponent
   extends SimpleEntityEditBase<WatchlistIndicatorColumn>
   implements OnInit
 {
-  @Input() callParam: any;
+  readonly callParam = input<any>(undefined);
   private benchmark: number;
   constructor(
     translate: TranslateService,
@@ -61,7 +61,7 @@ export class WatchlistIndicatorColumnEditComponent
     this.config = <FieldConfig[]>(
       DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
         this.translateService,
-        this.callParam.optParam.formDefinition,
+        this.callParam().optParam.formDefinition,
         '',
         true
       )
@@ -85,9 +85,9 @@ export class WatchlistIndicatorColumnEditComponent
   protected override initialize(): void {
     this.configObject.idWatchlist.valueKeyHtmlOptions = [
       { key: null, value: this.translateService.instant('WIC_ALL_WATCHLISTS') },
-      ...this.callParam.optParam.watchlists.map((w) => ({ key: w.idWatchlist, value: w.name }))
+      ...this.callParam().optParam.watchlists.map((w) => ({ key: w.idWatchlist, value: w.name }))
     ];
-    this.configObject.markColors.valueKeyHtmlOptions = this.callParam.optParam.colors.map((c) => ({
+    this.configObject.markColors.valueKeyHtmlOptions = this.callParam().optParam.colors.map((c) => ({
       key: c.key,
       value: this.translateService.instant(c.value)
     }));
@@ -103,13 +103,13 @@ export class WatchlistIndicatorColumnEditComponent
       .subscribe((result) => {
         if (result) this.showNumeric(result.resultType === 'NUMBER');
       });
-    const row = this.callParam.thisObject ?? new WatchlistIndicatorColumn();
+    const row = this.callParam().thisObject ?? new WatchlistIndicatorColumn();
     this.benchmark = row.idBenchmark;
     this.form().setDefaultValuesAndEnableSubmit();
     this.form().transferBusinessObjectToForm(row);
     if (this.benchmark)
       this.configObject.benchmarkName.formControl.setValue(
-        this.callParam.optParam.benchmarks[this.benchmark] ?? this.translateService.instant('WIC_BENCHMARK_MISSING')
+        this.callParam().optParam.benchmarks[this.benchmark] ?? this.translateService.instant('WIC_BENCHMARK_MISSING')
       );
     this.showNumeric(row.resultType !== 'BOOLEAN');
   }
@@ -143,7 +143,7 @@ export class WatchlistIndicatorColumnEditComponent
     });
   }
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): WatchlistIndicatorColumn {
-    const row = this.copyFormToPrivateBusinessObject(new WatchlistIndicatorColumn(), this.callParam.thisObject);
+    const row = this.copyFormToPrivateBusinessObject(new WatchlistIndicatorColumn(), this.callParam().thisObject);
     row.idBenchmark = this.benchmark;
     if (this.configObject.markColors.invisible) {
       row.lowerMark = null;

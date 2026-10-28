@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, OnChanges, input } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -14,7 +14,7 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
   selector: 'algo-alert-diagnostics-table',
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
-    [data]="rows"
+    [data]="rows()"
     [fields]="fields"
     [fieldsRevision]="fieldsRevision()"
     dataKey="rowKey"
@@ -28,8 +28,8 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
     [hasFilter]="hasFilter" />`
 })
 export class AlgoAlertDiagnosticsTableComponent extends TableConfigBase implements OnChanges {
-  @Input() rows: any[] = [];
-  @Input() trading = false;
+  readonly rows = input<any[]>([]);
+  readonly trading = input(false);
   private initialized = false;
   constructor(
     filter: FilterService,
@@ -42,7 +42,7 @@ export class AlgoAlertDiagnosticsTableComponent extends TableConfigBase implemen
   }
   ngOnChanges(): void {
     if (!this.initialized) {
-      if (this.trading) {
+      if (this.trading()) {
         this.addColumnFeqH(DataType.String, 'contextName', true, false, { filterType: FilterType.withOptions });
         this.addColumn(DataType.String, 'strategyName', 'ALGO_STRATEGY_NAME', true, false, {
           filterType: FilterType.withOptions
@@ -79,13 +79,14 @@ export class AlgoAlertDiagnosticsTableComponent extends TableConfigBase implemen
       this.prepareTableAndTranslate();
       this.initialized = true;
     }
-    this.rows.forEach(
+    this.rows().forEach(
       (row) =>
-        (row.rowKey = this.trading
+        (row.rowKey = this.trading()
           ? `${row.idAlgoStrategy}:${row.idSecuritycurrency}`
           : `${row.strategyId}:${row.securityId}`)
     );
-    this.createTranslatedValueStoreAndFilterField(this.rows);
-    this.prepareFilter(this.rows);
+    const rows = this.rows();
+    this.createTranslatedValueStoreAndFilterField(rows);
+    this.prepareFilter(rows);
   }
 }

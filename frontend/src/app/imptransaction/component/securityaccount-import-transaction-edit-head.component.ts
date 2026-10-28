@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
@@ -41,7 +41,7 @@ export class SecurityaccountImportTransactionEditHeadComponent
 {
   private readonly injector = inject(Injector);
 
-  @Input() callParam: CallParam;
+  readonly callParam = input<CallParam>(undefined);
 
   constructor(
     translateService: TranslateService,
@@ -76,18 +76,20 @@ export class SecurityaccountImportTransactionEditHeadComponent
 
   protected override initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
-    if (this.callParam.thisObject) {
-      this.form().transferBusinessObjectToForm(this.callParam.thisObject);
+    const callParam = this.callParam();
+    if (callParam.thisObject) {
+      this.form().transferBusinessObjectToForm(callParam.thisObject);
     }
     afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionHead {
     const importTransactionHead = new ImportTransactionHead();
-    if (this.callParam.thisObject) {
-      Object.assign(importTransactionHead, this.callParam.thisObject);
+    const callParam = this.callParam();
+    if (callParam.thisObject) {
+      Object.assign(importTransactionHead, callParam.thisObject);
     } else {
-      importTransactionHead.securityaccount = <Securityaccount>this.callParam.parentObject;
+      importTransactionHead.securityaccount = <Securityaccount>callParam.parentObject;
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(importTransactionHead);
     return importTransactionHead;

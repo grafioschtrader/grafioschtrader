@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -44,7 +44,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
 })
 export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditBase implements OnInit {
   /** The unique identifier of the watchlist to add problem instruments to */
-  @Input() idWatchlist: number;
+  readonly idWatchlist = input<number>(undefined);
 
   /**
    * Creates a new instance of the watchlist add/edit price problem instrument dialog component.
@@ -110,7 +110,7 @@ export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditB
     this.form().cleanMaskAndTransferValuesToBusinessObject(ihwp);
 
     this.watchlistService
-      .addInstrumentsWithPriceDataProblems(this.idWatchlist, ihwp)
+      .addInstrumentsWithPriceDataProblems(this.idWatchlist(), ihwp)
       .pipe(this.untilDialogClosed())
       .subscribe({
         next: (watchlist) => this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)),

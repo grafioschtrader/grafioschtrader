@@ -30,11 +30,10 @@ nennt das Ergebnis eines Probelaufs mit `--dry-run`.
 
 | Bereich | Heute | Angular-22-Ziel | Schematic |
 | --- | --- | --- | --- |
-| Eingaben | 447 × `@Input()` in 157 Dateien (210 davon in `lib`), 40 × `input()` | `input()`, `input.required()`, `model()` | `signal-input-migration`: 392 von 438 |
 | Dependency Injection | 534 Konstruktoren, 164 × `inject()` | `inject()` | `inject-migration`: 379 Dateien |
 | Services | 114 × `@Injectable`, davon 15 `providedIn: 'root'`; rund 95 Services einzeln in `app.config.ts` registriert | `@Service()` | `service-migration` |
-| Änderungsreaktion | 43 × `ngOnChanges` | `computed()`, `effect()` | – |
-| Zustand in RxJS | 6 × `BehaviorSubject` als Zustandshalter in 5 Dateien | `signal()` | – |
+| Änderungsreaktion | 42 × `ngOnChanges` | `computed()`, `effect()` | – |
+| Zustand in RxJS | 5 × `BehaviorSubject` als Zustandshalter in 4 Dateien | `signal()` | – |
 | Signal-basiertes Lesen | 2 × `httpResource`, 0 × `rxResource`, 0 × `toSignal` | `httpResource`, `rxResource` | – |
 | Abhängiger Zustand | 0 × `linkedSignal` | `linkedSignal()` | – |
 | Routenparameter | 23 Dateien lesen `ActivatedRoute.params` / `paramMap` per Subscription | `withComponentInputBinding()` + `input()` | – |
@@ -75,7 +74,6 @@ Jede Stufe erweitert den Test um ihre Muster, sobald der Bestand bereinigt ist:
 
 | Stufe | Verbotenes Muster |
 | --- | --- |
-| §4.2 | `@Input(` |
 | §4.3 | Konstruktor mit Parametern in einer Klasse mit `@Component`, `@Directive`, `@Pipe` oder `@Service`; `@Injectable()` außerhalb der Ausnahmeliste von §4.3 |
 | §4.4 | `new BehaviorSubject`; `activatedRoute.params` und `activatedRoute.paramMap` |
 
@@ -87,8 +85,7 @@ Absicherung gegen abgelöste APIs.
 ### 3.3 Dokumentation
 
 Jede Stufe aktualisiert `frontend/CLAUDE.md` im selben Commit: Codebeispiele (Dialog-Vorlagen, `SimpleEditBase`,
-Tabellenkomponenten) zeigen die neue API. Nach §4.2 verweist der Abschnitt „Change detection" statt auf die
-ausstehende Schematic-Umstellung auf den Ratchet-Test aus §3.2. Nach §4.3 entfällt dort und in
+Tabellenkomponenten) zeigen die neue API. Nach §4.3 entfällt dort und in
 `src/grafiosch-host/README.md` der Hinweis, dass die bestehenden Bibliotheks-Services in jedem Host registriert
 werden müssen.
 
@@ -100,23 +97,7 @@ Entscheidung.
 
 ### 4.2 Signal-Schnittstellen der Komponenten
 
-`ng g @angular/core:signal-input-migration` stellt 392 von 438 Eingaben um. Die Eingabeumstellung bildet einen
-eigenen Commit.
-
-Für die verbleibenden 46 Eingaben listet ein erneuter Lauf mit `--insert-todos` die Gründe. Sie werden
-nach diesen Regeln von Hand umgestellt:
-
-| Grund | Umstellung |
-| --- | --- |
-| Die Komponente schreibt ihre Eingabe selbst | Eltern binden zweiseitig → `model()`; sonst `input()` plus internes `linkedSignal(() => this.x())` |
-| Eingabe mit Setter-Logik | `input()` mit `transform` für reine Umwandlung, sonst `computed()` / `effect()` |
-| Ein Elternteil setzt die Eingabe über eine Komponentenreferenz | Bindung im Template oder `ComponentRef.setInput()`, wie es `DynamicFieldDirective` bereits tut |
-| Eingabe einer abstrakten Basisklasse, von Unterklassen überschrieben | Die Basisklasse deklariert das Signal, Unterklassen lesen es; keine Neudeklaration |
-
-Die Template-Prüfung `interpolatedSignalNotInvoked: "error"` in `tsconfig.json` findet jede Lesestelle, an der nach
-der Migration die Klammern fehlen.
-
-Danach werden die 43 `ngOnChanges`-Implementierungen durchgesehen. Eine Implementierung, die nur abgeleiteten Zustand
+Die 42 `ngOnChanges`-Implementierungen werden durchgesehen. Eine Implementierung, die nur abgeleiteten Zustand
 berechnet, wird zu `computed()`. Eine Implementierung, die Tabellenzeilen vorbereitet, folgt dem
 `effect`/`untracked`-Muster aus `frontend/CLAUDE.md` („Dropdown Selection Filters"); das Flag `fieldsInitialized`
 entfällt dabei. Ein `ngOnChanges`, das mehrere Eingaben koordiniert und Requests auslöst, bleibt bis §4.4 bestehen.
@@ -210,7 +191,6 @@ Muster geprüft.
 **Zustand aus `BehaviorSubject` in Signale.** `correlation-chart.service.ts`, `tenant.dividends.chart.service.ts`,
 `tenant.holdings.chart.service.ts` und `tab.menu.service.ts` halten Zustand in `BehaviorSubject`. Sie werden zu
 `signal()`; Verbraucher lesen das Signal. Nur wo eine RxJS-Kette nachfolgt, bleibt ein `toObservable()`.
-`ngxerrors.directive.ts` (`control$`) wird mit der Eingabe der Direktive in §4.2 zu einem Signal.
 
 **Vollständigkeitsprüfung bei `@switch`.** Ein `@switch` über einen Union- oder Enum-Typ ohne fachlichen
 Standardfall erhält `@default never;`. Die Prüfung greift nur auf Variablen, nicht auf Signal-Aufrufe; ein Signal wird
@@ -303,7 +283,6 @@ nach `frontend/CLAUDE.md`. Bis zu dieser Entscheidung gilt die bestehende Regel.
 
 | Thema | Entscheidung | Begründung |
 | --- | --- | --- |
-| Umfang der Signal-API-Umstellung | Vollständige Umstellung per Schematic statt „nur bei Berührung" | Die Schematics erfassen 90 % (Eingaben) bis 100 % (Ausgaben) automatisch; gemischter Bestand würde sonst über Jahre bleiben |
 | Absicherung | Ratchet-Tests in Vitest statt ESLint | Bewährtes Muster im Projekt, läuft mit `npm test`, keine zusätzliche Werkzeugkette |
 | Services | `@Service()` für Anwendung und Bibliothek | Entfernt rund 95 Provider-Einträge und die NG0201-Falle; Services wandern in ihre Lazy-Chunks |
 | Typisierte Reactive Forms (`FormGroup<T>`) | Keine Umstellung | Die Felder von `dynamic-form` sind erst zur Laufzeit bekannt; ein generischer Typ bringt dort keinen Gewinn. Typisierung kommt, falls überhaupt, mit Signal Forms |

@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnChanges, SimpleChanges, output } from '@angular/core';
+import { Component, Injector, OnChanges, SimpleChanges, output, input, linkedSignal, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -23,12 +23,12 @@ import { Helper } from '../../lib/helper/helper';
   imports: [ConfigurableTableComponent, TranslateModule, FormsModule, CheckboxModule, TooltipModule],
   template: `
     <configurable-table
-      [data]="candidates"
+      [data]="candidates()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       dataKey="providerInstrumentId"
       [selectionMode]="'single'"
-      [selection]="selectedCandidate"
+      [selection]="selectedCandidate()"
       (selectionChange)="onSelectionChange($event)"
       [customSortFn]="customSorter"
       [multiSortMeta]="multiSortMeta"
@@ -43,9 +43,9 @@ import { Helper } from '../../lib/helper/helper';
         @if (field.field === takeOverNameField) {
           <span (click)="$event.stopPropagation()">
             <p-checkbox
-              [ngModel]="row === nameCandidate"
+              [ngModel]="row === nameCandidate()"
               [binary]="true"
-              [readonly]="row === nameCandidate"
+              [readonly]="row === nameCandidate()"
               (onChange)="onNameCandidateChange(row)" />
           </span>
         } @else if (field.templateName === 'check') {
@@ -109,22 +109,22 @@ import { Helper } from '../../lib/helper/helper';
 })
 export class SecurityLookupBaseDataTableComponent extends TableConfigBase implements OnChanges {
   /** Listings found by the lookup */
-  @Input() candidates: SecurityLookupCandidate[] = [];
+  readonly candidates = input<SecurityLookupCandidate[]>([]);
 
   /** Emits the chosen listing, or null when the selection is removed */
   readonly candidateSelected = output<SecurityLookupCandidate>();
 
   /** The chosen listing; the dialog preselects it when only one exists */
-  @Input() selectedCandidate: SecurityLookupCandidate;
+  readonly selectedCandidateInput = input<SecurityLookupCandidate>(undefined, { alias: 'selectedCandidate' });
+  readonly selectedCandidate = linkedSignal(() => this.selectedCandidateInput());
 
   /**
    * The listing whose name is taken over. It may differ from the chosen listing, because the providers spell the name
    * of the same instrument differently and the listing with the better spelling may lack the wanted connectors.
    */
-  @Input() nameCandidate: SecurityLookupCandidate;
+  readonly nameCandidate = model<SecurityLookupCandidate>(undefined);
 
   /** Emits the listing whose name is taken over */
-  readonly nameCandidateChange = output<SecurityLookupCandidate>();
 
   /** Column with the checkbox choosing the name taken over; the candidate has no such property */
   readonly takeOverNameField = 'takeOverName';
@@ -187,8 +187,9 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase implem
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['candidates'] && this.candidates) {
-      this.createTranslatedValueStore(this.candidates);
+    const candidates = this.candidates();
+    if (changes['candidates'] && candidates) {
+      this.createTranslatedValueStore(candidates);
     }
   }
 
@@ -199,7 +200,7 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase implem
    */
   onSelectionChange(selection: SecurityLookupCandidate | SecurityLookupCandidate[]): void {
     const candidate = Helper.singleSelection(selection);
-    this.selectedCandidate = candidate;
+    this.selectedCandidate.set(candidate);
     this.candidateSelected.emit(candidate);
   }
 
@@ -210,8 +211,7 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase implem
    * @param candidate - The listing whose checkbox was clicked
    */
   onNameCandidateChange(candidate: SecurityLookupCandidate): void {
-    this.nameCandidate = candidate;
-    this.nameCandidateChange.emit(candidate);
+    this.nameCandidate.set(candidate);
   }
 
   hasAttributes(candidate: SecurityLookupCandidate): boolean {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { ConnectorApiKey, SubscriptionTypeReadableName } from '../types/connector.api.key';
@@ -39,12 +39,14 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<ConnectorApiKey> implements OnInit {
-  @Input() connectorApiKey: ConnectorApiKey;
-  @Input() strn: { [id: string]: SubscriptionTypeReadableName };
-  @Input() existingProviders: string[];
-  @Input() subscriptionTypeOptionsMap: {
+  readonly connectorApiKey = input<ConnectorApiKey>(undefined);
+  readonly strn = input<{
+    [id: string]: SubscriptionTypeReadableName;
+  }>(undefined);
+  readonly existingProviders = input<string[]>(undefined);
+  readonly subscriptionTypeOptionsMap = input<{
     [providerId: string]: ValueKeyHtmlSelectOptions[];
-  };
+  }>(undefined);
 
   constructor(
     translateService: TranslateService,
@@ -79,14 +81,15 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
   protected override initialize(): void {
     this.configObject.idProvider.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromObject(
       'readableName',
-      this.strn,
+      this.strn(),
       false,
-      this.connectorApiKey ? [] : this.existingProviders
+      this.connectorApiKey() ? [] : this.existingProviders()
     );
     this.form().setDefaultValuesAndEnableSubmit();
-    this.updateSubscriptionTypeVisibility(this.connectorApiKey?.idProvider);
-    if (this.connectorApiKey) {
-      this.form().transferBusinessObjectToForm(this.connectorApiKey);
+    const connectorApiKey = this.connectorApiKey();
+    this.updateSubscriptionTypeVisibility(connectorApiKey?.idProvider);
+    if (connectorApiKey) {
+      this.form().transferBusinessObjectToForm(connectorApiKey);
       this.configObject.idProvider.formControl.disable();
     } else {
       this.configObject.idProvider.formControl.enable();
@@ -101,7 +104,7 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
   }
 
   private updateSubscriptionTypeVisibility(providerId: string): void {
-    const options = this.subscriptionTypeOptionsMap[providerId] ?? [];
+    const options = this.subscriptionTypeOptionsMap()[providerId] ?? [];
     this.configObject.subscriptionType.valueKeyHtmlOptions = options;
     // A subscription belongs to its provider; switching providers must require a fresh selection.
     this.configObject.subscriptionType.formControl.setValue(null);
@@ -116,6 +119,6 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ConnectorApiKey {
-    return this.copyFormToPrivateBusinessObject(new ConnectorApiKey(), this.connectorApiKey);
+    return this.copyFormToPrivateBusinessObject(new ConnectorApiKey(), this.connectorApiKey());
   }
 }

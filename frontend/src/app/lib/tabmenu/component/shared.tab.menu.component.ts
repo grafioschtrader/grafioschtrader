@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, input, linkedSignal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -26,7 +26,7 @@ import { TabsModule } from '@openng/optimus-ui/tabs';
     <div class="card">
       <p-tabs [value]="activeRoute()">
         <p-tablist>
-          @for (tab of tabs; track tab.route) {
+          @for (tab of tabs(); track tab.route) {
             <p-tab [value]="tab.route" (click)="onTabClick(tab.route)">
               <span>{{ tab.label | translate }}</span>
             </p-tab>
@@ -61,22 +61,24 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
    * Array of tab items to display in the tab menu.
    * @example [{ label: 'TAB_ONE', route: 'route-one', icon: '' }]
    */
-  @Input() tabs: TabItem[] = [];
+  readonly tabsInput = input<TabItem[]>([], { alias: 'tabs' });
+  readonly tabs = linkedSignal(() => this.tabsInput());
 
   /** The default route to navigate to when the component is initialized. */
-  @Input() defaultRoute: string = '';
+  readonly defaultRouteInput = input<string>('', { alias: 'defaultRoute' });
+  readonly defaultRoute = linkedSignal(() => this.defaultRouteInput());
 
   /** Whether to enable session storage for persisting the active tab. */
-  @Input() useSessionStorage: boolean = false;
+  readonly useSessionStorage = input<boolean>(false);
 
   /** The session storage key to use for persisting the active tab. */
-  @Input() sessionStorageKey: string = '';
+  readonly sessionStorageKey = input<string>('');
 
   /**
    * Optional custom navigation handler for complex routing scenarios.
    * @example (route: string) => this.router.navigate([route, this.entityId])
    */
-  @Input() customNavigationHandler: ((route: string) => void) | null = null;
+  readonly customNavigationHandler = input<((route: string) => void) | null>(null);
 
   /** The currently active route. */
   readonly activeRoute = signal('');
@@ -96,16 +98,17 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
    */
   ngOnInit(): void {
     // Handle session storage for active route using helper
-    if (this.useSessionStorage && this.sessionStorageKey) {
-      const savedRoute = this.sessionStorageHelper.getSavedActiveRoute(this.sessionStorageKey, this.tabs);
+    const sessionStorageKey = this.sessionStorageKey();
+    if (this.useSessionStorage() && sessionStorageKey) {
+      const savedRoute = this.sessionStorageHelper.getSavedActiveRoute(sessionStorageKey, this.tabs());
       if (savedRoute) {
-        this.defaultRoute = savedRoute;
+        this.defaultRoute.set(savedRoute);
       }
     }
 
     // Initialize tabs through service only if no custom navigation handler
-    if (!this.customNavigationHandler) {
-      this.tabs = this.tabMenuService.initializeTabs(this.tabs, this.defaultRoute, this.activatedRoute);
+    if (!this.customNavigationHandler()) {
+      this.tabs.set(this.tabMenuService.initializeTabs(this.tabs(), this.defaultRoute(), this.activatedRoute));
 
       // Subscribe to active route changes
       this.subscription = this.tabMenuService.activeRoute$.subscribe((route) => {
@@ -114,8 +117,8 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
       });
     } else {
       // For custom navigation, just translate tabs and set initial route
-      TranslateHelper.translateMenuItems(this.tabs, this.translateService);
-      this.activeRoute.set(this.defaultRoute);
+      TranslateHelper.translateMenuItems(this.tabs(), this.translateService);
+      this.activeRoute.set(this.defaultRoute());
     }
   }
 
@@ -132,8 +135,9 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
    */
   onTabClick(route: string): void {
     // Use custom navigation handler if provided
-    if (this.customNavigationHandler) {
-      this.customNavigationHandler(route);
+    const customNavigationHandler = this.customNavigationHandler();
+    if (customNavigationHandler) {
+      customNavigationHandler(route);
       this.activeRoute.set(route);
       this.saveActiveRoute(route);
     } else {
@@ -143,8 +147,9 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
 
   /** Saves the active route to session storage if enabled. */
   private saveActiveRoute(route: string): void {
-    if (this.useSessionStorage && this.sessionStorageKey) {
-      this.sessionStorageHelper.saveActiveRoute(this.sessionStorageKey, route, this.tabs);
+    const sessionStorageKey = this.sessionStorageKey();
+    if (this.useSessionStorage() && sessionStorageKey) {
+      this.sessionStorageHelper.saveActiveRoute(sessionStorageKey, route, this.tabs());
     }
   }
 }

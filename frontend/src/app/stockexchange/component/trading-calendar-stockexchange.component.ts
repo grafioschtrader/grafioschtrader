@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TradingCalendarBase } from '../../tradingcalendar/component/trading.calendar.base';
 import {
@@ -52,8 +52,8 @@ import { FormsModule } from '@angular/forms';
 export class TradingCalendarStockexchangeComponent extends TradingCalendarBase implements OnInit {
   static readonly SYSTEM_CREATED_COLOR = 'red';
   static readonly USER_CREATED_COLOR = 'blue';
-  @Input() stockexchange: Stockexchange;
-  @Input() sourceCopyStockexchanges: ValueKeyHtmlSelectOptions[];
+  readonly stockexchange = input<Stockexchange>(undefined);
+  readonly sourceCopyStockexchanges = input<ValueKeyHtmlSelectOptions[]>(undefined);
 
   readonly DATE_ATTRIBUTE = 'tradingDateMinus';
   readonly COPY_FULL_TITLE_KEY = 'TRADING_CALENDAR_FROM_OTHER_EXCHANGE_FULL';
@@ -104,7 +104,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
     );
     const minusObservable: Observable<TradingDaysWithDateBoundaries> =
       this.tradingDaysMinusService.getTradingDaysMinusByStockexchangeAndYear(
-        this.stockexchange.idStockexchange,
+        this.stockexchange().idStockexchange,
         this.yearCalendarData().year
       );
 
@@ -157,7 +157,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   saveData(convertedAddRemoveDays: AddRemoveDay[]): void {
     const year = this.selectedYear();
     this.tradingDaysMinusService
-      .save(this.stockexchange.idStockexchange, new SaveTradingDays(year, convertedAddRemoveDays))
+      .save(this.stockexchange().idStockexchange, new SaveTradingDays(year, convertedAddRemoveDays))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((tradingDaysMinus: TradingDaysWithDateBoundaries) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TRADING_CALENDAR_GLOBAL_SAVE', {
@@ -194,11 +194,11 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
         const ref = this.dialogService.open(TradingCalendarOtherExchangeDynamicDialogComponent, {
           data: {
             copyTradingDaysFromSourceToTarget: new CopyTradingDaysFromSourceToTarget(
-              this.stockexchange.idStockexchange,
+              this.stockexchange().idStockexchange,
               this.yearCalendarData().year,
               fullCopy
             ),
-            sourceCopyStockexchanges: this.sourceCopyStockexchanges,
+            sourceCopyStockexchanges: this.sourceCopyStockexchanges(),
             calendarRange: `${this.oldestYear} - ${this.youngestYear}`
           },
           modal: true,
@@ -219,7 +219,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   public hasRightsToModify(): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, this.stockexchange);
+    return AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, this.stockexchange());
   }
 
   protected override getExistingColor(date: Date): string {

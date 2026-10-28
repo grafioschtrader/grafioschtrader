@@ -1,4 +1,4 @@
-import { Component, Input, output, viewChild } from '@angular/core';
+import { Component, output, viewChild, input, model } from '@angular/core';
 
 import { TranslateModule } from '@ngx-translate/core';
 import { AccordionModule } from '@openng/optimus-ui/accordion';
@@ -38,7 +38,11 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
     GTNetMessageAttemptTableComponent
   ],
   template: `
-    <p-accordion [multiple]="true" [value]="openPanels" (valueChange)="onPanelsChange($event)">
+    @let gtNetMessagesValue = gtNetMessages();
+    @let maintenanceWindowsValue = maintenanceWindows();
+    @let messageAttemptsValue = messageAttempts();
+
+    <p-accordion [multiple]="true" [value]="openPanels()" (valueChange)="onPanelsChange($event)">
       <p-accordion-panel [value]="PANEL_ENTITIES" [disabled]="entityCount === 0">
         <p-accordion-header>
           <h5>{{ 'GT_NET_CONFIG_ENTITY_TABLE' | translate }} ({{ entityCount }})</h5>
@@ -46,66 +50,66 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
         <p-accordion-content>
           @if (isOpen(PANEL_ENTITIES)) {
             <gtnet-config-entity-table
-              [gtNetEntities]="gtNet.gtNetEntities"
-              [exchangeKindTypes]="exchangeKindTypes"
+              [gtNetEntities]="gtNet().gtNetEntities"
+              [exchangeKindTypes]="exchangeKindTypes()"
               (dataChanged)="configEntityDataChanged.emit($event)" />
           }
         </p-accordion-content>
       </p-accordion-panel>
 
-      <p-accordion-panel [value]="PANEL_MESSAGES" [disabled]="messageCount === 0">
+      <p-accordion-panel [value]="PANEL_MESSAGES" [disabled]="messageCount() === 0">
         <p-accordion-header>
-          <h5>{{ 'GT_NET_MESSAGE' | translate }} ({{ messageCount }})</h5>
+          <h5>{{ 'GT_NET_MESSAGE' | translate }} ({{ messageCount() }})</h5>
         </p-accordion-header>
         <p-accordion-content>
           @if (isOpen(PANEL_MESSAGES)) {
-            @if (loading) {
+            @if (loading()) {
               <div style="padding: 1rem; text-align: center;">
                 <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
               </div>
-            } @else if (gtNetMessages?.length) {
+            } @else if (gtNetMessagesValue?.length) {
               <gtnet-message-treetable
-                [gtNetMessages]="gtNetMessages"
-                [incomingPendingIds]="incomingPendingIds"
-                [outgoingPendingIds]="outgoingPendingIds"
-                [formDefinitions]="formDefinitions"
+                [gtNetMessages]="gtNetMessagesValue"
+                [incomingPendingIds]="incomingPendingIds()"
+                [outgoingPendingIds]="outgoingPendingIds()"
+                [formDefinitions]="formDefinitions()"
                 (dataChanged)="messageDataChanged.emit($event)" />
             }
           }
         </p-accordion-content>
       </p-accordion-panel>
 
-      @if (canAdministerGTNet) {
-        <p-accordion-panel [value]="PANEL_ATTEMPTS" [disabled]="messageAttemptCount === 0">
+      @if (canAdministerGTNet()) {
+        <p-accordion-panel [value]="PANEL_ATTEMPTS" [disabled]="messageAttemptCount() === 0">
           <p-accordion-header>
-            <h5>{{ 'DELIVERY_ATTEMPTS' | translate }} ({{ messageAttemptCount }})</h5>
+            <h5>{{ 'DELIVERY_ATTEMPTS' | translate }} ({{ messageAttemptCount() }})</h5>
           </p-accordion-header>
           <p-accordion-content>
             @if (isOpen(PANEL_ATTEMPTS)) {
-              @if (loading) {
+              @if (loading()) {
                 <div style="padding: 1rem; text-align: center;">
                   <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
                 </div>
-              } @else if (messageAttempts?.length) {
-                <gtnet-message-attempt-table [messageAttempts]="messageAttempts" />
+              } @else if (messageAttemptsValue?.length) {
+                <gtnet-message-attempt-table [messageAttempts]="messageAttemptsValue" />
               }
             }
           </p-accordion-content>
         </p-accordion-panel>
       }
 
-      <p-accordion-panel [value]="PANEL_WINDOWS" [disabled]="maintenanceWindowCount === 0">
+      <p-accordion-panel [value]="PANEL_WINDOWS" [disabled]="maintenanceWindowCount() === 0">
         <p-accordion-header>
-          <h5>{{ 'GT_NET_MAINTENANCE_WINDOW' | translate }} ({{ maintenanceWindowCount }})</h5>
+          <h5>{{ 'GT_NET_MAINTENANCE_WINDOW' | translate }} ({{ maintenanceWindowCount() }})</h5>
         </p-accordion-header>
         <p-accordion-content>
           @if (isOpen(PANEL_WINDOWS)) {
-            @if (loading) {
+            @if (loading()) {
               <div style="padding: 1rem; text-align: center;">
                 <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
               </div>
-            } @else if (maintenanceWindows?.length) {
-              <gtnet-maintenance-window-table [maintenanceWindows]="maintenanceWindows" />
+            } @else if (maintenanceWindowsValue?.length) {
+              <gtnet-maintenance-window-table [maintenanceWindows]="maintenanceWindowsValue" />
             }
           }
         </p-accordion-content>
@@ -115,25 +119,27 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
 })
 export class GTNetExpandedComponent {
   /** The peer of the expanded row. */
-  @Input() gtNet: GTNet;
-  @Input() exchangeKindTypes: ExchangeKindTypeInfo[] = [];
+  readonly gtNet = input<GTNet>(undefined);
+  readonly exchangeKindTypes = input<ExchangeKindTypeInfo[]>([]);
   /** Messages of this peer, loaded by the parent when the row was expanded. */
-  @Input() gtNetMessages: GTNetMessage[] = [];
+  readonly gtNetMessages = input<GTNetMessage[]>([]);
   /** Maintenance windows of this peer, loaded by the parent when the row was expanded. */
-  @Input() maintenanceWindows: GTNetMaintenanceWindow[] = [];
+  readonly maintenanceWindows = input<GTNetMaintenanceWindow[]>([]);
   /** Per-target outcomes of outgoing messages stored under this row. */
-  @Input() messageAttempts: GTNetMessageAttemptView[] = [];
+  readonly messageAttempts = input<GTNetMessageAttemptView[]>([]);
   /** Number of messages, known before they are loaded so the header can show it. */
-  @Input() messageCount = 0;
+  readonly messageCount = input(0);
   /** Number of announced windows, likewise known in advance. */
-  @Input() maintenanceWindowCount = 0;
-  @Input() messageAttemptCount = 0;
-  @Input() canAdministerGTNet = false;
-  @Input() incomingPendingIds: Set<number> = new Set();
-  @Input() outgoingPendingIds: Set<number> = new Set();
-  @Input() formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
+  readonly maintenanceWindowCount = input(0);
+  readonly messageAttemptCount = input(0);
+  readonly canAdministerGTNet = input(false);
+  readonly incomingPendingIds = input<Set<number>>(new Set());
+  readonly outgoingPendingIds = input<Set<number>>(new Set());
+  readonly formDefinitions = input<{
+    [type: string]: ClassDescriptorInputAndShow;
+  }>(undefined);
   /** True while the parent is still fetching the lazily loaded panels. */
-  @Input() loading = false;
+  readonly loading = input(false);
 
   readonly configEntityDataChanged = output<ProcessedActionData>();
   readonly messageDataChanged = output<ProcessedActionData>();
@@ -153,12 +159,11 @@ export class GTNetExpandedComponent {
    * The panels the user has opened. All panels start closed. Kept by the parent, because a reload of the setup table
    * recreates this component and would otherwise close every panel.
    */
-  @Input() openPanels: string[] = [];
-  readonly openPanelsChange = output<string[]>();
+  readonly openPanels = model<string[]>([]);
 
   /** Number of entity configurations of this peer. */
   get entityCount(): number {
-    return this.gtNet?.gtNetEntities?.filter((entity) => entity.gtNetConfigEntity != null).length ?? 0;
+    return this.gtNet()?.gtNetEntities?.filter((entity) => entity.gtNetConfigEntity != null).length ?? 0;
   }
 
   /**
@@ -168,7 +173,7 @@ export class GTNetExpandedComponent {
    * @returns true when the panel is open and its content must be rendered
    */
   isOpen(panel: string): boolean {
-    return this.openPanels.includes(panel);
+    return this.openPanels().includes(panel);
   }
 
   /**
@@ -177,8 +182,7 @@ export class GTNetExpandedComponent {
    * @param panels the values of the panels which are now open
    */
   onPanelsChange(panels: string | number | string[] | number[]): void {
-    this.openPanels = (Array.isArray(panels) ? panels : [panels]).map(String);
-    this.openPanelsChange.emit(this.openPanels);
+    this.openPanels.set((Array.isArray(panels) ? panels : [panels]).map(String));
   }
 
   /** Clears the selection of the message tree table, if that panel is open at all. */

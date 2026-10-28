@@ -1,5 +1,5 @@
 import { finalize, Subscription } from 'rxjs';
-import { DestroyRef, inject, signal, Component, Injector, Input, OnInit, output } from '@angular/core';
+import { linkedSignal, DestroyRef, inject, signal, Component, Injector, OnInit, output, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SecurityDividendsPosition } from '../../entities/view/securitydividends/security.dividends.position';
@@ -42,12 +42,12 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
     <div class="datatable">
       <p-table
         [columns]="fields"
-        [value]="securityDividendsPositions"
+        [value]="securityDividendsPositions()"
         selectionMode="single"
         dataKey="security.idSecuritycurrency"
         sortMode="multiple"
         [multiSortMeta]="multiSortMeta"
-        [expandedRowKeys]="expandedRowKeys"
+        [expandedRowKeys]="expandedRowKeys()"
         [contextMenu]="isSwissTenant ? cmSec : null"
         [(contextMenuSelection)]="contextMenuSelectedPosition"
         (onContextMenuSelect)="onContextMenuSelect($event)"
@@ -122,7 +122,7 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
                 <transaction-security-table
                   [idTenant]="idTenant"
                   [idSecuritycurrency]="sdp.security.idSecuritycurrency"
-                  [idsSecurityaccount]="idsSecurityaccount"
+                  [idsSecurityaccount]="idsSecurityaccount()"
                   [transactionSecurityOptionalParam]="tsop"
                   [untilDate]="untilDateForTransactions"
                   (dateChanged)="transactionDataChanged($event)" />
@@ -132,7 +132,7 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
                 <transaction-security-margin-treetable
                   [idTenant]="idTenant"
                   [idSecuritycurrency]="sdp.security.idSecuritycurrency"
-                  [idsSecurityaccount]="idsSecurityaccount"
+                  [idsSecurityaccount]="idsSecurityaccount()"
                   [transactionSecurityOptionalParam]="tsop"
                   [untilDate]="untilDateForTransactions"
                   (dateChanged)="transactionDataChanged($event)" />
@@ -147,7 +147,7 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
           [visibleDialog]="visibleCorrectionDialog()"
           [security]="dialogSecurity"
           [yearOptions]="correctionYearOptions"
-          [suggestedYear]="year"
+          [suggestedYear]="year()"
           (closeDialog)="handleCorrectionDialogClose($event)" />
       }
     </div>
@@ -167,27 +167,27 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
   ]
 })
 export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
-  @Input() idsSecurityaccount: number[];
-  @Input() securityDividendsGrandTotal: SecurityDividendsGrandTotal;
-  private readonly positions = signal<SecurityDividendsPosition[]>([]);
-  @Input() set securityDividendsPositions(value: SecurityDividendsPosition[]) {
-    this.positions.set(value ?? []);
-  }
-  get securityDividendsPositions(): SecurityDividendsPosition[] {
-    return this.positions();
-  }
+  readonly idsSecurityaccount = input<number[]>(undefined);
+  readonly securityDividendsGrandTotal = input<SecurityDividendsGrandTotal>(undefined);
+  readonly securityDividendsPositionsInput = input<
+    SecurityDividendsPosition[],
+    SecurityDividendsPosition[] | null | undefined
+  >([], { alias: 'securityDividendsPositions', transform: (value) => value ?? [] });
+  readonly securityDividendsPositions = linkedSignal(() => this.securityDividendsPositionsInput());
   private readonly destroyRef = inject(DestroyRef);
   readonly pendingExclusions = signal<Set<number>>(new Set());
   private menuRequest: Subscription;
-  @Input() year: number;
-  @Input() filterTransactionsToYearEnd: boolean;
+  readonly year = input<number>(undefined);
+  readonly filterTransactionsToYearEnd = input<boolean>(undefined);
 
   /**
    * Expansion state of the security rows, keyed by {@code security.idSecuritycurrency}. The object is owned by the
    * parent {@code TenantDividendsComponent} and passed in by reference, so the expansion survives this child being
    * recreated on a parent reload. Optimus mutates it in place on toggle, keeping the parent map in sync.
    */
-  @Input() expandedRowKeys: { [id: string]: boolean } = {};
+  readonly expandedRowKeys = input<{
+    [id: string]: boolean;
+  }>({});
 
   idTenant: number;
   tsop = [TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN];
@@ -203,11 +203,12 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
 
   /** True for Swiss tenants; gates the ICTax columns and the tax year correction context menu. */
   get isSwissTenant(): boolean {
-    return this.securityDividendsGrandTotal.tenantCountry === 'CH';
+    return this.securityDividendsGrandTotal().tenantCountry === 'CH';
   }
 
   get untilDateForTransactions(): string | undefined {
-    return this.filterTransactionsToYearEnd && this.year ? `${this.year}-12-31` : undefined;
+    const year = this.year();
+    return this.filterTransactionsToYearEnd() && year ? `${year}-12-31` : undefined;
   }
 
   // Output
@@ -258,27 +259,28 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
     this.addColumnFeqH(DataType.Numeric, 'taxFreeIncome', true, false, {
       currencyPrecisionField: 'security.currency'
     });
+    const securityDividendsGrandTotal = this.securityDividendsGrandTotal();
     this.addColumnFeqH(DataType.Numeric, 'financeCostMC', false, true, {
       width: 80,
-      headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
-      fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+      headerSuffix: securityDividendsGrandTotal.mainCurrency,
+      fixedCurrency: securityDividendsGrandTotal.mainCurrency
     });
-    this.addGeneralColumns(this.securityDividendsGrandTotal.mainCurrency, 'security.currency');
+    this.addGeneralColumns(securityDividendsGrandTotal.mainCurrency, 'security.currency');
     this.addIctaxColumns();
     this.addColumnFeqH(DataType.Numeric, 'valueAtEndOfYearMC', true, false, {
       width: 70,
-      headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
-      fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+      headerSuffix: securityDividendsGrandTotal.mainCurrency,
+      fixedCurrency: securityDividendsGrandTotal.mainCurrency
     });
     this.multiSortMeta.push({ field: 'security.name', order: 1 });
     this.prepareTableAndTranslate();
-    if (this.securityDividendsGrandTotal.hasMarginData) {
+    if (securityDividendsGrandTotal.hasMarginData) {
       const marginCol = this.fields.find((f) => f.field === 'financeCostMC');
       if (marginCol) {
         marginCol.visible = true;
       }
     }
-    if (this.securityDividendsGrandTotal.tenantCountry === 'CH') {
+    if (securityDividendsGrandTotal.tenantCountry === 'CH') {
       this.fields
         .filter((f) => f.field === 'ictaxTotalPaymentValueChf' || f.field === 'ictaxTotalTaxValueChf')
         .forEach((f) => (f.visible = true));
@@ -414,8 +416,8 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
       return;
     }
     this.dialogSecurity = sdp.security;
-    this.correctionYearOptions = this.securityDividendsGrandTotal.securityDividendsYearGroup
-      .map((yg) => yg.year)
+    this.correctionYearOptions = this.securityDividendsGrandTotal()
+      .securityDividendsYearGroup.map((yg) => yg.year)
       .sort((a, b) => b - a);
     this.visibleCorrectionDialog.set(true);
   }
@@ -495,14 +497,14 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
 
   onExclusionToggle(sdp: SecurityDividendsPosition): void {
     const id = sdp.security.idSecuritycurrency;
-    this.positions.update((rows) =>
+    this.securityDividendsPositions.update((rows) =>
       rows.map((row) =>
         row.security.idSecuritycurrency === id ? { ...row, excludedFromTax: !sdp.excludedFromTax } : row
       )
     );
     this.pendingExclusions.update((ids) => new Set([...ids, id]));
     this.taxDataService
-      .toggleSecurityExclusion(this.year, id)
+      .toggleSecurityExclusion(this.year(), id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() =>
@@ -515,7 +517,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
       )
       .subscribe({
         error: () =>
-          this.positions.update((rows) =>
+          this.securityDividendsPositions.update((rows) =>
             rows.map((row) =>
               row.security.idSecuritycurrency === id ? { ...row, excludedFromTax: sdp.excludedFromTax } : row
             )

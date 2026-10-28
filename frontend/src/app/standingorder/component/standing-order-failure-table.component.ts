@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
@@ -16,7 +16,7 @@ import { StandingOrderFailure } from '../../entities/standing.order';
   template: `
     <h5>{{ 'EXECUTION_FAILURES' | translate }}</h5>
     <configurable-table
-      [data]="failures"
+      [data]="failures()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       [dataKey]="'idStandingOrderFailure'"
@@ -37,7 +37,7 @@ import { StandingOrderFailure } from '../../entities/standing.order';
   imports: [TranslateModule, ConfigurableTableComponent]
 })
 export class StandingOrderFailureTableComponent extends ShowRecordConfigBase {
-  @Input() failures: StandingOrderFailure[] = [];
+  readonly failures = input<StandingOrderFailure[]>([]);
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);

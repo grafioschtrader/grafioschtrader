@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, signal, output } from '@angular/core';
+import { Component, OnDestroy, signal, output, input } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
 import { Subscription, finalize } from 'rxjs';
@@ -19,7 +19,7 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
   template: `
     <p-dialog
       header="{{ 'UDF_FILL_PROPOSE_TITLE' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '850px' }"
       [modal]="true"
       appendTo="body"
@@ -90,10 +90,10 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
 })
 export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   /** The saved field the rule is proposed for */
-  @Input() idUDFMetadata: number;
+  readonly idUDFMetadata = input<number>(undefined);
 
   /** Controls the visibility of the dialog */
-  @Input() visibleDialog: boolean;
+  readonly visibleDialog = input<boolean>(undefined);
 
   /** Emits the proposed rule when the user takes it over */
   readonly ruleAccepted = output<string>();
@@ -127,7 +127,7 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
     this.result.set(null);
     this.loading.set(true);
     this.pendingRequest = this.uDFMetadataSecurityService
-      .previewRuleProposal(this.idUDFMetadata)
+      .previewRuleProposal(this.idUDFMetadata())
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (preview) => {
@@ -167,7 +167,7 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
     this.loading.set(true);
     this.result.set(null);
     this.pendingRequest = this.uDFMetadataSecurityService
-      .proposeRule(this.idUDFMetadata, [...this.selected()])
+      .proposeRule(this.idUDFMetadata(), [...this.selected()])
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (result) => this.result.set(result),

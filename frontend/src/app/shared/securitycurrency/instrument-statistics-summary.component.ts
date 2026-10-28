@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { StatisticsSummary } from '../../entities/view/instrument.statistics.result';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -34,8 +34,8 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
   imports: [TranslateModule, ConfigurableTreeTableComponent]
 })
 export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase implements OnInit {
-  @Input() statisticsSummary: StatisticsSummary;
-  @Input() mainCurrency: string;
+  readonly statisticsSummary = input<StatisticsSummary>(undefined);
+  readonly mainCurrency = input<string>(undefined);
   rootNodes: TreeNode[];
   readonly negativeValue = (row: any, field: ColumnConfig) => this.isValueByPathMinus(row, field);
 
@@ -54,7 +54,7 @@ export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase im
     this.addColumn(DataType.Numeric, 'valueMC', 'VALUE_1', true, false, {
       templateName: 'greenRed',
       width: 50,
-      headerSuffix: this.mainCurrency
+      headerSuffix: this.mainCurrency()
     });
     this.translateHeadersAndColumns();
     this.prepareData();
@@ -62,7 +62,7 @@ export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase im
 
   private prepareData(): void {
     const mainTree: TreeNode = {
-      data: this.statisticsSummary.statsPropertyMap,
+      data: this.statisticsSummary().statsPropertyMap,
       children: [],
       leaf: false
     };

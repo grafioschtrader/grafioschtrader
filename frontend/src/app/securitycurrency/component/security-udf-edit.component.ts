@@ -34,7 +34,7 @@ export class SecurityUDFEditComponent extends BaseUDFDataEdit implements OnInit 
   }
 
   ngOnInit(): void {
-    const assetclass: Assetclass = (<Security>this.uDFGeneralCallParam.selectedEntity).assetClass;
+    const assetclass: Assetclass = (<Security>this.uDFGeneralCallParam().selectedEntity).assetClass;
     super.baseInit(SecurityUDFHelper.getFieldDescriptorInputAndShowExtendedSecurity(assetclass, false));
   }
 }

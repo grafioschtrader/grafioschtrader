@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnChanges, OnDestroy, signal, viewChild } from '@angular/core';
+import { AfterViewInit, Component, OnChanges, OnDestroy, signal, viewChild, input } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { DashboardConfig, DashboardResult } from '../../lib/dashboard/dashboard.types';
@@ -67,7 +67,7 @@ import { HoldingMoversTreetableComponent } from './holding-movers-treetable.comp
   `
 })
 export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, OnDestroy {
-  @Input() result: DashboardResult;
+  readonly result = input<DashboardResult>(undefined);
 
   readonly form = viewChild<DynamicFormComponent>('form');
 
@@ -96,7 +96,7 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
   }
 
   ngOnChanges(): void {
-    const movers = this.result?.payload?.custom as HoldingMovers;
+    const movers = this.result()?.payload?.custom as HoldingMovers;
     this.movers.set(movers);
     // A stored empty list means every period was deliberately closed, which is why the absence of the entry - and not
     // its emptiness - is what opens them all on a first visit.
@@ -121,7 +121,8 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
    * a card because one date could not be read; the dashboard reports the failure through its own refresh path.
    */
   private reload(): void {
-    if (!this.configObject.chosenDate.formControl.value || !this.result?.instanceId) {
+    const resultValue = this.result();
+    if (!this.configObject.chosenDate.formControl.value || !resultValue?.instanceId) {
       return;
     }
     // Calendar controls hold local Date objects. Convert through the field's data type so the API receives a
@@ -135,7 +136,7 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
     );
     this.refreshSubscription?.unsubscribe();
     this.refreshSubscription = this.dashboardService
-      .refresh(this.result.instanceId, configOverride)
+      .refresh(resultValue.instanceId, configOverride)
       .subscribe((result) => {
         const movers = result?.payload?.custom as HoldingMovers;
         if (movers) {
@@ -172,6 +173,6 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
 
   /** Per card, so the winners and the losers card are opened independently. */
   private storeKey(): string {
-    return `holdingmovers.${this.result?.type}.expanded`;
+    return `holdingmovers.${this.result()?.type}.expanded`;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -19,7 +19,7 @@ import { AppSettings } from '../../shared/app.settings';
   imports: [TranslateModule, AngularSvgIconModule]
 })
 export class SecurityaccountImportExtendedInfoFilenameComponent extends SingleRecordConfigBase implements OnInit {
-  @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos;
+  readonly combineTemplateAndImpTransPos = input<CombineTemplateAndImpTransPos>(undefined);
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);

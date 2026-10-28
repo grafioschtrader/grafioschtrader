@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -37,10 +37,10 @@ import { TenantAIProviderService } from '../service/tenant-ai-provider.service';
   </p-dialog>`
 })
 export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAIProvider> implements OnInit {
-  @Input() entity: TenantAIProvider;
-  @Input() options: TenantAIProviderOptions;
-  @Input() formDefinition: ClassDescriptorInputAndShow;
-  @Input() existingProviders: string[];
+  readonly entity = input<TenantAIProvider>(undefined);
+  readonly options = input<TenantAIProviderOptions>(undefined);
+  readonly formDefinition = input<ClassDescriptorInputAndShow>(undefined);
+  readonly existingProviders = input<string[]>(undefined);
 
   constructor(
     translate: TranslateService,
@@ -54,7 +54,7 @@ export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAI
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
     this.config = DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
       this.translateService,
-      this.formDefinition,
+      this.formDefinition(),
       '',
       true
     ) as FieldConfig[];
@@ -62,26 +62,27 @@ export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAI
     this.configObject.apiKey.maxLength = 256;
   }
   protected override initialize(): void {
-    this.configObject.provider.valueKeyHtmlOptions = this.options.providers.filter(
-      (p) => p.key === this.entity?.provider || !this.existingProviders.includes(String(p.key))
+    this.configObject.provider.valueKeyHtmlOptions = this.options().providers.filter(
+      (p) => p.key === this.entity()?.provider || !this.existingProviders().includes(String(p.key))
     );
     this.form().setDefaultValuesAndEnableSubmit();
-    this.form().transferBusinessObjectToForm(this.entity ?? new TenantAIProvider());
+    this.form().transferBusinessObjectToForm(this.entity() ?? new TenantAIProvider());
     this.form().setValue('apiKey', null);
     // The server never returns a stored key; its ending shows that one exists and stays when the field is left empty
-    this.configObject.apiKey.placeholder = this.entity?.apiKeyHint ?? '';
-    if (this.entity) {
+    this.configObject.apiKey.placeholder = this.entity()?.apiKeyHint ?? '';
+    const entity = this.entity();
+    if (entity) {
       this.configObject.provider.formControl.disable();
     }
     this.configObject.provider.formControl.valueChanges
       .pipe(this.untilDialogClosed())
       .subscribe((p) => this.updateKeyInput(p));
-    this.updateKeyInput(this.entity?.provider);
+    this.updateKeyInput(entity?.provider);
   }
   private updateKeyInput(provider: string): void {
     const key = this.configObject.apiKey;
-    const needsKey = this.options.keyProviders.includes(provider);
-    const required = !this.entity && needsKey;
+    const needsKey = this.options().keyProviders.includes(provider);
+    const required = !this.entity() && needsKey;
     key.invisible = !needsKey;
     if (!needsKey) {
       key.formControl.setValue(null);
@@ -94,9 +95,9 @@ export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAI
     if (required) {
       DynamicFieldHelper.addErrorRule(this.translateService, key, { ...DynamicFieldHelper.RULE_REQUIRED_TOUCHED });
     }
-    this.configObject.model.placeholder = this.options.defaultModels[provider] || '';
+    this.configObject.model.placeholder = this.options().defaultModels[provider] || '';
   }
   protected override getNewOrExistingInstanceBeforeSave(_: { [name: string]: any }): TenantAIProvider {
-    return this.copyFormToPrivateBusinessObject(new TenantAIProvider(), this.entity);
+    return this.copyFormToPrivateBusinessObject(new TenantAIProvider(), this.entity());
   }
 }

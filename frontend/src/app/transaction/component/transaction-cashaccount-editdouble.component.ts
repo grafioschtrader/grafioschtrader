@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CashAccountTransfer, TransactionService } from '../service/transaction.service';
@@ -44,7 +44,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   template: `
     <p-dialog
       header="{{ 'ACCOUNT_TRANSFER' | translate }}"
-      [visible]="visibleCashaccountTransactionDoubleDialog"
+      [visible]="visibleCashaccountTransactionDoubleDialog()"
       [style]="{ width: '550px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -67,7 +67,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
 })
 export class TransactionCashaccountEditDoubleComponent extends TransactionCashaccountBaseOperations implements OnInit {
   // InputMask from parent view
-  @Input() visibleCashaccountTransactionDoubleDialog: boolean;
+  readonly visibleCashaccountTransactionDoubleDialog = input<boolean>(undefined);
   // @Input() transactionCallParam: TransactionCallParam;
 
   // Access the form
@@ -144,7 +144,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   isVisibleDialog(): boolean {
-    return this.visibleCashaccountTransactionDoubleDialog;
+    return this.visibleCashaccountTransactionDoubleDialog();
   }
 
   ////////////////////////////////////////////////
@@ -299,10 +299,11 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         this.portfolios = data;
         this.disableCurrencyExRateState();
 
-        if (this.transactionCallParam.transaction) {
-          this.setupModifyExistingTransaction(this.transactionCallParam.transaction);
+        const transactionCallParam = this.transactionCallParam();
+        if (transactionCallParam.transaction) {
+          this.setupModifyExistingTransaction(transactionCallParam.transaction);
         } else {
-          this.setupCashaccountSelect(this.transactionCallParam.cashaccount.idSecuritycashAccount, null);
+          this.setupCashaccountSelect(transactionCallParam.cashaccount.idSecuritycashAccount, null);
         }
       });
   }
@@ -436,12 +437,13 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   private setCurrencypair(): void {
+    const transactionCallParam = this.transactionCallParam();
     if (
-      this.transactionCallParam.transaction &&
+      transactionCallParam.transaction &&
       this.transactions[this.DepIndex].cashaccount.currency === this.debitCashaccount.currency &&
       this.transactions[this.WithIndex].cashaccount.currency === this.creditCashaccount.currency
     ) {
-      this.currencypair = this.transactionCallParam.transaction.currencypair;
+      this.currencypair = transactionCallParam.transaction.currencypair;
     } else {
       this.currencypair = BusinessHelper.getCurrencypairWithSetOfFromAndTo(
         this.creditCashaccount.currency,
@@ -454,7 +456,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
    * Return true when exchange rate can be adjusted
    */
   private hasChangedOnExistingTransaction(): boolean {
-    const t = this.transactionCallParam.transaction;
+    const t = this.transactionCallParam().transaction;
     return (
       t === null ||
       (t !== null &&
@@ -500,7 +502,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     const newTransactions: Transaction[] = [];
     for (let i = 0; i < 2; i++) {
       newTransactions.push(new Transaction());
-      if (this.transactionCallParam.transaction) {
+      if (this.transactionCallParam().transaction) {
         Object.assign(newTransactions[i], this.transactions[i]);
       } else {
         newTransactions[i].transactionType =
@@ -555,8 +557,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     this.updateTransactionTimeValidator(effectiveClosedUntil);
 
     // Check if existing transaction is within closed period
-    if (this.transactionCallParam.transaction) {
-      this.checkTransactionLocked(effectiveClosedUntil, this.transactionCallParam.transaction.transactionTime);
+    const transactionCallParam = this.transactionCallParam();
+    if (transactionCallParam.transaction) {
+      this.checkTransactionLocked(effectiveClosedUntil, transactionCallParam.transaction.transactionTime);
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnChanges, OnInit, SimpleChanges, output } from '@angular/core';
+import { Component, Injector, OnChanges, OnInit, SimpleChanges, output, input } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -29,14 +29,14 @@ import { AppSettings } from '../../shared/app.settings';
   imports: [ConfigurableTableComponent, TranslateModule, ButtonModule],
   template: `
     <configurable-table
-      [data]="securities"
+      [data]="securities()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       dataKey="_uniqueKey"
       [selectionMode]="'single'"
       [(selection)]="selectedSecurity"
       (rowSelect)="onRowSelect($event)"
-      [paginator]="securities.length > 10"
+      [paginator]="securities().length > 10"
       [rows]="10"
       [enableCustomSort]="true"
       [valueGetterFn]="valueGetter"
@@ -164,7 +164,7 @@ import { AppSettings } from '../../shared/app.settings';
   ]
 })
 export class GtnetSecurityLookupTableComponent extends TableConfigBase implements OnInit, OnChanges {
-  @Input() securities: SecurityGtnetLookupDTO[] = [];
+  readonly securities = input<SecurityGtnetLookupDTO[]>([]);
 
   readonly securitySelected = output<SecurityGtnetLookupDTO>();
 
@@ -257,11 +257,12 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['securities'] && this.securities) {
+    const securities = this.securities();
+    if (changes['securities'] && securities) {
       this.addUniqueKeys();
       // Only create translated value store if fields have been initialized
       if (this.fieldsInitialized) {
-        this.createTranslatedValueStore(this.securities);
+        this.createTranslatedValueStore(securities);
       }
     }
   }
@@ -302,8 +303,9 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
     );
 
     // If data was already provided before ngOnInit, create translated value store now
-    if (this.securities?.length > 0) {
-      this.createTranslatedValueStore(this.securities);
+    const securities = this.securities();
+    if (securities?.length > 0) {
+      this.createTranslatedValueStore(securities);
     }
   }
 
@@ -312,7 +314,7 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
    * Combines isin, stockexchangeMic, and sourceDomain to create a unique identifier.
    */
   private addUniqueKeys(): void {
-    this.securities.forEach((security, index) => {
+    this.securities().forEach((security, index) => {
       (security as any)._uniqueKey = `${security.isin}_${security.stockexchangeMic}_${security.sourceDomain || index}`;
     });
   }

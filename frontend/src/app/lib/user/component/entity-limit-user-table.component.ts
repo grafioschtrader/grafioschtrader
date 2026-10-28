@@ -6,11 +6,11 @@ import {
   DestroyRef,
   inject,
   Injector,
-  Input,
   OnChanges,
   signal,
   SimpleChanges,
-  output
+  output,
+  input
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 
@@ -80,7 +80,7 @@ import { BaseSettings } from '../../base.settings';
     @if (visibleDialog()) {
       <entity-limit-edit
         [visibleDialog]="visibleDialog()"
-        [idUser]="user.idUser"
+        [idUser]="user().idUser"
         [existingEntityLimit]="existingEntityLimit"
         [proposeChangeEntityWithEntity]="proposeChangeEntityWithEntity"
         (closeDialog)="handleCloseDialog($event)" />
@@ -90,7 +90,7 @@ import { BaseSettings } from '../../base.settings';
 export class EntityLimitUserTableComponent extends TableConfigBase implements OnChanges, IGlobalMenuAttach {
   public static readonly ENTITY_LIMIT = 'ENTITY_LIMIT';
 
-  @Input() user: User;
+  readonly user = input<User>(undefined);
   // Master table must be informed about changes thru editing
   readonly dateChanged = output<ProcessedActionData>();
 
@@ -211,7 +211,7 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements On
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['user'] && this.user) {
+    if (changes['user'] && this.user()) {
       const entityLimits = this.createProposeLimitForView();
       this.createTranslatedValueStoreAndFilterField(entityLimits);
       this.entityLimits.set(entityLimits);
@@ -275,10 +275,11 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements On
    * proposal to the limit it changes. The user passed in from the master table is left unchanged.
    */
   private createProposeLimitForView(): EntityLimit[] {
-    const entityLimits = [...this.user.entityLimitList];
+    const entityLimits = [...this.user().entityLimitList];
     this.deleteAllowed = true;
-    if (this.user.userChangeLimitProposeList) {
-      for (const proposeUserTask of this.user.userChangeLimitProposeList) {
+    const user = this.user();
+    if (user.userChangeLimitProposeList) {
+      for (const proposeUserTask of user.userChangeLimitProposeList) {
         const entityField = proposeUserTask.proposeChangeFieldList.find((p) => p.field === 'entity');
         let existingLimit = entityLimits.find((uec) => uec.entityName === entityField.valueDesarialized);
         this.deleteAllowed = !!existingLimit;
@@ -286,7 +287,7 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements On
           existingLimit = new EntityLimit();
           // create and add user entity change Limit
           const uecl: EntityLimit = new EntityLimit();
-          uecl.idUser = this.user.idUser;
+          uecl.idUser = user.idUser;
           existingLimit.idUser = uecl.idUser;
           uecl.entityName = entityField.valueDesarialized;
           existingLimit.entityName = uecl.entityName;

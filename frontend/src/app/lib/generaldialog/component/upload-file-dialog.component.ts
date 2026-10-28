@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 import { ProcessedActionData } from '../../types/processed.action.data';
 import { ProcessedAction } from '../../types/processed.action';
@@ -38,7 +38,7 @@ import { BaseSettings } from '../../base.settings';
 @Component({
   selector: 'upload-file-dialog',
   template: ` <p-dialog
-    header="{{ fileUploadParam.title | translate }}"
+    header="{{ fileUploadParam().title | translate }}"
     [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
@@ -55,7 +55,7 @@ import { BaseSettings } from '../../base.settings';
 })
 export class UploadFileDialogComponent extends SimpleEditBase implements OnInit {
   /** Configuration parameters passed from parent component defining dialog behavior and upload settings */
-  @Input() fileUploadParam: FileUploadParam;
+  readonly fileUploadParam = input<FileUploadParam>(undefined);
 
   /** Currently selected file for upload (used in single-file mode, kept for backward compatibility) */
   fileToUpload: File = null;
@@ -84,15 +84,16 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    */
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
-    this.helpId = this.fileUploadParam.helpId;
+    this.helpId = this.fileUploadParam().helpId;
+    const fileUploadParam = this.fileUploadParam();
     this.config = [
-      ...(this.fileUploadParam.additionalFieldConfig ? this.fileUploadParam.additionalFieldConfig.fieldConfig : []),
+      ...(fileUploadParam.additionalFieldConfig ? fileUploadParam.additionalFieldConfig.fieldConfig : []),
       ...this.getCSVFormatsFields(),
       DynamicFieldHelper.createFileUpload(
-        this.fileUploadParam.multiple ? DataType.Files : DataType.File,
+        this.fileUploadParam().multiple ? DataType.Files : DataType.File,
         'fileToUpload',
-        this.fileUploadParam.multiple ? 'FILES' : 'FILE',
-        this.fileUploadParam.acceptFileType,
+        this.fileUploadParam().multiple ? 'FILES' : 'FILE',
+        this.fileUploadParam().acceptFileType,
         true
       ),
       DynamicFieldHelper.createSubmitButton('UPLOAD')
@@ -134,21 +135,22 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
       formData.append('file', files.item(i), files.item(i).name);
     }
 
-    if (this.fileUploadParam.supportedCSVFormats) {
+    const fileUploadParam = this.fileUploadParam();
+    if (fileUploadParam.supportedCSVFormats) {
       const supportedCSVFormat = new SupportedCSVFormat();
       this.form().cleanMaskAndTransferValuesToBusinessObject(supportedCSVFormat);
       this.userSettingsService.saveObject(BaseSettings.CSV_EXPORT_FORMAT, supportedCSVFormat);
       Object.keys(supportedCSVFormat).forEach((e) => formData.append(e, supportedCSVFormat[e]));
     }
 
-    this.fileUploadParam.additionalFieldConfig &&
-      this.fileUploadParam.additionalFieldConfig.submitPrepareFN(
+    fileUploadParam.additionalFieldConfig &&
+      fileUploadParam.additionalFieldConfig.submitPrepareFN(
         value,
         formData,
-        this.fileUploadParam.additionalFieldConfig.fieldConfig
+        fileUploadParam.additionalFieldConfig.fieldConfig
       );
 
-    this.fileUploadParam.uploadService.uploadFiles(this.fileUploadParam.entityId, formData).subscribe({
+    fileUploadParam.uploadService.uploadFiles(fileUploadParam.entityId, formData).subscribe({
       next: (response) => {
         if (response.hasOwnProperty('duplicatedInImport')) {
           const uhs: UploadHistoryquotesSuccess = response;
@@ -182,7 +184,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
     this.configObject.decimalSeparator.formControl.valueChanges
       .pipe(this.untilDialogClosed())
       .subscribe((data: string) => {
-        const thousandSeparators: string[] = this.fileUploadParam.supportedCSVFormats.thousandSeparators.filter(
+        const thousandSeparators: string[] = this.fileUploadParam().supportedCSVFormats.thousandSeparators.filter(
           (separator) => separator !== this.configObject.decimalSeparator.formControl.value
         );
 
@@ -209,15 +211,16 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    * @protected
    */
   protected override initialize(): void {
-    if (this.fileUploadParam.supportedCSVFormats) {
+    const fileUploadParam = this.fileUploadParam();
+    if (fileUploadParam.supportedCSVFormats) {
       this.configObject.decimalSeparator.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
-        this.fileUploadParam.supportedCSVFormats.decimalSeparators
+        fileUploadParam.supportedCSVFormats.decimalSeparators
       );
       this.configObject.dateFormat.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
-        this.fileUploadParam.supportedCSVFormats.dateFormats
+        fileUploadParam.supportedCSVFormats.dateFormats
       );
       const supportedCSVFormat: SupportedCSVFormat = this.userSettingsService.retrieveObject(
-        this.fileUploadParam.persistenceCSVKey
+        fileUploadParam.persistenceCSVKey
       );
       this.valueChangedOnDecimalSeparator();
       if (supportedCSVFormat) {
@@ -236,7 +239,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    */
   private getCSVFormatsFields(): FieldConfig[] {
     const fieldConfig: FieldConfig[] = [];
-    if (this.fileUploadParam.supportedCSVFormats) {
+    if (this.fileUploadParam().supportedCSVFormats) {
       fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('decimalSeparator', true, { inputWidth: 3 }));
       fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('thousandSeparator', true, { inputWidth: 3 }));
       fieldConfig.push(

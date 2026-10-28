@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { finalize, Subscription, switchMap, take, tap } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -55,7 +55,7 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class BankruptSecurityEditComponent extends SimpleEntityEditBase<BankruptSecurity> implements OnInit {
-  @Input() callParam: BankruptSecurityCallParam;
+  readonly callParam = input<BankruptSecurityCallParam>(undefined);
 
   private readonly supplementCriteria = new SupplementCriteria(true, true);
   private selectedSecurity: Security | null = null;
@@ -83,7 +83,7 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
     // Built synchronously from the descriptor the opener pre-fetched: the dialog is mounted lazily, so a config
     // arriving later would leave the form empty and the edit values would not transfer.
-    const fieldDescriptors = this.callParam.formDefinition.fieldDescriptorInputAndShows;
+    const fieldDescriptors = this.callParam().formDefinition.fieldDescriptorInputAndShows;
     this.config = [
       DynamicFieldHelper.createFieldInputButton(DataType.String, 'securityName', 'SECURITY', this.searchSecurity, true),
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'noDataSince', fieldDescriptors),
@@ -99,12 +99,13 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
     // On an edit the instrument is fixed, so the search button is disabled rather than left to be pressed in vain.
     // Undefined and not false in the create case: the button binds through [attr.disabled], which renders a present
     // disabled="false" attribute for a false value and would take the button away exactly when it is needed.
-    this.configObject.securityName.disabled = this.callParam.bankruptSecurity ? true : undefined;
+    this.configObject.securityName.disabled = this.callParam().bankruptSecurity ? true : undefined;
     this.form().setDefaultValuesAndEnableSubmit();
-    if (this.callParam.bankruptSecurity) {
-      this.form().transferBusinessObjectToForm(this.callParam.bankruptSecurity);
+    const callParam = this.callParam();
+    if (callParam.bankruptSecurity) {
+      this.form().transferBusinessObjectToForm(callParam.bankruptSecurity);
     }
-    this.configObject.securityName.formControl.setValue(this.callParam.securityName ?? '');
+    this.configObject.securityName.formControl.setValue(callParam.securityName ?? '');
   }
 
   handleSecuritySearchClick(fieldConfig: FieldConfig): void {
@@ -144,9 +145,10 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): BankruptSecurity {
     const bankruptSecurity = new BankruptSecurity();
-    this.copyFormToPrivateBusinessObject(bankruptSecurity, this.callParam.bankruptSecurity);
-    bankruptSecurity.idSecuritycurrency = this.callParam.bankruptSecurity
-      ? this.callParam.bankruptSecurity.idSecuritycurrency
+    const callParam = this.callParam();
+    this.copyFormToPrivateBusinessObject(bankruptSecurity, callParam.bankruptSecurity);
+    bankruptSecurity.idSecuritycurrency = callParam.bankruptSecurity
+      ? callParam.bankruptSecurity.idSecuritycurrency
       : this.selectedSecurity?.idSecuritycurrency;
     return bankruptSecurity;
   }

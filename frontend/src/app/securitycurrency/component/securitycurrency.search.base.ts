@@ -1,5 +1,15 @@
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { afterNextRender, DestroyRef, Directive, inject, Injector, Input, OnInit, viewChild } from '@angular/core';
+import {
+  afterNextRender,
+  DestroyRef,
+  Directive,
+  inject,
+  Injector,
+  OnInit,
+  viewChild,
+  input,
+  linkedSignal
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
@@ -37,7 +47,8 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
 
   // Access child components
   readonly dynamicFormComponent = viewChild(DynamicFormComponent);
-  @Input() supplementCriteria: SupplementCriteria;
+  readonly supplementCriteriaInput = input<SupplementCriteria>(undefined, { alias: 'supplementCriteria' });
+  readonly supplementCriteria = linkedSignal(() => this.supplementCriteriaInput());
 
   // Groups are manly for the handling of inputs visibility
   readonly firstGroup = 'G1';
@@ -142,7 +153,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   protected initialize(): void {
     this.dynamicFormComponent().form.setValidators(atLeastOneFieldValidator);
     const denyAssetClass = [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN];
-    if (this.supplementCriteria && this.supplementCriteria.onlySecurity) {
+    if (this.supplementCriteria() && this.supplementCriteria().onlySecurity) {
       denyAssetClass.push(AssetclassType.CURRENCY_PAIR);
     }
 

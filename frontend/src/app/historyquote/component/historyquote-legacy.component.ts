@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnChanges, OnDestroy, signal, SimpleChanges, output } from '@angular/core';
+import { Component, Injector, OnChanges, OnDestroy, signal, SimpleChanges, output, input } from '@angular/core';
 
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -100,7 +100,7 @@ import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy
     @if (visibleApplySplitDialog()) {
       <historyquote-legacy-apply-split-dialog
         [visibleDialog]="visibleApplySplitDialog()"
-        [idSecuritycurrency]="idSecuritycurrency"
+        [idSecuritycurrency]="idSecuritycurrency()"
         (closeDialog)="handleSplitDialogClose($event)" />
     }
 
@@ -125,7 +125,7 @@ export class HistoryquoteLegacyComponent
   extends HistoryquoteTableBase<HistoryquoteLegacy>
   implements OnChanges, OnDestroy
 {
-  @Input() idSecuritycurrency: number;
+  readonly idSecuritycurrency = input<number>(undefined);
   readonly showLiveRequested = output<void>();
 
   callParam: HistoryquoteLegacySecurityCurrency;
@@ -193,7 +193,7 @@ export class HistoryquoteLegacyComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['idSecuritycurrency'] && this.idSecuritycurrency != null) {
+    if (changes['idSecuritycurrency'] && this.idSecuritycurrency() != null) {
       this.loadSecuritycurrencyAndData();
     }
   }
@@ -203,12 +203,12 @@ export class HistoryquoteLegacyComponent
   }
 
   readData(): void {
-    if (this.idSecuritycurrency == null) {
+    if (this.idSecuritycurrency() == null) {
       return;
     }
     this.rowsSubscription?.unsubscribe();
     this.rowsSubscription = this.historyquoteLegacyService
-      .getLegacyForSecurity(this.idSecuritycurrency)
+      .getLegacyForSecurity(this.idSecuritycurrency())
       .subscribe((rows) => {
         this.entityList.set(rows ?? []);
         this.refreshSelectedEntity();
@@ -284,7 +284,7 @@ export class HistoryquoteLegacyComponent
       'IMPORT_QUOTES',
       false,
       this.legacyUploadAdapter,
-      this.idSecuritycurrency,
+      this.idSecuritycurrency(),
       this.supportedCSVFormats,
       BaseSettings.CSV_EXPORT_FORMAT
     );
@@ -314,8 +314,8 @@ export class HistoryquoteLegacyComponent
   }
 
   private loadSecuritycurrencyAndData(): void {
-    const cpObservable = this.currencypairService.getCurrencypairByIdSecuritycurrency(this.idSecuritycurrency);
-    const securityObservable = this.securityService.getSecurityByIdSecuritycurrency(this.idSecuritycurrency);
+    const cpObservable = this.currencypairService.getCurrencypairByIdSecuritycurrency(this.idSecuritycurrency());
+    const securityObservable = this.securityService.getSecurityByIdSecuritycurrency(this.idSecuritycurrency());
     this.instrumentSubscription?.unsubscribe();
     this.instrumentSubscription = combineLatest([cpObservable, securityObservable]).subscribe((data: any[]) => {
       this.securitycurrency = data[0]
@@ -331,7 +331,7 @@ export class HistoryquoteLegacyComponent
       this.confirmationService,
       'HISTORYQUOTE_LEGACY_DELETE_ALL_CONFIRM',
       () => {
-        this.historyquoteLegacyService.deleteAllLegacyForSecurity(this.idSecuritycurrency).subscribe(() => {
+        this.historyquoteLegacyService.deleteAllLegacyForSecurity(this.idSecuritycurrency()).subscribe(() => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'HISTORYQUOTE_LEGACY_DELETE_ALL');
           this.entityList.set([]);
           this.showLiveRequested.emit();

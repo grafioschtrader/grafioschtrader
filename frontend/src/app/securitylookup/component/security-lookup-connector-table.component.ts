@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnChanges, SimpleChanges, output } from '@angular/core';
+import { Component, Injector, OnChanges, SimpleChanges, output, input, linkedSignal } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { MessageModule } from '@openng/optimus-ui/message';
@@ -23,14 +23,16 @@ import { Helper } from '../../lib/helper/helper';
   selector: 'security-lookup-connector-table',
   imports: [ConfigurableTableComponent, TranslateModule, MessageModule],
   template: `
-    <div [class.lookup-table-disabled]="disabled">
+    @let disabledMessageKeyValue = disabledMessageKey();
+
+    <div [class.lookup-table-disabled]="disabled()">
       <configurable-table
-        [data]="alternatives"
+        [data]="alternatives()"
         [fields]="fields"
         [fieldsRevision]="fieldsRevision()"
         dataKey="idConnector"
-        [selectionMode]="disabled ? null : 'single'"
-        [selection]="selectedAlternative"
+        [selectionMode]="disabled() ? null : 'single'"
+        [selection]="selectedAlternative()"
         [rowSelectableFn]="isSelectable"
         [rowClassFn]="rowClass"
         (selectionChange)="onSelectionChange($event)"
@@ -40,10 +42,10 @@ import { Helper } from '../../lib/helper/helper';
         [contextMenuEnabled]="false"
         [scrollable]="false"
         [baseLocale]="baseLocale">
-        <h5 caption>{{ titleKey | translate }}</h5>
+        <h5 caption>{{ titleKey() | translate }}</h5>
       </configurable-table>
-      @if (disabled && disabledMessageKey) {
-        <p-message severity="info" [text]="disabledMessageKey | translate" />
+      @if (disabled() && disabledMessageKeyValue) {
+        <p-message severity="info" [text]="disabledMessageKeyValue | translate" />
       }
     </div>
   `,
@@ -64,25 +66,26 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase imple
   private readonly distributionFrequencyColumn: ColumnConfig;
 
   /** Translation key of the table title, e.g. ID_CONNECTOR_HISTORY */
-  @Input() titleKey: string;
+  readonly titleKey = input<string>(undefined);
 
   /** Feed of the table; decides whether a connector without data may be chosen */
-  @Input() feed: LookupFeed;
+  readonly feed = input<LookupFeed>(undefined);
 
   /** Connectors offered for this feed */
-  @Input() alternatives: ConnectorAlternative[] = [];
+  readonly alternatives = input<ConnectorAlternative[]>([]);
 
   /** The chosen connector; the dialog preselects it when only one usable connector exists */
-  @Input() selectedAlternative: ConnectorAlternative;
+  readonly selectedAlternativeInput = input<ConnectorAlternative>(undefined, { alias: 'selectedAlternative' });
+  readonly selectedAlternative = linkedSignal(() => this.selectedAlternativeInput());
 
   /** Shows the distribution frequency derived from the dividends; only meaningful in the dividend table */
-  @Input() showDistributionFrequency = false;
+  readonly showDistributionFrequency = input(false);
 
   /** Shows the table greyed out without selection, e.g. the dividend table of an instrument that pays nothing */
-  @Input() disabled = false;
+  readonly disabled = input(false);
 
   /** Translation key of the hint shown below a disabled table */
-  @Input() disabledMessageKey: string;
+  readonly disabledMessageKey = input<string>(undefined);
 
   /** Emits the chosen connector, or null when the selection is removed */
   readonly alternativeSelected = output<ConnectorAlternative>();
@@ -123,11 +126,12 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase imple
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['showDistributionFrequency']) {
-      this.distributionFrequencyColumn.visible = this.showDistributionFrequency;
+      this.distributionFrequencyColumn.visible = this.showDistributionFrequency();
       this.notifyViewChanged();
     }
-    if (changes['alternatives'] && this.alternatives) {
-      this.createTranslatedValueStore(this.alternatives);
+    const alternatives = this.alternatives();
+    if (changes['alternatives'] && alternatives) {
+      this.createTranslatedValueStore(alternatives);
     }
   }
 
@@ -138,7 +142,7 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase imple
    * @returns True when the row is selectable
    */
   readonly isSelectable = (alternative: ConnectorAlternative): boolean => {
-    return isUsableAlternative(this.feed, alternative);
+    return isUsableAlternative(this.feed(), alternative);
   };
 
   /**
@@ -158,7 +162,7 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase imple
    */
   onSelectionChange(selection: ConnectorAlternative | ConnectorAlternative[]): void {
     const alternative = Helper.singleSelection(selection);
-    this.selectedAlternative = alternative;
+    this.selectedAlternative.set(alternative);
     this.alternativeSelected.emit(alternative);
   }
 }

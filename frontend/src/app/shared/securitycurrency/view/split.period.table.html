@@ -40,7 +40,7 @@
     </tr>
   </ng-template>
   <ng-template let-state pTemplate="paginatorleft">
-    {{dataList().length}} {{maxRowMessageKey | translate}} {{maxRows}}
+    {{dataList().length}} {{maxRowMessageKey | translate}} {{maxRows()}}
   </ng-template>
 </p-table>
 

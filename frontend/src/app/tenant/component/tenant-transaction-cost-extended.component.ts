@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnDestroy, OnInit, viewChild } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, viewChild, input, linkedSignal } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
@@ -42,11 +42,11 @@ import { TransactionService } from '../../transaction/service/transaction.servic
       <div class="datatable nestedtable">
         <p-table
           [columns]="fields"
-          [value]="transactionCostPositions"
+          [value]="transactionCostPositions()"
           selectionMode="single"
           [(selection)]="baseSelectedRow"
           #dataTable
-          [first]="firstRowIndex"
+          [first]="firstRowIndex()"
           (onRowSelect)="onRowSelect($event)"
           (onRowUnselect)="onRowUnselect($event)"
           (onPage)="onPage($event)"
@@ -105,16 +105,17 @@ import { TransactionService } from '../../transaction/service/transaction.servic
 })
 export class TenantTransactionCostExtendedComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   /** Array of transaction cost positions to be displayed in the table */
-  @Input() transactionCostPositions: TransactionCostPosition[];
+  readonly transactionCostPositions = input<TransactionCostPosition[]>(undefined);
 
   /** Grand summary containing aggregated transaction cost data and main currency information */
-  @Input() transactionCostGrandSummary: TransactionCostGrandSummary;
+  readonly transactionCostGrandSummary = input<TransactionCostGrandSummary>(undefined);
 
   /** Currently selected row in the table */
-  @Input() baseSelectedRow: TransactionCostPosition;
+  readonly baseSelectedRowInput = input<TransactionCostPosition>(undefined, { alias: 'baseSelectedRow' });
+  readonly baseSelectedRow = linkedSignal(() => this.baseSelectedRowInput());
 
   /** Index of the first row displayed on the current page */
-  @Input() firstRowIndex: number;
+  readonly firstRowIndex = input<number>(undefined);
 
   /** Reference to the Optimus table component for accessing table functionality like CSV export */
   readonly dataTable = viewChild<Table>('dataTable');
@@ -186,27 +187,28 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
     this.addColumn(DataType.Numeric, 'transaction.transactionCost', 'TRANSACTION_COST', true, false, {
       currencyPrecisionField: 'transaction.security.currency'
     });
+    const transactionCostGrandSummary = this.transactionCostGrandSummary();
     this.addColumn(DataType.Numeric, 'taxCostMC', 'TAX_COST', true, false, {
-      headerSuffix: this.transactionCostGrandSummary.mainCurrency,
-      fixedCurrency: this.transactionCostGrandSummary.mainCurrency
+      headerSuffix: transactionCostGrandSummary.mainCurrency,
+      fixedCurrency: transactionCostGrandSummary.mainCurrency
     });
     this.addColumn(DataType.Numeric, 'basePriceForTransactionCostMC', 'NET_VALUE_TRANSACTION', true, false, {
-      headerSuffix: this.transactionCostGrandSummary.mainCurrency,
-      fixedCurrency: this.transactionCostGrandSummary.mainCurrency
+      headerSuffix: transactionCostGrandSummary.mainCurrency,
+      fixedCurrency: transactionCostGrandSummary.mainCurrency
     });
     this.addColumn(DataType.Numeric, 'transaction.currencyExRate', 'EXCHANGE_RATE', true, false);
     this.addColumn(DataType.Numeric, 'transactionCostMC', 'TRANSACTION_COST', true, false, {
-      headerSuffix: this.transactionCostGrandSummary.mainCurrency,
-      fixedCurrency: this.transactionCostGrandSummary.mainCurrency
+      headerSuffix: transactionCostGrandSummary.mainCurrency,
+      fixedCurrency: transactionCostGrandSummary.mainCurrency
     });
     this.multiSortMeta.push({
       field: 'transaction.transactionTime',
       order: -1
     });
     this.prepareTableAndTranslate();
-    this.createTranslatedValueStoreAndFilterField(this.transactionCostPositions);
-    if (this.baseSelectedRow) {
-      this.selectedTransaction.set(this.baseSelectedRow.transaction);
+    this.createTranslatedValueStoreAndFilterField(this.transactionCostPositions());
+    if (this.baseSelectedRow()) {
+      this.selectedTransaction.set(this.baseSelectedRow().transaction);
     }
   }
 

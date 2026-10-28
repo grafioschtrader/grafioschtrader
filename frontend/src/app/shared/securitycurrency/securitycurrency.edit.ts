@@ -1,4 +1,4 @@
-import { afterNextRender, DestroyRef, Directive, inject, Injector, Input, output, viewChild } from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, inject, Injector, output, viewChild, input } from '@angular/core';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FeedIdentifier, FeedSupport, IFeedConnector } from './ifeed.connector';
@@ -25,8 +25,8 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   protected readonly injector = inject(Injector);
   private dialogSession = new Subscription();
   // Input from parent component
-  @Input() securityCurrencypairCallParam: Security | Securitycurrency;
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  readonly securityCurrencypairCallParam = input<Security | Securitycurrency>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
   // Access child components
   readonly dynamicForm = viewChild(DynamicFormComponent);
   // Output for parent view
@@ -115,10 +115,10 @@ export abstract class SecuritycurrencyEdit extends FormBase {
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
-      this.securityCurrencypairCallParam,
+      this.securityCurrencypairCallParam(),
       this.dynamicForm(),
       this.configObject,
-      this.proposeChangeEntityWithEntity
+      this.proposeChangeEntityWithEntity()
     );
     focusControl.elementRef.nativeElement.focus();
   }

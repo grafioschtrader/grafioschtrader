@@ -66,17 +66,18 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
   }
 
   protected initialize(): void {
-    const parentAssetclass = <AlgoAssetclass>this.algoCallParam.parentObject;
+    const parentAssetclass = <AlgoAssetclass>this.algoCallParam().parentObject;
     let securitiesObservable: Observable<Security[]>;
-    if (parentAssetclass.name != null && this.algoCallParam.idWatchlist != null) {
+    const algoCallParam = this.algoCallParam();
+    if (parentAssetclass.name != null && algoCallParam.idWatchlist != null) {
       securitiesObservable = this.securityService.getUnusedSecurityForAlgoCustom(
-        this.algoCallParam.idWatchlist,
+        algoCallParam.idWatchlist,
         parentAssetclass.idAlgoAssetclassSecurity
       );
     } else {
       securitiesObservable = this.securityService.getUnusedSecurityForAlgo(parentAssetclass.idAlgoAssetclassSecurity);
     }
-    const existing = <AlgoSecurity>this.algoCallParam.thisObject;
+    const existing = <AlgoSecurity>algoCallParam.thisObject;
     const accountOptionsObservable: Observable<ValueKeyHtmlSelectOptions[]> = this.getAccountOptions(
       existing?.security?.idSecuritycurrency
     );
@@ -104,7 +105,7 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
         };
         this.configObject.security.groupItem = createAlgoSecurityOptions(
           this.configObject.security.referencedDataObject,
-          this.algoCallParam.referenceDate,
+          this.algoCallParam().referenceDate,
           (security, field) =>
             AppHelper.getValueByPathWithField(this.gps, this.translateService, security, dateFields[field], field),
           {
@@ -133,11 +134,12 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoSecurity {
     const algoSecurity = new AlgoSecurity();
-    if (this.algoCallParam.thisObject) {
-      Object.assign(algoSecurity, this.algoCallParam.thisObject);
+    const algoCallParam = this.algoCallParam();
+    if (algoCallParam.thisObject) {
+      Object.assign(algoSecurity, algoCallParam.thisObject);
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(algoSecurity);
-    algoSecurity.idAlgoSecurityParent = (<AlgoAssetclass>this.algoCallParam.parentObject).idAlgoAssetclassSecurity;
+    algoSecurity.idAlgoSecurityParent = (<AlgoAssetclass>algoCallParam.parentObject).idAlgoAssetclassSecurity;
     return algoSecurity;
   }
 }

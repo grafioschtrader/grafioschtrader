@@ -3,14 +3,13 @@ import {
   ElementRef,
   forwardRef,
   Inject,
-  Input,
-  OnDestroy,
-  OnInit,
   Renderer2,
+  computed,
+  effect,
+  input,
   signal,
   untracked
 } from '@angular/core';
-import { of, startWith, Subscription, switchMap } from 'rxjs';
 import { NgxErrorsDirective } from './ngxerrors.directive';
 import { ErrorOptions } from './ngxerrors';
 import { toArray } from './toArray';
@@ -21,84 +20,53 @@ import { RuleEvent } from './error.message.rules';
  * for example 'touched' or 'dirty'. A message with the rule {@link RuleEvent.FOCUSOUT} shows only after the focus has
  * left the input element once.
  *
- * The visibility is recomputed from the events of the control and from the focusout listener, never by polling, so a
- * programmatic updateValueAndValidity() shows or hides the message as well.
+ * The visibility follows the control signal, its events and the focusout listener, never polling. Effects replace
+ * the subscription and listener when their inputs change and dispose them with the directive.
  */
 @Directive({
   selector: '[ngxError]',
   host: { '[hidden]': 'hidden()' }
 })
-export class NgxErrorDirective implements OnInit, OnDestroy {
-  /** Whether the message is hidden; bound to the hidden property of the host element */
+export class NgxErrorDirective {
   readonly hidden = signal(true);
+  /** Element of the input; it may arrive after the error message has rendered. */
+  readonly elementRef = input<ElementRef>();
+  readonly ngxError = input<ErrorOptions>();
+  readonly when = input<ErrorOptions>();
 
+  private readonly rules = computed(() => toArray(this.when()));
+  private readonly errorNames = computed(() => toArray(this.ngxError()));
   private overrule = false;
-  private rules: string[] = [];
-  private errorNames: string[] = [];
-  private element: ElementRef;
-  private subscription: Subscription;
-  private focusOutListener: () => void;
 
   constructor(
-    @Inject(forwardRef(() => NgxErrorsDirective))
-    private ngxErrors: NgxErrorsDirective,
+    @Inject(forwardRef(() => NgxErrorsDirective)) private ngxErrors: NgxErrorsDirective,
     private renderer: Renderer2
-  ) {}
-
-  /** Element of the input; set once the input component is rendered, which may be after this directive */
-  @Input()
-  set elementRef(value: ElementRef) {
-    if (value !== this.element) {
-      this.removeFocusOutListener();
-      this.element = value;
-      this.addFocusOutListener();
-    }
-  }
-
-  @Input()
-  set ngxError(value: ErrorOptions) {
-    this.errorNames = toArray(value);
-    this.recompute();
-  }
-
-  @Input()
-  set when(value: ErrorOptions) {
-    this.rules = toArray(value);
-    this.removeFocusOutListener();
-    this.addFocusOutListener();
-    this.recompute();
-  }
-
-  ngOnInit(): void {
-    this.subscription = this.ngxErrors.control$
-      .pipe(switchMap((control) => (control ? control.events.pipe(startWith(null)) : of(null))))
-      .subscribe(() => this.recompute());
-  }
-
-  ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
-    this.removeFocusOutListener();
+  ) {
+    effect((onCleanup) => {
+      const control = this.ngxErrors.control();
+      this.rules();
+      this.errorNames();
+      untracked(() => this.recompute());
+      const subscription = control?.events.subscribe(() => this.recompute());
+      onCleanup(() => subscription?.unsubscribe());
+    });
+    effect((onCleanup) => {
+      const element = this.elementRef();
+      if (element?.nativeElement && this.rules().includes(RuleEvent.FOCUSOUT)) {
+        const unlisten = this.renderer.listen(element.nativeElement, RuleEvent.FOCUSOUT, () => {
+          this.overrule = true;
+          this.recompute();
+        });
+        onCleanup(unlisten);
+      }
+    });
   }
 
   private recompute(): void {
-    const control = this.ngxErrors.control;
-    const rulesMet = !!control && this.rules.every((rule) => !!(control as any)[rule]);
+    const control = this.ngxErrors.control();
+    const rulesMet = !!control && this.rules().every((rule) => !!(control as any)[rule]);
     const visible =
-      !!control && (rulesMet || this.overrule) && this.errorNames.some((errorName) => control.hasError(errorName));
+      !!control && (rulesMet || this.overrule) && this.errorNames().some((name) => control.hasError(name));
     untracked(() => this.hidden.set(!visible));
-  }
-
-  private addFocusOutListener(): void {
-    if (!this.focusOutListener && this.element?.nativeElement && this.rules.indexOf(RuleEvent.FOCUSOUT) >= 0) {
-      this.focusOutListener = this.renderer.listen(this.element.nativeElement, RuleEvent.FOCUSOUT, () => {
-        this.overrule = true;
-        this.recompute();
-      });
-    }
-  }
-
-  private removeFocusOutListener(): void {
-    this.focusOutListener?.();
-    this.focusOutListener = null;
   }
 }

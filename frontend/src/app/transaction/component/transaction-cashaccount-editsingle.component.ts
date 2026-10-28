@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { Portfolio } from '../../entities/portfolio';
@@ -42,7 +42,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   template: `
     <p-dialog
       header="{{ 'SINGLE_ACCOUNT_TRANSACTION' | translate }}"
-      [visible]="visibleCashaccountTransactionSingleDialog"
+      [visible]="visibleCashaccountTransactionSingleDialog()"
       [style]="{ width: '400px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -65,7 +65,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
 })
 export class TransactionCashaccountEditSingleComponent extends TransactionCashaccountBaseOperations implements OnInit {
   /** Controls visibility of the cash account transaction dialog */
-  @Input() visibleCashaccountTransactionSingleDialog: boolean;
+  readonly visibleCashaccountTransactionSingleDialog = input<boolean>(undefined);
 
   /** Form configuration object containing locale and validation settings */
   formConfig: FormConfig;
@@ -164,7 +164,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * @returns True if dialog should be visible
    */
   isVisibleDialog(): boolean {
-    return this.visibleCashaccountTransactionSingleDialog;
+    return this.visibleCashaccountTransactionSingleDialog();
   }
 
   /**
@@ -247,8 +247,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         this.updateTransactionTimeValidator(effectiveClosedUntil);
 
         // Check if existing transaction is within closed period
-        if (this.transactionCallParam.transaction) {
-          this.checkTransactionLocked(effectiveClosedUntil, this.transactionCallParam.transaction.transactionTime);
+        const transactionCallParam = this.transactionCallParam();
+        if (transactionCallParam.transaction) {
+          this.checkTransactionLocked(effectiveClosedUntil, transactionCallParam.transaction.transactionTime);
         }
 
         const precision = this.gps.getCurrencyPrecision(this.cashaccountCurrency);
@@ -301,8 +302,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    */
   submit(value: { [name: string]: any }) {
     const transaction: Transaction = new Transaction();
-    if (this.transactionCallParam.transaction) {
-      Object.assign(transaction, this.transactionCallParam.transaction);
+    const transactionCallParam = this.transactionCallParam();
+    if (transactionCallParam.transaction) {
+      Object.assign(transaction, transactionCallParam.transaction);
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(transaction);
     transaction.cashaccount = this.getCashaccountByIdCashaccountFromPortfolios(
@@ -345,7 +347,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       [TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT, TransactionType.WITHDRAWAL, TransactionType.FEE]
     );
     this.selectSingleOptions(this.configObject.transactionType, true);
-    if (this.transactionCallParam.portfolio) {
+    if (this.transactionCallParam().portfolio) {
       this.getSinglePortfolioByIdPortfolio();
     } else {
       this.getAllPortfolios();
@@ -406,7 +408,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   private getSinglePortfolioByIdPortfolio(): void {
     // Portfolio maybe out of date
     this.portfolioService
-      .getPortfolioByIdPortfolio(this.transactionCallParam.portfolio.idPortfolio)
+      .getPortfolioByIdPortfolio(this.transactionCallParam().portfolio.idPortfolio)
       .pipe(this.untilDialogClosed())
       .subscribe((portfolio: Portfolio) => {
         // this.transactionCallParam.portfolio = portfolio;
@@ -438,16 +440,17 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Sets existing transaction data to form fields or sets default values for new transactions.
    */
   private setExistingTransactionToView(): void {
-    if (this.transactionCallParam.transaction === null) {
-      this.configObject.idCashaccount.formControl.setValue(this.transactionCallParam.cashaccount.idSecuritycashAccount);
+    const transactionCallParam = this.transactionCallParam();
+    if (transactionCallParam.transaction === null) {
+      this.configObject.idCashaccount.formControl.setValue(transactionCallParam.cashaccount.idSecuritycashAccount);
       this.changeTransactionType(this.configObject.transactionType.formControl.value);
     } else {
-      this.form().transferBusinessObjectToForm(this.transactionCallParam.transaction);
+      this.form().transferBusinessObjectToForm(transactionCallParam.transaction);
       this.configObject.cashaccountAmount.formControl.setValue(
-        BusinessHelper.getTotalAmountFromTransaction(this.transactionCallParam.transaction) -
-          (this.transactionCallParam.transaction.transactionCost === null
+        BusinessHelper.getTotalAmountFromTransaction(transactionCallParam.transaction) -
+          (transactionCallParam.transaction.transactionCost === null
             ? 0
-            : this.transactionCallParam.transaction.transactionCost)
+            : transactionCallParam.transaction.transactionCost)
       );
     }
   }

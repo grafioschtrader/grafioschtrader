@@ -6,9 +6,9 @@ import {
   DestroyRef,
   signal,
   Component,
-  Input,
   OnInit,
-  viewChild
+  viewChild,
+  input
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -170,7 +170,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   private readonly http = inject(HttpClient);
   private formRender: ReturnType<typeof afterNextRender>;
   readonly yamlEditor = viewChild(YamlEditorComponent);
-  @Input() algoCallParam: AlgoCallParam;
+  readonly algoCallParam = input<AlgoCallParam>(undefined);
 
   dynamicModel: any = {};
   algoStrategyImplementationsChangedSub: Subscription;
@@ -221,13 +221,14 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.config[this.config.length - 1].invisible = false;
     this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.enable();
     this.valueChangedOnAlgoStrategyImplementation();
-    if (this.algoCallParam.thisObject) {
+    const algoCallParam = this.algoCallParam();
+    if (algoCallParam.thisObject) {
       this.ignoreValueChanged = false;
       this.preparePossibleStrategies();
     } else {
       const possibleValues: AlgoStrategyImplementationType[] =
-        this.algoCallParam.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
-          this.algoCallParam.parentObject.idAlgoAssetclassSecurity
+        algoCallParam.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
+          algoCallParam.parentObject.idAlgoAssetclassSecurity
         );
       this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromEnum(
@@ -288,12 +289,13 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       SelectOptionsHelper.createHtmlOptionsFromEnum(
         this.translateService,
         AlgoStrategyImplementationType,
-        [AlgoStrategyImplementationType[(<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations]],
+        [AlgoStrategyImplementationType[(<AlgoStrategy>this.algoCallParam().thisObject).algoStrategyImplementations]],
         false
       );
-    this.createViewFromSelectedEnum((<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations);
+    const algoCallParam = this.algoCallParam();
+    this.createViewFromSelectedEnum((<AlgoStrategy>algoCallParam.thisObject).algoStrategyImplementations);
     this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.setValue(
-      (<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations
+      (<AlgoStrategy>algoCallParam.thisObject).algoStrategyImplementations
     );
   }
 
@@ -313,21 +315,21 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     const request = this.replaceAlgoRequest('strategy');
     this.formRender?.destroy();
     const asiNo: number = AlgoStrategyImplementationType[asi];
-    const inputAndShowDefinition = this.algoCallParam.algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asiNo);
+    const inputAndShowDefinition = this.algoCallParam().algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asiNo);
     if (!inputAndShowDefinition) {
       request.add(
         this.algoStrategyService
           .getFormDefinitionsByAlgoStrategy(asiNo)
           .pipe(this.untilDialogClosed())
           .subscribe((iasd) => {
-            this.algoCallParam.algoStrategyDefinitionForm.inputAndShowDefinitionMap.set(asiNo, iasd);
+            this.algoCallParam().algoStrategyDefinitionForm.inputAndShowDefinitionMap.set(asiNo, iasd);
             if (iasd.isComplexStrategy) {
               this.isComplexStrategy.set(true);
               this.createComplexStrategyInput();
             } else {
               this.isComplexStrategy.set(false);
               this.setFormDefinition(
-                AlgoStrategyHelper.getFormDefinitionByLevel(this.algoCallParam.parentObject, iasd)
+                AlgoStrategyHelper.getFormDefinitionByLevel(this.algoCallParam().parentObject, iasd)
               );
               this.strategyDefaults = iasd.defaultValues ?? {};
               this.createDynamicInputFields();
@@ -341,7 +343,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       } else {
         this.isComplexStrategy.set(false);
         this.setFormDefinition(
-          AlgoStrategyHelper.getFormDefinitionByLevel(this.algoCallParam.parentObject, inputAndShowDefinition)
+          AlgoStrategyHelper.getFormDefinitionByLevel(this.algoCallParam().parentObject, inputAndShowDefinition)
         );
         this.strategyDefaults = inputAndShowDefinition.defaultValues ?? {};
         this.createDynamicInputFields();
@@ -366,7 +368,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.viewChanged();
 
-    if (this.algoCallParam.thisObject) {
+    if (this.algoCallParam().thisObject) {
       this.formRender = afterNextRender(() => this.setExistingComplexModel(), { injector: this.injector });
     } else {
       this.loadTemplate();
@@ -378,7 +380,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    */
   private setExistingComplexModel(): void {
     this.ignoreValueChanged = true;
-    const algoStrategy = <AlgoStrategy>this.algoCallParam.thisObject;
+    const algoStrategy = <AlgoStrategy>this.algoCallParam().thisObject;
     const model: any = {};
     model.activatable = algoStrategy.activatable;
     model[AlgoStrategyHelper.FIELD_STRATEGY_IMPL] = algoStrategy.algoStrategyImplementations;
@@ -431,7 +433,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.viewChanged();
 
-    if (this.algoCallParam.thisObject) {
+    if (this.algoCallParam().thisObject) {
       this.formRender = afterNextRender(() => this.setExistingModel(), { injector: this.injector });
     }
   }
@@ -439,9 +441,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   private setExistingModel(): void {
     this.ignoreValueChanged = true;
     const dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
-      (<AlgoStrategy>this.algoCallParam.thisObject)[AlgoStrategyHelper.FIELD_STRATEGY_IMPL],
+      (<AlgoStrategy>this.algoCallParam().thisObject)[AlgoStrategyHelper.FIELD_STRATEGY_IMPL],
       AlgoStrategyHelper.FIELD_STRATEGY_IMPL,
-      (<AlgoStrategy>this.algoCallParam.thisObject).algoRuleStrategyParamMap,
+      (<AlgoStrategy>this.algoCallParam().thisObject).algoRuleStrategyParamMap,
       this.fieldDescriptorInputAndShows,
       true
     );
@@ -455,11 +457,12 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoStrategy {
     const algoStrategy: AlgoStrategy = new AlgoStrategy();
-    if (this.algoCallParam.thisObject) {
-      Object.assign(algoStrategy, this.algoCallParam.thisObject);
+    const algoCallParam = this.algoCallParam();
+    if (algoCallParam.thisObject) {
+      Object.assign(algoStrategy, algoCallParam.thisObject);
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(algoStrategy);
-    algoStrategy.idAlgoAssetclassSecurity = this.algoCallParam.parentObject.idAlgoAssetclassSecurity;
+    algoStrategy.idAlgoAssetclassSecurity = algoCallParam.parentObject.idAlgoAssetclassSecurity;
 
     if (this.isComplexStrategy()) {
       // submitComplexStrategy has already rejected unparseable content, so this parse cannot fail on the normal path.

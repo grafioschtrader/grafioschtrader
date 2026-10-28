@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input, linkedSignal } from '@angular/core';
 import { MainDialogService } from '../../mainmenubar/service/main.dialog.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LoginService } from '../service/log-in.service';
@@ -26,10 +26,10 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   selector: 'password-edit',
   template: ` <p-dialog
     header="{{ 'PASSWORD_CHANGE' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '450px' }"
-    [closeOnEscape]="!forcePasswordChange"
-    [closable]="!forcePasswordChange"
+    [closeOnEscape]="!forcePasswordChange()"
+    [closable]="!forcePasswordChange()"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
     [modal]="true">
@@ -43,8 +43,9 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class PasswordEditComponent extends PasswordBaseComponent implements OnInit {
-  @Input() forcePasswordChange: boolean;
-  @Input() visibleDialog: boolean;
+  readonly forcePasswordChange = input<boolean>(undefined);
+  readonly visibleDialogInput = input<boolean>(undefined, { alias: 'visibleDialog' });
+  readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
 
   private static readonly passwordOld = 'passwordOld';
 
@@ -76,10 +77,10 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
       this.messageToastService.showMessage(InfoLevelType.INFO, successfullyChanged.message);
       this.loginService.logoutWithLoginView();
     });
-    if (!this.forcePasswordChange) {
+    if (!this.forcePasswordChange()) {
       this.mainDialogService.visibleDialog(false, UserSettingsDialogs.Password);
     } else {
-      this.visibleDialog = false;
+      this.visibleDialog.set(false);
     }
   }
 

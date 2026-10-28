@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, OnChanges, input } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -13,7 +13,7 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
   selector: 'tax-details-table',
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
-    [data]="rows"
+    [data]="rows()"
     [fields]="fields"
     [fieldsRevision]="fieldsRevision()"
     [valueGetterFn]="valueGetter"
@@ -22,10 +22,10 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
     [multiSortMeta]="multiSortMeta" />`
 })
 export class TaxDetailsTableComponent extends TableConfigBase implements OnChanges {
-  @Input() rows: any[] = [];
-  @Input() mode: 'estimate' | 'matches' | 'warnings' | 'income' = 'warnings';
+  readonly rows = input<any[]>([]);
+  readonly mode = input<'estimate' | 'matches' | 'warnings' | 'income'>('warnings');
   /** Currency inherited from the estimate for match rows, which do not repeat it on every diagnostic. */
-  @Input() currency?: string;
+  readonly currency = input<string>(undefined);
   private initialized = false;
 
   constructor(
@@ -39,13 +39,14 @@ export class TaxDetailsTableComponent extends TableConfigBase implements OnChang
 
   ngOnChanges(): void {
     if (!this.initialized) {
+      const mode = this.mode();
       const columns: [string, DataType][] =
-        this.mode === 'estimate'
+        mode === 'estimate'
           ? [
               ['estimatedTax', DataType.Numeric],
               ['currency', DataType.String]
             ]
-          : this.mode === 'matches'
+          : mode === 'matches'
             ? [
                 ['country', DataType.String],
                 ['section', DataType.String],
@@ -54,7 +55,7 @@ export class TaxDetailsTableComponent extends TableConfigBase implements OnChang
                 ['rule', DataType.String],
                 ['amount', DataType.Numeric]
               ]
-            : this.mode === 'income'
+            : mode === 'income'
               ? [
                   ['kind', DataType.String],
                   ['currency', DataType.String],
@@ -86,9 +87,10 @@ export class TaxDetailsTableComponent extends TableConfigBase implements OnChang
           false,
           ['code', 'kind', 'section'].includes(name) ? { translateValues: TranslateValue.UPPER_CASE } : {}
         );
-      if (this.mode === 'estimate') {
+      const modeValue = this.mode();
+      if (modeValue === 'estimate') {
         this.fields.find((field) => field.field === 'estimatedTax').currencyPrecisionField = 'currency';
-      } else if (this.mode === 'income') {
+      } else if (modeValue === 'income') {
         this.fields
           .filter((field) => field.dataType === DataType.Numeric)
           .forEach((field) => (field.currencyPrecisionField = 'currency'));
@@ -96,10 +98,10 @@ export class TaxDetailsTableComponent extends TableConfigBase implements OnChang
       this.prepareTableAndTranslate();
       this.initialized = true;
     }
-    if (this.mode === 'matches') {
-      this.fields.find((field) => field.field === 'amount').fixedCurrency = this.currency;
+    if (this.mode() === 'matches') {
+      this.fields.find((field) => field.field === 'amount').fixedCurrency = this.currency();
       this.notifyViewChanged();
     }
-    this.createTranslatedValueStore(this.rows);
+    this.createTranslatedValueStore(this.rows());
   }
 }

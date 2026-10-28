@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { TranslateService } from '@ngx-translate/core';
@@ -25,7 +25,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
             {{ field.headerTranslated }}
           </div>
           <div class="gvalue">
-            {{ getValueByPath(historyquoteQuality, field) }}
+            {{ getValueByPath(historyquoteQuality(), field) }}
           </div>
         </div>
       }
@@ -34,8 +34,8 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   imports: [TooltipModule]
 })
 export class HistoryquoteQualityComponent extends SingleRecordConfigBase implements OnInit {
-  @Input() historyquoteQuality: IHistoryquoteQuality;
-  @Input() securitycurrency: Securitycurrency;
+  readonly historyquoteQuality = input<IHistoryquoteQuality>(undefined);
+  readonly securitycurrency = input<Securitycurrency>(undefined);
   private feedConnectorsKV: { [id: string]: string } = {};
 
   constructor(
@@ -82,8 +82,9 @@ export class HistoryquoteQualityComponent extends SingleRecordConfigBase impleme
   }
 
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
-    return Object.entries(this.feedConnectorsKV).length !== 0 && this.securitycurrency
-      ? this.feedConnectorsKV[this.securitycurrency.idConnectorHistory]
+    const securitycurrency = this.securitycurrency();
+    return Object.entries(this.feedConnectorsKV).length !== 0 && securitycurrency
+      ? this.feedConnectorsKV[securitycurrency.idConnectorHistory]
       : null;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, computed, effect, Injector, input, Input, untracked } from '@angular/core';
+import { Component, computed, effect, Injector, input, untracked } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 
@@ -33,14 +33,14 @@ import { hintParams, LookupHintRow } from '../model/security-lookup-hint';
         [contextMenuEnabled]="false"
         [scrollable]="false"
         [baseLocale]="baseLocale">
-        <h5 caption>{{ titleKey | translate }}</h5>
+        <h5 caption>{{ titleKey() | translate }}</h5>
       </configurable-table>
     }
   `
 })
 export class SecurityLookupHintTableComponent extends TableConfigBase {
   /** Translation key of the table title */
-  @Input() titleKey: string;
+  readonly titleKey = input<string>(undefined);
 
   /** Hints to show; the table is hidden when there is none */
   readonly hints = input<SecurityLookupHint[]>([]);

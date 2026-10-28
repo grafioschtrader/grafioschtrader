@@ -1,5 +1,5 @@
 import { AppSettings } from '../../shared/app.settings';
-import { Component, Injector, Input, OnChanges, SimpleChanges, computed } from '@angular/core';
+import { Component, Injector, OnChanges, SimpleChanges, computed, input } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -28,10 +28,12 @@ import {
 @Component({
   selector: 'seasonality-table',
   template: `
-    @if (result && result.yearRows.length > 0) {
+    @let resultValue = result();
+
+    @if (resultValue && resultValue.yearRows.length > 0) {
       <p-table
         [columns]="tableFields()"
-        [value]="result.yearRows"
+        [value]="resultValue.yearRows"
         dataKey="year"
         (sortFunction)="customSort($event)"
         [customSort]="true"
@@ -62,7 +64,7 @@ import {
               <td>
                 <strong>{{ footerRow.labelKey | translate }}</strong>
               </td>
-              @for (cs of result.columnStats; track $index) {
+              @for (cs of resultValue.columnStats; track $index) {
                 <td class="text-end">{{ formatStat(footerRow.value(cs)) }}</td>
               }
             </tr>
@@ -74,7 +76,7 @@ import {
   imports: [FormsModule, TranslateModule, TableModule]
 })
 export class SeasonalityTableComponent extends TableConfigBase implements OnChanges {
-  @Input() result: SeasonalReturnsResult;
+  readonly result = input<SeasonalReturnsResult>(undefined);
 
   /** A new columns reference re-renders the header and body templates of the OnPush p-table after a rebuild. */
   readonly tableFields = computed(() => {
@@ -124,7 +126,7 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['result'] && this.result) {
+    if (changes['result'] && this.result()) {
       this.buildColumns();
       this.computeColorScale();
     }
@@ -157,7 +159,7 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
     this.removeAllColumns();
     this.addColumn(DataType.String, 'year', 'YEAR', true, false, { width: 60 });
     const labels =
-      this.result.periodType === SeasonalPeriodType.MONTHLY ? moment.monthsShort() : ['Q1', 'Q2', 'Q3', 'Q4'];
+      this.result().periodType === SeasonalPeriodType.MONTHLY ? moment.monthsShort() : ['Q1', 'Q2', 'Q3', 'Q4'];
     labels.forEach((label, index) => {
       const cc = this.addColumn(DataType.Numeric, 'p' + index, label, true, false, {
         width: 64,
@@ -182,7 +184,7 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
   private computeColorScale(): void {
     const periodVals: number[] = [];
     const annualVals: number[] = [];
-    this.result.yearRows.forEach((row) => {
+    this.result().yearRows.forEach((row) => {
       row.periodReturns.forEach((v) => v != null && periodVals.push(v));
       row.annualReturn != null && annualVals.push(row.annualReturn);
     });

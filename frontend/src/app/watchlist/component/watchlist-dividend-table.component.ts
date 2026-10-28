@@ -1,6 +1,6 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SvgIconRegistryService, AngularSvgIconModule } from 'angular-svg-icon';
-import { Component, Injector, Input, OnInit } from '@angular/core';
+import { Component, Injector, OnInit, input } from '@angular/core';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -27,7 +27,7 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
   private static EX_DATE = 'exDate';
 
   /** The unique identifier of the security/currency to display dividends for */
-  @Input() idSecuritycurrency: number;
+  readonly idSecuritycurrency = input<number>(undefined);
 
   /**
    * Creates a new watchlist dividend table component and configures the table columns.
@@ -75,7 +75,7 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
   /** Initializes the component by loading dividend data for the specified security */
   ngOnInit(): void {
     this.dividendService
-      .getDividendsByIdSecuritycurrency(this.idSecuritycurrency)
+      .getDividendsByIdSecuritycurrency(this.idSecuritycurrency())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((dividend) => {
         this.data.set(dividend);

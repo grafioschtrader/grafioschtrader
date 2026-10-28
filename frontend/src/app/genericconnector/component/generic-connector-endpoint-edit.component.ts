@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -54,8 +54,8 @@ const ALL_FEED_INSTRUMENT_COMBOS = [
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class GenericConnectorEndpointEditComponent extends SimpleEditBase implements OnInit {
-  @Input() endpoint: GenericConnectorEndpoint;
-  @Input() connectorDef: GenericConnectorDef;
+  readonly endpoint = input<GenericConnectorEndpoint>(undefined);
+  readonly connectorDef = input<GenericConnectorDef>(undefined);
   private optionTranslations: Record<string, string> = {};
 
   constructor(
@@ -100,12 +100,13 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
   }
 
   protected override initialize(): void {
-    const isEdit = !!this.endpoint?.feedSupport;
-    const usedCombos = this.connectorDef.endpoints
-      .filter((e) => e !== this.endpoint)
+    const endpoint = this.endpoint();
+    const isEdit = !!endpoint?.feedSupport;
+    const usedCombos = this.connectorDef()
+      .endpoints.filter((e) => e !== this.endpoint())
       .map((e) => `${e.feedSupport}|${e.instrumentType}`);
     const availableCombos = isEdit
-      ? [`${this.endpoint.feedSupport}|${this.endpoint.instrumentType}`]
+      ? [`${endpoint.feedSupport}|${endpoint.instrumentType}`]
       : ALL_FEED_INSTRUMENT_COMBOS.filter((c) => !usedCombos.includes(c));
     if (isEdit) {
       this.configObject.feedSupportInstrumentType.formControl.disable();
@@ -124,12 +125,12 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
     this.configObject.dateFormatType.formControl.valueChanges
       .pipe(this.untilDialogClosed())
       .subscribe((value) => this.updateDateFormatPatternRequired(value));
-    this.updateDateFormatPatternRequired(this.endpoint?.dateFormatType);
+    this.updateDateFormatPatternRequired(endpoint?.dateFormatType);
 
     this.configObject.responseFormat.formControl.valueChanges
       .pipe(this.untilDialogClosed())
       .subscribe((value) => this.updateResponseFormatDependencies(value));
-    this.updateResponseFormatDependencies(this.endpoint?.responseFormat);
+    this.updateResponseFormatDependencies(endpoint?.responseFormat);
 
     this.configObject.htmlExtractMode.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((value) => {
       if (this.configObject.responseFormat.formControl.value === ResponseFormatType.HTML) {
@@ -146,14 +147,14 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
     this.configObject.tickerBuildStrategy.formControl.valueChanges
       .pipe(this.untilDialogClosed())
       .subscribe((value) => this.updateTickerBuildStrategyDependencies(value));
-    this.updateTickerBuildStrategyDependencies(this.endpoint?.tickerBuildStrategy);
+    this.updateTickerBuildStrategyDependencies(endpoint?.tickerBuildStrategy);
 
     this.form().setDefaultValuesAndEnableSubmit();
-    if (this.endpoint) {
-      this.form().transferBusinessObjectToForm(this.endpoint);
-      if (this.endpoint.feedSupport && this.endpoint.instrumentType) {
+    if (endpoint) {
+      this.form().transferBusinessObjectToForm(endpoint);
+      if (endpoint.feedSupport && endpoint.instrumentType) {
         this.configObject.feedSupportInstrumentType.formControl.setValue(
-          `${this.endpoint.feedSupport}|${this.endpoint.instrumentType}`
+          `${endpoint.feedSupport}|${endpoint.instrumentType}`
         );
       }
     }
@@ -304,12 +305,13 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
   }
 
   submit(value: { [name: string]: any }): void {
-    this.form().cleanMaskAndTransferValuesToBusinessObject(this.endpoint, false);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(this.endpoint(), false);
     const combo = this.configObject.feedSupportInstrumentType.formControl.value;
     if (combo) {
       const [feedSupport, instrumentType] = combo.split('|');
-      this.endpoint.feedSupport = feedSupport;
-      this.endpoint.instrumentType = instrumentType;
+      const endpoint = this.endpoint();
+      endpoint.feedSupport = feedSupport;
+      endpoint.instrumentType = instrumentType;
     }
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
   }

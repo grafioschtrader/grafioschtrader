@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, output, viewChild } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, output, viewChild, input, linkedSignal } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -24,12 +24,12 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
   template: `
     <editable-table
       #entityTable
-      [data]="fieldMappings"
+      [data]="fieldMappings()"
       (dataChange)="onDataChange($event)"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       dataKey="idFieldMapping"
-      [showEditColumn]="editable"
+      [showEditColumn]="editable()"
       [editColumnWidth]="120"
       [selectionMode]="null"
       [contextMenuEnabled]="false"
@@ -46,7 +46,7 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
       [stripedRows]="true">
       <div caption style="display: flex; align-items: center;">
         <h6 style="margin: 0;">{{ 'FIELD_MAPPINGS' | translate }}</h6>
-        @if (editable) {
+        @if (editable()) {
           <p-button
             [rounded]="true"
             [text]="true"
@@ -75,10 +75,11 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
 
   readonly entityTable = viewChild<EditableTableComponent<GenericConnectorFieldMapping>>('entityTable');
 
-  @Input() fieldMappings: GenericConnectorFieldMapping[] = [];
-  @Input() feedSupport: string;
-  @Input() responseFormat: string;
-  @Input() editable: boolean = true;
+  readonly fieldMappingsInput = input<GenericConnectorFieldMapping[]>([], { alias: 'fieldMappings' });
+  readonly fieldMappings = linkedSignal(() => this.fieldMappingsInput());
+  readonly feedSupport = input<string>(undefined);
+  readonly responseFormat = input<string>(undefined);
+  readonly editable = input<boolean>(true);
   readonly fieldMappingsChange = output<GenericConnectorFieldMapping[]>();
 
   constructor(
@@ -92,14 +93,14 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['fieldMappings'] && this.fieldMappings) {
-      this.createTranslatedValueStoreAndFilterField(this.fieldMappings);
+    if (changes['fieldMappingsInput'] && this.fieldMappings()) {
+      this.createTranslatedValueStoreAndFilterField(this.fieldMappings());
     }
     if (changes['feedSupport']) {
       this.updateTargetFieldOptions();
     }
     if (changes['responseFormat']) {
-      this.hideShowColumnByFileHeader('CSV_COLUMN_INDEX', this.responseFormat === 'CSV');
+      this.hideShowColumnByFileHeader('CSV_COLUMN_INDEX', this.responseFormat() === 'CSV');
     }
   }
 
@@ -114,7 +115,7 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
   };
 
   onRowEditSave(event: RowEditSaveEvent<GenericConnectorFieldMapping>): void {
-    this.fieldMappingsChange.emit(this.stripTempIds(this.fieldMappings));
+    this.fieldMappingsChange.emit(this.stripTempIds(this.fieldMappings()));
   }
 
   onRowEditCancel(_event: RowEditEvent<GenericConnectorFieldMapping>): void {
@@ -122,12 +123,12 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
   }
 
   onRowDelete(event: RowEditEvent<GenericConnectorFieldMapping>): void {
-    this.fieldMappings = this.fieldMappings.filter((_, i) => i !== event.index);
-    this.fieldMappingsChange.emit(this.stripTempIds(this.fieldMappings));
+    this.fieldMappings.set(this.fieldMappings().filter((_, i) => i !== event.index));
+    this.fieldMappingsChange.emit(this.stripTempIds(this.fieldMappings()));
   }
 
   onDataChange(data: GenericConnectorFieldMapping[]): void {
-    this.fieldMappings = data;
+    this.fieldMappings.set(data);
   }
 
   /**
@@ -146,7 +147,7 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
 
   private updateTargetFieldOptions(): void {
     const targetFields =
-      this.feedSupport === 'FS_INTRA'
+      this.feedSupport() === 'FS_INTRA'
         ? GenericConnectorFieldMappingTableComponent.INTRA_TARGET_FIELDS
         : GenericConnectorFieldMappingTableComponent.HISTORY_TARGET_FIELDS;
     const targetFieldColumn = this.fields.find((f) => f.field === 'targetField');

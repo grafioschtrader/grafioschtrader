@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -14,7 +14,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
 @Component({
   selector: 'indicator-edit',
   template: ` <p-dialog
-    header="{{ 'DEFINITION' | translate }}: {{ taEditParam.taIndicators | translate }}"
+    header="{{ 'DEFINITION' | translate }}: {{ taEditParam().taIndicators | translate }}"
     [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
@@ -30,7 +30,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
   imports: [Dialog, DynamicFormComponent, TranslatePipe]
 })
 export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implements OnInit {
-  @Input() taEditParam: TaEditParam;
+  readonly taEditParam = input<TaEditParam>(undefined);
   private readonly injector = inject(Injector);
 
   constructor(
@@ -42,19 +42,19 @@ export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implement
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 6, this.helpLink.bind(this));
-    this.config = [...this.taEditParam.fieldConfig];
+    this.config = [...this.taEditParam().fieldConfig];
   }
 
   submit(values: { [name: string]: any }): void {
     this.closeDialog.emit(
-      new ProcessedActionData(ProcessedAction.UPDATED, new TaEditReturn(this.taEditParam.taIndicators, values))
+      new ProcessedActionData(ProcessedAction.UPDATED, new TaEditReturn(this.taEditParam().taIndicators, values))
     );
   }
 
   protected override initialize(): void {
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     // The form controls of the indicator fields exist only after the next render.
-    afterNextRender(() => this.form().transferBusinessObjectToForm(this.taEditParam.taDynamicDataModel), {
+    afterNextRender(() => this.form().transferBusinessObjectToForm(this.taEditParam().taDynamicDataModel), {
       injector: this.injector
     });
   }

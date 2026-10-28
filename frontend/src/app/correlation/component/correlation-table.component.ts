@@ -1,5 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, computed, DestroyRef, inject, Injector, Input, OnDestroy, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, Injector, OnDestroy, signal, input } from '@angular/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { TranslateService } from '@ngx-translate/core';
@@ -160,7 +160,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 })
 export class CorrelationTableComponent extends TableConfigBase implements OnDestroy {
   /** Interface for communication with parent component */
-  @Input() childToParent: ChildToParent;
+  readonly childToParent = input<ChildToParent>(undefined);
 
   /** Limit instruments per correlation set */
   readonly tenantLimits = signal<TenantLimit[]>(null);
@@ -381,7 +381,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   handleCloseAddInstrumentDialog(processedActionData: ProcessedActionData) {
     this.visibleAddInstrumentDialog.set(false);
-    this.childToParent.refreshData(null);
+    this.childToParent().refreshData(null);
   }
 
   /**
@@ -395,7 +395,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       .subscribe((correlationSet) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_INSTRUMENT_FROM_CORRELATIONSET');
         this.selectedEntity.set(null);
-        this.childToParent.refreshData(correlationSet);
+        this.childToParent().refreshData(correlationSet);
       });
   }
 
@@ -467,7 +467,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((limit) => {
           this.tenantLimits.set([{ ...limit, actual: this.securitycurrencyList().length }]);
-          this.childToParent.refreshMenus();
+          this.childToParent().refreshMenus();
         });
     }
   }
@@ -476,7 +476,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     this.tenantLimits.update(
       (limits) => limits?.map((limit) => ({ ...limit, actual: this.securitycurrencyList().length })) ?? null
     );
-    this.childToParent?.refreshMenus();
+    this.childToParent()?.refreshMenus();
   }
 
   /**
@@ -554,7 +554,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
           processedActionData.action === ProcessedAction.UPDATED
         ) {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'ADDED_SECURITY_TO_WATCHLIST');
-          this.childToParent.refreshData(processedActionData.data);
+          this.childToParent().refreshData(processedActionData.data);
           this.updateLimitCount();
         }
       });
@@ -616,7 +616,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       return;
     }
     const set = this.correlationSet();
-    const title = 'CORRELATION_ROLLING|' + this.childToParent.getPeriodAndRollingWithParamPrefix().join('|');
+    const title = 'CORRELATION_ROLLING|' + this.childToParent().getPeriodAndRollingWithParamPrefix().join('|');
     this.chartRequest = this.correlationSetService
       .getRollingCorrelations(set.idCorrelationSet, pairs)
       .pipe(takeUntilDestroyed(this.destroyRef))

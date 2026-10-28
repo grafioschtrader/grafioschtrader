@@ -1,4 +1,4 @@
-import { Component, Input, output } from '@angular/core';
+import { Component, output, input } from '@angular/core';
 
 import { TranslateModule } from '@ngx-translate/core';
 import { CheckboxChangeEvent, CheckboxModule } from '@openng/optimus-ui/checkbox';
@@ -33,7 +33,7 @@ export interface CheckboxToggleEvent {
         <span class="me-2 cursor-help" [pTooltip]="'GT_NET_LASTPRICE_RECV_TOOLTIP' | translate" tooltipPosition="top">{{
           'GT_NET_LASTPRICE_RECV' | translate
         }}</span>
-        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetLastpriceRecv', $event)" [disabled]="disabled" />
+        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetLastpriceRecv', $event)" [disabled]="disabled()" />
       </div>
 
       <div class="gtnet-checkbox-item">
@@ -43,14 +43,14 @@ export interface CheckboxToggleEvent {
           tooltipPosition="top"
           >{{ 'GT_NET_HISTORICAL_RECV' | translate }}</span
         >
-        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetHistoricalRecv', $event)" [disabled]="disabled" />
+        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetHistoricalRecv', $event)" [disabled]="disabled()" />
       </div>
 
       <div class="gtnet-checkbox-item">
         <span class="me-2 cursor-help" [pTooltip]="'GT_NET_LASTPRICE_SEND_TOOLTIP' | translate" tooltipPosition="top">{{
           'GT_NET_LASTPRICE_SEND' | translate
         }}</span>
-        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetLastpriceSend', $event)" [disabled]="disabled" />
+        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetLastpriceSend', $event)" [disabled]="disabled()" />
       </div>
 
       <div class="gtnet-checkbox-item">
@@ -60,7 +60,7 @@ export interface CheckboxToggleEvent {
           tooltipPosition="top"
           >{{ 'GT_NET_HISTORICAL_SEND' | translate }}</span
         >
-        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetHistoricalSend', $event)" [disabled]="disabled" />
+        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetHistoricalSend', $event)" [disabled]="disabled()" />
       </div>
     </div>
   `,
@@ -89,7 +89,7 @@ export interface CheckboxToggleEvent {
 })
 export class GTNetExchangeCheckboxesComponent {
   /** Whether all checkboxes should be disabled */
-  @Input() disabled = false;
+  readonly disabled = input(false);
 
   /** Emits when any checkbox is toggled, with field name and event */
   readonly toggle = output<CheckboxToggleEvent>();

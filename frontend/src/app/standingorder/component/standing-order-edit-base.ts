@@ -1,4 +1,4 @@
-import { Directive, Input } from '@angular/core';
+import { Directive, input } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -42,7 +42,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
   /** Preset for a new standing order, matching the database default: search up to three days into the past. */
   static readonly QUOTE_TOLERANCE_DEFAULT = -3;
 
-  @Input() callParam: StandingOrderCallParam;
+  readonly callParam = input<StandingOrderCallParam>(undefined);
 
   /** Loaded portfolios, available for subclasses after loadCashaccountsFromPortfolios completes. */
   protected portfolios: Portfolio[] = [];
@@ -209,7 +209,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
     // transactionType has no update annotation in the backend — never updatable after creation
     FormHelper.disableEnableFieldConfigs(true, [this.configObject.transactionType]);
     // @LockedWhenUsed fields — locked once the standing order has created transactions
-    if (so?.hasTransactions && !this.callParam?.simulationTenant) {
+    if (so?.hasTransactions && !this.callParam()?.simulationTenant) {
       FormHelper.disableEnableFieldConfigs(
         true,
         this.config.filter((f) => f.fieldsetName === StandingOrderEditBase.FS_TRANSACTION)

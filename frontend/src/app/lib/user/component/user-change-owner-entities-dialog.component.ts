@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 import { SimpleEditBase } from '../../edit/simple.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -39,8 +39,8 @@ import { ProcessedAction } from '../../types/processed.action';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class UserChangeOwnerEntitiesDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() fromUser: User;
-  @Input() allUsers: User[];
+  readonly fromUser = input<User>(undefined);
+  readonly allUsers = input<User[]>(undefined);
 
   constructor(
     public translateService: TranslateService,
@@ -66,7 +66,7 @@ export class UserChangeOwnerEntitiesDialogComponent extends SimpleEditBase imple
 
   submit(values: { [name: string]: any }): void {
     this.userAdminService
-      .moveCreatedByUserToOtherUser(this.fromUser.idUser, values.toIdUser)
+      .moveCreatedByUserToOtherUser(this.fromUser().idUser, values.toIdUser)
       .subscribe((numberOfChangedEntities) => {
         this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.SUCCESS, 'CHANGED_OWNER_OF_ENTITIES', {
           numberOfChangedEntities
@@ -76,11 +76,11 @@ export class UserChangeOwnerEntitiesDialogComponent extends SimpleEditBase imple
   }
 
   protected initialize(): void {
-    this.configObject.fromIdUser.formControl.setValue(this.fromUser.nickname);
+    this.configObject.fromIdUser.formControl.setValue(this.fromUser().nickname);
     this.configObject.toIdUser.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
       'idUser',
       'nickname',
-      this.allUsers.filter((u) => u.nickname !== this.fromUser.nickname && u.enabled),
+      this.allUsers().filter((u) => u.nickname !== this.fromUser().nickname && u.enabled),
       false
     );
   }

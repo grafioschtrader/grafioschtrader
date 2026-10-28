@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -45,8 +45,8 @@ export class ImportTransactionEditTemplateComponent
   extends SimpleEntityEditBase<ImportTransactionTemplate>
   implements OnInit
 {
-  @Input() callParam: CallParam;
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  readonly callParam = input<CallParam>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
   constructor(
     translateService: TranslateService,
@@ -88,10 +88,10 @@ export class ImportTransactionEditTemplateComponent
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
-      <Auditable>this.callParam.thisObject,
+      <Auditable>this.callParam().thisObject,
       this.form(),
       this.configObject,
-      this.proposeChangeEntityWithEntity
+      this.proposeChangeEntityWithEntity()
     );
     this.importTransactionTemplateService
       .getPossibleLanguagesForTemplate()
@@ -112,17 +112,18 @@ export class ImportTransactionEditTemplateComponent
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionTemplate {
     const importTransactionTemplate = new ImportTransactionTemplate();
-    if (this.callParam.thisObject) {
-      Object.assign(importTransactionTemplate, this.callParam.thisObject);
+    const callParam = this.callParam();
+    if (callParam.thisObject) {
+      Object.assign(importTransactionTemplate, callParam.thisObject);
     } else {
       importTransactionTemplate.idTransactionImportPlatform = (<ImportTransactionPlatform>(
-        this.callParam.parentObject
+        callParam.parentObject
       )).idTransactionImportPlatform;
     }
     AuditHelper.copyProposeChangeEntityToEntityAfterEdit(
       this,
       importTransactionTemplate,
-      this.proposeChangeEntityWithEntity
+      this.proposeChangeEntityWithEntity()
     );
     this.form().cleanMaskAndTransferValuesToBusinessObject(importTransactionTemplate);
     return importTransactionTemplate;

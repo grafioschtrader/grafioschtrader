@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import {
   getAvailableMessageCodes,
   getRequestableKindNames,
@@ -57,7 +57,7 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
   `
 })
 export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit {
-  @Input() msgCallParam: MsgCallParam;
+  readonly msgCallParam = input<MsgCallParam>(undefined);
   private readonly MESSAGE_CODE = 'messageCode';
   private readonly VISIBILITY = 'visibility';
   private classDescriptorInputAndShows: ClassDescriptorInputAndShow;
@@ -89,18 +89,19 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     this.configObject[this.MESSAGE_CODE].formControl.enable();
     this.valueChangedOnMessageCode();
     this.initializeVisibilityField();
-    if (this.msgCallParam.validResponseCodes?.length) {
+    const msgCallParam = this.msgCallParam();
+    if (msgCallParam.validResponseCodes?.length) {
       // Response mode: only show valid response codes for the request
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
         this.translateService,
         GTNetMessageCodeType,
-        this.msgCallParam.validResponseCodes.map((code) => GTNetMessageCodeType[code]),
+        msgCallParam.validResponseCodes.map((code) => GTNetMessageCodeType[code]),
         false
       );
 
       // If only one response code available, auto-select it and disable the dropdown
-      if (this.msgCallParam.validResponseCodes.length === 1) {
-        const singleCode = this.msgCallParam.validResponseCodes[0];
+      if (msgCallParam.validResponseCodes.length === 1) {
+        const singleCode = msgCallParam.validResponseCodes[0];
         const codeKey = GTNetMessageCodeType[singleCode];
         this.configObject[this.MESSAGE_CODE].formControl.setValue(codeKey);
         this.configObject[this.MESSAGE_CODE].formControl.disable();
@@ -110,17 +111,17 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
         // Multiple response codes - waitDaysApply visibility will be updated when code is selected
         this.configObject.waitDaysApply.invisible = true;
       }
-    } else if (this.msgCallParam.gtNetMessage) {
+    } else if (msgCallParam.gtNetMessage) {
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
         this.translateService,
         GTNetMessageCodeType,
-        [GTNetMessageCodeType[this.msgCallParam.gtNetMessage.messageCode]],
+        [GTNetMessageCodeType[msgCallParam.gtNetMessage.messageCode]],
         false
       );
-      this.configObject[this.MESSAGE_CODE].formControl.setValue(this.msgCallParam.gtNetMessage[this.MESSAGE_CODE]);
+      this.configObject[this.MESSAGE_CODE].formControl.setValue(msgCallParam.gtNetMessage[this.MESSAGE_CODE]);
     } else {
       // State-aware filtering: only show codes valid for the current relationship state
-      const availableCodes = getAvailableMessageCodes(this.msgCallParam);
+      const availableCodes = getAvailableMessageCodes(msgCallParam);
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
         this.translateService,
         GTNetMessageCodeType,
@@ -129,8 +130,8 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       );
 
       // Pre-select message code if provided (e.g., from admin messages component)
-      if (this.msgCallParam.preselectedMessageCode != null) {
-        const codeKey = GTNetMessageCodeType[this.msgCallParam.preselectedMessageCode];
+      if (msgCallParam.preselectedMessageCode != null) {
+        const codeKey = GTNetMessageCodeType[msgCallParam.preselectedMessageCode];
         this.configObject[this.MESSAGE_CODE].formControl.setValue(codeKey);
       }
     }
@@ -151,9 +152,10 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       false
     );
 
-    if (this.msgCallParam.replyTo != null && this.msgCallParam.parentVisibility != null) {
+    const msgCallParam = this.msgCallParam();
+    if (msgCallParam.replyTo != null && msgCallParam.parentVisibility != null) {
       // Reply mode - check parent visibility
-      if (this.msgCallParam.parentVisibility === MessageVisibility.ADMIN_ONLY) {
+      if (msgCallParam.parentVisibility === MessageVisibility.ADMIN_ONLY) {
         // Parent is ADMIN_ONLY: force reply to ADMIN_ONLY, disable field
         this.configObject[this.VISIBILITY].formControl.setValue(MessageVisibility[MessageVisibility.ADMIN_ONLY]);
         this.configObject[this.VISIBILITY].formControl.disable();
@@ -188,7 +190,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
    */
   private updateWaitDaysApplyDisplay(messageCode: GTNetMessageCodeType | string): void {
     // Only relevant in response mode
-    if (!this.msgCallParam.validResponseCodes?.length) {
+    if (!this.msgCallParam().validResponseCodes?.length) {
       return;
     }
     this.configObject.waitDaysApply.invisible = !shouldShowWaitDaysApply(messageCode);
@@ -200,7 +202,8 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
    */
   private updateVisibilityFieldDisplay(messageCode: GTNetMessageCodeType | string): void {
     // Don't override visibility display if we're in reply mode (already handled)
-    if (this.msgCallParam.replyTo != null && this.msgCallParam.parentVisibility != null) {
+    const msgCallParam = this.msgCallParam();
+    if (msgCallParam.replyTo != null && msgCallParam.parentVisibility != null) {
       return;
     }
     const codeName = typeof messageCode === 'string' ? messageCode : GTNetMessageCodeType[messageCode];
@@ -209,14 +212,14 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   }
 
   private createViewFromSelectedEnum(gtNetMessageCodeType: string | GTNetMessageCodeType): void {
-    let formDef = this.msgCallParam.formDefinitions[gtNetMessageCodeType];
+    let formDef = this.msgCallParam().formDefinitions[gtNetMessageCodeType];
     // For data request: filter entityKinds MultiSelect to only show requestable kinds
     const codeName =
       typeof gtNetMessageCodeType === 'string' ? gtNetMessageCodeType : GTNetMessageCodeType[gtNetMessageCodeType];
-    if (codeName === 'GT_NET_DATA_REQUEST_SEL_RR_C' && this.msgCallParam.targetGtNet && formDef) {
+    if (codeName === 'GT_NET_DATA_REQUEST_SEL_RR_C' && this.msgCallParam().targetGtNet && formDef) {
       const requestableNames = getRequestableKindNames(
-        this.msgCallParam.targetGtNet,
-        this.msgCallParam.exchangeKindTypes
+        this.msgCallParam().targetGtNet,
+        this.msgCallParam().exchangeKindTypes
       );
       // Clone the form definition to avoid mutating the cached original
       formDef = {
@@ -264,16 +267,16 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     // The template binds the replaced config array
     this.viewChanged();
 
-    if (this.msgCallParam.gtNetMessage) {
+    if (this.msgCallParam().gtNetMessage) {
       setTimeout(() => this.setExistingModel());
     }
   }
 
   private setExistingModel(): void {
     const dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
-      this.msgCallParam.formDefinitions,
+      this.msgCallParam().formDefinitions,
       this.MESSAGE_CODE,
-      this.msgCallParam.gtNetMessage.gtNetMessageParamMap,
+      this.msgCallParam().gtNetMessage.gtNetMessageParamMap,
       // A code without payload model has no form definition, e.g. a server list request
       this.classDescriptorInputAndShows?.fieldDescriptorInputAndShows ?? [],
       true
@@ -290,18 +293,20 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     const gtNetMessageParamMap = this.getMessageParam(value);
 
     // Multi-target mode: use submitMsgToMultiple for batch delivery
-    if (this.msgCallParam.targetIds?.length > 0) {
-      const multiRequest = new MultiTargetMsgRequest(this.msgCallParam.targetIds, value.message, visibility);
+    const msgCallParam = this.msgCallParam();
+    if (msgCallParam.targetIds?.length > 0) {
+      const multiRequest = new MultiTargetMsgRequest(msgCallParam.targetIds, value.message, visibility);
       multiRequest.gtNetMessageParamMap = gtNetMessageParamMap;
 
       this.gtNetService.submitMsgToMultiple(multiRequest).subscribe({
         next: (gtNetWithMessages: GTNetWithMessages) => {
           // Single target: sent synchronously, multiple targets: queued for background delivery
-          if (this.msgCallParam.targetIds.length === 1) {
+          const msgCallParamValue = this.msgCallParam();
+          if (msgCallParamValue.targetIds.length === 1) {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_SENT');
           } else {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_QUEUED', {
-              count: this.msgCallParam.targetIds.length
+              count: msgCallParamValue.targetIds.length
             });
           }
           this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, gtNetWithMessages));
@@ -310,12 +315,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       });
     } else {
       // Single-target or reply mode: use standard submitMsg
-      const msgRequest = new MsgRequest(
-        this.msgCallParam.idGTNet,
-        this.msgCallParam.replyTo,
-        messageCode,
-        value.message
-      );
+      const msgRequest = new MsgRequest(msgCallParam.idGTNet, msgCallParam.replyTo, messageCode, value.message);
       msgRequest.gtNetMessageParamMap = gtNetMessageParamMap;
       if (value.waitDaysApply != null) {
         msgRequest.waitDaysApply = value.waitDaysApply;

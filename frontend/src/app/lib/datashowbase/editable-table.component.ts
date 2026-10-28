@@ -4,7 +4,6 @@ import {
   contentChild,
   inject,
   input,
-  Input,
   OnChanges,
   OnInit,
   SimpleChanges,
@@ -14,7 +13,8 @@ import {
   Injector,
   DestroyRef,
   output,
-  viewChild
+  viewChild,
+  model
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
@@ -125,24 +125,26 @@ export interface ValidationErrorEvent<T> {
     NgTemplateOutlet
   ],
   template: `
-    <div #cmDiv (click)="onComponentClick($event)" [class]="toClassString(containerClass)">
+    @let expandedRowTemplateValue = expandedRowTemplate();
+
+    <div #cmDiv (click)="onComponentClick($event)" [class]="toClassString(containerClass())">
       <p-table
         #table
         [columns]="renderedFields"
         [value]="rows()"
-        [dataKey]="dataKey"
-        [selectionMode]="selectionMode"
-        [(selection)]="selection"
-        (selectionChange)="selectionChange.emit($event)"
-        [sortMode]="sortMode"
-        [multiSortMeta]="multiSortMeta"
-        [customSort]="enableCustomSort"
+        [dataKey]="dataKey()"
+        [selectionMode]="selectionMode()"
+        [selection]="selection()"
+        (selectionChange)="selection.set($event)"
+        [sortMode]="sortMode()"
+        [multiSortMeta]="multiSortMeta()"
+        [customSort]="enableCustomSort()"
         (sortFunction)="onSort($event)"
-        [scrollable]="scrollable"
-        [scrollHeight]="scrollHeight"
-        [loading]="loading"
-        [stripedRows]="stripedRows"
-        [showGridlines]="showGridlines"
+        [scrollable]="scrollable()"
+        [scrollHeight]="scrollHeight()"
+        [loading]="loading()"
+        [stripedRows]="stripedRows()"
+        [showGridlines]="showGridlines()"
         editMode="row"
         [expandedRowKeys]="expandedRowKeys"
         (onRowExpand)="onRowExpand($event)"
@@ -157,8 +159,8 @@ export interface ValidationErrorEvent<T> {
         <!-- Header template -->
         <ng-template pTemplate="header" let-columns>
           <tr>
-            @if (expandable) {
-              <th [style.width.px]="expansionColumnWidth"></th>
+            @if (expandable()) {
+              <th [style.width.px]="expansionColumnWidth()"></th>
             }
             @for (field of columns; track field.field) {
               @if (field.visible) {
@@ -175,8 +177,8 @@ export interface ValidationErrorEvent<T> {
                 </th>
               }
             }
-            @if (showEditColumn && !batchMode) {
-              <th [style.width.px]="editColumnWidth"></th>
+            @if (showEditColumn() && !batchMode()) {
+              <th [style.width.px]="editColumnWidth()"></th>
             }
           </tr>
         </ng-template>
@@ -192,13 +194,13 @@ export interface ValidationErrorEvent<T> {
           <tr
             [pEditableRow]="rowData"
             [pSelectableRow]="rowData"
-            [pContextMenuRow]="contextMenuEnabled ? rowData : null">
+            [pContextMenuRow]="contextMenuEnabled() ? rowData : null">
             <!-- Expansion toggle cell -->
-            @if (expandable) {
-              <td [style.width.px]="expansionColumnWidth">
+            @if (expandable()) {
+              <td [style.width.px]="expansionColumnWidth()">
                 @if (canExpand(rowData)) {
                   <a [pRowToggler]="rowData" href="#" (click)="$event.preventDefault()">
-                    <i [class]="expanded ? expandedIcon : collapsedIcon"></i>
+                    <i [class]="expanded ? expandedIcon() : collapsedIcon()"></i>
                   </a>
                 }
               </td>
@@ -211,7 +213,7 @@ export interface ValidationErrorEvent<T> {
                   [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
                   [class]="getCellClass(field)">
                   <!-- Batch Mode: Always show edit inputs directly -->
-                  @if (startInEditMode || batchMode) {
+                  @if (startInEditMode() || batchMode()) {
                     @if (canEditCell(field, rowData)) {
                       <ng-container
                         [ngTemplateOutlet]="editInputTemplate"
@@ -219,7 +221,7 @@ export interface ValidationErrorEvent<T> {
                           field: field,
                           rowData: rowData
                         }" />
-                      @if (showValidationErrors && getFieldError(rowData, field)) {
+                      @if (showValidationErrors() && getFieldError(rowData, field)) {
                         <small class="p-error">{{ getFieldError(rowData, field) }}</small>
                       }
                     } @else {
@@ -236,7 +238,7 @@ export interface ValidationErrorEvent<T> {
                               field: field,
                               rowData: rowData
                             }" />
-                          @if (showValidationErrors && getFieldError(rowData, field)) {
+                          @if (showValidationErrors() && getFieldError(rowData, field)) {
                             <small class="p-error">{{ getFieldError(rowData, field) }}</small>
                           }
                         } @else {
@@ -279,7 +281,7 @@ export interface ValidationErrorEvent<T> {
             }
 
             <!-- Edit/Save/Cancel Buttons Column -->
-            @if (showEditColumn && !batchMode) {
+            @if (showEditColumn() && !batchMode()) {
               <td>
                 <div class="flex align-items-center justify-content-center gap-2">
                   @if (!editing && canEditRow(rowData)) {
@@ -293,7 +295,7 @@ export interface ValidationErrorEvent<T> {
                       <i class="pi pi-pencil" pButtonIcon></i>
                     </button>
                   }
-                  @if (!editing && canDeleteRowFn && canDeleteRowFn(rowData)) {
+                  @if (!editing && canDeleteRowFn() && canDeleteRowFn()(rowData)) {
                     <button
                       pButton
                       pRipple
@@ -331,10 +333,10 @@ export interface ValidationErrorEvent<T> {
 
         <!-- Expanded row template - always present so Optimus can find it -->
         <ng-template #expandedrow let-row let-columns="fields">
-          @if (expandable && expandedRowTemplate) {
+          @if (expandable() && expandedRowTemplateValue) {
             <tr>
               <td [attr.colspan]="getExpandedColspan()">
-                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: row }" />
+                <ng-container *ngTemplateOutlet="expandedRowTemplateValue; context: { $implicit: row }" />
               </td>
             </tr>
           }
@@ -380,7 +382,7 @@ export interface ValidationErrorEvent<T> {
             <p-inputNumber
               [(ngModel)]="rowData[field.field]"
               (ngModelChange)="onFieldChange(field, rowData, $event)"
-              [locale]="numberLocale"
+              [locale]="numberLocale()"
               [minFractionDigits]="field.minFractionDigits || 0"
               [maxFractionDigits]="field.cec?.maxFractionDigits || field.maxFractionDigits || 2"
               [min]="$safeNavigationMigration(field.cec?.min)"
@@ -394,7 +396,7 @@ export interface ValidationErrorEvent<T> {
             <p-datepicker
               [(ngModel)]="rowData[field.field]"
               (ngModelChange)="onFieldChange(field, rowData, $event)"
-              [dateFormat]="baseLocale.dateFormat"
+              [dateFormat]="baseLocale().dateFormat"
               [minDate]="$safeNavigationMigration(field.cec?.minDate)"
               [maxDate]="$safeNavigationMigration(field.cec?.maxDate)"
               dataType="date"
@@ -447,8 +449,8 @@ export interface ValidationErrorEvent<T> {
       </ng-template>
 
       <!-- Context Menu -->
-      @if (contextMenuEnabled && showContextMenu) {
-        <p-contextMenu [target]="cmDiv" [model]="menuModel()" [appendTo]="contextMenuAppendTo" />
+      @if (contextMenuEnabled() && showContextMenu()) {
+        <p-contextMenu [target]="cmDiv" [model]="menuModel()" [appendTo]="contextMenuAppendTo()" />
       }
     </div>
   `
@@ -460,7 +462,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   // ============================================================================
 
   /** Array of data objects to display and edit in the table */
-  @Input() data: T[] = [];
+  readonly data = input<T[]>([]);
 
   /** Rows owned by the table, including additions not yet echoed by its parent. */
   readonly rows = signal<T[]>([]);
@@ -470,7 +472,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   readonly dataChange = output<T[]>();
 
   /** Array of column configurations defining table structure */
-  @Input() fields: ColumnConfig[] = [];
+  readonly fields = input<ColumnConfig[]>([]);
   /** New reference carries column revisions into the Optimus OnPush table. */
   renderedFields: ColumnConfig[] = [];
 
@@ -481,20 +483,19 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   readonly fieldsRevision = input(0);
 
   /** Property name used as the unique identifier for each row (required) */
-  @Input() dataKey: string;
+  readonly dataKey = input<string>(undefined);
 
   // ============================================================================
   // Selection Configuration
   // ============================================================================
 
   /** Row selection mode: 'single' allows one row selection, null disables selection */
-  @Input() selectionMode: 'single' | null = 'single';
+  readonly selectionMode = input<'single' | null>('single');
 
   /** Currently selected row */
-  @Input() selection: T | null = null;
+  readonly selection = model<T | null>(null);
 
   /** Emits when selection changes */
-  readonly selectionChange = output<T | null>();
 
   /** Emits when a row is selected */
   readonly rowSelect = output<any>();
@@ -507,53 +508,59 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   // ============================================================================
 
   /** Sorting mode: 'single' or 'multiple' column sort */
-  @Input() sortMode: 'single' | 'multiple' = 'multiple';
+  readonly sortMode = input<'single' | 'multiple'>('multiple');
 
   /** Array of sort metadata for multi-column sorting */
-  @Input() multiSortMeta: any[] = [];
+  readonly multiSortMeta = input<any[]>([]);
 
   /** Enable custom sorting logic */
-  @Input() enableCustomSort = true;
+  readonly enableCustomSort = input(true);
 
   /** Callback function for custom sorting logic */
-  @Input() customSortFn?: (event: SortEvent) => void;
+  readonly customSortFn = input<(event: SortEvent) => void>(undefined);
 
   // ============================================================================
   // Visual Styling
   // ============================================================================
 
   /** Show alternating row background colors */
-  @Input() stripedRows = true;
+  readonly stripedRows = input(true);
 
   /** Show grid lines between cells */
-  @Input() showGridlines = true;
+  readonly showGridlines = input(true);
 
   /** Show loading spinner overlay */
-  @Input() loading = false;
+  readonly loading = input(false);
 
   /** CSS class applied to the outer container */
-  @Input() containerClass: string | string[] | { [key: string]: boolean } = {
+  readonly containerClass = input<
+    | string
+    | string[]
+    | {
+        [key: string]: boolean;
+      }
+  >({
     'data-container': true
-  };
+  });
 
   /** Enable table scrolling */
-  @Input() scrollable = true;
+  readonly scrollable = input(true);
 
   /** Height of the scrollable viewport */
-  @Input() scrollHeight: string = 'flex';
+  readonly scrollHeight = input<string>('flex');
 
   // ============================================================================
   // Context Menu Configuration
   // ============================================================================
 
   /** Enable context menu on right-click */
-  @Input() contextMenuEnabled = true;
+  readonly contextMenuEnabled = input(true);
 
   /** Array of additional menu items for the context menu */
-  @Input() contextMenuItems: MenuItem[] = [];
+  readonly contextMenuItems = input<MenuItem[]>([]);
 
   /** Controls visibility of the context menu */
-  @Input() showContextMenu = false;
+  readonly showContextMenu = input(false);
 
   /**
    * Determines where to append the context menu in the DOM.
@@ -562,58 +569,58 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    *
    * Usage: [contextMenuAppendTo]="'body'" for nested tables
    */
-  @Input() contextMenuAppendTo: string | null = null;
+  readonly contextMenuAppendTo = input<string | null>(null);
 
   // ============================================================================
   // Value Display Configuration
   // ============================================================================
 
   /** Custom function to retrieve cell values for display */
-  @Input() valueGetterFn?: (row: T, field: ColumnConfig) => any;
+  readonly valueGetterFn = input<(row: T, field: ColumnConfig) => any>(undefined);
 
   /** Locale configuration for date formatting */
-  @Input() baseLocale: BaseLocale = { language: 'en', dateFormat: 'yy-mm-dd' };
+  readonly baseLocale = input<BaseLocale>({ language: 'en', dateFormat: 'yy-mm-dd' });
 
   /**
    * BCP 47 locale (e.g. 'de-CH') for the InputNumber edit control so its grouping/decimal separators match the
    * user's GT number formatting (GlobalparameterService.getLocale()). Falls back to the runtime default when
    * not set.
    */
-  @Input() numberLocale?: string;
+  readonly numberLocale = input<string>(undefined);
 
   /** Callback to determine if a numeric value is negative (for red/green coloring) */
-  @Input() negativeValueFn?: (row: T, field: ColumnConfig) => boolean;
+  readonly negativeValueFn = input<(row: T, field: ColumnConfig) => boolean>(undefined);
 
   // ============================================================================
   // Edit-Specific Configuration
   // ============================================================================
 
   /** Whether to show the edit/save/cancel button column */
-  @Input() showEditColumn = true;
+  readonly showEditColumn = input(true);
 
   /** Width of the edit button column in pixels */
-  @Input() editColumnWidth = 100;
+  readonly editColumnWidth = input(100);
 
   /** Callback to determine if a specific row can be edited */
-  @Input() canEditRowFn?: (row: T) => boolean;
+  readonly canEditRowFn = input<(row: T) => boolean>(undefined);
 
   /** Callback to determine if a specific row can be deleted. When set, shows a trash button per row. */
-  @Input() canDeleteRowFn?: (row: T) => boolean;
+  readonly canDeleteRowFn = input<(row: T) => boolean>(undefined);
 
   /** Callback to validate row before saving. Return true if valid. */
-  @Input() validateRowFn?: (row: T) => boolean;
+  readonly validateRowFn = input<(row: T) => boolean>(undefined);
 
   /** Factory function to create new row entities */
-  @Input() createNewEntityFn?: () => T;
+  readonly createNewEntityFn = input<() => T>(undefined);
 
   /** Field to focus when auto-starting edit on a new row */
-  @Input() autoEditField?: string;
+  readonly autoEditField = input<string>(undefined);
 
   /** Whether to show inline validation error messages */
-  @Input() showValidationErrors = true;
+  readonly showValidationErrors = input(true);
 
   /** Translation key for "Add new row" context menu item */
-  @Input() addRowLabel = 'CREATE_NEW_RECORD';
+  readonly addRowLabel = input('CREATE_NEW_RECORD');
 
   /**
    * When true, enables batch editing mode:
@@ -621,35 +628,35 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    * - All editing happens in-memory
    * - Parent is responsible for collecting data and saving
    */
-  @Input() batchMode = false;
+  readonly batchMode = input(false);
 
   /**
    * When true, all rows start in edit mode automatically.
    * Useful for batch editing scenarios where all fields should be immediately editable.
    */
-  @Input() startInEditMode = false;
+  readonly startInEditMode = input(false);
 
   // ============================================================================
   // Row Expansion Configuration
   // ============================================================================
 
   /** Enable row expansion functionality. When true, adds a toggle column. */
-  @Input() expandable = false;
+  readonly expandable = input(false);
 
   /** Template for expanded row content. Receives the row data as context. */
-  @Input() expandedRowTemplate?: TemplateRef<any>;
+  readonly expandedRowTemplate = input<TemplateRef<any>>(undefined);
 
   /** Callback function to determine if a specific row can be expanded. */
-  @Input() canExpandFn?: (row: T) => boolean;
+  readonly canExpandFn = input<(row: T) => boolean>(undefined);
 
   /** Width in pixels of the expansion toggle column. */
-  @Input() expansionColumnWidth = 24;
+  readonly expansionColumnWidth = input(24);
 
   /** CSS class for the expanded row icon. */
-  @Input() expandedIcon = 'fa fa-fw fa-chevron-circle-down';
+  readonly expandedIcon = input('fa fa-fw fa-chevron-circle-down');
 
   /** CSS class for the collapsed row icon. */
-  @Input() collapsedIcon = 'fa fa-fw fa-chevron-circle-right';
+  readonly collapsedIcon = input('fa fa-fw fa-chevron-circle-right');
 
   // ============================================================================
   // Template Customization
@@ -759,9 +766,10 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
     this.menuTranslation?.unsubscribe();
     const items: MenuItem[] = [];
 
-    if (this.createNewEntityFn) {
+    const createNewEntityFn = this.createNewEntityFn();
+    if (createNewEntityFn) {
       const addRowItem: MenuItem = {
-        label: this.addRowLabel,
+        label: this.addRowLabel(),
         icon: 'pi pi-plus',
         command: () => this.addNewRow()
       };
@@ -769,16 +777,16 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
       items.push(addRowItem);
     }
 
-    if (this.contextMenuItems.length > 0) {
+    if (this.contextMenuItems().length > 0) {
       if (items.length > 0) {
         items.push({ separator: true });
       }
-      items.push(...this.contextMenuItems);
+      items.push(...this.contextMenuItems());
     }
 
-    if (this.createNewEntityFn) {
+    if (createNewEntityFn) {
       this.menuTranslation = this.translateService
-        .get(this.addRowLabel)
+        .get(this.addRowLabel())
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((label) =>
           this.menuModel.set(items.map((item, index) => (index === 0 ? { ...item, label } : item)))
@@ -798,10 +806,11 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['fields'] || changes['fieldsRevision']) {
-      this.renderedFields = [...this.fields];
+      this.renderedFields = [...this.fields()];
     }
-    if (changes['data'] && this.data !== this.emittedRows) {
-      this.rows.set(this.data ?? []);
+    const data = this.data();
+    if (changes['data'] && data !== this.emittedRows) {
+      this.rows.set(data ?? []);
       this.clonedRows = {};
       this.rowOptions = {};
       this.rowErrors = {};
@@ -821,7 +830,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   /** Gets unique row key using dataKey property */
   private getRowKey(row: T): string {
-    const key = row[this.dataKey];
+    const key = row[this.dataKey()];
     return key != null ? String(key) : String(-this.newRowCounter);
   }
 
@@ -907,16 +916,17 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   /** Adds a new row and starts editing */
   addNewRow(): void {
-    if (!this.createNewEntityFn) {
+    const createNewEntityFn = this.createNewEntityFn();
+    if (!createNewEntityFn) {
       return;
     }
 
-    const newEntity = this.createNewEntityFn();
+    const newEntity = createNewEntityFn();
     const tempKey = -++this.newRowCounter;
 
     // Assign temporary key if dataKey is null/undefined
-    if (newEntity[this.dataKey] == null) {
-      newEntity[this.dataKey] = tempKey;
+    if (newEntity[this.dataKey()] == null) {
+      newEntity[this.dataKey()] = tempKey;
     }
 
     const rowKey = this.getRowKey(newEntity);
@@ -968,7 +978,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   private updateDependentFields(changedField: ColumnConfig, row: T): void {
     const rowKey = this.getRowKey(row);
 
-    for (const field of this.fields) {
+    for (const field of this.fields()) {
       if (field.cec?.dependsOnField === changedField.field) {
         // Clear the dependent field's value
         row[field.field] = null;
@@ -990,7 +1000,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
     const rowKey = this.getRowKey(row);
     this.rowOptions[rowKey] = {};
 
-    for (const field of this.fields) {
+    for (const field of this.fields()) {
       if (field.cec && this.getEditInputType(field) === EditInputType.Select) {
         this.rowOptions[rowKey][field.field] = this.resolveOptions(field, row);
       }
@@ -1076,7 +1086,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
     const errors: { field: string; message: string }[] = [];
     const rowKey = this.getRowKey(row);
 
-    for (const field of this.fields) {
+    for (const field of this.fields()) {
       if (field.visible && field.cec) {
         if (!this.validateField(row, field)) {
           isValid = false;
@@ -1089,7 +1099,8 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
     }
 
     // Call custom validation if provided
-    if (isValid && this.validateRowFn && !this.validateRowFn(row)) {
+    const validateRowFn = this.validateRowFn();
+    if (isValid && validateRowFn && !validateRowFn(row)) {
       isValid = false;
     }
 
@@ -1112,8 +1123,9 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   /** Checks if a row can be edited */
   canEditRow(row: T): boolean {
-    if (this.canEditRowFn) {
-      return this.canEditRowFn(row);
+    const canEditRowFn = this.canEditRowFn();
+    if (canEditRowFn) {
+      return canEditRowFn(row);
     }
     return true;
   }
@@ -1193,8 +1205,9 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   /** Retrieves cell value from row data using field configuration */
   getValue(row: T, field: ColumnConfig): any {
-    if (this.valueGetterFn) {
-      return this.valueGetterFn(row, field);
+    const valueGetterFn = this.valueGetterFn();
+    if (valueGetterFn) {
+      return valueGetterFn(row, field);
     }
     if (field.fieldValueFN) {
       return field.fieldValueFN(row, field, null);
@@ -1215,8 +1228,9 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   /** Determines if a value is negative (for red/green coloring) */
   isNegativeValue(row: T, field: ColumnConfig): boolean {
-    if (this.negativeValueFn) {
-      return this.negativeValueFn(row, field);
+    const negativeValueFn = this.negativeValueFn();
+    if (negativeValueFn) {
+      return negativeValueFn(row, field);
     }
     const value = this.getValue(row, field);
     return value != null && String(value).startsWith('-');
@@ -1228,8 +1242,9 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   /** Handles sort events from Optimus table */
   onSort(event: SortEvent): void {
-    if (this.customSortFn) {
-      this.customSortFn(event);
+    const customSortFn = this.customSortFn();
+    if (customSortFn) {
+      customSortFn(event);
     }
   }
 
@@ -1257,7 +1272,8 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    * Uses custom function if provided, otherwise allows all rows.
    */
   canExpand(row: T): boolean {
-    return this.canExpandFn ? this.canExpandFn(row) : true;
+    const canExpandFn = this.canExpandFn();
+    return canExpandFn ? canExpandFn(row) : true;
   }
 
   /**
@@ -1265,11 +1281,11 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    * Accounts for expansion toggle column and edit buttons column.
    */
   getExpandedColspan(): number {
-    let count = this.fields.filter((f) => f.visible).length;
-    if (this.expandable) {
+    let count = this.fields().filter((f) => f.visible).length;
+    if (this.expandable()) {
       count++;
     }
-    if (this.showEditColumn && !this.batchMode) {
+    if (this.showEditColumn() && !this.batchMode()) {
       count++;
     }
     return count;

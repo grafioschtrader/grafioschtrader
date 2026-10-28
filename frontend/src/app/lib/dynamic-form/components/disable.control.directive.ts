@@ -1,14 +1,14 @@
 import { NgControl } from '@angular/forms';
-import { Directive, Input } from '@angular/core';
+import { Directive, effect, input, untracked } from '@angular/core';
 
-@Directive({
-  selector: '[disableControl]'
-})
+@Directive({ selector: '[disableControl]' })
 export class DisableControlDirective {
-  constructor(private ngControl: NgControl) {}
+  readonly disableControl = input<boolean>();
 
-  @Input() set disableControl(condition: boolean) {
-    const action = condition ? 'disable' : 'enable';
-    this.ngControl.control[action]();
+  constructor(private ngControl: NgControl) {
+    effect(() => {
+      const condition = this.disableControl();
+      untracked(() => this.ngControl.control?.[condition ? 'disable' : 'enable']());
+    });
   }
 }

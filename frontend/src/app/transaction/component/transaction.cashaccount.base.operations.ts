@@ -1,6 +1,6 @@
 import { TransactionBaseOperations } from './transaction.base.operations';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
-import { Directive, Input, output, viewChild } from '@angular/core';
+import { Directive, output, viewChild, input } from '@angular/core';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { TransactionCallParam } from './transaction.call.parm';
 import { TranslateService } from '@ngx-translate/core';
@@ -26,7 +26,7 @@ import { CurrencypairService } from '../../securitycurrency/service/currencypair
 @Directive()
 export abstract class TransactionCashaccountBaseOperations extends TransactionBaseOperations {
   /** Input parameters containing transaction call configuration and context data */
-  @Input() transactionCallParam: TransactionCallParam;
+  readonly transactionCallParam = input<TransactionCallParam>(undefined);
 
   /** Event emitter for closing dialog and returning processed action data to parent component */
   readonly closeDialog = output<ProcessedActionData>();

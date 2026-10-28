@@ -1,4 +1,4 @@
-import { Component, Inject, Input, signal, output } from '@angular/core';
+import { Component, Inject, signal, output, input } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -34,7 +34,7 @@ export interface TaskFilterItem {
   template: `
     <p-dialog
       header="{{ 'TASK_FILTER' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       [contentStyle]="{ 'max-height': '600px' }"
       (onShow)="onShow()"
@@ -62,7 +62,7 @@ export interface TaskFilterItem {
   imports: [FormsModule, TranslateModule, DialogModule, ButtonModule, ConfigurableTableComponent]
 })
 export class TaskFilterDialogComponent extends ShowRecordConfigBase {
-  @Input() visibleDialog = false;
+  readonly visibleDialog = input(false);
   readonly closeDialog = output<number[] | null>();
 
   readonly taskFilterItems = signal<TaskFilterItem[]>([]);

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GTNetExchangeService } from '../service/gtnet-exchange.service';
 import { GTNetExchangeKindType, GTNetSupplierWithDetails } from '../../lib/gnet/model/gtnet';
@@ -29,9 +29,9 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
   `
 })
 export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase implements OnInit {
-  @Input() idSecuritycurrency: number;
+  readonly idSecuritycurrency = input<number>(undefined);
   /** Discriminator type: 'S' for Security, 'C' for Currencypair */
-  @Input() dtype: string;
+  readonly dtype = input<string>(undefined);
 
   readonly treeNodes = signal<TreeNode[]>([]);
 
@@ -64,9 +64,9 @@ export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase imple
 
   private loadData(): void {
     const observable =
-      this.dtype === 'S'
-        ? this.gtNetExchangeService.getSecuritySupplierDetails(this.idSecuritycurrency)
-        : this.gtNetExchangeService.getCurrencypairSupplierDetails(this.idSecuritycurrency);
+      this.dtype() === 'S'
+        ? this.gtNetExchangeService.getSecuritySupplierDetails(this.idSecuritycurrency())
+        : this.gtNetExchangeService.getCurrencypairSupplierDetails(this.idSecuritycurrency());
 
     observable
       .pipe(takeUntilDestroyed(this.destroyRef))

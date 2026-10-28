@@ -1,5 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, Injector, Input, OnInit } from '@angular/core';
+import { Component, Injector, OnInit, input } from '@angular/core';
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -26,7 +26,7 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
   private static SPLIT_DATE = 'splitDate';
 
   /** The ID of the security/currency for which to display split data */
-  @Input() idSecuritycurrency: number;
+  readonly idSecuritycurrency = input<number>(undefined);
 
   /**
    * Creates a new watchlist security split table component with required services and column configuration.
@@ -71,7 +71,7 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
   /** Loads security split data for the specified security/currency ID and populates the table */
   ngOnInit(): void {
     this.securitysplitService
-      .getSecuritysplitsByIdSecuritycurrency(this.idSecuritycurrency)
+      .getSecuritysplitsByIdSecuritycurrency(this.idSecuritycurrency())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((securitysplits) => {
         this.data.set(securitysplits);

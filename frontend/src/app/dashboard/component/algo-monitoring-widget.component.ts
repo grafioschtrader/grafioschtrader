@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, OnChanges, input } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -62,7 +62,7 @@ import { AlgoMonitoringSummary } from '../model/algo.monitoring.summary';
   `
 })
 export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase implements OnChanges {
-  @Input() result: DashboardResult;
+  readonly result = input<DashboardResult>(undefined);
 
   summary: AlgoMonitoringSummary;
   statusParams: { [name: string]: number } = {};
@@ -83,7 +83,7 @@ export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase implemen
   }
 
   ngOnChanges(): void {
-    this.summary = this.result?.payload?.custom as AlgoMonitoringSummary;
+    this.summary = this.result()?.payload?.custom as AlgoMonitoringSummary;
     this.statusParams = {
       buys: this.summary?.buyCount ?? 0,
       sells: this.summary?.sellCount ?? 0,

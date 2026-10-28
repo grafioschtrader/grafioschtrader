@@ -1,4 +1,4 @@
-import { DestroyRef, inject, signal, Component, Injector, Input, OnChanges, OnInit, output } from '@angular/core';
+import { DestroyRef, inject, signal, Component, Injector, OnChanges, OnInit, output, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -21,7 +21,7 @@ import { Helper } from '../../lib/helper/helper';
   selector: 'tenant-performance-eod-missing-table',
   template: `
     <configurable-table
-      [data]="securities"
+      [data]="securities()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       dataKey="idSecuritycurrency"
@@ -44,9 +44,11 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   /**
    * Contains the missings days -> key = idSecuritycurrency
    */
-  @Input() countIdSecurityMissingsMap: { [key: number]: number };
-  @Input() securities: Security[];
-  @Input() selectedDayIdSecurities: number[];
+  readonly countIdSecurityMissingsMap = input<{
+    [key: number]: number;
+  }>(undefined);
+  readonly securities = input<Security[]>(undefined);
+  readonly selectedDayIdSecurities = input<number[]>(undefined);
   readonly changedSecurity = output<Security>();
 
   selectedSecurity: Security;
@@ -80,7 +82,7 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   }
 
   getSecurityMissingCount(dataobject: any, field: ColumnConfig, valueField: any): number {
-    return this.countIdSecurityMissingsMap[dataobject.idSecuritycurrency];
+    return this.countIdSecurityMissingsMap()[dataobject.idSecuritycurrency];
   }
 
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
@@ -94,7 +96,7 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   }
 
   getRowHighlightClass(row: Security): string | null {
-    return this.selectedDayIdSecurities.indexOf(row.idSecuritycurrency) >= 0 ? 'rowgroup-total' : null;
+    return this.selectedDayIdSecurities().indexOf(row.idSecuritycurrency) >= 0 ? 'rowgroup-total' : null;
   }
 
   ngOnInit(): void {
@@ -116,7 +118,7 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   }
 
   ngOnChanges(): void {
-    if (this.selectedDayIdSecurities.length > 0) {
+    if (this.selectedDayIdSecurities().length > 0) {
       this.selectedSecurity = null;
     }
   }

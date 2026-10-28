@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { AccordionModule } from '@openng/optimus-ui/accordion';
 import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
@@ -37,12 +37,12 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
         <p-accordion-content>
           @if (isOpen(PANEL_INFO)) {
             <securitycurrency-extended-info
-              [dividendUrl]="position.dividendUrl"
-              [splitUrl]="position.splitUrl"
-              [historicalUrl]="position.historicalUrl"
-              [intradayUrl]="position.intradayUrl"
-              [feedConnectorsKV]="feedConnectorsKV"
-              [securitycurrency]="position.securitycurrency" />
+              [dividendUrl]="position().dividendUrl"
+              [splitUrl]="position().splitUrl"
+              [historicalUrl]="position().historicalUrl"
+              [intradayUrl]="position().intradayUrl"
+              [feedConnectorsKV]="feedConnectorsKV()"
+              [securitycurrency]="position().securitycurrency" />
           }
         </p-accordion-content>
       </p-accordion-panel>
@@ -56,7 +56,7 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
           @if (isOpen(PANEL_STATISTICS)) {
             <instrument-statistics-result
               [showTitle]="false"
-              [idSecuritycurrency]="position.securitycurrency.idSecuritycurrency" />
+              [idSecuritycurrency]="position().securitycurrency.idSecuritycurrency" />
           }
         </p-accordion-content>
       </p-accordion-panel>
@@ -71,9 +71,11 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
 })
 export class WatchlistPriceFeedExpandedComponent implements OnInit {
   /** The instrument of the expanded row together with its feed URLs. */
-  @Input() position: SecuritycurrencyPosition<Security | Currencypair>;
+  readonly position = input<SecuritycurrencyPosition<Security | Currencypair>>(undefined);
   /** Key-value mapping of feed connector IDs to human-readable names. */
-  @Input() feedConnectorsKV: { [id: string]: string };
+  readonly feedConnectorsKV = input<{
+    [id: string]: string;
+  }>(undefined);
 
   /** Value of the panel with the extended instrument and price feed information. */
   readonly PANEL_INFO = 'info';
@@ -94,7 +96,7 @@ export class WatchlistPriceFeedExpandedComponent implements OnInit {
    * Restores the panels the user had open for this instrument. Without an earlier choice both panels stay closed.
    */
   ngOnInit(): void {
-    this.openPanels = this.panelStateService.getOpenPanels(this.position.securitycurrency.idSecuritycurrency);
+    this.openPanels = this.panelStateService.getOpenPanels(this.position().securitycurrency.idSecuritycurrency);
   }
 
   /**
@@ -114,6 +116,6 @@ export class WatchlistPriceFeedExpandedComponent implements OnInit {
    */
   onPanelsChange(panels: string | number | string[] | number[]): void {
     this.openPanels = (Array.isArray(panels) ? panels : [panels]).map(String);
-    this.panelStateService.setOpenPanels(this.position.securitycurrency.idSecuritycurrency, this.openPanels);
+    this.panelStateService.setOpenPanels(this.position().securitycurrency.idSecuritycurrency, this.openPanels);
   }
 }

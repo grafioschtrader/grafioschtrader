@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, output, viewChild } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, output, viewChild, input, linkedSignal } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -38,7 +38,7 @@ import { BaseSettings } from '../../lib/base.settings';
     </div>
     <editable-table
       #entityTable
-      [data]="tradingPeriods"
+      [data]="tradingPeriods()"
       (dataChange)="onDataChange($event)"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
@@ -67,13 +67,14 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   readonly entityTable = viewChild<EditableTableComponent<SecaccountTradingPeriod>>('entityTable');
 
   /** Trading periods to display and edit. Strings are converted to Date objects internally. */
-  @Input() tradingPeriods: SecaccountTradingPeriod[] = [];
+  readonly tradingPeriodsInput = input<SecaccountTradingPeriod[]>([], { alias: 'tradingPeriods' });
+  readonly tradingPeriods = linkedSignal(() => this.tradingPeriodsInput());
 
   /** Preloaded transaction summaries for conflict checks. */
-  @Input() transactionSummaries: TradingPeriodTransactionSummary[] = [];
+  readonly transactionSummaries = input<TradingPeriodTransactionSummary[]>([]);
 
   /** Whether the parent security account is new (not yet persisted). */
-  @Input() isNewSecurityAccount = false;
+  readonly isNewSecurityAccount = input(false);
 
   readonly tradingPeriodsChange = output<SecaccountTradingPeriod[]>();
 
@@ -97,10 +98,10 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
 
   ngOnChanges(changes: SimpleChanges): void {
     // The columns are defined in the constructor, so they exist before the first input arrives.
-    if (changes['tradingPeriods'] && this.tradingPeriods) {
-      this.tradingPeriods = this.convertDatesToDateObjects(this.tradingPeriods);
-      this.assignTempIds(this.tradingPeriods);
-      this.createTranslatedValueStoreAndFilterField(this.tradingPeriods);
+    if (changes['tradingPeriodsInput'] && this.tradingPeriods()) {
+      this.tradingPeriods.set(this.convertDatesToDateObjects(this.tradingPeriods()));
+      this.assignTempIds(this.tradingPeriods());
+      this.createTranslatedValueStoreAndFilterField(this.tradingPeriods());
     }
     if (changes['transactionSummaries'] || changes['isNewSecurityAccount']) {
       // canDeleteRow is a stable function, so the editable table re-evaluates it only after a new revision.
@@ -112,7 +113,7 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
    * Returns the current data converted back to ISO date strings for backend persistence.
    */
   getData(): SecaccountTradingPeriod[] {
-    const data = this.entityTable()?.getData() || this.tradingPeriods;
+    const data = this.entityTable()?.getData() || this.tradingPeriods();
     return this.convertDatesToStrings(data).map((p) => {
       const copy = { ...p };
       if (copy.idSecaccountTradingPeriod != null && copy.idSecaccountTradingPeriod < 0) {
@@ -138,7 +139,7 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
    * (specInvestInstrument, categoryType) combination already exists.
    */
   validateRow = (row: SecaccountTradingPeriod): boolean => {
-    const duplicates = this.tradingPeriods.filter(
+    const duplicates = this.tradingPeriods().filter(
       (p) =>
         p !== row &&
         p.specInvestInstrument === row.specInvestInstrument &&
@@ -156,7 +157,7 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
    * deletable. Existing rows with transactions cannot be deleted.
    */
   canDeleteRow = (row: SecaccountTradingPeriod): boolean => {
-    if (this.isNewRow(row) || this.isNewSecurityAccount) {
+    if (this.isNewRow(row) || this.isNewSecurityAccount()) {
       return true;
     }
     return !this.hasConflictingTransactions(row);
@@ -177,8 +178,8 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
         return;
       }
     }
-    this.createTranslatedValueStoreAndFilterField(this.tradingPeriods);
-    this.tradingPeriodsChange.emit(this.tradingPeriods);
+    this.createTranslatedValueStoreAndFilterField(this.tradingPeriods());
+    this.tradingPeriodsChange.emit(this.tradingPeriods());
   }
 
   onRowEditCancel(_event: RowEditEvent<SecaccountTradingPeriod>): void {
@@ -191,17 +192,17 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
       this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'TRADING_PERIOD_DELETE_CONFLICT');
       return;
     }
-    this.tradingPeriods = this.tradingPeriods.filter((_, i) => i !== event.index);
-    this.tradingPeriodsChange.emit(this.tradingPeriods);
+    this.tradingPeriods.set(this.tradingPeriods().filter((_, i) => i !== event.index));
+    this.tradingPeriodsChange.emit(this.tradingPeriods());
   }
 
   onRowAdded(_event: RowEditEvent<SecaccountTradingPeriod>): void {
-    this.createTranslatedValueStoreAndFilterField(this.tradingPeriods);
+    this.createTranslatedValueStoreAndFilterField(this.tradingPeriods());
   }
 
   onDataChange(data: SecaccountTradingPeriod[]): void {
-    this.tradingPeriods = data;
-    this.tradingPeriodsChange.emit(this.tradingPeriods);
+    this.tradingPeriods.set(data);
+    this.tradingPeriodsChange.emit(this.tradingPeriods());
   }
 
   private setupColumns(): void {
@@ -269,7 +270,7 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   }
 
   private hasConflictingTransactions(row: SecaccountTradingPeriod): boolean {
-    return this.transactionSummaries.some(
+    return this.transactionSummaries().some(
       (ts) =>
         ts.specInvestInstrument === row.specInvestInstrument &&
         (row.categoryType == null || ts.categoryType === row.categoryType)
@@ -277,7 +278,7 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   }
 
   private findMatchingSummary(row: SecaccountTradingPeriod): TradingPeriodTransactionSummary | undefined {
-    return this.transactionSummaries.find(
+    return this.transactionSummaries().find(
       (ts) =>
         ts.specInvestInstrument === row.specInvestInstrument &&
         (row.categoryType == null || ts.categoryType === row.categoryType)

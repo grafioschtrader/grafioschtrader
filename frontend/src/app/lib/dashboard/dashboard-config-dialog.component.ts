@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { SimpleEditBase } from '../edit/simple.edit.base';
@@ -19,13 +19,13 @@ import { FieldConfig } from '../dynamic-form/models/field.config';
   selector: 'dashboard-config',
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS],
   template: `<p-dialog
-    [header]="descriptor.titleKey | translate"
+    [header]="descriptor().titleKey | translate"
     [visible]="visibleDialog()"
     [modal]="true"
     [closable]="true"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)">
-    <p>{{ descriptor.descriptionKey | translate }}</p>
+    <p>{{ descriptor().descriptionKey | translate }}</p>
     <dynamic-form
       [config]="config"
       [formConfig]="formConfig"
@@ -35,8 +35,8 @@ import { FieldConfig } from '../dynamic-form/models/field.config';
   </p-dialog>`
 })
 export class DashboardConfigDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() descriptor: DashboardDescriptor;
-  @Input() widget: DashboardWidget;
+  readonly descriptor = input<DashboardDescriptor>(undefined);
+  readonly widget = input<DashboardWidget>(undefined);
   constructor(
     public translateService: TranslateService,
     gps: GlobalparameterService
@@ -48,7 +48,7 @@ export class DashboardConfigDialogComponent extends SimpleEditBase implements On
     this.config = [
       ...DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
         this.translateService,
-        this.descriptor.formDefinition,
+        this.descriptor().formDefinition,
         '',
         false
       ),
@@ -57,7 +57,7 @@ export class DashboardConfigDialogComponent extends SimpleEditBase implements On
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
   protected initialize(): void {
-    this.form().transferBusinessObjectToForm(this.widget.config);
+    this.form().transferBusinessObjectToForm(this.widget().config);
   }
   /**
    * Emits exactly the settings the type declares. The names come from the descriptor rather than from this dialog, so a
@@ -65,7 +65,7 @@ export class DashboardConfigDialogComponent extends SimpleEditBase implements On
    * left behind. The standard form transfer converts numeric input strings to JSON numbers for backend validation.
    */
   submit(): void {
-    const config: DashboardConfig = { ...this.descriptor.defaultConfig };
+    const config: DashboardConfig = { ...this.descriptor().defaultConfig };
     this.form().cleanMaskAndTransferValuesToBusinessObject(config);
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED, config));
   }

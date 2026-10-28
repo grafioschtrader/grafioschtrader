@@ -1,4 +1,4 @@
-import { Component, Input, signal, output } from '@angular/core';
+import { Component, signal, output, input, linkedSignal } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
@@ -43,7 +43,7 @@ import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../mod
   template: `
     <p-dialog
       [header]="'SECURITY_LOOKUP_DIALOG' | translate"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '1150px', minHeight: '400px' }"
       [contentStyle]="{ 'max-height': 'calc(100vh - 160px)', 'overflow-y': 'auto' }"
       [modal]="true"
@@ -94,15 +94,16 @@ import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../mod
   `
 })
 export class SecurityLookupDialogComponent {
-  @Input() visibleDialog = false;
-  @Input() isin: string;
-  @Input() currency: string;
+  readonly visibleDialogInput = input(false, { alias: 'visibleDialog' });
+  readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
+  readonly isin = input<string>(undefined);
+  readonly currency = input<string>(undefined);
   /** MIC of the stock exchange chosen in the security form */
-  @Input() mic: string;
+  readonly mic = input<string>(undefined);
   /** Asset class chosen in the form; selects the providers and connectors */
-  @Input() idAssetClass: number;
+  readonly idAssetClass = input<number>(undefined);
   /** Ticker entered in the form; helps providers that know the ISIN only for another listing */
-  @Input() tickerSymbol: string;
+  readonly tickerSymbol = input<string>(undefined);
 
   readonly closeDialog = output<ProcessedActionData>();
 
@@ -222,14 +223,14 @@ export class SecurityLookupDialogComponent {
     };
     this.selectionHandled = true;
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, result));
-    this.visibleDialog = false;
+    this.visibleDialog.set(false);
   }
 
   private performLookup(): void {
     this.cancelPendingRequest();
     this.loading.set(true);
     this.lookupSubscription = this.securityLookupService
-      .lookup(this.isin, this.currency, this.mic, this.idAssetClass, this.tickerSymbol)
+      .lookup(this.isin(), this.currency(), this.mic(), this.idAssetClass(), this.tickerSymbol())
       .subscribe({
         next: (response) => {
           this.nameCandidate.set(preselectNameCandidate(response.candidates));

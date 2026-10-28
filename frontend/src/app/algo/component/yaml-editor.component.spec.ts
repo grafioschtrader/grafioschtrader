@@ -49,7 +49,7 @@ function model(...lines: string[]): { getLineContent(line: number): string } {
 describe('YamlEditorComponent schema assistance', () => {
   function editor(): any {
     const editor = createEditor() as any;
-    editor.schema = TAX_SCHEMA;
+    vi.spyOn(editor, 'schema').mockReturnValue(TAX_SCHEMA);
     return editor;
   }
 
@@ -64,7 +64,7 @@ describe('YamlEditorComponent schema assistance', () => {
     );
     expect(component.getEffectiveProperties(context)).toHaveProperty('condition');
 
-    component.schema = { $defs: { rule: TAX_SCHEMA.definitions.rule } };
+    vi.spyOn(component, 'schema').mockReturnValue({ $defs: { rule: TAX_SCHEMA.definitions.rule } });
     expect(component.resolveRef('#/$defs/rule')).toBe(TAX_SCHEMA.definitions.rule);
   });
 
@@ -100,10 +100,10 @@ describe('YamlEditorComponent schema assistance', () => {
 describe('YAML validation before submission', () => {
   it('rejects syntax errors synchronously and accepts a correction', () => {
     const component = createEditor();
-    component.value = 'rules: [';
+    component.value.set('rules: [');
     expect(component.checkSyntax()).toBe(false);
     expect(component.diagnostics()[0].line).toBeGreaterThan(0);
-    component.value = 'rules: []';
+    component.value.set('rules: []');
     expect(component.checkSyntax()).toBe(true);
     expect(component.diagnostics()).toEqual([]);
   });
@@ -112,10 +112,10 @@ describe('YAML validation before submission', () => {
     const response = new Subject<any[]>();
     const component = createEditor({ post: () => response } as any);
     component.getHeaders = () => ({ headers: null });
-    component.format = 'FEES';
-    component.value = 'rules: []';
+    vi.spyOn(component, 'format').mockReturnValue('FEES');
+    component.value.set('rules: []');
     const validation = component.validateForSubmit();
-    component.value = 'rules: [{name: Revised}]';
+    component.value.set('rules: [{name: Revised}]');
     response.next([{ category: 'DOMAIN', message: 'Old result' }]);
     expect(await validation).toBe(false);
     expect(component.diagnostics()).toEqual([]);
@@ -125,12 +125,12 @@ describe('YAML validation before submission', () => {
   it('does not send invalid syntax to the server and keeps request failures visible', async () => {
     const post = vi.fn();
     const component = createEditor({ post } as any);
-    component.format = 'TOKENS';
-    component.value = 'seed: [';
+    vi.spyOn(component, 'format').mockReturnValue('TOKENS');
+    component.value.set('seed: [');
     expect(await component.validateForSubmit()).toBe(false);
     expect(post).not.toHaveBeenCalled();
     component.getHeaders = () => ({ headers: null });
-    component.value = 'seed: {}';
+    component.value.set('seed: {}');
     post.mockReturnValue(throwError(() => new Error('offline')));
     expect(await component.validateForSubmit()).toBe(false);
     expect(component.validating).toBe(false);
@@ -139,7 +139,10 @@ describe('YAML validation before submission', () => {
 
   it('resolves account-name mappings and distinguishes custody expression paths', () => {
     const component = createEditor() as any;
-    component.schema = { type: 'object', additionalProperties: { properties: { accruedFees: { type: 'number' } } } };
+    vi.spyOn(component, 'schema').mockReturnValue({
+      type: 'object',
+      additionalProperties: { properties: { accruedFees: { type: 'number' } } }
+    });
     expect(component.findSchemaContext(model("'My account':", '  '), 2, 2).properties).toHaveProperty('accruedFees');
     expect(
       component.fieldPath(

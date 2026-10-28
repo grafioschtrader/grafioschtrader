@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, OnChanges, signal, output } from '@angular/core';
+import { Component, DestroyRef, inject, OnChanges, signal, output, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
@@ -64,11 +64,11 @@ import { TaxYearCorrectionService } from '../service/tax-year-correction.service
 })
 export class TaxYearCorrectionTableComponent extends TableEditConfigBase implements OnChanges {
   /** The security whose corrections are maintained. */
-  @Input() idSecuritycurrency: number;
+  readonly idSecuritycurrency = input<number>(undefined);
   /** Tax years offered for new rows in addition to the years with ICTax data (e.g. the report years). */
-  @Input() yearOptions: number[] = [];
+  readonly yearOptions = input<number[]>([]);
   /** Tax year preselected for new rows, typically the year the dialog was opened from. */
-  @Input() suggestedYear: number;
+  readonly suggestedYear = input<number>(undefined);
   /** Fires after any successful create/update/delete so the opener can reload the dividends report. */
   readonly dataChanged = output<void>();
 
@@ -129,12 +129,14 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
   private readData(): void {
     this.readSubscription?.unsubscribe();
     this.readSubscription = this.taxYearCorrectionService
-      .getBySecurity(this.idSecuritycurrency)
+      .getBySecurity(this.idSecuritycurrency())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((info) => {
         this.ictaxYearSet = new Set(info.ictaxTaxYears.map((y) => Number(y)));
         this.allYears.set(
-          Array.from(new Set([...this.yearOptions, ...info.ictaxTaxYears].map((y) => Number(y)))).sort((a, b) => b - a)
+          Array.from(new Set([...this.yearOptions(), ...info.ictaxTaxYears].map((y) => Number(y)))).sort(
+            (a, b) => b - a
+          )
         );
         this.corrections.set(info.corrections);
         this.notifyViewChanged();
@@ -167,11 +169,10 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
 
   createNewEntity = (): TaxYearCorrection => {
     const entity = new TaxYearCorrection();
-    entity.idSecuritycurrency = this.idSecuritycurrency;
+    entity.idSecuritycurrency = this.idSecuritycurrency();
     const freeYears = this.getFreeYears(null);
-    entity.taxYear = freeYears.includes(Number(this.suggestedYear))
-      ? Number(this.suggestedYear)
-      : (freeYears[0] ?? null);
+    const suggestedYear = this.suggestedYear();
+    entity.taxYear = freeYears.includes(Number(suggestedYear)) ? Number(suggestedYear) : (freeYears[0] ?? null);
     return entity;
   };
 

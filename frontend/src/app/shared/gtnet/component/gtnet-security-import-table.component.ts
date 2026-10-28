@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, OnInit, signal, output, viewChild } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, output, viewChild, input, linkedSignal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
@@ -72,7 +72,7 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
         (rowEditSave)="onRowEditSave($event)"
         (rowSelect)="onRowSelect($event)"
         (rowUnselect)="onRowUnselect($event)" />
-      @if (selectedHead && contextMenuItems()?.length > 0) {
+      @if (selectedHead() && contextMenuItems()?.length > 0) {
         <p-contextMenu [target]="cmDiv" [model]="contextMenuItems()" />
       }
     </div>
@@ -120,7 +120,8 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
 export class GTNetSecurityImportTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
   readonly editableTable = viewChild<EditableTableComponent<GTNetSecurityImpPos>>('editableTable');
 
-  @Input() selectedHead: GTNetSecurityImpHead;
+  readonly selectedHeadInput = input<GTNetSecurityImpHead>(undefined, { alias: 'selectedHead' });
+  readonly selectedHead = linkedSignal(() => this.selectedHeadInput());
   readonly positionChanged = output<void>();
 
   readonly positions = signal<GTNetSecurityImpPos[]>([]);
@@ -287,7 +288,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * @param head the selected header or null to clear
    */
   loadPositions(head: GTNetSecurityImpHead): void {
-    this.selectedHead = head;
+    this.selectedHead.set(head);
     this.selectedPosition.set(null);
     this.resetMenu();
     this.positionsSubscription?.unsubscribe();
@@ -349,7 +350,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    */
   createNewEntity = (): GTNetSecurityImpPos => {
     const entity = new GTNetSecurityImpPos();
-    entity.idGtNetSecurityImpHead = this.selectedHead?.idGtNetSecurityImpHead;
+    entity.idGtNetSecurityImpHead = this.selectedHead()?.idGtNetSecurityImpHead;
     (entity as any).rowKey = `new_${this.newRowCounter++}`;
     return entity;
   };
@@ -367,7 +368,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     }
 
     // Ensure head reference is set
-    entity.idGtNetSecurityImpHead = this.selectedHead.idGtNetSecurityImpHead;
+    entity.idGtNetSecurityImpHead = this.selectedHead().idGtNetSecurityImpHead;
 
     // Clean up temporary fields before saving
     const entityToSave = new GTNetSecurityImpPos();
@@ -439,7 +440,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   prepareEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
 
-    if (this.selectedHead) {
+    if (this.selectedHead()) {
       menuItems.push({
         label: 'CREATE|' + this.ENTITY_NAME + BaseSettings.DIALOG_MENU_SUFFIX,
         icon: 'pi pi-plus',
@@ -489,7 +490,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     this.visibleEditSecurityDialog.set(false);
     if (processedActionData.action === ProcessedAction.UPDATED) {
       // Reload positions to get updated security data
-      this.loadPositions(this.selectedHead);
+      this.loadPositions(this.selectedHead());
     }
   }
 
@@ -504,7 +505,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       'UPLOAD_CSV_GTNET_SECURITY_IMP_POS',
       false,
       this.gtNetSecurityImpPosService,
-      this.selectedHead.idGtNetSecurityImpHead
+      this.selectedHead().idGtNetSecurityImpHead
     );
     this.visibleUploadDialog.set(true);
   }
@@ -516,7 +517,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   handleCloseUploadDialog(processedActionData: ProcessedActionData): void {
     this.visibleUploadDialog.set(false);
     if (processedActionData.action === ProcessedAction.UPDATED) {
-      this.loadPositions(this.selectedHead);
+      this.loadPositions(this.selectedHead());
     }
   }
 

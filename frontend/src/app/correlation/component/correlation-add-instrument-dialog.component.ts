@@ -1,5 +1,5 @@
 import { SecuritycurrencySearchBase } from '../../securitycurrency/component/securitycurrency.search.base';
-import { Component, Input, output, viewChild } from '@angular/core';
+import { Component, output, viewChild, input } from '@angular/core';
 import { TenantLimit } from '../../shared/types/tenant.limit';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -22,7 +22,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
     <!-- Search initialization focuses ISIN; a second delayed dialog focus can interrupt entry into another field. -->
     <p-dialog
       header="{{ 'ADD_EXISTING_SECURITY' | translate }}"
-      [visible]="visibleAddInstrumentDialog"
+      [visible]="visibleAddInstrumentDialog()"
       [style]="{ width: '720px' }"
       [focusOnShow]="false"
       (onShow)="onShow($event)"
@@ -36,20 +36,20 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
         #dynamicFormComponent="dynamicForm"
         (submitBt)="submit($event)" />
       <br />
-      <correlation-set-add-instrument-table [tenantLimits]="tenantLimits" />
+      <correlation-set-add-instrument-table [tenantLimits]="tenantLimits()" />
     </p-dialog>
   `,
   imports: [TranslateModule, DialogModule, DynamicFormComponent, CorrelationSetAddInstrumentTableComponent]
 })
 export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility state of the add instrument dialog */
-  @Input() visibleAddInstrumentDialog: boolean;
+  readonly visibleAddInstrumentDialog = input<boolean>(undefined);
 
   /** The unique identifier of the correlation set to add instruments to */
-  @Input() idCorrelationSet: number;
+  readonly idCorrelationSet = input<number>(undefined);
 
   /** Array of tenant limits that constrain the number of instruments that can be added */
-  @Input() tenantLimits: TenantLimit[];
+  readonly tenantLimits = input<TenantLimit[]>(undefined);
 
   /** Reference to the child table component that displays and manages instrument selection */
   readonly csaitc = viewChild(CorrelationSetAddInstrumentTableComponent);
@@ -104,6 +104,6 @@ export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySea
    * @param securitycurrencySearch The search criteria object containing filters and parameters
    */
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
-    this.csaitc().loadData(this.idCorrelationSet, securitycurrencySearch);
+    this.csaitc().loadData(this.idCorrelationSet(), securitycurrencySearch);
   }
 }

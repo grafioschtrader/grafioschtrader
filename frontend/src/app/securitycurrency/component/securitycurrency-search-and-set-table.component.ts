@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, Injector, Input, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, Injector, signal, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Security } from '../../entities/security';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -83,8 +83,8 @@ import { ButtonModule } from '@openng/optimus-ui/button';
   imports: [TableModule, ButtonModule, TranslateModule]
 })
 export class SecuritycurrencySearchAndSetTableComponent extends SecuritycurrencySearchTableBase {
-  @Input() callBackSetSecurity: CallBackSetSecurity;
-  @Input() supplementCriteria: SupplementCriteria;
+  readonly callBackSetSecurity = input<CallBackSetSecurity>(undefined);
+  readonly supplementCriteria = input<SupplementCriteria>(undefined);
 
   readonly selectedSecurity = signal<Security>(null);
   /** A new columns reference re-renders the header and body templates of the OnPush p-table after translation. */
@@ -107,18 +107,18 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
   }
 
   loadData(securitycurrencySearch: SecuritycurrencySearch): void {
-    securitycurrencySearch.excludeDerivedSecurity = this.supplementCriteria.excludeDerivedSecurity;
+    securitycurrencySearch.excludeDerivedSecurity = this.supplementCriteria().excludeDerivedSecurity;
     const obs: Observable<(Currencypair | Security)[]>[] = [
       this.securityService.searchByCriteria(securitycurrencySearch)
     ];
-    !this.supplementCriteria.onlySecurity &&
+    !this.supplementCriteria().onlySecurity &&
       obs.push(this.currencypairService.searchByCriteria(securitycurrencySearch));
     combineLatest(obs)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data: (Currencypair | Security)[][]) => {
         this.securitycurrencyList = data[0];
         this.createTranslatedValueStoreAndFilterField(data[0]);
-        if (!this.supplementCriteria.onlySecurity) {
+        if (!this.supplementCriteria().onlySecurity) {
           this.transformCurrencypairToCurrencypairWatchlist(<Currencypair[]>data[1]);
         }
       });
@@ -130,6 +130,6 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
   }
 
   chooseSecurity(): void {
-    this.callBackSetSecurity.setSecurity(this.selectedSecurity());
+    this.callBackSetSecurity().setSecurity(this.selectedSecurity());
   }
 }

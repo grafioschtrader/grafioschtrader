@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, Input, OnInit, signal, viewChild } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, signal, viewChild, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Validators } from '@angular/forms';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -59,7 +59,7 @@ import { combineLatest } from 'rxjs';
 })
 export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<GenericConnectorDef> implements OnInit {
   readonly yamlEditor = viewChild(YamlEditorComponent);
-  @Input() callParam: GenericConnectorDef;
+  readonly callParam = input<GenericConnectorDef>(undefined);
 
   readonly tokenConfigYamlValue = signal('');
   readonly tokenConfigSchema = signal<any>(null);
@@ -138,19 +138,20 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
         this.updateRateLimitTypeDependencies(value);
       }
     });
+    const callParam = this.callParam();
     this.updateRateLimitTypeDependencies(
-      this.callParam?.rateLimitType != null ? RateLimitType[this.callParam.rateLimitType] : null
+      callParam?.rateLimitType != null ? RateLimitType[callParam.rateLimitType] : null
     );
 
     this.configObject.geoInclusions.formControl.valueChanges
       .pipe(this.untilDialogClosed())
       .subscribe(() => this.rebuildExclusionsTree());
     this.form().setDefaultValuesAndEnableSubmit();
-    if (this.callParam) {
-      this.form().transferBusinessObjectToForm(this.callParam);
+    if (callParam) {
+      this.form().transferBusinessObjectToForm(callParam);
       this.loadSupportedCategories();
     }
-    this.tokenConfigYamlValue.set(this.callParam?.tokenConfigYaml || '');
+    this.tokenConfigYamlValue.set(callParam?.tokenConfigYaml || '');
     this.applyFieldLocks();
     // Geographic selections need the tree's actual node references. Hide only those controls while loading;
     // the rest of the form is ready for editing and must never be reset by a late response.
@@ -180,7 +181,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
           .sort((a, b) => a.value.localeCompare(b.value));
         this.geoTreeNodes = this.buildGeoTree(baseData.stockexchanges, baseData.countries);
         this.configObject.geoInclusions.treeNodes = this.geoTreeNodes;
-        if (this.callParam) {
+        if (this.callParam()) {
           this.loadGeoRestrictions();
         }
         this.configObject.geoInclusions.invisible = false;
@@ -203,11 +204,12 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    * Disabled controls are still transferred to the business object, so the submitted entity keeps its original values.
    */
   private applyFieldLocks(): void {
-    if (!this.callParam?.idGenericConnector) {
+    const callParam = this.callParam();
+    if (!callParam?.idGenericConnector) {
       return;
     }
     FormHelper.disableEnableFieldConfigs(true, [this.configObject.shortId, this.configObject.domainUrl]);
-    if (this.callParam.endpoints?.some((endpoint) => endpoint.everUsedSuccessfully)) {
+    if (callParam.endpoints?.some((endpoint) => endpoint.everUsedSuccessfully)) {
       FormHelper.disableEnableFieldConfigs(true, [
         this.configObject.readableName,
         this.configObject.needsApiKey,
@@ -286,8 +288,9 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    * Loads the supportedCategories comma-separated string into the multi-select as an array of enum name strings.
    */
   private loadSupportedCategories(): void {
-    if (this.callParam.supportedCategories) {
-      const cats = this.callParam.supportedCategories.split(',').map((s) => s.trim());
+    const callParam = this.callParam();
+    if (callParam.supportedCategories) {
+      const cats = callParam.supportedCategories.split(',').map((s) => s.trim());
       this.configObject.supportedCategories.formControl.setValue(cats);
     }
   }
@@ -297,10 +300,11 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    * tokens). Since geoInclusions has no propagation, each node is checked independently.
    */
   private loadGeoRestrictions(): void {
-    if (!this.callParam.geoRestrictions) {
+    const callParam = this.callParam();
+    if (!callParam.geoRestrictions) {
       return;
     }
-    const tokens = this.callParam.geoRestrictions.trim().split(/\s+/);
+    const tokens = callParam.geoRestrictions.trim().split(/\s+/);
     const inclusions: string[] = [];
     const exclusionTokens: string[] = [];
     tokens.forEach((token) => {
@@ -460,7 +464,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GenericConnectorDef {
     const entity = new GenericConnectorDef();
-    this.copyFormToPublicBusinessObject(entity, this.callParam, null);
+    this.copyFormToPublicBusinessObject(entity, this.callParam(), null);
     this.form().cleanMaskAndTransferValuesToBusinessObject(entity);
     const values: any = {};
     this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);

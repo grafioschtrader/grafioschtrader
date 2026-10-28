@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { GTNetConfig } from '../model/gtnet';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -40,7 +40,7 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
   `
 })
 export class GTNetConfigEditComponent extends SimpleEntityEditBase<GTNetConfig> implements OnInit {
-  @Input() gtNetConfig: GTNetConfig;
+  readonly gtNetConfig = input<GTNetConfig>(undefined);
 
   constructor(
     translateService: TranslateService,
@@ -69,11 +69,11 @@ export class GTNetConfigEditComponent extends SimpleEntityEditBase<GTNetConfig> 
   }
 
   protected override initialize(): void {
-    this.form().transferBusinessObjectToForm(this.gtNetConfig);
+    this.form().transferBusinessObjectToForm(this.gtNetConfig());
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetConfig {
-    const config = { ...this.gtNetConfig };
+    const config = { ...this.gtNetConfig() };
     config.connectionTimeout = value['connectionTimeout'] ?? null;
     config.requestViolationCount = value['requestViolationCount'] ?? 0;
     return config;

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -48,10 +48,10 @@ import { GTNetSecurityImpPosService } from '../../shared/gtnet/service/gtnet-sec
 })
 export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase implements OnInit {
   /** Suggested name for new header (from ImportTransactionHead.name) */
-  @Input() suggestedHeadName = '';
+  readonly suggestedHeadName = input('');
 
   /** The import transaction head ID to create positions from */
-  @Input() idTransactionHead: number;
+  readonly idTransactionHead = input<number>(undefined);
 
   existingHeads: GTNetSecurityImpHead[] = [];
   private readonly MODE_NEW = 'new';
@@ -95,7 +95,7 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
     this.configObject.submit.disabled = true;
 
     this.gtNetSecurityImpPosService
-      .createFromImportTransactionHead(this.idTransactionHead, idGtNetSecurityImpHead, headName)
+      .createFromImportTransactionHead(this.idTransactionHead(), idGtNetSecurityImpHead, headName)
       .pipe(this.untilDialogClosed())
       .subscribe({
         next: (head: GTNetSecurityImpHead) => {
@@ -117,8 +117,9 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
       .subscribe((heads: GTNetSecurityImpHead[]) => {
         this.existingHeads = heads;
         this.setupHeadOptions();
-        if (this.configObject.headName.formControl.value === this.suggestedHeadName) {
-          this.configObject.headName.formControl.setValue(this.suggestUniqueName(this.suggestedHeadName));
+        const suggestedHeadName = this.suggestedHeadName();
+        if (this.configObject.headName.formControl.value === suggestedHeadName) {
+          this.configObject.headName.formControl.setValue(this.suggestUniqueName(suggestedHeadName));
         }
       });
   }
@@ -176,7 +177,7 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
     this.configObject.mode.formControl.setValue(initialMode);
 
     // Set suggested name with uniqueness check
-    const suggestedName = this.suggestUniqueName(this.suggestedHeadName);
+    const suggestedName = this.suggestUniqueName(this.suggestedHeadName());
     this.configObject.headName.formControl.setValue(suggestedName);
 
     // Update visibility based on initial mode

@@ -1,5 +1,5 @@
 import { SecuritycurrencySearchBase } from '../../securitycurrency/component/securitycurrency.search.base';
-import { Component, Input, output, viewChild } from '@angular/core';
+import { Component, output, viewChild, input } from '@angular/core';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MultipleRequestToOneService } from '../../shared/service/multiple.request.to.one.service';
@@ -20,7 +20,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
   template: `
     <p-dialog
       header="{{ 'ADD_INSTRUMENTS_BY_SEARCH' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '720px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -40,10 +40,10 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
 })
 export class AlgoAssetclassAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility of the dialog. */
-  @Input() visibleDialog: boolean;
+  readonly visibleDialog = input<boolean>(undefined);
 
   /** The custom category the selected instruments are added to. */
-  @Input() idAlgoAssetclassSecurity: number;
+  readonly idAlgoAssetclassSecurity = input<number>(undefined);
 
   readonly aaaitc = viewChild(AlgoAssetclassAddInstrumentTableComponent);
 
@@ -79,6 +79,6 @@ export class AlgoAssetclassAddInstrumentDialogComponent extends Securitycurrency
   }
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
-    this.aaaitc().loadData(this.idAlgoAssetclassSecurity, securitycurrencySearch);
+    this.aaaitc().loadData(this.idAlgoAssetclassSecurity(), securitycurrencySearch);
   }
 }

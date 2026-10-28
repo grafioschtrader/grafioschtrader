@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -14,6 +14,8 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
 @Component({
   selector: 'generic-connector-def-detail',
   template: `
+    @let connectorDefValue = connectorDef();
+
     <div class="fcontainer">
       @for (fieldSetName of Object.keys(fieldSetGroups); track fieldSetName) {
         <fieldset class="out-border fbox">
@@ -28,21 +30,21 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
                   @case ('check') {
                     <span
                       ><i
-                        [class.fa]="getValueByPath(connectorDef, field)"
-                        [class.fa-check]="getValueByPath(connectorDef, field)"></i
+                        [class.fa]="getValueByPath(connectorDefValue, field)"
+                        [class.fa-check]="getValueByPath(connectorDefValue, field)"></i
                     ></span>
                   }
                   @case ('yaml') {
-                    @if (getValueByPath(connectorDef, field)) {
+                    @if (getValueByPath(connectorDefValue, field)) {
                       <pre
                         style="white-space: pre-wrap; font-family: monospace; font-size: 0.85em; max-height: 200px; overflow-y: auto; margin: 0;"
-                        >{{ getValueByPath(connectorDef, field) }}</pre>
+                        >{{ getValueByPath(connectorDefValue, field) }}</pre>
                     } @else {
                       <span class="text-secondary">&mdash;</span>
                     }
                   }
                   @default {
-                    {{ getValueByPath(connectorDef, field) }}
+                    {{ getValueByPath(connectorDefValue, field) }}
                   }
                 }
               </div>
@@ -55,7 +57,7 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
   imports: [TranslateModule]
 })
 export class GenericConnectorDefDetailComponent extends SingleRecordConfigBase implements OnChanges {
-  @Input() connectorDef: GenericConnectorDef;
+  readonly connectorDef = input<GenericConnectorDef>(undefined);
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
@@ -138,9 +140,9 @@ export class GenericConnectorDefDetailComponent extends SingleRecordConfigBase i
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['connectorDef'] && this.connectorDef) {
+    if (changes['connectorDef'] && this.connectorDef()) {
       this._fieldSetGroups = null;
-      this.createTranslatedValueStore([this.connectorDef]);
+      this.createTranslatedValueStore([this.connectorDef()]);
     }
   }
 }

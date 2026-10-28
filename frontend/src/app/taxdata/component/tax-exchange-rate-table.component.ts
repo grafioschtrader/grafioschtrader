@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, OnChanges, SimpleChanges, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnChanges, SimpleChanges, signal, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -58,7 +58,7 @@ import { TaxDataService } from '../service/tax-data.service';
   imports: [EditableTableComponent]
 })
 export class TaxExchangeRateTableComponent extends TableEditConfigBase implements OnChanges, IGlobalMenuAttach {
-  @Input() taxYear: TaxYear;
+  readonly taxYear = input<TaxYear>(undefined);
 
   contextMenuItems: MenuItem[] = [];
   private readonly destroyRef = inject(DestroyRef);
@@ -115,7 +115,7 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['taxYear'] && this.taxYear) {
+    if (changes['taxYear'] && this.taxYear()) {
       this.readData();
     }
   }
@@ -180,7 +180,7 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
   private readData(): void {
     this.readSubscription?.unsubscribe();
     this.readSubscription = this.taxDataService
-      .getExchangeRates(this.taxYear.idTaxYear)
+      .getExchangeRates(this.taxYear().idTaxYear)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((rates: IctaxExchangeRate[]) => {
         this.createTranslatedValueStore(rates);

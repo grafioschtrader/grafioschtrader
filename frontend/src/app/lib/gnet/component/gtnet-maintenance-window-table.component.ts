@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Injector, OnChanges, SimpleChanges, input } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -21,7 +21,7 @@ import { GTNetMaintenanceWindow } from '../model/gtnet';
   imports: [TranslateModule, ConfigurableTableComponent],
   template: `
     <configurable-table
-      [data]="maintenanceWindows"
+      [data]="maintenanceWindows()"
       [fields]="fields"
       [dataKey]="'idGtNetMaintenanceWindow'"
       [containerClass]="{ 'data-container-full': true, 'nested-table': true }"
@@ -33,7 +33,7 @@ import { GTNetMaintenanceWindow } from '../model/gtnet';
   `
 })
 export class GTNetMaintenanceWindowTableComponent extends TableConfigBase implements OnChanges {
-  @Input() maintenanceWindows: GTNetMaintenanceWindow[] = [];
+  readonly maintenanceWindows = input<GTNetMaintenanceWindow[]>([]);
 
   constructor(
     filterService: FilterService,
@@ -50,8 +50,9 @@ export class GTNetMaintenanceWindowTableComponent extends TableConfigBase implem
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['maintenanceWindows'] && this.maintenanceWindows) {
-      this.createTranslatedValueStore(this.maintenanceWindows);
+    const maintenanceWindows = this.maintenanceWindows();
+    if (changes['maintenanceWindows'] && maintenanceWindows) {
+      this.createTranslatedValueStore(maintenanceWindows);
     }
   }
 }

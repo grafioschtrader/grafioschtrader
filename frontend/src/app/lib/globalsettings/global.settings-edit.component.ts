@@ -1,7 +1,7 @@
 /**
  * Component for editing global parameter values.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 import { SimpleEntityEditBase } from '../edit/simple.entity.edit.base';
 import { Globalparameters } from '../entities/globalparameters';
@@ -29,7 +29,7 @@ import { ValidatorFn } from '@angular/forms';
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
     [modal]="true">
-    <h5>{{ globalparameters.propertyName }}</h5>
+    <h5>{{ globalparameters().propertyName }}</h5>
     @if (inputRuleDescription) {
       <p class="text-secondary">
         <small>{{ 'INPUT_RULE' | translate }}: {{ inputRuleDescription }}</small>
@@ -45,7 +45,7 @@ import { ValidatorFn } from '@angular/forms';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalparameters> implements OnInit {
-  @Input() globalparameters: Globalparameters;
+  readonly globalparameters = input<Globalparameters>(undefined);
   inputRuleDescription: string = null;
   private selectedPropertyField: string;
   private inputRule: InputRule = null;
@@ -60,24 +60,25 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
 
   ngOnInit(): void {
     // Parse input rule if present
-    if (this.globalparameters.inputRule) {
-      this.inputRule = InputRule.parse(this.globalparameters.inputRule);
+    const globalparameters = this.globalparameters();
+    if (globalparameters.inputRule) {
+      this.inputRule = InputRule.parse(globalparameters.inputRule);
       if (this.inputRule) {
         this.inputRuleDescription = this.inputRule.getDescription();
       }
     }
 
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 3, this.helpLink.bind(this));
-    this.config = [this.getPropertyDefinition(this.globalparameters), DynamicFieldHelper.createSubmitButton()];
+    this.config = [this.getPropertyDefinition(globalparameters), DynamicFieldHelper.createSubmitButton()];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
   protected override initialize(): void {
-    this.form().transferBusinessObjectToForm(this.globalparameters);
+    this.form().transferBusinessObjectToForm(this.globalparameters());
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Globalparameters {
-    return this.copyFormToPrivateBusinessObject(new Globalparameters(), <Globalparameters>this.globalparameters);
+    return this.copyFormToPrivateBusinessObject(new Globalparameters(), <Globalparameters>this.globalparameters());
   }
 
   private getPropertyDefinition(globalparameters: Globalparameters): FieldConfig {

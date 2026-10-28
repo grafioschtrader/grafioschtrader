@@ -1,4 +1,4 @@
-import { Component, effect, Input, OnInit, signal, viewChild } from '@angular/core';
+import { Component, effect, OnInit, signal, viewChild, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -95,8 +95,8 @@ export class TradingCalendarRuleSetEditComponent
   implements OnInit
 {
   readonly yamlEditor = viewChild(YamlEditorComponent);
-  @Input() callParam: TradingCalendarRuleSet;
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  readonly callParam = input<TradingCalendarRuleSet>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
   readonly ruleYamlValue = signal('');
   readonly ruleSchema = signal<any>(null);
@@ -133,7 +133,7 @@ export class TradingCalendarRuleSetEditComponent
   }
 
   get idTradingCalendarRuleSet(): number {
-    return this.callParam?.idTradingCalendarRuleSet;
+    return this.callParam()?.idTradingCalendarRuleSet;
   }
 
   ngOnInit(): void {
@@ -153,7 +153,8 @@ export class TradingCalendarRuleSetEditComponent
   }
 
   protected override initialize(): void {
-    this.ruleYamlValue.set(this.callParam?.ruleYaml ?? '');
+    const callParam = this.callParam();
+    this.ruleYamlValue.set(callParam?.ruleYaml ?? '');
     this.previewYear.set(new Date().getFullYear());
     this.previewClosures.set({});
     this.previewError.set(null);
@@ -162,10 +163,10 @@ export class TradingCalendarRuleSetEditComponent
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
-      this.callParam,
+      callParam,
       this.form(),
       this.configObject,
-      this.proposeChangeEntityWithEntity
+      this.proposeChangeEntityWithEntity()
     );
     this.updateSubmitState();
     this.httpClient
@@ -236,7 +237,7 @@ export class TradingCalendarRuleSetEditComponent
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TradingCalendarRuleSet {
     const ruleSet = new TradingCalendarRuleSet();
-    this.copyFormToPublicBusinessObject(ruleSet, this.callParam, this.proposeChangeEntityWithEntity);
+    this.copyFormToPublicBusinessObject(ruleSet, this.callParam(), this.proposeChangeEntityWithEntity());
     ruleSet.mic = ruleSet.mic ? ruleSet.mic.toUpperCase() : null;
     ruleSet.ruleYaml = this.ruleYamlValue();
     return ruleSet;

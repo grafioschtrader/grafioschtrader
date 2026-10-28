@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, OnChanges, input } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../datashowbase/table.config.base';
@@ -14,15 +14,15 @@ import { TranslateValue } from '../datashowbase/column.config';
   selector: 'dashboard-table',
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
-    [data]="rows"
+    [data]="rows()"
     [fields]="fields"
     [fieldsRevision]="fieldsRevision()"
     dataKey="id"
     [valueGetterFn]="valueGetter" />`
 })
 export class DashboardTableComponent extends TableConfigBase implements OnChanges {
-  @Input() rows: DashboardRow[] = [];
-  @Input() type = '';
+  readonly rows = input<DashboardRow[]>([]);
+  readonly type = input('');
   constructor(
     filter: FilterService,
     settings: UserSettingsService,
@@ -33,11 +33,12 @@ export class DashboardTableComponent extends TableConfigBase implements OnChange
   }
   ngOnChanges(): void {
     this.removeAllColumns();
-    if (this.type !== 'PROPOSE_CHANGE_OPEN') this.addColumnFeqH(DataType.String, 'nickname');
-    if (this.type === 'UNREAD_MAIL') this.addColumnFeqH(DataType.String, 'subject');
+    const type = this.type();
+    if (type !== 'PROPOSE_CHANGE_OPEN') this.addColumnFeqH(DataType.String, 'nickname');
+    if (type === 'UNREAD_MAIL') this.addColumnFeqH(DataType.String, 'subject');
     else {
       this.addColumn(DataType.String, 'entity', 'ENTITY', true, false, { translateValues: TranslateValue.UPPER_CASE });
-      if (this.type === 'USER_LIMIT_REQUESTS') {
+      if (type === 'USER_LIMIT_REQUESTS') {
         this.addColumn(DataType.NumericInteger, 'dayLimit', 'DASHBOARD_REQUESTED_LIMIT');
         this.addColumn(DataType.DateString, 'validUntil', 'VALID_UNTIL');
       }

@@ -11,7 +11,7 @@ import { ProcessedAction } from '../../types/processed.action';
 import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { FieldDescriptorInputAndShowExtended } from '../../dynamicfield/field.descriptor.input.and.show';
-import { Directive, Input } from '@angular/core';
+import { Directive, input } from '@angular/core';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { Helper } from '../../helper/helper';
 import { BaseSettings } from '../../base.settings';
@@ -25,7 +25,7 @@ import { BaseSettings } from '../../base.settings';
 @Directive()
 export abstract class BaseUDFDataEdit extends SimpleEditBase {
   /** Call parameters containing entity information, existing UDF data, and dialog configuration */
-  @Input() uDFGeneralCallParam: UDFGeneralCallParam;
+  readonly uDFGeneralCallParam = input<UDFGeneralCallParam>(undefined);
 
   /** Name of the primary key field for the entity being edited (e.g., 'idPortfolio', 'idWatchlist') */
   entityKeyName: string;
@@ -66,7 +66,7 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
       true
     );
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    this.entityKeyName = this.gps.getKeyNameByEntityName(this.uDFGeneralCallParam.entityName);
+    this.entityKeyName = this.gps.getKeyNameByEntityName(this.uDFGeneralCallParam().entityName);
   }
 
   /**
@@ -76,17 +76,18 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
    * @protected
    */
   protected override initialize(): void {
-    if (!this.uDFGeneralCallParam.udfData) {
+    const uDFGeneralCallParam = this.uDFGeneralCallParam();
+    if (!uDFGeneralCallParam.udfData) {
       this.uDFDataService
         .getUDFDataByEntityAndIdEntity(
-          this.uDFGeneralCallParam.entityName,
-          <number>this.uDFGeneralCallParam.selectedEntity[this.entityKeyName]
+          uDFGeneralCallParam.entityName,
+          <number>uDFGeneralCallParam.selectedEntity[this.entityKeyName]
         )
         .subscribe((udfData) => {
           this.prepareData(udfData?.jsonValues);
         });
     }
-    this.prepareData(this.uDFGeneralCallParam.udfData);
+    this.prepareData(uDFGeneralCallParam.udfData);
   }
 
   /**
@@ -110,13 +111,13 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
     const udfData = new UDFData(
       new UDFDataKey(
         null,
-        this.uDFGeneralCallParam.entityName,
-        <number>this.uDFGeneralCallParam.selectedEntity[this.entityKeyName]
+        this.uDFGeneralCallParam().entityName,
+        <number>this.uDFGeneralCallParam().selectedEntity[this.entityKeyName]
       ),
       value
     );
     this.formatDate(value);
-    this.uDFDataService.update(udfData, this.uDFGeneralCallParam.udfData ? 1 : null).subscribe({
+    this.uDFDataService.update(udfData, this.uDFGeneralCallParam().udfData ? 1 : null).subscribe({
       next: (uDFData: UDFData) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', { i18nRecord: 'UDF' });
         // Read only the watchlist, the watchlist was not changed

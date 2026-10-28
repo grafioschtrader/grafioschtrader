@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -54,7 +54,7 @@ import { TemplateFormCheckDialogResultFailedComponent } from './template-form-ch
   ]
 })
 export class TemplateFormCheckDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() importTransactionPlatform: ImportTransactionPlatform;
+  readonly importTransactionPlatform = input<ImportTransactionPlatform>(undefined);
 
   readonly formTemplateCheck = signal<FormTemplateCheck>(null);
   private checkSubscription?: Subscription;
@@ -82,7 +82,7 @@ export class TemplateFormCheckDialogComponent extends SimpleEditBase implements 
 
   checkFormAgainstTemplate(event) {
     const ftc = new FormTemplateCheck(
-      this.importTransactionPlatform.idTransactionImportPlatform,
+      this.importTransactionPlatform().idTransactionImportPlatform,
       this.configObject.templateAsTxt.formControl.value
     );
     this.checkSubscription?.unsubscribe();

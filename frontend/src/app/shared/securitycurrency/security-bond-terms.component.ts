@@ -7,13 +7,13 @@ import {
   Injector,
   signal,
   Component,
-  Input,
   OnChanges,
   OnDestroy,
   OnInit,
   SimpleChanges,
   untracked,
-  viewChild
+  viewChild,
+  input
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin, map, Subscription, switchMap } from 'rxjs';
@@ -81,10 +81,10 @@ export function defaultCouponDayCount(defaults: CouponDayCountDefaults, currency
   `
 })
 export class SecurityBondTermsComponent extends FormBase implements OnInit, OnChanges, OnDestroy {
-  @Input() entity: Security;
-  @Input() securityName: string;
+  readonly entity = input<Security>(undefined);
+  readonly securityName = input<string>(undefined);
   /** Currency of the edited security, the basis of the proposed day-count convention. */
-  @Input() currency: string;
+  readonly currency = input<string>(undefined);
 
   readonly ready = signal(false);
   private readonly destroyRef = inject(DestroyRef);
@@ -208,7 +208,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
     this.couponRateSubscribe?.unsubscribe();
     this.couponDayCountSubscribe?.unsubscribe();
     this.form().setDefaultValuesAndEnableSubmit();
-    const storedTerms = this.entity?.simulationMetadata?.bondTerms;
+    const storedTerms = this.entity()?.simulationMetadata?.bondTerms;
     if (storedTerms) {
       this.form().transferBusinessObjectToForm(storedTerms);
     }
@@ -237,7 +237,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
     if (!couponRateControl || this.couponRateOverridden) {
       return;
     }
-    const couponRate = extractCouponRateFromSecurityName(this.securityName);
+    const couponRate = extractCouponRateFromSecurityName(this.securityName());
     const currentValue = couponRateControl.value;
     if (currentValue != null && currentValue !== '' && currentValue !== this.lastCouponRatePrefill) {
       this.couponRateOverridden = true;
@@ -254,7 +254,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
     if (!couponDayCountControl || this.couponDayCountOverridden) {
       return;
     }
-    const couponDayCount = defaultCouponDayCount(this.couponDayCountDefaults, this.currency);
+    const couponDayCount = defaultCouponDayCount(this.couponDayCountDefaults, this.currency());
     const currentValue = couponDayCountControl.value;
     if (currentValue != null && currentValue !== '' && currentValue !== this.lastCouponDayCountPrefill) {
       this.couponDayCountOverridden = true;

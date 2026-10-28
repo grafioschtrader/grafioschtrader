@@ -1,5 +1,5 @@
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { computed, DestroyRef, inject, Directive, Injector, Input, signal, output } from '@angular/core';
+import { computed, DestroyRef, inject, Directive, Injector, signal, output, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -18,7 +18,7 @@ import { BaseSettings } from '../../lib/base.settings';
 export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
   protected readonly destroyRef = inject(DestroyRef);
 
-  @Input() maxRows: number;
+  readonly maxRows = input<number>(undefined);
   readonly editData = output<any>();
   readonly savedData = output<any>();
 
@@ -64,11 +64,11 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
     );
 
     if (replacePos === -1) {
-      if (rows.length < this.maxRows) {
+      if (rows.length < this.maxRows()) {
         this.dataList.set([...rows, rowData]);
       } else {
         this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'SECURITY_SPLITS_MAX_REACHED', {
-          maxSplits: this.maxRows
+          maxSplits: this.maxRows()
         });
         return;
       }

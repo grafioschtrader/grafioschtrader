@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, signal, input, linkedSignal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TransactionService } from '../service/transaction.service';
@@ -59,13 +59,14 @@ export class TransactionCashaccountTableComponent
   implements ChildPreservePage, OnInit, OnDestroy
 {
   /** The unique identifier of the security cash account for which transactions are displayed */
-  @Input() idSecuritycashAccount: number;
+  readonly idSecuritycashAccount = input<number>(undefined);
 
   /** The portfolio containing the cash account */
-  @Input() portfolio: Portfolio;
+  readonly portfolioInput = input<Portfolio>(undefined, { alias: 'portfolio' });
+  readonly portfolio = linkedSignal(() => this.portfolioInput());
 
   /** Filter criteria for limiting the displayed transactions */
-  @Input() cashAccountTableInputFilter: CashAccountTableInputFilter;
+  readonly cashAccountTableInputFilter = input<CashAccountTableInputFilter>(undefined);
 
   /** Array of cash account transaction positions to be displayed in the table */
   readonly cashaccountTransactionPositions = signal<CashaccountTransactionPosition[]>([]);
@@ -176,7 +177,7 @@ export class TransactionCashaccountTableComponent
       }
     }
     this.parentChildRegisterService.saveRowPosition(
-      this.idSecuritycashAccount,
+      this.idSecuritycashAccount(),
       new PageFirstRowSelectedRow(this.firstRowIndexOnPage, data ? this.cashaccountTransactionPositionSelected : null)
     );
   }
@@ -208,19 +209,19 @@ export class TransactionCashaccountTableComponent
   /** Initializes component data by loading portfolio information if needed and fetching transaction data */
   protected initialize(): void {
     this.dataSubscription?.unsubscribe();
-    const portfolio = this.portfolio
-      ? of(this.portfolio)
-      : this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount);
+    const portfolio = this.portfolio()
+      ? of(this.portfolio())
+      : this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount());
     this.dataSubscription = portfolio
       .pipe(
         switchMap((portfolio) => {
-          this.portfolio = portfolio;
+          this.portfolio.set(portfolio);
           return this.loadData();
         }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(([positions, currencypairs]) => {
-        this.goToFirsRowPosition(this.idSecuritycashAccount);
+        this.goToFirsRowPosition(this.idSecuritycashAccount());
         this.cashaccountTransactionPositions.set(
           this.addCurrencypairToCashaccountTransactionPosition(positions, currencypairs)
         );
@@ -232,18 +233,18 @@ export class TransactionCashaccountTableComponent
    * @param transactionCallParam The transaction call parameter object to be configured
    */
   protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
-    transactionCallParam.portfolio = this.portfolio;
+    transactionCallParam.portfolio = this.portfolio();
   }
 
   /** Loads transaction and currency pair data simultaneously and processes the results */
   private loadData() {
     const transactionsObservable: Observable<CashaccountTransactionPosition[]> =
       this.transactionService.getTransactionsWithBalanceForCashaccount(
-        this.idSecuritycashAccount,
-        this.cashAccountTableInputFilter ?? new CashAccountTableInputFilter()
+        this.idSecuritycashAccount(),
+        this.cashAccountTableInputFilter() ?? new CashAccountTableInputFilter()
       );
     const currencypairObservable: Observable<Currencypair[]> =
-      this.currencypairService.getTransactionCurrencypairsByPortfolioId(this.portfolio.idPortfolio);
+      this.currencypairService.getTransactionCurrencypairsByPortfolioId(this.portfolio().idPortfolio);
     return combineLatest([transactionsObservable, currencypairObservable]);
   }
 

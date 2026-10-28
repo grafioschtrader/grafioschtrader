@@ -1,4 +1,4 @@
-import { Component, Input, output, viewChild } from '@angular/core';
+import { Component, output, viewChild, input } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -26,7 +26,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
     <p-dialog
       styleClass="big-dialog"
       header="{{ 'ADD_EXISTING_SECURITY' | translate }}"
-      [visible]="visibleAddInstrumentDialog"
+      [visible]="visibleAddInstrumentDialog()"
       [style]="{ width: '720px' }"
       [resizable]="false"
       [focusOnShow]="false"
@@ -41,18 +41,18 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
         #dynamicFormComponent="dynamicForm"
         (submitBt)="submit($event)" />
       <br />
-      <add-instrument-table [tenantLimits]="tenantLimits" />
+      <add-instrument-table [tenantLimits]="tenantLimits()" />
     </p-dialog>
   `,
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS, WatchlistAddInstrumentTableComponent]
 })
 export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility of the add instrument dialog. */
-  @Input() visibleAddInstrumentDialog: boolean;
+  readonly visibleAddInstrumentDialog = input<boolean>(undefined);
   /** The ID of the watchlist to add instruments to. */
-  @Input() idWatchlist: number;
+  readonly idWatchlist = input<number>(undefined);
   /** Tenant limits for securities and currencies in the watchlist. */
-  @Input() tenantLimits: TenantLimit[];
+  readonly tenantLimits = input<TenantLimit[]>(undefined);
 
   /** Reference to the child table component that displays search results. */
   readonly waitc = viewChild(WatchlistAddInstrumentTableComponent);
@@ -96,6 +96,6 @@ export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearc
    * @param {SecuritycurrencySearch} securitycurrencySearch - Search criteria for securities and currencies
    */
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
-    this.waitc().loadData(this.idWatchlist, securitycurrencySearch);
+    this.waitc().loadData(this.idWatchlist(), securitycurrencySearch);
   }
 }

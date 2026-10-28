@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Injector, Input, OnInit, signal, output } from '@angular/core';
+import { Component, DestroyRef, inject, Injector, OnInit, signal, output, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { TableConfigBase } from '../../datashowbase/table.config.base';
@@ -77,8 +77,8 @@ import { BaseSettings } from '../../base.settings';
   ]
 })
 export class GTNetConfigEntityTableComponent extends TableConfigBase implements OnInit {
-  @Input() gtNetEntities: GTNetEntity[];
-  @Input() exchangeKindTypes: ExchangeKindTypeInfo[] = [];
+  readonly gtNetEntities = input<GTNetEntity[]>(undefined);
+  readonly exchangeKindTypes = input<ExchangeKindTypeInfo[]>([]);
   readonly dataChanged = output<ProcessedActionData>();
 
   readonly configEntities = signal<GTNetConfigEntityDisplay[]>([]);
@@ -128,7 +128,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   }
 
   private prepareData(): GTNetConfigEntityDisplay[] {
-    return this.gtNetEntities
+    return this.gtNetEntities()
       .filter((entity) => entity.gtNetConfigEntity != null)
       .map((entity) => this.createDisplayEntity(entity));
   }
@@ -141,7 +141,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
       typeof gtNetEntity.entityKind === 'number' ? gtNetEntity.entityKind : Number(gtNetEntity.entityKind);
     const entityKindName = Number.isNaN(kindValue)
       ? String(gtNetEntity.entityKind)
-      : (this.exchangeKindTypes.find((kind) => kind.value === kindValue)?.name ?? String(kindValue));
+      : (this.exchangeKindTypes().find((kind) => kind.value === kindValue)?.name ?? String(kindValue));
 
     const supplierLogName =
       typeof configEntity.supplierLog === 'number'

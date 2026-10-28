@@ -1,4 +1,4 @@
-import { Directive, Input, OnInit } from '@angular/core';
+import { Directive, OnInit, input } from '@angular/core';
 import moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -35,7 +35,7 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
   extends SimpleEntityEditBase<T>
   implements OnInit
 {
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
   protected constructor(
     helpId: string,
@@ -80,14 +80,14 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
       this.getSecuritycurrency(),
       this.form(),
       this.configObject,
-      this.proposeChangeEntityWithEntity,
+      this.proposeChangeEntityWithEntity(),
       false
     );
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): T {
     const entity = this.createEntityInstance();
-    this.copyFormToPublicBusinessObject(entity, this.getExistingEntity(), this.proposeChangeEntityWithEntity);
+    this.copyFormToPublicBusinessObject(entity, this.getExistingEntity(), this.proposeChangeEntityWithEntity());
     entity.idSecuritycurrency = this.getSecuritycurrency().idSecuritycurrency;
     return entity;
   }

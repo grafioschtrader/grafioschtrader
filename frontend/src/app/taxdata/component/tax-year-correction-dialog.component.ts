@@ -1,4 +1,4 @@
-import { Component, Input, output } from '@angular/core';
+import { Component, output, input } from '@angular/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -16,7 +16,7 @@ import { TaxYearCorrectionTableComponent } from './tax-year-correction-table.com
   selector: 'tax-year-correction-dialog',
   template: `
     <p-dialog
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       (visibleChange)="onVisibleChange($event)"
       [style]="{ width: '850px' }"
       [contentStyle]="{ 'max-height': '600px' }"
@@ -29,23 +29,23 @@ import { TaxYearCorrectionTableComponent } from './tax-year-correction-table.com
           <div class="p-dialog-title">
             {{ 'TAX_YEAR_CORRECTIONS' | translate }}
           </div>
-          <div>{{ security.name }}{{ security.isin ? ' / ' + security.isin : '' }}</div>
+          <div>{{ security().name }}{{ security().isin ? ' / ' + security().isin : '' }}</div>
         </div>
       </ng-template>
       <tax-year-correction-table
-        [idSecuritycurrency]="security.idSecuritycurrency"
-        [yearOptions]="yearOptions"
-        [suggestedYear]="suggestedYear" />
+        [idSecuritycurrency]="security().idSecuritycurrency"
+        [yearOptions]="yearOptions()"
+        [suggestedYear]="suggestedYear()" />
     </p-dialog>
   `,
   imports: [DialogModule, TranslateModule, TaxYearCorrectionTableComponent]
 })
 export class TaxYearCorrectionDialogComponent {
-  @Input() security: Security;
-  @Input() yearOptions: number[] = [];
+  readonly security = input<Security>(undefined);
+  readonly yearOptions = input<number[]>([]);
   /** Tax year preselected for new rows, typically the year the dialog was opened from. */
-  @Input() suggestedYear: number;
-  @Input() visibleDialog: boolean;
+  readonly suggestedYear = input<number>(undefined);
+  readonly visibleDialog = input<boolean>(undefined);
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
 

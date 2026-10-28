@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, signal, output } from '@angular/core';
+import { Component, DestroyRef, inject, signal, output, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -19,8 +19,8 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
   selector: 'udf-fill-proposals-dialog',
   template: `
     <p-dialog
-      header="{{ 'UDF_FILL_PROPOSALS' | translate }}: {{ field?.description }}"
-      [visible]="visibleDialog"
+      header="{{ 'UDF_FILL_PROPOSALS' | translate }}: {{ field()?.description }}"
+      [visible]="visibleDialog()"
       [style]="{ width: '900px' }"
       [modal]="true"
       appendTo="body"
@@ -94,10 +94,10 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 })
 export class UDFFillProposalsDialogComponent {
   /** The field with the fill source LLM */
-  @Input() field: UDFMetadataSecurity;
+  readonly field = input<UDFMetadataSecurity>(undefined);
 
   /** Controls the visibility of the dialog */
-  @Input() visibleDialog: boolean;
+  readonly visibleDialog = input<boolean>(undefined);
 
   /** Emits when the dialog closes */
   readonly closeDialog = output<void>();
@@ -124,7 +124,7 @@ export class UDFFillProposalsDialogComponent {
 
   load(): void {
     this.uDFMetadataSecurityService
-      .getProposals(this.field.idUDFMetadata)
+      .getProposals(this.field().idUDFMetadata)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((proposals) => {
         this.proposals.set(proposals);
@@ -145,13 +145,13 @@ export class UDFFillProposalsDialogComponent {
   /** Starts a paid run of the language model. */
   suggest(): void {
     this.uDFMetadataSecurityService
-      .suggestValues(this.field.idUDFMetadata)
+      .suggestValues(this.field().idUDFMetadata)
       .subscribe(() => this.messageToastService.showMessageI18n(InfoLevelType.INFO, 'UDF_FILL_SUGGEST_QUEUED'));
   }
 
   /** Lets the next run ask again for rejected, discarded and not found cells. */
   retry(): void {
-    this.uDFMetadataSecurityService.retryProposals(this.field.idUDFMetadata).subscribe(() => this.load());
+    this.uDFMetadataSecurityService.retryProposals(this.field().idUDFMetadata).subscribe(() => this.load());
   }
 
   /**
@@ -166,8 +166,8 @@ export class UDFFillProposalsDialogComponent {
       .filter((p) => all || selected.has(p.idSecuritycurrency))
       .map((p) => ({ idSecuritycurrency: p.idSecuritycurrency, ruleVersion: p.ruleVersion, value: p.value }));
     const call = accept
-      ? this.uDFMetadataSecurityService.acceptProposals(this.field.idUDFMetadata, decisions)
-      : this.uDFMetadataSecurityService.rejectProposals(this.field.idUDFMetadata, decisions);
+      ? this.uDFMetadataSecurityService.acceptProposals(this.field().idUDFMetadata, decisions)
+      : this.uDFMetadataSecurityService.rejectProposals(this.field().idUDFMetadata, decisions);
     call.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((results) => {
       this.decisionText.set(this.summarize(results));
       this.selected.set(new Set());

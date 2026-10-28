@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, input } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import moment from 'moment';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -42,7 +42,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">
-      @if (fillGapsBounds?.calendarOutdated) {
+      @if (fillGapsBounds()?.calendarOutdated) {
         <div class="alert alert-warning alert-dialog-wrap">
           {{ calendarLimitMessage() }}
         </div>
@@ -59,10 +59,10 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() historyquoteQuality: IHistoryquoteQuality;
-  @Input() securitycurrency: Securitycurrency;
+  readonly historyquoteQuality = input<IHistoryquoteQuality>(undefined);
+  readonly securitycurrency = input<Securitycurrency>(undefined);
   /** Date boundaries loaded by the opener before this dialog is created. */
-  @Input() fillGapsBounds: HistoryquoteFillGapsBounds;
+  readonly fillGapsBounds = input<HistoryquoteFillGapsBounds>(undefined);
 
   readonly moveWeekendToFriday = 'moveWeekendToFriday';
   readonly fillUpToDate = 'fillUpToDate';
@@ -84,8 +84,8 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
     this.config = [
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, this.fillUpToDate, true, {
         calendarConfig: {
-          minDate: HistoryquoteQualityFillGapsDialogComponent.toLocalDate(this.fillGapsBounds.minFillUpTo),
-          maxDate: HistoryquoteQualityFillGapsDialogComponent.toLocalDate(this.fillGapsBounds.maxFillUpTo)
+          minDate: HistoryquoteQualityFillGapsDialogComponent.toLocalDate(this.fillGapsBounds().minFillUpTo),
+          maxDate: HistoryquoteQualityFillGapsDialogComponent.toLocalDate(this.fillGapsBounds().maxFillUpTo)
         }
       }),
       DynamicFieldHelper.createFieldCheckboxHeqF(this.moveWeekendToFriday),
@@ -99,7 +99,7 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
   submit(value: { [name: string]: any }): void {
     this.configObject.execute.disabled = true;
     this.securityService
-      .fillHistoryquoteGapsLinear(this.securitycurrency.idSecuritycurrency, {
+      .fillHistoryquoteGapsLinear(this.securitycurrency().idSecuritycurrency, {
         moveWeekendToFriday: this.configObject[this.moveWeekendToFriday].formControl.value,
         fillUpToDate: moment(this.configObject[this.fillUpToDate].formControl.value).format(
           BaseSettings.FORMAT_DATE_SHORT_NATIVE
@@ -121,12 +121,13 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
   protected override initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
     this.configObject[this.fillUpToDate].formControl.setValue(
-      HistoryquoteQualityFillGapsDialogComponent.toLocalDate(this.fillGapsBounds.defaultFillUpTo)
+      HistoryquoteQualityFillGapsDialogComponent.toLocalDate(this.fillGapsBounds().defaultFillUpTo)
     );
     this.prepareCalendarLimitMessage();
+    const historyquoteQuality = this.historyquoteQuality();
     const hasWeekendDays: boolean =
-      (this.historyquoteQuality.quoteSaturday !== null && this.historyquoteQuality.quoteSaturday > 0) ||
-      (this.historyquoteQuality.quoteSunday !== null && this.historyquoteQuality.quoteSunday > 0);
+      (historyquoteQuality.quoteSaturday !== null && historyquoteQuality.quoteSaturday > 0) ||
+      (historyquoteQuality.quoteSunday !== null && historyquoteQuality.quoteSunday > 0);
     this.configObject[this.moveWeekendToFriday].formControl.setValue(hasWeekendDays);
     !hasWeekendDays && this.configObject[this.moveWeekendToFriday].formControl.disable();
     // The function button is outside the form and therefore not disabled by an invalid form on its own. Without this
@@ -153,13 +154,14 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
    * date back. It names the calendar horizon and how many trading days up to today are not covered by it.
    */
   private prepareCalendarLimitMessage(): void {
-    if (this.fillGapsBounds.calendarOutdated) {
+    const fillGapsBounds = this.fillGapsBounds();
+    if (fillGapsBounds.calendarOutdated) {
       this.translateService
         .get('HISTORYQUOTE_FILL_CALENDAR_LIMIT', {
           calendarHorizon: moment(
-            HistoryquoteQualityFillGapsDialogComponent.toLocalDate(this.fillGapsBounds.calendarHorizon)
+            HistoryquoteQualityFillGapsDialogComponent.toLocalDate(fillGapsBounds.calendarHorizon)
           ).format(this.gps.getDateFormat()),
-          missingTradingDays: this.fillGapsBounds.missingTradingDays
+          missingTradingDays: fillGapsBounds.missingTradingDays
         })
         .pipe(this.untilDialogClosed())
         .subscribe((msg) => this.calendarLimitMessage.set(msg));

@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef, signal } from '@angular/core';
+import { Component, forwardRef, signal, input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
@@ -6,7 +6,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   template: `
     <div
       class="tri-state-checkbox"
-      [class.large]="size === 'large'"
+      [class.large]="size() === 'large'"
       [attr.data-state]="state()"
       tabindex="0"
       (click)="toggleState()"
@@ -24,7 +24,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   ]
 })
 export class TriStateCheckboxComponent implements ControlValueAccessor {
-  @Input() size: 'small' | 'large' = 'small'; // Default size
+  readonly size = input<'small' | 'large'>('small'); // Default size
   readonly state = signal<'false' | 'true' | null>(null);
 
   private readonly states: ('false' | 'true' | null)[] = ['false', 'true', null];

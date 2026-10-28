@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import moment from 'moment';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -57,10 +57,10 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() idSecuritycurrency: number;
-  @Input() historyquoteQuality: IHistoryquoteQuality;
+  readonly idSecuritycurrency = input<number>(undefined);
+  readonly historyquoteQuality = input<IHistoryquoteQuality>(undefined);
   /** Oldest and most recent stored price, loaded by the opener before this dialog is created. */
-  @Input() deleteBounds: HistoryquoteDeleteBounds;
+  readonly deleteBounds = input<HistoryquoteDeleteBounds>(undefined);
 
   readonly dateFrom = 'dateFrom';
   readonly dateTo = 'dateTo';
@@ -82,8 +82,8 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 7, this.helpLink.bind(this));
 
-    const minDate = HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.minDate);
-    const maxDate = HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.maxDate);
+    const minDate = HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds().minDate);
+    const maxDate = HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds().maxDate);
     this.config.push(
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, this.dateFrom, true, {
         calendarConfig: { minDate, maxDate }
@@ -94,7 +94,7 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     );
 
     this.fieldCreatTypes.forEach((fct) => {
-      if (this.historyquoteQuality[fct.fieldName]) {
+      if (this.historyquoteQuality()[fct.fieldName]) {
         this.config.push(
           DynamicFieldHelper.createFieldCheckboxHeqF(fct.fieldName, {
             defaultValue: true
@@ -112,7 +112,7 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     this.configObject.execute.disabled = true;
     const hct: HistoryquoteCreateType[] = [];
     this.fieldCreatTypes.forEach((fct) => {
-      if (this.historyquoteQuality[fct.fieldName]) {
+      if (this.historyquoteQuality()[fct.fieldName]) {
         if (this.configObject[fct.fieldName].formControl.value) {
           hct.push(fct.hct);
         }
@@ -122,7 +122,7 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     if (hct.length > 0) {
       this.historyquoteService
         .deleteHistoryquotesByCreateTypes(
-          this.idSecuritycurrency,
+          this.idSecuritycurrency(),
           hct,
           this.getDateAsBackendFormat(this.dateFrom),
           this.getDateAsBackendFormat(this.dateTo)
@@ -146,10 +146,10 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
   protected override initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
     this.configObject[this.dateFrom].formControl.setValue(
-      HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.minDate)
+      HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds().minDate)
     );
     this.configObject[this.dateTo].formControl.setValue(
-      HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.maxDate)
+      HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds().maxDate)
     );
     // Each picker limits the other, so a period whose start lies after its end can not be produced. A value that was
     // already chosen is not corrected by a changed boundary, therefore the opposite date is dragged along.

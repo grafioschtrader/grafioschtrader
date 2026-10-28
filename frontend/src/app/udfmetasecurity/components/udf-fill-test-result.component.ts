@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { UDFFillTestResult } from '../model/udf.metadata.security';
 
@@ -10,13 +10,15 @@ import { UDFFillTestResult } from '../model/udf.metadata.security';
 @Component({
   selector: 'udf-fill-test-result',
   template: `
-    @if (testResult) {
+    @let testResultValue = testResult();
+
+    @if (testResultValue) {
       <div>
-        <p>{{ 'UDF_FILL_TEST_COUNTS' | translate: testResult }}</p>
-        @if (testResult.mismatches.length > 0) {
+        <p>{{ 'UDF_FILL_TEST_COUNTS' | translate: testResultValue }}</p>
+        @if (testResultValue.mismatches.length > 0) {
           <h6>{{ 'UDF_FILL_TEST_MISMATCHES' | translate }}</h6>
           <ul>
-            @for (m of testResult.mismatches; track $index) {
+            @for (m of testResultValue.mismatches; track $index) {
               <li>
                 <b>{{ m.name }}</b
                 >: {{ m.existing }} &rarr; {{ m.computed ?? '—' }}
@@ -27,10 +29,10 @@ import { UDFFillTestResult } from '../model/udf.metadata.security';
             }
           </ul>
         }
-        @if (testResult.samples.length > 0) {
+        @if (testResultValue.samples.length > 0) {
           <h6>{{ 'UDF_FILL_TEST_SAMPLES' | translate }}</h6>
           <ul>
-            @for (s of testResult.samples; track $index) {
+            @for (s of testResultValue.samples; track $index) {
               <li>
                 <b>{{ s.name }}</b
                 >: {{ s.computed }}
@@ -61,5 +63,5 @@ import { UDFFillTestResult } from '../model/udf.metadata.security';
 })
 export class UDFFillTestResultComponent {
   /** Result of the last test, null before the first one */
-  @Input() testResult: UDFFillTestResult;
+  readonly testResult = input<UDFFillTestResult>(undefined);
 }

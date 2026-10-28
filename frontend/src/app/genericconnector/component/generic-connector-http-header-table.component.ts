@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, output, viewChild } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, output, viewChild, input, linkedSignal } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -22,12 +22,12 @@ import { GenericConnectorHttpHeader } from '../../entities/generic.connector.htt
   template: `
     <editable-table
       #entityTable
-      [data]="httpHeaders"
+      [data]="httpHeaders()"
       (dataChange)="onDataChange($event)"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       dataKey="idHttpHeader"
-      [showEditColumn]="editable"
+      [showEditColumn]="editable()"
       [editColumnWidth]="120"
       [selectionMode]="null"
       [contextMenuEnabled]="false"
@@ -44,7 +44,7 @@ import { GenericConnectorHttpHeader } from '../../entities/generic.connector.htt
       [stripedRows]="true">
       <div caption style="display: flex; align-items: center;">
         <h6 style="margin: 0;">{{ 'HTTP_HEADERS' | translate }}</h6>
-        @if (editable) {
+        @if (editable()) {
           <p-button
             [rounded]="true"
             [text]="true"
@@ -61,8 +61,9 @@ import { GenericConnectorHttpHeader } from '../../entities/generic.connector.htt
 export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBase implements OnChanges {
   readonly entityTable = viewChild<EditableTableComponent<GenericConnectorHttpHeader>>('entityTable');
 
-  @Input() httpHeaders: GenericConnectorHttpHeader[] = [];
-  @Input() editable: boolean = true;
+  readonly httpHeadersInput = input<GenericConnectorHttpHeader[]>([], { alias: 'httpHeaders' });
+  readonly httpHeaders = linkedSignal(() => this.httpHeadersInput());
+  readonly editable = input<boolean>(true);
   readonly httpHeadersChange = output<GenericConnectorHttpHeader[]>();
 
   constructor(
@@ -76,8 +77,8 @@ export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBas
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['httpHeaders'] && this.httpHeaders) {
-      this.createTranslatedValueStoreAndFilterField(this.httpHeaders);
+    if (changes['httpHeadersInput'] && this.httpHeaders()) {
+      this.createTranslatedValueStoreAndFilterField(this.httpHeaders());
     }
   }
 
@@ -91,7 +92,7 @@ export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBas
   };
 
   onRowEditSave(event: RowEditSaveEvent<GenericConnectorHttpHeader>): void {
-    this.httpHeadersChange.emit(this.stripTempIds(this.httpHeaders));
+    this.httpHeadersChange.emit(this.stripTempIds(this.httpHeaders()));
   }
 
   onRowEditCancel(_event: RowEditEvent<GenericConnectorHttpHeader>): void {
@@ -99,12 +100,12 @@ export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBas
   }
 
   onRowDelete(event: RowEditEvent<GenericConnectorHttpHeader>): void {
-    this.httpHeaders = this.httpHeaders.filter((_, i) => i !== event.index);
-    this.httpHeadersChange.emit(this.stripTempIds(this.httpHeaders));
+    this.httpHeaders.set(this.httpHeaders().filter((_, i) => i !== event.index));
+    this.httpHeadersChange.emit(this.stripTempIds(this.httpHeaders()));
   }
 
   onDataChange(data: GenericConnectorHttpHeader[]): void {
-    this.httpHeaders = data;
+    this.httpHeaders.set(data);
   }
 
   /**

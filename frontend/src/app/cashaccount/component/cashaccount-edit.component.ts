@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -41,7 +41,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> implements OnInit {
-  @Input() callParam: CallParam;
+  readonly callParam = input<CallParam>(undefined);
 
   portfolio: Portfolio;
 
@@ -71,7 +71,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     this.config = <FieldConfig[]>(
       DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
         this.translateService,
-        this.callParam.optParam.formDefinition,
+        this.callParam().optParam.formDefinition,
         '',
         true
       )
@@ -80,18 +80,19 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
   }
 
   protected override initialize(): void {
-    this.portfolio = <Portfolio>this.callParam.parentObject;
+    this.portfolio = <Portfolio>this.callParam().parentObject;
     // Initialise and transfer synchronously (config is ready from ngOnInit). Doing this inside the async
     // getCurrencies() subscription would let a later form.reset() wipe fields the user already entered
     // before the currency dropdown was populated (e.g. activeToDate).
     this.configObject.currency.inputWidth = 5;
-    if (this.callParam.optParam && this.callParam.optParam.hasTransaction) {
+    const callParam = this.callParam();
+    if (callParam.optParam && callParam.optParam.hasTransaction) {
       this.configObject.currency.formControl.disable();
     }
     this.prepareSecurityaccountOption();
     this.form().setDefaultValuesAndEnableSubmit();
-    if (this.callParam.thisObject != null) {
-      this.form().transferBusinessObjectToForm(this.callParam.thisObject);
+    if (callParam.thisObject != null) {
+      this.form().transferBusinessObjectToForm(callParam.thisObject);
     }
     this.configObject.name.elementRef.nativeElement.focus();
     // Currency options load asynchronously and only populate the dropdown; they must not reset the form.
@@ -106,7 +107,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Cashaccount {
     const cashaccount: Cashaccount = this.copyFormToPrivateBusinessObject(
       new Cashaccount(),
-      <Cashaccount>this.callParam.thisObject
+      <Cashaccount>this.callParam().thisObject
     );
     cashaccount.portfolio = this.portfolio;
     return cashaccount;

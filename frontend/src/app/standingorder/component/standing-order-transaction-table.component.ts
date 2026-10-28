@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnDestroy, OnChanges, signal } from '@angular/core';
+import { Component, Injector, OnDestroy, OnChanges, signal, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, switchMap } from 'rxjs';
 
@@ -119,7 +119,7 @@ import { StandingOrderSecurityEditComponent } from './standing-order-security-ed
   ]
 })
 export class StandingOrderTransactionTableComponent extends TransactionContextMenu implements OnChanges, OnDestroy {
-  @Input() standingOrder: StandingOrder;
+  readonly standingOrder = input<StandingOrder>(undefined);
 
   readonly transactions = signal<Transaction[]>([]);
   private readSubscription?: Subscription;
@@ -199,12 +199,12 @@ export class StandingOrderTransactionTableComponent extends TransactionContextMe
   protected initialize(): void {
     this.readSubscription?.unsubscribe();
     this.readSubscription = this.portfolioService
-      .getPortfolioByIdSecuritycashaccount(this.standingOrder.cashaccount.idSecuritycashAccount)
+      .getPortfolioByIdSecuritycashaccount(this.standingOrder().cashaccount.idSecuritycashAccount)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         switchMap((portfolio) => {
           this.portfolio = portfolio;
-          return this.standingOrderService.getTransactions(this.standingOrder.idStandingOrder);
+          return this.standingOrderService.getTransactions(this.standingOrder().idStandingOrder);
         })
       )
       .subscribe((transactions) => this.publishTransactions(transactions));

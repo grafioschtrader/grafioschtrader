@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, Injector, Input, OnChanges, signal, output } from '@angular/core';
+import { Component, computed, DestroyRef, inject, Injector, OnChanges, signal, output, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { SecurityService } from '../service/security.service';
@@ -33,7 +33,7 @@ import { TableModule } from '@openng/optimus-ui/table';
       stripedRows
       showGridlines>
       <ng-template #caption>
-        <h5>{{ groupTitle | translate }}</h5>
+        <h5>{{ groupTitle() | translate }}</h5>
       </ng-template>
       <ng-template #header>
         <tr>
@@ -66,8 +66,8 @@ import { TableModule } from '@openng/optimus-ui/table';
   imports: [TableModule, TranslatePipe]
 })
 export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase implements OnChanges {
-  @Input() historyquoteQualityIds: HistoryquoteQualityIds;
-  @Input() groupTitle: string;
+  readonly historyquoteQualityIds = input<HistoryquoteQualityIds>(undefined);
+  readonly groupTitle = input<string>(undefined);
   readonly changedIdSecurity = output<SecurityIdWithCurrency>();
 
   readonly selectedSecurity = signal<IHistoryquoteQualityWithSecurityProp>(null);
@@ -119,10 +119,11 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
 
   /** Loads the securities of the selected group; a newer group replaces the request of the previous one. */
   ngOnChanges(): void {
-    if (this.historyquoteQualityIds) {
+    const historyquoteQualityIds = this.historyquoteQualityIds();
+    if (historyquoteQualityIds) {
       this.loadSubscription?.unsubscribe();
       this.loadSubscription = this.securityService
-        .getHistoryquoteQualityByIds(this.historyquoteQualityIds)
+        .getHistoryquoteQualityByIds(historyquoteQualityIds)
         .subscribe((historyquoteQualityWithSecurityPropList) => {
           this.selectedSecurity.set(null);
           this.hqwspList.set(historyquoteQualityWithSecurityPropList);

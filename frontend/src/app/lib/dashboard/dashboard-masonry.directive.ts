@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, ElementRef, Input, NgZone, OnChanges, OnDestroy } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, NgZone, OnChanges, OnDestroy, input } from '@angular/core';
 
 /**
  * Packs the dashboard cards column by column instead of row by row.
@@ -18,7 +18,7 @@ import { AfterViewInit, Directive, ElementRef, Input, NgZone, OnChanges, OnDestr
  */
 @Directive({
   selector: '[dashboardMasonry]',
-  host: { '[class.dashboard-masonry]': 'dashboardMasonry' }
+  host: { '[class.dashboard-masonry]': 'dashboardMasonry()' }
 })
 export class DashboardMasonryDirective implements AfterViewInit, OnChanges, OnDestroy {
   /** Height of one raster row in pixels; a card spans as many of them as it is tall. */
@@ -28,7 +28,7 @@ export class DashboardMasonryDirective implements AfterViewInit, OnChanges, OnDe
    * Off while the layout is edited: the draft cards are uniform, and the plain rows are what the drag and drop of the
    * edit mode measures its drop positions against.
    */
-  @Input() dashboardMasonry = true;
+  readonly dashboardMasonry = input(true);
 
   private readonly grid: HTMLElement;
   private sizes: ResizeObserver;
@@ -86,7 +86,7 @@ export class DashboardMasonryDirective implements AfterViewInit, OnChanges, OnDe
 
   private apply(): void {
     const cards = this.cardElements();
-    if (!this.dashboardMasonry) {
+    if (!this.dashboardMasonry()) {
       cards.forEach((card) => card.style.removeProperty('grid-row-end'));
       return;
     }

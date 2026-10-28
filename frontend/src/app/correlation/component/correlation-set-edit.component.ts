@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -40,10 +40,10 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
   /** Dialog configuration parameters containing entity data and operation context */
   private readonly injector = inject(Injector);
 
-  @Input() callParam: CallParam;
+  readonly callParam = input<CallParam>(undefined);
 
   /** Correlation set limits and configuration constraints for validation */
-  @Input() correlationLimit: CorrelationLimit;
+  readonly correlationLimit = input<CorrelationLimit>(undefined);
 
   /** Helper service for managing correlation-specific form fields and validation */
   private correlationEditingSupport: CorrelationEditingSupport = new CorrelationEditingSupport();
@@ -91,9 +91,10 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
       this.translateService,
       SamplingPeriodType
     );
-    this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit);
-    if (this.callParam.thisObject != null) {
-      this.form().transferBusinessObjectToForm(this.callParam.thisObject);
+    this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit());
+    const callParam = this.callParam();
+    if (callParam.thisObject != null) {
+      this.form().transferBusinessObjectToForm(callParam.thisObject);
     }
     afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }
@@ -107,7 +108,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): CorrelationSet {
     const newCorrelationSet = this.copyFormToPrivateBusinessObject(
       new CorrelationSet(),
-      <CorrelationSet>this.callParam.thisObject
+      <CorrelationSet>this.callParam().thisObject
     );
     delete newCorrelationSet.securitycurrencyList;
     return newCorrelationSet;

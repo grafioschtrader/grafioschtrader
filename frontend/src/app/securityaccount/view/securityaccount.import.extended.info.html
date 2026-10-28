@@ -11,15 +11,15 @@
         @switch (field.templateName) { @case ('check') {
         <span
           ><i
-            [class.fa]="getValueByPath(combineTemplateAndImpTransPos, field)"
-            [class.fa-check]="getValueByPath(combineTemplateAndImpTransPos, field)"
+            [class.fa]="getValueByPath(combineTemplateAndImpTransPos(), field)"
+            [class.fa-check]="getValueByPath(combineTemplateAndImpTransPos(), field)"
             aria-hidden="true"></i
         ></span>
         } @case ('icon') {
         <svg-icon
-          [name]="getValueByPath(combineTemplateAndImpTransPos, field)"
+          [name]="getValueByPath(combineTemplateAndImpTransPos(), field)"
           [svgStyle]="{ 'width.px':16, 'height.px':16 }" />
-        } @default { {{getValueByPath(combineTemplateAndImpTransPos, field)}} } }
+        } @default { {{getValueByPath(combineTemplateAndImpTransPos(), field)}} } }
       </div>
     </div>
     }

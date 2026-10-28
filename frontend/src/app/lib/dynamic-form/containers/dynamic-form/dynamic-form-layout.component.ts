@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 
 import { FieldConfig } from '../../models/field.config';
@@ -45,48 +45,53 @@ import { FormNotifier } from '../../models/form.notifier';
     `
   ],
   template: `
+    @let configValue = config();
+    @let formConfigValue = formConfig();
+
     @let rev = notifier?.revision();
-    @if (formConfig.fieldHeaders && formConfig.fieldHeaders[config.field]) {
+    @if (formConfigValue.fieldHeaders && formConfigValue.fieldHeaders[configValue.field]) {
       <div class="row">
         <div class="col-md-12">
           <h5 class="text-center">
-            {{ formConfig.fieldHeaders[config.field] }}
+            {{ formConfigValue.fieldHeaders[configValue.field] }}
           </h5>
         </div>
       </div>
     }
 
-    <div [class]="'small-padding col-md-' + (config.usedLayoutColumns ? config.usedLayoutColumns : 12)">
+    <div [class]="'small-padding col-md-' + (configValue.usedLayoutColumns ? configValue.usedLayoutColumns : 12)">
       <div
         class="mb-3 dynamic-form-row"
-        [style.--df-label-percent]="getLabelPercent(config)"
-        [style.--df-control-percent]="getControlPercent(config)"
-        [hidden]="config.invisible">
-        @if (hasVisibleLabel(config)) {
+        [style.--df-label-percent]="getLabelPercent(configValue)"
+        [style.--df-control-percent]="getControlPercent(configValue)"
+        [hidden]="configValue.invisible">
+        @if (hasVisibleLabel(configValue)) {
           <label
-            [title]="config.labelTitle !== undefined ? config.labelTitle : ''"
-            [style.color]="config.labelTitle !== undefined ? 'red' : null"
-            [for]="config.field"
+            [title]="configValue.labelTitle !== undefined ? configValue.labelTitle : ''"
+            [style.color]="configValue.labelTitle !== undefined ? 'red' : null"
+            [for]="configValue.field"
             class="small-padding form-label dynamic-form-label">
-            {{ config.labelKey.startsWith('*') ? config.labelKey.slice(1) : (config.labelKey | translate) }}
-            {{ config.labelSuffix }}
-            @if (config.labelHelpText && !config.labelHelpText.startsWith('*')) {
+            {{
+              configValue.labelKey.startsWith('*') ? configValue.labelKey.slice(1) : (configValue.labelKey | translate)
+            }}
+            {{ configValue.labelSuffix }}
+            @if (configValue.labelHelpText && !configValue.labelHelpText.startsWith('*')) {
               <i class="fa fa-question-circle-o" (click)="onHelpClick($event)"></i>
             }
           </label>
-        } @else if (shouldReserveLabelSpace(config)) {
+        } @else if (shouldReserveLabelSpace(configValue)) {
           <!-- Invisible placeholder to maintain vertical alignment -->
           <div class="dynamic-form-label"></div>
         }
 
         <div class="small-padding dynamic-form-control">
-          <dynamicField [config]="config" [formConfig]="formConfig" [group]="group" />
+          <dynamicField [config]="configValue" [formConfig]="formConfigValue" [group]="group()" />
         </div>
-        @if (!config.buttonInForm) {
-          <error-message [baseFieldFieldgroupConfig]="config" />
+        @if (!configValue.buttonInForm) {
+          <error-message [baseFieldFieldgroupConfig]="configValue" />
         }
-        @if (config.labelShowText) {
-          <div class="bg-info" [innerHTML]="config.labelShowText"></div>
+        @if (configValue.labelShowText) {
+          <div class="bg-info" [innerHTML]="configValue.labelShowText"></div>
         }
       </div>
     </div>
@@ -94,40 +99,40 @@ import { FormNotifier } from '../../models/form.notifier';
   imports: [TranslateModule, DynamicFieldDirective, ErrorMessageComponent]
 })
 export class DynamicFormLayoutComponent {
-  @Input() config: FieldConfig;
-  @Input() formConfig: FormConfig;
-  @Input() group: UntypedFormGroup;
+  readonly config = input<FieldConfig>(undefined);
+  readonly formConfig = input<FormConfig>(undefined);
+  readonly group = input<UntypedFormGroup>(undefined);
 
   /** Change notification of the form this field belongs to; the template reads its revision. */
   get notifier(): FormNotifier {
-    return FormNotifier.of(this.config);
+    return FormNotifier.of(this.config());
   }
 
   onHelpClick(event) {
-    this.config.labelShowText = this.config.labelShowText ? null : this.config.labelHelpText;
+    this.config().labelShowText = this.config().labelShowText ? null : this.config().labelHelpText;
   }
 
   getLabelPercent(fieldConfig: FieldConfig): string {
     const usedColumns = fieldConfig.usedLayoutColumns || 12;
-    if (!this.formConfig?.labelColumns) {
+    if (!this.formConfig()?.labelColumns) {
       return '0%';
     }
     if (!this.hasVisibleLabel(fieldConfig) && !this.shouldReserveLabelSpace(fieldConfig)) {
       return '0%';
     }
-    const labelColumns = Math.min(this.formConfig.labelColumns, usedColumns);
+    const labelColumns = Math.min(this.formConfig().labelColumns, usedColumns);
     return this.formatPercent((labelColumns / usedColumns) * 100);
   }
 
   getControlPercent(fieldConfig: FieldConfig): string {
-    if (!this.formConfig?.labelColumns) {
+    if (!this.formConfig()?.labelColumns) {
       return '100%';
     }
     if (!this.hasVisibleLabel(fieldConfig) && !this.shouldReserveLabelSpace(fieldConfig)) {
       return '100%';
     }
     const usedColumns = fieldConfig.usedLayoutColumns || 12;
-    const labelColumns = Math.min(this.formConfig.labelColumns, usedColumns);
+    const labelColumns = Math.min(this.formConfig().labelColumns, usedColumns);
     const controlPercent = 100 - (labelColumns / usedColumns) * 100;
     return this.formatPercent(controlPercent);
   }
@@ -151,6 +156,6 @@ export class DynamicFormLayoutComponent {
     if (fieldConfig.buttonInForm) {
       return false;
     }
-    return this.formConfig?.labelColumns > 0;
+    return this.formConfig()?.labelColumns > 0;
   }
 }

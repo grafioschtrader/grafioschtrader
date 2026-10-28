@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { Stockexchange } from '../../entities/stockexchange';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -54,8 +54,8 @@ import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchange> implements OnInit {
-  @Input() callParam: StockexchangeCallParam;
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  readonly callParam = input<StockexchangeCallParam>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
   private readonly nameMaxLength = 32;
   private countriesAsKeyValue: { [cc: string]: string } = {};
   private ruleSetIdByMic: { [mic: string]: number } = {};
@@ -110,33 +110,35 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       ),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
-    if (this.callParam.stockexchange && !this.callParam.stockexchange.mic) {
-      this.callParam.stockexchange.mic = '';
+    const callParam = this.callParam();
+    if (callParam.stockexchange && !callParam.stockexchange.mic) {
+      callParam.stockexchange.mic = '';
     }
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
   private canAssignMic(): boolean {
+    const callParam = this.callParam();
     return (
-      (this.callParam.stockexchange && (!this.callParam.stockexchange.mic || this.callParam.proposeChange)) ||
-      !this.callParam.stockexchange
+      (callParam.stockexchange && (!callParam.stockexchange.mic || callParam.proposeChange)) || !callParam.stockexchange
     );
   }
 
   protected override initialize(): void {
-    this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam.countriesAsHtmlOptions);
+    this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam().countriesAsHtmlOptions);
     this.configObject.mic.groupItem = this.createMicOptions(true);
-    this.configObject.countryCode.valueKeyHtmlOptions = this.callParam.countriesAsHtmlOptions;
+    this.configObject.countryCode.valueKeyHtmlOptions = this.callParam().countriesAsHtmlOptions;
     this.form().setDefaultValuesAndEnableSubmit();
+    const callParam = this.callParam();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
-      this.callParam.stockexchange,
+      callParam.stockexchange,
       this.form(),
       this.configObject,
-      this.proposeChangeEntityWithEntity
+      this.proposeChangeEntityWithEntity()
     );
-    FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [
+    FormHelper.disableEnableFieldConfigs(callParam.hasSecurity, [
       this.configObject.noMarketValue,
       this.configObject.timeZone
     ]);
@@ -196,7 +198,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
 
   private valueChangedOnMic(): void {
     this.configObject.mic.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((mic) => {
-      const sm: StockexchangeMic = this.callParam.stockexchangeMics.find((smf) => smf.mic === mic);
+      const sm: StockexchangeMic = this.callParam().stockexchangeMics.find((smf) => smf.mic === mic);
       if (sm) {
         this.configObject.name.formControl.setValue(sm.name.toLowerCase().substring(0, this.nameMaxLength));
         this.configObject.countryCode.formControl.setValue(sm.countryCode);
@@ -287,14 +289,16 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     };
     this.createGreopAndFristEntry(countryMap, emptyEntry, '-----');
 
-    this.callParam.stockexchangeMics
-      .filter(
-        (sm) =>
+    this.callParam()
+      .stockexchangeMics.filter((sm) => {
+        const callParam = this.callParam();
+        return (
           (this.canAssignMic() &&
             ((onlyMainStockexchange && sm.timeZone) || !onlyMainStockexchange) &&
-            !this.callParam.existingMic.has(sm.mic)) ||
-          ((!this.canAssignMic() || this.callParam.proposeChange) && this.callParam.stockexchange.mic === sm.mic)
-      )
+            !callParam.existingMic.has(sm.mic)) ||
+          ((!this.canAssignMic() || callParam.proposeChange) && callParam.stockexchange.mic === sm.mic)
+        );
+      })
       .forEach((sm) => {
         const existingGroup = countryMap[sm.countryCode];
         if (existingGroup) {
@@ -349,8 +353,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     const stockexchange: Stockexchange = new Stockexchange();
     this.copyFormToPublicBusinessObject(
       stockexchange,
-      this.callParam.stockexchange,
-      this.proposeChangeEntityWithEntity
+      this.callParam().stockexchange,
+      this.proposeChangeEntityWithEntity()
     );
     stockexchange.mic = stockexchange.mic || null;
     return stockexchange;

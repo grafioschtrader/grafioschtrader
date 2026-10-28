@@ -47,6 +47,6 @@ export class UDFGeneralEditComponent extends BaseUDFDataEdit implements OnInit {
    * Retrieves cached descriptors from session storage and configures the dynamic form.
    */
   ngOnInit(): void {
-    super.baseInit(UDFMetadataHelper.getFieldDescriptorByEntity(this.uDFGeneralCallParam.entityName));
+    super.baseInit(UDFMetadataHelper.getFieldDescriptorByEntity(this.uDFGeneralCallParam().entityName));
   }
 }

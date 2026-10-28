@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal, viewChild } from '@angular/core';
+import { Component, OnInit, signal, viewChild, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import {
   AcceptRequestTypes,
@@ -61,7 +61,7 @@ import { BaseSettings } from '../../base.settings';
         #form="dynamicForm"
         (submitBt)="submit($event)" />
 
-      @if (callParam?.isMyEntry && entityFieldsReady()) {
+      @if (callParam()?.isMyEntry && entityFieldsReady()) {
         <h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">
           {{ 'ENTITY_CONFIGURATIONS' | translate }}
         </h4>
@@ -92,7 +92,7 @@ import { BaseSettings } from '../../base.settings';
   `
 })
 export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements OnInit {
-  @Input() callParam: GTNetCallParam;
+  readonly callParam = input<GTNetCallParam>(undefined);
   readonly entityTable = viewChild<EditableTableComponent<GTNetEntity>>('entityTable');
 
   private readonly BASE_SETTING = 'BASE_SETTING';
@@ -144,7 +144,8 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
   }
 
   ngOnInit(): void {
-    const isUpdate = this.callParam.gtNet && !!this.callParam?.gtNet.idGtNet;
+    const callParam = this.callParam();
+    const isUpdate = callParam.gtNet && !!callParam?.gtNet.idGtNet;
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('domainRemoteName', 128, false, {
@@ -153,18 +154,18 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       }),
       ...this.editOwnInstance(isUpdate),
       // Only add submit button if NOT isMyEntry (entity table has its own submit)
-      ...(this.callParam.isMyEntry ? [] : [DynamicFieldHelper.createSubmitButton()])
+      ...(this.callParam().isMyEntry ? [] : [DynamicFieldHelper.createSubmitButton()])
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
 
     // Setup entity table fields if this is my entry
-    if (this.callParam.isMyEntry) {
+    if (this.callParam().isMyEntry) {
       this.setupEntityFields();
     }
   }
 
   private editOwnInstance(isUpdate: boolean): FieldConfig[] {
-    return this.callParam.isMyEntry
+    return this.callParam().isMyEntry
       ? [
           DynamicFieldHelper.createFieldSelectStringHeqF('timeZone', true, {
             fieldsetName: this.BASE_SETTING
@@ -279,7 +280,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
   }
 
   protected override initialize(): void {
-    if (this.callParam.isMyEntry) {
+    if (this.callParam().isMyEntry) {
       this.gps
         .getTimezones()
         .pipe(this.untilDialogClosed())
@@ -290,8 +291,9 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
             GTNetServerOnlineStatusTypes
           );
           // A new entry keeps the field defaults; transferring an empty GTNet would overwrite them with null
-          if (this.callParam.gtNet) {
-            this.form().transferBusinessObjectToForm(this.callParam.gtNet);
+          const callParam = this.callParam();
+          if (callParam.gtNet) {
+            this.form().transferBusinessObjectToForm(callParam.gtNet);
           } else {
             this.form().setDefaultValues();
           }
@@ -306,9 +308,9 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
    * Initializes the entity table with 3 rows (one per entity kind).
    */
   private initializeEntities(): void {
-    const existingEntities = this.callParam.gtNet?.gtNetEntities || [];
+    const existingEntities = this.callParam().gtNet?.gtNetEntities || [];
 
-    this.kindTypes = this.callParam.exchangeKindTypes;
+    this.kindTypes = this.callParam().exchangeKindTypes;
     this.gtNetEntities.set(this.kindTypes.map((kind) => this.findOrCreateEntity(existingEntities, kind)));
 
     // Create translated value store for entityKind display
@@ -334,7 +336,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
 
     // Default values for new entity
     return {
-      idGtNet: this.callParam.gtNet?.idGtNet,
+      idGtNet: this.callParam().gtNet?.idGtNet,
       entityKind: kind.name,
       acceptRequest: AcceptRequestTypes[AcceptRequestTypes.AC_OPEN],
       serverState: GTNetServerStateTypes[GTNetServerStateTypes.SS_NONE],
@@ -428,7 +430,8 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNet {
     const gtNet: GTNet = new GTNet();
-    Object.assign(gtNet, this.callParam.gtNet);
+    const callParam = this.callParam();
+    Object.assign(gtNet, callParam.gtNet);
 
     // Only set domainRemoteName from form value during create (field is disabled during update)
     if (value['domainRemoteName'] !== undefined) {
@@ -436,7 +439,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     }
     gtNet.timeZone = this.gps.getStandardTimeZone();
 
-    if (this.callParam.isMyEntry) {
+    if (callParam.isMyEntry) {
       gtNet.timeZone = value['timeZone'];
       gtNet.spreadCapability = value['spreadCapability'];
       // The input delivers a string; the form helper converts it according to its NumericInteger data type
@@ -464,7 +467,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
   private convertEntityForSave(entity: GTNetEntity): GTNetEntity {
     return {
       idGtNetEntity: entity.idGtNetEntity,
-      idGtNet: entity.idGtNet || this.callParam.gtNet?.idGtNet,
+      idGtNet: entity.idGtNet || this.callParam().gtNet?.idGtNet,
       entityKind: typeof entity.entityKind === 'string' ? this.kindNameToValue(entity.entityKind) : entity.entityKind,
       serverState:
         typeof entity.serverState === 'string'

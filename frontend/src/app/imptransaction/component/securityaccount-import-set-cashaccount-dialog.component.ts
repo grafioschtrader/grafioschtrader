@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
@@ -39,8 +39,8 @@ import { AppSettings } from '../../shared/app.settings';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class SecurityaccountImportSetCashaccountDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() idSecuritycashAccount: number;
-  @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos[];
+  readonly idSecuritycashAccount = input<number>(undefined);
+  readonly combineTemplateAndImpTransPos = input<CombineTemplateAndImpTransPos[]>(undefined);
 
   constructor(
     private portfolioService: PortfolioService,
@@ -66,7 +66,7 @@ export class SecurityaccountImportSetCashaccountDialogComponent extends SimpleEd
     this.importTransactionPosService
       .setCashAccount(
         value.idCashaccount,
-        this.combineTemplateAndImpTransPos.map((ct) => ct.importTransactionPos.idTransactionPos)
+        this.combineTemplateAndImpTransPos().map((ct) => ct.importTransactionPos.idTransactionPos)
       )
       .pipe(this.untilDialogClosed())
       .subscribe((rcImportTransactionPosList) =>
@@ -76,7 +76,7 @@ export class SecurityaccountImportSetCashaccountDialogComponent extends SimpleEd
 
   protected initialize(): void {
     this.portfolioService
-      .getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount)
+      .getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount())
       .pipe(this.untilDialogClosed())
       .subscribe((portfolio) => {
         this.configObject.idCashaccount.valueKeyHtmlOptions =

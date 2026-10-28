@@ -9,7 +9,7 @@ import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { Directive, Input } from '@angular/core';
+import { Directive, input } from '@angular/core';
 import { AlgoCallParam } from '../model/algo.dialog.visible';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
@@ -22,7 +22,7 @@ import { SecurityaccountService } from '../../securityaccount/service/securityac
  */
 @Directive()
 export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEditBase<T> {
-  @Input() algoCallParam: AlgoCallParam;
+  readonly algoCallParam = input<AlgoCallParam>(undefined);
 
   protected securityaccount1ChangedSub: Subscription;
   /** The security accounts allowed for the instrument type currently selected in the dialog. */

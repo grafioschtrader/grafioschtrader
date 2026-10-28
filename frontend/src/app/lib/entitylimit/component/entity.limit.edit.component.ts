@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -54,22 +54,22 @@ import { BaseSettings } from '../../base.settings';
 })
 export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> implements OnInit {
   /** When set the dialog is user-scoped: no role selection and the row is written for this user. */
-  @Input() idUser: number;
-  @Input() existingEntityLimit: EntityLimit;
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  readonly idUser = input<number>(undefined);
+  readonly existingEntityLimit = input<EntityLimit>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
   /**
    * Every configured limit, so that a key and role combination which already exists is not offered a second time.
    * Only the limit administration passes them; the user-scoped host leaves it empty, because there the backend
    * already removes the keys the user holds a row for.
    */
-  @Input() existingEntityLimits: EntityLimit[] = [];
+  readonly existingEntityLimits = input<EntityLimit[]>([]);
 
   /**
    * The user the dialog is scoped to: the one of the user administration, or the owner of the edited row when the
    * limit administration opens a row of a single user.
    */
   private get scopedIdUser(): number {
-    return this.idUser ?? this.existingEntityLimit?.idUser;
+    return this.idUser() ?? this.existingEntityLimit()?.idUser;
   }
 
   private limitKeyDefinitions: LimitKeyDefinition[] = [];
@@ -119,10 +119,11 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
     // The roles are awaited together with the keys, because the offered keys depend on which of their scopes are
     // still free and the role selection is filled from the picked key.
     const entityLimitService = <EntityLimitService>this.serviceEntityUpdate;
+    const existingEntityLimit = this.existingEntityLimit();
     forkJoin([
       entityLimitService.getLimitKeyDefinitions(
         this.scopedIdUser,
-        this.existingEntityLimit ? this.existingEntityLimit.idEntityLimit : undefined
+        existingEntityLimit ? existingEntityLimit.idEntityLimit : undefined
       ),
       this.scopedIdUser == null ? entityLimitService.getRoles() : of<ValueKeyHtmlSelectOptions[]>([])
     ])
@@ -137,30 +138,30 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
           .subscribe((keyId: string) => this.applyPickedKey(keyId));
         // Fills the role selection while no key is picked yet and, for an existing row, for its fixed key, because a
         // disabled control emits no value change.
-        this.applyRoleOptions(this.existingEntityLimit?.keyId);
+        const existingEntityLimitValue = this.existingEntityLimit();
+        this.applyRoleOptions(existingEntityLimitValue?.keyId);
 
-        if (this.existingEntityLimit) {
+        if (existingEntityLimitValue) {
           // The key identifies the row, so it stays fixed once the row exists.
           this.configObject.keyId.formControl.disable();
         }
         // Also fills the form from the entity: every control the entity has no property for, the two readable ones
         // included, is reset to its default, so they may only be filled afterwards.
+        const proposeChangeEntityWithEntity = this.proposeChangeEntityWithEntity();
         AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
           this.translateService,
           this.gps,
-          this.proposeChangeEntityWithEntity
-            ? this.proposeChangeEntityWithEntity.proposedEntity
-            : this.existingEntityLimit,
+          proposeChangeEntityWithEntity ? proposeChangeEntityWithEntity.proposedEntity : existingEntityLimitValue,
           this.form(),
           this.configObject,
-          this.proposeChangeEntityWithEntity
+          this.proposeChangeEntityWithEntity()
         );
-        if (this.existingEntityLimit) {
+        if (existingEntityLimitValue) {
           this.showReadableKeyParts(
-            this.existingEntityLimit.limitTypeKey,
-            this.existingEntityLimit.ownerScopeKey,
-            this.existingEntityLimit.countScopeKey,
-            this.existingEntityLimit.relationEntityName
+            existingEntityLimitValue.limitTypeKey,
+            existingEntityLimitValue.ownerScopeKey,
+            existingEntityLimitValue.countScopeKey,
+            existingEntityLimitValue.relationEntityName
           );
         }
         this.configObject.keyId.baseInputComponent.focus();
@@ -177,10 +178,10 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
    */
   private collectUsedScopes(): Map<string, Set<string>> {
     const usedScopesByKeyId = new Map<string, Set<string>>();
-    (this.existingEntityLimits ?? [])
+    (this.existingEntityLimits() ?? [])
       .filter(
         (entityLimit) =>
-          entityLimit.idUser == null && entityLimit.idEntityLimit !== this.existingEntityLimit?.idEntityLimit
+          entityLimit.idUser == null && entityLimit.idEntityLimit !== this.existingEntityLimit()?.idEntityLimit
       )
       .forEach((entityLimit) => {
         const usedScopes = usedScopesByKeyId.get(entityLimit.keyId) ?? new Set<string>();
@@ -286,7 +287,7 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
       definition.relationEntityName
     );
     if (
-      this.existingEntityLimit == null &&
+      this.existingEntityLimit() == null &&
       definition.defaultValue != null &&
       this.configObject.limitValue.formControl.value == null
     ) {
@@ -319,7 +320,8 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): EntityLimit {
     const entityLimit = new EntityLimit();
     entityLimit.idUser = this.scopedIdUser;
-    this.copyFormToPublicBusinessObject(entityLimit, this.existingEntityLimit, this.proposeChangeEntityWithEntity);
+    const existingEntityLimit = this.existingEntityLimit();
+    this.copyFormToPublicBusinessObject(entityLimit, existingEntityLimit, this.proposeChangeEntityWithEntity());
     // Never post the readable fields or the five derived key parts: the backend parses and validates keyId, then
     // writes those columns from the resulting LimitKey.
     [
@@ -331,8 +333,8 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
       'countScope',
       'ownerScope'
     ].forEach((property) => delete (entityLimit as any)[property]);
-    if (this.existingEntityLimit) {
-      entityLimit.keyId = this.existingEntityLimit.keyId;
+    if (existingEntityLimit) {
+      entityLimit.keyId = existingEntityLimit.keyId;
     }
     return entityLimit;
   }

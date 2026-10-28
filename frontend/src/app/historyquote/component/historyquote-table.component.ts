@@ -2,12 +2,12 @@ import {
   afterNextRender,
   Component,
   Injector,
-  Input,
   OnChanges,
   OnDestroy,
   signal,
   SimpleChanges,
-  output
+  output,
+  input
 } from '@angular/core';
 
 import { Historyquote } from '../../entities/historyquote';
@@ -169,7 +169,7 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
   ]
 })
 export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquote> implements OnChanges, OnDestroy {
-  @Input() timeSeriesParams: TimeSeriesParam[];
+  readonly timeSeriesParams = input<TimeSeriesParam[]>(undefined);
   readonly showLegacyRequested = output<void>();
 
   minDate: Date = new Date(
@@ -240,7 +240,7 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   }
 
   readData(): void {
-    this.readAndShowData(this.timeSeriesParams[0]);
+    this.readAndShowData(this.timeSeriesParams()[0]);
     // Changing history quotes an affect some others viewed parts
     this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new Historyquote()));
   }
@@ -255,8 +255,9 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['timeSeriesParams'] && this.timeSeriesParams && this.timeSeriesParams.length > 0) {
-      this.readAndShowData(this.timeSeriesParams[0]);
+    const timeSeriesParams = this.timeSeriesParams();
+    if (changes['timeSeriesParams'] && timeSeriesParams && timeSeriesParams.length > 0) {
+      this.readAndShowData(timeSeriesParams[0]);
     }
   }
 
@@ -346,8 +347,9 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
 
   protected override initialize(): void {
     this.rowsPerPage = this.usersettingsService.readSingleValue(AppSettings.HISTORYQUOTE_TABLE_SETTINGS_STORE) || 30;
-    if (this.timeSeriesParams && this.timeSeriesParams.length > 0) {
-      this.readAndShowData(this.timeSeriesParams[0]);
+    const timeSeriesParams = this.timeSeriesParams();
+    if (timeSeriesParams && timeSeriesParams.length > 0) {
+      this.readAndShowData(timeSeriesParams[0]);
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, effect, input, Input, untracked } from '@angular/core';
+import { Component, effect, input, untracked } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -30,14 +30,14 @@ import { SimulationRunEvent } from '../model/simulation.run';
     [rows]="rowsPerPage"
     (pageChange)="onPage($event)"
     [scrollable]="true"
-    [scrollHeight]="scrollHeight">
+    [scrollHeight]="scrollHeight()">
     <ng-container ngProjectAs="[caption]"><ng-content select="[caption]" /></ng-container>
   </configurable-table>`
 })
 export class AlgoSimulationRunTableComponent extends TableConfigBase {
   readonly rows = input<SimulationRunEvent[]>([]);
   /** Height at which the trail starts to scroll, so the dialog keeps its form and its metrics in view. */
-  @Input() scrollHeight = '40vh';
+  readonly scrollHeight = input('40vh');
 
   constructor(
     filter: FilterService,

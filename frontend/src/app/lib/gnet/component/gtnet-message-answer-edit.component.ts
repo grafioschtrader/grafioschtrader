@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { GTNetMessageAnswer, GTNetMessageAnswerCallParam } from '../model/gtnet.message.answer';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -97,7 +97,7 @@ const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
   `
 })
 export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetMessageAnswer> implements OnInit {
-  @Input() callParam: GTNetMessageAnswerCallParam;
+  readonly callParam = input<GTNetMessageAnswerCallParam>(undefined);
 
   private readonly injector = inject(Injector);
   private currentTypeFilter: EvalExType = 'ANY';
@@ -168,7 +168,7 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
       .subscribe((requestCode: string) => this.updateResponseCodeOptions(requestCode));
 
     // Load existing entity or set defaults
-    const entity = this.callParam?.gtNetMessageAnswer ?? new GTNetMessageAnswer();
+    const entity = this.callParam()?.gtNetMessageAnswer ?? new GTNetMessageAnswer();
     if (entity.requestMsgCode) {
       // Convert numeric code to string name for form
       const requestCodeName =
@@ -183,8 +183,9 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetMessageAnswer {
     const entity = new GTNetMessageAnswer();
-    if (this.callParam?.gtNetMessageAnswer) {
-      Object.assign(entity, this.callParam.gtNetMessageAnswer);
+    const callParam = this.callParam();
+    if (callParam?.gtNetMessageAnswer) {
+      Object.assign(entity, callParam.gtNetMessageAnswer);
     }
 
     // Send enum names as strings - backend Jackson will deserialize to GTNetMessageCodeType

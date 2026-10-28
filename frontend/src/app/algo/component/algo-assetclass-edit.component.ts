@@ -65,7 +65,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       }),
       ...DynamicFieldModelHelper.createConfigFieldsFromDescriptor(
         this.translateService,
-        this.algoCallParam.formDefinition.fieldDescriptorInputAndShows,
+        this.algoCallParam().formDefinition.fieldDescriptorInputAndShows,
         '',
         false
       ).map((field) => ({ ...field, labelHelpText: 'REBALANCE_OVERRIDE_HELP' })),
@@ -75,7 +75,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
   }
 
   protected override initialize(): void {
-    const existing = <AlgoAssetclass>this.algoCallParam.thisObject;
+    const existing = <AlgoAssetclass>this.algoCallParam().thisObject;
     // Detect custom category mode for existing entity
     const isCustom = existing && existing.name != null;
     const accountOptionsObservable: Observable<ValueKeyHtmlSelectOptions[]> = this.getAccountOptions(
@@ -123,26 +123,27 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
           this.configObject.customCategory.formControl.setValue(true);
         } else {
           this.updateCustomCategoryDependencies(false);
-          this.disableEnableInputForExisting(this.algoCallParam.thisObject != null);
+          this.disableEnableInputForExisting(this.algoCallParam().thisObject != null);
         }
       });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoAssetclass {
     const algoAssetclass: AlgoAssetclass = new AlgoAssetclass();
-    if (this.algoCallParam.thisObject) {
-      Object.assign(algoAssetclass, this.algoCallParam.thisObject);
+    const algoCallParam = this.algoCallParam();
+    if (algoCallParam.thisObject) {
+      Object.assign(algoAssetclass, algoCallParam.thisObject);
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(algoAssetclass);
     // Not an entity field: it only asks the hierarchy view to open the instrument search after the save.
-    this.algoCallParam.addInstrumentsBySearch = !!this.configObject.addInstrumentsBySearch.formControl.value;
+    algoCallParam.addInstrumentsBySearch = !!this.configObject.addInstrumentsBySearch.formControl.value;
     delete algoAssetclass['addInstrumentsBySearch'];
     if (this.configObject.customCategory.formControl.value) {
       algoAssetclass.assetclass = null;
     } else {
       algoAssetclass.name = null;
     }
-    algoAssetclass.idAlgoAssetclassParent = (<AlgoTop>this.algoCallParam.parentObject).idAlgoAssetclassSecurity;
+    algoAssetclass.idAlgoAssetclassParent = (<AlgoTop>algoCallParam.parentObject).idAlgoAssetclassSecurity;
     return algoAssetclass;
   }
 
@@ -157,7 +158,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       this.enableField('assetclass', true);
     }
     // Disabling must not re-enter the checkbox's valueChanges subscription.
-    if (this.algoCallParam.thisObject != null) {
+    if (this.algoCallParam().thisObject != null) {
       this.configObject.customCategory.formControl.disable({ emitEvent: false });
       this.viewChanged();
     }
@@ -177,13 +178,12 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
   }
 
   private getAssetclassObserver(): Observable<Assetclass> | Observable<Assetclass[]> {
-    if (this.algoCallParam.thisObject) {
-      return this.assetclassService.getAssetclass(
-        (<AlgoAssetclass>this.algoCallParam.thisObject).assetclass.idAssetClass
-      );
+    const algoCallParam = this.algoCallParam();
+    if (algoCallParam.thisObject) {
+      return this.assetclassService.getAssetclass((<AlgoAssetclass>algoCallParam.thisObject).assetclass.idAssetClass);
     } else {
       return this.assetclassService.getUnusedAssetclassForAlgo(
-        (<AlgoTop>this.algoCallParam.parentObject).idAlgoAssetclassSecurity
+        (<AlgoTop>algoCallParam.parentObject).idAlgoAssetclassSecurity
       );
     }
   }

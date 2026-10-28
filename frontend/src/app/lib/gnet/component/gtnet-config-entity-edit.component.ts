@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { GTNetConfigEntity, SupplierConsumerLogTypes } from '../model/gtnet';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -30,7 +30,7 @@ import { GTNetConfigEntityDisplay } from './gtnet-config-entity-table.component'
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">
-      <p class="big-size">{{ gtNetConfigEntity.entityKind | translate }}</p>
+      <p class="big-size">{{ gtNetConfigEntity().entityKind | translate }}</p>
       <dynamic-form
         [config]="config"
         [formConfig]="formConfig"
@@ -42,7 +42,7 @@ import { GTNetConfigEntityDisplay } from './gtnet-config-entity-table.component'
   providers: [GTNetConfigEntityService]
 })
 export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetConfigEntity> implements OnInit {
-  @Input() gtNetConfigEntity: GTNetConfigEntityDisplay;
+  readonly gtNetConfigEntity = input<GTNetConfigEntityDisplay>(undefined);
 
   constructor(
     translateService: TranslateService,
@@ -80,13 +80,13 @@ export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetCo
     );
     this.configObject.supplierLog.valueKeyHtmlOptions = logTypeOptions;
     this.configObject.consumerLog.valueKeyHtmlOptions = logTypeOptions;
-    this.form().transferBusinessObjectToForm(this.gtNetConfigEntity);
+    this.form().transferBusinessObjectToForm(this.gtNetConfigEntity());
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetConfigEntity {
     const entity: GTNetConfigEntity = {
-      idGtNetEntity: this.gtNetConfigEntity.idGtNetEntity,
-      exchange: this.gtNetConfigEntity.exchange,
+      idGtNetEntity: this.gtNetConfigEntity().idGtNetEntity,
+      exchange: this.gtNetConfigEntity().exchange,
       supplierLog: value['supplierLog'],
       consumerLog: value['consumerLog'],
       consumerUsage: value['consumerUsage']

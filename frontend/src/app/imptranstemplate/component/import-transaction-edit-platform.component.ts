@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { ImportTransactionPlatform } from '../../entities/import.transaction.platform';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -44,9 +44,9 @@ export class ImportTransactionEditPlatformComponent
 {
   private readonly injector = inject(Injector);
 
-  @Input() callParam: CallParam;
-  @Input() platformTransactionImportHtmlOptions: ValueKeyHtmlSelectOptions[];
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  readonly callParam = input<CallParam>(undefined);
+  readonly platformTransactionImportHtmlOptions = input<ValueKeyHtmlSelectOptions[]>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
   constructor(
     translateService: TranslateService,
@@ -70,7 +70,7 @@ export class ImportTransactionEditPlatformComponent
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'IMPORT_SET_NAME', 32, true),
       DynamicFieldHelper.createFieldSelectString('idCsvImportImplementation', 'TRANSACTION_IMPLEMENTATION', false, {
-        valueKeyHtmlOptions: this.platformTransactionImportHtmlOptions
+        valueKeyHtmlOptions: this.platformTransactionImportHtmlOptions()
       }),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
@@ -82,18 +82,19 @@ export class ImportTransactionEditPlatformComponent
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
-      <Auditable>this.callParam.thisObject,
+      <Auditable>this.callParam().thisObject,
       this.form(),
       this.configObject,
-      this.proposeChangeEntityWithEntity
+      this.proposeChangeEntityWithEntity()
     );
     afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionPlatform {
     const importTransactionPlatform = new ImportTransactionPlatform();
-    if (this.callParam.thisObject) {
-      Object.assign(importTransactionPlatform, this.callParam.thisObject);
+    const callParam = this.callParam();
+    if (callParam.thisObject) {
+      Object.assign(importTransactionPlatform, callParam.thisObject);
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(importTransactionPlatform);
     return importTransactionPlatform;

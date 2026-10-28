@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Injector, OnChanges, SimpleChanges, input } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -16,7 +16,7 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
   imports: [TranslateModule, ConfigurableTableComponent],
   template: `
     <configurable-table
-      [data]="messageAttempts"
+      [data]="messageAttempts()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       [dataKey]="'idGtNetMessageAttempt'"
@@ -28,7 +28,7 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
   `
 })
 export class GTNetMessageAttemptTableComponent extends TableConfigBase implements OnChanges {
-  @Input() messageAttempts: GTNetMessageAttemptView[] = [];
+  readonly messageAttempts = input<GTNetMessageAttemptView[]>([]);
 
   constructor(
     filterService: FilterService,
@@ -51,8 +51,9 @@ export class GTNetMessageAttemptTableComponent extends TableConfigBase implement
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['messageAttempts'] && this.messageAttempts) {
-      this.createTranslatedValueStore(this.messageAttempts);
+    const messageAttempts = this.messageAttempts();
+    if (changes['messageAttempts'] && messageAttempts) {
+      this.createTranslatedValueStore(messageAttempts);
     }
   }
 }

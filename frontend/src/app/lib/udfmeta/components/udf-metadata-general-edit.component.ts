@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { UDFDataType, UDFMetadataGeneral, UDFMetadataGeneralParam } from '../model/udf.metadata';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -47,7 +47,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 })
 export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMetadataGeneral> implements OnInit {
   /** Parameters containing UDF metadata to edit and validation exclusion lists */
-  @Input() callParam: UDFMetadataGeneralParam;
+  readonly callParam = input<UDFMetadataGeneralParam>(undefined);
 
   /** Field configurations for data type and field size inputs */
   private configDataTypeFields: FieldConfig[];
@@ -90,7 +90,7 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
 
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('entity', true),
-      ...UDFMetadataHelper.createMetadataBaseFields(this.configDataTypeFields, this.callParam.excludeFieldNames),
+      ...UDFMetadataHelper.createMetadataBaseFields(this.configDataTypeFields, this.callParam().excludeFieldNames),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -112,8 +112,8 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
       this.translateService,
       this.form(),
       this.configObject,
-      this.callParam.excludeUiOrders,
-      this.callParam.uDFMetadataGeneral,
+      this.callParam().excludeUiOrders,
+      this.callParam().uDFMetadataGeneral,
       this.configDataTypeFields,
       this.untilDialogClosed()
     );
@@ -131,7 +131,7 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
    * @private
    */
   private initializeInformationEntity(): void {
-    if (this.configObject.entity.valueKeyHtmlOptions.length == 1 || this.callParam.uDFMetadataGeneral) {
+    if (this.configObject.entity.valueKeyHtmlOptions.length == 1 || this.callParam().uDFMetadataGeneral) {
       this.configObject.entity.valueKeyHtmlOptions.length == 1 &&
         this.configObject.entity.formControl.setValue(this.configObject.entity.valueKeyHtmlOptions[0].key);
       this.configObject.entity.formControl.disable();
@@ -148,7 +148,7 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): UDFMetadataGeneral {
     const uDFMetadataGeneral: UDFMetadataGeneral = this.copyFormToPrivateBusinessObject(
       new UDFMetadataGeneral(),
-      this.callParam.uDFMetadataGeneral
+      this.callParam().uDFMetadataGeneral
     );
     uDFMetadataGeneral.idUser = this.gps.getIdUser();
     return uDFMetadataGeneral;

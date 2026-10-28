@@ -2,12 +2,12 @@ import {
   AfterViewInit,
   Component,
   computed,
-  Input,
   OnChanges,
   OnDestroy,
   OnInit,
   signal,
-  viewChild
+  viewChild,
+  input
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -68,7 +68,7 @@ export class LastSessionsPerformanceWidgetComponent
   extends ShowRecordConfigBase
   implements OnInit, OnChanges, AfterViewInit, OnDestroy
 {
-  @Input() result: DashboardResult;
+  readonly result = input<DashboardResult>(undefined);
 
   readonly form = viewChild<DynamicFormComponent>('form');
 
@@ -116,7 +116,7 @@ export class LastSessionsPerformanceWidgetComponent
   }
 
   ngOnChanges(): void {
-    this.showPerformance(this.result?.payload?.custom as LastSessionsPerformance);
+    this.showPerformance(this.result()?.payload?.custom as LastSessionsPerformance);
     this.showChosenPortfolio();
   }
 
@@ -136,7 +136,8 @@ export class LastSessionsPerformanceWidgetComponent
    * path.
    */
   private reload(): void {
-    if (!this.result?.instanceId) {
+    const resultValue = this.result();
+    if (!resultValue?.instanceId) {
       return;
     }
     // A select of the browser answers with text, while the card is read for a portfolio id or for none at all. That
@@ -148,7 +149,7 @@ export class LastSessionsPerformanceWidgetComponent
       configOverride,
       true
     );
-    this.dashboardService.refresh(this.result.instanceId, configOverride).subscribe((result) => {
+    this.dashboardService.refresh(resultValue.instanceId, configOverride).subscribe((result) => {
       const performance = result?.payload?.custom as LastSessionsPerformance;
       if (performance) {
         this.showPerformance(performance);

@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, OnChanges, input } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -28,27 +28,27 @@ import { LastSessionsRow } from '../model/last.sessions.performance';
   imports: [ConfigurableTableComponent],
   template: `
     <configurable-table
-      [data]="sessions"
+      [data]="sessions()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       dataKey="date"
       [selectionMode]="null"
       [enableCustomSort]="false"
       [scrollable]="true"
-      [scrollHeight]="scrollHeight"
+      [scrollHeight]="scrollHeight()"
       [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale" />
   `
 })
 export class LastSessionsPerformanceTableComponent extends TableConfigBase implements OnChanges {
   /** Sessions in the order the table shows them; the card reverses the server's ascending order. */
-  @Input() sessions: LastSessionsRow[] = [];
+  readonly sessions = input<LastSessionsRow[]>([]);
 
   /** Currency of every amount; the card reports one currency for the whole client or portfolio. */
-  @Input() currency: string;
+  readonly currency = input<string>(undefined);
 
   /** Height at which the table starts to scroll, so a card cannot grow past its neighbours. */
-  @Input() scrollHeight = '220px';
+  readonly scrollHeight = input('220px');
 
   private readonly amountFields = [
     'totalGainMC',
@@ -89,7 +89,7 @@ export class LastSessionsPerformanceTableComponent extends TableConfigBase imple
 
   ngOnChanges(): void {
     this.amountFields.forEach(
-      (field) => (this.fields.find((columnConfig) => columnConfig.field === field).fixedCurrency = this.currency)
+      (field) => (this.fields.find((columnConfig) => columnConfig.field === field).fixedCurrency = this.currency())
     );
   }
 

@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, OnChanges, input } from '@angular/core';
 
 import { AlgoStrategyParamCall } from '../model/algo.dialog.visible';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -50,7 +50,7 @@ import * as yaml from 'js-yaml';
   imports: []
 })
 export class StrategyDetailComponent extends SingleRecordConfigBase implements OnChanges {
-  @Input() algoStrategyParamCall: AlgoStrategyParamCall;
+  readonly algoStrategyParamCall = input<AlgoStrategyParamCall>(undefined);
 
   dynamicModel: any = {};
   isComplexStrategy = false;
@@ -61,7 +61,7 @@ export class StrategyDetailComponent extends SingleRecordConfigBase implements O
   }
 
   ngOnChanges() {
-    this.isComplexStrategy = this.algoStrategyParamCall.isComplexStrategy;
+    this.isComplexStrategy = this.algoStrategyParamCall().isComplexStrategy;
     if (this.isComplexStrategy) {
       this.displayComplexStrategy();
     } else {
@@ -70,7 +70,7 @@ export class StrategyDetailComponent extends SingleRecordConfigBase implements O
   }
 
   private displayComplexStrategy(): void {
-    const strategyConfig = this.algoStrategyParamCall.algoStrategy.strategyConfig;
+    const strategyConfig = this.algoStrategyParamCall().algoStrategy.strategyConfig;
     if (strategyConfig) {
       try {
         const jsonObj = JSON.parse(strategyConfig);
@@ -85,12 +85,12 @@ export class StrategyDetailComponent extends SingleRecordConfigBase implements O
 
   private displaySimpleStrategy(): void {
     this.dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
-      this.algoStrategyParamCall.algoStrategy.algoStrategyImplementations,
+      this.algoStrategyParamCall().algoStrategy.algoStrategyImplementations,
       AlgoStrategyHelper.FIELD_STRATEGY_IMPL,
-      this.algoStrategyParamCall.algoStrategy.algoRuleStrategyParamMap,
-      this.algoStrategyParamCall.fieldDescriptorShow
+      this.algoStrategyParamCall().algoStrategy.algoRuleStrategyParamMap,
+      this.algoStrategyParamCall().fieldDescriptorShow
     );
-    this.createDynamicOutputFields(this.algoStrategyParamCall.fieldDescriptorShow);
+    this.createDynamicOutputFields(this.algoStrategyParamCall().fieldDescriptorShow);
     this.translateHeadersAndColumns();
     this.createTranslatedValueStore([this.dynamicModel]);
   }

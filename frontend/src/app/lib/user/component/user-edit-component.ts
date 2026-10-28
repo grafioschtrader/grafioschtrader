@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -40,7 +40,7 @@ import { BaseSettings } from '../../base.settings';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class UserEditComponent extends SimpleEntityEditBase<User> implements OnInit {
-  @Input() callParam: User;
+  readonly callParam = input<User>(undefined);
 
   constructor(
     translateService: TranslateService,
@@ -88,16 +88,16 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
   protected initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
     const proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity =
-      AuditHelper.convertToProposeChangeEntityWithEntity(this.callParam, this.callParam.userChangePropose);
+      AuditHelper.convertToProposeChangeEntityWithEntity(this.callParam(), this.callParam().userChangePropose);
     this.configObject.mostPrivilegedRole.valueKeyHtmlOptions = SelectOptionsHelper.translateArrayKeyEqualValue(
       this.translateService,
       [BaseSettings.ROLE_LIMIT_EDIT, BaseSettings.ROLE_USER, BaseSettings.ROLE_ALL_EDIT, BaseSettings.ROLE_ADMIN]
     );
-    this.callParam != null && this.form().transferBusinessObjectToForm(this.callParam);
+    this.callParam() != null && this.form().transferBusinessObjectToForm(this.callParam());
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
-      proposeChangeEntityWithEntity ? proposeChangeEntityWithEntity.proposedEntity : this.callParam,
+      proposeChangeEntityWithEntity ? proposeChangeEntityWithEntity.proposedEntity : this.callParam(),
       this.form(),
       this.configObject,
       proposeChangeEntityWithEntity
@@ -105,7 +105,7 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): User {
-    const user = this.copyFormToPrivateBusinessObject(new User(), this.callParam);
+    const user = this.copyFormToPrivateBusinessObject(new User(), this.callParam());
     AuditHelper.copyNoteAcceptRejectToEntity(this, user);
     return user;
   }

@@ -1,5 +1,5 @@
 <div class="col-md-12">
-  @for (tenantLimit of tenantLimits; track tenantLimit.msgKey) {
+  @for (tenantLimit of tenantLimits(); track tenantLimit.msgKey) {
   <h5>{{tenantLimit.actual}} {{tenantLimit.msgKey | translate}} {{tenantLimit.limit}}</h5>
   }
   <p-table
@@ -48,7 +48,7 @@
     </ng-template>
     <ng-template pTemplate="paginatorleft" let-state>
       {{selectedSecuritycurrencies.length}} {{'SELECTED_FROM' | translate}} {{securitycurrencyList.length}} {{"ALLOWED"
-      | translate}}: @for (tenantLimit of tenantLimits; track tenantLimit.msgKey) {
+      | translate}}: @for (tenantLimit of tenantLimits(); track tenantLimit.msgKey) {
       <span
         [style.color]='selectedSecuritycurrencies.length>
                                             tenantLimit.limit - tenantLimit.actual? "red": "green"'>

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal, output } from '@angular/core';
+import { Component, OnInit, signal, output, input } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -58,7 +58,7 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
   </p-dialog>`
 })
 export class UserAccessTokenCreateDialogComponent extends SimpleEditBase implements OnInit {
-  @Input() formDefinition: ClassDescriptorInputAndShow;
+  readonly formDefinition = input<ClassDescriptorInputAndShow>(undefined);
   /** Emitted as soon as the server created the token, while the dialog still shows it. */
   readonly tokenCreated = output<void>();
   /** Set once the server created the token; it is held only as long as this dialog is open. */
@@ -78,7 +78,7 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
       this.translateService,
-      this.formDefinition,
+      this.formDefinition(),
       '',
       true
     ) as FieldConfig[];

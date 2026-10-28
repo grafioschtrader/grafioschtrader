@@ -1,5 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { computed, DestroyRef, Directive, inject, Injector, Input, signal } from '@angular/core';
+import { computed, DestroyRef, Directive, inject, Injector, signal, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
@@ -24,7 +24,7 @@ import { Observable } from 'rxjs';
 @Directive()
 export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableBase {
   /** Tenant limits for controlling maximum number of instruments that can be added */
-  @Input() tenantLimits: TenantLimit[];
+  readonly tenantLimits = input<TenantLimit[]>(undefined);
 
   /** Columns as a new reference after every change, so the header and body templates of the OnPush p-table follow. */
   readonly tableFields = computed(() => {
@@ -130,7 +130,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
    * @returns True if tenant limits would be exceeded, false otherwise
    */
   reachedListLimits(): boolean {
-    for (const tenantLimit of this.tenantLimits) {
+    for (const tenantLimit of this.tenantLimits()) {
       if (tenantLimit.actual + this.selectedSecuritycurrencies.length > tenantLimit.limit) {
         return true;
       }

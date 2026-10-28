@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, signal, viewChild } from '@angular/core';
+import { Component, OnInit, computed, signal, viewChild, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -78,7 +78,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
 })
 export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
   readonly yamlEditor = viewChild(YamlEditorComponent);
-  @Input() country: TaxCountry;
+  readonly country = input<TaxCountry>(undefined);
   readonly yaml = signal('');
   readonly schema = signal<object>(undefined);
   readonly modelLoading = signal(false);
@@ -132,7 +132,7 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
     this.result.set(null);
     this.modelLoading.set(true);
     this.service
-      .getTaxModel(this.country.idTaxCountry)
+      .getTaxModel(this.country().idTaxCountry)
       .pipe(this.untilDialogClosed())
       .subscribe({
         next: (model) => {
@@ -181,7 +181,7 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
     if (yaml !== null && !(await this.yamlEditor().validateForSubmit())) return;
     if (this.destroyRef.destroyed || revision !== this.validationRevision) return;
     this.service
-      .saveTaxModel(this.country.idTaxCountry, yaml)
+      .saveTaxModel(this.country().idTaxCountry, yaml)
       .pipe(this.untilDialogClosed())
       .subscribe(() => this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)));
   }
@@ -198,7 +198,7 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
       this.configObject.submit.disabled = false;
       return;
     }
-    const request: any = { yaml: this.yaml(), countryCode: this.country.countryCode };
+    const request: any = { yaml: this.yaml(), countryCode: this.country().countryCode };
     this.form().cleanMaskAndTransferValuesToBusinessObject(request, true);
     for (const field of ['units', 'price', 'cleanValue', 'accruedInterest', 'grossIncome']) request[field] ??= 0;
     this.previewSubscription = this.service

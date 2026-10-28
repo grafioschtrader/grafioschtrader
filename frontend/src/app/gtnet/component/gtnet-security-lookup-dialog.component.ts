@@ -1,4 +1,4 @@
-import { Component, Input, signal, output } from '@angular/core';
+import { Component, signal, output, input, linkedSignal } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -27,7 +27,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
   template: `
     <p-dialog
       [header]="'GTNET_SECURITY_LOOKUP' | translate"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '900px', minHeight: '400px' }"
       [modal]="true"
       [resizable]="true"
@@ -62,10 +62,11 @@ import { ProcessedAction } from '../../lib/types/processed.action';
   `
 })
 export class GtnetSecurityLookupDialogComponent {
-  @Input() visibleDialog = false;
-  @Input() isin: string;
-  @Input() currency: string;
-  @Input() tickerSymbol: string;
+  readonly visibleDialogInput = input(false, { alias: 'visibleDialog' });
+  readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
+  readonly isin = input<string>(undefined);
+  readonly currency = input<string>(undefined);
+  readonly tickerSymbol = input<string>(undefined);
 
   readonly closeDialog = output<ProcessedActionData>();
 
@@ -115,7 +116,7 @@ export class GtnetSecurityLookupDialogComponent {
   onSecuritySelected(security: SecurityGtnetLookupDTO): void {
     this.selectionHandled = true;
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, security));
-    this.visibleDialog = false;
+    this.visibleDialog.set(false);
   }
 
   private performSearch(): void {
@@ -123,9 +124,9 @@ export class GtnetSecurityLookupDialogComponent {
     this.cancelPendingRequest();
 
     const request: SecurityGtnetLookupRequest = {
-      isin: this.isin || undefined,
-      currency: this.currency || undefined,
-      tickerSymbol: this.tickerSymbol || undefined
+      isin: this.isin() || undefined,
+      currency: this.currency() || undefined,
+      tickerSymbol: this.tickerSymbol() || undefined
     };
 
     this.loading.set(true);

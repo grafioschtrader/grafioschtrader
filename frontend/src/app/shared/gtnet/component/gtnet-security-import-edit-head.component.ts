@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
@@ -39,7 +39,7 @@ import { GTNetSecurityImpHeadService } from '../service/gtnet-security-imp-head.
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<GTNetSecurityImpHead> implements OnInit {
-  @Input() entity: GTNetSecurityImpHead;
+  readonly entity = input<GTNetSecurityImpHead>(undefined);
 
   private readonly injector = inject(Injector);
 
@@ -72,16 +72,18 @@ export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<G
 
   protected override initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
-    if (this.entity) {
-      this.form().transferBusinessObjectToForm(this.entity);
+    const entity = this.entity();
+    if (entity) {
+      this.form().transferBusinessObjectToForm(entity);
     }
     afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetSecurityImpHead {
     const head = new GTNetSecurityImpHead();
-    if (this.entity) {
-      Object.assign(head, this.entity);
+    const entity = this.entity();
+    if (entity) {
+      Object.assign(head, entity);
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(head);
     return head;

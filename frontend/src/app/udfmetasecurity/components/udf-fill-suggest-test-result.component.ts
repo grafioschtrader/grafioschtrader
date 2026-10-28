@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, signal, SimpleChanges } from '@angular/core';
+import { Component, OnChanges, OnDestroy, signal, SimpleChanges, input } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
 import { Subscription, concatMap, finalize, from, switchMap, tap } from 'rxjs';
@@ -106,7 +106,7 @@ import { UDFFillTestRequest, UDFSuggestTestCandidate, UDFSuggestTestResult } fro
 })
 export class UDFFillSuggestTestResultComponent implements OnChanges, OnDestroy {
   /** The draft of the edit form; every new object starts a new test */
-  @Input() request: UDFFillTestRequest;
+  readonly request = input<UDFFillTestRequest>(undefined);
 
   /** The securities picked by the server, null while they are loading */
   readonly candidates = signal<UDFSuggestTestCandidate[]>(null);
@@ -127,8 +127,9 @@ export class UDFFillSuggestTestResultComponent implements OnChanges, OnDestroy {
   constructor(private uDFMetadataSecurityService: UDFMetadataSecurityService) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['request'] && this.request) {
-      this.start(this.request);
+    const request = this.request();
+    if (changes['request'] && request) {
+      this.start(request);
     }
   }
 

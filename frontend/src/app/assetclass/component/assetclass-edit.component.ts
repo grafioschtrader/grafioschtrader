@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, Input, OnInit } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { Assetclass } from '../../entities/assetclass';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -42,8 +42,8 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetclass> implements OnInit {
-  @Input() callParam: AssetclassCallParam;
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  readonly callParam = input<AssetclassCallParam>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
   private readonly injector = inject(Injector);
 
@@ -90,44 +90,45 @@ export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetc
 
   public filterSuggestionsEN(event: any) {
     const query: string = event.query.toLocaleLowerCase();
-    this.configObject.en.suggestions = this.callParam.subCategorySuggestionsEN.filter((suggestion) =>
+    this.configObject.en.suggestions = this.callParam().subCategorySuggestionsEN.filter((suggestion) =>
       suggestion.toLocaleLowerCase().startsWith(query)
     );
   }
 
   public filterSuggestionsDE(event: any) {
     const query: string = event.query.toLocaleLowerCase();
-    this.configObject.de.suggestions = this.callParam.subCategorySuggestionsDE.filter((suggestion) =>
+    this.configObject.de.suggestions = this.callParam().subCategorySuggestionsDE.filter((suggestion) =>
       suggestion.toLocaleLowerCase().startsWith(query)
     );
   }
 
   protected override canChangeValues(): boolean {
-    return !this.callParam.assetclass;
+    return !this.callParam().assetclass;
   }
 
   protected override initializeOthers(): void {
-    this.configObject.en.suggestions = this.callParam.subCategorySuggestionsEN;
+    this.configObject.en.suggestions = this.callParam().subCategorySuggestionsEN;
+    const callParam = this.callParam();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
-      this.callParam.assetclass,
+      callParam.assetclass,
       this.form(),
       this.configObject,
-      this.proposeChangeEntityWithEntity
+      this.proposeChangeEntityWithEntity()
     );
-    FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [
+    FormHelper.disableEnableFieldConfigs(callParam.hasSecurity, [
       this.configObject.categoryType,
       this.configObject.specialInvestmentInstrument
     ]);
-    if (!this.callParam.assetclass) {
+    if (!callParam.assetclass) {
       afterNextRender(() => this.configObject.categoryType.baseInputComponent?.focus(), { injector: this.injector });
     }
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Assetclass {
     const assetclass: Assetclass = new Assetclass();
-    this.copyFormToPublicBusinessObject(assetclass, this.callParam.assetclass, this.proposeChangeEntityWithEntity);
+    this.copyFormToPublicBusinessObject(assetclass, this.callParam().assetclass, this.proposeChangeEntityWithEntity());
 
     const values: any = {};
     this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);

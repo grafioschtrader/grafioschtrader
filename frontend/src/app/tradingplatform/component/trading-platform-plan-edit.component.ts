@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -41,8 +41,8 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<TradingPlatformPlan> implements OnInit {
-  @Input() callParam: TradingPlatformPlan;
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  readonly callParam = input<TradingPlatformPlan>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
   private importTransactionPlatformList: ImportTransactionPlatform[] = [];
 
@@ -95,10 +95,10 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
-      this.callParam,
+      this.callParam(),
       this.form(),
       this.configObject,
-      this.proposeChangeEntityWithEntity
+      this.proposeChangeEntityWithEntity()
     );
     // Options may arrive after the user starts typing. Only the options and submit state change in the callback.
     this.configObject.submit.disabled = true;
@@ -134,7 +134,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TradingPlatformPlan {
     const tradingPlatformPlan = new TradingPlatformPlan();
-    this.copyFormToPublicBusinessObject(tradingPlatformPlan, this.callParam, this.proposeChangeEntityWithEntity);
+    this.copyFormToPublicBusinessObject(tradingPlatformPlan, this.callParam(), this.proposeChangeEntityWithEntity());
     this.form().cleanMaskAndTransferValuesToBusinessObject(tradingPlatformPlan);
     if (tradingPlatformPlan.countryCode === '') {
       tradingPlatformPlan.countryCode = null;

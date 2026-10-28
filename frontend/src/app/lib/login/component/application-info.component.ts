@@ -1,14 +1,16 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { ApplicationInfo } from '../../services/actuator.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'application-info',
   template: `
-    @if (applicationInfo) {
+    @let applicationInfoValue = applicationInfo();
+
+    @if (applicationInfoValue) {
       <div>
-        <h3>{{ applicationInfo.name }}</h3>
-        Version: {{ applicationInfo.version }}
+        <h3>{{ applicationInfoValue.name }}</h3>
+        Version: {{ applicationInfoValue.version }}
       </div>
     } @else {
       <div class="alert alert-danger">
@@ -19,7 +21,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   imports: [TranslateModule]
 })
 export class ApplicationInfoComponent {
-  @Input() applicationInfo: ApplicationInfo;
+  readonly applicationInfo = input<ApplicationInfo>(undefined);
 
   constructor(public translateService: TranslateService) {}
 }
