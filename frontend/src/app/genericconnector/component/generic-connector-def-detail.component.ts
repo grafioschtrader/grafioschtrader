@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, input } from '@angular/core';
+import { Component, input, effect, untracked } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -56,7 +56,7 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
   `,
   imports: [TranslateModule]
 })
-export class GenericConnectorDefDetailComponent extends SingleRecordConfigBase implements OnChanges {
+export class GenericConnectorDefDetailComponent extends SingleRecordConfigBase {
   readonly connectorDef = input<GenericConnectorDef>(undefined);
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
@@ -137,12 +137,16 @@ export class GenericConnectorDefDetailComponent extends SingleRecordConfigBase i
     });
 
     this.translateHeadersAndColumns();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['connectorDef'] && this.connectorDef()) {
-      this._fieldSetGroups = null;
-      this.createTranslatedValueStore([this.connectorDef()]);
-    }
+    effect(() => {
+      this.connectorDef();
+      untracked(() => {
+        const connector = this.connectorDef();
+        if (connector) {
+          this._fieldSetGroups = null;
+          this.createTranslatedValueStore([connector]);
+        }
+      });
+    });
   }
 }

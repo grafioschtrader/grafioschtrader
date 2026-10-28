@@ -4,13 +4,13 @@ import {
   ElementRef,
   inject,
   NgZone,
-  OnChanges,
   OnDestroy,
   OnInit,
-  signal,
-  SimpleChanges,
   viewChild,
-  input
+  input,
+  linkedSignal,
+  effect,
+  untracked
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription, merge } from 'rxjs';
@@ -104,7 +104,7 @@ const INVESTED_COLOR = '#eb6834';
 })
 export class PerformanceTotalChartWidgetComponent
   extends ShowRecordConfigBase
-  implements OnInit, OnChanges, AfterViewInit, OnDestroy
+  implements OnInit, AfterViewInit, OnDestroy
 {
   readonly result = input<DashboardResult>(undefined);
   /** Set by the dashboard while this card takes over the whole dashboard area. */
@@ -112,7 +112,8 @@ export class PerformanceTotalChartWidgetComponent
 
   readonly plotElement = viewChild<ElementRef<HTMLDivElement>>('plot');
 
-  readonly chart = signal<PerformanceTotalChart>(undefined);
+  /** Server results replace the local chart; maximizing alone keeps its chosen portfolio and period. */
+  readonly chart = linkedSignal(() => this.result()?.payload?.custom as PerformanceTotalChart);
   config: FieldConfig[];
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig = { labelColumns: 3, nonModal: true };
@@ -152,6 +153,13 @@ export class PerformanceTotalChartWidgetComponent
     this.translateService
       .get(['TOTAL_BALANCE', 'INVESTED_CAPITAL', 'DIFFERENCE'])
       .subscribe((texts) => (this.texts = texts));
+
+    effect(() => {
+      this.chart();
+      untracked(() => {
+        this.applyChart();
+      });
+    });
   }
 
   /** The portfolios are data of the card rather than of its figures, so they are read once, whatever those show. */
@@ -166,16 +174,6 @@ export class PerformanceTotalChartWidgetComponent
       );
       this.showChosenSettings();
     });
-  }
-
-  /**
-   * Only a new result replaces the chart. A change of {@link maximized} alone must keep the portfolio and period the
-   * reader chose on the card; the resize observer adapts the plot to its new size.
-   */
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['result']) {
-      this.show(this.result()?.payload?.custom as PerformanceTotalChart);
-    }
   }
 
   ngAfterViewInit(): void {
@@ -228,7 +226,8 @@ export class PerformanceTotalChartWidgetComponent
     });
   }
 
-  private show(chart: PerformanceTotalChart): void {
+  private applyChart(): void {
+    const chart = this.chart();
     if (chart) {
       this.amountField.fixedCurrency = chart.currency;
       this.configObject.range.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
@@ -237,9 +236,12 @@ export class PerformanceTotalChartWidgetComponent
         false
       );
     }
-    this.chart.set(chart);
+
     this.showChosenSettings();
     this.drawPlot();
+  }
+  private show(chart: PerformanceTotalChart): void {
+    this.chart.set(chart);
   }
 
   /** Lets the selects agree with the chart on screen without asking for it again, also after a dashboard refresh. */

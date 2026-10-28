@@ -1,4 +1,4 @@
-import { ComponentRef, Directive, OnChanges, OnInit, Type, ViewContainerRef, input } from '@angular/core';
+import { ComponentRef, Directive, Type, ViewContainerRef, input, effect, untracked } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { FormButtonComponent } from '../form-button/form-button.component';
 import { FormInputComponent } from '../form-input/form-input.component';
@@ -41,34 +41,35 @@ const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
 @Directive({
   selector: 'dynamicField'
 })
-export class DynamicFieldDirective implements OnChanges, OnInit {
+export class DynamicFieldDirective {
   readonly config = input<FieldConfig>(undefined);
   readonly formConfig = input<FormConfig>(undefined);
   readonly group = input<UntypedFormGroup>(undefined);
 
   component: ComponentRef<FieldFormFormGroupConfig>;
 
-  constructor(private viewContainerRef: ViewContainerRef) {}
-
-  ngOnChanges() {
-    if (this.component) {
-      this.component.setInput('config', this.config());
-      this.component.setInput('formConfig', this.formConfig());
-      this.component.setInput('group', this.group());
-    }
-  }
-
-  ngOnInit() {
-    if (!components[this.config().inputType]) {
-      const supportedTypes = Object.keys(components).join(', ');
-      throw new Error(
-        `Trying to use an unsupported type (${this.config().inputType}).
-        Supported types: ${supportedTypes}`
-      );
-    }
-    this.component = this.viewContainerRef.createComponent(components[this.config().inputType]);
-    this.component.setInput('config', this.config());
-    this.component.setInput('formConfig', this.formConfig());
-    this.component.setInput('group', this.group());
+  constructor(private viewContainerRef: ViewContainerRef) {
+    effect(() => {
+      this.config();
+      this.formConfig();
+      this.group();
+      untracked(() => {
+        const config = this.config();
+        if (!this.component) {
+          const componentType = components[config.inputType];
+          if (!componentType)
+            throw new Error(
+              'Trying to use an unsupported type (' +
+                config.inputType +
+                '). Supported types: ' +
+                Object.keys(components).join(', ')
+            );
+          this.component = this.viewContainerRef.createComponent(componentType);
+        }
+        this.component.setInput('config', config);
+        this.component.setInput('formConfig', this.formConfig());
+        this.component.setInput('group', this.group());
+      });
+    });
   }
 }

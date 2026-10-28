@@ -1,4 +1,4 @@
-import { Component, Injector, OnChanges, OnInit, SimpleChanges, output, input } from '@angular/core';
+import { Component, Injector, OnInit, output, input, computed, effect, untracked } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -29,7 +29,7 @@ import { AppSettings } from '../../shared/app.settings';
   imports: [ConfigurableTableComponent, TranslateModule, ButtonModule],
   template: `
     <configurable-table
-      [data]="securities()"
+      [data]="displaySecurities()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       dataKey="_uniqueKey"
@@ -163,8 +163,14 @@ import { AppSettings } from '../../shared/app.settings';
     `
   ]
 })
-export class GtnetSecurityLookupTableComponent extends TableConfigBase implements OnInit, OnChanges {
+export class GtnetSecurityLookupTableComponent extends TableConfigBase implements OnInit {
   readonly securities = input<SecurityGtnetLookupDTO[]>([]);
+  readonly displaySecurities = computed(() =>
+    this.securities().map((security, index) => ({
+      ...security,
+      _uniqueKey: security.isin + '_' + security.stockexchangeMic + '_' + (security.sourceDomain || index)
+    }))
+  );
 
   readonly securitySelected = output<SecurityGtnetLookupDTO>();
 
@@ -237,9 +243,6 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   /** Map of connector ID to human-readable name */
   feedConnectorsKV: { [id: string]: string } = {};
 
-  /** Flag to track if fields have been initialized in ngOnInit */
-  private fieldsInitialized = false;
-
   /** User's language for subCategoryNLS lookup */
   private userLang: string;
 
@@ -254,20 +257,7 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.userLang = gps.getUserLang();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const securities = this.securities();
-    if (changes['securities'] && securities) {
-      this.addUniqueKeys();
-      // Only create translated value store if fields have been initialized
-      if (this.fieldsInitialized) {
-        this.createTranslatedValueStore(securities);
-      }
-    }
-  }
-
-  ngOnInit(): void {
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 200 });
     this.addColumn(DataType.String, 'isin', 'ISIN', true, false, {
       width: 120
@@ -292,31 +282,22 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
     this.addColumn(DataType.String, 'sourceDomain', 'SOURCE_DOMAIN', true, false, { width: 120 });
 
     this.prepareTableAndTranslate();
-    this.fieldsInitialized = true;
 
-    // Load connector readable names
+    effect(() => {
+      this.displaySecurities();
+      untracked(() => {
+        this.createTranslatedValueStore(this.displaySecurities());
+      });
+    });
+  }
+
+  ngOnInit(): void {
     SecurityCurrencyHelper.loadAllConnectors(
       this.securityService,
       this.currencypairService,
       this.feedConnectorsKV,
       () => this.notifyViewChanged()
     );
-
-    // If data was already provided before ngOnInit, create translated value store now
-    const securities = this.securities();
-    if (securities?.length > 0) {
-      this.createTranslatedValueStore(securities);
-    }
-  }
-
-  /**
-   * Adds unique keys to each security for table row identification.
-   * Combines isin, stockexchangeMic, and sourceDomain to create a unique identifier.
-   */
-  private addUniqueKeys(): void {
-    this.securities().forEach((security, index) => {
-      (security as any)._uniqueKey = `${security.isin}_${security.stockexchangeMic}_${security.sourceDomain || index}`;
-    });
   }
 
   /**

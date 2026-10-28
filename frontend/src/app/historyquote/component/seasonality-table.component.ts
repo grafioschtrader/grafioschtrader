@@ -1,5 +1,5 @@
 import { AppSettings } from '../../shared/app.settings';
-import { Component, Injector, OnChanges, SimpleChanges, computed, input } from '@angular/core';
+import { Component, Injector, computed, input, effect, untracked } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -75,7 +75,7 @@ import {
   `,
   imports: [FormsModule, TranslateModule, TableModule]
 })
-export class SeasonalityTableComponent extends TableConfigBase implements OnChanges {
+export class SeasonalityTableComponent extends TableConfigBase {
   readonly result = input<SeasonalReturnsResult>(undefined);
 
   /** A new columns reference re-renders the header and body templates of the OnPush p-table after a rebuild. */
@@ -100,10 +100,26 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
    * positives and negatives are ranked separately so the strongest loss is always full red regardless of how large
    * the gains get.
    */
-  private periodNeg: number[] = [];
-  private periodPos: number[] = [];
-  private annualNeg: number[] = [];
-  private annualPos: number[] = [];
+
+  private readonly colorScale = computed(() => {
+    const periodVals: number[] = [];
+    const annualVals: number[] = [];
+    (this.result()?.yearRows ?? []).forEach((row) => {
+      row.periodReturns.forEach((v) => v != null && periodVals.push(v));
+      row.annualReturn != null && annualVals.push(row.annualReturn);
+    });
+    const periodNeg = periodVals
+      .filter((v) => v < 0)
+      .map((v) => -v)
+      .sort((a, b) => a - b);
+    const periodPos = periodVals.filter((v) => v > 0).sort((a, b) => a - b);
+    const annualNeg = annualVals
+      .filter((v) => v < 0)
+      .map((v) => -v)
+      .sort((a, b) => a - b);
+    const annualPos = annualVals.filter((v) => v > 0).sort((a, b) => a - b);
+    return { periodNeg, periodPos, annualNeg, annualPos };
+  });
 
   /** Column config used solely to format the footer statistic numbers via getValueByPath. */
   private readonly statColumnConfig: ColumnConfig = ShowRecordConfigBase.createColumnConfig(
@@ -123,13 +139,15 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
     injector: Injector
   ) {
     super(filterService, usersettingsService, translateService, gps, injector);
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['result'] && this.result()) {
-      this.buildColumns();
-      this.computeColorScale();
-    }
+    effect(() => {
+      this.result();
+      untracked(() => {
+        if (this.result()) {
+          this.buildColumns();
+        }
+      });
+    });
   }
 
   /** Cell value accessor for a period column; bound via the column's fieldValueFN. */
@@ -181,28 +199,15 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
     this.notifyViewChanged();
   }
 
-  private computeColorScale(): void {
-    const periodVals: number[] = [];
-    const annualVals: number[] = [];
-    this.result().yearRows.forEach((row) => {
-      row.periodReturns.forEach((v) => v != null && periodVals.push(v));
-      row.annualReturn != null && annualVals.push(row.annualReturn);
-    });
-    this.periodNeg = periodVals
-      .filter((v) => v < 0)
-      .map((v) => -v)
-      .sort((a, b) => a - b);
-    this.periodPos = periodVals.filter((v) => v > 0).sort((a, b) => a - b);
-    this.annualNeg = annualVals
-      .filter((v) => v < 0)
-      .map((v) => -v)
-      .sort((a, b) => a - b);
-    this.annualPos = annualVals.filter((v) => v > 0).sort((a, b) => a - b);
-  }
-
   private colorForValue(value: number, isAnnual: boolean): string {
     const positive = value >= 0;
-    const sorted = isAnnual ? (positive ? this.annualPos : this.annualNeg) : positive ? this.periodPos : this.periodNeg;
+    const sorted = isAnnual
+      ? positive
+        ? this.colorScale().annualPos
+        : this.colorScale().annualNeg
+      : positive
+        ? this.colorScale().periodPos
+        : this.colorScale().periodNeg;
     // Rank within the same-sign group (empirical CDF): the most extreme value reaches full intensity, the bulk gets
     // spread across the mid-range — independent of the absolute magnitude of outliers.
     const t = this.rankFraction(sorted, Math.abs(value));

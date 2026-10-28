@@ -3,13 +3,16 @@ import {
   Component,
   ElementRef,
   OnDestroy,
-  OnChanges,
-  SimpleChanges,
   signal,
   output,
   viewChild,
   input,
-  model
+  model,
+  effect,
+  untracked,
+  inject,
+  Injector,
+  OnInit
 } from '@angular/core';
 import * as yaml from 'js-yaml';
 import { HttpClient } from '@angular/common/http';
@@ -61,7 +64,7 @@ export interface YamlDiagnostic {
     </div>
   `
 })
-export class YamlEditorComponent extends BaseService implements AfterViewInit, OnDestroy, OnChanges {
+export class YamlEditorComponent extends BaseService implements AfterViewInit, OnDestroy, OnInit {
   readonly editorContainer = viewChild<ElementRef<HTMLDivElement>>('editorContainer');
 
   constructor(private http: HttpClient = null) {
@@ -97,16 +100,26 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
   private revision = 0;
   private destroyed = false;
 
-  ngOnChanges(changes: SimpleChanges): void {
-    // A value emitted by Monaco comes back through the two-way input binding. It is already validated locally;
-    // receiving that same value or a late completion schema must not erase its diagnostics.
-    if (changes['format'] || changes['activatable']) this.invalidateValidation();
-    if (changes['value']) {
-      const value = this.value() ?? '';
-      if (this._value !== value) this.invalidateValidation();
-      this._value = value;
-      if (this.editor && this.editor.getValue() !== value) this.editor.setValue(value);
-    }
+  ngOnInit(): void {
+    effect(
+      () => {
+        this.format();
+        this.activatable();
+        untracked(() => this.invalidateValidation());
+      },
+      { injector: this.renderInjector }
+    );
+    effect(
+      () => {
+        const value = this.value() ?? '';
+        untracked(() => {
+          if (this._value !== value) this.invalidateValidation();
+          this._value = value;
+          if (this.editor && this.editor.getValue() !== value) this.editor.setValue(value);
+        });
+      },
+      { injector: this.renderInjector }
+    );
   }
 
   private invalidateValidation(): void {
@@ -189,6 +202,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
     [fieldName: string]: YamlFieldCompletion[];
   }>(undefined);
 
+  private readonly renderInjector = inject(Injector);
   private _value = '';
   private editor: any;
   private validationTimer: any;

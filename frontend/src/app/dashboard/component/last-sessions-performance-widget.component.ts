@@ -2,12 +2,13 @@ import {
   AfterViewInit,
   Component,
   computed,
-  OnChanges,
   OnDestroy,
   OnInit,
-  signal,
   viewChild,
-  input
+  input,
+  linkedSignal,
+  effect,
+  untracked
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -66,13 +67,13 @@ import { LastSessionsPerformanceTableComponent } from './last-sessions-performan
 })
 export class LastSessionsPerformanceWidgetComponent
   extends ShowRecordConfigBase
-  implements OnInit, OnChanges, AfterViewInit, OnDestroy
+  implements OnInit, AfterViewInit, OnDestroy
 {
   readonly result = input<DashboardResult>(undefined);
 
   readonly form = viewChild<DynamicFormComponent>('form');
 
-  readonly performance = signal<LastSessionsPerformance>(undefined);
+  readonly performance = linkedSignal(() => this.result()?.payload?.custom as LastSessionsPerformance);
   /** Newest session first: a card is read from the top and the last session is what the reader came for. */
   readonly rows = computed(() => [...(this.performance()?.sessions ?? [])].reverse());
   totalFields: ColumnConfig[] = [];
@@ -96,6 +97,15 @@ export class LastSessionsPerformanceWidgetComponent
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.initTotalFields();
+
+    effect(() => {
+      this.performance();
+      this.form();
+      untracked(() => {
+        this.totalFields.forEach((field) => (field.fixedCurrency = this.performance()?.currency));
+        this.showChosenPortfolio();
+      });
+    });
   }
 
   /**
@@ -113,11 +123,6 @@ export class LastSessionsPerformanceWidgetComponent
       );
       this.showChosenPortfolio();
     });
-  }
-
-  ngOnChanges(): void {
-    this.showPerformance(this.result()?.payload?.custom as LastSessionsPerformance);
-    this.showChosenPortfolio();
   }
 
   ngAfterViewInit(): void {
@@ -159,7 +164,6 @@ export class LastSessionsPerformanceWidgetComponent
 
   /** Shows the figures; the totals take the currency of the figures they format. */
   private showPerformance(performance: LastSessionsPerformance): void {
-    this.totalFields.forEach((field) => (field.fixedCurrency = performance?.currency));
     this.performance.set(performance);
   }
 

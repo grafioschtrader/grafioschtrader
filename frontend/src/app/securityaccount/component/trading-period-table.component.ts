@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, output, viewChild, input, linkedSignal } from '@angular/core';
+import { Component, output, viewChild, input, linkedSignal, effect, untracked } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -63,7 +63,7 @@ import { BaseSettings } from '../../lib/base.settings';
   `,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
-export class TradingPeriodTableComponent extends TableEditConfigBase implements OnChanges {
+export class TradingPeriodTableComponent extends TableEditConfigBase {
   readonly entityTable = viewChild<EditableTableComponent<SecaccountTradingPeriod>>('entityTable');
 
   /** Trading periods to display and edit. Strings are converted to Date objects internally. */
@@ -94,19 +94,26 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   ) {
     super(filterService, usersettingsService, translateService, gps);
     this.setupColumns();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    // The columns are defined in the constructor, so they exist before the first input arrives.
-    if (changes['tradingPeriodsInput'] && this.tradingPeriods()) {
-      this.tradingPeriods.set(this.convertDatesToDateObjects(this.tradingPeriods()));
-      this.assignTempIds(this.tradingPeriods());
-      this.createTranslatedValueStoreAndFilterField(this.tradingPeriods());
-    }
-    if (changes['transactionSummaries'] || changes['isNewSecurityAccount']) {
-      // canDeleteRow is a stable function, so the editable table re-evaluates it only after a new revision.
-      this.notifyViewChanged();
-    }
+    effect(() => {
+      this.tradingPeriodsInput();
+      untracked(() => {
+        const periods = this.tradingPeriodsInput();
+        if (periods) {
+          const rows = this.convertDatesToDateObjects(periods);
+          this.assignTempIds(rows);
+          this.tradingPeriods.set(rows);
+          this.createTranslatedValueStoreAndFilterField(rows);
+        }
+      });
+    });
+    effect(() => {
+      this.transactionSummaries();
+      this.isNewSecurityAccount();
+      untracked(() => {
+        this.notifyViewChanged();
+      });
+    });
   }
 
   /**

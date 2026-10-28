@@ -1,5 +1,5 @@
 import { AppSettings } from '../../shared/app.settings';
-import { Component, OnChanges, output, input } from '@angular/core';
+import { Component, output, input, computed, effect, untracked } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
@@ -22,7 +22,7 @@ import { HoldingMoversBranch, HoldingMoversRanking, HoldingMoversRow } from '../
   imports: [ConfigurableTreeTableComponent],
   template: `
     <configurable-tree-table
-      [data]="treeNodes"
+      [data]="treeNodes()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       dataKey="nodeKey"
@@ -34,7 +34,7 @@ import { HoldingMoversBranch, HoldingMoversRanking, HoldingMoversRow } from '../
       (nodeCollapse)="onBranchToggled($event, false)" />
   `
 })
-export class HoldingMoversTreetableComponent extends TreeTableConfigBase implements OnChanges {
+export class HoldingMoversTreetableComponent extends TreeTableConfigBase {
   /** Branches in display order, as delivered by the server. */
   readonly branches = input<HoldingMoversBranch[]>([]);
 
@@ -56,7 +56,7 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase impleme
     open: boolean;
   }>();
 
-  treeNodes: TreeNode[] = [];
+  readonly treeNodes = computed(() => this.branches().map((branch) => this.branchNode(branch)));
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
@@ -76,12 +76,20 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase impleme
       templateName: 'greenRed'
     });
     this.prepareTreeTableAndTranslate();
-  }
 
-  ngOnChanges(): void {
-    this.fields.find((field) => field.field === 'amountMC').fixedCurrency = this.currency();
-    this.treeNodes = this.branches().map((branch) => this.branchNode(branch));
-    this.createTranslateValuesStoreForTranslation(this.treeNodes);
+    effect(() => {
+      this.currency();
+      untracked(() => {
+        this.fields.find((field) => field.field === 'amountMC').fixedCurrency = this.currency();
+        this.notifyViewChanged();
+      });
+    });
+    effect(() => {
+      this.treeNodes();
+      untracked(() => {
+        this.createTranslateValuesStoreForTranslation(this.treeNodes());
+      });
+    });
   }
 
   /**

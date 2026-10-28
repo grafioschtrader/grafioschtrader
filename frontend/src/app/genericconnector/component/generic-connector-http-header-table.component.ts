@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, output, viewChild, input, linkedSignal } from '@angular/core';
+import { Component, output, viewChild, input, linkedSignal, effect, untracked } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -58,7 +58,7 @@ import { GenericConnectorHttpHeader } from '../../entities/generic.connector.htt
   `,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
-export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBase implements OnChanges {
+export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBase {
   readonly entityTable = viewChild<EditableTableComponent<GenericConnectorHttpHeader>>('entityTable');
 
   readonly httpHeadersInput = input<GenericConnectorHttpHeader[]>([], { alias: 'httpHeaders' });
@@ -74,12 +74,14 @@ export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBas
   ) {
     super(filterService, usersettingsService, translateService, gps);
     this.setupColumns();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['httpHeadersInput'] && this.httpHeaders()) {
-      this.createTranslatedValueStoreAndFilterField(this.httpHeaders());
-    }
+    effect(() => {
+      this.httpHeadersInput();
+      untracked(() => {
+        const headers = this.httpHeaders();
+        if (headers) this.createTranslatedValueStoreAndFilterField(headers);
+      });
+    });
   }
 
   canDeleteRow = (_row: GenericConnectorHttpHeader): boolean => true;

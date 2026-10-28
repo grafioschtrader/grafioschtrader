@@ -112,6 +112,13 @@ periodic `ApplicationRef.tick()`.
   changed only with a new reference: `list.update((l) => [...l, x])`, never `update((l) => { l.push(x); return l; })`.
   For state still held outside signals, dialogs call `viewChanged()` (edit base classes, `PasswordBaseComponent`) and
   tables call `notifyViewChanged()` (`ShowRecordConfigBase`).
+- **Derived input state is a `computed`, writable input-dependent state a `linkedSignal`.** Use a component
+  `effect` for imperative synchronization, such as translating table rows or updating dynamic form controls. Register
+  it after the columns/configuration are defined, read the relevant inputs explicitly, and wrap the imperative work
+  in `untracked` so its incidental signal reads do not trigger another preparation pass. Dynamic form fields are
+  created and updated through `ComponentRef.setInput()` from their input effect. Do not add `fieldsInitialized` flags
+  or `ngOnChanges`; `src/angular-api.ratchet.spec.ts` permits only the seven request hooks awaiting the resource
+  migration. Computed display rows copy their input objects before adding keys or labels.
 - **`FieldConfig` display properties may be assigned freely** (`invisible`, `disabled`, `placeholder`,
   `valueKeyHtmlOptions`, `labelKey`, `errors`, …). `TranslateHelper.prepareFieldsAndErrors` and `DynamicFormComponent`
   instrument every field through `FormNotifier`, so an assignment notifies the form. Arrays are replaced, not mutated:
@@ -347,29 +354,7 @@ this.addColumnFeqH(DataType.String, 'securityName', true, false, { filterType: F
 
 **How `prepareFilter` works internally**: For translated columns, it reads `field.translatedValueMap` (built by `createTranslatedValueStore`) and creates sorted dropdown options with translated labels — the option _value_ stays the raw key, so the filter compares against the raw data. For plain string columns, it extracts unique values from the data. In both cases it populates `field.filterValues` which the template's `<p-multiSelect>` binds to. The list carries no empty "no filter" entry; the multi-select is reset with its clear icon.
 
-In existing components using `OnChanges` with signal inputs, `ngOnChanges` is called **before** `ngOnInit`. Keep the initialization guard until the component is converted to the effect pattern below:
-
-```typescript
-private fieldsInitialized = false;
-
-constructor(...) {
-  super(...);
-  this.addColumnFeqH(DataType.String, 'status', true, false,
-    {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-  // ... more columns ...
-  this.prepareTableAndTranslate();
-  this.fieldsInitialized = true;
-}
-
-ngOnChanges(changes: SimpleChanges): void {
-  if (changes['data'] && this.data() && this.fieldsInitialized) {
-    this.createTranslatedValueStoreAndFilterField(this.data());
-    this.prepareFilter(this.data());
-  }
-}
-```
-
-A new component makes the flag unnecessary with a signal input: the columns are defined in the constructor, and an
+The columns are defined in the constructor, and an
 `effect` prepares the rows whenever the input changes. A component effect runs before the component's template, so the
 ordering of `ngOnChanges` and `ngOnInit` no longer matters.
 

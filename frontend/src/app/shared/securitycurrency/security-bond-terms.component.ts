@@ -7,10 +7,8 @@ import {
   Injector,
   signal,
   Component,
-  OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges,
   untracked,
   viewChild,
   input
@@ -80,7 +78,7 @@ export function defaultCouponDayCount(defaults: CouponDayCountDefaults, currency
     }
   `
 })
-export class SecurityBondTermsComponent extends FormBase implements OnInit, OnChanges, OnDestroy {
+export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDestroy {
   readonly entity = input<Security>(undefined);
   readonly securityName = input<string>(undefined);
   /** Currency of the edited security, the basis of the proposed day-count convention. */
@@ -108,9 +106,23 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
   ) {
     super();
     effect(() => {
+      this.entity();
       if (this.form()) {
         untracked(() => this.scheduleInitialization());
       }
+    });
+
+    effect(() => {
+      this.securityName();
+      untracked(() => {
+        this.prefillCouponRate();
+      });
+    });
+    effect(() => {
+      this.currency();
+      untracked(() => {
+        this.prefillCouponDayCount();
+      });
     });
   }
 
@@ -150,19 +162,6 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
         this.couponDayCountDefaults = couponDayCountDefaults;
         this.ready.set(true);
       });
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.entity && this.form()) {
-      this.scheduleInitialization();
-      return;
-    }
-    if (changes.securityName) {
-      this.prefillCouponRate();
-    }
-    if (changes.currency) {
-      this.prefillCouponDayCount();
-    }
   }
 
   ngOnDestroy(): void {

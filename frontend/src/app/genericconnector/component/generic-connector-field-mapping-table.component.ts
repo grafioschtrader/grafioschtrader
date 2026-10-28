@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, output, viewChild, input, linkedSignal } from '@angular/core';
+import { Component, output, viewChild, input, linkedSignal, effect, untracked } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -60,7 +60,7 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
   `,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
-export class GenericConnectorFieldMappingTableComponent extends TableEditConfigBase implements OnChanges {
+export class GenericConnectorFieldMappingTableComponent extends TableEditConfigBase {
   private static readonly HISTORY_TARGET_FIELDS = ['date', 'open', 'high', 'low', 'close', 'volume'];
   private static readonly INTRA_TARGET_FIELDS = [
     'last',
@@ -90,18 +90,26 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
   ) {
     super(filterService, usersettingsService, translateService, gps);
     this.setupColumns();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['fieldMappingsInput'] && this.fieldMappings()) {
-      this.createTranslatedValueStoreAndFilterField(this.fieldMappings());
-    }
-    if (changes['feedSupport']) {
-      this.updateTargetFieldOptions();
-    }
-    if (changes['responseFormat']) {
-      this.hideShowColumnByFileHeader('CSV_COLUMN_INDEX', this.responseFormat() === 'CSV');
-    }
+    effect(() => {
+      this.fieldMappingsInput();
+      untracked(() => {
+        const mappings = this.fieldMappings();
+        if (mappings) this.createTranslatedValueStoreAndFilterField(mappings);
+      });
+    });
+    effect(() => {
+      this.feedSupport();
+      untracked(() => {
+        this.updateTargetFieldOptions();
+      });
+    });
+    effect(() => {
+      this.responseFormat();
+      untracked(() => {
+        this.hideShowColumnByFileHeader('CSV_COLUMN_INDEX', this.responseFormat() === 'CSV');
+      });
+    });
   }
 
   canDeleteRow = (_row: GenericConnectorFieldMapping): boolean => true;

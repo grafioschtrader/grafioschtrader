@@ -1,4 +1,4 @@
-import { Component, OnChanges, input } from '@angular/core';
+import { Component, input, effect, untracked } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -40,7 +40,7 @@ import { LastSessionsRow } from '../model/last.sessions.performance';
       [baseLocale]="baseLocale" />
   `
 })
-export class LastSessionsPerformanceTableComponent extends TableConfigBase implements OnChanges {
+export class LastSessionsPerformanceTableComponent extends TableConfigBase {
   /** Sessions in the order the table shows them; the card reverses the server's ascending order. */
   readonly sessions = input<LastSessionsRow[]>([]);
 
@@ -85,12 +85,16 @@ export class LastSessionsPerformanceTableComponent extends TableConfigBase imple
     });
     this.addColumn(DataType.Numeric, 'totalBalanceMC', 'TOTAL_BALANCE', true, false, { width: 120 });
     this.prepareTableAndTranslate();
-  }
 
-  ngOnChanges(): void {
-    this.amountFields.forEach(
-      (field) => (this.fields.find((columnConfig) => columnConfig.field === field).fixedCurrency = this.currency())
-    );
+    effect(() => {
+      this.currency();
+      untracked(() => {
+        this.amountFields.forEach(
+          (field) => (this.fields.find((column) => column.field === field).fixedCurrency = this.currency())
+        );
+        this.notifyViewChanged();
+      });
+    });
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Component, OnChanges, input } from '@angular/core';
+import { Component, input, effect, untracked } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -21,7 +21,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
   templateUrl: '../../securityaccount/view/securityaccount.import.extended.info.html',
   imports: [TranslateModule, AngularSvgIconModule]
 })
-export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase implements OnChanges {
+export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase {
   readonly combineTemplateAndImpTransPos = input<CombineTemplateAndImpTransPos>(undefined);
   private readonly IMPORT_VALUE = 'IMPORT_VALUE';
   private readonly IMPORT_ASSIGN = 'IMPORT_ASSIGN';
@@ -158,10 +158,13 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
     });
 
     this.translateHeadersAndColumns();
-  }
 
-  ngOnChanges(): void {
-    const combineTemplateAndImpTransPos = this.combineTemplateAndImpTransPos();
-    this.createTranslatedValueStore(combineTemplateAndImpTransPos ? [combineTemplateAndImpTransPos] : []);
+    effect(() => {
+      this.combineTemplateAndImpTransPos();
+      untracked(() => {
+        const info = this.combineTemplateAndImpTransPos();
+        this.createTranslatedValueStore(info ? [info] : []);
+      });
+    });
   }
 }

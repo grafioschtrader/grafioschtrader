@@ -7,6 +7,36 @@ import ts from 'typescript';
 const THIS_FILE = fileURLToPath(import.meta.url);
 const SRC = path.dirname(THIS_FILE);
 
+/** Request coordination remains here until the resource migration in specification §4.4. */
+const ON_CHANGES_REQUESTS: Record<string, string> = {
+  'app/historyquote/component/historyquote-legacy.component.ts': 'Loads the selected instrument and legacy history.',
+  'app/historyquote/component/historyquote-table.component.ts': 'Loads history for the current time-series parameters.',
+  'app/securitycurrency/component/security-historyquote-quality-table.component.ts':
+    'Replaces the quality-data request.',
+  'app/standingorder/component/standing-order-transaction-table.component.ts':
+    'Loads the portfolio before its transactions.',
+  'app/taxdata/component/tax-exchange-rate-table.component.ts': 'Loads the selected tax year rates.',
+  'app/taxdata/component/tax-year-correction-table.component.ts':
+    'Loads corrections for the instrument and selected year.',
+  'app/udfmetasecurity/components/udf-fill-suggest-test-result.component.ts':
+    'Starts the current fill-suggestion request.'
+};
+
+function legacyChangeHandling(source: string): { hook: boolean; initializationFlag: boolean } {
+  const parsed = ts.createSourceFile('source.ts', source, ts.ScriptTarget.Latest, true);
+  const result = { hook: false, initializationFlag: false };
+  function visit(node: ts.Node): void {
+    if ((ts.isMethodDeclaration(node) || ts.isPropertyDeclaration(node)) && node.name) {
+      const name = ts.isIdentifier(node.name) || ts.isStringLiteral(node.name) ? node.name.text : '';
+      result.hook ||= name === 'ngOnChanges';
+      result.initializationFlag ||= name === 'fieldsInitialized';
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(parsed);
+  return result;
+}
+
 /** Finds Angular decorators, including aliases, without matching names in comments or string literals. */
 function hasAngularDecorator(source: string, decoratorNames: readonly string[]): boolean {
   const parsed = ts.createSourceFile('source.ts', source, ts.ScriptTarget.Latest, true);
@@ -138,6 +168,41 @@ function collectSources(dir: string, extensions = ['.ts'], out: string[] = []): 
 }
 
 describe('Angular API ratchet', () => {
+  it('matches change hooks and initialization flags without matching examples in comments or strings', () => {
+    expect(legacyChangeHandling('class Example { ngOnChanges() {} }')).toEqual({
+      hook: true,
+      initializationFlag: false
+    });
+    expect(legacyChangeHandling('class Example { ngOnChanges = () => {}; }').hook).toBe(true);
+    expect(legacyChangeHandling('class Example { private fieldsInitialized = false; }')).toEqual({
+      hook: false,
+      initializationFlag: true
+    });
+    for (const source of [
+      'class Example { readonly rows = computed(() => this.data()); }',
+      '// ngOnChanges() {} fieldsInitialized = true',
+      'const example = `ngOnChanges() {} fieldsInitialized = true`;'
+    ]) {
+      expect(legacyChangeHandling(source), source).toEqual({ hook: false, initializationFlag: false });
+    }
+  });
+
+  it('keeps only the request hooks awaiting resource migration and no fieldsInitialized flags', () => {
+    const hooks: string[] = [];
+    const initializationFlags: string[] = [];
+    for (const file of collectSources(SRC)) {
+      const relative = path.relative(SRC, file).replace(/\\/g, '/');
+      const found = legacyChangeHandling(fs.readFileSync(file, 'utf8'));
+      if (found.hook) hooks.push(relative);
+      if (found.initializationFlag) initializationFlags.push(relative);
+    }
+    expect(initializationFlags, 'Define columns before the row effect. See frontend/CLAUDE.md.').toEqual([]);
+    expect(hooks.sort(), 'Use computed() for derived state and effect()/untracked() for input reactions.').toEqual(
+      Object.keys(ON_CHANGES_REQUESTS).sort()
+    );
+    expect(Object.values(ON_CHANGES_REQUESTS).every((reason) => reason.length > 0)).toBe(true);
+  });
+
   it('matches input decorators, including aliases and namespace imports', () => {
     for (const source of [
       'class Example { @Input() value: string; }',

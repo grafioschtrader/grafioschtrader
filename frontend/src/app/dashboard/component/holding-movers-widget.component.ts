@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnChanges, OnDestroy, signal, viewChild, input } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, viewChild, input, linkedSignal, computed } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { DashboardConfig, DashboardResult } from '../../lib/dashboard/dashboard.types';
@@ -66,14 +66,18 @@ import { HoldingMoversTreetableComponent } from './holding-movers-treetable.comp
     }
   `
 })
-export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, OnDestroy {
+export class HoldingMoversWidgetComponent implements AfterViewInit, OnDestroy {
   readonly result = input<DashboardResult>(undefined);
 
   readonly form = viewChild<DynamicFormComponent>('form');
 
-  readonly movers = signal<HoldingMovers>(null);
-  readonly expandedBranches = signal<string[]>([]);
-  readonly notes = signal<{ key: string; params: { count: number } }[]>([]);
+  readonly movers = linkedSignal(() => this.result()?.payload?.custom as HoldingMovers);
+  readonly expandedBranches = linkedSignal(() => {
+    const movers = this.result()?.payload?.custom as HoldingMovers;
+    const stored = this.userSettingsService.retrieveObject(this.storeKey());
+    return stored ? (stored.branches ?? []) : (movers?.branches ?? []).map((branch) => branch.branch);
+  });
+  readonly notes = computed(() => this.collectNotes(this.movers()));
   config: FieldConfig[];
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig;
@@ -93,18 +97,6 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
       DynamicFieldHelper.createFieldPcalendar(DataType.DateString, 'chosenDate', 'DASHBOARD_MOVERS_DATE', false)
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-  }
-
-  ngOnChanges(): void {
-    const movers = this.result()?.payload?.custom as HoldingMovers;
-    this.movers.set(movers);
-    // A stored empty list means every period was deliberately closed, which is why the absence of the entry - and not
-    // its emptiness - is what opens them all on a first visit.
-    const stored = this.userSettingsService.retrieveObject(this.storeKey());
-    this.expandedBranches.set(
-      stored ? (stored.branches ?? []) : (movers?.branches ?? []).map((branch) => branch.branch)
-    );
-    this.notes.set(this.collectNotes(movers));
   }
 
   ngAfterViewInit(): void {
@@ -140,7 +132,6 @@ export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, O
       .subscribe((result) => {
         const movers = result?.payload?.custom as HoldingMovers;
         if (movers) {
-          this.notes.set(this.collectNotes(movers));
           this.movers.set(movers);
         }
       });

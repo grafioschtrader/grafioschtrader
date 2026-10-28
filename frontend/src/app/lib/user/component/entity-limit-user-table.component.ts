@@ -1,17 +1,7 @@
 import { TableConfigBase } from '../../datashowbase/table.config.base';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
-import {
-  Component,
-  DestroyRef,
-  inject,
-  Injector,
-  OnChanges,
-  signal,
-  SimpleChanges,
-  output,
-  input
-} from '@angular/core';
+import { Component, DestroyRef, inject, Injector, signal, output, input, effect, untracked } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
@@ -87,7 +77,7 @@ import { BaseSettings } from '../../base.settings';
     }`,
   imports: [ConfigurableTableComponent, AngularSvgIconModule, EntityLimitEditComponent]
 })
-export class EntityLimitUserTableComponent extends TableConfigBase implements OnChanges, IGlobalMenuAttach {
+export class EntityLimitUserTableComponent extends TableConfigBase implements IGlobalMenuAttach {
   public static readonly ENTITY_LIMIT = 'ENTITY_LIMIT';
 
   readonly user = input<User>(undefined);
@@ -149,6 +139,17 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements On
       this.menuSubscription?.unsubscribe();
       this.activePanelService.destroyPanel(this);
     });
+
+    effect(() => {
+      this.user();
+      untracked(() => {
+        if (this.user()) {
+          const limits = this.createProposeLimitForView();
+          this.createTranslatedValueStoreAndFilterField(limits);
+          this.entityLimits.set(limits);
+        }
+      });
+    });
   }
 
   /** The entity name is a Java class name, its translation key is that name in UPPER_SNAKE_CASE. */
@@ -208,14 +209,6 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements On
         });
       }
     );
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['user'] && this.user()) {
-      const entityLimits = this.createProposeLimitForView();
-      this.createTranslatedValueStoreAndFilterField(entityLimits);
-      this.entityLimits.set(entityLimits);
-    }
   }
 
   handleCloseDialog(processedActionData: ProcessedActionData) {

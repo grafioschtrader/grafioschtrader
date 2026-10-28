@@ -6,13 +6,14 @@ import {
   inject,
   input,
   NgZone,
-  OnChanges,
   OnDestroy,
-  SimpleChanges,
   TemplateRef,
   output,
   viewChild,
-  model
+  model,
+  computed,
+  effect,
+  untracked
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -154,7 +155,7 @@ export interface CellMark {
     <div #cmDiv (click)="onComponentClick($event)" [class]="toClassString(containerClass(), customClass())">
       <p-table
         #table
-        [columns]="renderedFields"
+        [columns]="renderedFields()"
         [value]="data()"
         [dataKey]="dataKey()"
         [selectionMode]="selectionMode()"
@@ -189,7 +190,7 @@ export interface CellMark {
 
         <!-- Header template -->
         <ng-template pTemplate="header" let-columns>
-          @if (hasGroups) {
+          @if (hasGroups()) {
             <!-- Row 1: Group headers + ungrouped columns (with rowspan=2) -->
             <tr>
               @if (expandable()) {
@@ -208,7 +209,7 @@ export interface CellMark {
                   <p-tableHeaderCheckbox />
                 </th>
               }
-              @for (item of headerGroupRow; track $index) {
+              @for (item of headerGroupRow(); track $index) {
                 @if (item.type === 'single') {
                   @let slot = frozenSlot(item.field);
                   <th
@@ -234,7 +235,7 @@ export interface CellMark {
             </tr>
             <!-- Row 2: Individual headers for grouped columns only -->
             <tr>
-              @for (field of groupedColumns; track field.field) {
+              @for (field of groupedColumns(); track field.field) {
                 <th
                   [pSortableColumn]="field.field"
                   [pTooltip]="field.headerTooltipTranslated"
@@ -586,7 +587,7 @@ export interface CellMark {
     </div>
   `
 })
-export class ConfigurableTableComponent<T = any> implements OnChanges, AfterViewChecked, OnDestroy {
+export class ConfigurableTableComponent<T = any> implements AfterViewChecked, OnDestroy {
   protected readonly toClassString = toClassString;
   // ============================================================================
   // Data and Column Configuration
@@ -604,7 +605,10 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    */
   readonly fields = input<ColumnConfig[]>([]);
   /** New array on a column revision, so the Optimus OnPush table refreshes its embedded templates too. */
-  renderedFields: ColumnConfig[] = [];
+  readonly renderedFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields()];
+  });
 
   /**
    * Revision of the column configuration, bound as [fieldsRevision]="fieldsRevision()" of the owning table base. A
@@ -1093,35 +1097,31 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   // ============================================================================
 
   /** Computed group structure for the first header row */
-  headerGroupRow: HeaderGroupItem[] = [];
+  private readonly headerGroups = computed(() => this.createHeaderGroups(this.renderedFields()));
+  readonly headerGroupRow = computed(() => this.headerGroups().rows);
 
   /** Columns belonging to groups (for the second header row) */
-  groupedColumns: ColumnConfig[] = [];
+  readonly groupedColumns = computed(() => this.headerGroups().columns);
 
   /** Whether the current column configuration uses header groups */
-  hasGroups = false;
+  readonly hasGroups = computed(() => this.headerGroups().hasGroups);
 
   // ============================================================================
   // Component Methods
   // ============================================================================
 
-  /**
-   * Angular lifecycle hook - responds to input property changes.
-   * Currently monitors fields changes to ensure proper column updates.
-   */
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['fields'] || changes['fieldsRevision']) {
-      this.renderedFields = [...this.fields()];
-    }
-    if (changes['fields'] || changes['data'] || changes['fieldsRevision']) {
-      this.computeHeaderGroups();
-    }
-    if (changes['fieldsRevision'] || changes['frozenColumnCount'] || changes['fields']) {
-      this.updateFrozenSlots();
-    }
+  /** Recomputes the frozen slots when the number of fixed columns or the set of visible columns changed. */
+  constructor() {
+    effect(() => {
+      this.fields();
+      this.fieldsRevision();
+      this.frozenColumnCount();
+      untracked(() => {
+        this.updateFrozenSlots();
+      });
+    });
   }
 
-  /** Recomputes the frozen slots when the number of fixed columns or the set of visible columns changed. */
   private updateFrozenSlots(): void {
     const count = Math.max(0, Math.min(this.frozenColumnCount() ?? 0, this.fields().length));
     const signature = count === 0 ? '' : this.createFrozenSignature(count);
@@ -1477,37 +1477,34 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * Computes header group structure from column configurations.
    * Splits visible columns into ungrouped (rowspan=2) and grouped (colspan) items.
    */
-  private computeHeaderGroups(): void {
-    const visibleFields = this.fields().filter((f) => f.visible);
-    this.hasGroups = visibleFields.some((f) => !!f.headerGroupKey);
-    if (!this.hasGroups) {
-      this.headerGroupRow = [];
-      this.groupedColumns = [];
-      return;
-    }
-    this.headerGroupRow = [];
-    this.groupedColumns = [];
+  private createHeaderGroups(fields: ColumnConfig[]): {
+    hasGroups: boolean;
+    rows: HeaderGroupItem[];
+    columns: ColumnConfig[];
+  } {
+    const visibleFields = fields.filter((field) => field.visible),
+      hasGroups = visibleFields.some((field) => !!field.headerGroupKey);
+    const rows: HeaderGroupItem[] = [],
+      columns: ColumnConfig[] = [];
+    if (!hasGroups) return { hasGroups, rows, columns };
     let i = 0;
     while (i < visibleFields.length) {
       const field = visibleFields[i];
       if (!field.headerGroupKey) {
-        this.headerGroupRow.push({ type: 'single', field });
+        rows.push({ type: 'single', field });
         i++;
       } else {
         const groupKey = field.headerGroupKey;
         let colspan = 0;
         while (i < visibleFields.length && visibleFields[i].headerGroupKey === groupKey) {
-          this.groupedColumns.push(visibleFields[i]);
+          columns.push(visibleFields[i]);
           colspan++;
           i++;
         }
-        this.headerGroupRow.push({
-          type: 'group',
-          label: field.headerGroupTranslated || groupKey,
-          colspan
-        });
+        rows.push({ type: 'group', label: field.headerGroupTranslated || groupKey, colspan });
       }
     }
+    return { hasGroups, rows, columns };
   }
 
   /**

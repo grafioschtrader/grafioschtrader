@@ -1,4 +1,4 @@
-import { Component, Injector, OnChanges, SimpleChanges, input } from '@angular/core';
+import { Component, Injector, input, effect, untracked } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -27,7 +27,7 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
       [baseLocale]="baseLocale" />
   `
 })
-export class GTNetMessageAttemptTableComponent extends TableConfigBase implements OnChanges {
+export class GTNetMessageAttemptTableComponent extends TableConfigBase {
   readonly messageAttempts = input<GTNetMessageAttemptView[]>([]);
 
   constructor(
@@ -48,12 +48,13 @@ export class GTNetMessageAttemptTableComponent extends TableConfigBase implement
     this.addColumnFeqH(DataType.String, 'lastError', true, false);
     this.multiSortMeta.push({ field: 'messageTimestamp', order: -1 });
     this.prepareTableAndTranslate();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const messageAttempts = this.messageAttempts();
-    if (changes['messageAttempts'] && messageAttempts) {
-      this.createTranslatedValueStore(messageAttempts);
-    }
+    effect(() => {
+      this.messageAttempts();
+      untracked(() => {
+        const rows = this.messageAttempts();
+        if (rows) this.createTranslatedValueStore(rows);
+      });
+    });
   }
 }

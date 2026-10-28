@@ -1,4 +1,4 @@
-import { Component, OnChanges, input } from '@angular/core';
+import { Component, input, computed, effect, untracked } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -25,30 +25,30 @@ import { AlgoMonitoringSummary } from '../model/algo.monitoring.summary';
   selector: 'algo-monitoring-widget',
   imports: [TranslateModule, ButtonModule],
   template: `
-    @if (summary) {
-      @if (summary.reasonKey) {
-        <small class="d-block">{{ summary.reasonKey | translate }}</small>
+    @if (summary(); as summaryValue) {
+      @if (summaryValue.reasonKey) {
+        <small class="d-block">{{ summaryValue.reasonKey | translate }}</small>
       } @else {
         <div class="mb-2">
-          <strong>{{ summary.algoTopName }}</strong>
+          <strong>{{ summaryValue.algoTopName }}</strong>
         </div>
         <div class="mb-2">
-          <strong>{{ summary.statusKey | translate: statusParams }}</strong>
+          <strong>{{ summaryValue.statusKey | translate: statusParams() }}</strong>
         </div>
         @for (field of summaryFields; track field.field) {
-          @if (getValueByPath(summary, field)) {
+          @if (getValueByPath(summaryValue, field)) {
             <div>
               <strong>{{ field.headerTranslated }}:</strong>
               @if (field.field === 'largestDeviationPercentage') {
-                {{ summary.largestDeviationBucket }}
+                {{ summaryValue.largestDeviationBucket }}
               }
-              {{ getValueByPath(summary, field) }}
+              {{ getValueByPath(summaryValue, field) }}
             </div>
           }
         }
-        @if (summary.topTrades.length > 0) {
+        @if (summaryValue.topTrades.length > 0) {
           <ul class="mt-2 mb-2">
-            @for (trade of summary.topTrades; track $index) {
+            @for (trade of summaryValue.topTrades; track $index) {
               <li>
                 {{ trade.recommendedAction | translate }} {{ trade.securityName }}
                 {{ getValueByPath(trade, tradeAmountField) }}
@@ -61,11 +61,15 @@ import { AlgoMonitoringSummary } from '../model/algo.monitoring.summary';
     }
   `
 })
-export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase implements OnChanges {
+export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase {
   readonly result = input<DashboardResult>(undefined);
 
-  summary: AlgoMonitoringSummary;
-  statusParams: { [name: string]: number } = {};
+  readonly summary = computed(() => this.result()?.payload?.custom as AlgoMonitoringSummary);
+  readonly statusParams = computed(() => ({
+    buys: this.summary()?.buyCount ?? 0,
+    sells: this.summary()?.sellCount ?? 0,
+    blocked: this.summary()?.blockedCount ?? 0
+  }));
   summaryFields: ColumnConfig[] = [];
   tradeAmountField: ColumnConfig = ShowRecordConfigBase.createColumnConfig(
     DataType.Numeric,
@@ -80,26 +84,23 @@ export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase implemen
   ) {
     super(translateService, gps);
     this.initSummaryFields();
-  }
 
-  ngOnChanges(): void {
-    this.summary = this.result()?.payload?.custom as AlgoMonitoringSummary;
-    this.statusParams = {
-      buys: this.summary?.buyCount ?? 0,
-      sells: this.summary?.sellCount ?? 0,
-      blocked: this.summary?.blockedCount ?? 0
-    };
-    const currency = this.summary?.currency;
-    [...this.summaryFields, this.tradeAmountField]
-      .filter((field) => field.dataType === DataType.Numeric)
-      .forEach((field) => (field.fixedCurrency = currency));
+    effect(() => {
+      this.summary();
+      untracked(() => {
+        const currency = this.summary()?.currency;
+        [...this.summaryFields, this.tradeAmountField]
+          .filter((field) => field.dataType === DataType.Numeric)
+          .forEach((field) => (field.fixedCurrency = currency));
+      });
+    });
   }
 
   /** Opens the live rebalancing report with the monitored hierarchy already selected. */
   openReport(): void {
     this.router.navigate(
       [BaseSettings.MAINVIEW_KEY + '/' + AppSettings.TENANT_TAB_MENU_KEY + '/' + AppSettings.DEPOT_CASH_KEY],
-      { queryParams: { idAlgoTop: this.summary.idAlgoTop } }
+      { queryParams: { idAlgoTop: this.summary().idAlgoTop } }
     );
   }
 

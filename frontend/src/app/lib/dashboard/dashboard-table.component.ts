@@ -1,4 +1,4 @@
-import { Component, OnChanges, input } from '@angular/core';
+import { Component, input, effect, untracked } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../datashowbase/table.config.base';
@@ -20,7 +20,7 @@ import { TranslateValue } from '../datashowbase/column.config';
     dataKey="id"
     [valueGetterFn]="valueGetter" />`
 })
-export class DashboardTableComponent extends TableConfigBase implements OnChanges {
+export class DashboardTableComponent extends TableConfigBase {
   readonly rows = input<DashboardRow[]>([]);
   readonly type = input('');
   constructor(
@@ -30,8 +30,15 @@ export class DashboardTableComponent extends TableConfigBase implements OnChange
     gps: GlobalparameterService
   ) {
     super(filter, settings, translate, gps);
+
+    effect(() => {
+      this.type();
+      untracked(() => {
+        this.configureColumns();
+      });
+    });
   }
-  ngOnChanges(): void {
+  private configureColumns(): void {
     this.removeAllColumns();
     const type = this.type();
     if (type !== 'PROPOSE_CHANGE_OPEN') this.addColumnFeqH(DataType.String, 'nickname');

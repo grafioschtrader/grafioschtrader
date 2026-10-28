@@ -1,13 +1,4 @@
-import {
-  AfterContentInit,
-  Component,
-  contentChildren,
-  OnChanges,
-  output,
-  SimpleChanges,
-  model,
-  input
-} from '@angular/core';
+import { Component, contentChildren, output, model, input, effect, untracked } from '@angular/core';
 
 import { StepperModule } from '@openng/optimus-ui/stepper';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -48,7 +39,7 @@ import { StepComponent } from './step.component';
   `,
   imports: [StepperModule, ButtonModule]
 })
-export class StepsComponent implements AfterContentInit, OnChanges {
+export class StepsComponent {
   readonly activeIndex = model(0);
   readonly styleClass = input<string>(undefined);
   readonly stepClass = input<string>(undefined);
@@ -56,14 +47,15 @@ export class StepsComponent implements AfterContentInit, OnChanges {
 
   readonly steps = contentChildren(StepComponent);
 
-  ngAfterContentInit() {
-    this.updateSteps();
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['activeIndex']) {
-      this.updateSteps();
-    }
+  constructor() {
+    effect(() => {
+      this.steps();
+      this.activeIndex();
+      this.stepClass();
+      untracked(() => {
+        this.updateSteps();
+      });
+    });
   }
 
   private updateSteps() {
@@ -82,20 +74,17 @@ export class StepsComponent implements AfterContentInit, OnChanges {
 
   onStepClick(index: number) {
     this.activeIndex.set(index);
-    this.updateSteps();
   }
 
   previous() {
     if (this.activeIndex() > 0) {
       this.activeIndex.update((value) => value - 1);
-      this.updateSteps();
     }
   }
 
   next() {
     if (this.activeIndex() < this.steps().length - 1) {
       this.activeIndex.update((value) => value + 1);
-      this.updateSteps();
     }
   }
 }

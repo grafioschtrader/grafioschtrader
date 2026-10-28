@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, output, input } from '@angular/core';
+import { Component, output, input, effect, untracked } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -41,7 +41,7 @@ import { Helper } from '../../lib/helper/helper';
     [contextMenuItems]="contextMenuItems"
     [contextMenuAppendTo]="'body'" />`
 })
-export class AlgoAlertNotificationTableComponent extends TableConfigBase implements OnChanges {
+export class AlgoAlertNotificationTableComponent extends TableConfigBase {
   /** Delivery states from which the backend accepts a retry. */
   private static readonly RETRYABLE_STATES = ['FAILED', 'REVIEW_REQUIRED'];
 
@@ -88,17 +88,19 @@ export class AlgoAlertNotificationTableComponent extends TableConfigBase impleme
     this.multiSortMeta.push({ field: 'alertTime', order: -1 });
     this.prepareTableAndTranslate();
     this.resetMenu();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const rows = this.rows();
-    if (changes['rows'] && rows) {
-      // A reloaded list holds new row objects, so a previous selection no longer refers to a displayed row.
-      this.selectedNotifications = [];
-      this.createTranslatedValueStoreAndFilterField(rows);
-      this.prepareFilter(rows);
-      this.resetMenu();
-    }
+    effect(() => {
+      this.rows();
+      untracked(() => {
+        const rows = this.rows();
+        if (rows) {
+          this.selectedNotifications = [];
+          this.createTranslatedValueStoreAndFilterField(rows);
+          this.prepareFilter(rows);
+          this.resetMenu();
+        }
+      });
+    });
   }
 
   onSelectionChange(selection: AlertNotification | AlertNotification[]): void {

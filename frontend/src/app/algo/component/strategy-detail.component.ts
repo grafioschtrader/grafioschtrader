@@ -1,4 +1,4 @@
-import { Component, OnChanges, input } from '@angular/core';
+import { Component, input, computed, effect, untracked } from '@angular/core';
 
 import { AlgoStrategyParamCall } from '../model/algo.dialog.visible';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -24,13 +24,13 @@ import * as yaml from 'js-yaml';
 @Component({
   selector: 'strategy-detail',
   template: `
-    @if (isComplexStrategy) {
-      <pre class="strategy-yaml-display">{{ yamlDisplay }}</pre>
+    @if (isComplexStrategy()) {
+      <pre class="strategy-yaml-display">{{ yamlDisplay() }}</pre>
     } @else {
       @for (field of fields; track field) {
         <div class="row">
           <div class="col-md-6 showlabel text-end">{{ field.headerTranslated }}:</div>
-          <div class="col-md-6 nopadding wrap">{{ getValueByPath(dynamicModel, field) }}{{ field.headerSuffix }}</div>
+          <div class="col-md-6 nopadding wrap">{{ getValueByPath(dynamicModel(), field) }}{{ field.headerSuffix }}</div>
         </div>
       }
     }
@@ -49,50 +49,47 @@ import * as yaml from 'js-yaml';
   ],
   imports: []
 })
-export class StrategyDetailComponent extends SingleRecordConfigBase implements OnChanges {
+export class StrategyDetailComponent extends SingleRecordConfigBase {
   readonly algoStrategyParamCall = input<AlgoStrategyParamCall>(undefined);
 
-  dynamicModel: any = {};
-  isComplexStrategy = false;
-  yamlDisplay = '';
+  readonly dynamicModel = computed(() => {
+    const call = this.algoStrategyParamCall();
+    return !call || call.isComplexStrategy
+      ? {}
+      : DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
+          call.algoStrategy.algoStrategyImplementations,
+          AlgoStrategyHelper.FIELD_STRATEGY_IMPL,
+          call.algoStrategy.algoRuleStrategyParamMap,
+          call.fieldDescriptorShow
+        );
+  });
+  readonly isComplexStrategy = computed(() => !!this.algoStrategyParamCall()?.isComplexStrategy);
+  readonly yamlDisplay = computed(() => {
+    const config = this.algoStrategyParamCall()?.algoStrategy.strategyConfig;
+    if (!config) return '';
+    try {
+      return yaml.dump(JSON.parse(config), { lineWidth: 120, noRefs: true });
+    } catch {
+      return config;
+    }
+  });
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
-  }
 
-  ngOnChanges() {
-    this.isComplexStrategy = this.algoStrategyParamCall().isComplexStrategy;
-    if (this.isComplexStrategy) {
-      this.displayComplexStrategy();
-    } else {
-      this.displaySimpleStrategy();
-    }
-  }
-
-  private displayComplexStrategy(): void {
-    const strategyConfig = this.algoStrategyParamCall().algoStrategy.strategyConfig;
-    if (strategyConfig) {
-      try {
-        const jsonObj = JSON.parse(strategyConfig);
-        this.yamlDisplay = yaml.dump(jsonObj, { lineWidth: 120, noRefs: true });
-      } catch (e) {
-        this.yamlDisplay = strategyConfig;
-      }
-    } else {
-      this.yamlDisplay = '';
-    }
+    effect(() => {
+      this.algoStrategyParamCall();
+      untracked(() => {
+        const call = this.algoStrategyParamCall();
+        if (call && !call.isComplexStrategy) this.displaySimpleStrategy();
+      });
+    });
   }
 
   private displaySimpleStrategy(): void {
-    this.dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
-      this.algoStrategyParamCall().algoStrategy.algoStrategyImplementations,
-      AlgoStrategyHelper.FIELD_STRATEGY_IMPL,
-      this.algoStrategyParamCall().algoStrategy.algoRuleStrategyParamMap,
-      this.algoStrategyParamCall().fieldDescriptorShow
-    );
     this.createDynamicOutputFields(this.algoStrategyParamCall().fieldDescriptorShow);
     this.translateHeadersAndColumns();
-    this.createTranslatedValueStore([this.dynamicModel]);
+    this.createTranslatedValueStore([this.dynamicModel()]);
   }
 
   private createDynamicOutputFields(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[]): void {

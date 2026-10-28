@@ -1,4 +1,15 @@
-import { DestroyRef, inject, signal, Component, Injector, OnChanges, OnInit, output, input } from '@angular/core';
+import {
+  DestroyRef,
+  inject,
+  signal,
+  Component,
+  Injector,
+  OnInit,
+  output,
+  input,
+  effect,
+  untracked
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -40,7 +51,7 @@ import { Helper } from '../../lib/helper/helper';
   `,
   imports: [TranslateModule, ConfigurableTableComponent]
 })
-export class TenantPerformanceEodMissingTableComponent extends TableConfigBase implements OnInit, OnChanges {
+export class TenantPerformanceEodMissingTableComponent extends TableConfigBase implements OnInit {
   /**
    * Contains the missings days -> key = idSecuritycurrency
    */
@@ -79,6 +90,15 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
     });
     this.multiSortMeta.push({ field: 'name', order: 1 });
     this.prepareTableAndTranslate();
+
+    effect(() => {
+      this.selectedDayIdSecurities();
+      this.securities();
+      this.countIdSecurityMissingsMap();
+      untracked(() => {
+        if (this.selectedDayIdSecurities().length > 0) this.selectedSecurity = null;
+      });
+    });
   }
 
   getSecurityMissingCount(dataobject: any, field: ColumnConfig, valueField: any): number {
@@ -115,11 +135,5 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
         );
         this.notifyViewChanged();
       });
-  }
-
-  ngOnChanges(): void {
-    if (this.selectedDayIdSecurities().length > 0) {
-      this.selectedSecurity = null;
-    }
   }
 }

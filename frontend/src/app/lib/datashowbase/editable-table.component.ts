@@ -4,9 +4,6 @@ import {
   contentChild,
   inject,
   input,
-  OnChanges,
-  OnInit,
-  SimpleChanges,
   TemplateRef,
   signal,
   afterNextRender,
@@ -14,7 +11,10 @@ import {
   DestroyRef,
   output,
   viewChild,
-  model
+  model,
+  computed,
+  effect,
+  untracked
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
@@ -130,7 +130,7 @@ export interface ValidationErrorEvent<T> {
     <div #cmDiv (click)="onComponentClick($event)" [class]="toClassString(containerClass())">
       <p-table
         #table
-        [columns]="renderedFields"
+        [columns]="renderedFields()"
         [value]="rows()"
         [dataKey]="dataKey()"
         [selectionMode]="selectionMode()"
@@ -455,7 +455,7 @@ export interface ValidationErrorEvent<T> {
     </div>
   `
 })
-export class EditableTableComponent<T = any> implements OnInit, OnChanges {
+export class EditableTableComponent<T = any> {
   protected readonly toClassString = toClassString;
   // ============================================================================
   // Data and Column Configuration
@@ -474,7 +474,10 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   /** Array of column configurations defining table structure */
   readonly fields = input<ColumnConfig[]>([]);
   /** New reference carries column revisions into the Optimus OnPush table. */
-  renderedFields: ColumnConfig[] = [];
+  readonly renderedFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields()];
+  });
 
   /**
    * Revision of the column configuration, bound as [fieldsRevision]="fieldsRevision()" of the owning table base. A
@@ -755,7 +758,30 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   /** Marks this table after state changes made outside a template event, such as the delayed start of editing. */
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  constructor(private translateService: TranslateService) {}
+  constructor(private translateService: TranslateService) {
+    effect(() => {
+      this.data();
+      untracked(() => {
+        const data = this.data();
+        if (data !== this.emittedRows) {
+          this.rows.set(data ?? []);
+          this.clonedRows = {};
+          this.rowOptions = {};
+          this.rowErrors = {};
+          this.newRows.clear();
+        }
+        this.emittedRows = undefined;
+      });
+    });
+    effect(() => {
+      this.contextMenuItems();
+      this.createNewEntityFn();
+      this.addRowLabel();
+      untracked(() => {
+        this.buildContextMenu();
+      });
+    });
+  }
 
   /**
    * Rebuilds {@link menuModel} from the current inputs. Prepends an "Add new row" item when
@@ -793,34 +819,6 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
         );
     } else {
       this.menuModel.set(items);
-    }
-  }
-
-  // ============================================================================
-  // Lifecycle Hooks
-  // ============================================================================
-
-  ngOnInit(): void {
-    this.buildContextMenu();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['fields'] || changes['fieldsRevision']) {
-      this.renderedFields = [...this.fields()];
-    }
-    const data = this.data();
-    if (changes['data'] && data !== this.emittedRows) {
-      this.rows.set(data ?? []);
-      this.clonedRows = {};
-      this.rowOptions = {};
-      this.rowErrors = {};
-      this.newRows.clear();
-    }
-    if (changes['data']) {
-      this.emittedRows = undefined;
-    }
-    if (changes['contextMenuItems'] || changes['createNewEntityFn'] || changes['addRowLabel']) {
-      this.buildContextMenu();
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnInit, SimpleChanges, input } from '@angular/core';
+import { Component, input, computed, effect, untracked } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
 
@@ -28,7 +28,7 @@ const GAP_CODE_TRANSLATION_KEYS: { [key: number]: string } = {
   selector: 'gtnet-security-imp-gap-table',
   template: `
     <configurable-table
-      [data]="gaps()"
+      [data]="displayGaps()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       [valueGetterFn]="valueGetter"
@@ -37,24 +37,28 @@ const GAP_CODE_TRANSLATION_KEYS: { [key: number]: string } = {
   `,
   imports: [ConfigurableTableComponent]
 })
-export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase implements OnInit, OnChanges {
+export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase {
   /**
    * The list of gap records to display.
    */
   readonly gaps = input<GTNetSecurityImpGap[]>([]);
+  readonly displayGaps = computed(() => {
+    const peers = this.gtNetsMap();
+    return this.gaps().map((gap) => ({
+      ...gap,
+      gapCode: GAP_CODE_TRANSLATION_KEYS[gap.gapCode] || 'GAP_CODE_ASSET_CLASS',
+      gtNetDomain: peers.get(gap.idGtNet)?.domainRemoteName || '?'
+    }));
+  });
 
   /**
    * Map of GTNet IDs to GTNet entities for displaying domain names.
    */
   readonly gtNetsMap = input<Map<number, GTNet>>(new Map());
 
-  private fieldsInitialized = false;
-
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
-  }
 
-  ngOnInit(): void {
     this.addColumn(DataType.String, 'gapCode', 'GAP_CODE', true, false, {
       translateValues: TranslateValue.NORMAL,
       width: 150
@@ -65,32 +69,12 @@ export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase impl
     this.addColumn(DataType.String, 'gtNetDomain', 'GT_NET_DOMAIN', true, false, { width: 200 });
 
     this.translateHeadersAndColumns();
-    this.fieldsInitialized = true;
 
-    if (this.gaps()?.length > 0) {
-      this.prepareGapsForDisplay();
-    }
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['gaps'] && this.gaps() && this.fieldsInitialized) {
-      this.prepareGapsForDisplay();
-    }
-  }
-
-  /**
-   * Prepares gap data for display by adding computed fields and converting
-   * numeric gap codes to translation keys.
-   */
-  private prepareGapsForDisplay(): void {
-    this.gaps().forEach((gap) => {
-      // Convert numeric gapCode to translation key
-      (gap as any).gapCode = GAP_CODE_TRANSLATION_KEYS[gap.gapCode] || 'GAP_CODE_ASSET_CLASS';
-      // Add GTNet domain name as computed field
-      const gtNet = this.gtNetsMap().get(gap.idGtNet);
-      (gap as any).gtNetDomain = gtNet?.domainRemoteName || '?';
+    effect(() => {
+      this.displayGaps();
+      untracked(() => {
+        this.createTranslatedValueStore(this.displayGaps());
+      });
     });
-
-    this.createTranslatedValueStore(this.gaps());
   }
 }

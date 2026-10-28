@@ -1,4 +1,4 @@
-import { Component, Injector, OnChanges, SimpleChanges, input } from '@angular/core';
+import { Component, Injector, input, effect, untracked } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -32,7 +32,7 @@ import { GTNetMaintenanceWindow } from '../model/gtnet';
       [baseLocale]="baseLocale" />
   `
 })
-export class GTNetMaintenanceWindowTableComponent extends TableConfigBase implements OnChanges {
+export class GTNetMaintenanceWindowTableComponent extends TableConfigBase {
   readonly maintenanceWindows = input<GTNetMaintenanceWindow[]>([]);
 
   constructor(
@@ -47,12 +47,13 @@ export class GTNetMaintenanceWindowTableComponent extends TableConfigBase implem
     this.addColumnFeqH(DataType.DateTimeString, 'toDateTime', true, false);
     this.multiSortMeta.push({ field: 'fromDateTime', order: -1 });
     this.prepareTableAndTranslate();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const maintenanceWindows = this.maintenanceWindows();
-    if (changes['maintenanceWindows'] && maintenanceWindows) {
-      this.createTranslatedValueStore(maintenanceWindows);
-    }
+    effect(() => {
+      this.maintenanceWindows();
+      untracked(() => {
+        const rows = this.maintenanceWindows();
+        if (rows) this.createTranslatedValueStore(rows);
+      });
+    });
   }
 }

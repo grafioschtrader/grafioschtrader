@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnDestroy, OnInit, output, input } from '@angular/core';
+import { Component, OnDestroy, output, input, effect, untracked } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { merge, Subscription } from 'rxjs';
 import { FormNotifier } from '../../models/form.notifier';
@@ -89,7 +89,7 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
     DynamicFieldDirective
   ]
 })
-export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
+export class DynamicFormComponent implements OnDestroy {
   readonly formConfig = input<FormConfig>(undefined);
   readonly config = input<FieldFormGroup[]>([]);
   readonly formGroupDefinition = input<FormGroupDefinition>(undefined);
@@ -111,7 +111,18 @@ export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
   /** Events of the current group and its controls; replaced whenever a new group is built. */
   private controlEventsSubscription: Subscription;
 
-  constructor(private _formBuilder: UntypedFormBuilder) {}
+  constructor(private _formBuilder: UntypedFormBuilder) {
+    effect(() => {
+      this.config();
+      this.formConfig();
+      this.formGroupDefinition();
+      this.translateService();
+      untracked(() => {
+        this.notifier = FormNotifier.instrument(this.config(), this.notifier);
+        this.buildForm();
+      });
+    });
+  }
 
   get formGroups(): FormGroupDefinition[] {
     return this.config().filter((fieldFormGroup: any) => !!fieldFormGroup.formGroupName) as FormGroupDefinition[];
@@ -161,18 +172,6 @@ export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
 
   get value() {
     return this.form.value;
-  }
-
-  ngOnInit() {
-    this.notifier = FormNotifier.instrument(this.config(), this.notifier);
-    if (this.form && this.config().length > 0) {
-      this.buildForm();
-    }
-  }
-
-  ngOnChanges(): void {
-    this.notifier = FormNotifier.instrument(this.config(), this.notifier);
-    this.buildForm();
   }
 
   ngOnDestroy(): void {

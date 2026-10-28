@@ -1,4 +1,4 @@
-import { Component, contentChild, input, OnChanges, SimpleChanges, TemplateRef, output, model } from '@angular/core';
+import { Component, contentChild, input, TemplateRef, output, model, computed } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { toClassString } from '../helper/css-class.helper';
 import { FormsModule } from '@angular/forms';
@@ -102,7 +102,7 @@ export interface TreeTableCellEditEvent {
       [class]="toClassString(containerClass(), customClass())">
       <p-treeTable
         [value]="data()"
-        [columns]="renderedFields"
+        [columns]="renderedFields()"
         [dataKey]="dataKey()"
         [selectionMode]="selectionMode()"
         [selection]="selection()"
@@ -298,7 +298,7 @@ export interface TreeTableCellEditEvent {
     </div>
   `
 })
-export class ConfigurableTreeTableComponent implements OnChanges {
+export class ConfigurableTreeTableComponent {
   protected readonly toClassString = toClassString;
   // ============================================================================
   // Data and Column Configuration
@@ -310,13 +310,10 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   /** Array of column configurations defining tree table structure. */
   readonly fields = input<ColumnConfig[]>([]);
   /** New reference carries in-place column changes into the Optimus OnPush tree table. */
-  renderedFields: ColumnConfig[] = [];
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['fields'] || changes['fieldsRevision']) {
-      this.renderedFields = [...this.fields()];
-    }
-  }
+  readonly renderedFields = computed(() => {
+    this.fieldsRevision();
+    return [...this.fields()];
+  });
 
   /**
    * Revision of the column configuration, bound as [fieldsRevision]="fieldsRevision()" of the owning table base. A

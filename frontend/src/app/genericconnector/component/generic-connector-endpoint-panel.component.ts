@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, output, input } from '@angular/core';
+import { Component, output, input, effect, untracked } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -54,7 +54,7 @@ import { GenericConnectorFieldMappingTableComponent } from './generic-connector-
   `,
   imports: [TranslateModule, GenericConnectorFieldMappingTableComponent]
 })
-export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBase implements OnChanges {
+export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBase {
   readonly endpoint = input<GenericConnectorEndpoint>(undefined);
   readonly editable = input<boolean>(true);
   readonly editEndpoint = output<void>();
@@ -158,14 +158,17 @@ export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBa
     });
 
     this.translateHeadersAndColumns();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const endpoint = this.endpoint();
-    if (changes['endpoint'] && endpoint) {
-      this._fieldSetGroups = null;
-      this.createTranslatedValueStore([endpoint]);
-    }
+    effect(() => {
+      this.endpoint();
+      untracked(() => {
+        const endpoint = this.endpoint();
+        if (endpoint) {
+          this._fieldSetGroups = null;
+          this.createTranslatedValueStore([endpoint]);
+        }
+      });
+    });
   }
 
   onFieldMappingsChange(mappings: GenericConnectorFieldMapping[]): void {

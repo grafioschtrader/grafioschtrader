@@ -1,4 +1,4 @@
-import { Component, Injector, OnChanges, SimpleChanges, output, input, linkedSignal, model } from '@angular/core';
+import { Component, Injector, output, input, linkedSignal, model, effect, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -107,7 +107,7 @@ import { Helper } from '../../lib/helper/helper';
     `
   ]
 })
-export class SecurityLookupBaseDataTableComponent extends TableConfigBase implements OnChanges {
+export class SecurityLookupBaseDataTableComponent extends TableConfigBase {
   /** Listings found by the lookup */
   readonly candidates = input<SecurityLookupCandidate[]>([]);
 
@@ -184,13 +184,14 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase implem
       this.addColumnFeqH(DataType.String, 'stockexchangeLink', false, true)
     ];
     this.prepareTableAndTranslate();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const candidates = this.candidates();
-    if (changes['candidates'] && candidates) {
-      this.createTranslatedValueStore(candidates);
-    }
+    effect(() => {
+      this.candidates();
+      untracked(() => {
+        const rows = this.candidates();
+        if (rows) this.createTranslatedValueStore(rows);
+      });
+    });
   }
 
   /**

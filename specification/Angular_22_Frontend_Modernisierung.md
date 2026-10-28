@@ -30,9 +30,9 @@ nennt das Ergebnis eines Probelaufs mit `--dry-run`.
 
 | Bereich | Heute | Angular-22-Ziel | Schematic |
 | --- | --- | --- | --- |
-| Dependency Injection | 534 Konstruktoren, 164 × `inject()` | `inject()` | `inject-migration`: 379 Dateien |
+| Dependency Injection | 536 Konstruktoren | `inject()` | `inject-migration`: 379 Dateien |
 | Services | 114 × `@Injectable`, davon 15 `providedIn: 'root'`; rund 95 Services einzeln in `app.config.ts` registriert | `@Service()` | `service-migration` |
-| Änderungsreaktion | 42 × `ngOnChanges` | `computed()`, `effect()` | – |
+| Eingabegesteuerte Requests | 7 × `ngOnChanges` | `httpResource`, `rxResource` | – |
 | Zustand in RxJS | 5 × `BehaviorSubject` als Zustandshalter in 4 Dateien | `signal()` | – |
 | Signal-basiertes Lesen | 2 × `httpResource`, 0 × `rxResource`, 0 × `toSignal` | `httpResource`, `rxResource` | – |
 | Abhängiger Zustand | 0 × `linkedSignal` | `linkedSignal()` | – |
@@ -95,12 +95,10 @@ Reihenfolge: §4.2 → §4.3 → §4.4. §4.5 kann nach §4.3 parallel zu §4.4 
 und wird deshalb nicht gleichzeitig mit §4.2 oder §4.3 bearbeitet. §4.6 und §4.7 sind Prüfaufträge mit eigener
 Entscheidung.
 
-### 4.2 Signal-Schnittstellen der Komponenten
+### 4.2 Verifikation der Signal-Schnittstellen
 
-Die 42 `ngOnChanges`-Implementierungen werden durchgesehen. Eine Implementierung, die nur abgeleiteten Zustand
-berechnet, wird zu `computed()`. Eine Implementierung, die Tabellenzeilen vorbereitet, folgt dem
-`effect`/`untracked`-Muster aus `frontend/CLAUDE.md` („Dropdown Selection Filters"); das Flag `fieldsInitialized`
-entfällt dabei. Ein `ngOnChanges`, das mehrere Eingaben koordiniert und Requests auslöst, bleibt bis §4.4 bestehen.
+Die Signal-Schnittstellen werden mit einem vollständigen E2E-Durchlauf beider Hosts nach §3.1 geprüft. Den Durchlauf
+stößt der Benutzer an.
 
 ### 4.3 Dependency Injection mit `inject()` und `@Service()`
 
@@ -165,6 +163,10 @@ Service-Observables kombiniert, verwendet `rxResource` mit den bestehenden Servi
 Transaktionsdialoge behalten ihre eigene Abbruchlogik (`replaceWatchlistRequest()`, `replaceDialogRequest()`), bis
 eine Ressource dieselben Fälle nachweislich abdeckt. Die Fehleranzeige läuft weiterhin über
 `reportResourceErrors(resource, service)`.
+
+Die sieben Eingabe-Hooks in `ON_CHANGES_REQUESTS` (`src/angular-api.ratchet.spec.ts`) werden ebenfalls auf Ressourcen
+geprüft: Instrument und Legacy-Kurse, Zeitreihenparameter, Kursqualität, Dauerauftrags-Transaktionen, Steuerwechselkurse,
+Steuerkorrekturen und UDF-Vorschläge. Die jeweilige Ratchet-Ausnahme entfällt mit der Umstellung.
 
 **Auswahl, die ein Neuladen überlebt, als `linkedSignal`.** Drei Stellen suchen nach dem Laden die vorher gewählte
 Zeile von Hand wieder heraus:

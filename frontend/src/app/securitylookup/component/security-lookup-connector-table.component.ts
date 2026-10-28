@@ -1,4 +1,4 @@
-import { Component, Injector, OnChanges, SimpleChanges, output, input, linkedSignal } from '@angular/core';
+import { Component, Injector, output, input, linkedSignal, effect, untracked } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { MessageModule } from '@openng/optimus-ui/message';
@@ -62,7 +62,7 @@ import { Helper } from '../../lib/helper/helper';
     `
   ]
 })
-export class SecurityLookupConnectorTableComponent extends TableConfigBase implements OnChanges {
+export class SecurityLookupConnectorTableComponent extends TableConfigBase {
   private readonly distributionFrequencyColumn: ColumnConfig;
 
   /** Translation key of the table title, e.g. ID_CONNECTOR_HISTORY */
@@ -122,17 +122,21 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase imple
     });
     this.addColumnFeqH(DataType.String, 'probeDetail', true, false, { width: 200 });
     this.prepareTableAndTranslate();
-  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['showDistributionFrequency']) {
-      this.distributionFrequencyColumn.visible = this.showDistributionFrequency();
-      this.notifyViewChanged();
-    }
-    const alternatives = this.alternatives();
-    if (changes['alternatives'] && alternatives) {
-      this.createTranslatedValueStore(alternatives);
-    }
+    effect(() => {
+      this.showDistributionFrequency();
+      untracked(() => {
+        this.distributionFrequencyColumn.visible = this.showDistributionFrequency();
+        this.notifyViewChanged();
+      });
+    });
+    effect(() => {
+      this.alternatives();
+      untracked(() => {
+        const rows = this.alternatives();
+        if (rows) this.createTranslatedValueStore(rows);
+      });
+    });
   }
 
   /**
