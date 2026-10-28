@@ -31,12 +31,13 @@ import { LastSessionsRow } from '../model/last.sessions.performance';
     <configurable-table
       [data]="sessions"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="date"
       [selectionMode]="null"
       [enableCustomSort]="false"
       [scrollable]="true"
       [scrollHeight]="scrollHeight"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale" />
   `
 })

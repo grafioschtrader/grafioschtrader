@@ -1,5 +1,5 @@
 import { BaseInputComponent } from '../base.input.component';
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MultiSelectModule } from '@openng/optimus-ui/multiselect';
@@ -13,6 +13,9 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-input-multi-select',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-multiSelect
@@ -28,7 +31,6 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
     </ng-container>
   `,
   imports: [ReactiveFormsModule, CommonModule, MultiSelectModule, TooltipModule, TranslateModule, FilterOutPipe],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormInputMultiSelectComponent extends BaseInputComponent {}

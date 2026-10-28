@@ -37,7 +37,7 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
   template: `
     <p-dialog
       header="{{ 'BANKRUPT_SECURITY' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '560px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -102,9 +102,9 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
     // Undefined and not false in the create case: the button binds through [attr.disabled], which renders a present
     // disabled="false" attribute for a false value and would take the button away exactly when it is needed.
     this.configObject.securityName.disabled = this.callParam.bankruptSecurity ? true : undefined;
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     if (this.callParam.bankruptSecurity) {
-      this.form.transferBusinessObjectToForm(this.callParam.bankruptSecurity);
+      this.form().transferBusinessObjectToForm(this.callParam.bankruptSecurity);
     }
     this.configObject.securityName.formControl.setValue(this.callParam.securityName ?? '');
   }

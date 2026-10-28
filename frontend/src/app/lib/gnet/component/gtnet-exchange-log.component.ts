@@ -53,6 +53,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
           <configurable-tree-table
             [data]="getSupplierNodes(tree)"
             [fields]="fields"
+            [fieldsRevision]="fieldsRevision()"
             [selectionMode]="null"
             [enableSort]="false"
             [scrollable]="true"
@@ -68,6 +69,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
           <configurable-tree-table
             [data]="getConsumerNodes(tree)"
             [fields]="fields"
+            [fieldsRevision]="fieldsRevision()"
             [selectionMode]="null"
             [enableSort]="false"
             [scrollable]="true"

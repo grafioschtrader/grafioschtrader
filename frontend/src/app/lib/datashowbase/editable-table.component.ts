@@ -12,8 +12,13 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
-  ChangeDetectionStrategy
+  signal,
+  afterNextRender,
+  Injector,
+  DestroyRef
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { FormsModule, Validators } from '@angular/forms';
@@ -95,10 +100,10 @@ export interface ValidationErrorEvent<T> {
  * ```html
  * <editable-table
  *   [(data)]="entities"
- *   [fields]="fields"
+ *   [fields]="fields" [fieldsRevision]="fieldsRevision()"
  *   dataKey="id"
- *   [valueGetterFn]="getValueByPath.bind(this)"
- *   [createNewEntityFn]="createNewEntity.bind(this)"
+ *   [valueGetterFn]="valueGetter"
+ *   [createNewEntityFn]="createNewEntity"
  *   (rowEditSave)="saveEntity($event.row)">
  * </editable-table>
  * ```
@@ -120,13 +125,12 @@ export interface ValidationErrorEvent<T> {
     ButtonModule,
     Textarea
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div #cmDiv (click)="onComponentClick($event)" [ngClass]="containerClass">
       <p-table
         #table
-        [columns]="fields"
-        [value]="data"
+        [columns]="renderedFields"
+        [value]="rows()"
         [dataKey]="dataKey"
         [selectionMode]="selectionMode"
         [(selection)]="selection"
@@ -452,7 +456,7 @@ export interface ValidationErrorEvent<T> {
 
       <!-- Context Menu -->
       @if (contextMenuEnabled && showContextMenu) {
-        <p-contextMenu [target]="cmDiv" [model]="menuModel" [appendTo]="contextMenuAppendTo"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="menuModel()" [appendTo]="contextMenuAppendTo"></p-contextMenu>
       }
     </div>
   `
@@ -465,11 +469,17 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   /** Array of data objects to display and edit in the table */
   @Input() data: T[] = [];
 
+  /** Rows owned by the table, including additions not yet echoed by its parent. */
+  readonly rows = signal<T[]>([]);
+  private emittedRows?: T[];
+
   /** Emits when data array changes (for two-way binding) */
   @Output() dataChange = new EventEmitter<T[]>();
 
   /** Array of column configurations defining table structure */
   @Input() fields: ColumnConfig[] = [];
+  /** New reference carries column revisions into the Optimus OnPush table. */
+  renderedFields: ColumnConfig[] = [];
 
   /**
    * Revision of the column configuration, bound as [fieldsRevision]="fieldsRevision()" of the owning table base. A
@@ -713,14 +723,6 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   /** Set of row keys that are new (not yet persisted) */
   private newRows: Set<string> = new Set();
 
-  /**
-   * Set when the component reassigns {@link data} itself (addNewRow / cancel-remove) and emits
-   * dataChange. The two-way [(data)] round-trip re-enters ngOnChanges as a non-first data change;
-   * this flag tells ngOnChanges that change is self-initiated, so it must NOT wipe edit state
-   * (clonedRows / newRows / ...). Only a genuinely external data replacement should reset state.
-   */
-  private internalDataChange = false;
-
   /** Counter for generating temporary keys for new rows */
   private newRowCounter = 0;
 
@@ -741,7 +743,10 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    * binding a getter that returns a fresh array each change-detection cycle would rebuild the menu
    * continuously and swallow item clicks.
    */
-  menuModel: MenuItem[] = [];
+  readonly menuModel = signal<MenuItem[]>([]);
+  private readonly renderInjector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
+  private menuTranslation?: Subscription;
 
   /** Marks this table after state changes made outside a template event, such as the delayed start of editing. */
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
@@ -754,6 +759,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    * owns); the parent-supplied {@link contextMenuItems} arrive pre-translated and are appended as-is.
    */
   private buildContextMenu(): void {
+    this.menuTranslation?.unsubscribe();
     const items: MenuItem[] = [];
 
     if (this.createNewEntityFn) {
@@ -762,7 +768,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
         icon: 'pi pi-plus',
         command: () => this.addNewRow()
       };
-      this.translateService.get(this.addRowLabel).subscribe((translated) => (addRowItem.label = translated));
+
       items.push(addRowItem);
     }
 
@@ -773,7 +779,16 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
       items.push(...this.contextMenuItems);
     }
 
-    this.menuModel = items;
+    if (this.createNewEntityFn) {
+      this.menuTranslation = this.translateService
+        .get(this.addRowLabel)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((label) =>
+          this.menuModel.set(items.map((item, index) => (index === 0 ? { ...item, label } : item)))
+        );
+    } else {
+      this.menuModel.set(items);
+    }
   }
 
   // ============================================================================
@@ -785,26 +800,20 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['data'] && !changes['data'].firstChange) {
-      if (this.internalDataChange) {
-        // Self-initiated data change (addNewRow / cancel-remove) - keep edit state, consume the flag
-        this.internalDataChange = false;
-      } else {
-        // Data changed externally - clear internal state
-        this.clonedRows = {};
-        this.rowOptions = {};
-        this.rowErrors = {};
-        this.newRows.clear();
-      }
+    if (changes['fields'] || changes['fieldsRevision']) {
+      this.renderedFields = [...this.fields];
     }
-    // Rebuild only when the parent-supplied items actually change. The add-row item is derived from
-    // createNewEntityFn / addRowLabel, but those must NOT be rebuild triggers: parents commonly bind
-    // createNewEntityFn as `someFn.bind(this)`, which yields a fresh function reference on every change
-    // detection cycle. Rebuilding on that churn replaces menuModel (and thus the Optimus menu's DOM
-    // items) on every CD, so a real mouse-down's CD tick recreates the item between mousedown and
-    // mouseup and the click never reaches it. createNewEntityFn / addRowLabel are captured once in
-    // ngOnInit, which is sufficient because they are set declaratively and do not change at runtime.
-    if (changes['contextMenuItems'] && !changes['contextMenuItems'].firstChange) {
+    if (changes['data'] && this.data !== this.emittedRows) {
+      this.rows.set(this.data ?? []);
+      this.clonedRows = {};
+      this.rowOptions = {};
+      this.rowErrors = {};
+      this.newRows.clear();
+    }
+    if (changes['data']) {
+      this.emittedRows = undefined;
+    }
+    if (changes['contextMenuItems'] || changes['createNewEntityFn'] || changes['addRowLabel']) {
       this.buildContextMenu();
     }
   }
@@ -869,9 +878,8 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
     if (isNew) {
       // Remove new row entirely
-      this.internalDataChange = true;
-      this.data = this.data.filter((_, i) => i !== index);
-      this.dataChange.emit(this.data);
+      this.rows.update((rows) => rows.filter((_, i) => i !== index));
+      this.publishRows();
     } else if (this.clonedRows[rowKey]) {
       // Restore original values
       Object.assign(row, this.clonedRows[rowKey]);
@@ -918,19 +926,21 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
     this.newRows.add(rowKey);
 
     // Add to data array
-    this.internalDataChange = true;
-    this.data = [...this.data, newEntity];
-    this.dataChange.emit(this.data);
+    this.rows.update((rows) => [...rows, newEntity]);
+    this.publishRows();
 
-    const index = this.data.length - 1;
+    const index = this.rows().length - 1;
 
     // Emit rowAdded event
     this.rowAdded.emit({ row: newEntity, index });
 
-    // Initialize edit state and start editing (delayed to allow DOM update)
-    setTimeout(() => {
-      this.startEditingRow(newEntity);
-    }, 50);
+    this.startEditingRow(newEntity);
+  }
+
+  /** Remembers the emitted reference so a two-way binding preserves the current row's edit session. */
+  private publishRows(): void {
+    this.emittedRows = this.rows();
+    this.dataChange.emit(this.emittedRows);
   }
 
   // ============================================================================
@@ -1287,7 +1297,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    * that can be collected by the parent component for saving.
    */
   getData(): T[] {
-    return this.data;
+    return this.rows();
   }
 
   /**
@@ -1296,7 +1306,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    */
   validateAllRows(): boolean {
     let allValid = true;
-    for (const row of this.data) {
+    for (const row of this.rows()) {
       if (!this.validateRow(row)) {
         allValid = false;
       }
@@ -1312,7 +1322,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    */
   startEditingRow(row: T): void {
     const rowKey = this.getRowKey(row);
-    const rowIndex = this.data.findIndex((r) => this.getRowKey(r) === rowKey);
+    const rowIndex = this.rows().findIndex((r) => this.getRowKey(r) === rowKey);
 
     if (rowIndex >= 0) {
       // Initialize edit state (clone for cancel, init options, clear errors)
@@ -1320,18 +1330,22 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
       if (this.table) {
         // Directly set Optimus's editing state — no DOM manipulation needed
-        this.table.editingRowKeys[rowKey] = true;
-        // Called from a timer after addNewRow(); below an OnPush parent nothing else would render the edit inputs.
+        this.table.initRowEdit(row);
+        // A new value input also refreshes the Optimus table when this method is called by a menu command.
+        this.rows.update((rows) => [...rows]);
         this.changeDetectorRef.markForCheck();
 
         // Focus first editable cell after Angular change detection renders the edit inputs
-        setTimeout(() => {
-          const tableEl = this.table.el.nativeElement;
-          const rows = tableEl.querySelectorAll('tbody tr');
-          if (rows[rowIndex]) {
-            this.focusFirstEditableCell(rows[rowIndex]);
-          }
-        }, 100);
+        afterNextRender(
+          () => {
+            const tableEl = this.table.el.nativeElement;
+            const rows = tableEl.querySelectorAll('tbody tr');
+            if (rows[rowIndex]) {
+              this.focusFirstEditableCell(rows[rowIndex]);
+            }
+          },
+          { injector: this.renderInjector }
+        );
       }
     }
   }

@@ -51,7 +51,7 @@ import { UDFFillSuggestTestResultComponent } from './udf-fill-suggest-test-resul
   template: `
     <p-dialog
       header="{{ i18nRecord | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: 'var(--udf-metadata-dialog-width)' }"
       [style.--udf-metadata-dialog-width]="isAutomaticFill() ? '850px' : '500px'"
       [contentStyle]="{ display: 'flex', 'flex-direction': 'column', 'min-height': 0 }"
@@ -265,7 +265,7 @@ export class UDFMetadataSecurityEditComponent
     this.offerLoaded.set(false);
     UDFMetadataHelper.prepareDataTypeFields(
       this.translateService,
-      this.form,
+      this.form(),
       this.configObject,
       this.callParam.excludeUiOrders,
       this.callParam.uDFMetadataSecurity,
@@ -289,11 +289,13 @@ export class UDFMetadataSecurityEditComponent
     this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID].formControl.valueChanges
       .pipe(this.untilDialogClosed())
       .subscribe((id) => this.setDefaultArgument(id));
-    this.form.form.valueChanges.pipe(this.untilDialogClosed()).subscribe(() => {
-      this.testFillSubscription?.unsubscribe();
-      this.testResult.set(null);
-      this.suggestTestRequest.set(null);
-    });
+    this.form()
+      .form.valueChanges.pipe(this.untilDialogClosed())
+      .subscribe(() => {
+        this.testFillSubscription?.unsubscribe();
+        this.testResult.set(null);
+        this.suggestTestRequest.set(null);
+      });
     this.showHideFillRule();
     this.uDFMetadataSecurityService
       .getFillSources()

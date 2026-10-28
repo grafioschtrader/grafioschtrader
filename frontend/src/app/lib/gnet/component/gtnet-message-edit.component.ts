@@ -43,7 +43,7 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
   template: `
     <p-dialog
       header="{{ 'GT_NET_MESSAGE_SEND' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -280,7 +280,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.classDescriptorInputAndShows?.fieldDescriptorInputAndShows ?? [],
       true
     );
-    this.form.transferBusinessObjectToForm(dynamicModel);
+    this.form().transferBusinessObjectToForm(dynamicModel);
   }
 
   submit(value: { [name: string]: any }): void {

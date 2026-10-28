@@ -58,7 +58,7 @@ import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialo
   template: `
     <p-dialog
       header="{{ 'DERIVED_DATA' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '600px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -310,12 +310,12 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
             ? this.securityCallParam.stockexchange.noMarketValue
             : null
         );
-        this.form.setDefaultValuesAndEnableSubmit();
+        this.form().setDefaultValuesAndEnableSubmit();
         AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
           this.translateService,
           this.gps,
           this.securityCallParam,
-          this.form,
+          this.form(),
           this.configObject,
           this.proposeChangeEntityWithEntity
         );
@@ -403,7 +403,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       this.configObject.currency.formControl.setValue((<CurrencypairWatchlist>security).fromCurrency);
       this.reduceExpandChoosableAssetclass();
     } else {
-      this.form.transferBusinessObjectToForm(security);
+      this.form().transferBusinessObjectToForm(security);
     }
   }
 

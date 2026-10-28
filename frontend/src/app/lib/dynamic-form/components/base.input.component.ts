@@ -1,5 +1,5 @@
 import { FieldFormFormGroupConfig } from '../models/field.form.form.group.config';
-import { AfterViewInit, Directive, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, OnInit, ViewChild, input } from '@angular/core';
 import { FieldConfig } from '../models/field.config';
 import { FormConfig } from '../models/form.config';
 import { UntypedFormGroup, Validators } from '@angular/forms';
@@ -14,15 +14,15 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
   // @ViewChild('input', {read: ElementRef}) el: ElementRef;
   @ViewChild('input') el: ElementRef;
 
-  config: FieldConfig;
-  formConfig: FormConfig;
-  group: UntypedFormGroup;
+  readonly config = input.required<FieldConfig>();
+  readonly formConfig = input.required<FormConfig>();
+  readonly group = input.required<UntypedFormGroup>();
 
   isRequired = false;
 
   /** Change notification of the form this field belongs to; the template reads its revision. */
   get notifier(): FormNotifier {
-    return FormNotifier.of(this.config);
+    return FormNotifier.of(this.config());
   }
 
   ngOnInit(): void {
@@ -30,12 +30,12 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
   }
 
   ngAfterViewInit(): void {
-    this.config.elementRef = this.el;
-    this.config.baseInputComponent = this;
+    this.config().elementRef = this.el;
+    this.config().baseInputComponent = this;
   }
 
   reEvaluateRequired(): void {
-    this.isRequired = this.config.validation && this.config.validation.indexOf(Validators.required) >= 0;
+    this.isRequired = this.config().validation && this.config().validation.indexOf(Validators.required) >= 0;
   }
 
   /**

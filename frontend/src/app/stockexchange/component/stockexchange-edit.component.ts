@@ -39,7 +39,7 @@ import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.
   selector: 'stockexchange-edit',
   template: ` <p-dialog
     header="{{ i18nRecord | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '500px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -129,12 +129,12 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam.countriesAsHtmlOptions);
     this.configObject.mic.groupItem = this.createMicOptions(true);
     this.configObject.countryCode.valueKeyHtmlOptions = this.callParam.countriesAsHtmlOptions;
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
       this.callParam.stockexchange,
-      this.form,
+      this.form(),
       this.configObject,
       this.proposeChangeEntityWithEntity
     );

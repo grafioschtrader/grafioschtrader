@@ -2,7 +2,6 @@ import {
   AfterViewChecked,
   Component,
   ContentChild,
-  DoCheck,
   ElementRef,
   EventEmitter,
   inject,
@@ -14,8 +13,7 @@ import {
   Output,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
-  ChangeDetectionStrategy
+  ViewChild
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -78,7 +76,7 @@ export interface CellMark {
  * ```html
  * <configurable-table
  *   [data]="entityList"
- *   [fields]="fields"
+ *   [fields]="fields" [fieldsRevision]="fieldsRevision()"
  *   [dataKey]="'idEntity'"
  *   [(selection)]="selectedEntity"
  *   [contextMenuItems]="menuItems">
@@ -90,10 +88,10 @@ export interface CellMark {
  * ```html
  * <configurable-table
  *   [data]="dataList"
- *   [fields]="fields"
+ *   [fields]="fields" [fieldsRevision]="fieldsRevision()"
  *   [expandable]="true"
  *   [expandedRowTemplate]="expandedContent"
- *   [canExpandFn]="canExpand.bind(this)">
+ *   [canExpandFn]="canExpand">
  *   <h4 caption>Title</h4>
  * </configurable-table>
  *
@@ -115,7 +113,6 @@ export interface CellMark {
     DatePickerModule,
     MultiSelectModule
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
   // Rules for the columns fixed by frozenColumnCount. The theme defines the sticky position only for a scrollable table,
   // these rules hold for every table. A body cell takes the opaque background of its row and is stacked above the cells
   // scrolling underneath, so their text stays hidden; a selected row may have a translucent background and gets the
@@ -154,7 +151,7 @@ export interface CellMark {
     <div #cmDiv (click)="onComponentClick($event)" [ngClass]="containerClass" [class]="customClass">
       <p-table
         #table
-        [columns]="fields"
+        [columns]="renderedFields"
         [value]="data"
         [dataKey]="dataKey"
         [selectionMode]="selectionMode"
@@ -589,7 +586,7 @@ export interface CellMark {
     </div>
   `
 })
-export class ConfigurableTableComponent<T = any> implements OnChanges, DoCheck, AfterViewChecked, OnDestroy {
+export class ConfigurableTableComponent<T = any> implements OnChanges, AfterViewChecked, OnDestroy {
   // ============================================================================
   // Data and Column Configuration
   // ============================================================================
@@ -614,6 +611,8 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, DoCheck, 
    * Uses ColumnConfig from lib/datashowbase for consistent column definitions.
    */
   @Input() fields: ColumnConfig[] = [];
+  /** New array on a column revision, so the Optimus OnPush table refreshes its embedded templates too. */
+  renderedFields: ColumnConfig[] = [];
 
   /**
    * Revision of the column configuration, bound as [fieldsRevision]="fieldsRevision()" of the owning table base. A
@@ -1093,21 +1092,15 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, DoCheck, 
    * Currently monitors fields changes to ensure proper column updates.
    */
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['fields'] || changes['fieldsRevision']) {
+      this.renderedFields = [...this.fields];
+    }
     if (changes['fields'] || changes['data'] || changes['fieldsRevision']) {
       this.computeHeaderGroups();
     }
     if (changes['fieldsRevision'] || changes['frozenColumnCount'] || changes['fields']) {
       this.updateFrozenSlots();
     }
-  }
-
-  /**
-   * Assigns the frozen slots anew when the number of fixed columns or the visible columns changed. A table bound to
-   * fieldsRevision is updated through ngOnChanges; the check remains for tables that do not bind it yet, because the
-   * column visibility dialog changes the fields in place.
-   */
-  ngDoCheck(): void {
-    this.updateFrozenSlots();
   }
 
   /** Recomputes the frozen slots when the number of fixed columns or the set of visible columns changed. */

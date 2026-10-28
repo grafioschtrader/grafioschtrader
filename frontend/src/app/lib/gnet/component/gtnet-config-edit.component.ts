@@ -26,7 +26,7 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
   template: `
     <p-dialog
       header="{{ 'GT_NET_CONFIG_EDIT' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '450px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -71,7 +71,7 @@ export class GTNetConfigEditComponent extends SimpleEntityEditBase<GTNetConfig> 
   }
 
   protected override initialize(): void {
-    this.form.transferBusinessObjectToForm(this.gtNetConfig);
+    this.form().transferBusinessObjectToForm(this.gtNetConfig);
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetConfig {

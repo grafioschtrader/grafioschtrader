@@ -39,7 +39,7 @@ import { BaseSettings } from '../../base.settings';
   selector: 'upload-file-dialog',
   template: ` <p-dialog
     header="{{ fileUploadParam.title | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -138,7 +138,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
 
     if (this.fileUploadParam.supportedCSVFormats) {
       const supportedCSVFormat = new SupportedCSVFormat();
-      this.form.cleanMaskAndTransferValuesToBusinessObject(supportedCSVFormat);
+      this.form().cleanMaskAndTransferValuesToBusinessObject(supportedCSVFormat);
       this.userSettingsService.saveObject(BaseSettings.CSV_EXPORT_FORMAT, supportedCSVFormat);
       Object.keys(supportedCSVFormat).forEach((e) => formData.append(e, supportedCSVFormat[e]));
     }
@@ -223,7 +223,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
       );
       this.valueChangedOnDecimalSeparator();
       if (supportedCSVFormat) {
-        this.form.transferBusinessObjectToForm(supportedCSVFormat);
+        this.form().transferBusinessObjectToForm(supportedCSVFormat);
       }
     }
   }

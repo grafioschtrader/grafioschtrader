@@ -1,18 +1,20 @@
 import { BaseInputComponent } from '../base.input.component';
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TriStateCheckboxComponent } from './tri-state-checkbox';
 
 @Component({
   selector: 'form-tri-state-checkbox',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <tri-state-checkbox [id]="config.field" [formControlName]="config.field" #input></tri-state-checkbox>
     </ng-container>
   `,
   imports: [ReactiveFormsModule, TriStateCheckboxComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormTriStateCheckboxComponent extends BaseInputComponent {}

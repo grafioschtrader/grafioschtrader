@@ -26,7 +26,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
   selector: 'algo-security-edit',
   template: ` <p-dialog
     header="{{ 'ALGO_SECURITY' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '700px', maxWidth: '95vw' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -118,7 +118,7 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
         );
         this.setAccountOptions(data[1]);
         if (existing) {
-          this.form.transferBusinessObjectToForm(existing);
+          this.form().transferBusinessObjectToForm(existing);
           // A saved priority whose account no longer allows the type is cleared, the backend would refuse it.
           this.setAccountOptions(data[1]);
         }
@@ -138,7 +138,7 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
     if (this.algoCallParam.thisObject) {
       Object.assign(algoSecurity, this.algoCallParam.thisObject);
     }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(algoSecurity);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(algoSecurity);
     algoSecurity.idAlgoSecurityParent = (<AlgoAssetclass>this.algoCallParam.parentObject).idAlgoAssetclassSecurity;
     return algoSecurity;
   }

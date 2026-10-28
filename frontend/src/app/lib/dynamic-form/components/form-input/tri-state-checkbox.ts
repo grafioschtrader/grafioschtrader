@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, forwardRef, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
@@ -8,7 +8,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     <div
       class="tri-state-checkbox"
       [class.large]="size === 'large'"
-      [attr.data-state]="state"
+      [attr.data-state]="state()"
       tabindex="0"
       (click)="toggleState()"
       (keydown)="handleKeydown($event)">
@@ -16,7 +16,6 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     </div>
   `,
   styleUrls: ['../../dynamic-form.css'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -27,7 +26,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 })
 export class TriStateCheckboxComponent implements ControlValueAccessor {
   @Input() size: 'small' | 'large' = 'small'; // Default size
-  state: 'false' | 'true' | null = null; // Use `null` for "indeterminate"
+  readonly state = signal<'false' | 'true' | null>(null);
 
   private readonly states: ('false' | 'true' | null)[] = ['false', 'true', null];
   private readonly symbols = ['', '✔', '-']; // "-" for the "indeterminate" state
@@ -37,24 +36,24 @@ export class TriStateCheckboxComponent implements ControlValueAccessor {
 
   // Toggle state when clicked
   toggleState(): void {
-    const currentIndex = this.states.indexOf(this.state);
+    const currentIndex = this.states.indexOf(this.state());
     const nextIndex = (currentIndex + 1) % this.states.length;
-    this.state = this.states[nextIndex];
+    this.state.set(this.states[nextIndex]);
 
     // Emit the new value (`null` for "indeterminate")
-    this.onChange(this.state);
+    this.onChange(this.state());
     this.onTouched();
   }
 
   // Get the symbol for the current state
   getSymbol(): string {
-    const index = this.states.indexOf(this.state);
+    const index = this.states.indexOf(this.state());
     return this.symbols[index];
   }
 
   // Return a string for the data-state attribute (for styling)
   getState(): string {
-    return this.state === null ? 'indeterminate' : this.state;
+    return this.state() === null ? 'indeterminate' : this.state();
   }
 
   // Handle keyboard inputs for accessibility
@@ -67,7 +66,7 @@ export class TriStateCheckboxComponent implements ControlValueAccessor {
 
   // ControlValueAccessor methods to integrate with Angular forms
   writeValue(value: 'false' | 'true' | null): void {
-    this.state = value ?? null; // Default to null if value is undefined
+    this.state.set(value ?? null);
   }
 
   registerOnChange(fn: any): void {

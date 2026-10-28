@@ -28,7 +28,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
   selector: 'watchlist-add-edit-price-problem-instrument',
   template: ` <p-dialog
     header="{{ 'WATCHLIST_ADD_PROBLEM_INSTRUMENT' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '450px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -109,7 +109,7 @@ export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditB
    */
   submit(value: { [value: string]: any }): void {
     const ihwp = new IntraHistoricalWatchlistProblem();
-    this.form.cleanMaskAndTransferValuesToBusinessObject(ihwp);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(ihwp);
 
     this.watchlistService
       .addInstrumentsWithPriceDataProblems(this.idWatchlist, ihwp)

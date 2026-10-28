@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { SelectModule } from '@openng/optimus-ui/select';
@@ -13,6 +13,9 @@ import { UpperCaseDirective } from './upper-case.directive';
 @Component({
   selector: 'form-input-dropdown',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-select
@@ -74,7 +77,6 @@ import { UpperCaseDirective } from './upper-case.directive';
     </ng-container>
   `,
   imports: [ReactiveFormsModule, SelectModule, TooltipModule, TranslateModule, FilterOutPipe, UpperCaseDirective],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormInputDropdownComponent extends BaseInputComponent {}

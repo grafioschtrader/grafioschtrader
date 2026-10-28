@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 
 import { ReactiveFormsModule } from '@angular/forms';
@@ -14,6 +14,9 @@ import { UpperCaseDirective } from './upper-case.directive';
 @Component({
   selector: 'form-input-button',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-inputgroup>
@@ -50,7 +53,6 @@ import { UpperCaseDirective } from './upper-case.directive';
     </ng-container>
   `,
   imports: [ReactiveFormsModule, TranslateModule, ButtonModule, InputGroup, InputGroupAddon, UpperCaseDirective],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormInputButtonComponent extends BaseInputComponent {}

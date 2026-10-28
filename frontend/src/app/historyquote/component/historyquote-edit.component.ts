@@ -21,7 +21,7 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
   selector: 'historyquote-edit',
   template: ` <p-dialog
     header="{{ 'HISTORY_QUOTE_FOR' | translate }} {{ callParam.showName }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -70,10 +70,10 @@ export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote
 
   protected transferAndToggleImmutableFields(): void {
     if (this.callParam.historyquote) {
-      this.form.transferBusinessObjectToForm(this.callParam.historyquote);
+      this.form().transferBusinessObjectToForm(this.callParam.historyquote);
       FormHelper.disableEnableFieldConfigs(true, [this.configObject.date]);
     } else {
-      this.form.setDefaultValuesAndEnableSubmit();
+      this.form().setDefaultValuesAndEnableSubmit();
       FormHelper.disableEnableFieldConfigs(false, [this.configObject.date]);
     }
   }

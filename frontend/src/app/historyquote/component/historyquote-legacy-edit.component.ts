@@ -24,7 +24,7 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
   selector: 'historyquote-legacy-edit',
   template: ` <p-dialog
     header="{{ 'HISTORYQUOTE_LEGACY' | translate }} {{ callParam.showName }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -78,7 +78,7 @@ export class HistoryquoteLegacyEditComponent extends HistoryquoteEditBase<Histor
   }
 
   protected transferAndToggleImmutableFields(): void {
-    this.form.transferBusinessObjectToForm(this.callParam.historyquoteLegacy);
+    this.form().transferBusinessObjectToForm(this.callParam.historyquoteLegacy);
     // Trading date and archival transferDate are immutable; only prices may change.
     FormHelper.disableEnableFieldConfigs(true, [this.configObject.date, this.configObject.transferDate]);
   }

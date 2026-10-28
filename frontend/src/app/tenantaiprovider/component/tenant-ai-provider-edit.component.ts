@@ -22,7 +22,7 @@ import { TenantAIProviderService } from '../service/tenant-ai-provider.service';
   imports: [DialogModule, DynamicFormModule, TranslateModule],
   template: `<p-dialog
     [header]="'TENANT_AI_PROVIDER' | translate"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '550px' }"
     [modal]="true"
     appendTo="body"
@@ -66,9 +66,9 @@ export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAI
     this.configObject.provider.valueKeyHtmlOptions = this.options.providers.filter(
       (p) => p.key === this.entity?.provider || !this.existingProviders.includes(String(p.key))
     );
-    this.form.setDefaultValuesAndEnableSubmit();
-    this.form.transferBusinessObjectToForm(this.entity ?? new TenantAIProvider());
-    this.form.setValue('apiKey', null);
+    this.form().setDefaultValuesAndEnableSubmit();
+    this.form().transferBusinessObjectToForm(this.entity ?? new TenantAIProvider());
+    this.form().setValue('apiKey', null);
     // The server never returns a stored key; its ending shows that one exists and stays when the field is left empty
     this.configObject.apiKey.placeholder = this.entity?.apiKeyHint ?? '';
     if (this.entity) {

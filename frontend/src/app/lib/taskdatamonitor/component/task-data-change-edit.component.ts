@@ -33,7 +33,7 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
   template: `
     <p-dialog
       header="{{ i18nRecord | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -185,7 +185,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   }
 
   protected override initialize(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     this.valueChangedOnIdTask();
     this.valueChangedOnEntity();
     // Initially hide entity and idEntity fields until a task is selected
@@ -193,7 +193,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     this.hideIdEntityFields();
     this.loadTaskTypeOptions();
     if (this.callParam) {
-      this.form.transferBusinessObjectToForm(this.callParam);
+      this.form().transferBusinessObjectToForm(this.callParam);
       // For number input case, transferBusinessObjectToForm sets idEntity on the select field.
       // Move the value to the number input if it's now visible (no task-scoped options for this entity).
       const optionsForTask =

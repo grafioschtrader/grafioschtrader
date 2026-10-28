@@ -26,7 +26,7 @@ import { GTNetConfigEntityDisplay } from './gtnet-config-entity-table.component'
   template: `
     <p-dialog
       header="{{ 'GT_NET_CONFIG_ENTITY_EDIT' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '400px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -82,7 +82,7 @@ export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetCo
     );
     this.configObject.supplierLog.valueKeyHtmlOptions = logTypeOptions;
     this.configObject.consumerLog.valueKeyHtmlOptions = logTypeOptions;
-    this.form.transferBusinessObjectToForm(this.gtNetConfigEntity);
+    this.form().transferBusinessObjectToForm(this.gtNetConfigEntity);
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetConfigEntity {

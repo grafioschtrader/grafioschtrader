@@ -24,7 +24,7 @@ import { AppSettings } from '../../shared/app.settings';
   selector: 'securityaccount-import-set-cashaccount',
   template: ` <p-dialog
     header="{{ 'CASHACCOUNT' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"

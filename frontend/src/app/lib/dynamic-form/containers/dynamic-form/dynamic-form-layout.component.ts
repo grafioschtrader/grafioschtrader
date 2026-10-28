@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 
 import { FieldConfig } from '../../models/field.config';
@@ -92,7 +92,6 @@ import { FormNotifier } from '../../models/form.notifier';
     </div>
   `,
   imports: [TranslateModule, CommonModule, DynamicFieldDirective, ErrorMessageComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class DynamicFormLayoutComponent {

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -11,6 +11,9 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-input-select',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <select
@@ -30,7 +33,6 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
     </ng-container>
   `,
   imports: [ReactiveFormsModule, TooltipModule, TranslateModule, FilterOutPipe],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormInputSelectComponent extends BaseInputComponent {}

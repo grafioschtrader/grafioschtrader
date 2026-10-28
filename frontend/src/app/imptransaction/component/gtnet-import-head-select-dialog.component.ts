@@ -31,7 +31,7 @@ import { GTNetSecurityImpPosService } from '../../shared/gtnet/service/gtnet-sec
   template: `
     <p-dialog
       header="{{ 'SELECT_OR_CREATE_GTNET_IMPORT_HEAD' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"

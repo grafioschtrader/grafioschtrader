@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { BaseFieldFieldgroupConfig } from '../../models/base.field.fieldgroup.config';
 import { NgxErrorsDirective } from '../../error/ngxerrors.directive';
 import { NgxErrorDirective } from '../../error/ngxerror.directive';
@@ -24,7 +24,6 @@ import { FormNotifier } from '../../models/form.notifier';
     </div>
   `,
   imports: [NgxErrorsDirective, NgxErrorDirective],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class ErrorMessageComponent {

@@ -30,7 +30,7 @@ import { Subscription } from 'rxjs';
   template: `
     <p-dialog
       header="{{ 'TEST_ENDPOINT' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '900px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"

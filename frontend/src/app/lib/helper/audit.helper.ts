@@ -5,7 +5,6 @@ import { FormHelper } from '../dynamic-form/components/FormHelper';
 import { TranslateService } from '@ngx-translate/core';
 import { ProcessedAction } from '../types/processed.action';
 import { ProcessedActionData } from '../types/processed.action.data';
-import { EventEmitter } from '@angular/core';
 import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
 import { FormBase } from '../edit/form.base';
 import { ProposeTransientTransfer } from '../entities/propose.transient.transfer';
@@ -193,7 +192,7 @@ export class AuditHelper {
    * @returns Array of FieldConfig objects for complete note workflow
    */
   public static getFullNoteRequestInputDefinition(
-    closed: EventEmitter<ProcessedActionData>,
+    closed: { emit(value: ProcessedActionData): void },
     formBase: FormBase,
     acceptRejectRequired = false
   ): FieldConfig[] {

@@ -27,7 +27,7 @@ import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
   template: `
     <p-dialog
       header="{{ 'STANDING_ORDER_CASHACCOUNT' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       (visibleChange)="!$event && onHide($event)"
       [style]="{ width: '550px' }"
       (onShow)="onShow($event)"
@@ -128,7 +128,7 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
   protected override setExistingValues(): void {
     const so = this.callParam?.standingOrder as StandingOrderCashaccount;
     if (so) {
-      this.form.transferBusinessObjectToForm(so);
+      this.form().transferBusinessObjectToForm(so);
       this.disableFieldsForEdit(so);
     } else if (this.callParam?.transaction) {
       const t = this.callParam.transaction;

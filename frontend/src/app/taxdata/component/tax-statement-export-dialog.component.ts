@@ -24,7 +24,7 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
   template: `
     <p-dialog
       header="{{ 'EXPORT_TAX_STATEMENT' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       (visibleChange)="!$event && onHide($event)"
       [style]="{ width: '550px' }"
       (onShow)="onShow($event)"
@@ -76,9 +76,9 @@ export class TaxStatementExportDialogComponent extends SimpleEditBase implements
     this.configObject.taxYear.valueKeyHtmlOptions = this.availableTaxYears.map(
       (y) => new ValueKeyHtmlSelectOptions(String(y), String(y))
     );
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     if (this.taxExportSettings) {
-      this.form.transferBusinessObjectToForm({
+      this.form().transferBusinessObjectToForm({
         ...this.taxExportSettings,
         taxYear: String(this.taxExportSettings.taxYear)
       });

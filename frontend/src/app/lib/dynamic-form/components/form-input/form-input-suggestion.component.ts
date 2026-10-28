@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AutoCompleteModule } from '@openng/optimus-ui/autocomplete';
@@ -9,6 +9,9 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-input-suggestion',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-autoComplete
@@ -26,11 +29,10 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
     </ng-container>
   `,
   imports: [ReactiveFormsModule, AutoCompleteModule, TooltipModule, TranslateModule, FilterOutPipe],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormInputSuggestionComponent extends BaseInputComponent {
   public callSuggestionsFN(event): void {
-    this.config.suggestionsFN(event);
+    this.config().suggestionsFN(event);
   }
 }

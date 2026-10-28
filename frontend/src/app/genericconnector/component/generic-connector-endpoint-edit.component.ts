@@ -38,7 +38,7 @@ const ALL_FEED_INSTRUMENT_COMBOS = [
   template: `
     <p-dialog
       header="{{ 'ENDPOINT_SETTINGS' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '900px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -150,9 +150,9 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
       .subscribe((value) => this.updateTickerBuildStrategyDependencies(value));
     this.updateTickerBuildStrategyDependencies(this.endpoint?.tickerBuildStrategy);
 
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     if (this.endpoint) {
-      this.form.transferBusinessObjectToForm(this.endpoint);
+      this.form().transferBusinessObjectToForm(this.endpoint);
       if (this.endpoint.feedSupport && this.endpoint.instrumentType) {
         this.configObject.feedSupportInstrumentType.formControl.setValue(
           `${this.endpoint.feedSupport}|${this.endpoint.instrumentType}`
@@ -306,7 +306,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
   }
 
   submit(value: { [name: string]: any }): void {
-    this.form.cleanMaskAndTransferValuesToBusinessObject(this.endpoint, false);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(this.endpoint, false);
     const combo = this.configObject.feedSupportInstrumentType.formControl.value;
     if (combo) {
       const [feedSupport, instrumentType] = combo.split('|');

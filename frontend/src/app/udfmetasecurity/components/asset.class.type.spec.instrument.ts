@@ -128,7 +128,7 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
       .pipe(this.untilDialogClosed())
       .subscribe(({ mapping, texts }) => {
         this.assetclassSpezInstMap = mapping;
-        this.form.setDefaultValuesAndEnableSubmit();
+        this.form().setDefaultValuesAndEnableSubmit();
         const options = (keys: string[]) =>
           keys
             .map((key) => new ValueKeyHtmlSelectOptions(key, texts[key]))

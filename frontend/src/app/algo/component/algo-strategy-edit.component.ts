@@ -119,7 +119,7 @@ risk_controls:
   template: ` <p-dialog
     styleClass="big-dialog"
     header="{{ 'ALGO_STRATEGY' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: dialogWidth() }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -261,11 +261,11 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    */
   async submitComplexStrategy(): Promise<void> {
     if (!(await this.yamlEditor.validateForSubmit())) return;
-    if (this.destroyRef.destroyed || !this.visibleDialog) return;
+    if (this.destroyRef.destroyed || !this.visibleDialog()) return;
     if (this.yamlContent() && this.parseYaml(this.yamlContent()) === undefined) {
       return;
     }
-    const value = { ...this.form.value };
+    const value = { ...this.form().value };
     value[AlgoStrategyEditComponent.FIELD_STRATEGY_CONFIG] = this.yamlContent();
     this.submit(value);
   }
@@ -392,7 +392,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
         this.yamlContent.set(algoStrategy.strategyConfig);
       }
     }
-    this.form.transferBusinessObjectToForm(model);
+    this.form().transferBusinessObjectToForm(model);
     this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.disable();
     this.ignoreValueChanged = false;
   }
@@ -450,7 +450,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     Object.entries(this.strategyDefaults).forEach(([field, value]) => {
       if (dynamicModel[field] == null) dynamicModel[field] = value;
     });
-    this.form.transferBusinessObjectToForm(dynamicModel);
+    this.form().transferBusinessObjectToForm(dynamicModel);
     this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.disable();
     this.ignoreValueChanged = false;
   }
@@ -460,7 +460,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     if (this.algoCallParam.thisObject) {
       Object.assign(algoStrategy, this.algoCallParam.thisObject);
     }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(algoStrategy);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(algoStrategy);
     algoStrategy.idAlgoAssetclassSecurity = this.algoCallParam.parentObject.idAlgoAssetclassSecurity;
 
     if (this.isComplexStrategy()) {

@@ -1,5 +1,5 @@
 import { BaseInputComponent } from '../base.input.component';
-import { Component, DestroyRef, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -18,13 +18,16 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-input-tree-select',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     <p-treeselect
       [style]="{ width: '100%' }"
       [class.required-input]="isRequired"
       [id]="config.field"
       [options]="config.treeNodes ?? noTreeNodes"
-      [(ngModel)]="selectedNodes"
+      [ngModel]="selectedNodes()"
       (ngModelChange)="onSelectionChange($event)"
       selectionMode="checkbox"
       display="chip"
@@ -46,32 +49,32 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
     TranslateModule,
     FilterOutPipe
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormInputTreeSelectComponent extends BaseInputComponent implements OnInit {
   /** Shown while config.treeNodes is not set; one constant, so the binding does not change on every check. */
   readonly noTreeNodes: TreeNode[] = [];
-  selectedNodes: any;
+  readonly selectedNodes = signal<any>(undefined);
   private readonly destroyRef = inject(DestroyRef);
   private updatingFromNgModel = false;
 
   override ngOnInit(): void {
     super.ngOnInit();
     // Sync initial value from form control to ngModel
-    const formControl = this.group.get(this.config.field);
-    this.selectedNodes = formControl?.value || undefined;
+    const formControl = this.group().get(this.config().field);
+    this.selectedNodes.set(formControl?.value || undefined);
     // Listen for programmatic changes from the form control
     formControl?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((val) => {
       if (!this.updatingFromNgModel) {
-        this.selectedNodes = val || undefined;
+        this.selectedNodes.set(val || undefined);
       }
     });
   }
 
   onSelectionChange(value: any): void {
+    this.selectedNodes.set(value);
     this.updatingFromNgModel = true;
-    this.group.get(this.config.field)?.setValue(value);
+    this.group().get(this.config().field)?.setValue(value);
     this.updatingFromNgModel = false;
   }
 }

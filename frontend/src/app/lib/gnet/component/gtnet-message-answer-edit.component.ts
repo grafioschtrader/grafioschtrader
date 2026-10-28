@@ -83,7 +83,7 @@ const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
   template: `
     <p-dialog
       header="{{ 'GT_NET_MESSAGE_ANSWER' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '600px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -177,7 +177,7 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
         typeof entity.requestMsgCode === 'number' ? GTNetMessageCodeType[entity.requestMsgCode] : entity.requestMsgCode;
       this.updateResponseCodeOptions(requestCodeName as string);
     }
-    this.form.transferBusinessObjectToForm(entity);
+    this.form().transferBusinessObjectToForm(entity);
 
     // Bind cursor tracking for context-aware menu filtering
     this.bindTextareaEvents();

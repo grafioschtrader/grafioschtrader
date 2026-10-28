@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { CheckboxModule } from '@openng/optimus-ui/checkbox';
@@ -63,7 +63,6 @@ export interface ColumnVisibilityOwner {
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .column-visibility-frozen {

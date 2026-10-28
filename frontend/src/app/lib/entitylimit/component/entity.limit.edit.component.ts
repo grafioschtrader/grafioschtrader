@@ -38,7 +38,7 @@ import { BaseSettings } from '../../base.settings';
   selector: 'entity-limit-edit',
   template: ` <p-dialog
     header="{{ 'ENTITY_LIMIT_INFO_CLASS' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '560px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -153,7 +153,7 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
           this.proposeChangeEntityWithEntity
             ? this.proposeChangeEntityWithEntity.proposedEntity
             : this.existingEntityLimit,
-          this.form,
+          this.form(),
           this.configObject,
           this.proposeChangeEntityWithEntity
         );

@@ -26,7 +26,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
   template: `
     <p-dialog
       header="{{ i18nRecord | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -114,7 +114,7 @@ export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetc
       this.translateService,
       this.gps,
       this.callParam.assetclass,
-      this.form,
+      this.form(),
       this.configObject,
       this.proposeChangeEntityWithEntity
     );
@@ -132,7 +132,7 @@ export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetc
     this.copyFormToPublicBusinessObject(assetclass, this.callParam.assetclass, this.proposeChangeEntityWithEntity);
 
     const values: any = {};
-    this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);
     assetclass.subCategoryNLS.map.de = values.de;
     assetclass.subCategoryNLS.map.en = values.en;
     return assetclass;

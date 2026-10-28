@@ -31,7 +31,7 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
   imports: [DialogModule, DynamicFormModule, TranslateModule, ButtonModule, MessageModule],
   template: `<p-dialog
     [header]="'ACCESS_TOKEN_CREATE' | translate"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '560px' }"
     [modal]="true"
     appendTo="body"
@@ -88,8 +88,8 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
 
   protected override initialize(): void {
     this.created.set(null);
-    this.form.setDefaultValuesAndEnableSubmit();
-    this.form.setValue('expiresInDays', 90);
+    this.form().setDefaultValuesAndEnableSubmit();
+    this.form().setValue('expiresInDays', 90);
   }
 
   submit(value: { [name: string]: any }): void {
@@ -121,7 +121,7 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
     const action = this.created() ? ProcessedAction.CREATED : ProcessedAction.NO_CHANGE;
     this.created.set(null);
     this.renewDialogSession();
-    if (this.visibleDialog) {
+    if (this.visibleDialog()) {
       this.closeDialog.emit(new ProcessedActionData(action));
     }
   }

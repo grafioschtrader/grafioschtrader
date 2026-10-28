@@ -17,8 +17,9 @@ import { TranslateValue } from '../datashowbase/column.config';
   template: `<configurable-table
     [data]="rows"
     [fields]="fields"
+    [fieldsRevision]="fieldsRevision()"
     dataKey="id"
-    [valueGetterFn]="getValueByPath.bind(this)"></configurable-table>`
+    [valueGetterFn]="valueGetter"></configurable-table>`
 })
 export class DashboardTableComponent extends TableConfigBase implements OnChanges {
   @Input() rows: DashboardRow[] = [];

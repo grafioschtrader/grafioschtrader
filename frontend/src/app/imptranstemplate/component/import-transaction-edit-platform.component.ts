@@ -24,7 +24,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
   selector: 'import-transaction-edit-platform',
   template: ` <p-dialog
     header="{{ 'IMPORT_TRANSACTION_PLATFORM' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '500px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -80,12 +80,12 @@ export class ImportTransactionEditPlatformComponent
   }
 
   protected override initialize(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
       <Auditable>this.callParam.thisObject,
-      this.form,
+      this.form(),
       this.configObject,
       this.proposeChangeEntityWithEntity
     );
@@ -97,7 +97,7 @@ export class ImportTransactionEditPlatformComponent
     if (this.callParam.thisObject) {
       Object.assign(importTransactionPlatform, this.callParam.thisObject);
     }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(importTransactionPlatform);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(importTransactionPlatform);
     return importTransactionPlatform;
   }
 }

@@ -1,6 +1,6 @@
 <p-dialog
   header="{{uDFGeneralCallParam.titleKey | translate}}"
-  [visible]="visibleDialog"
+  [visible]="visibleDialog()"
   [style]="{width: '500px'}"
   (onShow)="onShow($event)"
   (onHide)="onHide($event)"

@@ -14,7 +14,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
   template: `
     <p-dialog
       header="{{ 'CHANGE_TO_ACCOUNT_TRANSFER' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '450px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"

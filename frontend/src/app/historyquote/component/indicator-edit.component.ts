@@ -15,7 +15,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
   selector: 'indicator-edit',
   template: ` <p-dialog
     header="{{ 'DEFINITION' | translate }}: {{ taEditParam.taIndicators | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -56,7 +56,7 @@ export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implement
   protected override initialize(): void {
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     // The form controls of the indicator fields exist only after the next render.
-    afterNextRender(() => this.form.transferBusinessObjectToForm(this.taEditParam.taDynamicDataModel), {
+    afterNextRender(() => this.form().transferBusinessObjectToForm(this.taEditParam.taDynamicDataModel), {
       injector: this.injector
     });
   }

@@ -1,11 +1,14 @@
 import { BaseInputComponent } from '../base.input.component';
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { FileRequiredValidator } from './file-input.validator';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'form-file-upload',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <input
@@ -21,19 +24,18 @@ import { ReactiveFormsModule } from '@angular/forms';
     </ng-container>
   `,
   imports: [ReactiveFormsModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormFileUploadComponent extends BaseInputComponent {
   fileToUpload: File = null;
 
   handleChangeFileInput(files: FileList) {
-    if (this.config.handleChangeFileInputFN) {
-      this.config.handleChangeFileInputFN(files);
+    if (this.config().handleChangeFileInputFN) {
+      this.config().handleChangeFileInputFN(files);
     }
   }
 
   override reEvaluateRequired(): void {
-    this.isRequired = this.config.validation && this.config.validation.indexOf(FileRequiredValidator.validate) >= 0;
+    this.isRequired = this.config().validation && this.config().validation.indexOf(FileRequiredValidator.validate) >= 0;
   }
 }

@@ -27,7 +27,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
   selector: 'algo-assetclass-edit',
   template: ` <p-dialog
     header="{{ 'ALGO_ASSETCLASS' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '600px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -107,7 +107,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
           );
         this.setAccountOptions(data[1]);
         if (existing) {
-          this.form.transferBusinessObjectToForm(existing);
+          this.form().transferBusinessObjectToForm(existing);
           // A saved priority whose account no longer allows the type is cleared, the backend would refuse it.
           this.setAccountOptions(data[1]);
         } else {
@@ -135,7 +135,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     if (this.algoCallParam.thisObject) {
       Object.assign(algoAssetclass, this.algoCallParam.thisObject);
     }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(algoAssetclass);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(algoAssetclass);
     // Not an entity field: it only asks the hierarchy view to open the instrument search after the save.
     this.algoCallParam.addInstrumentsBySearch = !!this.configObject.addInstrumentsBySearch.formControl.value;
     delete algoAssetclass['addInstrumentsBySearch'];

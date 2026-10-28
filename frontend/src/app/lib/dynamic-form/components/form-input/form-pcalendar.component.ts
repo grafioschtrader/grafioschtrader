@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 import { Helper } from '../../../helper/helper';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
@@ -12,6 +12,9 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-pcalendar',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-datepicker
@@ -40,7 +43,6 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
     </ng-container>
   `,
   imports: [ReactiveFormsModule, DatePicker, TooltipModule, TranslateModule, FilterOutPipe],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormPCalendarComponent extends BaseInputComponent implements OnInit, OnDestroy {
@@ -55,11 +57,11 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
 
   override ngOnInit() {
     super.ngOnInit();
-    this.language = Helper.CALENDAR_LANG[this.formConfig.language];
+    this.language = Helper.CALENDAR_LANG[this.formConfig().language];
     // Every accepted date, no matter if it was entered or chosen over the calendar, withdraws a former complaint.
     // Otherwise a rejected entry would keep the field invalid even after a correct date was selected.
-    this.valueChangedSub = this.group.controls[this.config.field]?.valueChanges.subscribe(() =>
-      this.setOwnError(this.group.controls[this.config.field], null)
+    this.valueChangedSub = this.group().controls[this.config().field]?.valueChanges.subscribe(() =>
+      this.setOwnError(this.group().controls[this.config().field], null)
     );
   }
 
@@ -81,7 +83,7 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
    * @param event Blur event of the input field, it still carries the text which the user has entered
    */
   onCalendarBlur(event: Event): void {
-    const control = this.group.controls[this.config.field];
+    const control = this.group().controls[this.config().field];
     if (!control || !this.datePicker) {
       return;
     }

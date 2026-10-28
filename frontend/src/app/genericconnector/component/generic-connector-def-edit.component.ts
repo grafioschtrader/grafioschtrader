@@ -32,7 +32,7 @@ import { combineLatest } from 'rxjs';
   template: ` <p-dialog
     styleClass="big-dialog"
     header="{{ 'GENERIC_CONNECTOR_DEF' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '900px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -147,9 +147,9 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     this.configObject.geoInclusions.formControl.valueChanges
       .pipe(this.untilDialogClosed())
       .subscribe(() => this.rebuildExclusionsTree());
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     if (this.callParam) {
-      this.form.transferBusinessObjectToForm(this.callParam);
+      this.form().transferBusinessObjectToForm(this.callParam);
       this.loadSupportedCategories();
     }
     this.tokenConfigYamlValue.set(this.callParam?.tokenConfigYaml || '');
@@ -462,9 +462,9 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GenericConnectorDef {
     const entity = new GenericConnectorDef();
     this.copyFormToPublicBusinessObject(entity, this.callParam, null);
-    this.form.cleanMaskAndTransferValuesToBusinessObject(entity);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(entity);
     const values: any = {};
-    this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);
     entity.descriptionNLS = entity.descriptionNLS || new MultilanguageString();
     entity.descriptionNLS.map = entity.descriptionNLS.map || {
       de: null,

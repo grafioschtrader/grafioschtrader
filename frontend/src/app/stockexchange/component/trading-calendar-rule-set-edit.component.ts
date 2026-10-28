@@ -33,7 +33,7 @@ import { TradingCalendarRuleSetPreviewComponent } from './trading-calendar-rule-
   template: ` <p-dialog
     styleClass="big-dialog"
     header="{{ i18nRecord | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '900px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -160,12 +160,12 @@ export class TradingCalendarRuleSetEditComponent
     this.previewClosures.set({});
     this.previewError.set(null);
     this.optionsLoaded = false;
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
       this.callParam,
-      this.form,
+      this.form(),
       this.configObject,
       this.proposeChangeEntityWithEntity
     );

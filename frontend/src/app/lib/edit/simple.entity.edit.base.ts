@@ -89,7 +89,7 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
    * @returns {T} The updated target entity with form data applied
    */
   public copyFormToPrivateBusinessObject(targetEntity: T, existingEntity: T): T {
-    return EditHelper.copyFormToPrivateBusinessObject(targetEntity, existingEntity, this.form);
+    return EditHelper.copyFormToPrivateBusinessObject(targetEntity, existingEntity, this.form());
   }
 
   /**
@@ -109,7 +109,7 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
       targetEntity,
       existingEntity,
       proposeChangeEntityWithEntity,
-      this.form,
+      this.form(),
       this
     );
   }

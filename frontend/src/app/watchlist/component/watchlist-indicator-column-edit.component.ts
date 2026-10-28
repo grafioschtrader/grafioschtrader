@@ -27,7 +27,7 @@ import { debounceTime, distinctUntilChanged, switchMap, catchError, of } from 'r
   imports: [ButtonModule, TranslateModule, DialogModule, DynamicFormComponent],
   template: `<p-dialog
     [header]="'WATCHLIST_INDICATOR_COLUMN' | translate"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [modal]="true"
     [style]="{ width: '620px', maxHeight: '90vh' }"
     appendTo="body"
@@ -106,8 +106,8 @@ export class WatchlistIndicatorColumnEditComponent
       });
     const row = this.callParam.thisObject ?? new WatchlistIndicatorColumn();
     this.benchmark = row.idBenchmark;
-    this.form.setDefaultValuesAndEnableSubmit();
-    this.form.transferBusinessObjectToForm(row);
+    this.form().setDefaultValuesAndEnableSubmit();
+    this.form().transferBusinessObjectToForm(row);
     if (this.benchmark)
       this.configObject.benchmarkName.formControl.setValue(
         this.callParam.optParam.benchmarks[this.benchmark] ?? this.translateService.instant('WIC_BENCHMARK_MISSING')

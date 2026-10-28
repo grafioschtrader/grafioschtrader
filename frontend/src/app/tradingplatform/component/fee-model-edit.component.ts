@@ -64,7 +64,7 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
       <p-dialog
         styleClass="big-dialog"
         header="{{ 'FEE_MODEL_YAML' | translate }}"
-        [visible]="visibleDialog"
+        [visible]="visibleDialog()"
         [style]="{ width: '900px' }"
         (onShow)="onShow($event)"
         (onHide)="onHide($event)"
@@ -219,7 +219,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       this.feeModelYamlValue.set(this.callParam?.feeModelYaml || '');
     }
     this.testResult.set(null);
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     const enumKeys = (e: any): string[] => Object.keys(e).filter((key) => typeof e[key] === 'number');
     const instrumentKeys = enumKeys(SpecialInvestmentInstruments);
     const categoryKeys = enumKeys(AssetclassType);

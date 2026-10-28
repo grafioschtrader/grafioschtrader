@@ -1,13 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  Output,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { merge, Subscription } from 'rxjs';
 import { FormNotifier } from '../../models/form.notifier';
@@ -96,7 +87,6 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
     ButtonModule,
     DynamicFieldDirective
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {

@@ -234,7 +234,7 @@ const translateLoader = (http: HttpClient) =>
 
 bootstrapApplication(GrafioschAppComponent, {
   providers: [
-    // Angular 22 bootstraps zoneless by default. Library state owners notify Angular even while a component is Eager.
+    // Angular 22 bootstraps zoneless by default; the library's OnPush components notify every asynchronous change.
     provideHttpClient(withXhr(), withInterceptors([authInterceptor]), withInterceptorsFromDi()),
     provideDialogCloseKeepsFocus(),
     provideRouter(

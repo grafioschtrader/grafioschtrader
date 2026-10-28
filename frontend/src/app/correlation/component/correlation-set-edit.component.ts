@@ -22,7 +22,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
   selector: 'correlation-set-edit',
   template: ` <p-dialog
     header="{{ 'CORRELATION_SET' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -95,7 +95,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
     );
     this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit);
     if (this.callParam.thisObject != null) {
-      this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+      this.form().transferBusinessObjectToForm(this.callParam.thisObject);
     }
     afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }

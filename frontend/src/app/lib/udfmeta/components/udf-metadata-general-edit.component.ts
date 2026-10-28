@@ -30,7 +30,7 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
   template: `
     <p-dialog
       header="{{ i18nRecord | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -112,7 +112,7 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
     );
     UDFMetadataHelper.prepareDataTypeFields(
       this.translateService,
-      this.form,
+      this.form(),
       this.configObject,
       this.callParam.excludeUiOrders,
       this.callParam.uDFMetadataGeneral,

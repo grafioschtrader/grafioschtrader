@@ -41,7 +41,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
   template: `
     <p-dialog
       header="{{ 'DELETE_CREATE_TYPES_QUOTES' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -146,7 +146,7 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
   }
 
   protected override initialize(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     this.configObject[this.dateFrom].formControl.setValue(
       HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.minDate)
     );
@@ -171,8 +171,8 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     });
     // The function button is outside the form and therefore not disabled by an invalid form on its own. Without this
     // the user could send a cleared or out of range date, which the server would only answer with a validation error.
-    this.form.form.statusChanges
-      .pipe(this.untilDialogClosed())
+    this.form()
+      .form.statusChanges.pipe(this.untilDialogClosed())
       .subscribe((status) => (this.configObject.execute.disabled = status !== 'VALID'));
   }
 

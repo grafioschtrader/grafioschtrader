@@ -39,13 +39,12 @@ The frontend should only contain:
 
 ## Change detection
 
-Angular 22 makes `OnPush` the component default, and GT is moving there module by module. The reusable library
-notifies Angular of every change it makes, so a new component never needs `Eager`.
+Angular 22 makes `OnPush` the component default. Every component of GT and the reusable library runs with it.
+The reusable library notifies Angular of every change it makes, so a new component never needs `Eager`.
 
 - **New components declare no `changeDetection`** — the `OnPush` default applies. `src/change-detection.ratchet.spec.ts`
   fails `npm test` for any file with `ChangeDetectionStrategy.Eager` (or `Default`) that is not listed in
-  `src/eager-allowlist.txt`. The list only shrinks: converting a component removes its line in the same commit, and a
-  line whose file no longer declares `Eager` fails the test as well.
+  `src/eager-allowlist.txt`. The list is empty and stays empty until it is removed with GT's zone.js polyfill.
 - **Template state written asynchronously is a signal** — in an HTTP or translation callback, a timer, a
   `valueChanges` subscription or a menu command. Derived state is a `computed`, not a second mutable copy. A signal is
   changed only with a new reference: `list.update((l) => [...l, x])`, never `update((l) => { l.push(x); return l; })`.
@@ -88,6 +87,10 @@ notifies Angular of every change it makes, so a new component never needs `Eager
   activation without `registerPanel` / `callMeDeactivate`.
 - View synchronisation after a render uses `afterNextRender(..., { injector })`, not `setTimeout`; `setTimeout`
   remains for a real delay or debounce.
+- **Dynamically created form fields** inherit `config`, `formConfig` and `group` as required signal inputs from
+  `BaseInputComponent`; button fields declare the same inputs. `DynamicFieldDirective` passes them through
+  `ComponentRef.setInput()`. A field template reads its form's `notifier.revision()` as well, because display
+  properties of `FieldConfig` change in place.
 
 ## Component Separation: Form Inputs + Table
 
@@ -198,7 +201,8 @@ When using `ConfigurableTableComponent`, **always** bind the `valueGetterFn` and
 
 `valueGetter` is a stable member of `ShowRecordConfigBase` that calls `getValueByPath`, so overrides keep working.
 `fieldsRevision` re-renders the table after its columns changed in place (header translations, widths, column
-visibility, frozen columns).
+visibility, frozen columns). The table host publishes a new columns array on each revision, so the Optimus OnPush
+table refreshes its embedded templates too.
 
 **CRITICAL**: The `[valueGetterFn]="valueGetter"` binding is **required** for NLS translations to work in table columns. Without this binding:
 
@@ -499,10 +503,11 @@ FormBase (abstract)
 
 **Provides**:
 
-- `@Input() visibleDialog: boolean` - Dialog visibility control
-- `@Output() closeDialog: EventEmitter<ProcessedActionData>` - Close event
-- `@ViewChild(DynamicFormComponent) form` - Form access
+- `visibleDialog = input(false)` - Dialog visibility control; read with `visibleDialog()`
+- `closeDialog = output<ProcessedActionData>()` - Close event; emit with `closeDialog.emit(...)`
+- `form = viewChild(DynamicFormComponent)` - Form access through `this.form()`
 - `onShow(event)` / `onHide(event)` - Lifecycle handlers; each starts a new dialog session
+- `initialize()` runs through `afterNextRender`; hiding or reopening cancels pending initialisation
 - `untilDialogClosed()` - Operator ending a subscription with the dialog session
 - `destroyRef` / `viewChanged()` - Component lifetime and the mark-for-check fallback for own template fields
 - `helpLink()` - Context-sensitive help
@@ -520,7 +525,7 @@ protected abstract initialize(): void;  // Called on dialog show
 
 ```typescript
 @Component({
-  template: ` <p-dialog [visible]="visibleDialog" (onShow)="onShow($event)" (onHide)="onHide($event)">
+  template: ` <p-dialog [visible]="visibleDialog()" (onShow)="onShow($event)" (onHide)="onHide($event)">
     <dynamic-form
       [config]="config"
       [formConfig]="formConfig"
@@ -758,11 +763,11 @@ protected override initialize(): void {
   this.updateMyFieldDependencies(this.entity?.myField);
 
   // 3. Enable form
-  this.form.setDefaultValuesAndEnableSubmit();
+  this.form().setDefaultValuesAndEnableSubmit();
 
   // 4. Transfer existing entity values (edit case)
   if (this.entity) {
-    this.form.transferBusinessObjectToForm(this.entity);
+    this.form().transferBusinessObjectToForm(this.entity);
   }
 }
 ```
@@ -960,7 +965,7 @@ Before writing code, find and read an existing dialog that matches your use case
   template: `
     <p-dialog
       header="{{ 'DIALOG_TITLE' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -1314,7 +1319,7 @@ required, ranges, regex) — the backend entity is the single source of truth.
 ### Timing: config must be built synchronously in the dialog's `ngOnInit`
 
 `<dynamic-form>` builds its `FormGroup` from `config` during its own `ngOnInit`, so for a dialog
-mounted lazily (`@if (visibleDialog)`) the config **must already be set when the dialog renders** —
+mounted lazily (`@if (visibleDialog())`) the config **must already be set when the dialog renders** —
 assigning it later from an async fetch leaves the form empty (edit values do not transfer reliably).
 
 **Pattern: the opener pre-fetches the descriptor and passes it via `callParam`.** Because

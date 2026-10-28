@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { DynamicFormComponent } from '../app/lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
@@ -39,7 +39,6 @@ import { GrafioschTenant, GrafioschTenantService } from './grafiosch-tenant.serv
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DynamicFormComponent]
 })
 export class GrafioschTenantEditComponent implements OnInit {
@@ -54,7 +53,9 @@ export class GrafioschTenantEditComponent implements OnInit {
     private loginService: LoginService,
     private messageToastService: MessageToastService,
     private tenantService: GrafioschTenantService
-  ) {}
+  ) {
+    afterNextRender(() => this.form.setDefaultValuesAndEnableSubmit());
+  }
 
   ngOnInit(): void {
     this.formConfig = { labelColumns: 4 };
@@ -63,7 +64,6 @@ export class GrafioschTenantEditComponent implements OnInit {
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    setTimeout(() => this.form.setDefaultValuesAndEnableSubmit());
   }
 
   submit(value: { [name: string]: any }): void {

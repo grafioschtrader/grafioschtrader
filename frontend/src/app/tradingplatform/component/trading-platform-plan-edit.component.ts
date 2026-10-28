@@ -26,7 +26,7 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
   selector: 'trading-platform-plan-edit',
   template: ` <p-dialog
     header="{{ 'TRADING_PLATFORM_PLAN' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '900px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -93,12 +93,12 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
   }
 
   protected override initialize(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
       this.callParam,
-      this.form,
+      this.form(),
       this.configObject,
       this.proposeChangeEntityWithEntity
     );
@@ -137,7 +137,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TradingPlatformPlan {
     const tradingPlatformPlan = new TradingPlatformPlan();
     this.copyFormToPublicBusinessObject(tradingPlatformPlan, this.callParam, this.proposeChangeEntityWithEntity);
-    this.form.cleanMaskAndTransferValuesToBusinessObject(tradingPlatformPlan);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(tradingPlatformPlan);
     if (tradingPlatformPlan.countryCode === '') {
       tradingPlatformPlan.countryCode = null;
     }
@@ -146,7 +146,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
         importTransactionPlatform.idTransactionImportPlatform === +value.idTransactionImportPlatform
     );
     const values: any = {};
-    this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);
     tradingPlatformPlan.platformPlanNameNLS.map.de = values.de;
     tradingPlatformPlan.platformPlanNameNLS.map.en = values.en;
     return tradingPlatformPlan;

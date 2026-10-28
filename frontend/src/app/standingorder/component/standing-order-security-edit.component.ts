@@ -43,7 +43,7 @@ enum InvestMode {
   template: `
     <p-dialog
       header="{{ 'STANDING_ORDER_SECURITY' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       (visibleChange)="!$event && onHide($event)"
       [style]="{ width: '600px' }"
       (onShow)="onShow($event)"
@@ -205,7 +205,7 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
       if (so.idSecurityaccount) {
         this.configObject.idSecurityaccount.formControl.setValue(so.idSecurityaccount);
       }
-      this.form.transferBusinessObjectToForm(so);
+      this.form().transferBusinessObjectToForm(so);
       if (so.security) {
         this.selectedSecurity = so.security as Security;
         this.configObject.securityName.formControl.setValue(so.security.name);

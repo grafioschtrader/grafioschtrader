@@ -78,7 +78,7 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
       this.translateService,
       this.gps,
       this.getSecuritycurrency(),
-      this.form,
+      this.form(),
       this.configObject,
       this.proposeChangeEntityWithEntity,
       false

@@ -24,7 +24,7 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
   selector: 'connector-api-key-edit',
   template: ` <p-dialog
     header="{{ 'CONNECTOR_API_KEY' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '600px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -85,10 +85,10 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
       false,
       this.connectorApiKey ? [] : this.existingProviders
     );
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     this.updateSubscriptionTypeVisibility(this.connectorApiKey?.idProvider);
     if (this.connectorApiKey) {
-      this.form.transferBusinessObjectToForm(this.connectorApiKey);
+      this.form().transferBusinessObjectToForm(this.connectorApiKey);
       this.configObject.idProvider.formControl.disable();
     } else {
       this.configObject.idProvider.formControl.enable();

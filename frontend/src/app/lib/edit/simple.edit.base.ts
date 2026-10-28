@@ -5,11 +5,13 @@ import {
   ChangeDetectorRef,
   DestroyRef,
   Directive,
-  EventEmitter,
+  afterNextRender,
+  AfterRenderRef,
   inject,
-  Input,
-  Output,
-  ViewChild
+  input,
+  Injector,
+  output,
+  viewChild
 } from '@angular/core';
 import { MonoTypeOperatorFunction, Subscription } from 'rxjs';
 import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
@@ -22,18 +24,20 @@ import { untilSessionEnds } from './dialog.session';
 @Directive()
 export abstract class SimpleEditBase extends FormBase {
   // Input from parent view
-  @Input() visibleDialog: boolean;
+  readonly visibleDialog = input(false);
 
   // Output for parent view
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
 
   // Access child components
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   /** Lifetime of the component, for subscriptions created outside an injection context */
   protected readonly destroyRef = inject(DestroyRef);
 
   protected readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly dialogRenderInjector = inject(Injector);
+  private pendingInitialize?: AfterRenderRef;
 
   /**
    * Subscriptions of the current dialog session, from one onShow to the following onHide. Replaced at the start of
@@ -51,10 +55,13 @@ export abstract class SimpleEditBase extends FormBase {
 
   public onShow(event) {
     this.renewDialogSession();
-    setTimeout(() => {
-      this.initialize();
-      this.viewChanged();
-    });
+    this.pendingInitialize = afterNextRender(
+      () => {
+        this.initialize();
+        this.viewChanged();
+      },
+      { injector: this.dialogRenderInjector }
+    );
   }
 
   helpLink(): void {
@@ -65,7 +72,7 @@ export abstract class SimpleEditBase extends FormBase {
     this.renewDialogSession();
     // Only emit when visibleDialog is still true (user initiated close).
     // Prevents double emission when parent sets visibleDialog to false.
-    if (this.visibleDialog) {
+    if (this.visibleDialog()) {
       this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
     }
   }
@@ -88,6 +95,7 @@ export abstract class SimpleEditBase extends FormBase {
 
   /** Ends the subscriptions of the current dialog session and opens a new one. */
   protected renewDialogSession(): void {
+    this.pendingInitialize?.destroy();
     this.dialogSession.unsubscribe();
     this.dialogSession = new Subscription();
   }

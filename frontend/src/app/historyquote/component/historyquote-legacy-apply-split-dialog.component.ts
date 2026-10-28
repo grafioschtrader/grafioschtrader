@@ -28,7 +28,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
   template: `
     <p-dialog
       header="{{ 'HISTORYQUOTE_LEGACY_APPLY_SPLIT' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -86,6 +86,6 @@ export class HistoryquoteLegacyApplySplitDialogComponent extends SimpleEditBase 
   }
 
   protected override initialize(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
   }
 }

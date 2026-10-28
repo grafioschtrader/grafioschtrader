@@ -26,7 +26,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
   selector: 'cashaccount-edit',
   template: ` <p-dialog
     header="{{ i18nRecord | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '400px', minWidth: '350px', minHeight: '180px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -91,9 +91,9 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
       this.configObject.currency.formControl.disable();
     }
     this.prepareSecurityaccountOption();
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     if (this.callParam.thisObject != null) {
-      this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+      this.form().transferBusinessObjectToForm(this.callParam.thisObject);
     }
     this.configObject.name.elementRef.nativeElement.focus();
     // Currency options load asynchronously and only populate the dropdown; they must not reset the form.

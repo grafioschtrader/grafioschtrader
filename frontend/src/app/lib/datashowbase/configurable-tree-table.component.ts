@@ -4,9 +4,10 @@ import {
   EventEmitter,
   input,
   Input,
+  OnChanges,
+  SimpleChanges,
   Output,
-  TemplateRef,
-  ChangeDetectionStrategy
+  TemplateRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -57,17 +58,17 @@ export interface TreeTableCellEditEvent {
  * Usage example (simple):
  * ```html
  * <configurable-tree-table
- *   [data]="treeNodes" [fields]="fields" dataKey="uniqueKey"
- *   [valueGetterFn]="getValueByPath.bind(this)">
+ *   [data]="treeNodes" [fields]="fields" [fieldsRevision]="fieldsRevision()" dataKey="uniqueKey"
+ *   [valueGetterFn]="valueGetter">
  * </configurable-tree-table>
  * ```
  *
  * Usage example (with an expanded detail row):
  * ```html
  * <configurable-tree-table
- *   [data]="treeNodes" [fields]="fields" dataKey="nodeKey"
+ *   [data]="treeNodes" [fields]="fields" [fieldsRevision]="fieldsRevision()" dataKey="nodeKey"
  *   [expandable]="true"
- *   [canExpandFn]="canExpandNode.bind(this)"
+ *   [canExpandFn]="canExpandNode"
  *   [expandedRowTemplate]="expandedContent">
  * </configurable-tree-table>
  *
@@ -79,9 +80,9 @@ export interface TreeTableCellEditEvent {
  * Usage example (with cell editing):
  * ```html
  * <configurable-tree-table
- *   [data]="treeNodes" [fields]="fields" dataKey="id"
- *   [valueGetterFn]="getValueByPath.bind(this)"
- *   [canEditCellFn]="canEditCell.bind(this)"
+ *   [data]="treeNodes" [fields]="fields" [fieldsRevision]="fieldsRevision()" dataKey="id"
+ *   [valueGetterFn]="valueGetter"
+ *   [canEditCellFn]="canEditCell"
  *   (cellEditComplete)="onCellEditComplete($event)">
  * </configurable-tree-table>
  * ```
@@ -99,7 +100,6 @@ export interface TreeTableCellEditEvent {
     InputNumberModule,
     InputTextModule
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div
       #cmDiv
@@ -109,7 +109,7 @@ export interface TreeTableCellEditEvent {
       [class]="customClass">
       <p-treeTable
         [value]="data"
-        [columns]="fields"
+        [columns]="renderedFields"
         [dataKey]="dataKey"
         [selectionMode]="selectionMode"
         [(selection)]="selection"
@@ -310,7 +310,7 @@ export interface TreeTableCellEditEvent {
     </div>
   `
 })
-export class ConfigurableTreeTableComponent {
+export class ConfigurableTreeTableComponent implements OnChanges {
   // ============================================================================
   // Data and Column Configuration
   // ============================================================================
@@ -320,6 +320,14 @@ export class ConfigurableTreeTableComponent {
 
   /** Array of column configurations defining tree table structure. */
   @Input() fields: ColumnConfig[] = [];
+  /** New reference carries in-place column changes into the Optimus OnPush tree table. */
+  renderedFields: ColumnConfig[] = [];
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['fields'] || changes['fieldsRevision']) {
+      this.renderedFields = [...this.fields];
+    }
+  }
 
   /**
    * Revision of the column configuration, bound as [fieldsRevision]="fieldsRevision()" of the owning table base. A

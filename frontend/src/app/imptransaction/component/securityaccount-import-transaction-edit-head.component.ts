@@ -21,7 +21,7 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
   selector: 'securityaccount-import-transaction-edit-head',
   template: ` <p-dialog
     header="{{ 'IMPORT_SET' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '400px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -77,9 +77,9 @@ export class SecurityaccountImportTransactionEditHeadComponent
   }
 
   protected override initialize(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     if (this.callParam.thisObject) {
-      this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+      this.form().transferBusinessObjectToForm(this.callParam.thisObject);
     }
     afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }
@@ -91,7 +91,7 @@ export class SecurityaccountImportTransactionEditHeadComponent
     } else {
       importTransactionHead.securityaccount = <Securityaccount>this.callParam.parentObject;
     }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(importTransactionHead);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(importTransactionHead);
     return importTransactionHead;
   }
 }

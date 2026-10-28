@@ -25,11 +25,12 @@ import { HoldingMoversBranch, HoldingMoversRanking, HoldingMoversRow } from '../
     <configurable-tree-table
       [data]="treeNodes"
       [fields]="fields"
+      [fieldsRevision]="fieldsRevision()"
       dataKey="nodeKey"
       [enableSort]="false"
       [scrollable]="true"
       [scrollHeight]="scrollHeight"
-      [valueGetterFn]="getValueByPath.bind(this)"
+      [valueGetterFn]="valueGetter"
       (nodeExpand)="onBranchToggled($event, true)"
       (nodeCollapse)="onBranchToggled($event, false)" />
   `

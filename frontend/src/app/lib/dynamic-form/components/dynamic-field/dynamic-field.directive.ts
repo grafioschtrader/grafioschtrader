@@ -42,7 +42,7 @@ const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
   selector: 'dynamicField',
   standalone: true
 })
-export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChanges, OnInit {
+export class DynamicFieldDirective implements OnChanges, OnInit {
   @Input() config: FieldConfig;
   @Input() formConfig: FormConfig;
   @Input() group: UntypedFormGroup;
@@ -53,9 +53,9 @@ export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChange
 
   ngOnChanges() {
     if (this.component) {
-      this.component.instance.config = this.config;
-      this.component.instance.formConfig = this.formConfig;
-      this.component.instance.group = this.group;
+      this.component.setInput('config', this.config);
+      this.component.setInput('formConfig', this.formConfig);
+      this.component.setInput('group', this.group);
     }
   }
 
@@ -67,9 +67,9 @@ export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChange
         Supported types: ${supportedTypes}`
       );
     }
-    this.component = this.viewContainerRef.createComponent(components[this.config.inputType] as any);
-    this.component.instance.config = this.config;
-    this.component.instance.formConfig = this.formConfig;
-    this.component.instance.group = this.group;
+    this.component = this.viewContainerRef.createComponent(components[this.config.inputType]);
+    this.component.setInput('config', this.config);
+    this.component.setInput('formConfig', this.formConfig);
+    this.component.setInput('group', this.group);
   }
 }

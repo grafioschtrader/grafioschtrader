@@ -24,7 +24,7 @@ import { ValidatorFn } from '@angular/forms';
   selector: 'globalsettings-edit',
   template: ` <p-dialog
     header="{{ 'GLOBAL_SETTINGS' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '800px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -75,7 +75,7 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
   }
 
   protected override initialize(): void {
-    this.form.transferBusinessObjectToForm(this.globalparameters);
+    this.form().transferBusinessObjectToForm(this.globalparameters);
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Globalparameters {

@@ -33,7 +33,7 @@ import { DialogService } from '@openng/optimus-ui/dynamicdialog';
   template: `
     <p-dialog
       header="{{ 'CREATE_ISIN_CHANGE' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -86,7 +86,7 @@ export class SecurityActionCreateDialogComponent extends SimpleEditBase implemen
 
   protected override initialize(): void {
     this.selectedSecurity = null;
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
   }
 
   handleSecuritySearchClick(fieldConfig: FieldConfig): void {

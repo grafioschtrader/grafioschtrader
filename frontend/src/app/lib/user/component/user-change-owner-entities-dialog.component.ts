@@ -24,7 +24,7 @@ import { ProcessedAction } from '../../types/processed.action';
   selector: 'user-change-owner-entities',
   template: ` <p-dialog
     header="{{ 'USER_CHANGE_OWNER_ENTITIES' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '500px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"

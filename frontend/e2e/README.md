@@ -1445,6 +1445,11 @@ The suite fails before opening a browser unless `/api/integration-info` reports 
 Keep application workflows such as portfolio management and sharing in the default suite, even when a workflow also
 asserts that an email was sent. Put a test in `e2e/lib/` only when it can run using the standalone backend and host.
 
+`e2e/lib/034-editable-table-notification.spec.ts` adds an unsaved forwarding row through the table's context menu,
+checks that its populated select receives focus, cancels the row and repeats. It verifies the table's own row
+state and the two-way data binding without writing a forwarding setting. Run it individually with
+`npx playwright test e2e/lib/034-editable-table-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
+
 ### The library owns the helpers
 
 `e2e/lib/helpers.ts` holds the flows both suites share — the user JSON reader, the generic pipe-CSV parser, the

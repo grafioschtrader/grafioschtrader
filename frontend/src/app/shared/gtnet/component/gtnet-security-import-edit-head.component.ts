@@ -23,7 +23,7 @@ import { GTNetSecurityImpHeadService } from '../service/gtnet-security-imp-head.
   template: `
     <p-dialog
       header="{{ 'GTNET_SECURITY_IMP_HEAD' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '400px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -73,9 +73,9 @@ export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<G
   }
 
   protected override initialize(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     if (this.entity) {
-      this.form.transferBusinessObjectToForm(this.entity);
+      this.form().transferBusinessObjectToForm(this.entity);
     }
     afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });
   }
@@ -85,7 +85,7 @@ export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<G
     if (this.entity) {
       Object.assign(head, this.entity);
     }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(head);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(head);
     return head;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 
 import { FieldFormFormGroupConfig } from '../../models/field.form.form.group.config';
@@ -19,6 +19,9 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 @Component({
   selector: 'form-pbutton',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     @if (!config.buttonFN) {
       <button
@@ -63,16 +66,15 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
     }
   `,
   imports: [ButtonModule, TooltipModule, TranslateModule, FilterOutPipe, AngularSvgIconModule, ReactiveFormsModule],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormPButtonComponent implements FieldFormFormGroupConfig {
-  config: FieldConfig;
-  formConfig: FormConfig;
-  group: UntypedFormGroup;
+  readonly config = input.required<FieldConfig>();
+  readonly formConfig = input.required<FormConfig>();
+  readonly group = input.required<UntypedFormGroup>();
 
   /** Change notification of the form this field belongs to; the template reads its revision. */
   get notifier(): FormNotifier {
-    return FormNotifier.of(this.config);
+    return FormNotifier.of(this.config());
   }
 }

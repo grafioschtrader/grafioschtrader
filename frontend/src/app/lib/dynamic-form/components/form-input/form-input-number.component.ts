@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -40,6 +40,9 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 @Component({
   selector: 'form-inputnumber',
   template: `
+    @let config = this.config();
+    @let formConfig = this.formConfig();
+    @let group = this.group();
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-inputNumber
@@ -66,7 +69,6 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
     </ng-container>
   `,
   imports: [ReactiveFormsModule, CommonModule, InputNumberModule, TooltipModule, TranslateModule, FilterOutPipe],
-  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormInputNumberComponent extends BaseInputComponent {
@@ -75,7 +77,7 @@ export class FormInputNumberComponent extends BaseInputComponent {
    * p-inputNumber writes a number (not the formatted string) to the model.
    */
   get currentValue(): number | undefined {
-    const ctrl = this.group?.get(this.config.field);
+    const ctrl = this.group()?.get(this.config().field);
     const value = ctrl?.value;
     return value === null || value === undefined ? undefined : Number(value);
   }
@@ -88,11 +90,11 @@ export class FormInputNumberComponent extends BaseInputComponent {
    * - current value is negative
    */
   get useSwissNegativeWorkaround(): boolean {
-    if (this.formConfig?.locale !== 'de-CH') {
+    if (this.formConfig()?.locale !== 'de-CH') {
       return false;
     }
 
-    if (this.config.min == null || this.config.min >= 0) {
+    if (this.config().min == null || this.config().min >= 0) {
       // Negative values are not allowed
       return false;
     }
@@ -103,7 +105,7 @@ export class FormInputNumberComponent extends BaseInputComponent {
 
   /** Configured currency code (e.g. "CHF", "EUR") */
   get currency(): string | undefined {
-    return this.config.inputNumberSettings?.currency;
+    return this.config().inputNumberSettings?.currency;
   }
 
   /**

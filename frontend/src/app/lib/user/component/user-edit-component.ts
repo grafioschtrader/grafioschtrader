@@ -25,7 +25,7 @@ import { BaseSettings } from '../../base.settings';
   selector: 'user-edit',
   template: ` <p-dialog
     header="{{ 'USER_SETTINGS' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '500px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -88,19 +88,19 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
   }
 
   protected initialize(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     const proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity =
       AuditHelper.convertToProposeChangeEntityWithEntity(this.callParam, this.callParam.userChangePropose);
     this.configObject.mostPrivilegedRole.valueKeyHtmlOptions = SelectOptionsHelper.translateArrayKeyEqualValue(
       this.translateService,
       [BaseSettings.ROLE_LIMIT_EDIT, BaseSettings.ROLE_USER, BaseSettings.ROLE_ALL_EDIT, BaseSettings.ROLE_ADMIN]
     );
-    this.callParam != null && this.form.transferBusinessObjectToForm(this.callParam);
+    this.callParam != null && this.form().transferBusinessObjectToForm(this.callParam);
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
       proposeChangeEntityWithEntity ? proposeChangeEntityWithEntity.proposedEntity : this.callParam,
-      this.form,
+      this.form(),
       this.configObject,
       proposeChangeEntityWithEntity
     );

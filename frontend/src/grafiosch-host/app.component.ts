@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Optimus } from '@openng/optimus-ui/config';
@@ -43,7 +43,6 @@ const GrafioschPreset = definePreset(Aura, {
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterOutlet, MessageToastComponent]
 })
 export class GrafioschAppComponent {

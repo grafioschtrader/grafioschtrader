@@ -96,7 +96,7 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
    * @private
    */
   private prepareData(jsonValues: any): void {
-    jsonValues && this.form.transferBusinessObjectToForm(jsonValues);
+    jsonValues && this.form().transferBusinessObjectToForm(jsonValues);
   }
 
   /**

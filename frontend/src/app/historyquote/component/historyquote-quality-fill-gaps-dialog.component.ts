@@ -37,7 +37,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
   template: `
     <p-dialog
       header="{{ 'HISTORYQUOTE_FILL_GAPS' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '500px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -121,7 +121,7 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
   }
 
   protected override initialize(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     this.configObject[this.fillUpToDate].formControl.setValue(
       HistoryquoteQualityFillGapsDialogComponent.toLocalDate(this.fillGapsBounds.defaultFillUpTo)
     );

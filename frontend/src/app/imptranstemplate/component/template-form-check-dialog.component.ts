@@ -21,7 +21,7 @@ import { TemplateFormCheckDialogResultFailedComponent } from './template-form-ch
   selector: 'template-form-check-dialog',
   template: ` <p-dialog
     header="{{ 'CHECK_TEMPLATE_FORM' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     showEffect="fade"
     [style]="{ width: '600px' }"
     (onShow)="onShow($event)"

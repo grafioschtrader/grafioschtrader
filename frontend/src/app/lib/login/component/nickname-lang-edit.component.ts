@@ -26,7 +26,7 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
   selector: 'nickname-lang-edit',
   template: ` <p-dialog
     header="{{ 'NICKNAME_LOCALE_CHANGE' | translate }}"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [style]="{ width: '450px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
@@ -70,7 +70,7 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
 
   submit(value: { [name: string]: any }): void {
     const userOwnProjection = new UserOwnProjection();
-    this.form.cleanMaskAndTransferValuesToBusinessObject(userOwnProjection);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(userOwnProjection);
     this.loginService.updateNicknameLocale(userOwnProjection).subscribe({
       next: (successfullyChanged: SuccessfullyChanged) => {
         this.messageToastService.showMessage(InfoLevelType.INFO, successfullyChanged.message);
@@ -90,7 +90,7 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
       .pipe(this.untilDialogClosed())
       .subscribe(([locales, user]: [ValueKeyHtmlSelectOptions[], UserOwnProjection]) => {
         this.configObject.localeStr.valueKeyHtmlOptions = locales;
-        this.form.transferBusinessObjectToForm(user);
+        this.form().transferBusinessObjectToForm(user);
         this.configObject.nickname.elementRef.nativeElement.focus();
       });
   }

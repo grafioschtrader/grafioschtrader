@@ -37,7 +37,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
   template: ` <p-dialog
     styleClass="big-dialog"
     [header]="'TAX_MODEL_YAML' | translate"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     (visibleChange)="!$event && onHide($event)"
     [modal]="true"
     [style]="{ width: '900px' }"
@@ -160,7 +160,7 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
         for (const key of ['issuerCountry', 'dealerCountry', 'exchangeCountry'])
           this.configObject[key].valueKeyHtmlOptions = options;
       });
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
   }
 
   onYamlChange(yaml: string): void {
@@ -200,7 +200,7 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
       return;
     }
     const request: any = { yaml: this.yaml(), countryCode: this.country.countryCode };
-    this.form.cleanMaskAndTransferValuesToBusinessObject(request, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(request, true);
     for (const field of ['units', 'price', 'cleanValue', 'accruedInterest', 'grossIncome']) request[field] ??= 0;
     this.previewSubscription = this.service
       .estimateTax(request)

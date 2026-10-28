@@ -50,7 +50,7 @@ import { BaseSettings } from '../../base.settings';
   template: `
     <p-dialog
       header="{{ 'GT_NET_NET_AND_MESSAGE' | translate }}"
-      [visible]="visibleDialog"
+      [visible]="visibleDialog()"
       [style]="{ width: '750px' }"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
@@ -71,6 +71,7 @@ import { BaseSettings } from '../../base.settings';
           #entityTable
           [data]="gtNetEntities()"
           [fields]="entityFields"
+          [fieldsRevision]="entityFieldsRevision()"
           dataKey="entityKind"
           [batchMode]="true"
           [startInEditMode]="true"
@@ -101,6 +102,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
 
   // Entity table configuration
   entityFields: ColumnConfig[] = [];
+  readonly entityFieldsRevision = signal(0);
   /** Entity data with string enum values for dropdown binding */
   readonly gtNetEntities = signal<any[]>([]);
   /** True once the entity table headers are translated */
@@ -292,9 +294,9 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
           );
           // A new entry keeps the field defaults; transferring an empty GTNet would overwrite them with null
           if (this.callParam.gtNet) {
-            this.form.transferBusinessObjectToForm(this.callParam.gtNet);
+            this.form().transferBusinessObjectToForm(this.callParam.gtNet);
           } else {
-            this.form.setDefaultValues();
+            this.form().setDefaultValues();
           }
 
           // Initialize entity table data
@@ -362,6 +364,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
             typeof entity.entityKind === 'number' ? this.kindValueToName(entity.entityKind) : entity.entityKind;
           (entity as any)['entityKind$'] = translations[kindStr] || kindStr;
         });
+        this.entityFieldsRevision.update((revision) => revision + 1);
         this.viewChanged();
       });
     }
@@ -402,11 +405,11 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
    */
   submitAll(): void {
     // This button is outside the dynamic form, so the form validation must be checked here
-    if (!this.form.valid) {
-      this.form.form.markAllAsTouched();
+    if (!this.form().valid) {
+      this.form().form.markAllAsTouched();
       return;
     }
-    const formValue = this.form.value;
+    const formValue = this.form().value;
 
     // Create the GTNet entity with all data
     const gtNet = this.getNewOrExistingInstanceBeforeSave(formValue);

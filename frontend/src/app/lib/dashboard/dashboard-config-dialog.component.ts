@@ -21,7 +21,7 @@ import { FieldConfig } from '../dynamic-form/models/field.config';
   imports: [TranslateModule, DialogModule, DynamicFormModule],
   template: `<p-dialog
     [header]="descriptor.titleKey | translate"
-    [visible]="visibleDialog"
+    [visible]="visibleDialog()"
     [modal]="true"
     [closable]="true"
     (onShow)="onShow($event)"
@@ -58,7 +58,7 @@ export class DashboardConfigDialogComponent extends SimpleEditBase implements On
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
   protected initialize(): void {
-    this.form.transferBusinessObjectToForm(this.widget.config);
+    this.form().transferBusinessObjectToForm(this.widget.config);
   }
   /**
    * Emits exactly the settings the type declares. The names come from the descriptor rather than from this dialog, so a
@@ -67,7 +67,7 @@ export class DashboardConfigDialogComponent extends SimpleEditBase implements On
    */
   submit(): void {
     const config: DashboardConfig = { ...this.descriptor.defaultConfig };
-    this.form.cleanMaskAndTransferValuesToBusinessObject(config);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(config);
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED, config));
   }
 }
