@@ -24,7 +24,6 @@ type PageState = 'checking' | 'consent' | 'error' | 'redirecting';
  */
 @Component({
   selector: 'mcp-oauth-authorize',
-  standalone: true,
   imports: [TranslateModule, ButtonModule, MessageModule],
   template: `
     <div style="max-width: 640px; margin: 2rem auto; padding: 0 16px">

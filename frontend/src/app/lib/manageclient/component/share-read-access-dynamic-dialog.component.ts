@@ -15,7 +15,7 @@ import { TranslateHelper } from '../../helper/translate.helper';
 import { FieldDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
 import { ProcessedActionData } from '../../types/processed.action.data';
 import { ProcessedAction } from '../../types/processed.action';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { HelpIds } from '../../help/help.ids';
 import { ManageClientService } from '../service/manage-client.service';
 
@@ -36,12 +36,10 @@ import { ManageClientService } from '../service/manage-client.service';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     }
   `,
-  standalone: true,
-  imports: [DynamicFormModule, TranslateModule]
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent implements OnInit {
   /** True once the entered e-mail has been checked and accepted, so the grant button may be enabled. */

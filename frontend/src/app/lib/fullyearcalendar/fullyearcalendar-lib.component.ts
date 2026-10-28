@@ -20,14 +20,13 @@ import { MonthlyCalendarComponent } from './month-calendar/monthly-calendar.comp
               (dayClicked)="dayClicked($event)"
               [month]="month"
               [disabledDaysOfWeek]="disabledDaysOfWeek()"
-              [locale]="locale()"></month-calendar>
+              [locale]="locale()" />
           </div>
         }
       </div>
     }
   `,
   styleUrls: ['./fullyearcalendar-lib.scss'],
-  standalone: true,
   imports: [MonthlyCalendarComponent]
 })
 export class FullyearcalendarLibComponent {

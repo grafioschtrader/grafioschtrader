@@ -26,7 +26,6 @@ import { RuleEvent } from './error.message.rules';
  */
 @Directive({
   selector: '[ngxError]',
-  standalone: true,
   host: { '[hidden]': 'hidden()' }
 })
 export class NgxErrorDirective implements OnInit, OnDestroy {

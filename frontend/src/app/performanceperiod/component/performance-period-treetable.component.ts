@@ -18,7 +18,7 @@ import { Helper } from '../../lib/helper/helper';
 import moment from 'moment';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { AppSettings } from '../../shared/app.settings';
-import { CommonModule } from '@angular/common';
+
 import { TreeTableModule } from '@openng/optimus-ui/treetable';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
@@ -44,7 +44,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
         <ng-template #header let-fields>
           <tr>
             @for (field of fields; track field) {
-              <th [ngClass]="getCellClass(field)" [style.width.px]="field.width" [style.min-width.px]="field.width">
+              <th [class]="getCellClass(field)" [style.width.px]="field.width" [style.min-width.px]="field.width">
                 {{ field.headerTranslated }}
               </th>
             }
@@ -54,7 +54,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
           <tr>
             @for (field of fields; track field; let i = $index) {
               <td
-                [ngClass]="[
+                [class]="[
                   getCellClass(field),
                   getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HOLIDAY] ? 'cell-holiday' : '',
                   getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HISTORY_DATA_MISSING]
@@ -64,7 +64,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                 [style.width.px]="field.width"
                 [style.min-width.px]="field.width">
                 @if (i === 0) {
-                  <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                  <p-treeTableToggler [rowNode]="rowNode" />
                 }
                 @switch (field.templateName) {
                   @case ('greenRed') {
@@ -88,7 +88,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
               @if (field.visible) {
                 <td
                   class="row-total"
-                  [ngClass]="getCellClass(field)"
+                  [class]="getCellClass(field)"
                   [style.width.px]="field.width"
                   [style.min-width.px]="field.width">
                   @switch (field.templateName) {
@@ -188,8 +188,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
       }
     `
   ],
-  standalone: true,
-  imports: [CommonModule, TreeTableModule, TooltipModule]
+  imports: [TreeTableModule, TooltipModule]
 })
 export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
   readonly performancePeriod = input<PerformancePeriod>(null);

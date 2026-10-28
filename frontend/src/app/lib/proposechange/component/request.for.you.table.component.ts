@@ -66,9 +66,8 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
       <h4 caption>{{ 'PROPOSE_CHANGE_ENTITY_FOR_USER' | translate }} {{ gps.getIdUser() }}</h4>
     </configurable-table>
 
-    <ng-template #editDialogContainer></ng-template>
+    <ng-template #editDialogContainer />
   `,
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule]
 })
 export class RequestForYouTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {

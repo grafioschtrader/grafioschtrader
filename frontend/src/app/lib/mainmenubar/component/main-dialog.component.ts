@@ -13,15 +13,12 @@ import { UserSettingsDialogs } from './user-settings-dialogs';
     @if (mainDialogService.visibleDialogs()[UserSettingsDialogs.Password]) {
       <password-edit
         [forcePasswordChange]="false"
-        [visibleDialog]="mainDialogService.visibleDialogs()[UserSettingsDialogs.Password]">
-      </password-edit>
+        [visibleDialog]="mainDialogService.visibleDialogs()[UserSettingsDialogs.Password]" />
     }
     @if (mainDialogService.visibleDialogs()[UserSettingsDialogs.NicknameLocale]) {
-      <nickname-lang-edit [visibleDialog]="mainDialogService.visibleDialogs()[UserSettingsDialogs.NicknameLocale]">
-      </nickname-lang-edit>
+      <nickname-lang-edit [visibleDialog]="mainDialogService.visibleDialogs()[UserSettingsDialogs.NicknameLocale]" />
     }
   `,
-  standalone: true,
   imports: [PasswordEditComponent, NicknameLangEditComponent]
 })
 export class MainDialogComponent {

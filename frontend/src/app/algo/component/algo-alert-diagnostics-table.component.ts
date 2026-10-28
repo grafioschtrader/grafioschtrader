@@ -12,7 +12,6 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
 /** Standard table rendering for resolved alert evaluations and for the current trading decisions. */
 @Component({
   selector: 'algo-alert-diagnostics-table',
-  standalone: true,
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
     [data]="rows"

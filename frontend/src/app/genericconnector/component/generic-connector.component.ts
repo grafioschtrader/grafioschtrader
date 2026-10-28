@@ -1,5 +1,5 @@
 import { afterNextRender, AfterRenderRef, Component, inject, Injector, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { forkJoin, Subscription } from 'rxjs';
@@ -21,7 +21,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { AccordionModule } from '@openng/optimus-ui/accordion';
 import { GenericConnectorDefDetailComponent } from './generic-connector-def-detail.component';
@@ -47,7 +47,7 @@ import { AppSettings } from '../../shared/app.settings';
       class="data-container"
       (click)="onComponentClick($event)"
       #cmDiv
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -57,27 +57,25 @@ import { AppSettings } from '../../shared/app.settings';
         [config]="config"
         [formConfig]="formConfig"
         [translateService]="translateService"
-        #form="dynamicForm">
-      </dynamic-form>
+        #form="dynamicForm" />
 
       @if (isActivated() && contextMenuItems) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" />
       }
 
       @if (selectedEntity) {
-        <generic-connector-def-detail [connectorDef]="selectedEntity"> </generic-connector-def-detail>
+        <generic-connector-def-detail [connectorDef]="selectedEntity" />
 
         <generic-connector-http-header-table
           [httpHeaders]="selectedEntity.httpHeaders"
           [editable]="canEditConnectorDef()"
-          (httpHeadersChange)="onHttpHeadersChange($event)">
-        </generic-connector-http-header-table>
+          (httpHeadersChange)="onHttpHeadersChange($event)" />
 
         <p-accordion [multiple]="true" [(value)]="expandedPanelValues">
           @for (endpoint of selectedEntity.endpoints; track endpoint.idEndpoint; let i = $index) {
             <div
               (click)="onEndpointPanelClick(endpoint, $event)"
-              [ngClass]="{
+              [class]="{
                 'active-border': endpoint === selectedEndpoint(),
                 'passiv-border': endpoint !== selectedEndpoint()
               }">
@@ -93,8 +91,7 @@ import { AppSettings } from '../../shared/app.settings';
                     [endpoint]="endpoint"
                     [editable]="canEditEndpoint(endpoint)"
                     (editEndpoint)="handleEditEndpoint(endpoint)"
-                    (fieldMappingsChange)="onFieldMappingsChange($event, endpoint)">
-                  </generic-connector-endpoint-panel>
+                    (fieldMappingsChange)="onFieldMappingsChange($event, endpoint)" />
                 </p-accordion-content>
               </p-accordion-panel>
             </div>
@@ -107,31 +104,26 @@ import { AppSettings } from '../../shared/app.settings';
       <generic-connector-def-edit
         [visibleDialog]="visibleEditDialog"
         [callParam]="callParam"
-        (closeDialog)="handleCloseEditDialog($event)">
-      </generic-connector-def-edit>
+        (closeDialog)="handleCloseEditDialog($event)" />
     }
     @if (visibleEndpointDialog()) {
       <generic-connector-endpoint-edit
         [visibleDialog]="visibleEndpointDialog()"
         [endpoint]="endpointToEdit"
         [connectorDef]="selectedEntity"
-        (closeDialog)="handleCloseEndpointDialog($event)">
-      </generic-connector-endpoint-edit>
+        (closeDialog)="handleCloseEndpointDialog($event)" />
     }
     @if (visibleTestDialog()) {
       <generic-connector-test-dialog
         [visibleDialog]="visibleTestDialog()"
         [endpoint]="selectedEndpoint()"
         [connectorDef]="selectedEntity"
-        (closeDialog)="handleCloseTestDialog()">
-      </generic-connector-test-dialog>
+        (closeDialog)="handleCloseTestDialog()" />
     }
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     ContextMenuModule,
     AccordionModule,
     GenericConnectorDefDetailComponent,

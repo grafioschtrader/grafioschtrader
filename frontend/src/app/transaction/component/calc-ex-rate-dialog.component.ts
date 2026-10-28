@@ -7,7 +7,7 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { AppSettings } from '../../shared/app.settings';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Minimal dynamic dialog for entering the cash account amount (credited/debited total).
@@ -20,10 +20,8 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     [formConfig]="formConfig"
     [translateService]="translateService"
     #form="dynamicForm"
-    (submitBt)="submit($event)">
-  </dynamic-form>`,
-  standalone: true,
-  imports: [DynamicFormModule]
+    (submitBt)="submit($event)" />`,
+  imports: [...DYNAMIC_FORM_IMPORTS]
 })
 export class CalcExRateDialogComponent extends FormBase implements OnInit {
   constructor(

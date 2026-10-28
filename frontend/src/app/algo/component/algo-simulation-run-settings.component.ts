@@ -31,7 +31,6 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
  */
 @Component({
   selector: 'algo-simulation-run-settings',
-  standalone: true,
   imports: [
     TranslateModule,
     ConfigurableTreeTableComponent,
@@ -69,15 +68,14 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                   [name]="iconName"
                   [pTooltip]="'DISTRIBUTION_HEADER_TOOLTIP' | translate"
                   tooltipPosition="top"
-                  [svgStyle]="{ 'width.px': 14, 'height.px': 14 }">
-                </svg-icon>
+                  [svgStyle]="{ 'width.px': 14, 'height.px': 14 }" />
               } @else {
                 <span>{{ value }}</span>
               }
             </ng-template>
           </configurable-tree-table>
           @if (algoStrategyShowParamCall().algoStrategy) {
-            <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall()"> </strategy-detail>
+            <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall()" />
           }
         } @else {
           <p>{{ 'SIMULATION_RUN_SETTINGS_NONE' | translate }}</p>

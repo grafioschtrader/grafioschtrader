@@ -17,7 +17,7 @@ import { DialogService, DynamicDialogConfig, DynamicDialogRef } from '@openng/op
 import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
 import { BaseSettings } from '../../base.settings';
 import { GlobalparameterService } from '../../services/globalparameter.service';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 
 /**
  * The daily limit of changing public data was passed. The user can apply for a different daily limit.
@@ -29,10 +29,8 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>`,
-  standalone: true,
-  imports: [DynamicFormModule]
+      (submitBt)="submit($event)" />`,
+  imports: [...DYNAMIC_FORM_IMPORTS]
 })
 export class LimitTransactionRequestDynamicDialogComponent extends FormBase implements OnInit {
   dialogTitle: string;

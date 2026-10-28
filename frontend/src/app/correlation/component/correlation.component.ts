@@ -36,7 +36,7 @@ import { Securitycurrency } from '../../entities/securitycurrency';
 import { Security } from '../../entities/security';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { CorrelationEditingSupport } from './correlation.editing.support';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { PanelModule } from '@openng/optimus-ui/panel';
@@ -44,7 +44,7 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { httpResource } from '@angular/common/http';
 import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { CorrelationSetEditComponent } from './correlation-set-edit.component';
 
 /**
@@ -58,7 +58,7 @@ import { CorrelationSetEditComponent } from './correlation-set-edit.component';
       class="data-container"
       (click)="onComponentClick($event)"
       #cmDiv
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -74,14 +74,13 @@ import { CorrelationSetEditComponent } from './correlation-set-edit.component';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="saveAndCalculate($event)">
-      </dynamic-form>
-      <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+        (submitBt)="saveAndCalculate($event)" />
+      <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" />
       <br />
       @if (calculation.isLoading()) {
         <div class="progress-bar-box">
           <h4>{{ 'LOADING' | translate }}</h4>
-          <p-progressBar mode="indeterminate" [style]="{ height: '6px' }"></p-progressBar>
+          <p-progressBar mode="indeterminate" [style]="{ height: '6px' }" />
         </div>
       } @else if (calculation.error()) {
         <p>{{ 'DATA_LOAD_FAILED' | translate }}</p>
@@ -98,26 +97,23 @@ import { CorrelationSetEditComponent } from './correlation-set-edit.component';
       @if (dividendMissingNames()) {
         <p style="color:tomato;">{{ 'CORRELATION_DIVIDEND_MISSING' | translate }} {{ dividendMissingNames() }}</p>
       }
-      <correlation-table [childToParent]="this"> </correlation-table>
+      <correlation-table [childToParent]="this" />
     </div>
     @if (visibleEditDialog) {
       <correlation-set-edit
         [visibleDialog]="visibleEditDialog"
         [callParam]="callParam"
         [correlationLimit]="correlationLimit()"
-        (closeDialog)="handleCloseEditDialog($event)">
-      </correlation-set-edit>
+        (closeDialog)="handleCloseEditDialog($event)" />
     }
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslateModule,
     PanelModule,
     ContextMenuModule,
     ProgressBarModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     CorrelationTableComponent,
     CorrelationSetEditComponent
   ]

@@ -2,7 +2,7 @@
   #cmDiv
   (click)="onComponentClick($event)"
   (contextmenu)="onRightClick($event)"
-  [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+  [class]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
   class="data-container">
   <div class="datatable">
     @if (rebalancingSummaryFields && securityPositionSummary?.valuationDate) {
@@ -35,8 +35,7 @@
             @if (groupOptions) {
             <h4 #title>
               {{ 'SECURITYACCOUNT' | translate }}: {{ portfolio?.name }} {{ securityAccount?.name }}
-              <p-select (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup" [options]="groupOptions">
-              </p-select>
+              <p-select (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup" [options]="groupOptions" />
             </h4>
             }
             <!-- Only the asset class report offers a strategy to compare against; the other reports that share this
@@ -47,8 +46,7 @@
               <p-select
                 (onChange)="handleChangeAlgoTop($event)"
                 [(ngModel)]="selectedIdAlgoTop"
-                [options]="algoTopOptions">
-              </p-select>
+                [options]="algoTopOptions" />
             </h4>
             }
           </div>
@@ -60,8 +58,7 @@
               [(ngModel)]="untilDate"
               [dateFormat]="baseLocale.dateFormat"
               appendTo="body"
-              id="untilDate">
-            </p-datepicker>
+              id="untilDate" />
             <i (click)="onResetToDay($event)" class="pi pi-replay" style="font-size: 1.5em"></i>
           </div>
           @if (showDropZone) {
@@ -81,8 +78,7 @@
               (onFileDrop)="dropped($event)"
               contentClassName="content-trans"
               dropZoneClassName="drop-zone-trans"
-              dropZoneLabel="{{'DROP_PDF_HERE' | translate}}">
-            </ngx-file-drop>
+              dropZoneLabel="{{'DROP_PDF_HERE' | translate}}" />
           </div>
           }
         </div>
@@ -95,7 +91,7 @@
           <th
             [pTooltip]="field.headerTooltipTranslated"
             [style.max-width.px]="field.width"
-            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+            [style]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
             pResizableColumn>
             {{ field.headerTranslated }}
           </th>
@@ -108,19 +104,24 @@
           <td>
             @if (!el.comparisonOnly) {
             <a [pRowToggler]="el" href="#">
-              <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
+              <i [class]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
             </a>
             }
           </td>
           @for (field of fields; track field) { @if (field.visible) {
           <td
-            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.NumericRaw
+            [class]="(field.dataType===DataType.Numeric || field.dataType===DataType.NumericRaw
                 || field.dataType===DataType.NumericInteger || field.dataType===DataType.NumericShowZero
                 || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
             [style.max-width.px]="field.width"
-            [ngStyle]="getCellStyle(el, field)">
+            [style]="getCellStyle(el, field)">
             @switch (field.templateName) { @case ('check') {
-            <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
+            <span
+              ><i
+                [class.fa]="getValueByPath(el, field)"
+                [class.fa-check]="getValueByPath(el, field)"
+                aria-hidden="true"></i
+            ></span>
             } @case ('greenRed') {
             <span
               [pTooltip]="getCellTooltip(el, field)"
@@ -129,7 +130,7 @@
               {{ getValueByPath(el, field) }}
             </span>
             } @case ('icon') {
-            <svg-icon [name]="getValueByPath(el, field)" [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+            <svg-icon [name]="getValueByPath(el, field)" [svgStyle]="{ 'width.px':14, 'height.px':14 }" />
             } @default {
             <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
             } }
@@ -145,7 +146,7 @@
                 || field.dataType===DataType.NumericRaw || field.dataType===DataType.NumericShowZero
                 || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
             [colSpan]="field.columnGroupConfigs && field.columnGroupConfigs[0].colspan ? field.columnGroupConfigs[0].colspan: null"
-            [ngStyle]="getGroupCellStyle(field, groupChangeIndexMap.get(rowIndex))">
+            [style]="getGroupCellStyle(field, groupChangeIndexMap.get(rowIndex))">
             @switch (field.templateName) { @case ('greenRed') {
             <span
               [style.color]='isColumnTotalByRowIndexMinus(field, 0, groupChangeIndexMap, rowIndex)? "red": "inherit"'>
@@ -166,11 +167,11 @@
           <td></td>
           @for (field of fields; track field) { @if (field.visible) {
           <td
-            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+            [class]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericRaw || field.dataType===DataType.NumericShowZero
                 || field.dataType===DataType.NumericInteger)? 'text-end': ''"
             [style.width.px]="field.width"
-            [ngStyle]="getGrandCellStyle(field)"
+            [style]="getGrandCellStyle(field)"
             class="row-total">
             @switch (field.templateName) { @case ('greenRed') {
             <span [style.color]='isValueColumnTotalMinus(field, 1, securityPositionSummary, null)? "red": "inherit"'>
@@ -194,21 +195,18 @@
               [idPortfolio]="idPortfolio"
               [idSecuritycurrency]="securityPositionAll.security.idSecuritycurrency"
               [idTenant]="idTenant"
-              [idsSecurityaccount]="[$safeNavigationMigration(securityAccount?.idSecuritycashAccount)]">
-            </transaction-security-table>
+              [idsSecurityaccount]="[$safeNavigationMigration(securityAccount?.idSecuritycashAccount)]" />
             } @if (!!securityPositionAll.security.stockexchange && isMarginProduct(securityPositionAll.security)) {
             <transaction-security-margin-treetable
               (dateChanged)="transactionDataChanged($event)"
               [idPortfolio]="idPortfolio"
               [idSecuritycurrency]="securityPositionAll.security.idSecuritycurrency"
               [idTenant]="idTenant"
-              [idsSecurityaccount]="[$safeNavigationMigration(securityAccount?.idSecuritycashAccount)]">
-            </transaction-security-margin-treetable>
+              [idsSecurityaccount]="[$safeNavigationMigration(securityAccount?.idSecuritycashAccount)]" />
             } @if (!securityPositionAll.security.stockexchange) {
             <transaction-cashaccount-table
               (dateChanged)="transactionDataChanged($event)"
-              [idSecuritycashAccount]="securityPositionAll.security.idSecuritycurrency * -1">
-            </transaction-cashaccount-table>
+              [idSecuritycashAccount]="securityPositionAll.security.idSecuritycurrency * -1" />
             }
           </td>
         </tr>
@@ -216,7 +214,7 @@
       </ng-template>
     </p-table>
     @if (isActivated() && contextMenuItems) {
-    <p-contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body"></p-contextMenu>
+    <p-contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body" />
     }
   </div>
 </div>
@@ -225,6 +223,5 @@
 <transaction-security-edit
   (closeDialog)="handleCloseTransactionDialog($event)"
   [transactionCallParam]="transactionCallParam"
-  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
-</transaction-security-edit>
+  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog" />
 }

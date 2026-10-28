@@ -15,24 +15,23 @@ declare function Split(ids, options);
 @Component({
   selector: 'split-layout',
   template: `
-    <menubar></menubar>
+    <menubar />
     <div class="fullheight" #split (window:resize)="onResize($event)">
       <div id="tree" class="split split-horizontal">
-        <main-tree></main-tree>
+        <main-tree />
       </div>
       <div id="mainpanel" class="split split-horizontal">
         <div id="maintop" class="split split-vetrical">
-          <router-outlet></router-outlet>
+          <router-outlet />
         </div>
         <div id="mainbottom" class="split split-vetrical">
-          <router-outlet name="mainbottom"></router-outlet>
+          <router-outlet name="mainbottom" />
         </div>
       </div>
     </div>
 
-    <main-dialog></main-dialog>
+    <main-dialog />
   `,
-  standalone: true,
   imports: [RouterModule, MenubarComponent, MainTreeComponent, MainDialogComponent]
 })
 export class SplitLayoutComponent implements OnInit {

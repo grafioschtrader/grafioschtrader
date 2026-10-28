@@ -23,7 +23,7 @@ import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { TransactionSecurityFieldDefinition } from './transaction.security.field.definition';
 import { TransactionSecurityOptionalParam } from '../model/transaction.security.optional.param';
 import { HelpIds } from '../../lib/help/help.ids';
-import { CommonModule } from '@angular/common';
+
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TransactionSecurityEditComponent } from './transaction-security-edit.component';
 import { StandingOrderSecurityEditComponent } from '../../standingorder/component/standing-order-security-edit.component';
@@ -39,13 +39,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'transaction-security-table',
   templateUrl: '../view/transaction.security.table.html',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ConfigurableTableComponent,
-    TransactionSecurityEditComponent,
-    StandingOrderSecurityEditComponent
-  ]
+  imports: [ConfigurableTableComponent, TransactionSecurityEditComponent, StandingOrderSecurityEditComponent]
 })
 export class TransactionSecurityTableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   /** Array of security account identifiers to filter transactions */

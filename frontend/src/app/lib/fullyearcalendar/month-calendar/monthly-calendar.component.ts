@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Month } from '../model/month';
 import { Day } from '../model/day';
 import { LocaleSettings } from '../Interface/locale.settings';
@@ -36,7 +36,7 @@ import { LocaleSettings } from '../Interface/locale.settings';
                         <div
                           #activeday
                           class="day caltooltip"
-                          [ngStyle]="
+                          [style]="
                             day.ranges
                               ? underline()
                                 ? {
@@ -76,8 +76,7 @@ import { LocaleSettings } from '../Interface/locale.settings';
     }
   `,
   styleUrls: ['./monthly-calendar.scss'],
-  standalone: true,
-  imports: [CommonModule]
+  imports: []
 })
 export class MonthlyCalendarComponent {
   readonly underline = input(false);

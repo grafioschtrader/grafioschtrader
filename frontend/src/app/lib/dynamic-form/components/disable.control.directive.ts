@@ -2,8 +2,7 @@ import { NgControl } from '@angular/forms';
 import { Directive, Input } from '@angular/core';
 
 @Directive({
-  selector: '[disableControl]',
-  standalone: true
+  selector: '[disableControl]'
 })
 export class DisableControlDirective {
   constructor(private ngControl: NgControl) {}

@@ -129,8 +129,7 @@ risk_controls:
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
 
     @if (isComplexStrategy()) {
       <yaml-editor
@@ -153,7 +152,6 @@ risk_controls:
       </div>
     }
   </p-dialog>`,
-  standalone: true,
   imports: [TranslateModule, DialogModule, DynamicFormComponent, YamlEditorComponent, ButtonModule]
 })
 export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy> implements OnInit {

@@ -1,6 +1,6 @@
 <div
   (click)="onComponentClick($event)"
-  [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+  [class]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
   dynamicItems>
   <p-tree
     (keydown)="onKeydown($event)"
@@ -17,7 +17,7 @@
     </ng-template>
   </p-tree>
   <!-- Context menu is always visible -->
-  <p-contextMenu #cm [model]="contextMenuItems()"></p-contextMenu>
+  <p-contextMenu #cm [model]="contextMenuItems()" />
 </div>
 
 <p-confirmDialog #cd header="Confirmation" icon="fa fa-question-circle" width="425">

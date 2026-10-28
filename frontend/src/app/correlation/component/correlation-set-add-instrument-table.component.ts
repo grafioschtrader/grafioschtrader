@@ -8,7 +8,7 @@ import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { CorrelationSetService } from '../service/correlation.set.service';
 import { CorrelationSet } from '../../entities/correlation.set';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from '@openng/optimus-ui/table';
@@ -21,8 +21,7 @@ import { ButtonModule } from '@openng/optimus-ui/button';
 @Component({
   selector: 'correlation-set-add-instrument-table',
   templateUrl: '../../watchlist/view/add.instrument.table.html',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
+  imports: [TranslateModule, FormsModule, TableModule, ButtonModule]
 })
 export class CorrelationSetAddInstrumentTableComponent extends AddInstrumentTable<CorrelationSet> {
   /**

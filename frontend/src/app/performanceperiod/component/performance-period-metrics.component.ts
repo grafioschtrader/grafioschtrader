@@ -39,7 +39,6 @@ import { PerformancePeriodMetrics } from '../model/performance.period';
       </div>
     }
   `,
-  standalone: true,
   imports: [TranslateModule, TooltipModule]
 })
 export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase {

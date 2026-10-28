@@ -60,19 +60,16 @@ import { TenantTransactionCostExtendedComponent } from './tenant-transaction-cos
         'passiv-border': !isActivated()
       }"
       customClass="datatable"
-      (componentClick)="onComponentClick($event)">
-    </configurable-table>
+      (componentClick)="onComponentClick($event)" />
     <ng-template #expandedContent let-tcgs>
       <tenant-transaction-cost-extended
         [transactionCostPositions]="tcgs.transactionCostPositions"
         [transactionCostGrandSummary]="transactionCostGrandSummary()"
         [baseSelectedRow]="baseSelectedRow()"
         [firstRowIndex]="firstRowIndex()"
-        (dateChanged)="transactionDataChanged($event)">
-      </tenant-transaction-cost-extended>
+        (dateChanged)="transactionDataChanged($event)" />
     </ng-template>
   `,
-  standalone: true,
   imports: [ConfigurableTableComponent, TenantTransactionCostExtendedComponent]
 })
 export class TenantTransactionCostComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {

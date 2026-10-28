@@ -82,7 +82,6 @@ import { AppHelpIds } from '../../shared/help/help.ids';
       </div>
     </editable-table>
   `,
-  standalone: true,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class RiskFreeRateMappingTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {

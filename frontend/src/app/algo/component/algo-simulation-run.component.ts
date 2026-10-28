@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { AppSettings } from '../../shared/app.settings';
-import { NgClass } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -73,9 +73,7 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
  */
 @Component({
   selector: 'algo-simulation-run',
-  standalone: true,
   imports: [
-    NgClass,
     FormsModule,
     TranslateModule,
     ButtonModule,
@@ -88,7 +86,7 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
     <div
       #cmDiv
       class="data-container"
-      [ngClass]="{ 'active-border': isActivated(), 'passiv-border': !isActivated() }"
+      [class]="{ 'active-border': isActivated(), 'passiv-border': !isActivated() }"
       (click)="onComponentClick($event)">
       <h4>{{ 'SIMULATION_RUN' | translate }}</h4>
 
@@ -121,7 +119,11 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
                     <div class="col-md-7 nopadding wrap">
                       @switch (field.templateName) {
                         @case ('check') {
-                          <span><i [ngClass]="{ 'fa fa-check': getValueByPath(run(), field) }"></i></span>
+                          <span
+                            ><i
+                              [class.fa]="getValueByPath(run(), field)"
+                              [class.fa-check]="getValueByPath(run(), field)"></i
+                          ></span>
                         }
                         @default {
                           {{ getValueByPath(run(), field) }}

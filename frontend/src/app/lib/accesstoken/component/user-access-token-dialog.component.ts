@@ -18,7 +18,6 @@ export interface UserAccessTokenDialogData {
  * holds the table of the user's tokens. The application opens it from its settings menu and may add an introduction.
  */
 @Component({
-  standalone: true,
   imports: [TranslateModule, UserAccessTokenTableComponent, OAuthAuthorizationTableComponent],
   template: `
     @if (introKey) {

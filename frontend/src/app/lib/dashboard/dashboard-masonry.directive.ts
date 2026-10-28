@@ -18,7 +18,6 @@ import { AfterViewInit, Directive, ElementRef, Input, NgZone, OnChanges, OnDestr
  */
 @Directive({
   selector: '[dashboardMasonry]',
-  standalone: true,
   host: { '[class.dashboard-masonry]': 'dashboardMasonry' }
 })
 export class DashboardMasonryDirective implements AfterViewInit, OnChanges, OnDestroy {

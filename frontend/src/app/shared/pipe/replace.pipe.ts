@@ -1,8 +1,7 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'replace',
-  standalone: true
+  name: 'replace'
 })
 @Injectable()
 export class ReplacePipe implements PipeTransform {

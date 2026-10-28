@@ -11,7 +11,7 @@ import { FormConfig } from '../../models/form.config';
 import { FieldFormGroup, FormGroupDefinition } from '../../models/form.group.definition';
 import { FormHelper } from '../../components/FormHelper';
 import { ValueKeyHtmlSelectOptions } from '../../models/value.key.html.select.options';
-import { CommonModule } from '@angular/common';
+
 import { DynamicFormLayoutComponent } from './dynamic-form-layout.component';
 import { ErrorMessageComponent } from './error-message.compoent';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -29,13 +29,13 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
       <form [formGroup]="form" (ngSubmit)="handleSubmit($event)">
         @if (showWithFieldset) {
           @for (fieldsetConfig of fieldsetConfigs; track fieldsetConfig) {
-            <fieldset [ngClass]="fieldsetConfig.fieldsetName ? 'out-border' : ''">
-              <legend [ngClass]="fieldsetConfig.fieldsetName ? 'out-border-legend' : ''">
+            <fieldset [class]="fieldsetConfig.fieldsetName ? 'out-border' : ''">
+              <legend [class]="fieldsetConfig.fieldsetName ? 'out-border-legend' : ''">
                 {{ fieldsetConfig.fieldsetName | translate }}
               </legend>
               <div class="row">
                 @for (field of fieldsetConfig.fieldConfig; track field) {
-                  <dynamic-form-layout [config]="field" [formConfig]="formConfig" [group]="form"> </dynamic-form-layout>
+                  <dynamic-form-layout [config]="field" [formConfig]="formConfig" [group]="form" />
                 }
               </div>
             </fieldset>
@@ -44,16 +44,15 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
           <div class="row">
             @for (field of controlsWithGroups; track field) {
               @if ('inputType' in field) {
-                <dynamic-form-layout [config]="field" [formConfig]="formConfig" [group]="form"> </dynamic-form-layout>
+                <dynamic-form-layout [config]="field" [formConfig]="formConfig" [group]="form" />
               } @else {
                 <ng-container [formGroupName]="field.formGroupName">
                   @for (childField of field.fieldConfig; track childField) {
-                    <dynamic-form-layout [config]="childField" [formConfig]="formConfig" [group]="field.formControl">
-                    </dynamic-form-layout>
+                    <dynamic-form-layout [config]="childField" [formConfig]="formConfig" [group]="field.formControl" />
                   }
                 </ng-container>
                 <div class="col-12">
-                  <error-message [baseFieldFieldgroupConfig]="field"></error-message>
+                  <error-message [baseFieldFieldgroupConfig]="field" />
                 </div>
               }
             }
@@ -70,7 +69,7 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
           <div class="ms-auto">
             @for (field of buttons; track field) {
               @if (!field.invisible) {
-                <dynamicField [config]="field" [formConfig]="formConfig" [group]="form"> </dynamicField>
+                <dynamicField [config]="field" [formConfig]="formConfig" [group]="form" />
               }
             }
           </div>
@@ -81,13 +80,11 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
   imports: [
     ReactiveFormsModule,
     TranslateModule,
-    CommonModule,
     DynamicFormLayoutComponent,
     ErrorMessageComponent,
     ButtonModule,
     DynamicFieldDirective
-  ],
-  standalone: true
+  ]
 })
 export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
   @Input() formConfig: FormConfig;

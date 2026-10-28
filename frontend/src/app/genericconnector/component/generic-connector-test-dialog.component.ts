@@ -1,5 +1,5 @@
 import { Component, computed, Input, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { GenericConnectorEndpoint } from '../../entities/generic.connector.endpoint';
@@ -13,7 +13,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppHelpIds } from '../../shared/help/help.ids';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { FieldsetModule } from '@openng/optimus-ui/fieldset';
 import { TableModule } from '@openng/optimus-ui/table';
 import moment from 'moment';
@@ -40,8 +40,7 @@ import { Subscription } from 'rxjs';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
 
       @if (testResult(); as result) {
         <p-fieldset legend="{{ 'TEST_RESULT' | translate }}" class="mt-3">
@@ -85,8 +84,7 @@ import { Subscription } from 'rxjs';
       }
     </p-dialog>
   `,
-  standalone: true,
-  imports: [CommonModule, TranslateModule, DialogModule, DynamicFormModule, FieldsetModule, TableModule]
+  imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS, FieldsetModule, TableModule]
 })
 export class GenericConnectorTestDialogComponent extends SimpleEditBase implements OnInit {
   @Input() endpoint: GenericConnectorEndpoint;

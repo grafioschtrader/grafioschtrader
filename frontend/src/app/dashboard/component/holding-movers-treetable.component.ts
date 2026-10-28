@@ -19,7 +19,6 @@ import { HoldingMoversBranch, HoldingMoversRanking, HoldingMoversRow } from '../
  */
 @Component({
   selector: 'holding-movers-treetable',
-  standalone: true,
   imports: [ConfigurableTreeTableComponent],
   template: `
     <configurable-tree-table

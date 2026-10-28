@@ -19,7 +19,7 @@ import {
   SecurityActionTreeData,
   SecurityTransfer
 } from '../model/security-action.model';
-import { NgClass } from '@angular/common';
+
 import { Panel } from '@openng/optimus-ui/panel';
 import { SharedModule } from '@openng/optimus-ui/api';
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
@@ -43,7 +43,7 @@ enum NodeLevel {
     <div
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -63,23 +63,15 @@ enum NodeLevel {
         (nodeUnselect)="onNodeUnselect($event)"
         [contextMenuItems]="contextMenuItems()"
         [showContextMenu]="!!contextMenuItems()"
-        [valueGetterFn]="valueGetter">
-      </configurable-tree-table>
+        [valueGetterFn]="valueGetter" />
       @if (visibleCreateDialog()) {
-        <security-action-create [visibleDialog]="visibleCreateDialog()" (closeDialog)="handleCloseCreateDialog($event)">
-        </security-action-create>
+        <security-action-create
+          [visibleDialog]="visibleCreateDialog()"
+          (closeDialog)="handleCloseCreateDialog($event)" />
       }
     </div>
   `,
-  standalone: true,
-  imports: [
-    NgClass,
-    TranslatePipe,
-    Panel,
-    SharedModule,
-    ConfigurableTreeTableComponent,
-    SecurityActionCreateDialogComponent
-  ]
+  imports: [TranslatePipe, Panel, SharedModule, ConfigurableTreeTableComponent, SecurityActionCreateDialogComponent]
 })
 export class SecurityActionTreetableComponent
   extends TreeTableConfigBase

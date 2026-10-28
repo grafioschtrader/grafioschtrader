@@ -25,7 +25,7 @@ import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
 import { AlgoTopService } from '../../algo/service/algo.top.service';
 import { AlgoTop } from '../../algo/model/algo.top';
 import { HelpIds } from '../../lib/help/help.ids';
-import { CommonModule } from '@angular/common';
+
 import { TableModule } from '@openng/optimus-ui/table';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
 import { FormsModule } from '@angular/forms';
@@ -60,9 +60,7 @@ import { NgxFileDropModule } from 'ngx-file-drop';
  */
 @Component({
   templateUrl: '../../securityaccount/view/securityaccount.table.html',
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     TableModule,
     DatePicker,

@@ -9,7 +9,6 @@ import { DashboardTableComponent } from './dashboard-table.component';
 
 @Component({
   selector: 'dashboard-summary',
-  standalone: true,
   imports: [RouterLink, TranslateModule, DashboardTableComponent],
   template: `@for (list of result.payload?.lists; track list.titleKey) {
     <section class="mb-3">

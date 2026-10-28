@@ -9,7 +9,7 @@ import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { TradingCalendarBase } from './trading.calendar.base';
 import { TradingDaysWithDateBoundaries } from '../model/trading.days.with.date.boundaries';
 import { AuditHelper } from '../../lib/helper/audit.helper';
-import { CommonModule } from '@angular/common';
+
 import { PanelModule } from '@openng/optimus-ui/panel';
 import { SelectModule } from '@openng/optimus-ui/select';
 import { FormsModule } from '@angular/forms';
@@ -24,9 +24,7 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
  */
 @Component({
   templateUrl: '../view/trading.calendar.html',
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     PanelModule,
     SelectModule,

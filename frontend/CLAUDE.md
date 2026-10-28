@@ -39,12 +39,56 @@ The frontend should only contain:
 
 ## Change detection
 
-Angular 22 makes `OnPush` the component default. Every component of GT and the reusable library runs with it.
-The reusable library notifies Angular of every change it makes, so a new component never needs `Eager`.
+Before an Angular migration schematic, preserve the current working sources, including uncommitted changes. When a
+schematic analyses both application tsconfigs, verify shared external templates and import lists against that snapshot:
+Angular 22.2.3 can apply the same replacement repeatedly and duplicate their contents. Verify template structure,
+bindings and component logic after the migration, then format the changed files.
+
+Angular 22 makes `OnPush` the component default. Every component of GT and the reusable library runs with it, and
+both hosts run zoneless: neither loads zone.js nor calls `provideZoneChangeDetection()`. A view is refreshed only when
+a signal, an input, an `AsyncPipe`, a template listener or `markForCheck` notifies Angular; nothing ticks after a timer,
+an HTTP answer or a third-party callback by itself. A stale view is fixed where its state is owned, never with a
+periodic `ApplicationRef.tick()`.
 
 - **New components declare no `changeDetection`** — the `OnPush` default applies. `src/change-detection.ratchet.spec.ts`
-  fails `npm test` for any file with `ChangeDetectionStrategy.Eager` (or `Default`) that is not listed in
-  `src/eager-allowlist.txt`. The list is empty and stays empty until it is removed with GT's zone.js polyfill.
+  fails `npm test` for any file with `ChangeDetectionStrategy.Eager` (or `Default`).
+- **Components, directives and pipes declare no `standalone`** — standalone is the default since Angular 19.
+  `src/angular-api.ratchet.spec.ts` guards against redundant `standalone: true` metadata in both hosts and the library.
+- **Import common directives and pipes individually**, such as `NgTemplateOutlet` or `AsyncPipe`, rather
+  than `CommonModule`. Built-in control flow (`@if`, `@for`, `@switch`) requires no import.
+- **Use native class bindings**, `[class.name]` for one class and `[class]` for a string, array or object. Do not add
+  `NgClass`; `src/angular-api.ratchet.spec.ts` guards both inline and external templates. Object keys and array entries
+  contain individual class names; for space-separated names or combined table-container sources, use
+  `toClassString` from `lib/helper/css-class.helper.ts`. Replace bound arrays and objects when their contents change.
+- **Use native style bindings**, `[style.property]` or `[style.width.px]` for individual properties and `[style]` for
+  a CSS string or style object. Do not add `NgStyle`; the Angular API ratchet guards inline and external templates.
+  Style objects use CSS property names with units in the values (`{ width: '12px' }`); replace objects when they change.
+- **Use self-closing tags for empty Angular elements in component templates**, such as `<router-outlet />` or
+  `<configurable-table ... />`. Keep explicit closing tags when an element projects content, including button icons,
+  templates or fallback content. The browser documents `src/index.html` and `src/grafiosch-host/index.html` keep
+  explicit closing tags for their root elements.
+- **Declare host listeners and bindings in decorator `host` metadata**, for example
+  `host: { '(input)': 'onInput($event)', '[class.active]': 'active()' }`. Do not use `@HostListener` or `@HostBinding`;
+  `src/angular-api.ratchet.spec.ts` guards both hosts and the library.
+- **Use standalone imports instead of own NgModules.** A component using `dynamic-form` imports
+  `DYNAMIC_FORM_IMPORTS` from `lib/dynamic-form/dynamic-form.imports.ts` and spreads it in its metadata:
+  `imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]`. The tuple includes the form component,
+  `DisableControlDirective`, `NgxErrorsDirective` and `NgxErrorDirective`. The Angular API ratchet forbids own `@NgModule`
+  declarations.
+- **Signal APIs only in new and reworked code.** Use `input()`, `output()`, `model()`, `viewChild()` and
+  `contentChild()`; never add an `@Input`, `@Output`, `EventEmitter`, `@ViewChild` or `@ContentChild`. The remaining
+  decorators are converted in one sweep with the Angular schematics (`output-migration`, `signal-queries-migration`,
+  `signal-input-migration`), so do not convert unrelated components by hand on the side. `dynamic-form` stays on
+  reactive forms, because its fields are built at runtime from `ClassDescriptorInputAndShow`; a new form whose fields
+  are known statically may use Signal Forms.
+- **New services use `@Service()` and `inject()`.** `@Service()` is the Angular 22 shorthand for a root-provided,
+  tree-shakable singleton and supports `inject()` only, no constructor injection. Such a service needs no entry in
+  `app.config.ts` or `src/grafiosch-host/main.ts`. Keep `@Injectable()` only for a class a host replaces through a
+  provider (`AfterLoginHandler`), one bound to a token with `useClass` (`AppDialogHandler`), or one provided per
+  component.
+- **`NgZone` is not needed for change detection.** `NgZone.run` refreshes nothing. `runOutsideAngular` around a
+  `ResizeObserver` or a layout pass remains in the library, which a host with zone.js may still consume; a result of
+  such a callback that reaches a template is written to a signal.
 - **Template state written asynchronously is a signal** — in an HTTP or translation callback, a timer, a
   `valueChanges` subscription or a menu command. Derived state is a `computed`, not a second mutable copy. A signal is
   changed only with a new reference: `list.update((l) => [...l, x])`, never `update((l) => { l.push(x); return l; })`.
@@ -195,8 +239,7 @@ When using `ConfigurableTableComponent`, **always** bind the `valueGetterFn` and
   [fields]="fields"
   [fieldsRevision]="fieldsRevision()"
   [valueGetterFn]="valueGetter"
-  [baseLocale]="baseLocale">
-</configurable-table>
+  [baseLocale]="baseLocale" />
 ```
 
 `valueGetter` is a stable member of `ShowRecordConfigBase` that calls `getValueByPath`, so overrides keep working.
@@ -220,8 +263,7 @@ table refreshes its embedded templates too.
   [customSortFn]="customSorter"
   [multiSortMeta]="multiSortMeta"
   [valueGetterFn]="valueGetter"
-  [baseLocale]="baseLocale">
-</configurable-table>
+  [baseLocale]="baseLocale" />
 ```
 
 `customSorter` is the stable member of `TableConfigBase` that calls `customSort`. Initialize default sort order in `ngOnInit()`:
@@ -355,10 +397,8 @@ constructor(...) {
       [startInEditMode]="true"
       [valueGetterFn]="valueGetter"
       [customSortFn]="customSorter"
-      [baseLocale]="baseLocale">
-    </editable-table>
+      [baseLocale]="baseLocale" />
   `,
-  standalone: true,
   imports: [EditableTableComponent]
 })
 export class MyEditableTableComponent extends TableEditConfigBase {
@@ -531,8 +571,7 @@ protected abstract initialize(): void;  // Called on dialog show
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`
 })
 export class MyDialogComponent extends SimpleEditBase implements OnInit {
@@ -696,8 +735,7 @@ Dialog components displaying tables should extend `ShowRecordConfigBase`:
         [fields]="fields"
         [fieldsRevision]="fieldsRevision()"
         [valueGetterFn]="valueGetter"
-        [baseLocale]="baseLocale">
-      </configurable-table>
+        [baseLocale]="baseLocale" />
     </p-dialog>
   `
 })
@@ -975,11 +1013,10 @@ Before writing code, find and read an existing dialog that matches your use case
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: false
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class MyDialogComponent extends SimpleEditBase implements OnInit {
   @Input() myInput: SomeType;
@@ -1051,6 +1088,13 @@ References: `SeasonalityComponent`, `CorrelationComponent`.
 The application bootstraps standalone (`src/main.ts` → `bootstrapApplication(AppComponent, appConfig)`, providers in
 `src/app/app.config.ts`) and loads its feature code on first use. Keep it that way:
 
+- **Both hosts register `provideBrowserGlobalErrorListeners()`** so unhandled browser errors and promise rejections
+  reach Angular's `ErrorHandler` in zoneless mode. The application builder controls production mode; bootstrap code
+  does not call `enableProdMode()`.
+- **Root translations and SVG icons use provider functions**: `provideTranslateService()` and
+  `provideAngularSvgIcon()`. Keep the configured `MultiTranslateHttpLoader` factory as the translation loader provider;
+  ngx-translate's `provideTranslateLoader()` accepts a class and cannot pass the required resource configuration.
+  The translation initializer still waits for the backend texts and handles a failed load through the bootstrap overlay.
 - **Feature routes use `loadComponent`.** Only login, registration, token verification, the tenant page and
   `SplitLayoutComponent` are eager in `app.routes.ts`. `AuthenticatedPreloadingStrategy` preloads the feature chunks
   in the background once a user is logged in; a chunk that fails to load (typically a tab older than the last
@@ -1091,11 +1135,11 @@ does not exercise yet:
 
 Two traps worth knowing:
 
-- **The host runs zoneless.** It uses Angular 22's default without `provideZoneChangeDetection()` or a zone.js
-  polyfill. Library state owners must notify asynchronous changes even in `Eager` components (see "Change detection").
-  Verify shell changes against this host; Grafioschtrader still uses zone.js while its components are converted.
-- **The library services are not `providedIn: 'root'`.** Every host lists the ones its routes reach, including those
-  only the shell needs (`ManageClientService` and `UserDataService` for the menu bar, `DataChangedService` and
+- **The host runs zoneless, like Grafioschtrader.** A library change that shows a stale view shows it in both hosts;
+  library state owners notify every asynchronous change (see "Change detection"). Verify shell changes against this
+  host as well, because its shell differs from the one of Grafioschtrader.
+- **The existing library services are not `providedIn: 'root'`** (new ones are `@Service()`, see "Change
+  detection"). Every host lists the ones its routes reach, including those only the shell needs (`ManageClientService` and `UserDataService` for the menu bar, `DataChangedService` and
   `TreeNavigationStateService` for the main tree). A missing entry surfaces late, as NG0201 while rendering
   `/mainview`.
 

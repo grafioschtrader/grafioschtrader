@@ -9,10 +9,9 @@ import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.m
   selector: 'tenant-performance-tab-menu',
   template: `
     <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
-      <router-outlet></router-outlet>
+      <router-outlet />
     </app-shared-tab-menu>
   `,
-  standalone: true,
   imports: [SharedTabMenuComponent, RouterOutlet]
 })
 export class TenantPerformanceTabMenuComponent {

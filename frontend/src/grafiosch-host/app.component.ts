@@ -38,11 +38,10 @@ const GrafioschPreset = definePreset(Aura, {
   selector: 'grafiosch-root',
   template: `
     <div>
-      <toast-message></toast-message>
-      <router-outlet></router-outlet>
+      <toast-message />
+      <router-outlet />
     </div>
   `,
-  standalone: true,
   imports: [RouterOutlet, MessageToastComponent]
 })
 export class GrafioschAppComponent {

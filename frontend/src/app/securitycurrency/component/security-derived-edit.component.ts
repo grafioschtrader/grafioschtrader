@@ -68,11 +68,9 @@ import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialo
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
   imports: [TranslateModule, DialogModule, DynamicFormComponent],
   providers: [DialogService]
 })

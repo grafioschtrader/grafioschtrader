@@ -39,7 +39,6 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
       }
     </ng-container>
   `,
-  imports: [ReactiveFormsModule, Textarea, ContextMenuModule, TooltipModule, TranslateModule, FilterOutPipe],
-  standalone: true
+  imports: [ReactiveFormsModule, Textarea, ContextMenuModule, TooltipModule, TranslateModule, FilterOutPipe]
 })
 export class FormPInputTextareaComponent extends BaseInputComponent {}

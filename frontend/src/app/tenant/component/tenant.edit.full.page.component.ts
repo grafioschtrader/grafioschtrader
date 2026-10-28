@@ -23,12 +23,10 @@ import { TenantEditComponent } from './tenant.edit.component';
           [formConfig]="formConfig"
           [translateService]="translateService"
           #form="dynamicForm"
-          (submitBt)="submit($event)">
-        </dynamic-form>
+          (submitBt)="submit($event)" />
       </div>
     </div>
   `,
-  standalone: true,
   imports: [TranslateModule, DynamicFormComponent]
 })
 export class TenantEditFullPageComponent extends TenantEditComponent implements OnInit, AfterViewInit {

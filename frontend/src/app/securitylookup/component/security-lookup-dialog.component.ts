@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, NgZone, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
@@ -30,7 +30,6 @@ import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../mod
  */
 @Component({
   selector: 'security-lookup-dialog',
-  standalone: true,
   imports: [
     TranslateModule,
     DialogModule,
@@ -53,26 +52,24 @@ import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../mod
       (onHide)="onHide()">
       @if (loading()) {
         <div class="flex justify-content-center align-items-center" style="min-height: 200px">
-          <p-progressSpinner></p-progressSpinner>
+          <p-progressSpinner />
         </div>
       } @else {
         @if (errorMessage()) {
-          <p-message severity="error" [text]="errorMessage()"></p-message>
+          <p-message severity="error" [text]="errorMessage()" />
         }
         @if (response(); as response) {
-          <security-lookup-hint-table titleKey="LOOKUP_HINTS" [hints]="response.hints"></security-lookup-hint-table>
+          <security-lookup-hint-table titleKey="LOOKUP_HINTS" [hints]="response.hints" />
           @if (response.candidates.length === 0) {
-            <p-message severity="info" [text]="'SECURITY_LOOKUP_NO_RESULTS' | translate"></p-message>
+            <p-message severity="info" [text]="'SECURITY_LOOKUP_NO_RESULTS' | translate" />
           } @else {
             <security-lookup-base-data-table
               [candidates]="response.candidates"
               [selectedCandidate]="selectedCandidate()"
               [(nameCandidate)]="nameCandidate"
-              (candidateSelected)="onCandidateSelected($event)">
-            </security-lookup-base-data-table>
+              (candidateSelected)="onCandidateSelected($event)" />
             @if (selectedCandidate(); as selectedCandidate) {
-              <security-lookup-hint-table titleKey="LOOKUP_HINTS_LISTING" [hints]="selectedCandidate.hints">
-              </security-lookup-hint-table>
+              <security-lookup-hint-table titleKey="LOOKUP_HINTS_LISTING" [hints]="selectedCandidate.hints" />
               @for (feed of visibleFeeds(); track feed.key) {
                 <security-lookup-connector-table
                   [titleKey]="feed.titleKey"
@@ -82,8 +79,7 @@ import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../mod
                   [showDistributionFrequency]="feed.key === 'dividend'"
                   [disabled]="isFeedDisabled(feed.key)"
                   disabledMessageKey="DIVIDEND_CONNECTOR_NOT_NEEDED"
-                  (alternativeSelected)="selectAlternative(feed.key, $event)">
-                </security-lookup-connector-table>
+                  (alternativeSelected)="selectAlternative(feed.key, $event)" />
               }
             }
             <div class="flex justify-content-end mt-3">
@@ -130,34 +126,27 @@ export class SecurityLookupDialogComponent {
   private selectionHandled = false;
   private lookupSubscription: Subscription;
 
-  constructor(
-    private securityLookupService: SecurityLookupService,
-    private ngZone: NgZone
-  ) {}
+  constructor(private securityLookupService: SecurityLookupService) {}
 
   /**
-   * Starts the lookup when the dialog has opened. Optimus UI emits onShow outside the NgZone, so the work is moved
-   * back into the zone; otherwise the answer would not trigger change detection and the spinner would remain.
+   * Starts the lookup when the dialog has opened. Optimus UI emits onShow at the end of the enter motion; the state
+   * the template shows is held in signals, so the answer refreshes the dialog wherever the request was started.
    */
   onShow(): void {
-    this.ngZone.run(() => {
-      this.selectionHandled = false;
-      this.errorMessage.set(null);
-      this.response.set(null);
-      this.nameCandidate.set(null);
-      this.onCandidateSelected(null);
-      this.performLookup();
-    });
+    this.selectionHandled = false;
+    this.errorMessage.set(null);
+    this.response.set(null);
+    this.nameCandidate.set(null);
+    this.onCandidateSelected(null);
+    this.performLookup();
   }
 
   /** Cancels a running lookup and reports a close without selection. */
   onHide(): void {
-    this.ngZone.run(() => {
-      this.cancelPendingRequest();
-      if (!this.selectionHandled) {
-        this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
-      }
-    });
+    this.cancelPendingRequest();
+    if (!this.selectionHandled) {
+      this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+    }
   }
 
   /**

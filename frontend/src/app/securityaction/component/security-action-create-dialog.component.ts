@@ -8,7 +8,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { SecurityActionService } from '../service/security-action.service';
 import { SecurityAction } from '../model/security-action.model';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { HelpIds } from '../../lib/help/help.ids';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -43,12 +43,10 @@ import { DialogService } from '@openng/optimus-ui/dynamicdialog';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule],
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule],
   providers: [DialogService]
 })
 export class SecurityActionCreateDialogComponent extends SimpleEditBase implements OnInit {

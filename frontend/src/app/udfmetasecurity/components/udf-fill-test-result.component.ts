@@ -57,7 +57,6 @@ import { UDFFillTestResult } from '../model/udf.metadata.security';
       }
     `
   ],
-  standalone: true,
   imports: [TranslateModule]
 })
 export class UDFFillTestResultComponent {

@@ -76,7 +76,6 @@ import { UpperCaseDirective } from './upper-case.directive';
       </p-select>
     </ng-container>
   `,
-  imports: [ReactiveFormsModule, SelectModule, TooltipModule, TranslateModule, FilterOutPipe, UpperCaseDirective],
-  standalone: true
+  imports: [ReactiveFormsModule, SelectModule, TooltipModule, TranslateModule, FilterOutPipe, UpperCaseDirective]
 })
 export class FormInputDropdownComponent extends BaseInputComponent {}

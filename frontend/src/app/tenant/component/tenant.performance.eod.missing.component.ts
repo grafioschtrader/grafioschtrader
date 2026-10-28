@@ -1,5 +1,5 @@
 import { computed, signal, Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -40,7 +40,7 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
       (click)="onComponentClick($event)"
       (contextmenu)="onRightClick($event)"
       #cmDiv
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -53,10 +53,8 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
           id="idYearSelect"
           [options]="possibleYears()"
           [ngModel]="selectedYear()"
-          (onChange)="yearChanged($event)">
-        </p-select>
-        <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline()" [yearCalendarData]="yearCalendarData()">
-        </ng-fullyearcalendar-lib>
+          (onChange)="yearChanged($event)" />
+        <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline()" [yearCalendarData]="yearCalendarData()" />
         <p-footer>
           <div class="ui-dialog-buttonpane ui-widget-content flexRight">
             @if (containsYear(yearCalendarData().year - 1)) {
@@ -80,17 +78,14 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
         [countIdSecurityMissingsMap]="
           $safeNavigationMigration(missingQuotesWithSecurities()?.countIdSecurityMissingsMap)
         "
-        (changedSecurity)="handleChangedSecurity($event)">
-      </tenant-performance-eod-missing-table>
+        (changedSecurity)="handleChangedSecurity($event)" />
 
       @if (contextMenuItems().length) {
-        <p-contextMenu #contextMenu [model]="contextMenuItems()" [target]="cmDiv" appendTo="body"> </p-contextMenu>
+        <p-contextMenu #contextMenu [model]="contextMenuItems()" [target]="cmDiv" appendTo="body" />
       }
     </div>
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslateModule,
     PanelModule,

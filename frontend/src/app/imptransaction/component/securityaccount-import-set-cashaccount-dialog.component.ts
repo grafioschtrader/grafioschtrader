@@ -11,7 +11,7 @@ import { ImportTransactionPosService } from '../service/import.transaction.pos.s
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
@@ -34,11 +34,9 @@ import { AppSettings } from '../../shared/app.settings';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class SecurityaccountImportSetCashaccountDialogComponent extends SimpleEditBase implements OnInit {
   @Input() idSecuritycashAccount: number;

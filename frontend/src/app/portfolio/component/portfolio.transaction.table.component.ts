@@ -17,7 +17,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ActivatedRoute, Params } from '@angular/router';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
-import { CommonModule } from '@angular/common';
+
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
 import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
@@ -35,9 +35,7 @@ import { StandingOrderSecurityEditComponent } from '../../standingorder/componen
  */
 @Component({
   templateUrl: '../../transaction/view/transaction.cashaccount.table.html',
-  standalone: true,
   imports: [
-    CommonModule,
     ConfigurableTableComponent,
     TransactionCashaccountEditSingleComponent,
     TransactionCashaccountEditDoubleComponent,

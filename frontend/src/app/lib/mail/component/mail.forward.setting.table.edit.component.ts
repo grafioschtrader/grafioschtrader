@@ -59,10 +59,8 @@ import { TranslateModule } from '@ngx-translate/core';
       (rowAdded)="onRowAdded($event)"
       (rowSelect)="onRowSelect($event)"
       (rowUnselect)="onRowUnselect($event)"
-      (componentClick)="onComponentClick($event)">
-    </editable-table>
+      (componentClick)="onComponentClick($event)" />
   `,
-  standalone: true,
   imports: [EditableTableComponent, TranslateModule]
 })
 export class MailForwardSettingTableEditComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {

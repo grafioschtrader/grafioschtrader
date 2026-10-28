@@ -12,7 +12,7 @@ import { TenantService } from '../../tenant/service/tenant.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 
 /**
@@ -35,12 +35,10 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TaxStatementExportDialogComponent extends SimpleEditBase implements OnInit {
   @Input() idsSecurityaccount: number[] = [];

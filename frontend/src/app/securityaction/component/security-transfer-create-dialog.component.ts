@@ -9,7 +9,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { SecurityActionService } from '../service/security-action.service';
 import { SecurityAction } from '../model/security-action.model';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -31,11 +31,9 @@ import { Portfolio } from '../../entities/portfolio';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   `,
-  standalone: true,
-  imports: [DynamicFormModule]
+  imports: [...DYNAMIC_FORM_IMPORTS]
 })
 export class SecurityTransferCreateDialogComponent
   extends SimpleDynamicEditBase<SecurityAction>

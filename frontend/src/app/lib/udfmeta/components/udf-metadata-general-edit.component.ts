@@ -17,7 +17,7 @@ import { UDFConfig } from '../../login/model/configuration-with-login';
 import { BaseSettings } from '../../base.settings';
 
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 
 /**
  * Component for editing UDF metadata definitions for general entity types.
@@ -40,12 +40,10 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMetadataGeneral> implements OnInit {
   /** Parameters containing UDF metadata to edit and validation exclusion lists */

@@ -1,6 +1,6 @@
 import { AppSettings } from '../../shared/app.settings';
 import { Component, Injector, Input, OnChanges, SimpleChanges, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
@@ -42,7 +42,7 @@ import {
             @for (field of tableFields(); track field.field) {
               <th [pSortableColumn]="field.field" [style.width.px]="field.width" class="text-end">
                 {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
+                <p-sortIcon [field]="field.field" />
               </th>
             }
           </tr>
@@ -71,8 +71,7 @@ import {
       </p-table>
     }
   `,
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, TableModule]
+  imports: [FormsModule, TranslateModule, TableModule]
 })
 export class SeasonalityTableComponent extends TableConfigBase implements OnChanges {
   @Input() result: SeasonalReturnsResult;

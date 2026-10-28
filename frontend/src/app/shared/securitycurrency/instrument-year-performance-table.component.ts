@@ -6,15 +6,14 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { LastYears } from '../../entities/view/instrument.statistics.result';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { CommonModule } from '@angular/common';
+
 import { TableModule } from '@openng/optimus-ui/table';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
 @Component({
   selector: 'instrument-year-performance-table',
   templateUrl: './view/instrument.statistic.table.html',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
+  imports: [TranslateModule, TableModule, TooltipModule]
 })
 export class InstrumentYearPerformanceTableComponent extends TableConfigBase implements OnInit {
   @Input() values: LastYears[];

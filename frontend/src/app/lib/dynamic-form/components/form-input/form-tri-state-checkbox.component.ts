@@ -11,10 +11,9 @@ import { TriStateCheckboxComponent } from './tri-state-checkbox';
     @let group = this.group();
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
-      <tri-state-checkbox [id]="config.field" [formControlName]="config.field" #input></tri-state-checkbox>
+      <tri-state-checkbox [id]="config.field" [formControlName]="config.field" #input />
     </ng-container>
   `,
-  imports: [ReactiveFormsModule, TriStateCheckboxComponent],
-  standalone: true
+  imports: [ReactiveFormsModule, TriStateCheckboxComponent]
 })
 export class FormTriStateCheckboxComponent extends BaseInputComponent {}

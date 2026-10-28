@@ -16,7 +16,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription, merge } from 'rxjs';
 import { DashboardConfig, DashboardResult } from '../../lib/dashboard/dashboard.types';
 import { DashboardService } from '../../lib/dashboard/dashboard.service';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { Helper } from '../../lib/helper/helper';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
@@ -54,8 +54,7 @@ const INVESTED_COLOR = '#eb6834';
  */
 @Component({
   selector: 'performance-total-chart-widget',
-  standalone: true,
-  imports: [TranslateModule, DynamicFormModule],
+  imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS],
   template: `
     @let shown = chart();
     <div class="total-chart" [class.total-chart-maximized]="maximized">
@@ -63,8 +62,7 @@ const INVESTED_COLOR = '#eb6834';
         [config]="config"
         [formConfig]="formConfig"
         [translateService]="translateService"
-        #form="dynamicForm">
-      </dynamic-form>
+        #form="dynamicForm" />
       @if (shown?.reasonKey) {
         <small class="d-block">{{ shown.reasonKey | translate }}</small>
       }

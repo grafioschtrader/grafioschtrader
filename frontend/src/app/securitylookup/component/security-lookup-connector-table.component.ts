@@ -21,7 +21,6 @@ import { Helper } from '../../lib/helper/helper';
  */
 @Component({
   selector: 'security-lookup-connector-table',
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, MessageModule],
   template: `
     <div [class.lookup-table-disabled]="disabled">
@@ -44,7 +43,7 @@ import { Helper } from '../../lib/helper/helper';
         <h5 caption>{{ titleKey | translate }}</h5>
       </configurable-table>
       @if (disabled && disabledMessageKey) {
-        <p-message severity="info" [text]="disabledMessageKey | translate"></p-message>
+        <p-message severity="info" [text]="disabledMessageKey | translate" />
       }
     </div>
   `,

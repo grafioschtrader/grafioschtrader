@@ -27,14 +27,11 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
     <br />
-    <securitycurrency-search-and-set-table [callBackSetSecurity]="this" [supplementCriteria]="supplementCriteria">
-    </securitycurrency-search-and-set-table>
+    <securitycurrency-search-and-set-table [callBackSetSecurity]="this" [supplementCriteria]="supplementCriteria" />
   `,
-  imports: [TranslateModule, DynamicFormComponent, SecuritycurrencySearchAndSetTableComponent],
-  standalone: true
+  imports: [TranslateModule, DynamicFormComponent, SecuritycurrencySearchAndSetTableComponent]
 })
 export class SecuritycurrencySearchAndSetDialogComponent
   extends SecuritycurrencySearchBase

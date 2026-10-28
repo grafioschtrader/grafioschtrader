@@ -98,10 +98,12 @@ export abstract class TenantEditComponent {
   }
 
   protected loadData() {
+    // Reset and focus before the options are requested: a tenant name typed while they load must survive their arrival.
+    this.form.setDefaultValuesAndEnableSubmit();
+    (this.configObject.tenantName ?? this.configObject.currency).elementRef?.nativeElement.focus();
     forkJoin([this.gpsGT.getCurrencies(), this.gps.getCountriesForSelectBox()])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([currencies, countries]) => {
-        this.form.setDefaultValuesAndEnableSubmit();
         this.configObject.currency.valueKeyHtmlOptions = currencies;
         if (this.configObject.country) {
           this.configObject.country.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
@@ -111,11 +113,6 @@ export abstract class TenantEditComponent {
         }
         if (this.existingTenant) {
           this.form.transferBusinessObjectToForm(this.existingTenant);
-        }
-        if (this.configObject.tenantName) {
-          this.configObject.tenantName.elementRef.nativeElement.focus();
-        } else {
-          this.configObject.currency.elementRef.nativeElement.focus();
         }
       });
   }

@@ -21,7 +21,6 @@ import { GTNetConfigEntityDisplay } from './gtnet-config-entity-table.component'
  */
 @Component({
   selector: 'gtnet-config-entity-edit',
-  standalone: true,
   imports: [DialogModule, DynamicFormComponent, TranslateModule],
   template: `
     <p-dialog
@@ -37,8 +36,7 @@ import { GTNetConfigEntityDisplay } from './gtnet-config-entity-table.component'
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
   providers: [GTNetConfigEntityService]

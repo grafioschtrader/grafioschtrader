@@ -24,12 +24,10 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
         [inputStyle]="{ width: '100%' }"
         [suggestions]="config.suggestions"
         (completeMethod)="callSuggestionsFN($event)"
-        pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}">
-      </p-autoComplete>
+        pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}" />
     </ng-container>
   `,
-  imports: [ReactiveFormsModule, AutoCompleteModule, TooltipModule, TranslateModule, FilterOutPipe],
-  standalone: true
+  imports: [ReactiveFormsModule, AutoCompleteModule, TooltipModule, TranslateModule, FilterOutPipe]
 })
 export class FormInputSuggestionComponent extends BaseInputComponent {
   public callSuggestionsFN(event): void {

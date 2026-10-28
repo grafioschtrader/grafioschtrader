@@ -20,7 +20,6 @@ import { Helper } from '../../lib/helper/helper';
  */
 @Component({
   selector: 'algo-alert-notification-table',
-  standalone: true,
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
     [data]="rows"

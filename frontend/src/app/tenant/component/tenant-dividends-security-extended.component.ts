@@ -16,7 +16,7 @@ import { FilterService, SharedModule } from '@openng/optimus-ui/api';
 import { TenantDividendsExtendedBase } from './tenant.dividends.extended.base';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { TaxDataService } from '../../taxdata/service/tax-data.service';
-import { CommonModule } from '@angular/common';
+
 import { TableModule } from '@openng/optimus-ui/table';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { CheckboxModule } from '@openng/optimus-ui/checkbox';
@@ -66,12 +66,12 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
               <th
                 [pSortableColumn]="field.field"
                 [style.max-width.px]="field.width"
-                [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
                 [pTooltip]="field.headerTooltipTranslated"
                 class="word-break-header"
                 [attr.lang]="baseLocale.language">
                 {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
+                <p-sortIcon [field]="field.field" />
               </th>
             }
           </tr>
@@ -80,7 +80,7 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
           <tr [pSelectableRow]="el" [pContextMenuRow]="el">
             <td>
               <a href="#" [pRowToggler]="el">
-                <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
+                <i [class]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
               </a>
             </td>
             <td style="text-align:center">
@@ -88,13 +88,13 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
                 [binary]="true"
                 [ngModel]="el.excludedFromTax"
                 [disabled]="pendingExclusions().has(el.security.idSecuritycurrency)"
-                (onChange)="onExclusionToggle(el)"></p-checkbox>
+                (onChange)="onExclusionToggle(el)" />
             </td>
             @for (field of fields; track field) {
               <td
                 [style.max-width.px]="field.width"
-                [ngStyle]="getCellStyle(el, field)"
-                [ngClass]="
+                [style]="getCellStyle(el, field)"
+                [class]="
                   field.dataType === DataType.Numeric ||
                   field.dataType === DataType.DateTimeNumeric ||
                   field.dataType === DataType.NumericInteger
@@ -103,9 +103,7 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
                 ">
                 @switch (field.templateName) {
                   @case ('icon') {
-                    <svg-icon
-                      [name]="getValueByPath(el, field)"
-                      [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
+                    <svg-icon [name]="getValueByPath(el, field)" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }" />
                   }
                   @default {
                     <span [pTooltip]="getCellTooltip(el, field)" tooltipPosition="top">{{
@@ -127,8 +125,7 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
                   [idsSecurityaccount]="idsSecurityaccount"
                   [transactionSecurityOptionalParam]="tsop"
                   [untilDate]="untilDateForTransactions"
-                  (dateChanged)="transactionDataChanged($event)">
-                </transaction-security-table>
+                  (dateChanged)="transactionDataChanged($event)" />
               }
 
               @if (!!sdp.security.stockexchange && isMarginProduct(sdp.security)) {
@@ -138,28 +135,24 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
                   [idsSecurityaccount]="idsSecurityaccount"
                   [transactionSecurityOptionalParam]="tsop"
                   [untilDate]="untilDateForTransactions"
-                  (dateChanged)="transactionDataChanged($event)">
-                </transaction-security-margin-treetable>
+                  (dateChanged)="transactionDataChanged($event)" />
               }
             </td>
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu #cmSec [model]="contextMenuItems()" appendTo="body"></p-contextMenu>
+      <p-contextMenu #cmSec [model]="contextMenuItems()" appendTo="body" />
       @if (visibleCorrectionDialog()) {
         <tax-year-correction-dialog
           [visibleDialog]="visibleCorrectionDialog()"
           [security]="dialogSecurity"
           [yearOptions]="correctionYearOptions"
           [suggestedYear]="year"
-          (closeDialog)="handleCorrectionDialogClose($event)">
-        </tax-year-correction-dialog>
+          (closeDialog)="handleCorrectionDialogClose($event)" />
       }
     </div>
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TableModule,
     TooltipModule,
@@ -310,7 +303,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
    *
    * @param row the security dividends position for the current row
    * @param field the column configuration being rendered
-   * @returns an ngStyle object for the cell
+   * @returns A style object for the cell
    */
   getCellStyle(row: SecurityDividendsPosition, field: ColumnConfig): { [key: string]: string } {
     const widthStyle = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};

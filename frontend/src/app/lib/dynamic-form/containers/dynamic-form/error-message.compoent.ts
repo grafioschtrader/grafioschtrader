@@ -23,8 +23,7 @@ import { FormNotifier } from '../../models/form.notifier';
       }
     </div>
   `,
-  imports: [NgxErrorsDirective, NgxErrorDirective],
-  standalone: true
+  imports: [NgxErrorsDirective, NgxErrorDirective]
 })
 export class ErrorMessageComponent {
   @Input() baseFieldFieldgroupConfig: BaseFieldFieldgroupConfig;

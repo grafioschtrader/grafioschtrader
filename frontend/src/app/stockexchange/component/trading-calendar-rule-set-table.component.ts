@@ -69,12 +69,10 @@ import { StockexchangeService } from '../service/stockexchange.service';
       <trading-calendar-rule-set-edit
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
-        (closeDialog)="handleCloseDialog($event)">
-      </trading-calendar-rule-set-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [TranslateModule, TooltipModule, ConfigurableTableComponent, TradingCalendarRuleSetEditComponent]
 })
 export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenu<TradingCalendarRuleSet> {

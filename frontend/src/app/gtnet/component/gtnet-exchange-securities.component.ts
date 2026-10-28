@@ -1,6 +1,6 @@
 import { Component, Injector, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
@@ -39,9 +39,7 @@ import { HelpIds } from '../../lib/help/help.ids';
  */
 @Component({
   selector: 'gtnet-exchange-securities',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslateModule,
     TableModule,
@@ -87,8 +85,7 @@ import { HelpIds } from '../../lib/help/help.ids';
       <div caption class="flex justify-content-between align-items-center w-full">
         <h4>{{ getTitleKey() | translate }}</h4>
         <div class="flex align-items-center gap-2">
-          <gtnet-exchange-checkboxes [disabled]="!isUserAllowedToMultiSelect()" (toggle)="onCheckboxToggle($event)">
-          </gtnet-exchange-checkboxes>
+          <gtnet-exchange-checkboxes [disabled]="!isUserAllowedToMultiSelect()" (toggle)="onCheckboxToggle($event)" />
         </div>
         <div class="flex align-items-center gap-2 w-full" style="display: flex; width: 100%; margin-bottom: 0.75rem">
           <div class="flex align-items-center gap-2 mr-3 surface-border w-full" style="display: flex; width: 100%">
@@ -106,11 +103,7 @@ import { HelpIds } from '../../lib/help/help.ids';
           class="flex justify-content-between align-items-center w-full"
           style="display: flex; justify-content: space-between; align-items: center; width: 100%">
           <div class="flex align-items-center gap-2" style="display: flex; align-items: center; gap: 0.5rem">
-            <p-checkbox
-              [(ngModel)]="activeOnly"
-              [binary]="true"
-              (onChange)="loadData()"
-              inputId="activeOnly"></p-checkbox>
+            <p-checkbox [(ngModel)]="activeOnly" [binary]="true" (onChange)="loadData()" inputId="activeOnly" />
             <label for="activeOnly" style="margin-bottom: 0">{{ 'ACTIVE_NOW_SECURITIES' | translate }}</label>
           </div>
           <p-button [label]="'SAVE' | translate" (onClick)="saveChanges()" [disabled]="!hasUnsavedChanges()">
@@ -125,7 +118,7 @@ import { HelpIds } from '../../lib/help/help.ids';
             [(ngModel)]="row[field.field]"
             [binary]="true"
             (onChange)="onCheckboxChange(row)"
-            [disabled]="isCheckboxDisabled(row, field.field)"></p-checkbox>
+            [disabled]="isCheckboxDisabled(row, field.field)" />
         } @else {
           <span [pTooltip]="getValueByPath(row, field)" tooltipPosition="top">
             {{ getValueByPath(row, field) }}
@@ -134,8 +127,7 @@ import { HelpIds } from '../../lib/help/help.ids';
       </ng-template>
 
       <ng-template #expandedRow let-row>
-        <gtnet-supplier-detail-table [idSecuritycurrency]="row.idSecuritycurrency" [dtype]="'S'">
-        </gtnet-supplier-detail-table>
+        <gtnet-supplier-detail-table [idSecuritycurrency]="row.idSecuritycurrency" [dtype]="'S'" />
       </ng-template>
     </configurable-table>
 
@@ -143,8 +135,7 @@ import { HelpIds } from '../../lib/help/help.ids';
       <security-edit
         (closeDialog)="handleCloseEditSecurityDialog($event)"
         [securityCurrencypairCallParam]="securityCallParam"
-        [visibleEditSecurityDialog]="visibleEditSecurityDialog()">
-      </security-edit>
+        [visibleEditSecurityDialog]="visibleEditSecurityDialog()" />
     }
   `,
   styles: [],

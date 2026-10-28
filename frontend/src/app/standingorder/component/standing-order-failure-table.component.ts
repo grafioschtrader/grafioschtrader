@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -26,8 +26,7 @@ import { StandingOrderFailure } from '../../entities/standing.order';
       [selectionMode]="null"
       [scrollable]="false"
       [valueGetterFn]="valueGetter"
-      [baseLocale]="baseLocale">
-    </configurable-table>
+      [baseLocale]="baseLocale" />
 
     <ng-template #stackTraceExpansion let-failure>
       <textarea [rows]="getShowLines(failure.unexpectedError)" style="width:100%;" readonly>{{
@@ -35,8 +34,7 @@ import { StandingOrderFailure } from '../../entities/standing.order';
       }}</textarea>
     </ng-template>
   `,
-  standalone: true,
-  imports: [CommonModule, TranslateModule, ConfigurableTableComponent]
+  imports: [TranslateModule, ConfigurableTableComponent]
 })
 export class StandingOrderFailureTableComponent extends ShowRecordConfigBase {
   @Input() failures: StandingOrderFailure[] = [];

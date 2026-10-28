@@ -12,14 +12,13 @@ import { TranslateValue } from '../datashowbase/column.config';
 /** Compact projection table; processing remains on the destination screen. */
 @Component({
   selector: 'dashboard-table',
-  standalone: true,
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
     [data]="rows"
     [fields]="fields"
     [fieldsRevision]="fieldsRevision()"
     dataKey="id"
-    [valueGetterFn]="valueGetter"></configurable-table>`
+    [valueGetterFn]="valueGetter" />`
 })
 export class DashboardTableComponent extends TableConfigBase implements OnChanges {
   @Input() rows: DashboardRow[] = [];

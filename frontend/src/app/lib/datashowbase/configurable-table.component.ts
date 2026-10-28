@@ -15,7 +15,7 @@ import {
   TemplateRef,
   ViewChild
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Table, TableModule } from '@openng/optimus-ui/table';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
@@ -31,6 +31,7 @@ import { FilterType } from './filter.type';
 import { BaseLocale } from '../dynamic-form/models/base.locale';
 import { GlobalSessionNames } from '../global.session.names';
 import { BaseSettings } from '../base.settings';
+import { toClassString } from '../helper/css-class.helper';
 
 /** Represents one item in the first (group) header row */
 interface HeaderGroupItem {
@@ -102,16 +103,15 @@ export interface CellMark {
  */
 @Component({
   selector: 'configurable-table',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TableModule,
     ContextMenuModule,
     TooltipModule,
     SharedModule,
     DatePickerModule,
-    MultiSelectModule
+    MultiSelectModule,
+    NgTemplateOutlet
   ],
   // Rules for the columns fixed by frozenColumnCount. The theme defines the sticky position only for a scrollable table,
   // these rules hold for every table. A body cell takes the opaque background of its row and is stacked above the cells
@@ -148,7 +148,7 @@ export interface CellMark {
     `
   ],
   template: `
-    <div #cmDiv (click)="onComponentClick($event)" [ngClass]="containerClass" [class]="customClass">
+    <div #cmDiv (click)="onComponentClick($event)" [class]="toClassString(containerClass, customClass)">
       <p-table
         #table
         [columns]="renderedFields"
@@ -181,7 +181,7 @@ export interface CellMark {
         (onColResize)="colResize.emit($event)">
         <!-- Caption slot with content projection -->
         <ng-template pTemplate="caption">
-          <ng-content select="[caption]"></ng-content>
+          <ng-content select="[caption]" />
         </ng-template>
 
         <!-- Header template -->
@@ -202,7 +202,7 @@ export interface CellMark {
                   [style.width.em]="2.25"
                   [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
                   [style.left]="frozenLeft(selectionFrozenSlot)">
-                  <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                  <p-tableHeaderCheckbox />
                 </th>
               }
               @for (item of headerGroupRow; track $index) {
@@ -216,11 +216,11 @@ export interface CellMark {
                     [pSortableColumn]="item.field.field"
                     [pTooltip]="item.field.headerTooltipTranslated"
                     [style.max-width.px]="item.field.width"
-                    [ngStyle]="item.field.width ? { 'flex-basis': '0 0 ' + item.field.width + 'px' } : {}"
+                    [style]="item.field.width ? { 'flex-basis': '0 0 ' + item.field.width + 'px' } : {}"
                     class="word-break-header"
                     [attr.lang]="baseLocale.language">
                     {{ item.field.headerTranslated }}
-                    <p-sortIcon [field]="item.field.field"></p-sortIcon>
+                    <p-sortIcon [field]="item.field.field" />
                   </th>
                 } @else {
                   <th [attr.colspan]="item.colspan" style="text-align:center">
@@ -236,11 +236,11 @@ export interface CellMark {
                   [pSortableColumn]="field.field"
                   [pTooltip]="field.headerTooltipTranslated"
                   [style.max-width.px]="field.width"
-                  [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                  [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
                   class="word-break-header"
                   [attr.lang]="baseLocale.language">
                   {{ field.headerTranslated }}
-                  <p-sortIcon [field]="field.field"></p-sortIcon>
+                  <p-sortIcon [field]="field.field" />
                 </th>
               }
             </tr>
@@ -258,7 +258,7 @@ export interface CellMark {
                   [style.width.em]="2.25"
                   [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
                   [style.left]="frozenLeft(selectionFrozenSlot)">
-                  <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                  <p-tableHeaderCheckbox />
                 </th>
               }
               @for (field of columns; track field.field) {
@@ -271,11 +271,11 @@ export interface CellMark {
                     [pSortableColumn]="field.field"
                     [pTooltip]="field.headerTooltipTranslated"
                     [style.max-width.px]="field.width"
-                    [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                    [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
                     class="word-break-header"
                     [attr.lang]="baseLocale.language">
                     {{ field.headerTranslated }}
-                    <p-sortIcon [field]="field.field"></p-sortIcon>
+                    <p-sortIcon [field]="field.field" />
                   </th>
                 }
               }
@@ -313,7 +313,7 @@ export interface CellMark {
                     [class.gt-frozen-last]="slot === lastFrozenSlot"
                     [style.left]="frozenLeft(slot)"
                     [style.max-width.px]="field.width"
-                    [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
+                    [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
                     @switch (field.filterType) {
                       @case (FilterType.likeDataType) {
                         @switch (field.dataType) {
@@ -339,8 +339,7 @@ export interface CellMark {
                                   (onSelect)="filter($event)"
                                   [minDate]="minDate"
                                   [maxDate]="maxDate"
-                                  (onInput)="filter(cal.value)">
-                                </p-datepicker>
+                                  (onInput)="filter(cal.value)" />
                               </ng-template>
                             </p-columnFilter>
                           }
@@ -351,7 +350,7 @@ export interface CellMark {
                               [locale]="formLocale"
                               appendTo="body"
                               minFractionDigits="2"
-                              display="menu"></p-columnFilter>
+                              display="menu" />
                           }
                           @case (DataType.NumericShowZero) {
                             <p-columnFilter
@@ -360,7 +359,7 @@ export interface CellMark {
                               [locale]="formLocale"
                               appendTo="body"
                               minFractionDigits="0"
-                              display="menu"></p-columnFilter>
+                              display="menu" />
                           }
                           @case (DataType.NumericInteger) {
                             <p-columnFilter
@@ -369,14 +368,10 @@ export interface CellMark {
                               [locale]="formLocale"
                               appendTo="body"
                               minFractionDigits="0"
-                              display="menu"></p-columnFilter>
+                              display="menu" />
                           }
                           @case (DataType.String) {
-                            <p-columnFilter
-                              type="text"
-                              appendTo="body"
-                              [field]="filterKey(field)"
-                              display="menu"></p-columnFilter>
+                            <p-columnFilter type="text" appendTo="body" [field]="filterKey(field)" display="menu" />
                           }
                         }
                       }
@@ -394,7 +389,7 @@ export interface CellMark {
                           [showClear]="true"
                           [filter]="$safeNavigationMigration(field.filterValues?.length) > 10"
                           (onChange)="table.filter($event.value?.length ? $event.value : null, filterKey(field), 'in')"
-                          (onClear)="table.filter(null, filterKey(field), 'in')"></p-multiSelect>
+                          (onClear)="table.filter(null, filterKey(field), 'in')" />
                       }
                     }
                   </th>
@@ -409,7 +404,7 @@ export interface CellMark {
           <tr
             [pSelectableRow]="rowData"
             [pContextMenuRow]="contextMenuEnabled ? rowData : null"
-            [ngClass]="getRowClass(rowData)">
+            [class]="getRowClass(rowData)">
             <!-- Expansion toggle cell -->
             @if (expandable) {
               <td
@@ -418,7 +413,7 @@ export interface CellMark {
                 [style.left]="frozenLeft(expansionFrozenSlot)">
                 @if (canExpand(rowData)) {
                   <a [pRowToggler]="rowData" href="#" (click)="$event.preventDefault()">
-                    <i [ngClass]="expanded ? expandedIcon : collapsedIcon"></i>
+                    <i [class]="expanded ? expandedIcon : collapsedIcon"></i>
                   </a>
                 }
               </td>
@@ -429,7 +424,7 @@ export interface CellMark {
               <td
                 [class.p-datatable-frozen-column]="selectionFrozenSlot >= 0"
                 [style.left]="frozenLeft(selectionFrozenSlot)">
-                <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+                <p-tableCheckbox [value]="rowData" />
               </td>
             }
 
@@ -441,14 +436,14 @@ export interface CellMark {
                   [class.p-datatable-frozen-column]="slot >= 0"
                   [class.gt-frozen-last]="slot === lastFrozenSlot"
                   [style.left]="frozenLeft(slot)"
-                  [ngStyle]="getMergedCellStyle(rowData, field)"
+                  [style]="getMergedCellStyle(rowData, field)"
                   [style.max-width.px]="field.width"
-                  [ngClass]="getCellClass(field)">
+                  [class]="getCellClass(field)">
                   <!-- Optional mark before the content, for example for an automatically filled value -->
                   @if (cellMarkFn) {
                     @if (cellMarkFn(rowData, field); as mark) {
                       <i
-                        [ngClass]="mark.iconClass"
+                        [class]="mark.iconClass"
                         [pTooltip]="mark.tooltip"
                         tooltipPosition="top"
                         style="font-size: 0.75em; margin-right: 3px; opacity: 0.7"></i>
@@ -460,8 +455,8 @@ export interface CellMark {
                   <!-- Cell content rendering -->
                   @if (customCellTemplate) {
                     <!-- Use custom cell template if provided -->
-                    <ng-container *ngTemplateOutlet="customCellTemplate; context: { $implicit: rowData, field: field }">
-                    </ng-container>
+                    <ng-container
+                      *ngTemplateOutlet="customCellTemplate; context: { $implicit: rowData, field: field }" />
                   } @else if (field.templateName === 'owner') {
                     <span
                       [pTooltip]="getCellTooltip(rowData, field)"
@@ -477,7 +472,12 @@ export interface CellMark {
                       {{ getValue(rowData, field) }}
                     </span>
                   } @else if (field.templateName === 'check') {
-                    <span><i [ngClass]="{ 'fa fa-check': getValue(rowData, field) }" aria-hidden="true"></i></span>
+                    <span
+                      ><i
+                        [class.fa]="getValue(rowData, field)"
+                        [class.fa-check]="getValue(rowData, field)"
+                        aria-hidden="true"></i
+                    ></span>
                   } @else if (field.templateName === 'icon') {
                     @if (iconTemplate) {
                       <ng-container
@@ -488,8 +488,7 @@ export interface CellMark {
                             field: field,
                             value: getValue(rowData, field)
                           }
-                        ">
-                      </ng-container>
+                        " />
                     } @else {
                       <span>{{ getValue(rowData, field) }}</span>
                     }
@@ -503,8 +502,7 @@ export interface CellMark {
                             field: field,
                             value: getValue(rowData, field)
                           }
-                        ">
-                      </ng-container>
+                        " />
                     } @else {
                       <span>{{ getValue(rowData, field) }}</span>
                     }
@@ -513,8 +511,7 @@ export interface CellMark {
                       <a [href]="getValue(rowData, field)" target="_blank">
                         @if (linkIconTemplate) {
                           <ng-container
-                            *ngTemplateOutlet="linkIconTemplate; context: { $implicit: rowData, field: field }">
-                          </ng-container>
+                            *ngTemplateOutlet="linkIconTemplate; context: { $implicit: rowData, field: field }" />
                         } @else {
                           <i class="fa fa-external-link"></i>
                         }
@@ -537,7 +534,7 @@ export interface CellMark {
           <ng-template #expandedrow let-row let-columns="fields">
             <tr>
               <td [attr.colspan]="getExpandedColspan()">
-                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: row }"> </ng-container>
+                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: row }" />
               </td>
             </tr>
           </ng-template>
@@ -567,9 +564,9 @@ export interface CellMark {
                     [class.p-datatable-frozen-column]="slot >= 0"
                     [class.gt-frozen-last]="slot === lastFrozenSlot"
                     [style.left]="frozenLeft(slot)"
-                    [ngClass]="getCellClass(field)"
+                    [class]="getCellClass(field)"
                     [style.max-width.px]="field.width"
-                    [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
+                    [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
                     {{ footerValueFn(field) }}
                   </td>
                 }
@@ -581,12 +578,13 @@ export interface CellMark {
 
       <!-- Context menu -->
       @if (contextMenuEnabled && showContextMenu) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" [appendTo]="contextMenuAppendTo"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" [appendTo]="contextMenuAppendTo" />
       }
     </div>
   `
 })
 export class ConfigurableTableComponent<T = any> implements OnChanges, AfterViewChecked, OnDestroy {
+  protected readonly toClassString = toClassString;
   // ============================================================================
   // Data and Column Configuration
   // ============================================================================
@@ -1357,7 +1355,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    *
    * @param row - Row data object
    * @param field - Column configuration
-   * @returns Merged style object for ngStyle binding
+   * @returns Merged style object for the native style binding
    */
   getMergedCellStyle(row: T, field: ColumnConfig): { [key: string]: string } {
     const widthStyle: { [key: string]: string } = field.width

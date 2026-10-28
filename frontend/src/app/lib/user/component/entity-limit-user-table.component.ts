@@ -73,7 +73,7 @@ import { BaseSettings } from '../../base.settings';
         (componentClick)="onComponentClick($event)">
         <!-- Custom icon cell template for svg-icon rendering -->
         <ng-template #iconCell let-row let-field="field" let-value="value">
-          <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
+          <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }" />
         </ng-template>
       </configurable-table>
     </div>
@@ -84,10 +84,8 @@ import { BaseSettings } from '../../base.settings';
         [idUser]="user.idUser"
         [existingEntityLimit]="existingEntityLimit"
         [proposeChangeEntityWithEntity]="proposeChangeEntityWithEntity"
-        (closeDialog)="handleCloseDialog($event)">
-      </entity-limit-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }`,
-  standalone: true,
   imports: [ConfigurableTableComponent, AngularSvgIconModule, EntityLimitEditComponent]
 })
 export class EntityLimitUserTableComponent extends TableConfigBase implements OnChanges, IGlobalMenuAttach {

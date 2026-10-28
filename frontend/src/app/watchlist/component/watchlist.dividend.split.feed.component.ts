@@ -25,7 +25,7 @@ import { FilterType } from '../../lib/datashowbase/filter.type';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -64,9 +64,7 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
     `
   ],
   providers: [DialogService],
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     ConfigurableTableComponent,
     AngularSvgIconModule,
@@ -85,7 +83,8 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
     AlgoStrategyEditComponent,
     WatchlistAddEditPriceProblemInstrumentComponent,
     TransactionSecurityEditComponent,
-    UDFGeneralEditComponent
+    UDFGeneralEditComponent,
+    DatePipe
   ]
 })
 export class WatchlistDividendSplitFeedComponent extends WatchlistTable implements OnInit, OnDestroy {

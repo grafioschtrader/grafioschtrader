@@ -69,7 +69,7 @@
         [pTooltip]="row.securitycurrency.idSecuritycurrency"
         (dragstart)="dragStart($event, row)"
         (dragend)="dragEnd($event, row)">
-        <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }"> </svg-icon>
+        <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }" />
       </span>
     </ng-template>
 
@@ -81,14 +81,13 @@
         [name]="iconName"
         [pTooltip]="'DISTRIBUTION_HEADER_TOOLTIP' | translate"
         tooltipPosition="top"
-        [svgStyle]="{ 'width.px':14, 'height.px':14 }">
-      </svg-icon>
+        [svgStyle]="{ 'width.px':14, 'height.px':14 }" />
       }
     </ng-template>
 
     <!-- Custom link icon cell template -->
     <ng-template #linkIconCell let-row let-field="field">
-      <svg-icon [name]="getLinkIconName(field)" [svgStyle]="{ 'width.px':24, 'height.px':14 }"> </svg-icon>
+      <svg-icon [name]="getLinkIconName(field)" [svgStyle]="{ 'width.px':24, 'height.px':14 }" />
     </ng-template>
   </configurable-table>
 </div>
@@ -100,25 +99,20 @@
   <transaction-security-table
     (dateChanged)="handleCloseTransactionDialog($event)"
     [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency"
-    [idTenant]="idTenant">
-  </transaction-security-table>
+    [idTenant]="idTenant" />
   } @if (watchlistType === WatchListType.PERFORMANCE && isMarginProduct(row)) {
   <transaction-security-margin-treetable
     (dateChanged)="handleCloseTransactionDialog($event)"
     [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency"
-    [idTenant]="idTenant">
-  </transaction-security-margin-treetable>
+    [idTenant]="idTenant" />
   } @if (watchlistType === WatchListType.UDF) {
-  <securitycurrency-udf [securitycurrency]="row.securitycurrency"> </securitycurrency-udf>
+  <securitycurrency-udf [securitycurrency]="row.securitycurrency" />
   } @if (watchlistType === WatchListType.PRICE_FEED) {
-  <watchlist-price-feed-expanded [position]="row" [feedConnectorsKV]="feedConnectorsKV()">
-  </watchlist-price-feed-expanded>
+  <watchlist-price-feed-expanded [position]="row" [feedConnectorsKV]="feedConnectorsKV()" />
   } @if (watchlistType === WatchListType.DIVIDEND_SPLIT_FEED) {
   <div>
-    <watchlist-dividend-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency">
-    </watchlist-dividend-table>
-    <watchlist-securitysplit-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency">
-    </watchlist-securitysplit-table>
+    <watchlist-dividend-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency" />
+    <watchlist-securitysplit-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency" />
   </div>
   } }
 </ng-template>
@@ -128,55 +122,46 @@
 <transaction-security-edit
   (closeDialog)="handleCloseTransactionDialog($event)"
   [transactionCallParam]="transactionCallParam"
-  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()">
-</transaction-security-edit>
+  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()" />
 } @if (visibleAddInstrumentDialog()) {
 <watchlist-add-instrument
   (closeDialog)="handleCloseAddInstrumentDialog($event)"
   [idWatchlist]="idWatchlist"
   [tenantLimits]="tenantLimits()"
-  [visibleAddInstrumentDialog]="visibleAddInstrumentDialog()">
-</watchlist-add-instrument>
+  [visibleAddInstrumentDialog]="visibleAddInstrumentDialog()" />
 } @if (visibleEditCurrencypairDialog()) {
 <currencypair-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-  [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog()">
-</currencypair-edit>
+  [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog()" />
 } @if (visibleEditSecurityDialog()) {
 <security-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-  [visibleEditSecurityDialog]="visibleEditSecurityDialog()">
-</security-edit>
+  [visibleEditSecurityDialog]="visibleEditSecurityDialog()" />
 } @if (visibleEditSecurityDerivedDialog()) {
 <security-derived-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [securityCallParam]="securityCallParam"
-  [visibleDialog]="visibleEditSecurityDerivedDialog()">
-</security-derived-edit>
+  [visibleDialog]="visibleEditSecurityDerivedDialog()" />
 } @if (visibleUDFSecurityDialog()) {
 <udf-security-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [uDFGeneralCallParam]="uDFGeneralCallParam"
-  [visibleDialog]="visibleUDFSecurityDialog()">
-</udf-security-edit>
+  [visibleDialog]="visibleUDFSecurityDialog()" />
 } @if (alarmSetupService.visibleDialog) {
 <algo-strategy-edit
   [visibleDialog]="alarmSetupService.visibleDialog"
   [algoCallParam]="alarmSetupService.algoCallParam"
-  (closeDialog)="alarmSetupService.handleCloseDialog($event)">
-</algo-strategy-edit>
+  (closeDialog)="alarmSetupService.handleCloseDialog($event)" />
 } @if (visibleUDFGeneralDialog()) {
 <udf-general-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [uDFGeneralCallParam]="uDFGeneralCallParam"
-  [visibleDialog]="visibleUDFGeneralDialog()">
-</udf-general-edit>
+  [visibleDialog]="visibleUDFGeneralDialog()" />
 } @if (watchlistType === WatchListType.PRICE_FEED && visibleAddPriceProblemDialog()) {
 <watchlist-add-edit-price-problem-instrument
   (closeDialog)="handleCloseAddPriceProblemInstrument($event)"
   [idWatchlist]="idWatchlist"
-  [visibleDialog]="visibleAddPriceProblemDialog()">
-</watchlist-add-edit-price-problem-instrument>
+  [visibleDialog]="visibleAddPriceProblemDialog()" />
 }

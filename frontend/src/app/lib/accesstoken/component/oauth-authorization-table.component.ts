@@ -22,7 +22,6 @@ import { UserAccessTokenService } from '../service/user-access-token.service';
  */
 @Component({
   selector: 'oauth-authorization-table',
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, ButtonModule],
   template: `
     <h4>{{ 'ACCESS_TOKEN_OAUTH_CLIENTS' | translate }}</h4>

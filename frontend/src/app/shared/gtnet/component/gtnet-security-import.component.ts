@@ -1,6 +1,6 @@
 import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute, Params } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
@@ -14,7 +14,7 @@ import { MessageToastService } from '../../../lib/message/message.toast.service'
 import { InfoLevelType } from '../../../lib/message/info.leve.type';
 import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
 import { DynamicFieldHelper } from '../../../lib/helper/dynamic.field.helper';
-import { DynamicFormModule } from '../../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../../lib/dynamic-form/dynamic-form.imports';
 import { TranslateHelper } from '../../../lib/helper/translate.helper';
 import { SelectOptionsHelper } from '../../../lib/helper/select.options.helper';
 import { ProcessedActionData } from '../../../lib/types/processed.action.data';
@@ -37,7 +37,7 @@ import { GTNetSecurityImportEditHeadComponent } from './gtnet-security-import-ed
       class="data-container"
       (click)="onComponentClick($event)"
       #cmDiv
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -45,29 +45,24 @@ import { GTNetSecurityImportEditHeadComponent } from './gtnet-security-import-ed
         [config]="config"
         [formConfig]="formConfig"
         [translateService]="translateService"
-        #form="dynamicForm">
-      </dynamic-form>
+        #form="dynamicForm" />
 
       @if (contextMenuItems) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" appendTo="body" />
       }
       <br />
-      <gtnet-security-import-table [selectedHead]="selectedEntity" (positionChanged)="onPositionChanged()">
-      </gtnet-security-import-table>
+      <gtnet-security-import-table [selectedHead]="selectedEntity" (positionChanged)="onPositionChanged()" />
     </div>
 
     @if (visibleEditDialog) {
       <gtnet-security-import-edit-head
         [visibleDialog]="visibleEditDialog"
         [entity]="callParam"
-        (closeDialog)="handleCloseEditDialog($event)">
-      </gtnet-security-import-edit-head>
+        (closeDialog)="handleCloseEditDialog($event)" />
     }
   `,
-  standalone: true,
   imports: [
-    CommonModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     ContextMenuModule,
     GTNetSecurityImportTableComponent,
     GTNetSecurityImportEditHeadComponent

@@ -1,7 +1,7 @@
 import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
@@ -71,10 +71,9 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
         (rowExpand)="onRowExpand($event)"
         (rowEditSave)="onRowEditSave($event)"
         (rowSelect)="onRowSelect($event)"
-        (rowUnselect)="onRowUnselect($event)">
-      </editable-table>
+        (rowUnselect)="onRowUnselect($event)" />
       @if (selectedHead && contextMenuItems()?.length > 0) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems()"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems()" />
       }
     </div>
 
@@ -87,10 +86,9 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
           [intradayUrl]="getUrlForPosition(position, 'intradayUrl')"
           [historicalUrl]="getUrlForPosition(position, 'historicalUrl')"
           [dividendUrl]="getUrlForPosition(position, 'dividendUrl')"
-          [splitUrl]="getUrlForPosition(position, 'splitUrl')">
-        </securitycurrency-extended-info>
+          [splitUrl]="getUrlForPosition(position, 'splitUrl')" />
       } @else if (position.gaps?.length > 0) {
-        <gtnet-security-imp-gap-table [gaps]="position.gaps" [gtNetsMap]="gtNetsMap()"> </gtnet-security-imp-gap-table>
+        <gtnet-security-imp-gap-table [gaps]="position.gaps" [gtNetsMap]="gtNetsMap()" />
       }
     </ng-template>
 
@@ -99,8 +97,7 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
       <security-edit
         (closeDialog)="handleCloseEditSecurityDialog($event)"
         [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-        [visibleEditSecurityDialog]="visibleEditSecurityDialog()">
-      </security-edit>
+        [visibleEditSecurityDialog]="visibleEditSecurityDialog()" />
     }
 
     <!-- CSV Upload Dialog -->
@@ -108,13 +105,10 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
       <upload-file-dialog
         [visibleDialog]="visibleUploadDialog()"
         [fileUploadParam]="fileUploadParam"
-        (closeDialog)="handleCloseUploadDialog($event)">
-      </upload-file-dialog>
+        (closeDialog)="handleCloseUploadDialog($event)" />
     }
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     EditableTableComponent,
     ContextMenuModule,
     SecuritycurrencyExtendedInfoComponent,

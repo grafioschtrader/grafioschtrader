@@ -30,7 +30,7 @@ import { SelectModule } from '@openng/optimus-ui/select';
 import { FullyearcalendarLibComponent } from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
-import { NgClass } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 
 /**
@@ -39,7 +39,6 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'trading-calendar-stockexchange',
   templateUrl: '../../tradingcalendar/view/trading.calendar.html',
-  standalone: true,
   imports: [
     PanelModule,
     SelectModule,
@@ -47,7 +46,6 @@ import { FormsModule } from '@angular/forms';
     ButtonModule,
     ContextMenuModule,
     TranslateModule,
-    NgClass,
     FormsModule
   ]
 })

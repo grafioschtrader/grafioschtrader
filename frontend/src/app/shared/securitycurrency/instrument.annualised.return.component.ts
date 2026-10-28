@@ -6,7 +6,7 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { CommonModule } from '@angular/common';
+
 import { TableModule } from '@openng/optimus-ui/table';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
@@ -16,8 +16,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 @Component({
   selector: 'instrument-annualised-return-table',
   templateUrl: './view/instrument.statistic.table.html',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
+  imports: [TranslateModule, TableModule, TooltipModule]
 })
 export class InstrumentAnnualisedReturnComponent extends TableConfigBase implements OnInit {
   @Input() values: AnnualisedYears[];

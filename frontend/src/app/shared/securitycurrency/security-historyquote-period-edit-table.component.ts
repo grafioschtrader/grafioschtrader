@@ -8,7 +8,7 @@ import { SplitPeriodTableBase } from './split.period.table.base';
 import { HistoryquotePeriod } from '../../entities/historyquote.period';
 import { HistoryquotePeriodService } from '../../securitycurrency/service/historyquote.period.service';
 import { FilterService } from '@openng/optimus-ui/api';
-import { CommonModule } from '@angular/common';
+
 import { TableModule } from '@openng/optimus-ui/table';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -19,8 +19,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 @Component({
   selector: 'security-historyquote-period-edit-table',
   templateUrl: './view/split.period.table.html',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, TableModule, ButtonModule, AngularSvgIconModule]
+  imports: [TranslateModule, TableModule, ButtonModule, AngularSvgIconModule]
 })
 export class SecurityHistoryquotePeriodEditTableComponent extends SplitPeriodTableBase<HistoryquotePeriod> {
   // readonly dataSortKey = 'fromDate';

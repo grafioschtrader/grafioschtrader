@@ -16,7 +16,6 @@ import { SimulationRunEvent } from '../model/simulation.run';
  */
 @Component({
   selector: 'algo-simulation-run-table',
-  standalone: true,
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
     [data]="rows()"

@@ -13,7 +13,7 @@ import { ImportTransactionPlatform } from '../../entities/import.transaction.pla
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { TemplateFormCheckDialogResultSuccessComponent } from './template-form-check-dialog-result-success.component';
 import { TemplateFormCheckDialogResultFailedComponent } from './template-form-check-dialog-result-failed.component';
 
@@ -32,26 +32,22 @@ import { TemplateFormCheckDialogResultFailedComponent } from './template-form-ch
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
 
     @if (formTemplateCheck(); as result) {
       @if (result.importTransactionPos) {
-        <template-form-check-dialog-result-success [formTemplateCheck]="result">
-        </template-form-check-dialog-result-success>
+        <template-form-check-dialog-result-success [formTemplateCheck]="result" />
       }
 
       @if (result.failedParsedTemplateStateList) {
         <template-form-check-dialog-result-failed
-          [failedParsedTemplateStateList]="result.failedParsedTemplateStateList">
-        </template-form-check-dialog-result-failed>
+          [failedParsedTemplateStateList]="result.failedParsedTemplateStateList" />
       }
     }
   </p-dialog>`,
-  standalone: true,
   imports: [
     DialogModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     TranslateModule,
     TemplateFormCheckDialogResultSuccessComponent,
     TemplateFormCheckDialogResultFailedComponent

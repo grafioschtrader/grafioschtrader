@@ -37,8 +37,7 @@ import { TranslateModule } from '@ngx-translate/core';
               [idsAccount]="idsAccounts.idsSecurityaccount"
               [selectionRequired]="true"
               listAttributeName="securityaccountList"
-              title="SECURITYACCOUNTS">
-            </tenant-dividend-account-selection>
+              title="SECURITYACCOUNTS" />
           </div>
           <div class="col-md-7">
             <tenant-dividend-account-selection
@@ -48,8 +47,7 @@ import { TranslateModule } from '@ngx-translate/core';
               [idsAccount]="idsAccounts.idsCashaccount"
               [selectionRequired]="false"
               listAttributeName="cashaccountList"
-              title="CASHACCOUNTS">
-            </tenant-dividend-account-selection>
+              title="CASHACCOUNTS" />
           </div>
         </div>
         <div class="float-end ui-dialog-buttonpane  ui-helper-clearfix">
@@ -64,7 +62,6 @@ import { TranslateModule } from '@ngx-translate/core';
       </div>
     </p-dialog>
   `,
-  standalone: true,
   imports: [DialogModule, ButtonModule, TranslateModule, TenantDividendAccountSelectionComponent]
 })
 export class TenantDividendSecurityAccountSelectionDialogComponent {

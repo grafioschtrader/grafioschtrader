@@ -17,7 +17,7 @@ import { TranslateHelper } from '../../helper/translate.helper';
 import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
 
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 
 /**
  * Change nickname and locale of a user
@@ -36,11 +36,9 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class NicknameLangEditComponent extends SimpleEditBase implements OnInit {
   constructor(

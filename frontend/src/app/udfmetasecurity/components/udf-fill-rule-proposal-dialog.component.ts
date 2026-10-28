@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, NgZone, OnDestroy, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnDestroy, signal } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
 import { Subscription, finalize } from 'rxjs';
@@ -27,7 +27,7 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
       (onHide)="close()">
       @if (loading()) {
         <div class="flex justify-content-center align-items-center" style="min-height: 200px">
-          <p-progressSpinner></p-progressSpinner>
+          <p-progressSpinner />
         </div>
         <p>{{ 'UDF_FILL_PROPOSE_WAITING' | translate }}</p>
       } @else {
@@ -50,7 +50,7 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
             <p-button
               [label]="'UDF_FILL_PROPOSE_SEND' | translate"
               [disabled]="selected().size === 0 || loading()"
-              (onClick)="send()"></p-button>
+              (onClick)="send()" />
           }
         }
         @if (result(); as result) {
@@ -61,9 +61,9 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
           @if (result.parseError) {
             <p class="text-danger">{{ result.parseError }}</p>
           }
-          <udf-fill-test-result [testResult]="result.testResult"></udf-fill-test-result>
+          <udf-fill-test-result [testResult]="result.testResult" />
           @if (result.rule && !result.parseError) {
-            <p-button [label]="'UDF_FILL_PROPOSE_ACCEPT' | translate" (onClick)="accept()"></p-button>
+            <p-button [label]="'UDF_FILL_PROPOSE_ACCEPT' | translate" (onClick)="accept()" />
           }
         }
       }
@@ -86,7 +86,6 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
       }
     `
   ],
-  standalone: true,
   imports: [DialogModule, ButtonModule, TranslateModule, ProgressSpinnerModule, UDFFillTestResultComponent]
 })
 export class UDFFillRuleProposalDialogComponent implements OnDestroy {
@@ -116,7 +115,6 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
    */
   constructor(
     private uDFMetadataSecurityService: UDFMetadataSecurityService,
-    private ngZone: NgZone,
     private translateService: TranslateService
   ) {}
 
@@ -124,22 +122,20 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
    * Loads what would be sent; nothing leaves the instance yet.
    */
   onShow(): void {
-    this.ngZone.run(() => {
-      this.cancelPendingRequest();
-      this.preview.set(null);
-      this.result.set(null);
-      this.loading.set(true);
-      this.pendingRequest = this.uDFMetadataSecurityService
-        .previewRuleProposal(this.idUDFMetadata)
-        .pipe(finalize(() => this.loading.set(false)))
-        .subscribe({
-          next: (preview) => {
-            this.selected.set(new Set(preview.examples.map((e) => e.idSecuritycurrency)));
-            this.preview.set(preview);
-          },
-          error: () => {} // The authenticated service displays the translated error.
-        });
-    });
+    this.cancelPendingRequest();
+    this.preview.set(null);
+    this.result.set(null);
+    this.loading.set(true);
+    this.pendingRequest = this.uDFMetadataSecurityService
+      .previewRuleProposal(this.idUDFMetadata)
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (preview) => {
+          this.selected.set(new Set(preview.examples.map((e) => e.idSecuritycurrency)));
+          this.preview.set(preview);
+        },
+        error: () => {} // The authenticated service displays the translated error.
+      });
   }
 
   providerLabels(): string {
@@ -185,10 +181,8 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   }
 
   close(): void {
-    this.ngZone.run(() => {
-      this.cancelPendingRequest();
-      this.closeDialog.emit();
-    });
+    this.cancelPendingRequest();
+    this.closeDialog.emit();
   }
 
   private cancelPendingRequest(): void {

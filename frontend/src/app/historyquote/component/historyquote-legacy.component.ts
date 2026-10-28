@@ -9,7 +9,7 @@ import {
   signal,
   SimpleChanges
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -64,7 +64,7 @@ import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy
       class="data-container"
       (click)="onComponentClick($event)"
       #cmDiv
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -94,7 +94,7 @@ import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy
 
           <!-- Custom icon cell template for svg-icon rendering of createType column -->
           <ng-template #iconCell let-row let-field="field" let-value="value">
-            <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
+            <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }" />
           </ng-template>
         </configurable-table>
       </div>
@@ -104,30 +104,25 @@ import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy
       <historyquote-legacy-edit
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
-        (closeDialog)="handleCloseDialog($event)">
-      </historyquote-legacy-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
 
     @if (visibleApplySplitDialog()) {
       <historyquote-legacy-apply-split-dialog
         [visibleDialog]="visibleApplySplitDialog()"
         [idSecuritycurrency]="idSecuritycurrency"
-        (closeDialog)="handleSplitDialogClose($event)">
-      </historyquote-legacy-apply-split-dialog>
+        (closeDialog)="handleSplitDialogClose($event)" />
     }
 
     @if (visibleUploadFileDialog()) {
       <upload-file-dialog
         [visibleDialog]="visibleUploadFileDialog()"
         [fileUploadParam]="fileUploadParam"
-        (closeDialog)="handleUploadDialogClose($event)">
-      </upload-file-dialog>
+        (closeDialog)="handleUploadDialogClose($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     AngularSvgIconModule,
     ConfigurableTableComponent,

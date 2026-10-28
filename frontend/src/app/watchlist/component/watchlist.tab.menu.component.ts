@@ -35,7 +35,7 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
           }
         </p-tablist>
       </p-tabs>
-      <router-outlet></router-outlet>
+      <router-outlet />
     </div>
   `,
   // The tab panel gets the remaining height, so the watchlist table scrolls inside its own viewport and its caption
@@ -57,7 +57,6 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
       }
     `
   ],
-  standalone: true,
   imports: [TranslateModule, RouterModule, Tabs, TabList, Tab],
   // Both services are scoped to this component on purpose: the cached instrument statistics and the remembered
   // accordion panels of an expanded row survive watchlist and tab changes, but are discarded when the user leaves

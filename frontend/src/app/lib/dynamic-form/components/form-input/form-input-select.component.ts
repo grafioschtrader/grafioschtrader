@@ -32,7 +32,6 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
       </select>
     </ng-container>
   `,
-  imports: [ReactiveFormsModule, TooltipModule, TranslateModule, FilterOutPipe],
-  standalone: true
+  imports: [ReactiveFormsModule, TooltipModule, TranslateModule, FilterOutPipe]
 })
 export class FormInputSelectComponent extends BaseInputComponent {}

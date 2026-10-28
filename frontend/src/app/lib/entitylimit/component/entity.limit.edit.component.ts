@@ -5,7 +5,7 @@ import { DialogModule } from '@openng/optimus-ui/dialog';
 import { forkJoin, of } from 'rxjs';
 
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { AppHelper } from '../../helper/app.helper';
@@ -48,11 +48,9 @@ import { BaseSettings } from '../../base.settings';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> implements OnInit {
   /** When set the dialog is user-scoped: no role selection and the row is written for this user. */

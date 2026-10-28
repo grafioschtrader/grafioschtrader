@@ -11,7 +11,7 @@ import { InfoLevelType } from '../../message/info.leve.type';
 import { MessageToastService } from '../../message/message.toast.service';
 import { DialogService, DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { BaseSettings } from '../../base.settings';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 
 /**
  * Apply for admin to release security breaches or the too often to many serve requests.
@@ -23,10 +23,8 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>`,
-  standalone: true,
-  imports: [DynamicFormModule, TranslateModule]
+      (submitBt)="submit($event)" />`,
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class LogoutReleaseRequestDynamicDialogComponent extends FormBase implements OnInit {
   readonly NOTE = 'note';

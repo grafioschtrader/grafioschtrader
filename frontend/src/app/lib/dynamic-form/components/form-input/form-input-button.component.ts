@@ -52,7 +52,6 @@ import { UpperCaseDirective } from './upper-case.directive';
       </p-inputgroup>
     </ng-container>
   `,
-  imports: [ReactiveFormsModule, TranslateModule, ButtonModule, InputGroup, InputGroupAddon, UpperCaseDirective],
-  standalone: true
+  imports: [ReactiveFormsModule, TranslateModule, ButtonModule, InputGroup, InputGroupAddon, UpperCaseDirective]
 })
 export class FormInputButtonComponent extends BaseInputComponent {}

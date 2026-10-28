@@ -35,7 +35,7 @@ import { buildTransactionReceiptTree, getSelectedTransactions } from './transact
         <ng-template #header let-fields>
           <tr>
             <th style="width: 2.25em">
-              <p-treeTableHeaderCheckbox></p-treeTableHeaderCheckbox>
+              <p-treeTableHeaderCheckbox />
             </th>
             @for (field of fields; track field.field) {
               <th
@@ -51,7 +51,7 @@ import { buildTransactionReceiptTree, getSelectedTransactions } from './transact
         <ng-template #body let-rowNode let-rowData="rowData" let-columns="columns">
           <tr>
             <td style="width: 2.25em">
-              <p-treeTableCheckbox [value]="rowNode"></p-treeTableCheckbox>
+              <p-treeTableCheckbox [value]="rowNode" />
             </td>
             @for (field of columns; track field.field; let i = $index) {
               <td
@@ -62,7 +62,7 @@ import { buildTransactionReceiptTree, getSelectedTransactions } from './transact
                 "
                 [style.width.px]="field.width">
                 @if (i === 0) {
-                  <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                  <p-treeTableToggler [rowNode]="rowNode" />
                 }
                 <span>{{ getValueByPath(rowData, field) }}</span>
               </td>
@@ -84,11 +84,9 @@ import { buildTransactionReceiptTree, getSelectedTransactions } from './transact
         [valueGetterFn]="valueGetter"
         [baseLocale]="baseLocale"
         [scrollable]="true"
-        scrollHeight="60vh">
-      </configurable-table>
+        scrollHeight="60vh" />
     }
   `,
-  standalone: true,
   imports: [ConfigurableTableComponent, TreeTableModule, TooltipModule]
 })
 export class TransactionReceiptTableComponent extends TableConfigBase {

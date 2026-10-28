@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -30,9 +30,8 @@ import { GenericConnectorFieldMappingTableComponent } from './generic-connector-
                   @case ('check') {
                     <span
                       ><i
-                        [ngClass]="{
-                          'fa fa-check': getValueByPath(endpoint, field)
-                        }"></i
+                        [class.fa]="getValueByPath(endpoint, field)"
+                        [class.fa-check]="getValueByPath(endpoint, field)"></i
                     ></span>
                   }
                   @default {
@@ -51,11 +50,9 @@ import { GenericConnectorFieldMappingTableComponent } from './generic-connector-
       [feedSupport]="$safeNavigationMigration(endpoint?.feedSupport)"
       [responseFormat]="$safeNavigationMigration(endpoint?.responseFormat)"
       [editable]="editable"
-      (fieldMappingsChange)="onFieldMappingsChange($event)">
-    </generic-connector-field-mapping-table>
+      (fieldMappingsChange)="onFieldMappingsChange($event)" />
   `,
-  standalone: true,
-  imports: [CommonModule, TranslateModule, GenericConnectorFieldMappingTableComponent]
+  imports: [TranslateModule, GenericConnectorFieldMappingTableComponent]
 })
 export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBase implements OnChanges {
   @Input() endpoint: GenericConnectorEndpoint;

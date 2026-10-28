@@ -47,7 +47,6 @@ import * as yaml from 'js-yaml';
       }
     `
   ],
-  standalone: true,
   imports: []
 })
 export class StrategyDetailComponent extends SingleRecordConfigBase implements OnChanges {

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { CheckboxChangeEvent, CheckboxModule } from '@openng/optimus-ui/checkbox';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -26,18 +26,14 @@ export interface CheckboxToggleEvent {
  */
 @Component({
   selector: 'gtnet-exchange-checkboxes',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, CheckboxModule, TooltipModule],
+  imports: [TranslateModule, CheckboxModule, TooltipModule],
   template: `
     <div class="gtnet-checkboxes-container">
       <div class="gtnet-checkbox-item">
         <span class="me-2 cursor-help" [pTooltip]="'GT_NET_LASTPRICE_RECV_TOOLTIP' | translate" tooltipPosition="top">{{
           'GT_NET_LASTPRICE_RECV' | translate
         }}</span>
-        <p-checkbox
-          [binary]="true"
-          (onChange)="onToggle('gtNetLastpriceRecv', $event)"
-          [disabled]="disabled"></p-checkbox>
+        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetLastpriceRecv', $event)" [disabled]="disabled" />
       </div>
 
       <div class="gtnet-checkbox-item">
@@ -47,20 +43,14 @@ export interface CheckboxToggleEvent {
           tooltipPosition="top"
           >{{ 'GT_NET_HISTORICAL_RECV' | translate }}</span
         >
-        <p-checkbox
-          [binary]="true"
-          (onChange)="onToggle('gtNetHistoricalRecv', $event)"
-          [disabled]="disabled"></p-checkbox>
+        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetHistoricalRecv', $event)" [disabled]="disabled" />
       </div>
 
       <div class="gtnet-checkbox-item">
         <span class="me-2 cursor-help" [pTooltip]="'GT_NET_LASTPRICE_SEND_TOOLTIP' | translate" tooltipPosition="top">{{
           'GT_NET_LASTPRICE_SEND' | translate
         }}</span>
-        <p-checkbox
-          [binary]="true"
-          (onChange)="onToggle('gtNetLastpriceSend', $event)"
-          [disabled]="disabled"></p-checkbox>
+        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetLastpriceSend', $event)" [disabled]="disabled" />
       </div>
 
       <div class="gtnet-checkbox-item">
@@ -70,10 +60,7 @@ export interface CheckboxToggleEvent {
           tooltipPosition="top"
           >{{ 'GT_NET_HISTORICAL_SEND' | translate }}</span
         >
-        <p-checkbox
-          [binary]="true"
-          (onChange)="onToggle('gtNetHistoricalSend', $event)"
-          [disabled]="disabled"></p-checkbox>
+        <p-checkbox [binary]="true" (onChange)="onToggle('gtNetHistoricalSend', $event)" [disabled]="disabled" />
       </div>
     </div>
   `,

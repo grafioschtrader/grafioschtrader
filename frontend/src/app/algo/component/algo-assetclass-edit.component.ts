@@ -21,7 +21,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppSettings } from '../../shared/app.settings';
 import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 @Component({
   selector: 'algo-assetclass-edit',
@@ -37,11 +37,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoAssetclass> implements OnInit {
   constructor(

@@ -5,7 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import moment from 'moment';
 import { finalize } from 'rxjs/operators';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -52,12 +52,10 @@ import { AlgoSimulationRunService } from '../service/algo-simulation-run.service
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   `,
-  standalone: true,
   styles: [':host { display: block; max-height: calc(100vh - 140px); overflow-y: auto; }'],
-  imports: [DynamicFormModule, TranslateModule, YamlEditorComponent]
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, YamlEditorComponent]
 })
 export class AlgoSimulationRunStartDynamicDialogComponent
   extends SimpleDynamicEditBase<SimulationRunResult>

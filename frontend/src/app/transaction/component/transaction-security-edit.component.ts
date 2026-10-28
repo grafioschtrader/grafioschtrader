@@ -59,7 +59,7 @@ import { AppSettings } from '../../shared/app.settings';
 import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
 import { BaseSettings } from '../../lib/base.settings';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { CalcExRateDialogComponent } from './calc-ex-rate-dialog.component';
 import { DynamicDialogHelper } from '../../lib/dynamicdialog/component/dynamicDialogHelper';
@@ -99,12 +99,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [TranslateModule, DialogModule, DynamicFormModule]
+  imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class TransactionSecurityEditComponent extends TransactionBaseOperations implements OnInit {
   // InputMask from parent view

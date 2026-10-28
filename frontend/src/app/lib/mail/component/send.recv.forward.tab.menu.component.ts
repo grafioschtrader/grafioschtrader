@@ -15,10 +15,9 @@ import { SharedTabMenuComponent } from '../../tabmenu/component/shared.tab.menu.
   selector: 'send-recv-forward-tab-menu',
   template: `
     <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
-      <router-outlet></router-outlet>
+      <router-outlet />
     </app-shared-tab-menu>
   `,
-  standalone: true,
   imports: [RouterModule, SharedTabMenuComponent]
 })
 export class SendRecvForwardTabMenuComponent {

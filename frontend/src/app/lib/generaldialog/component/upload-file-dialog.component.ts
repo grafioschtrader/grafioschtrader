@@ -9,7 +9,7 @@ import { DataType } from '../../dynamic-form/models/data.type';
 import { AppHelper } from '../../helper/app.helper';
 import { SimpleEditBase } from '../../edit/simple.edit.base';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
@@ -49,11 +49,9 @@ import { BaseSettings } from '../../base.settings';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class UploadFileDialogComponent extends SimpleEditBase implements OnInit {
   /** Configuration parameters passed from parent component defining dialog behavior and upload settings */

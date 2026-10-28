@@ -18,7 +18,6 @@ import { HelpIds } from '../../lib/help/help.ids';
 
 /** Ordered column editor, separate from both the report and its dynamic edit form. */
 @Component({
-  standalone: true,
   imports: [TableModule, ButtonModule, TooltipModule, TranslateModule, WatchlistIndicatorColumnEditComponent],
   styles: [
     `

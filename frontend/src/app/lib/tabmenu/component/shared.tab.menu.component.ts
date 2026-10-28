@@ -33,7 +33,7 @@ import { TabsModule } from '@openng/optimus-ui/tabs';
           }
         </p-tablist>
       </p-tabs>
-      <ng-content></ng-content>
+      <ng-content />
     </div>
   `,
   styles: [
@@ -53,7 +53,6 @@ import { TabsModule } from '@openng/optimus-ui/tabs';
       }
     `
   ],
-  standalone: true,
   imports: [TabsModule, TranslateModule],
   providers: [TabMenuService]
 })

@@ -41,7 +41,6 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
     </configurable-table>
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [TranslateModule, ConfigurableTableComponent]
 })
 export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChangeEntity> {

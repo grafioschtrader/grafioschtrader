@@ -14,10 +14,9 @@ import { StandingOrderService } from '../service/standing.order.service';
       <p class="sim-standing-order-info">{{ 'SIMULATION_STANDING_ORDER_INFO' | translate }}</p>
     }
     <app-shared-tab-menu [tabs]="tabs()" [defaultRoute]="defaultRoute">
-      <router-outlet></router-outlet>
+      <router-outlet />
     </app-shared-tab-menu>
   `,
-  standalone: true,
   imports: [SharedTabMenuComponent, RouterOutlet, TranslateModule]
 })
 export class StandingOrderTabMenuComponent implements OnInit {

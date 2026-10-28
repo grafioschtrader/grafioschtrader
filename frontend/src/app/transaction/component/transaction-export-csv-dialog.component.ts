@@ -7,7 +7,7 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
 import saveAs from '../../lib/filesaver/filesaver';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -36,11 +36,9 @@ export interface TransactionExportCsvDialogData {
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   `,
-  standalone: true,
-  imports: [DynamicFormModule, TranslateModule]
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TransactionExportCsvDialogComponent extends FormBase implements OnInit {
   private readonly destroyRef = inject(DestroyRef);

@@ -24,7 +24,6 @@ import { AppSettings } from '../../shared/app.settings';
       </div>
     }
   `,
-  standalone: true,
   imports: [TranslateModule]
 })
 export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordConfigBase {

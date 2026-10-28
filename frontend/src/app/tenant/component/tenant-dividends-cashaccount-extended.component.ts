@@ -14,7 +14,7 @@ import {
 import { TransactionType } from '../../shared/types/transaction.type';
 import { TenantDividendsExtendedBase } from './tenant.dividends.extended.base';
 import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
-import { CommonModule } from '@angular/common';
+
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 
 /**
@@ -44,13 +44,11 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
         <transaction-cashaccount-table
           (dateChanged)="transactionDataChanged($event)"
           [idSecuritycashAccount]="row.cashaccount.idSecuritycashAccount"
-          [cashAccountTableInputFilter]="cashAccountTableInputFilter">
-        </transaction-cashaccount-table>
+          [cashAccountTableInputFilter]="cashAccountTableInputFilter" />
       </ng-template>
     </div>
   `,
-  standalone: true,
-  imports: [CommonModule, TranslateModule, ConfigurableTableComponent, TransactionCashaccountTableComponent]
+  imports: [TranslateModule, ConfigurableTableComponent, TransactionCashaccountTableComponent]
 })
 export class TenantDividendsCashaccountExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
   @Input() securityDividendsGrandTotal: SecurityDividendsGrandTotal;

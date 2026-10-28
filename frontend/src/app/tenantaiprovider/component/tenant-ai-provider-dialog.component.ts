@@ -3,7 +3,6 @@ import { TenantAIProviderTableComponent } from './tenant-ai-provider-table.compo
 
 /** Settings dialog; editing lives in its own form component. */
 @Component({
-  standalone: true,
   imports: [TenantAIProviderTableComponent],
   template: '<tenant-ai-provider-table />'
 })

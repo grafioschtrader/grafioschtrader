@@ -14,7 +14,7 @@ import { ProcessedAction } from '../../types/processed.action';
 import { DataChangedService } from '../service/data.changed.service';
 import { DialogHandler, DIALOG_HANDLER } from '../handler/dialog-handler.interface';
 import { HelpIds } from '../../help/help.ids';
-import { CommonModule } from '@angular/common';
+
 import { TreeModule } from '@openng/optimus-ui/tree';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { ConfirmDialogModule } from '@openng/optimus-ui/confirmdialog';
@@ -33,16 +33,7 @@ import { DialogComponentLoader } from '../handler/lazy-dialog';
 @Component({
   selector: 'main-tree',
   templateUrl: '../view/maintree.html',
-  standalone: true,
-  imports: [
-    CommonModule,
-    TreeModule,
-    ContextMenuModule,
-    ConfirmDialogModule,
-    ButtonModule,
-    SharedModule,
-    TranslateModule
-  ]
+  imports: [TreeModule, ContextMenuModule, ConfirmDialogModule, ButtonModule, SharedModule, TranslateModule]
 })
 export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('cm', { static: true }) contextMenu: any;

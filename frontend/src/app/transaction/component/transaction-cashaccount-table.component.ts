@@ -1,6 +1,6 @@
 import { Component, Injector, Input, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { TransactionService } from '../service/transaction.service';
 import { Transaction } from '../../entities/transaction';
 import { Currencypair } from '../../entities/currencypair';
@@ -44,9 +44,7 @@ import { StandingOrderSecurityEditComponent } from '../../standingorder/componen
 @Component({
   selector: 'transaction-cashaccount-table',
   templateUrl: '../view/transaction.cashaccount.table.html',
-  standalone: true,
   imports: [
-    CommonModule,
     ConfigurableTableComponent,
     TransactionCashaccountEditSingleComponent,
     TransactionCashaccountEditDoubleComponent,

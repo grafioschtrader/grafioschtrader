@@ -19,7 +19,7 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { BaseSettings } from '../../lib/base.settings';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 
@@ -53,12 +53,10 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase implements OnInit {
   @Input() historyquoteQuality: IHistoryquoteQuality;

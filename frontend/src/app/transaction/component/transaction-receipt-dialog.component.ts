@@ -30,8 +30,7 @@ export interface TransactionReceiptDialogData {
     <transaction-receipt-table
       [transactions]="transactions()"
       [marginBased]="marginBased()"
-      (selectedChange)="selected.set($event)">
-    </transaction-receipt-table>
+      (selectedChange)="selected.set($event)" />
     <div style="text-align: right; margin-top: 1rem;">
       <p-button
         [label]="'DOWNLOAD' | translate"
@@ -41,7 +40,6 @@ export interface TransactionReceiptDialogData {
       </p-button>
     </div>
   `,
-  standalone: true,
   imports: [TranslateModule, ButtonModule, TransactionReceiptTableComponent]
 })
 export class TransactionReceiptDialogComponent implements OnInit {

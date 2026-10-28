@@ -13,7 +13,6 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "ng lint",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "e2e:setup": "playwright test --project=setup --headed",
@@ -64,8 +63,7 @@
     "rxjs": "^7.5.0",
     "split.js": "^1.6.2",
     "tippy.js": "^6.3.7",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.15.0"
+    "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@angular/build": "^22.1.5",

@@ -1,6 +1,6 @@
 import { Component, DestroyRef, EventEmitter, inject, Injector, Input, OnInit, Output, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { TableConfigBase } from '../../datashowbase/table.config.base';
 import { ExchangeKindTypeInfo, GTNetConfigEntity, GTNetEntity, SupplierConsumerLogTypes } from '../model/gtnet';
 import { DataType } from '../../dynamic-form/models/data.type';
@@ -26,9 +26,7 @@ import { BaseSettings } from '../../base.settings';
  */
 @Component({
   selector: 'gtnet-config-entity-table',
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     ConfigurableTableComponent,
     ContextMenuModule,
@@ -51,16 +49,14 @@ import { BaseSettings } from '../../base.settings';
         [showContextMenu]="canAdministerGTNet"
         [containerClass]="{ 'data-container-full': true, 'nested-table': true }"
         [valueGetterFn]="valueGetter"
-        (selectionChange)="onSelectionChange($event)">
-      </configurable-table>
+        (selectionChange)="onSelectionChange($event)" />
     </div>
 
     @if (visibleDialog()) {
       <gtnet-config-entity-edit
         [visibleDialog]="visibleDialog()"
         [gtNetConfigEntity]="selectedEntity()"
-        (closeDialog)="handleCloseDialog($event)">
-      </gtnet-config-entity-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
   `,
   styles: [

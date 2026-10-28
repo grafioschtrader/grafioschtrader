@@ -7,9 +7,9 @@ import { GlobalparameterService } from '../../services/globalparameter.service';
 import { HelpIds } from '../../help/help.ids';
 import { AppHelper } from '../../helper/app.helper';
 import { UDFMetadataHelper } from './udf.metadata.helper';
-import { CommonModule } from '@angular/common';
+
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 
 /**
  * Component for editing user-defined field data values for general entities.
@@ -20,8 +20,7 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
 @Component({
   selector: 'udf-general-edit',
   templateUrl: '../view/general.udf.data.edit.html',
-  standalone: true,
-  imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class UDFGeneralEditComponent extends BaseUDFDataEdit implements OnInit {
   /**

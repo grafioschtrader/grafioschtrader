@@ -19,7 +19,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
+import { toClassString } from '../helper/css-class.helper';
 import { TranslateService } from '@ngx-translate/core';
 import { FormsModule, Validators } from '@angular/forms';
 import { Table, TableModule } from '@openng/optimus-ui/table';
@@ -110,9 +111,7 @@ export interface ValidationErrorEvent<T> {
  */
 @Component({
   selector: 'editable-table',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TableModule,
     ContextMenuModule,
@@ -123,10 +122,11 @@ export interface ValidationErrorEvent<T> {
     SelectModule,
     CheckboxModule,
     ButtonModule,
-    Textarea
+    Textarea,
+    NgTemplateOutlet
   ],
   template: `
-    <div #cmDiv (click)="onComponentClick($event)" [ngClass]="containerClass">
+    <div #cmDiv (click)="onComponentClick($event)" [class]="toClassString(containerClass)">
       <p-table
         #table
         [columns]="renderedFields"
@@ -152,7 +152,7 @@ export interface ValidationErrorEvent<T> {
         (onRowUnselect)="onRowUnselect($event)">
         <!-- Caption slot with content projection -->
         <ng-template pTemplate="caption">
-          <ng-content select="[caption]"></ng-content>
+          <ng-content select="[caption]" />
         </ng-template>
 
         <!-- Header template -->
@@ -167,12 +167,12 @@ export interface ValidationErrorEvent<T> {
                   [pSortableColumn]="field.field"
                   [pTooltip]="field.headerTooltipTranslated"
                   [style.max-width.px]="field.width"
-                  [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
+                  [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
                   {{ field.headerTranslated }}
                   @if (isFieldRequired(field)) {
                     <span class="et-required-marker"> *</span>
                   }
-                  <p-sortIcon [field]="field.field"></p-sortIcon>
+                  <p-sortIcon [field]="field.field" />
                 </th>
               }
             }
@@ -199,7 +199,7 @@ export interface ValidationErrorEvent<T> {
               <td [style.width.px]="expansionColumnWidth">
                 @if (canExpand(rowData)) {
                   <a [pRowToggler]="rowData" href="#" (click)="$event.preventDefault()">
-                    <i [ngClass]="expanded ? expandedIcon : collapsedIcon"></i>
+                    <i [class]="expanded ? expandedIcon : collapsedIcon"></i>
                   </a>
                 }
               </td>
@@ -209,8 +209,8 @@ export interface ValidationErrorEvent<T> {
               @if (field.visible) {
                 <td
                   [style.max-width.px]="field.width"
-                  [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
-                  [ngClass]="getCellClass(field)">
+                  [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                  [class]="getCellClass(field)">
                   <!-- Batch Mode: Always show edit inputs directly -->
                   @if (startInEditMode || batchMode) {
                     @if (canEditCell(field, rowData)) {
@@ -219,8 +219,7 @@ export interface ValidationErrorEvent<T> {
                         [ngTemplateOutletContext]="{
                           field: field,
                           rowData: rowData
-                        }">
-                      </ng-container>
+                        }" />
                       @if (showValidationErrors && getFieldError(rowData, field)) {
                         <small class="p-error">{{ getFieldError(rowData, field) }}</small>
                       }
@@ -237,8 +236,7 @@ export interface ValidationErrorEvent<T> {
                             [ngTemplateOutletContext]="{
                               field: field,
                               rowData: rowData
-                            }">
-                          </ng-container>
+                            }" />
                           @if (showValidationErrors && getFieldError(rowData, field)) {
                             <small class="p-error">{{ getFieldError(rowData, field) }}</small>
                           }
@@ -257,8 +255,7 @@ export interface ValidationErrorEvent<T> {
                                 field: field,
                                 value: getValue(rowData, field)
                               }
-                            ">
-                          </ng-container>
+                            " />
                         } @else if (field.templateName === 'greenRed') {
                           <span [style.color]="isNegativeValue(rowData, field) ? 'red' : 'green'">
                             {{ getValue(rowData, field) }}
@@ -266,9 +263,8 @@ export interface ValidationErrorEvent<T> {
                         } @else if (field.templateName === 'check') {
                           <span
                             ><i
-                              [ngClass]="{
-                                'fa fa-check': getValue(rowData, field)
-                              }"
+                              [class.fa]="getValue(rowData, field)"
+                              [class.fa-check]="getValue(rowData, field)"
                               aria-hidden="true"></i
                           ></span>
                         } @else {
@@ -339,7 +335,7 @@ export interface ValidationErrorEvent<T> {
           @if (expandable && expandedRowTemplate) {
             <tr>
               <td [attr.colspan]="getExpandedColspan()">
-                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: row }"> </ng-container>
+                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: row }" />
               </td>
             </tr>
           }
@@ -391,8 +387,7 @@ export interface ValidationErrorEvent<T> {
               [min]="$safeNavigationMigration(field.cec?.min)"
               [max]="$safeNavigationMigration(field.cec?.max)"
               [placeholder]="field.cec?.placeholder || ''"
-              [inputStyleClass]="isFieldRequired(field) ? 'text-end required-input' : 'text-end'">
-            </p-inputNumber>
+              [inputStyleClass]="isFieldRequired(field) ? 'text-end required-input' : 'text-end'" />
           }
 
           <!-- DatePicker -->
@@ -408,8 +403,7 @@ export interface ValidationErrorEvent<T> {
               [showOnFocus]="false"
               [showIcon]="true"
               appendTo="body"
-              [inputStyleClass]="isFieldRequired(field) ? 'required-input' : ''">
-            </p-datepicker>
+              [inputStyleClass]="isFieldRequired(field) ? 'required-input' : ''" />
           }
 
           <!-- Checkbox -->
@@ -417,8 +411,7 @@ export interface ValidationErrorEvent<T> {
             <p-checkbox
               [(ngModel)]="rowData[field.field]"
               (ngModelChange)="onFieldChange(field, rowData, $event)"
-              [binary]="true">
-            </p-checkbox>
+              [binary]="true" />
           }
 
           <!-- Textarea for multi-line string values -->
@@ -456,12 +449,13 @@ export interface ValidationErrorEvent<T> {
 
       <!-- Context Menu -->
       @if (contextMenuEnabled && showContextMenu) {
-        <p-contextMenu [target]="cmDiv" [model]="menuModel()" [appendTo]="contextMenuAppendTo"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="menuModel()" [appendTo]="contextMenuAppendTo" />
       }
     </div>
   `
 })
 export class EditableTableComponent<T = any> implements OnInit, OnChanges {
+  protected readonly toClassString = toClassString;
   // ============================================================================
   // Data and Column Configuration
   // ============================================================================

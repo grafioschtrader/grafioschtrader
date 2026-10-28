@@ -14,7 +14,7 @@ import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { AppSettings } from '../../shared/app.settings';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TransactionType } from '../../shared/types/transaction.type';
@@ -54,12 +54,10 @@ enum InvestMode {
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule],
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule],
   providers: [DialogService]
 })
 export class StandingOrderSecurityEditComponent extends StandingOrderEditBase implements OnInit {

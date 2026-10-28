@@ -27,7 +27,6 @@ import { UserAccessTokenCreateDialogComponent } from './user-access-token-create
  */
 @Component({
   selector: 'user-access-token-table',
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, ButtonModule, UserAccessTokenCreateDialogComponent],
   template: `
     <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem">

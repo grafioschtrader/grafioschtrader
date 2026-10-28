@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
@@ -25,7 +25,7 @@ import { TransactionType } from '../../shared/types/transaction.type';
     <div
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -47,17 +47,15 @@ import { TransactionType } from '../../shared/types/transaction.type';
         [expandedRowTemplate]="detailExpansion"
         (rowExpand)="onRowExpand($event)"
         [valueGetterFn]="valueGetter"
-        [baseLocale]="baseLocale">
-      </configurable-table>
+        [baseLocale]="baseLocale" />
     </div>
 
     <ng-template #detailExpansion let-so>
       @if ((so.transactionCount ?? 0) > 0) {
-        <standing-order-transaction-table [standingOrder]="so" (dateChanged)="onTransactionChanged($event)">
-        </standing-order-transaction-table>
+        <standing-order-transaction-table [standingOrder]="so" (dateChanged)="onTransactionChanged($event)" />
       }
       @if ((so.failureCount ?? 0) > 0) {
-        <standing-order-failure-table [failures]="getFailuresForOrder(so)"> </standing-order-failure-table>
+        <standing-order-failure-table [failures]="getFailuresForOrder(so)" />
       }
     </ng-template>
 
@@ -65,13 +63,10 @@ import { TransactionType } from '../../shared/types/transaction.type';
       <standing-order-cashaccount-edit
         [visibleDialog]="visibleEditDialog()"
         [callParam]="callParam"
-        (closeDialog)="onDialogClose($event)">
-      </standing-order-cashaccount-edit>
+        (closeDialog)="onDialogClose($event)" />
     }
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     ConfigurableTableComponent,
     StandingOrderCashaccountEditComponent,

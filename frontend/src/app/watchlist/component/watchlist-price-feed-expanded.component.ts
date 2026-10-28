@@ -42,8 +42,7 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
               [historicalUrl]="position.historicalUrl"
               [intradayUrl]="position.intradayUrl"
               [feedConnectorsKV]="feedConnectorsKV"
-              [securitycurrency]="position.securitycurrency">
-            </securitycurrency-extended-info>
+              [securitycurrency]="position.securitycurrency" />
           }
         </p-accordion-content>
       </p-accordion-panel>
@@ -57,14 +56,12 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
           @if (isOpen(PANEL_STATISTICS)) {
             <instrument-statistics-result
               [showTitle]="false"
-              [idSecuritycurrency]="position.securitycurrency.idSecuritycurrency">
-            </instrument-statistics-result>
+              [idSecuritycurrency]="position.securitycurrency.idSecuritycurrency" />
           }
         </p-accordion-content>
       </p-accordion-panel>
     </p-accordion>
   `,
-  standalone: true,
   imports: [
     TranslateModule,
     AccordionModule,

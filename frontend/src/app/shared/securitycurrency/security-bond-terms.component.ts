@@ -70,7 +70,6 @@ export function defaultCouponDayCount(defaults: CouponDayCountDefaults, currency
  */
 @Component({
   selector: 'security-bond-terms',
-  standalone: true,
   imports: [DynamicFormComponent, TranslateModule],
   template: `
     <p>{{ 'SIMULATION_BOND_TERMS_HELP' | translate }}</p>

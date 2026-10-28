@@ -10,7 +10,6 @@ import { ChartData, PlotlyHelper } from '../plotly.helper';
 import { PlotlyLocales } from '../../plotlylocale/plotly.locales';
 import { PlotlyInstance, PlotlyLoaderService } from '../plotly.loader';
 import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
-import { NgClass } from '@angular/common';
 
 /**
  * This general purpose chart does not have a certain layout, it can be a pie or other type of chart. After the
@@ -21,14 +20,12 @@ import { NgClass } from '@angular/common';
   template: `
     <div
       class="fullChart"
-      [ngClass]="{ 'active-border': isActivated(), 'passiv-border': !isActivated() }"
+      [class]="{ 'active-border': isActivated(), 'passiv-border': !isActivated() }"
       (click)="onComponentClick($event)">
       <div #chart class="plot-container"></div>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NgClass]
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('chart', { static: true }) chartElement: ElementRef;

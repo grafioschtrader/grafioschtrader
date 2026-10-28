@@ -75,12 +75,10 @@ import { TranslateHelper } from '../../helper/translate.helper';
         [visibleDialog]="visibleDialog()"
         [existingEntityLimit]="callParam"
         [existingEntityLimits]="entityList()"
-        (closeDialog)="handleCloseDialog($event)">
-      </entity-limit-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, TooltipModule, EntityLimitEditComponent]
 })
 export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit> {

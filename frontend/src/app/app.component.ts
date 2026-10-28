@@ -126,8 +126,8 @@ const MyPreset = definePreset(Aura, {
   selector: 'app-root',
   template: `
     <div>
-      <toast-message></toast-message>
-      <router-outlet></router-outlet>
+      <toast-message />
+      <router-outlet />
     </div>
   `,
   imports: [RouterOutlet, MessageToastComponent]

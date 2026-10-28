@@ -17,7 +17,7 @@ import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper
 import { HelpIds } from '../../help/help.ids';
 
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 
 /**
  * Change the password with a dialog.
@@ -38,11 +38,9 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class PasswordEditComponent extends PasswordBaseComponent implements OnInit {
   @Input() forcePasswordChange: boolean;

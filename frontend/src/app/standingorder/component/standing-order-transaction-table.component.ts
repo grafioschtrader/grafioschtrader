@@ -1,7 +1,7 @@
 import { Component, Injector, Input, OnDestroy, OnChanges, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, switchMap } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { TransactionContextMenu } from '../../transaction/component/transaction.context.menu';
@@ -63,60 +63,51 @@ import { StandingOrderSecurityEditComponent } from './standing-order-security-ed
       [valueGetterFn]="valueGetter"
       [negativeValueFn]="negativeValue"
       [baseLocale]="baseLocale"
-      [contextMenuAppendTo]="'body'">
-    </configurable-table>
+      [contextMenuAppendTo]="'body'" />
 
     @if (visibleSecurityTransactionDialog()) {
       <transaction-security-edit
         (closeDialog)="handleCloseTransactionDialog($event)"
         [transactionCallParam]="transactionCallParam"
-        [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()">
-      </transaction-security-edit>
+        [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()" />
     }
 
     @if (visibleCashaccountTransactionSingleDialog()) {
       <transaction-cashaccount-editsingle
         (closeDialog)="handleCloseTransactionDialog($event)"
         [transactionCallParam]="transactionCallParam"
-        [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog()">
-      </transaction-cashaccount-editsingle>
+        [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog()" />
     }
 
     @if (visibleCashaccountTransactionDoubleDialog()) {
       <transaction-cashaccount-editdouble
         (closeDialog)="handleCloseTransactionDialog($event)"
         [transactionCallParam]="transactionCallParam"
-        [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog()">
-      </transaction-cashaccount-editdouble>
+        [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog()" />
     }
 
     @if (visibleConnectDebitCreditDialog()) {
       <transaction-cashaccount-connect-debit-credit
         (closeDialog)="handleCloseTransactionDialog($event)"
         [transactionCallParam]="transactionCallParam"
-        [visibleDialog]="visibleConnectDebitCreditDialog()">
-      </transaction-cashaccount-connect-debit-credit>
+        [visibleDialog]="visibleConnectDebitCreditDialog()" />
     }
 
     @if (visibleStandingOrderCashaccountDialog()) {
       <standing-order-cashaccount-edit
         [visibleDialog]="visibleStandingOrderCashaccountDialog()"
         [callParam]="standingOrderCallParam"
-        (closeDialog)="handleCloseStandingOrderDialog($event)">
-      </standing-order-cashaccount-edit>
+        (closeDialog)="handleCloseStandingOrderDialog($event)" />
     }
 
     @if (visibleStandingOrderSecurityDialog()) {
       <standing-order-security-edit
         [visibleDialog]="visibleStandingOrderSecurityDialog()"
         [callParam]="standingOrderCallParam"
-        (closeDialog)="handleCloseStandingOrderDialog($event)">
-      </standing-order-security-edit>
+        (closeDialog)="handleCloseStandingOrderDialog($event)" />
     }
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     ConfigurableTableComponent,
     TransactionCashaccountEditSingleComponent,

@@ -38,7 +38,6 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
  */
 @Component({
   selector: 'gtnet-message-edit',
-  standalone: true,
   imports: [DialogModule, DynamicFormComponent, TranslateModule],
   template: `
     <p-dialog
@@ -53,8 +52,7 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `
 })

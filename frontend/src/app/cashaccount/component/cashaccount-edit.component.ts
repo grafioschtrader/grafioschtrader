@@ -17,7 +17,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppSettings } from '../../shared/app.settings';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Edit a cash account the currency of a cash account can only be changed when there is no transaction for it.
@@ -36,11 +36,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> implements OnInit {
   @Input() callParam: CallParam;

@@ -53,10 +53,8 @@ import { TaxDataService } from '../service/tax-data.service';
       (rowEditSave)="onRowEditSave($event)"
       (rowSelect)="onRowSelect($event)"
       (rowUnselect)="onRowUnselect($event)"
-      (componentClick)="onComponentClick($event)">
-    </editable-table>
+      (componentClick)="onComponentClick($event)" />
   `,
-  standalone: true,
   imports: [EditableTableComponent]
 })
 export class TaxExchangeRateTableComponent extends TableEditConfigBase implements OnChanges, IGlobalMenuAttach {

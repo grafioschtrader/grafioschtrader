@@ -12,7 +12,6 @@ import { TranslateModule } from '@ngx-translate/core';
       <h1>{{ 'VERIFYING_TOKEN' | translate }}</h1>
     </div>
   `,
-  standalone: true,
   imports: [TranslateModule]
 })
 export class RegistrationTokenVerifyComponent implements OnInit, OnDestroy {

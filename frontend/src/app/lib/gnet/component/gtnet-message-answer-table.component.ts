@@ -24,7 +24,6 @@ import { GTNetMessageCodeType } from '../model/gtnet.message';
  */
 @Component({
   selector: 'gtnet-message-answer-table',
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, GTNetMessageAnswerEditComponent],
   template: `
     <configurable-table
@@ -55,8 +54,7 @@ import { GTNetMessageCodeType } from '../model/gtnet.message';
       <gtnet-message-answer-edit
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
-        (closeDialog)="handleCloseDialog($event)">
-      </gtnet-message-answer-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
   `,
   providers: [DialogService]

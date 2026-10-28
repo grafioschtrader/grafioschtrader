@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Inject, Input, Output, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -52,16 +52,14 @@ export interface TaskFilterItem {
         [showContextMenu]="false"
         [stripedRows]="true"
         [valueGetterFn]="valueGetter"
-        [baseLocale]="baseLocale">
-      </configurable-table>
+        [baseLocale]="baseLocale" />
 
       <div class="flex justify-content-end mt-3">
-        <p-button [disabled]="!hasSelection()" [label]="'APPLY' | translate" (click)="applyFilter()"> </p-button>
+        <p-button [disabled]="!hasSelection()" [label]="'APPLY' | translate" (click)="applyFilter()" />
       </div>
     </p-dialog>
   `,
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, DialogModule, ButtonModule, ConfigurableTableComponent]
+  imports: [FormsModule, TranslateModule, DialogModule, ButtonModule, ConfigurableTableComponent]
 })
 export class TaskFilterDialogComponent extends ShowRecordConfigBase {
   @Input() visibleDialog = false;

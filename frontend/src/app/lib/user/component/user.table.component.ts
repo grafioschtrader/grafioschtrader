@@ -62,25 +62,22 @@ import { BaseSettings } from '../../base.settings';
 
       <!-- Custom icon cell template for svg-icon rendering -->
       <ng-template #iconCell let-row let-field="field" let-value="value">
-        <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
+        <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }" />
       </ng-template>
     </configurable-table>
 
     <!-- Expanded row content template for user entity change limits -->
     <ng-template #expandedContent let-user>
-      <entity-limit-user-table [user]="user" (dateChanged)="handleChangesOnLimitTable($event)">
-      </entity-limit-user-table>
+      <entity-limit-user-table [user]="user" (dateChanged)="handleChangesOnLimitTable($event)" />
     </ng-template>
     @if (visibleDialog()) {
-      <user-edit [visibleDialog]="visibleDialog()" [callParam]="callParam" (closeDialog)="handleCloseDialog($event)">
-      </user-edit>
+      <user-edit [visibleDialog]="visibleDialog()" [callParam]="callParam" (closeDialog)="handleCloseDialog($event)" />
     }
     @if (visibleEditLimitDialog()) {
       <entity-limit-edit
         [visibleDialog]="visibleEditLimitDialog()"
         [idUser]="selectedEntity()?.idUser"
-        (closeDialog)="handleEditLimitCloseDialog($event)">
-      </entity-limit-edit>
+        (closeDialog)="handleEditLimitCloseDialog($event)" />
     }
 
     @if (visibleChangeEntitiesOwnerDialog()) {
@@ -88,12 +85,10 @@ import { BaseSettings } from '../../base.settings';
         [visibleDialog]="visibleChangeEntitiesOwnerDialog()"
         [fromUser]="selectedEntity()"
         [allUsers]="entityList()"
-        (closeDialog)="handleChangeOwnerCloseDialog($event)">
-      </user-change-owner-entities>
+        (closeDialog)="handleChangeOwnerCloseDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [
     ConfigurableTableComponent,
     AngularSvgIconModule,

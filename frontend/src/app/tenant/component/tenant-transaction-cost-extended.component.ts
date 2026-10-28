@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
@@ -36,7 +35,7 @@ import { TransactionService } from '../../transaction/service/transaction.servic
       #cmDiv
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -64,9 +63,9 @@ import { TransactionService } from '../../transaction/service/transaction.servic
                 <th
                   [pSortableColumn]="field.field"
                   [style.max-width.px]="field.width"
-                  [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
+                  [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
                   {{ field.headerTranslated }}
-                  <p-sortIcon [field]="field.field"></p-sortIcon>
+                  <p-sortIcon [field]="field.field" />
                 </th>
               }
             </tr>
@@ -77,8 +76,8 @@ import { TransactionService } from '../../transaction/service/transaction.servic
                 @if (field.visible) {
                   <td
                     [style.max-width.px]="field.width"
-                    [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
-                    [ngClass]="
+                    [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                    [class]="
                       field.dataType === DataType.Numeric || field.dataType === DataType.DateTimeNumeric
                         ? 'text-end'
                         : ''
@@ -92,26 +91,17 @@ import { TransactionService } from '../../transaction/service/transaction.servic
             </tr>
           </ng-template>
         </p-table>
-        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems()" appendTo="body"></p-contextMenu>
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems()" appendTo="body" />
       </div>
     </div>
     @if (visibleSecurityTransactionDialog()) {
       <transaction-security-edit
         [transactionCallParam]="transactionCallParam"
         [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()"
-        (closeDialog)="handleCloseTransactionDialog($event)">
-      </transaction-security-edit>
+        (closeDialog)="handleCloseTransactionDialog($event)" />
     }
   `,
-  standalone: true,
-  imports: [
-    CommonModule,
-    TranslateModule,
-    TableModule,
-    ContextMenuModule,
-    TooltipModule,
-    TransactionSecurityEditComponent
-  ]
+  imports: [TranslateModule, TableModule, ContextMenuModule, TooltipModule, TransactionSecurityEditComponent]
 })
 export class TenantTransactionCostExtendedComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   /** Array of transaction cost positions to be displayed in the table */

@@ -96,10 +96,11 @@ deadlock, no entry means no menu and no menu means no entry.
 ## Two traps
 
 > **The host runs zoneless.** Angular 22's default applies: there is no `provideZoneChangeDetection()` and no zone.js
-> polyfill. Library components notify Angular through signals, input changes or `markForCheck`, including those that
-> still declare `Eager`. Fix stale views where the library state is owned; the host needs no refresh workaround.
+> polyfill, the same as Grafioschtrader. Library components notify Angular through signals, input changes or
+> `markForCheck`. Fix stale views where the library state is owned; the host needs no refresh workaround.
 
-> **The library services are not `providedIn: 'root'`.** Every host lists the ones its routes reach, including those
+> **The existing library services are not `providedIn: 'root'`;** new ones are `@Service()` and need no entry. Every
+> host lists the ones its routes reach, including those
 > only the shell needs — `ManageClientService` and `UserDataService` for the menu bar, `DataChangedService` and
 > `TreeNavigationStateService` for the main tree. A missing entry surfaces late and unhelpfully, as NG0201 while
 > rendering `/mainview`.

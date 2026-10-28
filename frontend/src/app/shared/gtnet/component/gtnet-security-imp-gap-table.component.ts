@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateService } from '@ngx-translate/core';
 
 import { ShowRecordConfigBase } from '../../../lib/datashowbase/show.record.config.base';
@@ -33,11 +33,9 @@ const GAP_CODE_TRANSLATION_KEYS: { [key: number]: string } = {
       [fieldsRevision]="fieldsRevision()"
       [valueGetterFn]="valueGetter"
       [baseLocale]="baseLocale"
-      [containerClass]="''">
-    </configurable-table>
+      [containerClass]="''" />
   `,
-  standalone: true,
-  imports: [CommonModule, ConfigurableTableComponent]
+  imports: [ConfigurableTableComponent]
 })
 export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase implements OnInit, OnChanges {
   /**

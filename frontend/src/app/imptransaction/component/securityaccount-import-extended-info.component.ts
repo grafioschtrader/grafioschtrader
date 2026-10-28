@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 
@@ -19,8 +19,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 @Component({
   selector: 'securityaccount-import-extended-info',
   templateUrl: '../../securityaccount/view/securityaccount.import.extended.info.html',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, AngularSvgIconModule]
+  imports: [TranslateModule, AngularSvgIconModule]
 })
 export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase implements OnChanges {
   @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos;

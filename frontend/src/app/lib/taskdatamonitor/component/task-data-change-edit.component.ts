@@ -26,7 +26,7 @@ import { TaskTypeBase } from '../types/task.type.base';
 import { getTaskTypeHelpId } from '../task.type.help';
 
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 
 @Component({
   selector: 'task-data-change-edit',
@@ -43,12 +43,10 @@ import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataChange> implements OnInit {
   @Input() callParam: TaskDataChange;

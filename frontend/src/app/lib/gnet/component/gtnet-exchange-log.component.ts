@@ -23,7 +23,6 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
  */
 @Component({
   selector: 'gtnet-exchange-log',
-  standalone: true,
   imports: [TranslateModule, ConfigurableTableComponent, ConfigurableTreeTableComponent],
   template: `
     <configurable-table
@@ -57,8 +56,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
             [selectionMode]="null"
             [enableSort]="false"
             [scrollable]="true"
-            [valueGetterFn]="valueGetter">
-          </configurable-tree-table>
+            [valueGetterFn]="valueGetter" />
         } @else {
           <p class="no-data">{{ 'NO_DATA_AVAILABLE' | translate }}</p>
         }
@@ -73,8 +71,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
             [selectionMode]="null"
             [enableSort]="false"
             [scrollable]="true"
-            [valueGetterFn]="valueGetter">
-          </configurable-tree-table>
+            [valueGetterFn]="valueGetter" />
         } @else {
           <p class="no-data">{{ 'NO_DATA_AVAILABLE' | translate }}</p>
         }

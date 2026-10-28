@@ -26,7 +26,7 @@ import { BusinessHelper } from '../../shared/helper/business.helper';
 import { BaseSettings } from '../../lib/base.settings';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
-import { CommonModule } from '@angular/common';
+
 import { TableModule } from '@openng/optimus-ui/table';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
 import { FormsModule } from '@angular/forms';
@@ -39,8 +39,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
  */
 @Component({
   templateUrl: '../view/tenant.summaries.cashaccount.table.html',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, TableModule, DatePicker, FormsModule, SelectModule, TooltipModule]
+  imports: [TranslateModule, TableModule, DatePicker, FormsModule, SelectModule, TooltipModule]
 })
 export class TenantSummariesCashaccountComponent
   extends TableConfigBase

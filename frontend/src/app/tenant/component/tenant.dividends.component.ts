@@ -21,7 +21,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { IdsAccounts } from '../model/ids.accounts';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
-import { CommonModule } from '@angular/common';
+
 import { TableModule } from '@openng/optimus-ui/table';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
@@ -40,9 +40,7 @@ import { TenantDividendsChartService } from '../service/tenant.dividends.chart.s
  */
 @Component({
   templateUrl: '../view/tenant.dividends.html',
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     TableModule,
     TooltipModule,

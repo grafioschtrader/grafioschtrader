@@ -22,7 +22,7 @@ import { UDFFillTestRequest, UDFSuggestTestCandidate, UDFSuggestTestResult } fro
       }
       @if (running() && candidates()?.length > 0) {
         <div class="test-progress">
-          <p-progressSpinner [style]="{ width: '2rem', height: '2rem' }"></p-progressSpinner>
+          <p-progressSpinner [style]="{ width: '2rem', height: '2rem' }" />
           <span>{{
             'UDF_FILL_TEST_LLM_PROGRESS' | translate: { current: results().size + 1, total: candidates().length }
           }}</span>
@@ -102,7 +102,6 @@ import { UDFFillTestRequest, UDFSuggestTestCandidate, UDFSuggestTestResult } fro
       }
     `
   ],
-  standalone: true,
   imports: [TranslateModule, ProgressSpinnerModule]
 })
 export class UDFFillSuggestTestResultComponent implements OnChanges, OnDestroy {

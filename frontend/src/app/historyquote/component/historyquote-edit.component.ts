@@ -11,7 +11,7 @@ import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { AppSettings } from '../../shared/app.settings';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { HistoryquoteEditBase } from './historyquote-edit.base';
 
 /**
@@ -31,11 +31,9 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote> {
   @Input() callParam: HistoryquoteSecurityCurrency;

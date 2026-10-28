@@ -24,8 +24,7 @@ import { TranslateModule } from '@ngx-translate/core';
       </button>
     }
   `,
-  imports: [TranslateModule, ReactiveFormsModule],
-  standalone: true
+  imports: [TranslateModule, ReactiveFormsModule]
 })
 export class FormButtonComponent implements FieldFormFormGroupConfig {
   readonly config = input.required<FieldConfig>();

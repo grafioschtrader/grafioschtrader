@@ -13,7 +13,7 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { HelpIds } from '../../lib/help/help.ids';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { HistoryquoteEditBase } from './historyquote-edit.base';
 
 /**
@@ -34,11 +34,9 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteLegacyEditComponent extends HistoryquoteEditBase<HistoryquoteLegacy> {
   @Input() callParam: HistoryquoteLegacySecurityCurrency;

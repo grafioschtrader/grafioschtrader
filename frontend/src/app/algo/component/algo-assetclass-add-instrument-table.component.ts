@@ -8,7 +8,7 @@ import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AlgoAssetclassService } from '../service/algo.assetclass.service';
 import { AlgoAssetclass } from '../model/algo.assetclass';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TableModule } from '@openng/optimus-ui/table';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -21,8 +21,7 @@ import { ButtonModule } from '@openng/optimus-ui/button';
 @Component({
   selector: 'algo-assetclass-add-instrument-table',
   templateUrl: '../../watchlist/view/add.instrument.table.html',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
+  imports: [TranslateModule, FormsModule, TableModule, ButtonModule]
 })
 export class AlgoAssetclassAddInstrumentTableComponent extends AddInstrumentTable<AlgoAssetclass> {
   /**

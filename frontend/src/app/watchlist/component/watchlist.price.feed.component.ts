@@ -32,7 +32,7 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { BaseSettings } from '../../lib/base.settings';
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -75,9 +75,7 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
     `
   ],
   providers: [DialogService],
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     ConfigurableTableComponent,
     AngularSvgIconModule,
@@ -96,7 +94,8 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
     AlgoStrategyEditComponent,
     WatchlistAddEditPriceProblemInstrumentComponent,
     TransactionSecurityEditComponent,
-    UDFGeneralEditComponent
+    UDFGeneralEditComponent,
+    DatePipe
   ]
 })
 export class WatchlistPriceFeedComponent extends WatchlistTable implements OnInit, OnDestroy {

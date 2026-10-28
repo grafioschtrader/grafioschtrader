@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, NgZone, Output, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
@@ -23,15 +23,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
  */
 @Component({
   selector: 'gtnet-security-lookup-dialog',
-  standalone: true,
-  imports: [
-    CommonModule,
-    TranslateModule,
-    DialogModule,
-    ProgressSpinnerModule,
-    MessageModule,
-    GtnetSecurityLookupTableComponent
-  ],
+  imports: [TranslateModule, DialogModule, ProgressSpinnerModule, MessageModule, GtnetSecurityLookupTableComponent],
   template: `
     <p-dialog
       [header]="'GTNET_SECURITY_LOOKUP' | translate"
@@ -43,16 +35,16 @@ import { ProcessedAction } from '../../lib/types/processed.action';
       (onHide)="onHide()">
       @if (loading()) {
         <div class="flex justify-content-center align-items-center" style="min-height: 200px">
-          <p-progressSpinner></p-progressSpinner>
+          <p-progressSpinner />
         </div>
       } @else {
         @if (errorMessage()) {
-          <p-message severity="error" [text]="errorMessage()"></p-message>
+          <p-message severity="error" [text]="errorMessage()" />
         }
 
         @if (response(); as response) {
           @if (response.securities.length === 0 && !errorMessage()) {
-            <p-message severity="info" [text]="'GTNET_LOOKUP_NO_RESULTS' | translate"></p-message>
+            <p-message severity="info" [text]="'GTNET_LOOKUP_NO_RESULTS' | translate" />
           }
 
           @if (response.securities.length > 0) {
@@ -62,8 +54,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
             </div>
             <gtnet-security-lookup-table
               [securities]="response.securities"
-              (securitySelected)="onSecuritySelected($event)">
-            </gtnet-security-lookup-table>
+              (securitySelected)="onSecuritySelected($event)" />
           }
         }
       }
@@ -90,36 +81,26 @@ export class GtnetSecurityLookupDialogComponent {
 
   constructor(
     private lookupService: GtnetSecurityLookupService,
-    private translateService: TranslateService,
-    private ngZone: NgZone
+    private translateService: TranslateService
   ) {}
 
   /**
-   * Starts the search when the dialog has opened. Optimus UI emits onShow at the end of the enter motion, which
-   * Angular starts in an afterRender hook outside the NgZone. A request started there would answer outside the zone
-   * as well, leaving the spinner on screen until an unrelated event triggers change detection, so the work is moved
-   * back into the zone.
+   * Starts the search when the dialog has opened. Optimus UI emits onShow at the end of the enter motion; the state
+   * the template shows is held in signals, so the answer refreshes the dialog wherever the request was started.
    */
   onShow(): void {
-    this.ngZone.run(() => {
-      this.selectionHandled = false;
-      this.errorMessage.set(null);
-      this.response.set(null);
-      this.performSearch();
-    });
+    this.selectionHandled = false;
+    this.errorMessage.set(null);
+    this.response.set(null);
+    this.performSearch();
   }
 
-  /**
-   * Cancels a running search and reports a close without selection. Runs in the NgZone for the same reason as
-   * onShow, so the parent removes the dialog immediately.
-   */
+  /** Cancels a running search and reports a close without selection. */
   onHide(): void {
-    this.ngZone.run(() => {
-      this.cancelPendingRequest();
-      if (!this.selectionHandled) {
-        this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
-      }
-    });
+    this.cancelPendingRequest();
+    if (!this.selectionHandled) {
+      this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+    }
   }
 
   /** Cancels any pending lookup request to prevent stale responses from affecting the UI */

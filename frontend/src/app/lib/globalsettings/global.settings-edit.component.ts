@@ -9,7 +9,7 @@ import { InputRule } from '../entities/input-rule';
 import { FieldConfig } from '../dynamic-form/models/field.config';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../dynamic-form/dynamic-form.imports';
 import { GlobalparameterService } from '../services/globalparameter.service';
 import { MessageToastService } from '../message/message.toast.service';
 import { DynamicFieldHelper } from '../helper/dynamic.field.helper';
@@ -40,11 +40,9 @@ import { ValidatorFn } from '@angular/forms';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalparameters> implements OnInit {
   @Input() globalparameters: Globalparameters;

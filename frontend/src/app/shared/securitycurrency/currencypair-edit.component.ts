@@ -42,10 +42,8 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
   imports: [TranslateModule, DialogModule, DynamicFormComponent]
 })
 export class CurrencypairEditComponent extends SecuritycurrencyEdit implements OnInit {

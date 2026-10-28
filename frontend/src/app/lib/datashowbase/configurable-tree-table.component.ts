@@ -9,7 +9,8 @@ import {
   Output,
   TemplateRef
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
+import { toClassString } from '../helper/css-class.helper';
 import { FormsModule } from '@angular/forms';
 import { TreeTableModule } from '@openng/optimus-ui/treetable';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
@@ -89,24 +90,22 @@ export interface TreeTableCellEditEvent {
  */
 @Component({
   selector: 'configurable-tree-table',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TreeTableModule,
     ContextMenuModule,
     CheckboxModule,
     TooltipModule,
     InputNumberModule,
-    InputTextModule
+    InputTextModule,
+    NgTemplateOutlet
   ],
   template: `
     <div
       #cmDiv
       (click)="onComponentClick($event)"
       (contextmenu)="onComponentClick($event)"
-      [ngClass]="containerClass"
-      [class]="customClass">
+      [class]="toClassString(containerClass, customClass)">
       <p-treeTable
         [value]="data"
         [columns]="renderedFields"
@@ -130,7 +129,7 @@ export interface TreeTableCellEditEvent {
         (onEditCancel)="onCellEditCancelHandler($event)">
         <!-- Caption slot with content projection -->
         <ng-template pTemplate="caption">
-          <ng-content select="[caption]"></ng-content>
+          <ng-content select="[caption]" />
         </ng-template>
 
         <!-- Header template -->
@@ -147,7 +146,7 @@ export interface TreeTableCellEditEvent {
                   [style.width.px]="field.width">
                   {{ field.headerTranslated }}
                   @if (enableSort) {
-                    <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
+                    <p-treeTableSortIcon [field]="field.field" />
                   }
                 </th>
               }
@@ -159,14 +158,14 @@ export interface TreeTableCellEditEvent {
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
           <tr
             [ttSelectableRow]="rowNode"
-            [ngClass]="getRowClass(rowNode, rowData)"
+            [class]="getRowClass(rowNode, rowData)"
             [style.background-color]="getRowStyle(rowData)"
             (contextmenu)="onRowContextMenu(rowNode)">
             @if (expandable) {
               <td [style.width.px]="expansionColumnWidth">
                 @if (canExpand(rowData)) {
                   <a href="#" (click)="toggleRow(rowData, $event)">
-                    <i [ngClass]="isRowExpanded(rowData) ? expandedIcon : collapsedIcon"></i>
+                    <i [class]="isRowExpanded(rowData) ? expandedIcon : collapsedIcon"></i>
                   </a>
                 }
               </td>
@@ -178,10 +177,10 @@ export interface TreeTableCellEditEvent {
                   <td
                     [ttEditableColumn]="rowData"
                     [ttEditableColumnField]="field.field"
-                    [ngClass]="getCellClass(field, rowData)"
+                    [class]="getCellClass(field, rowData)"
                     [style.width.px]="field.width">
                     @if (i === 0) {
-                      <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                      <p-treeTableToggler [rowNode]="rowNode" />
                     }
                     <p-treeTableCellEditor>
                       <ng-template pTemplate="input">
@@ -193,8 +192,7 @@ export interface TreeTableCellEditEvent {
                               [minFractionDigits]="field.minFractionDigits || 0"
                               [maxFractionDigits]="field.cec?.maxFractionDigits || field.maxFractionDigits || 2"
                               [min]="$safeNavigationMigration(field.cec?.min)"
-                              [max]="$safeNavigationMigration(field.cec?.max)">
-                            </p-inputNumber>
+                              [max]="$safeNavigationMigration(field.cec?.max)" />
                           }
                           @case (EditInputType.Number) {
                             <input
@@ -218,15 +216,14 @@ export interface TreeTableCellEditEvent {
                   </td>
                 } @else {
                   <!-- Non-editable cell (standard rendering) -->
-                  <td [ngClass]="getCellClass(field, rowData)" [style.width.px]="field.width">
+                  <td [class]="getCellClass(field, rowData)" [style.width.px]="field.width">
                     @if (i === 0) {
-                      <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                      <p-treeTableToggler [rowNode]="rowNode" />
                     }
                     <!-- Cell content rendering -->
                     @if (customCellTemplate) {
                       <ng-container
-                        *ngTemplateOutlet="customCellTemplate; context: { $implicit: rowData, field: field }">
-                      </ng-container>
+                        *ngTemplateOutlet="customCellTemplate; context: { $implicit: rowData, field: field }" />
                     } @else if (field.templateName === 'owner') {
                       <span
                         [pTooltip]="getValue(rowData, field)"
@@ -244,9 +241,8 @@ export interface TreeTableCellEditEvent {
                     } @else if (field.templateName === 'check') {
                       <span
                         ><i
-                          [ngClass]="{
-                            'fa fa-check': getValue(rowData, field)
-                          }"
+                          [class.fa]="getValue(rowData, field)"
+                          [class.fa-check]="getValue(rowData, field)"
                           aria-hidden="true"></i
                       ></span>
                     } @else if (field.templateName === 'editableCheck') {
@@ -255,8 +251,7 @@ export interface TreeTableCellEditEvent {
                           [ngModel]="getValue(rowData, field)"
                           [binary]="true"
                           [disabled]="checkboxDisabledFn ? checkboxDisabledFn(rowData, field) : false"
-                          (onChange)="onCheckboxChange(rowData, field, $event)">
-                        </p-checkbox>
+                          (onChange)="onCheckboxChange(rowData, field, $event)" />
                       }
                     } @else if (field.templateName === 'icon') {
                       @if (iconTemplate) {
@@ -268,8 +263,7 @@ export interface TreeTableCellEditEvent {
                               field: field,
                               value: getValue(rowData, field)
                             }
-                          ">
-                        </ng-container>
+                          " />
                       } @else {
                         <span>{{ getValue(rowData, field) }}</span>
                       }
@@ -289,7 +283,7 @@ export interface TreeTableCellEditEvent {
           @if (expandable && expandedRowTemplate && canExpand(rowData) && isRowExpanded(rowData)) {
             <tr>
               <td [attr.colspan]="getExpandedColspan()">
-                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: rowData }"></ng-container>
+                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: rowData }" />
               </td>
             </tr>
           }
@@ -298,19 +292,20 @@ export interface TreeTableCellEditEvent {
         <!-- Footer template (content-projected) -->
         @if (footerTemplate) {
           <ng-template pTemplate="footer">
-            <ng-container *ngTemplateOutlet="footerTemplate"></ng-container>
+            <ng-container *ngTemplateOutlet="footerTemplate" />
           </ng-template>
         }
       </p-treeTable>
 
       <!-- Context menu -->
       @if (showContextMenu) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" [appendTo]="contextMenuAppendTo"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" [appendTo]="contextMenuAppendTo" />
       }
     </div>
   `
 })
 export class ConfigurableTreeTableComponent implements OnChanges {
+  protected readonly toClassString = toClassString;
   // ============================================================================
   // Data and Column Configuration
   // ============================================================================

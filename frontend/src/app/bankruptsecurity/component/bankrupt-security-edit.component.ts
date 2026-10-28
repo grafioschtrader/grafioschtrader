@@ -7,7 +7,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -48,13 +48,11 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
   providers: [DialogService],
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class BankruptSecurityEditComponent extends SimpleEntityEditBase<BankruptSecurity> implements OnInit {
   @Input() callParam: BankruptSecurityCallParam;

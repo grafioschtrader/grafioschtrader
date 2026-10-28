@@ -11,7 +11,7 @@ import { SvgIconRegistryService, AngularSvgIconModule } from 'angular-svg-icon';
 import { DividendSplitSvgCreator } from '../../shared/dividendsplit/dividend.split.svg.creator';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { FilterService } from '@openng/optimus-ui/api';
-import { CommonModule } from '@angular/common';
+
 import { TableModule } from '@openng/optimus-ui/table';
 import { ButtonModule } from '@openng/optimus-ui/button';
 
@@ -21,8 +21,7 @@ import { ButtonModule } from '@openng/optimus-ui/button';
 @Component({
   selector: 'securitysplit-edit-table',
   templateUrl: './view/split.period.table.html',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, TableModule, ButtonModule, AngularSvgIconModule]
+  imports: [TranslateModule, TableModule, ButtonModule, AngularSvgIconModule]
 })
 export class SecuritysplitEditTableComponent extends SplitPeriodTableBase<Securitysplit> {
   constructor(

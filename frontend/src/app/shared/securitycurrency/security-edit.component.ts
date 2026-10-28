@@ -94,8 +94,7 @@ export function isManualIssuerCountryChange(
               [formConfig]="formConfig"
               [translateService]="translateService"
               #dynamicFieldsetForm="dynamicForm"
-              (submitBt)="submit($event)">
-            </dynamic-form>
+              (submitBt)="submit($event)" />
           </p-tabpanel>
           <p-tabpanel value="splits">
             <dynamic-form
@@ -103,13 +102,11 @@ export function isManualIssuerCountryChange(
               [formConfig]="formConfig"
               [translateService]="translateService"
               #splitForm="dynamicForm"
-              (submitBt)="addSplit($event)">
-            </dynamic-form>
+              (submitBt)="addSplit($event)" />
             <securitysplit-edit-table
               (editData)="onSelectedSecuritysplit($event)"
               (savedData)="onDependingDialogSave($event)"
-              [maxRows]="maxSplits()">
-            </securitysplit-edit-table>
+              [maxRows]="maxSplits()" />
           </p-tabpanel>
           <p-tabpanel value="periods">
             <p>{{ 'HISTORYQUOTE_FOR_PERIOD_COMMENT' | translate }}</p>
@@ -118,13 +115,11 @@ export function isManualIssuerCountryChange(
               [formConfig]="formConfigPeriod"
               [translateService]="translateService"
               #periodPriceForm="dynamicForm"
-              (submitBt)="addHistoryquotePeriod($event)">
-            </dynamic-form>
+              (submitBt)="addHistoryquotePeriod($event)" />
             <security-historyquote-period-edit-table
               (editData)="onSelectedHistoryquote($event)"
               (savedData)="onDependingDialogSave($event)"
-              [maxRows]="maxHistoryquotePeriods()">
-            </security-historyquote-period-edit-table>
+              [maxRows]="maxHistoryquotePeriods()" />
           </p-tabpanel>
           <p-tabpanel value="bondTerms">
             <security-bond-terms
@@ -141,8 +136,7 @@ export function isManualIssuerCountryChange(
         [isin]="$safeNavigationMigration(configObject?.isin?.formControl?.value)"
         [currency]="$safeNavigationMigration(configObject?.currency?.formControl?.value)"
         [tickerSymbol]="$safeNavigationMigration(configObject?.tickerSymbol?.formControl?.value)"
-        (closeDialog)="handleCloseGtnetLookupDialog($event)">
-      </gtnet-security-lookup-dialog>
+        (closeDialog)="handleCloseGtnetLookupDialog($event)" />
     }
     @if (visibleSecurityLookupDialog()) {
       <security-lookup-dialog
@@ -152,10 +146,8 @@ export function isManualIssuerCountryChange(
         [mic]="getSelectedStockexchangeMic()"
         [idAssetClass]="configObject.assetClass.formControl.value"
         [tickerSymbol]="configObject.tickerSymbol.formControl.value"
-        (closeDialog)="handleCloseSecurityLookupDialog($event)">
-      </security-lookup-dialog>
+        (closeDialog)="handleCloseSecurityLookupDialog($event)" />
     }`,
-  standalone: true,
   imports: [
     TranslateModule,
     DialogModule,

@@ -33,7 +33,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
         [disabled]="!group.valid || config.disabled"
         pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}">
         @if (config.icon) {
-          <svg-icon [src]="config.icon" [svgStyle]="{ 'width.px': 16, 'height.px': 16 }"></svg-icon>
+          <svg-icon [src]="config.icon" [svgStyle]="{ 'width.px': 16, 'height.px': 16 }" />
         }
       </button>
     }
@@ -47,7 +47,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
         [label]="config.labelKey | translate"
         (click)="config.buttonFN($event)">
         @if (config.icon) {
-          <svg-icon [src]="config.icon" [svgStyle]="{ 'width.px': 16, 'height.px': 16 }"></svg-icon>
+          <svg-icon [src]="config.icon" [svgStyle]="{ 'width.px': 16, 'height.px': 16 }" />
         }
       </button>
     }
@@ -60,13 +60,12 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
         type="button"
         (click)="config.buttonFN($event)">
         @if (config.icon) {
-          <svg-icon [src]="config.icon" [svgStyle]="{ 'width.px': 13, 'height.px': 13 }"></svg-icon>
+          <svg-icon [src]="config.icon" [svgStyle]="{ 'width.px': 13, 'height.px': 13 }" />
         }
       </button>
     }
   `,
-  imports: [ButtonModule, TooltipModule, TranslateModule, FilterOutPipe, AngularSvgIconModule, ReactiveFormsModule],
-  standalone: true
+  imports: [ButtonModule, TooltipModule, TranslateModule, FilterOutPipe, AngularSvgIconModule, ReactiveFormsModule]
 })
 export class FormPButtonComponent implements FieldFormFormGroupConfig {
   readonly config = input.required<FieldConfig>();

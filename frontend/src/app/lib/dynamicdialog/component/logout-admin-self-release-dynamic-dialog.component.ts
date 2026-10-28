@@ -23,7 +23,6 @@ import { ButtonModule } from '@openng/optimus-ui/button';
         <i class="pi pi-check" pButtonIcon></i>
       </p-button>
     </div>`,
-  standalone: true,
   imports: [TranslateModule, ButtonModule]
 })
 export class LogoutAdminSelfReleaseDynamicDialogComponent {

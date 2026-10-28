@@ -7,7 +7,7 @@ import { GlobalparameterService } from '../../../lib/services/globalparameter.se
 import { MessageToastService } from '../../../lib/message/message.toast.service';
 import { SimpleEntityEditBase } from '../../../lib/edit/simple.entity.edit.base';
 import { DynamicFieldHelper } from '../../../lib/helper/dynamic.field.helper';
-import { DynamicFormModule } from '../../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../../lib/dynamic-form/dynamic-form.imports';
 import { TranslateHelper } from '../../../lib/helper/translate.helper';
 import { AppHelper } from '../../../lib/helper/app.helper';
 import { BaseSettings } from '../../../lib/base.settings';
@@ -33,12 +33,10 @@ import { GTNetSecurityImpHeadService } from '../service/gtnet-security-imp-head.
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<GTNetSecurityImpHead> implements OnInit {
   @Input() entity: GTNetSecurityImpHead;

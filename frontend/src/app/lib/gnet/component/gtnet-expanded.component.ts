@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { AccordionModule } from '@openng/optimus-ui/accordion';
 import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
@@ -29,9 +29,7 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
  */
 @Component({
   selector: 'gtnet-expanded',
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     AccordionModule,
     GTNetConfigEntityTableComponent,
@@ -50,8 +48,7 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
             <gtnet-config-entity-table
               [gtNetEntities]="gtNet.gtNetEntities"
               [exchangeKindTypes]="exchangeKindTypes"
-              (dataChanged)="configEntityDataChanged.emit($event)">
-            </gtnet-config-entity-table>
+              (dataChanged)="configEntityDataChanged.emit($event)" />
           }
         </p-accordion-content>
       </p-accordion-panel>
@@ -72,8 +69,7 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
                 [incomingPendingIds]="incomingPendingIds"
                 [outgoingPendingIds]="outgoingPendingIds"
                 [formDefinitions]="formDefinitions"
-                (dataChanged)="messageDataChanged.emit($event)">
-              </gtnet-message-treetable>
+                (dataChanged)="messageDataChanged.emit($event)" />
             }
           }
         </p-accordion-content>
@@ -91,7 +87,7 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
                   <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
                 </div>
               } @else if (messageAttempts?.length) {
-                <gtnet-message-attempt-table [messageAttempts]="messageAttempts"> </gtnet-message-attempt-table>
+                <gtnet-message-attempt-table [messageAttempts]="messageAttempts" />
               }
             }
           </p-accordion-content>
@@ -109,8 +105,7 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
                 <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
               </div>
             } @else if (maintenanceWindows?.length) {
-              <gtnet-maintenance-window-table [maintenanceWindows]="maintenanceWindows">
-              </gtnet-maintenance-window-table>
+              <gtnet-maintenance-window-table [maintenanceWindows]="maintenanceWindows" />
             }
           }
         </p-accordion-content>

@@ -1,15 +1,15 @@
 import { HttpClient, provideHttpClient, withInterceptors, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { authInterceptor } from '../app/lib/login/service/auth.http.interceptor';
 import { provideDialogCloseKeepsFocus } from '../app/lib/edit/dialog.close.focus';
-import { importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
+import { inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { SETTINGS_MENU_EXTENSIONS } from '../app/lib/mainmenubar/service/settings-menu-extensions';
 import { accessTokenSettingsMenu } from './access-token-settings-menu';
 import { provideRouter, Routes, withNavigationErrorHandler, withPreloading } from '@angular/router';
 import { AuthenticatedPreloadingStrategy } from '../app/lib/login/service/authenticated-preloading.strategy';
 import { handleLazyLoadNavigationError } from '../app/lib/login/service/lazy-load-failure';
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
-import { AngularSvgIconModule } from 'angular-svg-icon';
+import { provideTranslateService, TranslateLoader, TranslateService } from '@ngx-translate/core';
+import { provideAngularSvgIcon } from 'angular-svg-icon';
 import { ConfirmationService, FilterService, MessageService } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { firstValueFrom } from 'rxjs';
@@ -234,6 +234,7 @@ const translateLoader = (http: HttpClient) =>
 
 bootstrapApplication(GrafioschAppComponent, {
   providers: [
+    provideBrowserGlobalErrorListeners(),
     // Angular 22 bootstraps zoneless by default; the library's OnPush components notify every asynchronous change.
     provideHttpClient(withXhr(), withInterceptors([authInterceptor]), withInterceptorsFromDi()),
     provideDialogCloseKeepsFocus(),
@@ -243,17 +244,15 @@ bootstrapApplication(GrafioschAppComponent, {
       withNavigationErrorHandler(handleLazyLoadNavigationError)
     ),
     AuthenticatedPreloadingStrategy,
-    importProvidersFrom(
-      AngularSvgIconModule.forRoot(),
-      TranslateModule.forRoot({
-        fallbackLang: GrafioschSettings.DEFAULT_LANGUAGE,
-        loader: {
-          provide: TranslateLoader,
-          useFactory: translateLoader,
-          deps: [HttpClient]
-        }
-      })
-    ),
+    provideAngularSvgIcon(),
+    provideTranslateService({
+      fallbackLang: GrafioschSettings.DEFAULT_LANGUAGE,
+      loader: {
+        provide: TranslateLoader,
+        useFactory: translateLoader,
+        deps: [HttpClient]
+      }
+    }),
 
     // Library services. They are not providedIn: 'root', so every host lists the ones its routes reach - including
     // the ones only the shell needs: the menu bar of SplitLayoutComponent injects ManageClientService and

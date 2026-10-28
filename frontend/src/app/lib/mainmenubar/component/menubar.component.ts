@@ -34,8 +34,7 @@ import { GlobalSessionNames } from '../../global.session.names';
  */
 @Component({
   selector: 'menubar',
-  template: ` <p-menubar [model]="activePanelService.topMenuItems()"></p-menubar> `,
-  standalone: true,
+  template: ` <p-menubar [model]="activePanelService.topMenuItems()" /> `,
   imports: [MenubarModule],
   providers: [DialogService]
 })

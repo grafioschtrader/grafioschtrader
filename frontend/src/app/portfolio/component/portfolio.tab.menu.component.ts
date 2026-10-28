@@ -23,11 +23,10 @@ import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.m
       [useSessionStorage]="true"
       [sessionStorageKey]="sessionStorageKey"
       [customNavigationHandler]="navigateWithPortfolio">
-      <router-outlet></router-outlet>
+      <router-outlet />
     </app-shared-tab-menu>
   `,
-  imports: [SharedTabMenuComponent, RouterModule],
-  standalone: true
+  imports: [SharedTabMenuComponent, RouterModule]
 })
 export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
   readonly tabs: TabItem[] = [

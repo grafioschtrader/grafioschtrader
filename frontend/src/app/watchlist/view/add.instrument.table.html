@@ -17,15 +17,15 @@
     <ng-template #header>
       <tr>
         <th style="width: 2.25em">
-          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+          <p-tableHeaderCheckbox />
         </th>
         @for (field of tableFields(); track field.field) {
         <th
           [pSortableColumn]="field.field"
           [style.max-width.px]="field.width"
-          [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+          [style]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
           {{field.headerTranslated}}
-          <p-sortIcon [field]="field.field"></p-sortIcon>
+          <p-sortIcon [field]="field.field" />
         </th>
         }
       </tr>
@@ -33,14 +33,14 @@
     <ng-template #body let-el>
       <tr [pSelectableRow]="el">
         <td>
-          <p-tableCheckbox [value]="el"></p-tableCheckbox>
+          <p-tableCheckbox [value]="el" />
         </td>
         @for (field of tableFields(); track field.field) { @if (field.visible) {
         <td
-          [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+          [class]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                   || field.dataType===DataType.NumericInteger)? 'text-end': ''"
           [style.max-width.px]="field.width"
-          [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+          [style]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
           {{getValueByPath(el, field)}}
         </td>
         } }

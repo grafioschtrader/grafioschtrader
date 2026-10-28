@@ -3,7 +3,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { GlobalparameterService } from '../../services/globalparameter.service';
 import { MessageToastService } from '../../message/message.toast.service';
 import { HelpIds } from '../../help/help.ids';
@@ -35,11 +35,9 @@ import { BaseSettings } from '../../base.settings';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class UserEditComponent extends SimpleEntityEditBase<User> implements OnInit {
   @Input() callParam: User;

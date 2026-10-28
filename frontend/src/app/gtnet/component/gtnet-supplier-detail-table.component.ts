@@ -17,7 +17,6 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
  */
 @Component({
   selector: 'gtnet-supplier-detail-table',
-  standalone: true,
   imports: [ConfigurableTreeTableComponent],
   template: `
     <configurable-tree-table
@@ -26,8 +25,7 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
       [fieldsRevision]="fieldsRevision()"
       dataKey="uniqueKey"
       [selectionMode]="null"
-      [valueGetterFn]="valueGetter">
-    </configurable-tree-table>
+      [valueGetterFn]="valueGetter" />
   `
 })
 export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase implements OnInit {

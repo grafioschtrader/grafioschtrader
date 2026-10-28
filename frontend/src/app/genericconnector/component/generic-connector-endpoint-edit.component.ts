@@ -20,7 +20,7 @@ import { TickerBuildStrategy } from '../../shared/types/ticker.build.strategy';
 import { HtmlExtractMode } from '../../shared/types/html.extract.mode';
 import { EndpointOption, ENDPOINT_OPTION_BY_FEED } from '../../shared/types/endpoint.option';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 const ALL_FEED_INSTRUMENT_COMBOS = [
   'FS_HISTORY|SECURITY',
@@ -48,12 +48,10 @@ const ALL_FEED_INSTRUMENT_COMBOS = [
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class GenericConnectorEndpointEditComponent extends SimpleEditBase implements OnInit {
   @Input() endpoint: GenericConnectorEndpoint;

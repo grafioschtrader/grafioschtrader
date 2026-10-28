@@ -11,7 +11,7 @@ import {
   Output
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
@@ -49,8 +49,7 @@ import { Helper } from '../../lib/helper/helper';
       <h5 caption>{{ 'MISSING_DAY_TABLE_MARK' | translate }}</h5>
     </configurable-table>
   `,
-  standalone: true,
-  imports: [CommonModule, TranslateModule, ConfigurableTableComponent]
+  imports: [TranslateModule, ConfigurableTableComponent]
 })
 export class TenantPerformanceEodMissingTableComponent extends TableConfigBase implements OnInit, OnChanges {
   /**

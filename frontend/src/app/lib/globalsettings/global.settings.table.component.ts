@@ -64,11 +64,9 @@ import { HelpIds } from '../help/help.ids';
       <globalsettings-edit
         [visibleDialog]="visibleDialog()"
         [globalparameters]="selectedEntity()"
-        (closeDialog)="handleGlobalparameterCloseDialog($event)">
-      </globalsettings-edit>
+        (closeDialog)="handleGlobalparameterCloseDialog($event)" />
     }
   `,
-  standalone: true,
   imports: [ConfigurableTableComponent, Textarea, TranslateModule, GlobalSettingsEditComponent]
 })
 export class GlobalSettingsTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {

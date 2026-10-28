@@ -11,12 +11,11 @@ import { GTNetService } from '../service/gtnet.service';
  */
 @Component({
   selector: 'gtnet-exchange-log-tabmenu',
-  standalone: true,
   imports: [SharedTabMenuComponent, RouterModule],
   template: `
     @if (tabs().length) {
       <app-shared-tab-menu [tabs]="tabs()" [defaultRoute]="defaultRoute()">
-        <router-outlet></router-outlet>
+        <router-outlet />
       </app-shared-tab-menu>
     }
   `

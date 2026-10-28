@@ -26,7 +26,7 @@ import { ITaskExtendService } from './itask.extend.service';
 import { TASK_EXTENDED_SERVICE } from '../service/task.extend.service.token';
 import { TASK_TYPE_ENUM } from '../service/task.type.enum.token';
 import { BaseSettings } from '../../base.settings';
-import { CommonModule } from '@angular/common';
+
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TaskDataChangeEditComponent } from './task-data-change-edit.component';
@@ -81,7 +81,12 @@ import { GlobalSessionNames } from '../../global.session.names';
       <ng-template #customCell let-row let-field="field">
         @switch (field.templateName) {
           @case ('check') {
-            <span><i [ngClass]="{ 'fa fa-check': getValueByPath(row, field) }" aria-hidden="true"></i></span>
+            <span
+              ><i
+                [class.fa]="getValueByPath(row, field)"
+                [class.fa-check]="getValueByPath(row, field)"
+                aria-hidden="true"></i
+            ></span>
           }
           @default {
             <span [pTooltip]="getTooltipValueByPath(row, field)" tooltipPosition="top">
@@ -107,19 +112,15 @@ import { GlobalSessionNames } from '../../global.session.names';
         [tdcFormConstraints]="tdcFormConstraints()"
         [taskTypeEnum]="taskTypeEnum"
         [queue]="queue()"
-        (closeDialog)="handleCloseDialog($event)">
-      </task-data-change-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
 
     @if (visibleFilterDialog()) {
-      <task-filter-dialog [visibleDialog]="visibleFilterDialog()" (closeDialog)="handleCloseFilterDialog($event)">
-      </task-filter-dialog>
+      <task-filter-dialog [visibleDialog]="visibleFilterDialog()" (closeDialog)="handleCloseFilterDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [
-    CommonModule,
     ConfigurableTableComponent,
     TooltipModule,
     TranslateModule,

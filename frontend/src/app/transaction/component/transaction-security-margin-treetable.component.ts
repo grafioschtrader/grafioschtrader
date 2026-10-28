@@ -24,7 +24,7 @@ import { ProposedMarginFinanceCost } from '../model/proposed.margin.finance.cost
 import { TransactionSecurityFieldDefinition } from './transaction.security.field.definition';
 import { TransactionSecurityOptionalParam } from '../model/transaction.security.optional.param';
 import { HelpIds } from '../../lib/help/help.ids';
-import { CommonModule } from '@angular/common';
+
 import { TreeTableModule } from '@openng/optimus-ui/treetable';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
@@ -47,7 +47,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
       #cmDiv
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -83,20 +83,17 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
             <tr
               [ttSelectableRow]="rowNode"
               [ttSelectableRowDisabled]="rowData.transaction.idTransaction < 0"
-              [ngClass]="{
-                'rowgroup-total': rowData.transaction.idTransaction < 0
-              }">
+              [class.rowgroup-total]="rowData.transaction.idTransaction < 0">
               @for (field of fields; track field.field; let i = $index) {
                 <td
-                  [ngClass]="{
-                    'text-end':
-                      field.dataType === DataType.NumericInteger ||
-                      field.dataType === DataType.Numeric ||
-                      field.dataType === DataType.DateTimeNumeric
-                  }"
+                  [class.text-end]="
+                    field.dataType === DataType.NumericInteger ||
+                    field.dataType === DataType.Numeric ||
+                    field.dataType === DataType.DateTimeNumeric
+                  "
                   [style.width.px]="field.width">
                   @if (i === 0) {
-                    <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                    <p-treeTableToggler [rowNode]="rowNode" />
                   }
                   @switch (field.templateName) {
                     @case ('greenRed') {
@@ -113,19 +110,17 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
             </tr>
           </ng-template>
         </p-treeTable>
-        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems()" appendTo="body"> </p-contextMenu>
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems()" appendTo="body" />
       </div>
       @if (visibleSecurityTransactionDialog()) {
         <transaction-security-edit
           [transactionCallParam]="transactionCallParam"
           [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()"
-          (closeDialog)="handleCloseTransactionDialog($event)">
-        </transaction-security-edit>
+          (closeDialog)="handleCloseTransactionDialog($event)" />
       }
     </div>
   `,
-  standalone: true,
-  imports: [CommonModule, TreeTableModule, TooltipModule, ContextMenuModule, TransactionSecurityEditComponent]
+  imports: [TreeTableModule, TooltipModule, ContextMenuModule, TransactionSecurityEditComponent]
 })
 export class TransactionSecurityMarginTreetableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   /** Array of security account IDs to filter transactions */

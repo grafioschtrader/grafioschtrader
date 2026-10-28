@@ -19,7 +19,6 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
 @Component({
   selector: 'udf-security-edit',
   templateUrl: '../../lib/udfmeta/view/general.udf.data.edit.html',
-  standalone: true,
   imports: [TranslateModule, DialogModule, DynamicFormComponent]
 })
 export class SecurityUDFEditComponent extends BaseUDFDataEdit implements OnInit {

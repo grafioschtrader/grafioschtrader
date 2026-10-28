@@ -3,13 +3,7 @@ import { APP_ROUTES } from './app.routes';
 import { DialogComponentLoader } from './lib/maintree/handler/lazy-dialog';
 import { AuthenticatedPreloadingStrategy } from './lib/login/service/authenticated-preloading.strategy';
 import { handleLazyLoadNavigationError } from './lib/login/service/lazy-load-failure';
-import {
-  ApplicationConfig,
-  importProvidersFrom,
-  inject,
-  provideAppInitializer,
-  provideZoneChangeDetection
-} from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { HistoryquoteService } from './historyquote/service/historyquote.service';
 import { HistoryquoteLegacyService } from './historyquote/service/historyquote.legacy.service';
 import { TaxDataService } from './taxdata/service/tax-data.service';
@@ -35,7 +29,7 @@ import { TransactionReceiptService } from './transaction/service/transaction.rec
 import { CurrencypairService } from './securitycurrency/service/currencypair.service';
 import { LoginService } from './lib/login/service/log-in.service';
 import { MessageToastService } from './lib/message/message.toast.service';
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { provideTranslateService, TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { UserSettingsService } from './lib/services/user.settings.service';
 import { UserDataService } from './lib/mainmenubar/service/user.data.service';
@@ -86,7 +80,7 @@ import { TradingDaysPlusService } from './tradingcalendar/service/trading.days.p
 import { TradingDaysMinusService } from './stockexchange/service/trading.days.minus.service';
 import { HoldingService } from './performanceperiod/service/holding.service';
 import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
-import { AngularSvgIconModule } from 'angular-svg-icon';
+import { provideAngularSvgIcon } from 'angular-svg-icon';
 import { ProductIconService } from './securitycurrency/service/product.icon.service';
 import { HistoryquotePeriodService } from './securitycurrency/service/historyquote.period.service';
 import { MailSendRecvService } from './lib/mail/service/mail.send.recv.service';
@@ -157,24 +151,21 @@ const createTranslateLoader = (http: HttpClient) =>
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    // The library components still rely on zone change detection; specification/angular_signals_onpush.md removes it.
-    provideZoneChangeDetection(),
+    provideBrowserGlobalErrorListeners(),
     provideRouter(
       APP_ROUTES,
       withPreloading(AuthenticatedPreloadingStrategy),
       withNavigationErrorHandler(handleLazyLoadNavigationError)
     ),
     AuthenticatedPreloadingStrategy,
-    importProvidersFrom(
-      AngularSvgIconModule.forRoot(),
-      TranslateModule.forRoot({
-        loader: {
-          provide: TranslateLoader,
-          useFactory: createTranslateLoader,
-          deps: [HttpClient]
-        }
-      })
-    ),
+    provideAngularSvgIcon(),
+    provideTranslateService({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: createTranslateLoader,
+        deps: [HttpClient]
+      }
+    }),
     // Application help ids replace the library ids before any component renders a help link.
     provideAppInitializer(() => {
       registerHelpIds(AppHelpIds);

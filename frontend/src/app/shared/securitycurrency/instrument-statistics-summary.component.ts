@@ -31,8 +31,7 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
       </configurable-tree-table>
     </div>
   `,
-  imports: [TranslateModule, ConfigurableTreeTableComponent],
-  standalone: true
+  imports: [TranslateModule, ConfigurableTreeTableComponent]
 })
 export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase implements OnInit {
   @Input() statisticsSummary: StatisticsSummary;

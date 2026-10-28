@@ -2,7 +2,7 @@ import { BaseInputComponent } from '../base.input.component';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { TreeSelectModule } from '@openng/optimus-ui/treeselect';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
@@ -40,16 +40,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
       [placeholder]="config.placeholder || ''"
       pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}" />
   `,
-  imports: [
-    ReactiveFormsModule,
-    FormsModule,
-    CommonModule,
-    TreeSelectModule,
-    TooltipModule,
-    TranslateModule,
-    FilterOutPipe
-  ],
-  standalone: true
+  imports: [ReactiveFormsModule, FormsModule, TreeSelectModule, TooltipModule, TranslateModule, FilterOutPipe]
 })
 export class FormInputTreeSelectComponent extends BaseInputComponent implements OnInit {
   /** Shown while config.treeNodes is not set; one constant, so the binding does not change on every check. */

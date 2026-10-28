@@ -53,12 +53,10 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
         [strn]="strn()"
         [existingProviders]="existingProviders"
         [subscriptionTypeOptionsMap]="subscriptionTypeOptionsMap()"
-        (closeDialog)="handleCloseDialog($event)">
-      </connector-api-key-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, ConnectorApiKeyEditComponent]
 })
 export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<ConnectorApiKey> {

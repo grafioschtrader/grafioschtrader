@@ -1,7 +1,7 @@
 import { DestroyRef, inject } from '@angular/core';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
 import { Component, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { CashaccountService } from '../../cashaccount/service/cashaccount.service';
 import { ActivatedRoute, Params } from '@angular/router';
@@ -51,9 +51,7 @@ import { TransactionCashaccountTableComponent } from '../../transaction/componen
  */
 @Component({
   templateUrl: '../view/portfolio.cashaccount.table.html',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslateModule,
     TableModule,

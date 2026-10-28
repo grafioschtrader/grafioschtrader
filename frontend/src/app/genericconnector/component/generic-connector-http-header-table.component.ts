@@ -56,7 +56,6 @@ import { GenericConnectorHttpHeader } from '../../entities/generic.connector.htt
       </div>
     </editable-table>
   `,
-  standalone: true,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBase implements OnChanges {

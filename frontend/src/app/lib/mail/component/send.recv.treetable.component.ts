@@ -5,7 +5,7 @@ import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { Textarea } from '@openng/optimus-ui/textarea';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
@@ -57,15 +57,14 @@ import { ConfigurableTreeTableComponent } from '../../datashowbase/configurable-
         </h5>
       </div>
       <ng-template #iconCell let-row let-field="field" let-value="value">
-        <svg-icon [name]="value" [svgStyle]="{ 'width.px': 16, 'height.px': 16 }"></svg-icon>
+        <svg-icon [name]="value" [svgStyle]="{ 'width.px': 16, 'height.px': 16 }" />
       </ng-template>
     </configurable-tree-table>
     <textarea [rows]="15" pTextarea readonly="true">{{ selectedNode() ? selectedNode().data.message : '' }}</textarea>
   `,
   styles: ['textarea { width:100%; }'],
   providers: [DialogService],
-  standalone: true,
-  imports: [CommonModule, Textarea, AngularSvgIconModule, TranslateModule, ConfigurableTreeTableComponent]
+  imports: [Textarea, AngularSvgIconModule, TranslateModule, ConfigurableTreeTableComponent]
 })
 export class SendRecvTreetableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
   public static createSendRecvIconMap: { [key: string]: string } = {

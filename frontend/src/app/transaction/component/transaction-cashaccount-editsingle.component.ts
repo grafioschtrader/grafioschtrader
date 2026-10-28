@@ -31,7 +31,7 @@ import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Component for editing single cash account transactions where only one cash account is involved.
@@ -58,12 +58,10 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TransactionCashaccountEditSingleComponent extends TransactionCashaccountBaseOperations implements OnInit {
   /** Controls visibility of the cash account transaction dialog */

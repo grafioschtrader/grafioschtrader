@@ -3,7 +3,7 @@ import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { ClassDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
@@ -18,8 +18,7 @@ import { TenantAIProviderService } from '../service/tenant-ai-provider.service';
 
 @Component({
   selector: 'tenant-ai-provider-edit',
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule],
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule],
   template: `<p-dialog
     [header]="'TENANT_AI_PROVIDER' | translate"
     [visible]="visibleDialog()"
@@ -34,7 +33,7 @@ import { TenantAIProviderService } from '../service/tenant-ai-provider.service';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)"></dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`
 })
 export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAIProvider> implements OnInit {

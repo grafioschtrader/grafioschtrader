@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -28,9 +28,8 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
                   @case ('check') {
                     <span
                       ><i
-                        [ngClass]="{
-                          'fa fa-check': getValueByPath(connectorDef, field)
-                        }"></i
+                        [class.fa]="getValueByPath(connectorDef, field)"
+                        [class.fa-check]="getValueByPath(connectorDef, field)"></i
                     ></span>
                   }
                   @case ('yaml') {
@@ -53,8 +52,7 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
       }
     </div>
   `,
-  standalone: true,
-  imports: [CommonModule, TranslateModule]
+  imports: [TranslateModule]
 })
 export class GenericConnectorDefDetailComponent extends SingleRecordConfigBase implements OnChanges {
   @Input() connectorDef: GenericConnectorDef;

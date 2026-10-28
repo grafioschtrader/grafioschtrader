@@ -3,7 +3,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { SimpleEditBase } from '../edit/simple.edit.base';
 import { GlobalparameterService } from '../services/globalparameter.service';
-import { DynamicFormModule } from '../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../dynamic-form/dynamic-form.imports';
 import { DynamicFieldModelHelper } from '../helper/dynamic.field.model.helper';
 import { DynamicFieldHelper } from '../helper/dynamic.field.helper';
 import { TranslateHelper } from '../helper/translate.helper';
@@ -17,8 +17,7 @@ import { FieldConfig } from '../dynamic-form/models/field.config';
 /** Descriptor is fetched before mounting this dialog so the dynamic form initializes synchronously. */
 @Component({
   selector: 'dashboard-config',
-  standalone: true,
-  imports: [TranslateModule, DialogModule, DynamicFormModule],
+  imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS],
   template: `<p-dialog
     [header]="descriptor.titleKey | translate"
     [visible]="visibleDialog()"

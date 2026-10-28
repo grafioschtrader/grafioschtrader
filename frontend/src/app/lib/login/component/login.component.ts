@@ -20,7 +20,7 @@ import { ReleaseNote, ReleaseNoteService } from '../service/release.note.service
 import { HelpIds } from '../../help/help.ids';
 import { BaseSettings } from '../../base.settings';
 
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { CardModule } from '@openng/optimus-ui/card';
 import { ApplicationInfoComponent } from './application-info.component';
 import { PasswordEditComponent } from './password-edit.component';
@@ -37,7 +37,7 @@ import { PasswordEditComponent } from './password-edit.component';
             {{ successLastRegistration() | translate }}
           </div>
         }
-        <application-info [applicationInfo]="applicationInfo()"></application-info>
+        <application-info [applicationInfo]="applicationInfo()" />
         @if (formConfig) {
           <h2>{{ 'SIGN_IN' | translate }}</h2>
           <dynamic-form
@@ -45,8 +45,7 @@ import { PasswordEditComponent } from './password-edit.component';
             [formConfig]="formConfig"
             [translateService]="translateService"
             #form="dynamicForm"
-            (submitBt)="submit($event)">
-          </dynamic-form>
+            (submitBt)="submit($event)" />
         }
         @if (releaseNotes().length > 0) {
           <p-card class="mt-2 d-block" header="{{ 'RELEASE_NOTE' | translate }}">
@@ -69,12 +68,11 @@ import { PasswordEditComponent } from './password-edit.component';
     </div>
 
     @if (visiblePasswordDialog()) {
-      <password-edit [forcePasswordChange]="true" [visibleDialog]="visiblePasswordDialog()"> </password-edit>
+      <password-edit [forcePasswordChange]="true" [visibleDialog]="visiblePasswordDialog()" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
-  imports: [DynamicFormModule, TranslateModule, CardModule, ApplicationInfoComponent, PasswordEditComponent]
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, CardModule, ApplicationInfoComponent, PasswordEditComponent]
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;

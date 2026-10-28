@@ -36,7 +36,6 @@ export interface YamlDiagnostic {
  */
 @Component({
   selector: 'yaml-editor',
-  standalone: true,
   imports: [TranslateModule],
   template: `
     <div #editorContainer [style.height]="height" style="border: 1px solid #dee2e6; border-radius: 4px;"></div>

@@ -1,7 +1,7 @@
 import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs/operators';
-import { CommonModule } from '@angular/common';
+
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
@@ -32,7 +32,7 @@ import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/c
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -54,7 +54,7 @@ import { GTNetImportHeadSelectDialogComponent } from './gtnet-import-head-select
       class="data-container"
       (click)="onComponentClick($event)"
       #cmDiv
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -62,30 +62,27 @@ import { GTNetImportHeadSelectDialogComponent } from './gtnet-import-head-select
         [config]="config"
         [formConfig]="formConfig"
         [translateService]="translateService"
-        #form="dynamicForm">
-      </dynamic-form>
+        #form="dynamicForm" />
 
       @if (contextMenuItems) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" appendTo="body" />
       }
       <br />
-      <securityaccount-import-transaction-table></securityaccount-import-transaction-table>
+      <securityaccount-import-transaction-table />
     </div>
 
     @if (visibleEditDialog) {
       <securityaccount-import-transaction-edit-head
         [visibleDialog]="visibleEditDialog"
         [callParam]="callParam"
-        (closeDialog)="handleCloseEditDialog($event)">
-      </securityaccount-import-transaction-edit-head>
+        (closeDialog)="handleCloseEditDialog($event)" />
     }
 
     @if (visibleUploadFileDialog()) {
       <upload-file-dialog
         [visibleDialog]="visibleUploadFileDialog()"
         [fileUploadParam]="fileUploadParam"
-        (closeDialog)="handleCloseImportUploadDialog($event)">
-      </upload-file-dialog>
+        (closeDialog)="handleCloseImportUploadDialog($event)" />
     }
 
     @if (visibleGtnetHeadSelectDialog()) {
@@ -93,14 +90,11 @@ import { GTNetImportHeadSelectDialogComponent } from './gtnet-import-head-select
         [visibleDialog]="visibleGtnetHeadSelectDialog()"
         [suggestedHeadName]="suggestedGtnetHeadName"
         [idTransactionHead]="$safeNavigationMigration(selectedEntity?.idTransactionHead)"
-        (closeDialog)="handleCloseGtnetHeadSelectDialog($event)">
-      </gtnet-import-head-select-dialog>
+        (closeDialog)="handleCloseGtnetHeadSelectDialog($event)" />
     }
   `,
-  standalone: true,
   imports: [
-    CommonModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     ContextMenuModule,
     SecurityaccountImportTransactionTableComponent,
     SecurityaccountImportTransactionEditHeadComponent,

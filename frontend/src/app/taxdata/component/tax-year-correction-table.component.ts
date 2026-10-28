@@ -57,10 +57,8 @@ import { TaxYearCorrectionService } from '../service/tax-year-correction.service
       [createNewEntityFn]="createNewEntity"
       [canDeleteRowFn]="canDeleteRow"
       (rowEditSave)="onRowEditSave($event)"
-      (rowDelete)="onRowDelete($event)">
-    </editable-table>
+      (rowDelete)="onRowDelete($event)" />
   `,
-  standalone: true,
   imports: [EditableTableComponent, TranslateModule, ButtonModule],
   providers: [TaxYearCorrectionService]
 })

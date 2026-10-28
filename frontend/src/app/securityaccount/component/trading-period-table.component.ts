@@ -59,10 +59,8 @@ import { BaseSettings } from '../../lib/base.settings';
       [baseLocale]="baseLocale"
       [scrollable]="false"
       [containerClass]="''"
-      [stripedRows]="false">
-    </editable-table>
+      [stripedRows]="false" />
   `,
-  standalone: true,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class TradingPeriodTableComponent extends TableEditConfigBase implements OnChanges {
@@ -104,6 +102,10 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
       this.tradingPeriods = this.convertDatesToDateObjects(this.tradingPeriods);
       this.assignTempIds(this.tradingPeriods);
       this.createTranslatedValueStoreAndFilterField(this.tradingPeriods);
+    }
+    if (changes['transactionSummaries'] || changes['isNewSecurityAccount']) {
+      // canDeleteRow is a stable function, so the editable table re-evaluates it only after a new revision.
+      this.notifyViewChanged();
     }
   }
 

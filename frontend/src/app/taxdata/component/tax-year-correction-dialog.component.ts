@@ -35,11 +35,9 @@ import { TaxYearCorrectionTableComponent } from './tax-year-correction-table.com
       <tax-year-correction-table
         [idSecuritycurrency]="security.idSecuritycurrency"
         [yearOptions]="yearOptions"
-        [suggestedYear]="suggestedYear">
-      </tax-year-correction-table>
+        [suggestedYear]="suggestedYear" />
     </p-dialog>
   `,
-  standalone: true,
   imports: [DialogModule, TranslateModule, TaxYearCorrectionTableComponent]
 })
 export class TaxYearCorrectionDialogComponent {

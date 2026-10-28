@@ -326,7 +326,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
    *
    * @param positionSummary - Row of the table
    * @param field - Column configuration of the cell
-   * @returns Style object for ngStyle
+   * @returns Style object for the native style binding
    */
   getCellStyle(positionSummary: SecurityPositionSummary, field: ColumnConfig): { [key: string]: string } {
     const widthStyle = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};

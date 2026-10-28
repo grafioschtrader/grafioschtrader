@@ -12,11 +12,10 @@ import { RouterModule } from '@angular/router';
       [defaultRoute]="defaultRoute"
       [useSessionStorage]="true"
       [sessionStorageKey]="sessionStorageKey">
-      <router-outlet></router-outlet>
+      <router-outlet />
     </app-shared-tab-menu>
   `,
-  imports: [SharedTabMenuComponent, RouterModule],
-  standalone: true
+  imports: [SharedTabMenuComponent, RouterModule]
 })
 export class TenantTabMenuComponent implements OnInit {
   tabs: TabItem[] = [];

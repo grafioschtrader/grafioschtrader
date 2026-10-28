@@ -26,7 +26,6 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
         }}" />
     </ng-container>
   `,
-  imports: [ReactiveFormsModule, TooltipModule, TranslateModule, FilterOutPipe],
-  standalone: true
+  imports: [ReactiveFormsModule, TooltipModule, TranslateModule, FilterOutPipe]
 })
 export class FormCheckboxComponent extends BaseInputComponent {}

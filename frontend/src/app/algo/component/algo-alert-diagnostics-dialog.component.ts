@@ -1,7 +1,7 @@
 import { DestroyRef, inject, signal, Component, EventEmitter, Output, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService } from '@openng/optimus-ui/api';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -24,9 +24,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
  */
 @Component({
   selector: 'algo-alert-diagnostics',
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     DialogModule,
     TabsModule,

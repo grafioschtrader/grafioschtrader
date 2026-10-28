@@ -10,7 +10,7 @@ import {
   signal,
   SimpleChanges
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Historyquote } from '../../entities/historyquote';
 import { HistoryquoteSecurityCurrency } from '../model/historyquote.security.currency';
 import { HistoryquoteService } from '../service/historyquote.service';
@@ -70,7 +70,7 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
       class="data-container"
       (click)="onComponentClick($event)"
       #cmDiv
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -115,13 +115,12 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
             }
             <historyquote-quality
               [historyquoteQuality]="historyquotesWithMissings()?.historyquoteQuality"
-              [securitycurrency]="historyquotesWithMissings()?.securitycurrency">
-            </historyquote-quality>
+              [securitycurrency]="historyquotesWithMissings()?.securitycurrency" />
           </div>
 
           <!-- Custom icon cell template for svg-icon rendering -->
           <ng-template #iconCell let-row let-field="field" let-value="value">
-            <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
+            <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }" />
           </ng-template>
         </configurable-table>
       </div>
@@ -130,16 +129,14 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
       <historyquote-edit
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
-        (closeDialog)="handleCloseDialog($event)">
-      </historyquote-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
 
     @if (visibleUploadFileDialog()) {
       <upload-file-dialog
         [visibleDialog]="visibleUploadFileDialog()"
         [fileUploadParam]="fileUploadParam"
-        (closeDialog)="handleCloseDialogAndRead($event)">
-      </upload-file-dialog>
+        (closeDialog)="handleCloseDialogAndRead($event)" />
     }
 
     @if (visibleFillGapsDialog()) {
@@ -148,8 +145,7 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
         [historyquoteQuality]="historyquotesWithMissings()?.historyquoteQuality"
         [securitycurrency]="historyquotesWithMissings()?.securitycurrency"
         [fillGapsBounds]="fillGapsBounds"
-        (closeDialog)="handleCloseDialogAndRead($event)">
-      </historyquote-quality-fill-gaps>
+        (closeDialog)="handleCloseDialogAndRead($event)" />
     }
 
     @if (visibleDeleteHistoryquotes()) {
@@ -158,14 +154,11 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
         [idSecuritycurrency]="historyquotesWithMissings().securitycurrency.idSecuritycurrency"
         [historyquoteQuality]="historyquotesWithMissings().historyquoteQuality"
         [deleteBounds]="deleteBounds"
-        (closeDialog)="handleCloseDialogAndRead($event)">
-      </historyquote-delete-dialog>
+        (closeDialog)="handleCloseDialogAndRead($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     ConfigurableTableComponent,
     AngularSvgIconModule,

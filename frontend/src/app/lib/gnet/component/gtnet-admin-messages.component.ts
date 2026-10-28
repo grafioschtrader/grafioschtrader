@@ -1,6 +1,6 @@
 import { afterNextRender, Component, computed, Injector, QueryList, signal, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { GTNet, GTNetWithMessages } from '../model/gtnet';
@@ -42,9 +42,7 @@ import { ProcessedActionData } from '../../types/processed.action.data';
  */
 @Component({
   selector: 'gtnet-admin-messages',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslateModule,
     ConfigurableTableComponent,
@@ -87,8 +85,7 @@ import { ProcessedActionData } from '../../types/processed.action.data';
           [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
           [formDefinitions]="formDefinitions"
           [showFilter]="false"
-          (dataChanged)="onTreeTableDataChanged($event)">
-        </gtnet-message-treetable>
+          (dataChanged)="onTreeTableDataChanged($event)" />
       } @else {
         <div style="padding: 1rem; text-align: center; color: #888;">
           {{ 'NO_DATA_FOUND' | translate }}
@@ -100,8 +97,7 @@ import { ProcessedActionData } from '../../types/processed.action.data';
       <gtnet-message-edit
         [visibleDialog]="visibleDialogMsg()"
         [msgCallParam]="msgCallParam"
-        (closeDialog)="handleCloseDialogMsg($event)">
-      </gtnet-message-edit>
+        (closeDialog)="handleCloseDialogMsg($event)" />
     }
   `,
   providers: [DialogService]

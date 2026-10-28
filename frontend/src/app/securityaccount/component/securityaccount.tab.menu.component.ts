@@ -30,10 +30,9 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
           }
         </p-tablist>
       </p-tabs>
-      <router-outlet></router-outlet>
+      <router-outlet />
     </div>
   `,
-  standalone: true,
   imports: [Tabs, TabList, Tab, RouterOutlet, TranslatePipe]
 })
 export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -26,8 +26,7 @@ import { AppSettings } from '../../shared/app.settings';
  */
 @Component({
   selector: 'gtnet-security-lookup-table',
-  standalone: true,
-  imports: [CommonModule, ConfigurableTableComponent, TranslateModule, ButtonModule],
+  imports: [ConfigurableTableComponent, TranslateModule, ButtonModule],
   template: `
     <configurable-table
       [data]="securities"
@@ -44,8 +43,7 @@ import { AppSettings } from '../../shared/app.settings';
       [contextMenuEnabled]="false"
       [baseLocale]="baseLocale"
       [expandable]="true"
-      [expandedRowTemplate]="connectorExpansion">
-    </configurable-table>
+      [expandedRowTemplate]="connectorExpansion" />
 
     <ng-template #connectorExpansion let-security>
       <div class="connector-expansion">

@@ -14,7 +14,7 @@ import { atLeastOneFieldValidator } from '../../lib/validator/validator';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Dialog component for adding securities and currencies to an empty watchlist whose repeat counter has reached its limit.
@@ -38,11 +38,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [TranslateModule, DialogModule, DynamicFormModule]
+  imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditBase implements OnInit {
   /** The unique identifier of the watchlist to add problem instruments to */

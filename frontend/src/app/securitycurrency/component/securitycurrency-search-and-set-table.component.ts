@@ -15,7 +15,6 @@ import { SupplementCriteria } from '../model/supplement.criteria';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableModule } from '@openng/optimus-ui/table';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { CommonModule } from '@angular/common';
 
 /**
  * After a search over securities or currency the search result ist shown in a table to select a certain security.
@@ -44,9 +43,9 @@ import { CommonModule } from '@angular/common';
               <th
                 [pSortableColumn]="field.field"
                 [style.max-width.px]="field.width"
-                [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
+                [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
                 {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
+                <p-sortIcon [field]="field.field" />
               </th>
             }
           </tr>
@@ -58,8 +57,8 @@ import { CommonModule } from '@angular/common';
               @if (field.visible) {
                 <td
                   [style.max-width.px]="field.width"
-                  [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
-                  [ngClass]="
+                  [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                  [class]="
                     field.dataType === DataType.Numeric ||
                     field.dataType === DataType.DateTimeNumeric ||
                     field.dataType === DataType.NumericInteger
@@ -81,8 +80,7 @@ import { CommonModule } from '@angular/common';
       </button>
     </div>
   `,
-  imports: [TableModule, ButtonModule, CommonModule, TranslateModule],
-  standalone: true
+  imports: [TableModule, ButtonModule, TranslateModule]
 })
 export class SecuritycurrencySearchAndSetTableComponent extends SecuritycurrencySearchTableBase {
   @Input() callBackSetSecurity: CallBackSetSecurity;

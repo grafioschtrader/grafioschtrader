@@ -4,7 +4,7 @@ import { UntypedFormGroup } from '@angular/forms';
 import { FieldConfig } from '../../models/field.config';
 import { FormConfig } from '../../models/form.config';
 import { TranslateModule } from '@ngx-translate/core';
-import { CommonModule } from '@angular/common';
+
 import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-field.directive';
 import { ErrorMessageComponent } from './error-message.compoent';
 import { FormNotifier } from '../../models/form.notifier';
@@ -56,7 +56,7 @@ import { FormNotifier } from '../../models/form.notifier';
       </div>
     }
 
-    <div [ngClass]="'small-padding col-md-' + (config.usedLayoutColumns ? config.usedLayoutColumns : 12)">
+    <div [class]="'small-padding col-md-' + (config.usedLayoutColumns ? config.usedLayoutColumns : 12)">
       <div
         class="mb-3 dynamic-form-row"
         [style.--df-label-percent]="getLabelPercent(config)"
@@ -80,10 +80,10 @@ import { FormNotifier } from '../../models/form.notifier';
         }
 
         <div class="small-padding dynamic-form-control">
-          <dynamicField [config]="config" [formConfig]="formConfig" [group]="group"> </dynamicField>
+          <dynamicField [config]="config" [formConfig]="formConfig" [group]="group" />
         </div>
         @if (!config.buttonInForm) {
-          <error-message [baseFieldFieldgroupConfig]="config"></error-message>
+          <error-message [baseFieldFieldgroupConfig]="config" />
         }
         @if (config.labelShowText) {
           <div class="bg-info" [innerHTML]="config.labelShowText"></div>
@@ -91,8 +91,7 @@ import { FormNotifier } from '../../models/form.notifier';
       </div>
     </div>
   `,
-  imports: [TranslateModule, CommonModule, DynamicFieldDirective, ErrorMessageComponent],
-  standalone: true
+  imports: [TranslateModule, DynamicFieldDirective, ErrorMessageComponent]
 })
 export class DynamicFormLayoutComponent {
   @Input() config: FieldConfig;

@@ -15,7 +15,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Component for editing the portfolio.
@@ -27,11 +27,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   `,
-  standalone: true,
-  imports: [DynamicFormModule, TranslateModule]
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfolio> implements OnInit {
   callParam: CallParam;

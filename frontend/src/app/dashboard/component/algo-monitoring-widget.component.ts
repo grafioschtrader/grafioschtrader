@@ -23,7 +23,6 @@ import { AlgoMonitoringSummary } from '../model/algo.monitoring.summary';
  */
 @Component({
   selector: 'algo-monitoring-widget',
-  standalone: true,
   imports: [TranslateModule, ButtonModule],
   template: `
     @if (summary) {

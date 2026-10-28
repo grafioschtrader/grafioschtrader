@@ -1,5 +1,5 @@
 import { Component, Injector, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FailedParsedTemplateState } from './failed.parsed.template.state';
@@ -35,9 +35,9 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                 [pSortableColumn]="field.field"
                 [pTooltip]="field.headerTooltipTranslated"
                 [style.max-width.px]="field.width"
-                [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
+                [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
                 {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
+                <p-sortIcon [field]="field.field" />
               </th>
             }
           </tr>
@@ -47,8 +47,8 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
             @for (field of fields; track field) {
               <td
                 [style.max-width.px]="field.width"
-                [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
-                [ngClass]="
+                [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                [class]="
                   field.dataType === DataType.Numeric ||
                   field.dataType === DataType.DateTimeNumeric ||
                   field.dataType === DataType.NumericInteger
@@ -63,8 +63,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
       </p-table>
     </div>
   `,
-  standalone: true,
-  imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
+  imports: [TranslateModule, TableModule, TooltipModule]
 })
 export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBase implements OnInit {
   @Input() failedParsedTemplateStateList: FailedParsedTemplateState[];

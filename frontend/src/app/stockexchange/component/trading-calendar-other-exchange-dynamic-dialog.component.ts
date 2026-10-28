@@ -22,9 +22,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
     [formConfig]="formConfig"
     [translateService]="translateService"
     #form="dynamicForm"
-    (submitBt)="submit($event)">
-  </dynamic-form>`,
-  standalone: true,
+    (submitBt)="submit($event)" />`,
   imports: [DynamicFormComponent]
 })
 export class TradingCalendarOtherExchangeDynamicDialogComponent extends FormBase implements OnInit {

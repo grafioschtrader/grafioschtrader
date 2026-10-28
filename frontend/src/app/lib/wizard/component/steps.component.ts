@@ -28,7 +28,7 @@ import { StepComponent } from './step.component';
     </p-stepper>
 
     <!-- Content is rendered outside stepper -->
-    <ng-content></ng-content>
+    <ng-content />
 
     <!-- Navigation buttons -->
     <div class="flex pt-6 justify-between">
@@ -47,7 +47,6 @@ import { StepComponent } from './step.component';
       }
     </div>
   `,
-  standalone: true,
   imports: [StepperModule, ButtonModule]
 })
 export class StepsComponent implements AfterContentInit, OnChanges {

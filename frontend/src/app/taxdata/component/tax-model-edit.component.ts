@@ -8,7 +8,7 @@ import { ButtonModule } from '@openng/optimus-ui/button';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
@@ -25,12 +25,11 @@ import { ProcessedAction } from '../../lib/types/processed.action';
 /** Administrator editor and side-effect-free preview of the currently typed model. */
 @Component({
   selector: 'tax-model-edit',
-  standalone: true,
   imports: [
     TranslateModule,
     DialogModule,
     ButtonModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     YamlEditorComponent,
     TaxDetailsTableComponent
   ],

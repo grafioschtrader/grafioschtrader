@@ -28,10 +28,9 @@ import { MAIN_TASK_QUEUE, TaskDataChangeFormConstraints, TaskQueueInfo } from '.
           </p-tablist>
         </p-tabs>
       }
-      <router-outlet></router-outlet>
+      <router-outlet />
     </div>
   `,
-  standalone: true,
   imports: [TranslateModule, RouterModule, Tabs, TabList, Tab]
 })
 export class TaskDataChangeTabMenuComponent implements OnInit {

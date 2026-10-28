@@ -14,7 +14,7 @@ import { AuditHelper } from '../../lib/helper/audit.helper';
 import { TaxDataService } from '../service/tax-data.service';
 import { TaxCountry, TaxUpload, TaxYear } from '../model/tax-data.model';
 import { FileUploadParam } from '../../lib/generaldialog/model/file.upload.param';
-import { NgClass } from '@angular/common';
+
 import { Panel } from '@openng/optimus-ui/panel';
 import { SharedModule } from '@openng/optimus-ui/api';
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
@@ -39,7 +39,7 @@ enum NodeLevel {
     <div
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -62,28 +62,24 @@ enum NodeLevel {
         [expandable]="true"
         [canExpandFn]="canExpandNode"
         [expandedRowTemplate]="expandedContent"
-        [valueGetterFn]="valueGetter">
-      </configurable-tree-table>
+        [valueGetterFn]="valueGetter" />
 
       <!-- One table of the official exchange rates per tax year -->
       <ng-template #expandedContent let-node>
-        <tax-exchange-rate-table [taxYear]="node.entity"></tax-exchange-rate-table>
+        <tax-exchange-rate-table [taxYear]="node.entity" />
       </ng-template>
       @if (visibleUploadFileDialog()) {
         <upload-file-dialog
           [visibleDialog]="visibleUploadFileDialog()"
           [fileUploadParam]="fileUploadParam"
-          (closeDialog)="onUploadDialogClose()">
-        </upload-file-dialog>
+          (closeDialog)="onUploadDialogClose()" />
       }
       @if (modelCountry(); as country) {
         <tax-model-edit [visibleDialog]="true" [country]="country" (closeDialog)="closeModel()" />
       }
     </div>
   `,
-  standalone: true,
   imports: [
-    NgClass,
     TranslatePipe,
     Panel,
     SharedModule,

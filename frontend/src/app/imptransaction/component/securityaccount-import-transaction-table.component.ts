@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, Injector, OnDestroy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, take } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { TranslateService } from '@ngx-translate/core';
 import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
@@ -67,23 +67,20 @@ import { Helper } from '../../lib/helper/helper';
       [baseLocale]="baseLocale"
       [containerClass]="'datatable'">
       <ng-template #iconCell let-row let-field="field" let-value="value">
-        <svg-icon [name]="value" [svgStyle]="{ 'width.px': 16, 'height.px': 16 }"></svg-icon>
+        <svg-icon [name]="value" [svgStyle]="{ 'width.px': 16, 'height.px': 16 }" />
       </ng-template>
     </configurable-table>
 
     <ng-template #expandedRowContent let-row>
       @if (getFailedParsedTemplateStateList(row).length > 0) {
         <template-form-check-dialog-result-failed
-          [failedParsedTemplateStateList]="getFailedParsedTemplateStateList(row)">
-        </template-form-check-dialog-result-failed>
+          [failedParsedTemplateStateList]="getFailedParsedTemplateStateList(row)" />
       }
       @if (getFailedParsedTemplateStateList(row).length > 0) {
-        <securityaccount-import-extended-info-filename [combineTemplateAndImpTransPos]="row">
-        </securityaccount-import-extended-info-filename>
+        <securityaccount-import-extended-info-filename [combineTemplateAndImpTransPos]="row" />
       }
       @if (getFailedParsedTemplateStateList(row).length === 0) {
-        <securityaccount-import-extended-info [combineTemplateAndImpTransPos]="row">
-        </securityaccount-import-extended-info>
+        <securityaccount-import-extended-info [combineTemplateAndImpTransPos]="row" />
       }
     </ng-template>
 
@@ -92,13 +89,10 @@ import { Helper } from '../../lib/helper/helper';
         [visibleDialog]="visibleSetCashaccountDialog()"
         [combineTemplateAndImpTransPos]="selectedEntities()"
         [idSecuritycashAccount]="selectImportTransactionHead.securityaccount.idSecuritycashAccount"
-        (closeDialog)="handleOnCloseSetDialog($event)">
-      </securityaccount-import-set-cashaccount>
+        (closeDialog)="handleOnCloseSetDialog($event)" />
     }
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     ConfigurableTableComponent,
     AngularSvgIconModule,
     TemplateFormCheckDialogResultFailedComponent,

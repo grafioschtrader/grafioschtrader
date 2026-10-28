@@ -29,7 +29,7 @@ import { StockexchangeMic } from '../model/stockexchange.base.data';
 import { StockexchangeHelper } from './stockexchange.helper';
 import { BaseSettings } from '../../lib/base.settings';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.set.service';
 
 /**
@@ -49,11 +49,9 @@ import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchange> implements OnInit {
   @Input() callParam: StockexchangeCallParam;

@@ -31,7 +31,7 @@ import { Router } from '@angular/router';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { BaseSettings } from '../../lib/base.settings';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
@@ -92,9 +92,9 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
               [pSortableColumn]="field.field"
               [pTooltip]="field.headerTooltipTranslated"
               [style.max-width.px]="field.width"
-              [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
+              [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
               {{ field.headerTranslated }}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
+              <p-sortIcon [field]="field.field" />
             </th>
           }
         </tr>
@@ -103,19 +103,24 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
         <tr [pSelectableRow]="el">
           <td>
             <a href="#" [pRowToggler]="el">
-              <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
+              <i [class]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
             </a>
           </td>
           @for (field of fields; track field.field) {
             <td
               [style.background-color]="getBackgroundColor(el, field)"
-              [ngClass]="field.dataType === DataType.NumericShowZero ? 'text-end' : ''"
+              [class]="field.dataType === DataType.NumericShowZero ? 'text-end' : ''"
               (click)="cellClick(field)"
               [style.max-width.px]="field.width"
-              [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
+              [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
               @switch (field.templateName) {
                 @case ('check') {
-                  <span><i [ngClass]="{ 'fa fa-check': getValueByPath(el, field) }" aria-hidden="true"></i></span>
+                  <span
+                    ><i
+                      [class.fa]="getValueByPath(el, field)"
+                      [class.fa-check]="getValueByPath(el, field)"
+                      aria-hidden="true"></i
+                  ></span>
                 }
                 @default {
                   {{ getValueByPath(el, field) }}
@@ -131,8 +136,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
             <instrument-statistics-result
               [idSecuritycurrency]="securitycrrency.idSecuritycurrency"
               [dateFrom]="correlationSet().dateFrom"
-              [dateTo]="correlationSet().dateTo">
-            </instrument-statistics-result>
+              [dateTo]="correlationSet().dateTo" />
           </td>
         </tr>
       </ng-template>
@@ -142,13 +146,10 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
         [idCorrelationSet]="correlationSet().idCorrelationSet"
         [tenantLimits]="tenantLimits()"
         [visibleAddInstrumentDialog]="visibleAddInstrumentDialog()"
-        (closeDialog)="handleCloseAddInstrumentDialog($event)">
-      </correlation-add-instrument>
+        (closeDialog)="handleCloseAddInstrumentDialog($event)" />
     }
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslateModule,
     TableModule,

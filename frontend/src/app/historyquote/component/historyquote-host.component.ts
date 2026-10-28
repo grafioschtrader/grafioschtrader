@@ -17,14 +17,11 @@ import { HistoryquoteLegacyComponent } from './historyquote-legacy.component';
 @Component({
   template: `
     @if (viewMode() === 'live') {
-      <historyquote-table [timeSeriesParams]="timeSeriesParams()" (showLegacyRequested)="showLegacy()">
-      </historyquote-table>
+      <historyquote-table [timeSeriesParams]="timeSeriesParams()" (showLegacyRequested)="showLegacy()" />
     } @else if (idSecuritycurrency() != null) {
-      <historyquote-legacy [idSecuritycurrency]="idSecuritycurrency()" (showLiveRequested)="viewMode.set('live')">
-      </historyquote-legacy>
+      <historyquote-legacy [idSecuritycurrency]="idSecuritycurrency()" (showLiveRequested)="viewMode.set('live')" />
     }
   `,
-  standalone: true,
   imports: [HistoryquoteTableComponent, HistoryquoteLegacyComponent]
 })
 export class HistoryquoteHostComponent implements OnInit {

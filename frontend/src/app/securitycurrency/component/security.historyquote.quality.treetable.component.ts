@@ -26,7 +26,7 @@ import {
   SecurityHistoryquoteQualityTableComponent,
   SecurityIdWithCurrency
 } from './security-historyquote-quality-table.component';
-import { NgClass } from '@angular/common';
+
 import { Panel } from '@openng/optimus-ui/panel';
 import { Select } from '@openng/optimus-ui/select';
 import { FormsModule } from '@angular/forms';
@@ -41,7 +41,7 @@ import { SharedModule } from '@openng/optimus-ui/api';
     <div
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -50,8 +50,7 @@ import { SharedModule } from '@openng/optimus-ui/api';
           <h4>{{ 'SECURITY_HISTORY_QUALITY' | translate }} ({{ 'LAST_UPDATE' | translate }}: {{ lastUpdate() }})</h4>
         </p-header>
         <label class="small-padding control-label" for="groupSelect">{{ 'MAIN_QUALITY_GROUP' | translate }}</label>
-        <p-select id="groupSelect" [options]="groups" [(ngModel)]="selectedGroup" (onChange)="groupChanged($event)">
-        </p-select>
+        <p-select id="groupSelect" [options]="groups" [(ngModel)]="selectedGroup" (onChange)="groupChanged($event)" />
       </p-panel>
       <configurable-tree-table
         [data]="qualityNode()"
@@ -65,8 +64,7 @@ import { SharedModule } from '@openng/optimus-ui/api';
         [contextMenuItems]="contextMenuItems()"
         [showContextMenu]="!!contextMenuItems()"
         [valueGetterFn]="valueGetter"
-        [footerTemplate]="qualityFooter">
-      </configurable-tree-table>
+        [footerTemplate]="qualityFooter" />
       <ng-template #qualityFooter>
         <tr>
           @for (field of fields; track field) {
@@ -74,12 +72,11 @@ import { SharedModule } from '@openng/optimus-ui/api';
               <td
                 class="row-total"
                 [style.width.px]="field.width"
-                [ngClass]="{
-                  'text-end':
-                    field.dataType === DataType.NumericInteger ||
-                    field.dataType === DataType.Numeric ||
-                    field.dataType === DataType.DateTimeNumeric
-                }">
+                [class.text-end]="
+                  field.dataType === DataType.NumericInteger ||
+                  field.dataType === DataType.Numeric ||
+                  field.dataType === DataType.DateTimeNumeric
+                ">
                 {{ getValueColumnTotal(field, 0, historyquoteQualityHead(), null) }}
               </td>
             }
@@ -89,13 +86,10 @@ import { SharedModule } from '@openng/optimus-ui/api';
       <security-historyquote-quality-table
         [historyquoteQualityIds]="historyquoteQualityIds()"
         [groupTitle]="groupTitle()"
-        (changedIdSecurity)="handleChangedIdSecurity($event)">
-      </security-historyquote-quality-table>
+        (changedIdSecurity)="handleChangedIdSecurity($event)" />
     </div>
   `,
-  standalone: true,
   imports: [
-    NgClass,
     TranslatePipe,
     Panel,
     SharedModule,

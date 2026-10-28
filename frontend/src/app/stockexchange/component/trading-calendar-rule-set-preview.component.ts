@@ -29,10 +29,8 @@ export interface RuleSetClosure {
       [stripedRows]="true"
       [showGridlines]="true"
       [valueGetterFn]="valueGetter"
-      [baseLocale]="baseLocale">
-    </configurable-table>
+      [baseLocale]="baseLocale" />
   `,
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule]
 })
 export class TradingCalendarRuleSetPreviewComponent extends ShowRecordConfigBase {

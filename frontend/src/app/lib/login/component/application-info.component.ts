@@ -16,7 +16,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       </div>
     }
   `,
-  standalone: true,
   imports: [TranslateModule]
 })
 export class ApplicationInfoComponent {

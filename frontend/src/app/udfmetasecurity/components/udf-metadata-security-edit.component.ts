@@ -32,7 +32,7 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
 
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { MessageModule } from '@openng/optimus-ui/message';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
 import { UDFFillRuleProposalDialogComponent } from './udf-fill-rule-proposal-dialog.component';
 import { UDFFillSuggestTestResultComponent } from './udf-fill-suggest-test-result.component';
@@ -62,22 +62,21 @@ import { UDFFillSuggestTestResultComponent } from './udf-fill-suggest-test-resul
         <p class="bg-info">{{ fillStatusText() }}</p>
       }
       @if (isLLMWithoutKeys()) {
-        <p-message severity="warn" [text]="'UDF_FILL_LLM_NO_KEYS' | translate"></p-message>
+        <p-message severity="warn" [text]="'UDF_FILL_LLM_NO_KEYS' | translate" />
       }
       <dynamic-form
         [config]="config"
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
       <!-- The content is a flex column so the test result takes only the height the form leaves within the dialog
            and scrolls there; the global overflow:visible of the dialog content keeps form overlays unclipped. -->
       @if (isAutomaticFill() && testResult()) {
-        <udf-fill-test-result [testResult]="testResult()"></udf-fill-test-result>
+        <udf-fill-test-result [testResult]="testResult()" />
       }
       @if (isAutomaticFill() && suggestTestRequest()) {
-        <udf-fill-suggest-test-result [request]="suggestTestRequest()"></udf-fill-suggest-test-result>
+        <udf-fill-suggest-test-result [request]="suggestTestRequest()" />
       }
     </p-dialog>
     @if (visibleProposalDialog()) {
@@ -85,15 +84,13 @@ import { UDFFillSuggestTestResultComponent } from './udf-fill-suggest-test-resul
         [idUDFMetadata]="callParam.uDFMetadataSecurity?.idUDFMetadata"
         [visibleDialog]="visibleProposalDialog()"
         (ruleAccepted)="acceptProposedRule($event)"
-        (closeDialog)="visibleProposalDialog.set(false)">
-      </udf-fill-rule-proposal-dialog>
+        (closeDialog)="visibleProposalDialog.set(false)" />
     }
   `,
-  standalone: true,
   imports: [
     DialogModule,
     MessageModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     TranslateModule,
     UDFFillTestResultComponent,
     UDFFillRuleProposalDialogComponent,

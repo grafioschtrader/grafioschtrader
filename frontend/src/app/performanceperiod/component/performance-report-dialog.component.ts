@@ -5,7 +5,7 @@ import { ButtonModule } from '@openng/optimus-ui/button';
 import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { Subscription } from 'rxjs';
 import { FormBase } from '../../lib/edit/form.base';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -79,8 +79,7 @@ export interface PerformanceReportDialogData {
     }
     <p-button [label]="'REPORT_CANCEL' | translate" [disabled]="downloading()" (click)="close()" />
   `,
-  standalone: true,
-  imports: [TranslateModule, DynamicFormModule, ButtonModule, ProgressBarModule]
+  imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, ButtonModule, ProgressBarModule]
 })
 export class PerformanceReportDialogComponent extends FormBase implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;

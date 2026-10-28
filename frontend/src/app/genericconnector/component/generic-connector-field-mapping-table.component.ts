@@ -58,7 +58,6 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
       </div>
     </editable-table>
   `,
-  standalone: true,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class GenericConnectorFieldMappingTableComponent extends TableEditConfigBase implements OnChanges {

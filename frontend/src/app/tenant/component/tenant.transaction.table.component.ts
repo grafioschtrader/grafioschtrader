@@ -19,7 +19,7 @@ import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui
 import { AppHelper } from '../../lib/helper/app.helper';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { CashTransferRelinkResult } from '../../transaction/service/transaction.service';
-import { CommonModule } from '@angular/common';
+
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
 import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
@@ -37,9 +37,7 @@ import { StandingOrderSecurityEditComponent } from '../../standingorder/componen
  */
 @Component({
   templateUrl: '../../transaction/view/transaction.cashaccount.table.html',
-  standalone: true,
   imports: [
-    CommonModule,
     ConfigurableTableComponent,
     TransactionCashaccountEditSingleComponent,
     TransactionCashaccountEditDoubleComponent,

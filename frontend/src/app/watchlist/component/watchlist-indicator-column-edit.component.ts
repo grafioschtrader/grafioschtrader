@@ -23,7 +23,6 @@ import { debounceTime, distinctUntilChanged, switchMap, catchError, of } from 'r
 /** Entity-derived expression form; benchmark selection uses the normal instrument search. */
 @Component({
   selector: 'watchlist-indicator-column-edit',
-  standalone: true,
   imports: [ButtonModule, TranslateModule, DialogModule, DynamicFormComponent],
   template: `<p-dialog
     [header]="'WATCHLIST_INDICATOR_COLUMN' | translate"

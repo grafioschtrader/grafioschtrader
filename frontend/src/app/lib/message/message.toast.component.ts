@@ -37,7 +37,6 @@ import { ToastModule } from '@openng/optimus-ui/toast';
       </ng-template>
     </p-toast>
   `,
-  standalone: true,
   imports: [ToastModule]
 })
 export class MessageToastComponent implements OnDestroy {

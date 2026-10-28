@@ -23,8 +23,7 @@ import { ReactiveFormsModule } from '@angular/forms';
         [formControlName]="config.field" />
     </ng-container>
   `,
-  imports: [ReactiveFormsModule],
-  standalone: true
+  imports: [ReactiveFormsModule]
 })
 export class FormFileUploadComponent extends BaseInputComponent {
   fileToUpload: File = null;

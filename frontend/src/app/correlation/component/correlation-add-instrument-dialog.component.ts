@@ -34,14 +34,12 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
         [formConfig]="formConfig"
         [translateService]="translateService"
         #dynamicFormComponent="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
       <br />
-      <correlation-set-add-instrument-table [tenantLimits]="tenantLimits"> </correlation-set-add-instrument-table>
+      <correlation-set-add-instrument-table [tenantLimits]="tenantLimits" />
     </p-dialog>
   `,
-  imports: [TranslateModule, DialogModule, DynamicFormComponent, CorrelationSetAddInstrumentTableComponent],
-  standalone: true
+  imports: [TranslateModule, DialogModule, DynamicFormComponent, CorrelationSetAddInstrumentTableComponent]
 })
 export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility state of the add instrument dialog */

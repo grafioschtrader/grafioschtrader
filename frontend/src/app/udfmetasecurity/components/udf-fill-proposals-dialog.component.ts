@@ -27,8 +27,8 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
       (onShow)="load()"
       (onHide)="closeDialog.emit()">
       <div class="proposal-actions">
-        <p-button [label]="'UDF_FILL_SUGGEST' | translate" (onClick)="suggest()"></p-button>
-        <p-button [label]="'UDF_FILL_RETRY' | translate" severity="secondary" (onClick)="retry()"></p-button>
+        <p-button [label]="'UDF_FILL_SUGGEST' | translate" (onClick)="suggest()" />
+        <p-button [label]="'UDF_FILL_RETRY' | translate" severity="secondary" (onClick)="retry()" />
       </div>
       @if (decisionText()) {
         <p class="bg-info">{{ decisionText() }}</p>
@@ -58,13 +58,13 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
           <p-button
             [label]="'UDF_FILL_ACCEPT_SELECTED' | translate"
             [disabled]="selected().size === 0"
-            (onClick)="decide(true, false)"></p-button>
-          <p-button [label]="'UDF_FILL_ACCEPT_ALL' | translate" (onClick)="decide(true, true)"></p-button>
+            (onClick)="decide(true, false)" />
+          <p-button [label]="'UDF_FILL_ACCEPT_ALL' | translate" (onClick)="decide(true, true)" />
           <p-button
             [label]="'UDF_FILL_REJECT_SELECTED' | translate"
             severity="secondary"
             [disabled]="selected().size === 0"
-            (onClick)="decide(false, false)"></p-button>
+            (onClick)="decide(false, false)" />
         </div>
       }
     </p-dialog>
@@ -90,7 +90,6 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
       }
     `
   ],
-  standalone: true,
   imports: [DialogModule, ButtonModule, TranslateModule]
 })
 export class UDFFillProposalsDialogComponent {

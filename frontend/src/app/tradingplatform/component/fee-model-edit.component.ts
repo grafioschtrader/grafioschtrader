@@ -42,7 +42,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { FieldsetModule } from '@openng/optimus-ui/fieldset';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { YamlEditorComponent, YamlFieldCompletion } from '../../algo/component/yaml-editor.component';
@@ -69,11 +69,11 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
         (onShow)="onShow($event)"
         (onHide)="onHide($event)"
         [modal]="true">
-        <ng-container *ngTemplateOutlet="feeModelContent"></ng-container>
+        <ng-container *ngTemplateOutlet="feeModelContent" />
       </p-dialog>
     } @else {
       <div style="max-height: calc(100vh - 140px); overflow-y: auto;">
-        <ng-container *ngTemplateOutlet="feeModelContent"></ng-container>
+        <ng-container *ngTemplateOutlet="feeModelContent" />
       </div>
     }
 
@@ -86,7 +86,7 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
         [value]="feeModelYamlValue()"
         (valueChange)="feeModelYamlValue.set($event)"
         [schema]="feeModelSchema()"
-        [fieldCompletions]="evalExCompletions"></yaml-editor>
+        [fieldCompletions]="evalExCompletions" />
 
       <div class="flex justify-end mt-3">
         <p-button
@@ -102,8 +102,7 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
           [config]="config"
           [formConfig]="formConfig"
           [translateService]="translateService"
-          #form="dynamicForm">
-        </dynamic-form>
+          #form="dynamicForm" />
 
         @if (testResult(); as result) {
           @if (result.estimatedCost != null) {
@@ -124,14 +123,13 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
         <fx-markup-preview
           [yaml]="feeModelYamlValue()"
           [idSecurityaccount]="securityaccount?.idSecuritycashAccount"
-          [idTradingPlatformPlan]="callParam?.idTradingPlatformPlan"></fx-markup-preview>
+          [idTradingPlatformPlan]="callParam?.idTradingPlatformPlan" />
       </p-fieldset>
     </ng-template>
   `,
-  standalone: true,
   imports: [
     DialogModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     TranslateModule,
     FieldsetModule,
     ButtonModule,

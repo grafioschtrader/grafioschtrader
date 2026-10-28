@@ -1,4 +1,4 @@
-import { Component, Injector, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import { SecurityaccountService } from '../service/securityaccount.service';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 
@@ -33,7 +33,7 @@ import { Securityaccount } from '../../entities/securityaccount';
 import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
 import { SecurityTransferCreateDialogComponent } from '../../securityaction/component/security-transfer-create-dialog.component';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { CommonModule } from '@angular/common';
+
 import { TableModule } from '@openng/optimus-ui/table';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
 import { FormsModule } from '@angular/forms';
@@ -51,9 +51,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
  */
 @Component({
   templateUrl: '../view/securityaccount.table.html',
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     TableModule,
     DatePicker,
@@ -74,7 +72,6 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   private idSecurityaccount: number;
 
   constructor(
-    private ngZone: NgZone,
     protected importTransactionHeadService: ImportTransactionHeadService,
     timeSeriesQuotesService: TimeSeriesQuotesService,
     alarmSetupService: AlarmSetupService,
@@ -221,15 +218,11 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
         const data: any = {};
         data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = JSON.stringify(sfdit);
         if (sfdit.failed) {
-          this.ngZone
-            .run(() =>
-              this.router.navigate([
-                `${BaseSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}`,
-                this.idSecurityaccount,
-                data
-              ])
-            )
-            .then();
+          this.router.navigate([
+            `${BaseSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}`,
+            this.idSecurityaccount,
+            data
+          ]);
         } else {
           // Success created transactions
           this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'CREATED_TRANS_FROM_IMPORT', {

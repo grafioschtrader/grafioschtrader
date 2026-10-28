@@ -77,20 +77,17 @@ import { TradingCalendarStockexchangeComponent } from './trading-calendar-stocke
     <ng-template #expandedContent let-stockexchange>
       <trading-calendar-stockexchange
         [stockexchange]="stockexchange"
-        [sourceCopyStockexchanges]="getCopySourceStockexchanges(stockexchange.idStockexchange)">
-      </trading-calendar-stockexchange>
+        [sourceCopyStockexchanges]="getCopySourceStockexchanges(stockexchange.idStockexchange)" />
     </ng-template>
 
     @if (visibleDialog()) {
       <stockexchange-edit
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
-        (closeDialog)="handleCloseDialog($event)">
-      </stockexchange-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [
     ConfigurableTableComponent,
     StockexchangeEditComponent,

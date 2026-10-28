@@ -23,18 +23,15 @@ import { InstrumentStatisticsSummaryComponent } from './instrument-statistics-su
           <instrument-year-performance-table
             [values]="result.annualisedPerformance.lastYears"
             class="tabletree"
-            [mainCurrency]="result.annualisedPerformance.mainCurrency">
-          </instrument-year-performance-table>
+            [mainCurrency]="result.annualisedPerformance.mainCurrency" />
           <instrument-annualised-return-table
             [values]="result.annualisedPerformance.annualisedYears"
             class="tabletree"
-            [mainCurrency]="result.annualisedPerformance.mainCurrency">
-          </instrument-annualised-return-table>
+            [mainCurrency]="result.annualisedPerformance.mainCurrency" />
           <instrument-statistics-summary
             [statisticsSummary]="result.statisticsSummary"
             class="tabletree"
-            [mainCurrency]="result.annualisedPerformance.mainCurrency">
-          </instrument-statistics-summary>
+            [mainCurrency]="result.annualisedPerformance.mainCurrency" />
         </div>
         <small>{{ 'RETURN_STATISTICAL_DATA_DIVIDENDS' | translate }}</small>
       }
@@ -56,8 +53,7 @@ import { InstrumentStatisticsSummaryComponent } from './instrument-statistics-su
     InstrumentYearPerformanceTableComponent,
     InstrumentAnnualisedReturnComponent,
     InstrumentStatisticsSummaryComponent
-  ],
-  standalone: true
+  ]
 })
 export class InstrumentStatisticsResultComponent implements OnInit {
   @Input() idSecuritycurrency: number;

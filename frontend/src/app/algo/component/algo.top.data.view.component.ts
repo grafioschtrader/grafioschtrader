@@ -44,7 +44,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
  * Shows algorithmic trading tree with its strategies.
  * Supports inline editing of the percentage column for AlgoTop, AlgoAssetclass, and AlgoSecurity nodes.
  */
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { StrategyDetailComponent } from './strategy-detail.component';
 import { AlgoAssetclassEditComponent } from './algo-assetclass-edit.component';
@@ -59,7 +59,7 @@ import {
   template: `
     <div
       class="data-container"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -91,8 +91,7 @@ import {
               [name]="iconName"
               [pTooltip]="'DISTRIBUTION_HEADER_TOOLTIP' | translate"
               tooltipPosition="top"
-              [svgStyle]="{ 'width.px': 14, 'height.px': 14 }">
-            </svg-icon>
+              [svgStyle]="{ 'width.px': 14, 'height.px': 14 }" />
           } @else {
             <span>{{ value }}</span>
           }
@@ -122,36 +121,32 @@ import {
       }
       <p>{{ 'ALGO_SIMULATION_EXCLUDED_HINT' | translate }}</p>
       @if (algoStrategyShowParamCall().algoStrategy) {
-        <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall()"> </strategy-detail>
+        <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall()" />
       }
     </div>
     @if (visibleDialogs()[AlgoDialogVisible.ALGO_ASSETCLASS]) {
       <algo-assetclass-edit
         [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_ASSETCLASS]"
         [algoCallParam]="algoCallParam()"
-        (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
-      </algo-assetclass-edit>
+        (closeDialog)="handleCloseAlgoAssetclassDialog($event)" />
     }
     @if (visibleDialogs()[AlgoDialogVisible.ALGO_SECURITY]) {
       <algo-security-edit
         [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_SECURITY]"
         [algoCallParam]="algoCallParam()"
-        (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
-      </algo-security-edit>
+        (closeDialog)="handleCloseAlgoAssetclassDialog($event)" />
     }
     @if (visibleDialogs()[AlgoDialogVisible.ALGO_ADD_INSTRUMENT]) {
       <algo-assetclass-add-instrument
         [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_ADD_INSTRUMENT]"
         [idAlgoAssetclassSecurity]="idAlgoAssetclassAddInstrument"
-        (closeDialog)="handleCloseAddInstrumentDialog($event)">
-      </algo-assetclass-add-instrument>
+        (closeDialog)="handleCloseAddInstrumentDialog($event)" />
     }
     @if (visibleDialogs()[AlgoDialogVisible.ALGO_STRATEGY]) {
       <algo-strategy-edit
         [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_STRATEGY]"
         [algoCallParam]="algoCallParam()"
-        (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
-      </algo-strategy-edit>
+        (closeDialog)="handleCloseAlgoAssetclassDialog($event)" />
     }
   `,
   styles: [
@@ -167,10 +162,8 @@ import {
       }
     `
   ],
-  standalone: true,
   imports: [
     AlgoSecurityEditComponent,
-    CommonModule,
     TranslateModule,
     ConfigurableTreeTableComponent,
     StrategyDetailComponent,

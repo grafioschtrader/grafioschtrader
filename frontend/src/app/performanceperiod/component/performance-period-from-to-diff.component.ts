@@ -32,7 +32,6 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
       }
     </div>
   `,
-  standalone: true,
   imports: [TooltipModule]
 })
 export class TenantPerformanceFromToDiffComponent extends SingleRecordConfigBase {

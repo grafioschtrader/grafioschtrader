@@ -48,7 +48,7 @@ import { BaseSettings } from '../../lib/base.settings';
 import { ChartType } from '../../shared/types/chart.type';
 import { HistoryquoteOHLC } from '../../entities/projection/historyquote.ohlc';
 import { HistoryquoteChartResponse, TotalReturnFactor } from '../../entities/projection/historyquote.chart.response';
-import { NgClass } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
 import { Select } from '@openng/optimus-ui/select';
@@ -83,7 +83,7 @@ interface Data {
     <div
       #container
       class="fullChart"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }"
@@ -102,8 +102,7 @@ interface Data {
           (onBlur)="onBlurFromDate($event)"
           (onSelect)="onBlurFromDate($event)"
           [minDate]="startDate"
-          [maxDate]="endDate">
-        </p-datepicker>
+          [maxDate]="endDate" />
         <i class="fa fa-undo fa-border fa-lg" (click)="onResetOldestDate($event)"></i>
         <button type="button" (click)="fiveDays($event)">5{{ 'D' | translate }}</button>
         <button type="button" (click)="oneMonth($event)">1M</button>
@@ -149,34 +148,30 @@ interface Data {
         <p-select
           [options]="currenciesOptions"
           [(ngModel)]="requestedCurrency"
-          (onChange)="handleChangeCurrency($event)">
-        </p-select>
+          (onChange)="handleChangeCurrency($event)" />
 
         @if (this.loadedData.length === 1 && ohlcAvailable) {
           <label>{{ 'CHART_TYPE' | translate }}</label>
           <p-select
             [options]="chartTypeOptions"
             [(ngModel)]="selectedChartType"
-            (onChange)="handleChangeChartType($event)">
-          </p-select>
+            (onChange)="handleChangeChartType($event)" />
         }
       </div>
       <div #chart class="plot-container"></div>
-      <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container"></p-contextMenu>
+      <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container" />
     </div>
     @if (visibleTaDialog()) {
       <indicator-edit
         [visibleDialog]="visibleTaDialog()"
         [taEditParam]="taEditParam"
-        (closeDialog)="handleCloseTaDialog($event)">
-      </indicator-edit>
+        (closeDialog)="handleCloseTaDialog($event)" />
     }
   `,
   styles: [
     'button { border: 0; margin-left: 3px} .input-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }'
   ],
-  standalone: true,
-  imports: [NgClass, FormsModule, DatePicker, Select, ContextMenu, TranslatePipe, IndicatorEditComponent]
+  imports: [FormsModule, DatePicker, Select, ContextMenu, TranslatePipe, IndicatorEditComponent]
 })
 export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('container', { static: true }) container: ElementRef;

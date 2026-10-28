@@ -13,12 +13,12 @@ import {
   ViewChild,
   inject
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -40,12 +40,12 @@ import { buildCorrelationFigure, CorrelationChartType } from './correlation-char
     <div
       class="data-container correlation-chart"
       (click)="onComponentClick($event)"
-      [ngClass]="{ 'active-border': isActivated(), 'passiv-border': !isActivated() }">
+      [class]="{ 'active-border': isActivated(), 'passiv-border': !isActivated() }">
       <dynamic-form
         [config]="config"
         [formConfig]="formConfig"
         [translateService]="translateService"
-        #form="dynamicForm"></dynamic-form>
+        #form="dynamicForm" />
       @if (chartInput()?.includeDividends || chartInput()?.adjustCurrency) {
         <div class="chart-adjustments">
           @if (chartInput()?.includeDividends) {
@@ -84,8 +84,7 @@ import { buildCorrelationFigure, CorrelationChartType } from './correlation-char
       }
     `
   ],
-  standalone: true,
-  imports: [CommonModule, TranslateModule, DynamicFormModule]
+  imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class CorrelationChartComponent extends FormBase implements OnInit, AfterViewInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;

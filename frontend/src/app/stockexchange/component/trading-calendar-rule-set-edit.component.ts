@@ -10,7 +10,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { AppSettings } from '../../shared/app.settings';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -43,8 +43,7 @@ import { TradingCalendarRuleSetPreviewComponent } from './trading-calendar-rule-
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
 
     <yaml-editor
       #yamlEditor
@@ -55,7 +54,7 @@ import { TradingCalendarRuleSetPreviewComponent } from './trading-calendar-rule-
       [value]="ruleYamlValue()"
       (valueChange)="ruleYamlValue.set($event)"
       [schema]="ruleSchema()"
-      [fieldCompletions]="ruleCompletions"></yaml-editor>
+      [fieldCompletions]="ruleCompletions" />
 
     @if (idTradingCalendarRuleSet) {
       <p-fieldset
@@ -76,15 +75,14 @@ import { TradingCalendarRuleSetPreviewComponent } from './trading-calendar-rule-
         @if (previewError()) {
           <div class="text-red-600">{{ previewError() }}</div>
         } @else {
-          <trading-calendar-rule-set-preview [closures]="previewClosures()"> </trading-calendar-rule-set-preview>
+          <trading-calendar-rule-set-preview [closures]="previewClosures()" />
         }
       </p-fieldset>
     }
   </p-dialog>`,
-  standalone: true,
   imports: [
     DialogModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     TranslateModule,
     FieldsetModule,
     ButtonModule,

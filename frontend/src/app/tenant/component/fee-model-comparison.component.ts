@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppSettings } from '../../shared/app.settings';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { FeeModelComparisonResponse } from '../../entities/fee.model.comparison';
@@ -20,7 +20,7 @@ import { Portfolio } from '../../entities/portfolio';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FieldFormGroup } from '../../lib/dynamic-form/models/form.group.definition';
@@ -49,7 +49,7 @@ import { TenantService } from '../service/tenant.service';
     <div
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -57,8 +57,7 @@ import { TenantService } from '../service/tenant.service';
         [config]="config"
         [formConfig]="formConfig"
         [translateService]="translateService"
-        #form="dynamicForm">
-      </dynamic-form>
+        #form="dynamicForm" />
       @if (comparisonResponse() && comparisonResponse().totalTransactions > 0) {
         <div class="fcontainer">
           <fieldset class="out-border fbox">
@@ -89,23 +88,16 @@ import { TenantService } from '../service/tenant.service';
           </fieldset>
         </div>
       }
-      <fee-model-comparison-table [details]="details()"></fee-model-comparison-table>
+      <fee-model-comparison-table [details]="details()" />
       <h3>{{ 'FX_OBSERVATION_ACCOUNT' | translate }}</h3>
       <p>{{ 'FX_OBSERVATION_LIMITATION' | translate }}</p>
-      <fx-observation-table [groups]="accountFxGroups()"></fx-observation-table>
+      <fx-observation-table [groups]="accountFxGroups()" />
       <h3>{{ 'FX_OBSERVATION_TRANSFERS' | translate }}</h3>
       <p>{{ 'FX_OBSERVATION_TRANSFER_LIMITATION' | translate }}</p>
-      <fx-observation-table [groups]="transferFxGroups()"></fx-observation-table>
+      <fx-observation-table [groups]="transferFxGroups()" />
     </div>
   `,
-  standalone: true,
-  imports: [
-    CommonModule,
-    TranslateModule,
-    DynamicFormModule,
-    FeeModelComparisonTableComponent,
-    FxObservationTableComponent
-  ]
+  imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, FeeModelComparisonTableComponent, FxObservationTableComponent]
 })
 export class FeeModelComparisonComponent extends ShowRecordConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
   @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;

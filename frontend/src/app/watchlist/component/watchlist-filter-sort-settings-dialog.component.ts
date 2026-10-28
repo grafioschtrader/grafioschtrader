@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SelectItem } from '@openng/optimus-ui/api';
@@ -29,8 +29,7 @@ export interface WatchlistFilterSortSettingsData {
  */
 @Component({
   selector: 'watchlist-filter-sort-settings-dialog',
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, SelectModule, ButtonModule],
+  imports: [FormsModule, TranslateModule, SelectModule, ButtonModule],
   template: `
     <div class="settings-section">
       <label for="filterScope">{{ 'FILTER_SCOPE' | translate }}</label>
@@ -39,7 +38,7 @@ export interface WatchlistFilterSortSettingsData {
         [options]="scopeOptions"
         [ngModel]="filterScope"
         (onChange)="changeFilterScope($event.value)"
-        appendTo="body"></p-select>
+        appendTo="body" />
     </div>
 
     <div class="settings-section">
@@ -49,7 +48,7 @@ export interface WatchlistFilterSortSettingsData {
         [options]="scopeOptions"
         [ngModel]="sortScope"
         (onChange)="changeSortScope($event.value)"
-        appendTo="body"></p-select>
+        appendTo="body" />
     </div>
 
     <h5>{{ 'ACTIVE_FILTERS' | translate }}</h5>
@@ -68,11 +67,8 @@ export interface WatchlistFilterSortSettingsData {
       }
     }
     <div class="entry-buttons">
-      <p-button [label]="'CLEAR_FILTER_WATCHLIST' | translate" severity="secondary" (click)="clearFilters()"></p-button>
-      <p-button
-        [label]="'CLEAR_FILTER_ALL_WATCHLISTS' | translate"
-        severity="secondary"
-        (click)="clearAllFilters()"></p-button>
+      <p-button [label]="'CLEAR_FILTER_WATCHLIST' | translate" severity="secondary" (click)="clearFilters()" />
+      <p-button [label]="'CLEAR_FILTER_ALL_WATCHLISTS' | translate" severity="secondary" (click)="clearAllFilters()" />
     </div>
 
     <h5>{{ 'ACTIVE_SORTING' | translate }}</h5>
@@ -91,11 +87,8 @@ export interface WatchlistFilterSortSettingsData {
       }
     }
     <div class="entry-buttons">
-      <p-button [label]="'CLEAR_SORT_WATCHLIST' | translate" severity="secondary" (click)="clearSorts()"></p-button>
-      <p-button
-        [label]="'CLEAR_SORT_ALL_WATCHLISTS' | translate"
-        severity="secondary"
-        (click)="clearAllSorts()"></p-button>
+      <p-button [label]="'CLEAR_SORT_WATCHLIST' | translate" severity="secondary" (click)="clearSorts()" />
+      <p-button [label]="'CLEAR_SORT_ALL_WATCHLISTS' | translate" severity="secondary" (click)="clearAllSorts()" />
     </div>
   `,
   styles: [

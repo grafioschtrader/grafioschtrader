@@ -13,7 +13,7 @@ import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { Watchlist } from '../../entities/watchlist';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { HelpIds } from '../../lib/help/help.ids';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Angular component for creating or modifying watchlists in a dynamic dialog.
@@ -31,11 +31,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   `,
-  standalone: true,
-  imports: [TranslateModule, DynamicFormModule]
+  imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchlist> implements OnInit {
   /**

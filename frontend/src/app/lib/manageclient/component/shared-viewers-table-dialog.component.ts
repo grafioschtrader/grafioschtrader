@@ -1,5 +1,5 @@
 import { Component, Injector, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { TableModule } from '@openng/optimus-ui/table';
@@ -37,7 +37,7 @@ import { SharedViewerInfo } from '../model/shared-viewer-info';
             @for (field of fields; track field) {
               <th [pSortableColumn]="field.field">
                 {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
+                <p-sortIcon [field]="field.field" />
               </th>
             }
             <th style="width: 6rem"></th>
@@ -63,8 +63,7 @@ import { SharedViewerInfo } from '../model/shared-viewer-info';
       </p-table>
     </div>
   `,
-  standalone: true,
-  imports: [CommonModule, TranslateModule, TableModule, ButtonModule, TooltipModule]
+  imports: [TranslateModule, TableModule, ButtonModule, TooltipModule]
 })
 export class SharedViewersTableDialogComponent extends TableConfigBase implements OnInit {
   readonly sharedViewers = signal<SharedViewerInfo[]>([]);

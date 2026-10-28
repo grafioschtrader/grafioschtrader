@@ -3,8 +3,7 @@ import { UntypedFormControl, NG_VALIDATORS, Validator } from '@angular/forms';
 
 @Directive({
   selector: '[requiredFile]',
-  providers: [{ provide: NG_VALIDATORS, useExisting: FileRequiredValidator, multi: true }],
-  standalone: true
+  providers: [{ provide: NG_VALIDATORS, useExisting: FileRequiredValidator, multi: true }]
 })
 export class FileRequiredValidator implements Validator {
   static validate(c: UntypedFormControl): { [key: string]: any } {

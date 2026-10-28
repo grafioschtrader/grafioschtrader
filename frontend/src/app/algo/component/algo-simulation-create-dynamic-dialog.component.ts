@@ -30,7 +30,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Dialog for creating a simulation tenant from an AlgoTop strategy.
@@ -59,8 +59,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
     @if (preview()) {
       <p>{{ 'SIMULATION_PREVIEW_HELP' | translate }}</p>
       @for (error of preview().errors; track error) {
@@ -97,8 +96,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       }
     }
   `,
-  standalone: true,
-  imports: [DynamicFormModule, TranslateModule, FormsModule]
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, FormsModule]
 })
 export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEditBase<Tenant> implements OnInit {
   private readonly pendingReads = new Map<string, Subscription>();

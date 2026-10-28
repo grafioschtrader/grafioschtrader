@@ -7,7 +7,7 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { WatchlistService } from '../service/watchlist.service';
 import { Watchlist } from '../../entities/watchlist';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from '@openng/optimus-ui/table';
@@ -21,8 +21,7 @@ import { ButtonModule } from '@openng/optimus-ui/button';
 @Component({
   selector: 'add-instrument-table',
   templateUrl: '../view/add.instrument.table.html',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
+  imports: [TranslateModule, FormsModule, TableModule, ButtonModule]
 })
 export class WatchlistAddInstrumentTableComponent extends AddInstrumentTable<Watchlist> {
   /**

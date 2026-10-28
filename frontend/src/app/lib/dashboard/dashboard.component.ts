@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, Inject, NgZone, OnDestroy, OnInit, Type, signal } from '@angular/core';
+import { Component, ElementRef, Inject, NgZone, OnDestroy, OnInit, Type, signal } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -39,7 +39,10 @@ import { ProcessedAction } from '../types/processed.action';
 /** Personal layout draft and independent card loading, hosted inside either application's split pane. */
 @Component({
   selector: 'dashboard',
-  standalone: true,
+  host: {
+    '(document:keydown.escape)': 'onEscape()',
+    '(window:beforeunload)': 'beforeUnload($event)'
+  },
   imports: [
     TranslateModule,
     FormsModule,
@@ -450,7 +453,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     this.host.nativeElement.style.removeProperty('--dashboard-max-height');
   }
   /** Esc restores a maximized card, unless the settings dialog is open and Esc belongs to it. */
-  @HostListener('document:keydown.escape') onEscape(): void {
+  onEscape(): void {
     if (!this.configuring) this.restore();
   }
   private followPane(): void {
@@ -485,7 +488,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   canLeave(): boolean {
     return !this.saving && (!this.dirty || window.confirm(this.translateService.instant('DASHBOARD_DISCARD')));
   }
-  @HostListener('window:beforeunload', ['$event']) beforeUnload(event: BeforeUnloadEvent): void {
+  beforeUnload(event: BeforeUnloadEvent): void {
     if (this.dirty || this.saving) {
       event.preventDefault();
       event.returnValue = '';

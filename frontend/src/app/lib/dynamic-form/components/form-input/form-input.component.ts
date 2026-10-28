@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { FilterOutPipe } from '../../pipe/FilterOutPipe';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule } from '@angular/forms';
 import { KeyFilterModule } from '@openng/optimus-ui/keyfilter';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -22,13 +22,12 @@ import { UpperCaseDirective } from './upper-case.directive';
     <ng-container [formGroup]="group">
       <input
         #input
-        [ngStyle]="{ width: config.inputWidth + 'em' }"
+        [style.width]="config.inputWidth + 'em'"
         [class.required-input]="isRequired && !config.readonly"
-        [ngClass]="{
-          'form-control-fluid input-sm': config.fieldSuffix,
-          'form-control input-sm': !config.fieldSuffix,
-          'text-end': config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger
-        }"
+        class="input-sm"
+        [class.form-control-fluid]="config.fieldSuffix"
+        [class.form-control]="!config.fieldSuffix"
+        [class.text-end]="config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger"
         [type]="
           config.dataType === DataType.TimeString
             ? 'time'
@@ -60,15 +59,6 @@ import { UpperCaseDirective } from './upper-case.directive';
       {{ config.fieldSuffix | translate }}
     </ng-container>
   `,
-  imports: [
-    TranslateModule,
-    FilterOutPipe,
-    CommonModule,
-    ReactiveFormsModule,
-    KeyFilterModule,
-    TooltipModule,
-    UpperCaseDirective
-  ],
-  standalone: true
+  imports: [TranslateModule, FilterOutPipe, ReactiveFormsModule, KeyFilterModule, TooltipModule, UpperCaseDirective]
 })
 export class FormInputComponent extends BaseInputComponent {}

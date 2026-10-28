@@ -7,7 +7,7 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormDefinitionHelper } from '../../shared/edit/form.definition.helper';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 @Component({
   selector: 'transaction-cashaccount-connect-debit-credit',
@@ -24,12 +24,10 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [TranslateModule, DialogModule, DynamicFormModule]
+  imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class TransactionCashaccountConnectDebitCreditDialogComponent extends SimpleEditBase implements OnInit {
   @Input() transactionCallParam: TransactionCallParam;

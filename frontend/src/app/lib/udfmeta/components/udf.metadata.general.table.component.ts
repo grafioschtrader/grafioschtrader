@@ -15,7 +15,7 @@ import { TranslateValue } from '../../datashowbase/column.config';
 import { GlobalSessionNames } from '../../global.session.names';
 import { UDFSpecialTypeDisableUserService } from '../service/udf.special.type.disable.user.service';
 import { BaseSettings } from '../../base.settings';
-import { CommonModule } from '@angular/common';
+
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.component';
@@ -34,7 +34,7 @@ import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.com
       class="data-container-full"
       (click)="onComponentClick($event)"
       #cmDiv
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -61,7 +61,7 @@ import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.com
         <h4 caption>{{ entityNameUpper | translate }}</h4>
 
         <ng-template #iconCell let-row let-field="field" let-value="value">
-          <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
+          <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }" />
         </ng-template>
       </configurable-table>
     </div>
@@ -69,19 +69,11 @@ import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.com
       <udf-metadata-general-edit
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
-        (closeDialog)="handleCloseDialog($event)">
-      </udf-metadata-general-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
-  imports: [
-    CommonModule,
-    TranslateModule,
-    AngularSvgIconModule,
-    ConfigurableTableComponent,
-    UDFMetadataGeneralEditComponent
-  ]
+  imports: [TranslateModule, AngularSvgIconModule, ConfigurableTableComponent, UDFMetadataGeneralEditComponent]
 })
 export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGeneral> {
   /** Parameters for metadata editing operations including validation exclusions */

@@ -53,20 +53,17 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
       <trading-platform-plan-edit
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
-        (closeDialog)="handleCloseDialog($event)">
-      </trading-platform-plan-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
 
     @if (visibleFeeModelDialog()) {
       <fee-model-edit
         [visibleDialog]="visibleFeeModelDialog()"
         [callParam]="feeModelCallParam"
-        (closeDialog)="handleCloseFeeModelDialog($event)">
-      </fee-model-edit>
+        (closeDialog)="handleCloseFeeModelDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [TranslateModule, ConfigurableTableComponent, TradingPlatformPlanEditComponent, FeeModelEditComponent]
 })
 export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<TradingPlatformPlan> {

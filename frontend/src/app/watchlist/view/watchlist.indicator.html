@@ -69,7 +69,7 @@
         [pTooltip]="row.securitycurrency.idSecuritycurrency"
         (dragstart)="dragStart($event, row)"
         (dragend)="dragEnd($event, row)">
-        <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }"> </svg-icon>
+        <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }" />
       </span>
     </ng-template>
 
@@ -81,8 +81,7 @@
         [name]="iconName"
         [pTooltip]="'DISTRIBUTION_HEADER_TOOLTIP' | translate"
         tooltipPosition="top"
-        [svgStyle]="{ 'width.px':14, 'height.px':14 }">
-      </svg-icon>
+        [svgStyle]="{ 'width.px':14, 'height.px':14 }" />
       }
     </ng-template>
   </configurable-table>
@@ -93,49 +92,41 @@
 <transaction-security-edit
   (closeDialog)="handleCloseTransactionDialog($event)"
   [transactionCallParam]="transactionCallParam"
-  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()">
-</transaction-security-edit>
+  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog()" />
 } @if (visibleAddInstrumentDialog()) {
 <watchlist-add-instrument
   (closeDialog)="handleCloseAddInstrumentDialog($event)"
   [idWatchlist]="idWatchlist"
   [tenantLimits]="tenantLimits()"
-  [visibleAddInstrumentDialog]="visibleAddInstrumentDialog()">
-</watchlist-add-instrument>
+  [visibleAddInstrumentDialog]="visibleAddInstrumentDialog()" />
 } @if (visibleEditCurrencypairDialog()) {
 <currencypair-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-  [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog()">
-</currencypair-edit>
+  [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog()" />
 } @if (visibleEditSecurityDialog()) {
 <security-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-  [visibleEditSecurityDialog]="visibleEditSecurityDialog()">
-</security-edit>
+  [visibleEditSecurityDialog]="visibleEditSecurityDialog()" />
 } @if (visibleEditSecurityDerivedDialog()) {
 <security-derived-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [securityCallParam]="securityCallParam"
-  [visibleDialog]="visibleEditSecurityDerivedDialog()">
-</security-derived-edit>
+  [visibleDialog]="visibleEditSecurityDerivedDialog()" />
 } @if (visibleUDFSecurityDialog()) {
 <udf-security-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [uDFGeneralCallParam]="uDFGeneralCallParam"
-  [visibleDialog]="visibleUDFSecurityDialog()">
-</udf-security-edit>
+  [visibleDialog]="visibleUDFSecurityDialog()" />
 } @if (alarmSetupService.visibleDialog) {
 <algo-strategy-edit
   [visibleDialog]="alarmSetupService.visibleDialog"
   [algoCallParam]="alarmSetupService.algoCallParam"
-  (closeDialog)="alarmSetupService.handleCloseDialog($event)">
-</algo-strategy-edit>
+  (closeDialog)="alarmSetupService.handleCloseDialog($event)" />
 } @if (visibleUDFGeneralDialog()) {
 <udf-general-edit
   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
   [uDFGeneralCallParam]="uDFGeneralCallParam"
-  [visibleDialog]="visibleUDFGeneralDialog()">
-</udf-general-edit>
+  [visibleDialog]="visibleUDFGeneralDialog()" />
 }

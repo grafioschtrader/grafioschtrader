@@ -28,7 +28,7 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { MenuItem } from '@openng/optimus-ui/api';
 
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -54,9 +54,7 @@ import { SecuritycurrencyIndicatorGroup, WatchlistIndicatorColumn } from '../mod
     `
   ],
   providers: [DialogService],
-  standalone: true,
   imports: [
-    CommonModule,
     ButtonModule,
     TranslateModule,
     ConfigurableTableComponent,
@@ -69,7 +67,8 @@ import { SecuritycurrencyIndicatorGroup, WatchlistIndicatorColumn } from '../mod
     SecurityUDFEditComponent,
     AlgoStrategyEditComponent,
     TransactionSecurityEditComponent,
-    UDFGeneralEditComponent
+    UDFGeneralEditComponent,
+    DatePipe
   ]
 })
 /** Daily-series indicator table; column identity and types are supplied by the backend. */

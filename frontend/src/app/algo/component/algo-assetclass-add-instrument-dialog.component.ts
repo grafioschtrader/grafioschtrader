@@ -31,14 +31,12 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
         [formConfig]="formConfig"
         [translateService]="translateService"
         #dynamicFormComponent="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
       <br />
-      <algo-assetclass-add-instrument-table [tenantLimits]="[]"> </algo-assetclass-add-instrument-table>
+      <algo-assetclass-add-instrument-table [tenantLimits]="[]" />
     </p-dialog>
   `,
-  imports: [TranslateModule, DialogModule, DynamicFormComponent, AlgoAssetclassAddInstrumentTableComponent],
-  standalone: true
+  imports: [TranslateModule, DialogModule, DynamicFormComponent, AlgoAssetclassAddInstrumentTableComponent]
 })
 export class AlgoAssetclassAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility of the dialog. */

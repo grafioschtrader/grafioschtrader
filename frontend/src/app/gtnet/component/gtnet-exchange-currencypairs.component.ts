@@ -1,6 +1,6 @@
 import { Component, Injector, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
@@ -38,9 +38,7 @@ import { Helper } from '../../lib/helper/helper';
  */
 @Component({
   selector: 'gtnet-exchange-currencypairs',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslateModule,
     TableModule,
@@ -86,8 +84,7 @@ import { Helper } from '../../lib/helper/helper';
       <div caption class="caption-toolbar">
         <h4 class="caption-title">{{ getTitleKey() | translate }}</h4>
         <div class="caption-row">
-          <gtnet-exchange-checkboxes [disabled]="!isUserAllowedToMultiSelect()" (toggle)="onCheckboxToggle($event)">
-          </gtnet-exchange-checkboxes>
+          <gtnet-exchange-checkboxes [disabled]="!isUserAllowedToMultiSelect()" (toggle)="onCheckboxToggle($event)" />
         </div>
         <div class="caption-actions">
           <span class="p-input-icon-left caption-search">
@@ -110,7 +107,7 @@ import { Helper } from '../../lib/helper/helper';
             [(ngModel)]="row[field.field]"
             [binary]="true"
             (onChange)="onCheckboxChange(row)"
-            [disabled]="isCheckboxDisabled(row, field.field)"></p-checkbox>
+            [disabled]="isCheckboxDisabled(row, field.field)" />
         } @else {
           <span [pTooltip]="getValueByPath(row, field)" tooltipPosition="top">
             {{ getValueByPath(row, field) }}
@@ -119,8 +116,7 @@ import { Helper } from '../../lib/helper/helper';
       </ng-template>
 
       <ng-template #expandedRow let-row>
-        <gtnet-supplier-detail-table [idSecuritycurrency]="row.idSecuritycurrency" [dtype]="'C'">
-        </gtnet-supplier-detail-table>
+        <gtnet-supplier-detail-table [idSecuritycurrency]="row.idSecuritycurrency" [dtype]="'C'" />
       </ng-template>
     </configurable-table>
 
@@ -128,8 +124,7 @@ import { Helper } from '../../lib/helper/helper';
       <currencypair-edit
         (closeDialog)="handleCloseEditCurrencypairDialog($event)"
         [securityCurrencypairCallParam]="currencypairCallParam"
-        [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog()">
-      </currencypair-edit>
+        [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog()" />
     }
   `,
   styles: [

@@ -25,7 +25,7 @@ import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { AlgoTop } from '../model/algo.top';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Dialog for define a strategy. Asset class can be added dynamically.
@@ -37,11 +37,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   `,
-  standalone: true,
-  imports: [DynamicFormModule, TranslateModule]
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class AlgoRuleStrategyCreateDynamicDialogComponent
   extends SimpleDynamicEditBase<AlgoTop>

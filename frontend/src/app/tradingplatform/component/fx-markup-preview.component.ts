@@ -16,7 +16,7 @@ import { FxQuote } from '../../entities/fx.markup';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FieldFormGroup } from '../../lib/dynamic-form/models/form.group.definition';
@@ -33,10 +33,9 @@ import { TradingPlatformPlanService } from '../service/trading.platform.plan.ser
 /** Independent FX test form: evaluates the current unsaved document and displays tariff coverage explicitly. */
 @Component({
   selector: 'fx-markup-preview',
-  standalone: true,
-  imports: [DynamicFormModule, TranslateModule],
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule],
   template: `
-    <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"></dynamic-form>
+    <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" />
     @if (result(); as quote) {
       <div aria-live="polite">
         <div>{{ 'FX_OUTCOME_' + quote.outcome | translate }}</div>

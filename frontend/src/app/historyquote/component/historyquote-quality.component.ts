@@ -31,7 +31,6 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
       }
     </div>
   `,
-  standalone: true,
   imports: [TooltipModule]
 })
 export class HistoryquoteQualityComponent extends SingleRecordConfigBase implements OnInit {

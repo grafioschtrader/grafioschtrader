@@ -1,6 +1,6 @@
 import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output, signal, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
 import { DataType } from '../../dynamic-form/models/data.type';
@@ -46,9 +46,7 @@ import { FilterType } from '../../datashowbase/filter.type';
  */
 @Component({
   selector: 'gtnet-message-treetable',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TreeTableModule,
     ContextMenuModule,
@@ -66,7 +64,7 @@ import { FilterType } from '../../datashowbase/filter.type';
       #cmDiv
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -89,8 +87,7 @@ import { FilterType } from '../../datashowbase/filter.type';
                       [binary]="true"
                       [ngModel]="areAllDeletableSelected()"
                       (onChange)="onSelectAllChange($event)"
-                      [pTooltip]="'SELECT_DESELECT_ALL' | translate">
-                    </p-checkbox>
+                      [pTooltip]="'SELECT_DESELECT_ALL' | translate" />
                   }
                 </th>
               }
@@ -114,8 +111,7 @@ import { FilterType } from '../../datashowbase/filter.type';
                             [ngModel]="null"
                             [dateFormat]="baseLocale.dateFormat"
                             (onSelect)="filterDate($event, field, tt)"
-                            appendTo="body">
-                          </p-datepicker>
+                            appendTo="body" />
                         } @else if (field.dataType === DataType.String) {
                           <input
                             pInputText
@@ -134,8 +130,7 @@ import { FilterType } from '../../datashowbase/filter.type';
                           [showClear]="true"
                           [filter]="$safeNavigationMigration(field.filterValues?.length) > 10"
                           (onChange)="tt.filter($event.value?.length ? $event.value : null, field.field, 'in')"
-                          (onClear)="tt.filter(null, field.field, 'in')">
-                        </p-multiSelect>
+                          (onClear)="tt.filter(null, field.field, 'in')" />
                       }
                     }
                   </th>
@@ -151,22 +146,21 @@ import { FilterType } from '../../datashowbase/filter.type';
                     <p-checkbox
                       [binary]="true"
                       [ngModel]="selectedDeletableIds().has(rowData.idGtNetMessage)"
-                      (onChange)="onDeleteCheckChange($event, rowData)">
-                    </p-checkbox>
+                      (onChange)="onDeleteCheckChange($event, rowData)" />
                   }
                 </td>
               }
               @for (field of fields; track field; let i = $index) {
                 @if (field.visible) {
                   <td
-                    [ngClass]="
+                    [class]="
                       field.dataType === DataType.Numeric || field.dataType === DataType.DateTimeNumeric
                         ? 'text-end'
                         : ''
                     "
                     [style.width.px]="field.width">
                     @if (i === 0) {
-                      <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                      <p-treeTableToggler [rowNode]="rowNode" />
                     }
                     @switch (field.templateName) {
                       @case ('greenRed') {
@@ -180,14 +174,13 @@ import { FilterType } from '../../datashowbase/filter.type';
                       @case ('icon') {
                         <svg-icon
                           [name]="getValueByPath(rowData, field)"
-                          [svgStyle]="{ 'width.px': 16, 'height.px': 16 }"></svg-icon>
+                          [svgStyle]="{ 'width.px': 16, 'height.px': 16 }" />
                       }
                       @case ('check') {
                         <span
                           ><i
-                            [ngClass]="{
-                              'fa fa-check': getValueByPath(rowData, field)
-                            }"
+                            [class.fa]="getValueByPath(rowData, field)"
+                            [class.fa-check]="getValueByPath(rowData, field)"
                             aria-hidden="true"></i
                         ></span>
                       }
@@ -201,15 +194,14 @@ import { FilterType } from '../../datashowbase/filter.type';
             </tr>
           </ng-template>
         </p-treeTable>
-        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems()" appendTo="body"> </p-contextMenu>
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems()" appendTo="body" />
       </div>
     </div>
     @if (visibleDialogMsg()) {
       <gtnet-message-edit
         [visibleDialog]="visibleDialogMsg()"
         [msgCallParam]="msgCallParam"
-        (closeDialog)="handleCloseDialogMsg($event)">
-      </gtnet-message-edit>
+        (closeDialog)="handleCloseDialogMsg($event)" />
     }
   `
 })

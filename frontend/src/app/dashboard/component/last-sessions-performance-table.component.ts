@@ -25,7 +25,6 @@ import { LastSessionsRow } from '../model/last.sessions.performance';
  */
 @Component({
   selector: 'last-sessions-performance-table',
-  standalone: true,
   imports: [ConfigurableTableComponent],
   template: `
     <configurable-table

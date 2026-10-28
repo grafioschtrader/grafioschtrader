@@ -20,7 +20,6 @@ import { Helper } from '../../lib/helper/helper';
  */
 @Component({
   selector: 'security-lookup-base-data-table',
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, FormsModule, CheckboxModule, TooltipModule],
   template: `
     <configurable-table
@@ -47,7 +46,7 @@ import { Helper } from '../../lib/helper/helper';
               [ngModel]="row === nameCandidate"
               [binary]="true"
               [readonly]="row === nameCandidate"
-              (onChange)="onNameCandidateChange(row)"></p-checkbox>
+              (onChange)="onNameCandidateChange(row)" />
           </span>
         } @else if (field.templateName === 'check') {
           <span><i [class.fa]="getValueByPath(row, field)" [class.fa-check]="getValueByPath(row, field)"></i></span>

@@ -24,10 +24,9 @@ import { AppSettings } from '../../shared/app.settings';
           }
         </p-tablist>
       </p-tabs>
-      <router-outlet></router-outlet>
+      <router-outlet />
     </div>
   `,
-  standalone: true,
   imports: [TranslateModule, RouterModule, Tabs, TabList, Tab]
 })
 export class SimulationRunTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {

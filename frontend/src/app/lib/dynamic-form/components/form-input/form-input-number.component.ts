@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 import { ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { InputNumberModule } from '@openng/optimus-ui/inputnumber';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
@@ -48,7 +48,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
       <p-inputNumber
         [inputStyleClass]="'text-end ' + (isRequired && !config.readonly ? 'required-input' : '')"
         [readonly]="config.readonly"
-        [ngStyle]="{ width: config.inputWidth + 'em' }"
+        [style.width]="config.inputWidth + 'em'"
         [class.negativ-number]="currentValue < 0"
         pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}"
         #input
@@ -64,12 +64,10 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
         [prefix]="inputPrefix"
         [currency]="inputCurrency"
         [mode]="inputMode"
-        currencyDisplay="code">
-      </p-inputNumber>
+        currencyDisplay="code" />
     </ng-container>
   `,
-  imports: [ReactiveFormsModule, CommonModule, InputNumberModule, TooltipModule, TranslateModule, FilterOutPipe],
-  standalone: true
+  imports: [ReactiveFormsModule, InputNumberModule, TooltipModule, TranslateModule, FilterOutPipe]
 })
 export class FormInputNumberComponent extends BaseInputComponent {
   /**

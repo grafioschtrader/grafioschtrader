@@ -21,7 +21,6 @@ import { TenantAIProviderEditComponent } from './tenant-ai-provider-edit.compone
 
 @Component({
   selector: 'tenant-ai-provider-table',
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule, ButtonModule, MessageModule, TenantAIProviderEditComponent],
   template: `
     <p>{{ 'AI_PROVIDERS_HELP' | translate }}</p>

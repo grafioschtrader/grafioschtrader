@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { libHelpers } from './helpers';
+import { assertUnhandledErrorsReachAngular } from './bootstrap.assertions';
+
+test('unhandled browser errors reach Angular ErrorHandler', async ({ page }) => {
+  await assertUnhandledErrorsReachAngular(page);
+});
 
 test('mail composer renders its fields before recipient options arrive', async ({ page }) => {
   await libHelpers.loginAsFixtureUser(page, 'admin');

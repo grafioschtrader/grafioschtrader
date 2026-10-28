@@ -1,6 +1,6 @@
 import { DestroyRef, inject, signal, Component, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
@@ -49,8 +49,7 @@ interface HierarchyAlertRow {
         [valueGetterFn]="valueGetter"
         [rowClassFn]="getRowClassCallback"
         [cellClassFn]="getCellClassCallback"
-        [enableSort]="false">
-      </configurable-tree-table>
+        [enableSort]="false" />
     }
   `,
   styles: [
@@ -60,8 +59,7 @@ interface HierarchyAlertRow {
       }
     `
   ],
-  standalone: true,
-  imports: [CommonModule, TranslateModule, ConfigurableTreeTableComponent]
+  imports: [TranslateModule, ConfigurableTreeTableComponent]
 })
 export class AlgoHierarchyAlertOverviewComponent extends TreeTableConfigBase implements OnInit {
   readonly getRowClassCallback = (rowNode: any, rowData: HierarchyAlertRow) => this.getRowClass(rowNode, rowData);

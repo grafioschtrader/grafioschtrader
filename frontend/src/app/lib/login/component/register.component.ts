@@ -18,7 +18,7 @@ import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper
 import { HelpIds } from '../../help/help.ids';
 import { BaseSettings } from '../../base.settings';
 
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { ApplicationInfoComponent } from './application-info.component';
 
@@ -35,7 +35,7 @@ import { ApplicationInfoComponent } from './application-info.component';
           </div>
         }
 
-        <application-info [applicationInfo]="applicationInfo()"></application-info>
+        <application-info [applicationInfo]="applicationInfo()" />
 
         @if (applicationInfo()) {
           <h2>{{ 'REGISTRATION' | translate }}</h2>
@@ -44,13 +44,12 @@ import { ApplicationInfoComponent } from './application-info.component';
             [formConfig]="formConfig"
             [translateService]="translateService"
             #form="dynamicForm"
-            (submitBt)="submit($event)">
-          </dynamic-form>
+            (submitBt)="submit($event)" />
 
           @if (progressValue()) {
             <div>
               <h4>{{ 'REGISTER_WAIT' | translate }}</h4>
-              <p-progressBar [value]="progressValue()"></p-progressBar>
+              <p-progressBar [value]="progressValue()" />
             </div>
           }
 
@@ -63,8 +62,7 @@ import { ApplicationInfoComponent } from './application-info.component';
       </div>
     </div>
   `,
-  standalone: true,
-  imports: [DynamicFormModule, TranslateModule, ProgressBarModule, ApplicationInfoComponent]
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, ProgressBarModule, ApplicationInfoComponent]
 })
 export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {
   readonly progressValue = signal<number>(undefined);

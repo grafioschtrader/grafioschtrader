@@ -32,11 +32,9 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  imports: [TranslateModule, DialogModule, DynamicFormComponent],
-  standalone: true
+  imports: [TranslateModule, DialogModule, DynamicFormComponent]
 })
 export class CorrelationSetEditComponent extends SimpleEntityEditBase<CorrelationSet> implements OnInit {
   /** Dialog configuration parameters containing entity data and operation context */

@@ -25,10 +25,8 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   </p-dialog>`,
-  standalone: true,
   imports: [Dialog, DynamicFormComponent, TranslatePipe]
 })
 export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implements OnInit {

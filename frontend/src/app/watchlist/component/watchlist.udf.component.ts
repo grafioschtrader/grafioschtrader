@@ -44,7 +44,7 @@ import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { UDFMetadataHelper } from '../../lib/udfmeta/components/udf.metadata.helper';
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -79,9 +79,7 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
     `
   ],
   providers: [DialogService],
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     ConfigurableTableComponent,
     AngularSvgIconModule,
@@ -100,7 +98,8 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
     AlgoStrategyEditComponent,
     WatchlistAddEditPriceProblemInstrumentComponent,
     TransactionSecurityEditComponent,
-    UDFGeneralEditComponent
+    UDFGeneralEditComponent,
+    DatePipe
   ]
 })
 export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnDestroy {

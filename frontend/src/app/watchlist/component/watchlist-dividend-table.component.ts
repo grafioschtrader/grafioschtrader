@@ -10,7 +10,7 @@ import { DividendSplitTableBase } from './dividend.split.table.base';
 import { Dividend } from '../../entities/dividend.split';
 import { FilterService } from '@openng/optimus-ui/api';
 import { AppSettings } from '../../shared/app.settings';
-import { CommonModule } from '@angular/common';
+
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 
 /**
@@ -20,8 +20,7 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
 @Component({
   selector: 'watchlist-dividend-table',
   templateUrl: '../view/dividend.split.table.html',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, ConfigurableTableComponent, AngularSvgIconModule]
+  imports: [TranslateModule, ConfigurableTableComponent, AngularSvgIconModule]
 })
 export class WatchlistDividendTableComponent extends DividendSplitTableBase<Dividend> implements OnInit {
   /** Field name constant for the ex-date column */

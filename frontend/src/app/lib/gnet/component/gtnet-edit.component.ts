@@ -45,7 +45,6 @@ import { BaseSettings } from '../../base.settings';
  */
 @Component({
   selector: 'gtnet-edit',
-  standalone: true,
   imports: [DialogModule, ButtonModule, DynamicFormComponent, TranslateModule, EditableTableComponent],
   template: `
     <p-dialog
@@ -60,8 +59,7 @@ import { BaseSettings } from '../../base.settings';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
 
       @if (callParam?.isMyEntry && entityFieldsReady()) {
         <h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">
@@ -82,8 +80,7 @@ import { BaseSettings } from '../../base.settings';
           [baseLocale]="baseLocale"
           [scrollable]="false"
           [containerClass]="''"
-          [stripedRows]="false">
-        </editable-table>
+          [stripedRows]="false" />
 
         <div style="margin-top: 1rem; text-align: right;">
           <p-button [label]="'SAVE' | translate" [disabled]="!form?.valid" (click)="submitAll()">

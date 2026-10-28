@@ -64,12 +64,10 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
       <bankrupt-security-edit
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam()"
-        (closeDialog)="handleCloseDialog($event)">
-      </bankrupt-security-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [TranslateModule, ConfigurableTableComponent, BankruptSecurityEditComponent]
 })
 export class BankruptSecurityTableComponent extends TableCrudSupportMenu<BankruptSecurity> {

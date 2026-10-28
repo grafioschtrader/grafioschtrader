@@ -4,7 +4,7 @@ import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { MessageModule } from '@openng/optimus-ui/message';
 import { SimpleEditBase } from '../../edit/simple.edit.base';
-import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
 import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
 import { FieldConfig } from '../../dynamic-form/models/field.config';
@@ -27,8 +27,7 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
  */
 @Component({
   selector: 'user-access-token-create-dialog',
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule, ButtonModule, MessageModule],
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule, ButtonModule, MessageModule],
   template: `<p-dialog
     [header]="'ACCESS_TOKEN_CREATE' | translate"
     [visible]="visibleDialog()"
@@ -43,7 +42,7 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)"></dynamic-form>
+        (submitBt)="submit($event)" />
     } @else {
       <p-message severity="warn" [text]="'ACCESS_TOKEN_SHOWN_ONCE' | translate" />
       <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem">

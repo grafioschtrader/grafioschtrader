@@ -25,10 +25,8 @@ import { UserSettingsService } from '../../lib/services/user.settings.service';
       [paginator]="true"
       [rows]="rowsPerPage"
       (pageChange)="onPage($event)"
-      customClass="datatable">
-    </configurable-table>
+      customClass="datatable" />
   `,
-  standalone: true,
   imports: [ConfigurableTableComponent],
   providers: [DialogService]
 })

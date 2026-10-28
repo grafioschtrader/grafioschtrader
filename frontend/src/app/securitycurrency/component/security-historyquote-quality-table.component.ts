@@ -21,7 +21,6 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableModule } from '@openng/optimus-ui/table';
-import { NgClass } from '@angular/common';
 
 /**
  * Shows the securities in a table.
@@ -52,7 +51,7 @@ import { NgClass } from '@angular/common';
           @for (field of tableFields(); track field) {
             <th [pSortableColumn]="field.field" [style.width.px]="field.width">
               {{ field.headerTranslated }}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
+              <p-sortIcon [field]="field.field" />
             </th>
           }
         </tr>
@@ -61,7 +60,7 @@ import { NgClass } from '@angular/common';
         <tr [pSelectableRow]="el">
           @for (field of tableFields(); track field) {
             <td
-              [ngClass]="
+              [class]="
                 field.dataType === DataType.Numeric ||
                 field.dataType === DataType.NumericInteger ||
                 field.dataType === DataType.DateTimeNumeric
@@ -75,8 +74,7 @@ import { NgClass } from '@angular/common';
       </ng-template>
     </p-table>
   `,
-  standalone: true,
-  imports: [TableModule, TranslatePipe, NgClass]
+  imports: [TableModule, TranslatePipe]
 })
 export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase implements OnChanges {
   @Input() historyquoteQualityIds: HistoryquoteQualityIds;

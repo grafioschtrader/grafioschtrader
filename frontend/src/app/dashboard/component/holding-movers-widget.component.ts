@@ -3,7 +3,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { DashboardConfig, DashboardResult } from '../../lib/dashboard/dashboard.types';
 import { DashboardService } from '../../lib/dashboard/dashboard.service';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -34,16 +34,14 @@ import { HoldingMoversTreetableComponent } from './holding-movers-treetable.comp
  */
 @Component({
   selector: 'holding-movers-widget',
-  standalone: true,
-  imports: [TranslateModule, DynamicFormModule, HoldingMoversTreetableComponent],
+  imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, HoldingMoversTreetableComponent],
   template: `
     @if (movers(); as movers) {
       <dynamic-form
         [config]="config"
         [formConfig]="formConfig"
         [translateService]="translateService"
-        #form="dynamicForm">
-      </dynamic-form>
+        #form="dynamicForm" />
       <section class="mb-3">
         <h3 class="h6">{{ 'DASHBOARD_MOVERS_BY_PERCENTAGE' | translate }}</h3>
         <holding-movers-treetable

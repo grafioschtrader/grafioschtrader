@@ -1,5 +1,5 @@
 import { Component, Injector, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateValue } from '../../datashowbase/column.config';
@@ -13,8 +13,7 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
 /** Read-only administrator table of the per-target outcomes of outgoing GTNet background messages. */
 @Component({
   selector: 'gtnet-message-attempt-table',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, ConfigurableTableComponent],
+  imports: [TranslateModule, ConfigurableTableComponent],
   template: `
     <configurable-table
       [data]="messageAttempts"
@@ -25,8 +24,7 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
       [valueGetterFn]="valueGetter"
       [customSortFn]="customSorter"
       [multiSortMeta]="multiSortMeta"
-      [baseLocale]="baseLocale">
-    </configurable-table>
+      [baseLocale]="baseLocale" />
   `
 })
 export class GTNetMessageAttemptTableComponent extends TableConfigBase implements OnChanges {

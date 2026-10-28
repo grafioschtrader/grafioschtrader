@@ -31,7 +31,7 @@ import moment from 'moment';
 import { Weekday } from '../../shared/helper/weekday';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { PerformancePeriod } from '../model/performance.period';
 import { AppSettings } from '../../shared/app.settings';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -40,7 +40,7 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { GlobalGTSessionNames } from '../../shared/global.gt.session.names';
 import { BaseSettings } from '../../lib/base.settings';
-import { CommonModule } from '@angular/common';
+
 import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { TenantPerformanceFromToDiffComponent } from './performance-period-from-to-diff.component';
 import { TenantPerformanceTreetableComponent } from './performance-period-treetable.component';
@@ -55,7 +55,7 @@ import { PerformanceReportDialogService } from '../service/performance-report-di
     <div
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -68,29 +68,25 @@ import { PerformanceReportDialogService } from '../service/performance-report-di
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
 
       @if (loading() || reportDialogService.opening()) {
         <div class="progress-bar-box">
           <h4>{{ 'LOADING' | translate }}</h4>
-          <p-progressBar mode="indeterminate" [style]="{ height: '6px' }"></p-progressBar>
+          <p-progressBar mode="indeterminate" [style]="{ height: '6px' }" />
         </div>
       }
 
-      <performance-period-from-to-diff [periodHoldingsAndDiff]="periodHoldingsAndDiff()">
-      </performance-period-from-to-diff>
+      <performance-period-from-to-diff [periodHoldingsAndDiff]="periodHoldingsAndDiff()" />
 
-      <performance-period-metrics [metrics]="performancePeriod()?.metrics"></performance-period-metrics>
+      <performance-period-metrics [metrics]="performancePeriod()?.metrics" />
 
-      <performance-period-treetable [performancePeriod]="performancePeriod()"> </performance-period-treetable>
+      <performance-period-treetable [performancePeriod]="performancePeriod()" />
     </div>
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     ProgressBarModule,
     TenantPerformanceFromToDiffComponent,
     PerformancePeriodMetricsComponent,

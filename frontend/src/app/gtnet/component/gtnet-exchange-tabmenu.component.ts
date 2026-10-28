@@ -11,11 +11,10 @@ import { AppSettings } from '../../shared/app.settings';
  */
 @Component({
   selector: 'gtnet-exchange-tabmenu',
-  standalone: true,
   imports: [SharedTabMenuComponent, RouterModule],
   template: `
     <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
-      <router-outlet></router-outlet>
+      <router-outlet />
     </app-shared-tab-menu>
   `
 })

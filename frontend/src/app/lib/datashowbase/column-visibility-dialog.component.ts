@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { CheckboxModule } from '@openng/optimus-ui/checkbox';
 import { SliderModule } from '@openng/optimus-ui/slider';
@@ -33,8 +33,7 @@ export interface ColumnVisibilityOwner {
  */
 @Component({
   selector: 'column-visibility-dialog',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, CheckboxModule, SliderModule, FormsModule],
+  imports: [TranslateModule, CheckboxModule, SliderModule, FormsModule],
   template: `
     @if (frozenColumns) {
       <div class="column-visibility-frozen">

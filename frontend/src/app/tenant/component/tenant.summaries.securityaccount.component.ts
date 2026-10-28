@@ -19,7 +19,7 @@ import { OptionalParameters, TimeSeriesQuotesService } from '../../historyquote/
 import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 import { FilterService } from '@openng/optimus-ui/api';
 import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
-import { CommonModule } from '@angular/common';
+
 import { TableModule } from '@openng/optimus-ui/table';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
 import { FormsModule } from '@angular/forms';
@@ -39,9 +39,7 @@ import { NgxFileDropModule } from 'ngx-file-drop';
  */
 @Component({
   templateUrl: '../../securityaccount/view/securityaccount.table.html',
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     TableModule,
     DatePicker,

@@ -5,13 +5,13 @@
     @for (field of getFieldsForFieldSet(fieldSetName); track field.field) {
     <div class="row">
       <div
-        [ngClass]="field.templateName !== 'long' ? 'col-md-5 showlabel text-end'
+        [class]="field.templateName !== 'long' ? 'col-md-5 showlabel text-end'
               : 'col-12 showlabel'"
         [pTooltip]="field.headerTooltipTranslated">
         {{field.headerTranslated}}:
       </div>
       <div
-        [ngClass]="field.templateName !== 'long' ? 'col-md-7 nopadding wrap'
+        [class]="field.templateName !== 'long' ? 'col-md-7 nopadding wrap'
               : 'col-12 nopadding wrap'">
         @switch (field.templateName) { @case ('greenRed') {
         <!-- An empty cell must keep the normal colour. isValueByPathMinus coerces a missing value to zero, so without
@@ -25,7 +25,9 @@
         } @else {
         <span>{{getValueByPath(content, field)}}</span>
         } } @case ('check') {
-        <span><i [ngClass]="{'fa fa-check': getValueByPath(content, field)}"></i></span>
+        <span
+          ><i [class.fa]="getValueByPath(content, field)" [class.fa-check]="getValueByPath(content, field)"></i
+        ></span>
         } @default { {{getValueByPath(content, field)}} } } @if (field.dataType === DataType.URLString &&
         getValueByPath(content, field) === 'lazy') {
         <a href="#" (click)="handleLazyClick($event, '_blank', content, field)">

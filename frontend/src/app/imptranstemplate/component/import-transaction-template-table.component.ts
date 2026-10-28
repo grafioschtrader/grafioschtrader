@@ -54,12 +54,10 @@ import { ImportTransactionEditTemplateComponent } from './import-transaction-edi
       <import-transaction-edit-template
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
-        (closeDialog)="handleCloseDialog($event)">
-      </import-transaction-edit-template>
+        (closeDialog)="handleCloseDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [TranslateModule, ConfigurableTableComponent, ImportTransactionEditTemplateComponent]
 })
 export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenu<ImportTransactionTemplate> {

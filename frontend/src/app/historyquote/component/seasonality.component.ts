@@ -11,7 +11,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { httpResource } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -19,7 +19,7 @@ import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -54,7 +54,7 @@ interface SeasonalReturnsParams {
     <div
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -62,13 +62,12 @@ interface SeasonalReturnsParams {
         [config]="config"
         [formConfig]="formConfig"
         [translateService]="translateService"
-        #form="dynamicForm">
-      </dynamic-form>
+        #form="dynamicForm" />
 
       @if (seasonalReturns.isLoading()) {
         <div class="progress-bar-box">
           <h4>{{ 'LOADING' | translate }}</h4>
-          <p-progressBar mode="indeterminate" [style]="{ height: '6px' }"></p-progressBar>
+          <p-progressBar mode="indeterminate" [style]="{ height: '6px' }" />
         </div>
       } @else if (seasonalReturns.error()) {
         <p>{{ 'DATA_LOAD_FAILED' | translate }}</p>
@@ -83,11 +82,10 @@ interface SeasonalReturnsParams {
         }
       }
 
-      <seasonality-table [result]="result()"></seasonality-table>
+      <seasonality-table [result]="result()" />
     </div>
   `,
-  standalone: true,
-  imports: [CommonModule, TranslateModule, DynamicFormModule, ProgressBarModule, SeasonalityTableComponent]
+  imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, ProgressBarModule, SeasonalityTableComponent]
 })
 export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMenuAttach {
   @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;

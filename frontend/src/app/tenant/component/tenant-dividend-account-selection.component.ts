@@ -25,7 +25,7 @@ import { TreeTableModule } from '@openng/optimus-ui/treetable';
       <ng-template #caption>
         <div style="text-align:left">
           <h4>{{ title | translate }}</h4>
-          <p-treeTableHeaderCheckbox></p-treeTableHeaderCheckbox>
+          <p-treeTableHeaderCheckbox />
           <span style="margin-left: .25em; vertical-align: middle">{{ 'TOGGLE_ALL' | translate }}</span>
         </div>
       </ng-template>
@@ -43,10 +43,10 @@ import { TreeTableModule } from '@openng/optimus-ui/treetable';
           @for (field of fields; track field; let i = $index) {
             <td>
               @if (i === 0) {
-                <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                <p-treeTableToggler [rowNode]="rowNode" />
               }
               @if (i === 0) {
-                <p-treeTableCheckbox [value]="rowNode"></p-treeTableCheckbox>
+                <p-treeTableCheckbox [value]="rowNode" />
               }
               {{ getValueByPath(rowData, field) }}
             </td>
@@ -62,7 +62,6 @@ import { TreeTableModule } from '@openng/optimus-ui/treetable';
       </div>
     }
   `,
-  standalone: true,
   imports: [TreeTableModule, TranslateModule]
 })
 export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase implements OnInit {

@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlgoAlertDiagnosticsDialogComponent } from './algo-alert-diagnostics-dialog.component';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
@@ -49,7 +49,7 @@ import { AlgoHierarchyAlertOverviewComponent } from './algo-hierarchy-alert-over
     <div
       class="data-container"
       (click)="onComponentClick($event)"
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -68,8 +68,7 @@ import { AlgoHierarchyAlertOverviewComponent } from './algo-hierarchy-alert-over
         [checkboxVisibleFn]="isCheckboxVisibleCallback"
         [checkboxDisabledFn]="isCheckboxDisabledCallback"
         (checkboxChange)="onCheckboxChange($event)"
-        (componentClick)="onComponentClick($event)">
-      </configurable-tree-table>
+        (componentClick)="onComponentClick($event)" />
       @if (!simulationContext.isInSimulation()) {
         <algo-hierarchy-alert-overview />
       }
@@ -79,15 +78,12 @@ import { AlgoHierarchyAlertOverviewComponent } from './algo-hierarchy-alert-over
       <algo-strategy-edit
         [visibleDialog]="visibleStrategyDialog()"
         [algoCallParam]="algoCallParam()"
-        (closeDialog)="onStrategyDialogClose($event)">
-      </algo-strategy-edit>
+        (closeDialog)="onStrategyDialogClose($event)" />
     }
   `,
-  standalone: true,
   imports: [
     ButtonModule,
     AlgoAlertDiagnosticsDialogComponent,
-    CommonModule,
     TranslateModule,
     ConfigurableTreeTableComponent,
     AlgoStrategyEditComponent,

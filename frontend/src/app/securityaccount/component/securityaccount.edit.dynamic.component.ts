@@ -39,15 +39,13 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
     <trading-period-table
       #tradingPeriodTable
       [tradingPeriods]="tradingPeriods()"
       [transactionSummaries]="transactionSummaries()"
       [isNewSecurityAccount]="callParam.thisObject == null" />
   `,
-  standalone: true,
   imports: [DynamicFormComponent, TradingPeriodTableComponent]
 })
 export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<Securityaccount> implements OnInit {

@@ -78,7 +78,6 @@ const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
  */
 @Component({
   selector: 'gtnet-message-answer-edit',
-  standalone: true,
   imports: [DialogModule, DynamicFormComponent, TranslateModule],
   template: `
     <p-dialog
@@ -93,8 +92,7 @@ const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `
 })

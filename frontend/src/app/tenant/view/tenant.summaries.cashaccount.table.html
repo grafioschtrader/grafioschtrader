@@ -1,6 +1,6 @@
 <div
   (click)="onComponentClick($event)"
-  [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+  [class]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
   class="data-container">
   <div class="datatable">
     @if (missingCurrenciesText) {
@@ -14,8 +14,7 @@
           <div class="left-half">
             <h4>
               {{ 'PORTFOLIOS' | translate }}:
-              <p-select (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup" [options]="groupOptions()">
-              </p-select>
+              <p-select (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup" [options]="groupOptions()" />
             </h4>
           </div>
           <div class="right-half">
@@ -31,8 +30,7 @@
               [(ngModel)]="untilDate"
               [dateFormat]="baseLocale.dateFormat"
               appendTo="body"
-              id="untilDate">
-            </p-datepicker>
+              id="untilDate" />
             <i (click)="onResetToDay($event)" class="pi pi-replay" style="font-size: 1.5em"></i>
           </div>
         </div>
@@ -44,7 +42,7 @@
           <th
             [pTooltip]="field.headerTooltipTranslated"
             [style.max-width.px]="field.width"
-            [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
+            [style]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
             class="word-break-header"
             [attr.lang]="baseLocale.language">
             {{ field.headerTranslated }}
@@ -57,9 +55,9 @@
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           @for (field of fields; track field) { @if (field.visible) {
           <td
-            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+            [class]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-end': ''"
-            [ngStyle]="getCellStyle(el, field)">
+            [style]="getCellStyle(el, field)">
             @switch (field.templateName) { @case ('greenRed') {
             <span
               [pTooltip]="getCellTooltip(el, field)"
@@ -79,7 +77,7 @@
           <td
             [class]="(columnConfig.dataType===DataType.Numeric || columnConfig.dataType===DataType.NumericInteger
                   || columnConfig.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
-            [ngStyle]="getGroupCellStyle(columnConfig, groupChangeIndexMap().get(rowIndex))">
+            [style]="getGroupCellStyle(columnConfig, groupChangeIndexMap().get(rowIndex))">
             @switch (columnConfig.templateName) { @case ('greenRed') {
             <span
               [style.color]='isColumnTotalByRowIndexMinus(columnConfig, 0, groupChangeIndexMap(), rowIndex)? "red": "inherit"'>
@@ -99,10 +97,10 @@
         <tr>
           @for (field of fields; track field) { @if (field.visible) {
           <td
-            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+            [class]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-end': ''"
             [style.max-width.px]="field.width"
-            [ngStyle]="getGrandCellStyle(field)"
+            [style]="getGrandCellStyle(field)"
             class="row-total">
             @switch (field.templateName) { @case ('greenRed') {
             <span

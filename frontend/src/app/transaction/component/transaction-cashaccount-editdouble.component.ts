@@ -34,7 +34,7 @@ import { Validators } from '@angular/forms';
 import { RuleEvent } from '../../lib/dynamic-form/error/error.message.rules';
 import moment from 'moment';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Cash transfer between two cash accounts which are managed by this application.
@@ -60,12 +60,10 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TransactionCashaccountEditDoubleComponent extends TransactionCashaccountBaseOperations implements OnInit {
   // InputMask from parent view

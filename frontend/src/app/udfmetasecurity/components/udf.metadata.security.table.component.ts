@@ -1,5 +1,5 @@
 import { Component, Injector, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { UDFMetadataSecurityService } from '../service/udf.metadata.security.service';
@@ -36,7 +36,7 @@ import { BaseSettings } from '../../lib/base.settings';
       class="data-container-full"
       (click)="onComponentClick($event)"
       #cmDiv
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -63,7 +63,7 @@ import { BaseSettings } from '../../lib/base.settings';
         <h4 caption>{{ entityNameUpper | translate }}</h4>
 
         <ng-template #iconCell let-row let-field="field" let-value="value">
-          <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
+          <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }" />
         </ng-template>
       </configurable-table>
     </div>
@@ -71,21 +71,17 @@ import { BaseSettings } from '../../lib/base.settings';
       <udf-metadata-security-edit
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
-        (closeDialog)="handleCloseDialog($event)">
-      </udf-metadata-security-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
     @if (visibleProposalsDialog()) {
       <udf-fill-proposals-dialog
         [visibleDialog]="visibleProposalsDialog()"
         [field]="proposalsField()"
-        (closeDialog)="visibleProposalsDialog.set(false)">
-      </udf-fill-proposals-dialog>
+        (closeDialog)="visibleProposalsDialog.set(false)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     AngularSvgIconModule,
     ConfigurableTableComponent,

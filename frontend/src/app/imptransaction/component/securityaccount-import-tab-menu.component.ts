@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -28,11 +28,10 @@ import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navi
           }
         </p-tablist>
       </p-tabs>
-      <router-outlet></router-outlet>
+      <router-outlet />
     </div>
   `,
-  standalone: true,
-  imports: [CommonModule, RouterModule, TabsModule, TranslateModule]
+  imports: [RouterModule, TabsModule, TranslateModule]
 })
 export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy {
   tabs: TabItem[] = [];

@@ -11,12 +11,11 @@ import { BaseSettings } from '../../base.settings';
  */
 @Component({
   selector: 'gtnet-tabmenu',
-  standalone: true,
   imports: [SharedTabMenuComponent, RouterModule],
   styles: [':host { display: block; height: 100%; }'],
   template: `
     <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
-      <router-outlet></router-outlet>
+      <router-outlet />
     </app-shared-tab-menu>
   `
 })

@@ -1,5 +1,5 @@
 import { Component, Injector, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../datashowbase/table.config.base';
@@ -18,8 +18,7 @@ import { GTNetMaintenanceWindow } from '../model/gtnet';
  */
 @Component({
   selector: 'gtnet-maintenance-window-table',
-  standalone: true,
-  imports: [CommonModule, TranslateModule, ConfigurableTableComponent],
+  imports: [TranslateModule, ConfigurableTableComponent],
   template: `
     <configurable-table
       [data]="maintenanceWindows"
@@ -30,8 +29,7 @@ import { GTNetMaintenanceWindow } from '../model/gtnet';
       [valueGetterFn]="valueGetter"
       [customSortFn]="customSorter"
       [multiSortMeta]="multiSortMeta"
-      [baseLocale]="baseLocale">
-    </configurable-table>
+      [baseLocale]="baseLocale" />
   `
 })
 export class GTNetMaintenanceWindowTableComponent extends TableConfigBase implements OnChanges {

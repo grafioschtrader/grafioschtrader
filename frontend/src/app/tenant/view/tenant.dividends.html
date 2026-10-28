@@ -1,6 +1,6 @@
 <div
   (click)="onComponentClick($event)"
-  [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+  [class]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
   class="data-container">
   <div class="datatable">
     <p-table
@@ -38,12 +38,12 @@
           <th
             [pSortableColumn]="field.field"
             [style.max-width.px]="field.width"
-            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+            [style]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
             [pTooltip]="field.headerTooltipTranslated"
             class="word-break-header"
             [attr.lang]="baseLocale.language">
             {{ field.headerTranslated }}
-            <p-sortIcon [field]="field.field"></p-sortIcon>
+            <p-sortIcon [field]="field.field" />
           </th>
           } }
         </tr>
@@ -53,15 +53,15 @@
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <td>
             <a [pRowToggler]="el" href="#">
-              <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
+              <i [class]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
             </a>
           </td>
           @for (field of fields; track field) { @if (field.visible) {
           <td
-            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+            [class]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                   || field.dataType===DataType.NumericInteger)? 'text-end': ''"
             [style.max-width.px]="field.width"
-            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            [style]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
             {{ getValueByPath(el, field) }}
           </td>
           } }
@@ -73,7 +73,7 @@
           <td></td>
           @for (field of fields; track field) { @if (field.visible) {
           <td
-            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+            [class]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                   || field.dataType===DataType.NumericInteger)? 'text-end': ''"
             [style.width.px]="field.width"
             class="row-total">
@@ -93,8 +93,7 @@
               [securityDividendsPositions]="sDYG.securityDividendsPositions"
               [year]="sDYG.year"
               [expandedRowKeys]="getSecurityExpandedKeys(sDYG.year)"
-              [filterTransactionsToYearEnd]="filterTransactionsToYearEnd()">
-            </tenant-dividends-security-extended>
+              [filterTransactionsToYearEnd]="filterTransactionsToYearEnd()" />
           </td>
         </tr>
         <tr>
@@ -103,13 +102,12 @@
               (dateChanged)="transactionDataChanged($event)"
               [securityDividendsGrandTotal]="securityDividendsGrandTotal()"
               [year]="sDYG.year"
-              [cashAccountPositions]="sDYG.cashAccountPositions">
-            </tenant-dividends-cashaccount-extended>
+              [cashAccountPositions]="sDYG.cashAccountPositions" />
           </td>
         </tr>
       </ng-template>
     </p-table>
-    <p-contextMenu #cm [model]="contextMenuItems()" appendTo="body"></p-contextMenu>
+    <p-contextMenu #cm [model]="contextMenuItems()" appendTo="body" />
   </div>
 </div>
 
@@ -118,14 +116,12 @@
   (closeDialog)="handleOnProcessedDialog($event)"
   [idsAccounts]="idsAccounts()"
   [portfolios]="securityDividendsGrandTotal().portfolioList"
-  [visibleDialog]="visibleSecurityaccountDialog()">
-</tenant-dividend-security-account-selection-dialog>
+  [visibleDialog]="visibleSecurityaccountDialog()" />
 } @if (visibleExportDialog()) {
 <tax-statement-export-dialog
   (closeDialog)="handleExportDialogClose($event)"
   [idsSecurityaccount]="idsAccounts().idsSecurityaccount"
   [availableTaxYears]="$safeNavigationMigration(securityDividendsGrandTotal()?.availableTaxYears)"
   [taxExportSettings]="$safeNavigationMigration(securityDividendsGrandTotal()?.taxExportSettings)"
-  [visibleDialog]="visibleExportDialog()">
-</tax-statement-export-dialog>
+  [visibleDialog]="visibleExportDialog()" />
 }

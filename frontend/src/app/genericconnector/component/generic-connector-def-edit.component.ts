@@ -16,7 +16,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppSettings } from '../../shared/app.settings';
 import { AppHelpIds } from '../../shared/help/help.ids';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { FieldsetModule } from '@openng/optimus-ui/fieldset';
 import { YamlEditorComponent } from '../../algo/component/yaml-editor.component';
 import { HttpClient } from '@angular/common/http';
@@ -42,8 +42,7 @@ import { combineLatest } from 'rxjs';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
 
     <p-fieldset [legend]="'TOKEN_CONFIG_YAML' | translate" [toggleable]="true" [collapsed]="true" styleClass="mt-3">
       <yaml-editor
@@ -53,11 +52,10 @@ import { combineLatest } from 'rxjs';
         (validationPendingChange)="configObject.submit.disabled = optionsLoading() || $event || !yamlEditor.syntaxValid"
         [height]="'300px'"
         [(value)]="tokenConfigYamlValue"
-        [schema]="tokenConfigSchema()"></yaml-editor>
+        [schema]="tokenConfigSchema()" />
     </p-fieldset>
   </p-dialog>`,
-  standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule, FieldsetModule, YamlEditorComponent]
+  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule, FieldsetModule, YamlEditorComponent]
 })
 export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<GenericConnectorDef> implements OnInit {
   @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;

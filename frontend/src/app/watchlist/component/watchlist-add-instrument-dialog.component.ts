@@ -10,7 +10,7 @@ import { TenantLimit } from '../../shared/types/tenant.limit';
 import { MultipleRequestToOneService } from '../../shared/service/multiple.request.to.one.service';
 import { WatchlistAddInstrumentTableComponent } from './watchlist-add-instrument-table.component';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Search dialog for adding an existing security or currency pair to a certain watchlist.
@@ -39,14 +39,12 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #dynamicFormComponent="dynamicForm"
-        (submitBt)="submit($event)">
-      </dynamic-form>
+        (submitBt)="submit($event)" />
       <br />
-      <add-instrument-table [tenantLimits]="tenantLimits"> </add-instrument-table>
+      <add-instrument-table [tenantLimits]="tenantLimits" />
     </p-dialog>
   `,
-  standalone: true,
-  imports: [TranslateModule, DialogModule, DynamicFormModule, WatchlistAddInstrumentTableComponent]
+  imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS, WatchlistAddInstrumentTableComponent]
 })
 export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility of the add instrument dialog. */

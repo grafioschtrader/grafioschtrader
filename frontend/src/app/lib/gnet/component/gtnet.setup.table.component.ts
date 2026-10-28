@@ -1,6 +1,6 @@
 import { afterNextRender, Component, Injector, QueryList, signal, ViewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { TableCrudSupportMenu, CrudMenuOptions } from '../../datashowbase/table.crud.support.menu';
@@ -48,9 +48,7 @@ import saveAs from '../../filesaver/filesaver';
 import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
 
 @Component({
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslateModule,
     ConfigurableTableComponent,
@@ -135,34 +133,29 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
         [openPanels]="getOpenPanels(row.idGtNet)"
         (openPanelsChange)="openPanelsMap[row.idGtNet] = $event"
         (configEntityDataChanged)="onConfigEntityDataChanged($event)"
-        (messageDataChanged)="onTreeTableDataChanged($event)">
-      </gtnet-expanded>
+        (messageDataChanged)="onTreeTableDataChanged($event)" />
     </ng-template>
 
     @if (visibleDialog()) {
-      <gtnet-edit [visibleDialog]="visibleDialog()" [callParam]="callParam" (closeDialog)="handleCloseDialog($event)">
-      </gtnet-edit>
+      <gtnet-edit [visibleDialog]="visibleDialog()" [callParam]="callParam" (closeDialog)="handleCloseDialog($event)" />
     }
     @if (visibleDialogConfig()) {
       <gtnet-config-edit
         [visibleDialog]="visibleDialogConfig()"
         [gtNetConfig]="selectedEntity()?.gtNetConfig"
-        (closeDialog)="handleCloseDialogConfig($event)">
-      </gtnet-config-edit>
+        (closeDialog)="handleCloseDialogConfig($event)" />
     }
     @if (visibleDialogMsg()) {
       <gtnet-message-edit
         [visibleDialog]="visibleDialogMsg()"
         [msgCallParam]="msgCallParam"
-        (closeDialog)="handleCloseDialogMsg($event)">
-      </gtnet-message-edit>
+        (closeDialog)="handleCloseDialogMsg($event)" />
     }
     @if (visibleUploadDialog()) {
       <upload-file-dialog
         [visibleDialog]="visibleUploadDialog()"
         [fileUploadParam]="fileUploadParam"
-        (closeDialog)="handleCloseUploadDialog($event)">
-      </upload-file-dialog>
+        (closeDialog)="handleCloseUploadDialog($event)" />
     }
   `,
   styles: [

@@ -56,7 +56,7 @@ import { AssetclassEditComponent } from './assetclass-edit.component';
 
       <!-- Custom icon cell template for svg-icon rendering -->
       <ng-template #iconCell let-row let-field="field" let-value="value">
-        <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
+        <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }" />
       </ng-template>
     </configurable-table>
 
@@ -65,12 +65,10 @@ import { AssetclassEditComponent } from './assetclass-edit.component';
         [visibleDialog]="visibleDialog()"
         [callParam]="callParam"
         [proposeChangeEntityWithEntity]=""
-        (closeDialog)="handleCloseDialog($event)">
-      </assetclass-edit>
+        (closeDialog)="handleCloseDialog($event)" />
     }
   `,
   providers: [DialogService],
-  standalone: true,
   imports: [TranslateModule, ConfigurableTableComponent, AngularSvgIconModule, AssetclassEditComponent]
 })
 export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> {

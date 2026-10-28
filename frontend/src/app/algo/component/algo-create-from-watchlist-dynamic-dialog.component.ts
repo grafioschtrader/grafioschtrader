@@ -18,7 +18,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
 /**
  * Dialog for auto-generating an AlgoTop hierarchy from the instruments of a watchlist. The backend groups them by
@@ -32,11 +32,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
       [formConfig]="formConfig"
       [translateService]="translateService"
       #form="dynamicForm"
-      (submitBt)="submit($event)">
-    </dynamic-form>
+      (submitBt)="submit($event)" />
   `,
-  standalone: true,
-  imports: [DynamicFormModule, TranslateModule]
+  imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class AlgoCreateFromWatchlistDynamicDialogComponent extends SimpleDynamicEditBase<AlgoTop> implements OnInit {
   static readonly DIALOG_WIDTH = 500;

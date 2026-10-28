@@ -476,6 +476,17 @@ instrument and updates its tenant-limit line from two to three instruments.
 Run each file separately with `npx playwright test e2e/080-correlation-matrix.spec.ts --project=grafioschtrader-e2e --no-deps`
 or `npx playwright test e2e/081-correlation-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## Bootstrap without zone.js (003-\*)
+
+`003-bootstrap.spec.ts` checks the start of Grafioschtrader, which runs zoneless like the library host of
+`lib/003-bootstrap.spec.ts`. Both specs trigger an unhandled timer error and a rejected promise and require that Angular's
+`ErrorHandler` logs both errors. As `alledit` the application spec reloads the main view and requires that `window.Zone` is undefined, that the
+menu bar, the portfolio branch and the dashboard render, and that no Angular `NG0…` error is logged. With every `/api/`
+request refused, the bilingual overlay must replace the login form until the retry succeeds. A login answer turned into
+a forced password change must show the dialog without a close button; saving the unchanged fixture password returns to
+the login form, so nothing changes in `grafioschtrader_t`. Run it with
+`npx playwright test e2e/003-bootstrap.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Connector API key specs (005-_, 006-_ and lib/038-*)
 
 `005-connector-api-key.spec.ts` creates the connector API keys as the admin user, through the

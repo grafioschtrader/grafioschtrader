@@ -20,7 +20,6 @@ import { hintParams, LookupHintRow } from '../model/security-lookup-hint';
  */
 @Component({
   selector: 'security-lookup-hint-table',
-  standalone: true,
   imports: [ConfigurableTableComponent, TranslateModule],
   template: `
     @if (rows().length > 0) {

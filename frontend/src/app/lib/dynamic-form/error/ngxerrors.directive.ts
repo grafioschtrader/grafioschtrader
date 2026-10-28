@@ -11,8 +11,7 @@ import { toArray } from './toArray';
  */
 @Directive({
   selector: '[ngxErrors]',
-  exportAs: 'ngxErrors',
-  standalone: true
+  exportAs: 'ngxErrors'
 })
 export class NgxErrorsDirective implements OnChanges, OnDestroy {
   @Input('ngxErrors') control: AbstractControl;

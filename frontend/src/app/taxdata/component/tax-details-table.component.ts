@@ -11,7 +11,6 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
 /** Tax previews and persisted run diagnostics share the standard sortable, localized table presentation. */
 @Component({
   selector: 'tax-details-table',
-  standalone: true,
   imports: [ConfigurableTableComponent],
   template: `<configurable-table
     [data]="rows"

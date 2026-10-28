@@ -2,7 +2,7 @@
   #cmDiv
   (click)="onComponentClick($event)"
   (contextmenu)="onRightClick($event)"
-  [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}"
+  [class]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}"
   class="data-container">
   <p-panel>
     @if (titleKey) {
@@ -17,13 +17,12 @@
       [ngModel]="selectedYear()"
       [disabled]="addRemoveDaysMap().size > 0"
       [options]="possibleYears()"
-      id="idYearSelect">
-    </p-select>
+      id="idYearSelect" />
     <ng-fullyearcalendar-lib
       (daySelect)="onDaySelect($event)"
       [locale]="locale"
       [underline]="underline()"
-      [yearCalendarData]="yearCalendarData()"></ng-fullyearcalendar-lib>
+      [yearCalendarData]="yearCalendarData()" />
     <p-footer>
       <div class="ui-dialog-buttonpane ui-widget-content flexRight">
         @if (containsYear(yearCalendarData().year - 1)) {
@@ -45,5 +44,5 @@
       </div>
     </p-footer>
   </p-panel>
-  <p-contextMenu #contextMenu [model]="contextMenuItems()" [target]="cmDiv" appendTo="body"> </p-contextMenu>
+  <p-contextMenu #contextMenu [model]="contextMenuItems()" [target]="cmDiv" appendTo="body" />
 </div>

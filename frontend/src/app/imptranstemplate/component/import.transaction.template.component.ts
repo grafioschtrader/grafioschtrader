@@ -1,7 +1,7 @@
 import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
@@ -32,7 +32,7 @@ import { saveAs } from '../../lib/filesaver/filesaver';
 import { NgxFileDropEntry, NgxFileDropModule } from 'ngx-file-drop';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { BaseSettings } from '../../lib/base.settings';
-import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { ImportTransactionEditPlatformComponent } from './import-transaction-edit-platform.component';
 import { TransformPdfToTxtDialogComponent } from './transform-pdf-to-txt-dialog.component';
@@ -47,7 +47,7 @@ import { TemplateFormCheckDialogComponent } from './template-form-check-dialog.c
       class="data-container"
       (click)="onComponentClick($event)"
       #cmDiv
-      [ngClass]="{
+      [class]="{
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }">
@@ -61,8 +61,7 @@ import { TemplateFormCheckDialogComponent } from './template-form-check-dialog.c
               dropZoneLabel="{{ 'DROP_TEMPLATE_HERE' | translate }}"
               (onFileDrop)="dropped($event)"
               dropZoneClassName="drop-zone-trans-long"
-              contentClassName="content-trans">
-            </ngx-file-drop>
+              contentClassName="content-trans" />
           </div>
         }
       </div>
@@ -70,42 +69,36 @@ import { TemplateFormCheckDialogComponent } from './template-form-check-dialog.c
         [config]="config"
         [formConfig]="formConfig"
         [translateService]="translateService"
-        #form="dynamicForm">
-      </dynamic-form>
+        #form="dynamicForm" />
       @if (isActivated() && contextMenuItems) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" />
       }
       <br />
-      <import-transaction-template-table></import-transaction-template-table>
+      <import-transaction-template-table />
     </div>
     @if (visibleEditDialog) {
       <import-transaction-edit-platform
         [visibleDialog]="visibleEditDialog"
         [callParam]="callParam"
         [platformTransactionImportHtmlOptions]="platformTransactionImportHtmlOptions()"
-        (closeDialog)="handleCloseEditDialog($event)">
-      </import-transaction-edit-platform>
+        (closeDialog)="handleCloseEditDialog($event)" />
     }
     @if (visibleTransformPDFToTxtDialog()) {
       <transform-pdf-to-txt-dialog
         [visibleDialog]="visibleTransformPDFToTxtDialog()"
-        (closeDialog)="handleCloseTransformPDFToTxtDialog()">
-      </transform-pdf-to-txt-dialog>
+        (closeDialog)="handleCloseTransformPDFToTxtDialog()" />
     }
     @if (visibleTemplateFormCheckDialog()) {
       <template-form-check-dialog
         [visibleDialog]="visibleTemplateFormCheckDialog()"
         [importTransactionPlatform]="selectedEntity"
-        (closeDialog)="handleCloseTemplateFormCheckDialog()">
-      </template-form-check-dialog>
+        (closeDialog)="handleCloseTemplateFormCheckDialog()" />
     }
   `,
-  standalone: true,
   imports: [
-    CommonModule,
     TranslateModule,
     NgxFileDropModule,
-    DynamicFormModule,
+    ...DYNAMIC_FORM_IMPORTS,
     ContextMenuModule,
     ImportTransactionTemplateTableComponent,
     ImportTransactionEditPlatformComponent,

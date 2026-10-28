@@ -38,12 +38,10 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
         [showIcon]="true"
         appendTo="body"
         (onBlur)="onCalendarBlur($event)"
-        [formControlName]="config.field">
-      </p-datepicker>
+        [formControlName]="config.field" />
     </ng-container>
   `,
-  imports: [ReactiveFormsModule, DatePicker, TooltipModule, TranslateModule, FilterOutPipe],
-  standalone: true
+  imports: [ReactiveFormsModule, DatePicker, TooltipModule, TranslateModule, FilterOutPipe]
 })
 export class FormPCalendarComponent extends BaseInputComponent implements OnInit, OnDestroy {
   /** Error names this component sets itself, they must be removed again before a new evaluation. */
