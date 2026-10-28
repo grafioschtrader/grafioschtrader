@@ -1,6 +1,6 @@
 import { TransactionBaseOperations } from './transaction.base.operations';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
-import { Directive, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Directive, Input, ViewChild, output } from '@angular/core';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { TransactionCallParam } from './transaction.call.parm';
 import { TranslateService } from '@ngx-translate/core';
@@ -29,7 +29,7 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
   @Input() transactionCallParam: TransactionCallParam;
 
   /** Event emitter for closing dialog and returning processed action data to parent component */
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
 
   /** Reference to the dynamic form component for accessing form controls and validation */
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;

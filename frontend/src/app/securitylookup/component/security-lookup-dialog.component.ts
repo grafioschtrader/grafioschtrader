@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, Input, signal, output } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
@@ -104,7 +104,7 @@ export class SecurityLookupDialogComponent {
   /** Ticker entered in the form; helps providers that know the ISIN only for another listing */
   @Input() tickerSymbol: string;
 
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
 
   readonly feeds: { key: LookupFeed; field: keyof SecurityLookupCandidate; titleKey: string }[] = [
     { key: 'history', field: 'historyConnectors', titleKey: 'ID_CONNECTOR_HISTORY' },

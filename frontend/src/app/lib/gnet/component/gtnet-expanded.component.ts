@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild, output } from '@angular/core';
 
 import { TranslateModule } from '@ngx-translate/core';
 import { AccordionModule } from '@openng/optimus-ui/accordion';
@@ -135,8 +135,8 @@ export class GTNetExpandedComponent {
   /** True while the parent is still fetching the lazily loaded panels. */
   @Input() loading = false;
 
-  @Output() configEntityDataChanged = new EventEmitter<ProcessedActionData>();
-  @Output() messageDataChanged = new EventEmitter<ProcessedActionData>();
+  readonly configEntityDataChanged = output<ProcessedActionData>();
+  readonly messageDataChanged = output<ProcessedActionData>();
 
   /**
    * The message tree table, present only while its panel is open. The setup table cannot query it directly — a
@@ -154,7 +154,7 @@ export class GTNetExpandedComponent {
    * recreates this component and would otherwise close every panel.
    */
   @Input() openPanels: string[] = [];
-  @Output() openPanelsChange = new EventEmitter<string[]>();
+  readonly openPanelsChange = output<string[]>();
 
   /** Number of entity configurations of this peer. */
   get entityCount(): number {

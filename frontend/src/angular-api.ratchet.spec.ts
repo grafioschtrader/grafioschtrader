@@ -44,6 +44,38 @@ function hasLegacyHostDecorator(source: string): boolean {
   return hasAngularDecorator(source, ['HostListener', 'HostBinding']);
 }
 
+/** Detects EventEmitter construction, including imported aliases and namespace access. */
+function hasLegacyEventEmitter(source: string): boolean {
+  const parsed = ts.createSourceFile('source.ts', source, ts.ScriptTarget.Latest, true);
+  const names = new Set(['EventEmitter']);
+  for (const node of parsed.statements) {
+    if (
+      ts.isImportDeclaration(node) &&
+      ts.isStringLiteral(node.moduleSpecifier) &&
+      node.moduleSpecifier.text === '@angular/core'
+    ) {
+      const bindings = node.importClause?.namedBindings;
+      if (bindings && ts.isNamedImports(bindings)) {
+        for (const element of bindings.elements) {
+          if ((element.propertyName ?? element.name).text === 'EventEmitter') names.add(element.name.text);
+        }
+      }
+    }
+  }
+  function visit(node: ts.Node): true | undefined {
+    if (ts.isNewExpression(node)) {
+      const callee = node.expression;
+      if (
+        (ts.isIdentifier(callee) && names.has(callee.text)) ||
+        (ts.isPropertyAccessExpression(callee) && callee.name.text === 'EventEmitter')
+      )
+        return true;
+    }
+    return ts.forEachChild(node, visit);
+  }
+  return !!visit(parsed);
+}
+
 /** Finds named Angular common imports, including aliases, without matching comments or template text. */
 function hasAngularCommonImport(source: string, name: string): boolean {
   const parsed = ts.createSourceFile('source.ts', source, ts.ScriptTarget.Latest, true);
@@ -106,6 +138,42 @@ function collectSources(dir: string, extensions = ['.ts'], out: string[] = []): 
 }
 
 describe('Angular API ratchet', () => {
+  it('matches legacy outputs and EventEmitter construction, including aliases', () => {
+    expect(hasAngularDecorator('class Example { @Output() changed = emitter; }', ['Output'])).toBe(true);
+    expect(
+      hasAngularDecorator(
+        "import { Output as Out } from '@angular/core'; class Example { @Out('changed') event = emitter; }",
+        ['Output']
+      )
+    ).toBe(true);
+    expect(hasAngularDecorator('class Example { readonly changed = output<string>(); }', ['Output'])).toBe(false);
+    expect(hasAngularDecorator('// @Output() changed', ['Output'])).toBe(false);
+    for (const source of [
+      'const event = new EventEmitter<string>();',
+      "import { EventEmitter as Emitter } from '@angular/core'; const event = new Emitter();",
+      "import * as ng from '@angular/core'; const event = new ng.EventEmitter();"
+    ]) {
+      expect(hasLegacyEventEmitter(source), source).toBe(true);
+    }
+    for (const source of [
+      'const event = output<string>();',
+      '// new EventEmitter()',
+      'const example = `new EventEmitter()`;'
+    ]) {
+      expect(hasLegacyEventEmitter(source), source).toBe(false);
+    }
+  });
+
+  it('finds no Output decorators or EventEmitters in either host or the shared library', () => {
+    const violations = collectSources(SRC)
+      .filter((file) => {
+        const source = fs.readFileSync(file, 'utf8');
+        return hasAngularDecorator(source, ['Output']) || hasLegacyEventEmitter(source);
+      })
+      .map((file) => path.relative(SRC, file).replace(/\\/g, '/'));
+    expect(violations, 'Declare outputs with readonly name = output<T>(). See frontend/CLAUDE.md.').toEqual([]);
+  });
+
   it('matches NgModule decorators, including aliases and namespace imports', () => {
     for (const source of [
       '@NgModule({}) class Example {}',

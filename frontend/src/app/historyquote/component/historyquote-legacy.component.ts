@@ -1,14 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnChanges,
-  OnDestroy,
-  Output,
-  signal,
-  SimpleChanges
-} from '@angular/core';
+import { Component, Injector, Input, OnChanges, OnDestroy, signal, SimpleChanges, output } from '@angular/core';
 
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -136,7 +126,7 @@ export class HistoryquoteLegacyComponent
   implements OnChanges, OnDestroy
 {
   @Input() idSecuritycurrency: number;
-  @Output() showLiveRequested = new EventEmitter<void>();
+  readonly showLiveRequested = output<void>();
 
   callParam: HistoryquoteLegacySecurityCurrency;
   readonly visibleApplySplitDialog = signal(false);

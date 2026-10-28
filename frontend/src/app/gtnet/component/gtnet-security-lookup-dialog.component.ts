@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, Input, signal, output } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -67,7 +67,7 @@ export class GtnetSecurityLookupDialogComponent {
   @Input() currency: string;
   @Input() tickerSymbol: string;
 
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
 
   readonly loading = signal(false);
   readonly response = signal<SecurityGtnetLookupResponse>(null);

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, output } from '@angular/core';
 
 import { TranslateModule } from '@ngx-translate/core';
 import { CheckboxChangeEvent, CheckboxModule } from '@openng/optimus-ui/checkbox';
@@ -92,7 +92,7 @@ export class GTNetExchangeCheckboxesComponent {
   @Input() disabled = false;
 
   /** Emits when any checkbox is toggled, with field name and event */
-  @Output() toggle = new EventEmitter<CheckboxToggleEvent>();
+  readonly toggle = output<CheckboxToggleEvent>();
 
   /**
    * Handles checkbox toggle and emits the event with field information.

@@ -1,15 +1,4 @@
-import {
-  DestroyRef,
-  inject,
-  signal,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnChanges,
-  OnInit,
-  Output
-} from '@angular/core';
+import { DestroyRef, inject, signal, Component, Injector, Input, OnChanges, OnInit, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -58,7 +47,7 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   @Input() countIdSecurityMissingsMap: { [key: number]: number };
   @Input() securities: Security[];
   @Input() selectedDayIdSecurities: number[];
-  @Output() changedSecurity = new EventEmitter<Security>();
+  readonly changedSecurity = output<Security>();
 
   selectedSecurity: Security;
   private readonly feedConnectorsKV = signal<{ [id: string]: string }>({});

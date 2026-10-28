@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnDestroy, signal } from '@angular/core';
+import { Component, Input, OnDestroy, signal, output } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
 import { Subscription, finalize } from 'rxjs';
@@ -96,10 +96,10 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   @Input() visibleDialog: boolean;
 
   /** Emits the proposed rule when the user takes it over */
-  @Output() ruleAccepted = new EventEmitter<string>();
+  readonly ruleAccepted = output<string>();
 
   /** Emits when the dialog closes */
-  @Output() closeDialog = new EventEmitter<void>();
+  readonly closeDialog = output<void>();
 
   readonly preview = signal<RuleProposalPreview>(null);
   readonly result = signal<RuleProposalResult>(null);

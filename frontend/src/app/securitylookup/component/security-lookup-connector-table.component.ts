@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Injector, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, Injector, Input, OnChanges, SimpleChanges, output } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { MessageModule } from '@openng/optimus-ui/message';
@@ -85,7 +85,7 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase imple
   @Input() disabledMessageKey: string;
 
   /** Emits the chosen connector, or null when the selection is removed */
-  @Output() alternativeSelected = new EventEmitter<ConnectorAlternative>();
+  readonly alternativeSelected = output<ConnectorAlternative>();
 
   /**
    * Creates the table columns.

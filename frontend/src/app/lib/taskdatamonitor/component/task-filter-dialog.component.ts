@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Input, Output, signal } from '@angular/core';
+import { Component, Inject, Input, signal, output } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -63,7 +63,7 @@ export interface TaskFilterItem {
 })
 export class TaskFilterDialogComponent extends ShowRecordConfigBase {
   @Input() visibleDialog = false;
-  @Output() closeDialog = new EventEmitter<number[] | null>();
+  readonly closeDialog = output<number[] | null>();
 
   readonly taskFilterItems = signal<TaskFilterItem[]>([]);
   readonly selectedItems = signal<TaskFilterItem[]>([]);

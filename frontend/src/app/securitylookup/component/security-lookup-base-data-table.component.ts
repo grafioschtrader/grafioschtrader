@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Injector, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, Injector, Input, OnChanges, SimpleChanges, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
@@ -112,7 +112,7 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase implem
   @Input() candidates: SecurityLookupCandidate[] = [];
 
   /** Emits the chosen listing, or null when the selection is removed */
-  @Output() candidateSelected = new EventEmitter<SecurityLookupCandidate>();
+  readonly candidateSelected = output<SecurityLookupCandidate>();
 
   /** The chosen listing; the dialog preselects it when only one exists */
   @Input() selectedCandidate: SecurityLookupCandidate;
@@ -124,7 +124,7 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase implem
   @Input() nameCandidate: SecurityLookupCandidate;
 
   /** Emits the listing whose name is taken over */
-  @Output() nameCandidateChange = new EventEmitter<SecurityLookupCandidate>();
+  readonly nameCandidateChange = output<SecurityLookupCandidate>();
 
   /** Column with the checkbox choosing the name taken over; the candidate has no such property */
   readonly takeOverNameField = 'takeOverName';

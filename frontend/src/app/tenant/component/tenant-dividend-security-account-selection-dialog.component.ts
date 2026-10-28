@@ -1,4 +1,4 @@
-import { afterNextRender, inject, Injector, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { afterNextRender, inject, Injector, Component, Input, ViewChild, output } from '@angular/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { Portfolio } from '../../entities/portfolio';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -69,7 +69,7 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   @Input() idsAccounts: IdsAccounts;
   @Input() visibleDialog;
   // Output for parent view
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
 
   @ViewChild('securityaccountTree', { static: true })
   securityaccountTree: TenantDividendAccountSelectionComponent;

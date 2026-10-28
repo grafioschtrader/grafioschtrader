@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, output } from '@angular/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -47,7 +47,7 @@ export class TaxYearCorrectionDialogComponent {
   @Input() suggestedYear: number;
   @Input() visibleDialog: boolean;
   // Output for parent view
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
 
   /** Guards against a double emit when both visibleChange and onHide fire for the same close. */
   private closeEmitted = false;

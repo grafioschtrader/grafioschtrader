@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, Injector, Input, OnChanges, OnInit, SimpleChanges, output } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -166,7 +166,7 @@ import { AppSettings } from '../../shared/app.settings';
 export class GtnetSecurityLookupTableComponent extends TableConfigBase implements OnInit, OnChanges {
   @Input() securities: SecurityGtnetLookupDTO[] = [];
 
-  @Output() securitySelected = new EventEmitter<SecurityGtnetLookupDTO>();
+  readonly securitySelected = output<SecurityGtnetLookupDTO>();
 
   selectedSecurity: SecurityGtnetLookupDTO;
 

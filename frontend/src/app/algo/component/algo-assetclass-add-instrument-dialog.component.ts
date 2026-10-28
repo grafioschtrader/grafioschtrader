@@ -1,5 +1,5 @@
 import { SecuritycurrencySearchBase } from '../../securitycurrency/component/securitycurrency.search.base';
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild, output } from '@angular/core';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MultipleRequestToOneService } from '../../shared/service/multiple.request.to.one.service';
@@ -49,7 +49,7 @@ export class AlgoAssetclassAddInstrumentDialogComponent extends Securitycurrency
   aaaitc: AlgoAssetclassAddInstrumentTableComponent;
 
   /** Emitted when the dialog closes; the hierarchy view then reloads to show the added instruments. */
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
 
   /**
    * Creates the search dialog for a custom category.

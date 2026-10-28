@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, inject, Input, OnChanges, Output, signal } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnChanges, signal, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
@@ -70,7 +70,7 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
   /** Tax year preselected for new rows, typically the year the dialog was opened from. */
   @Input() suggestedYear: number;
   /** Fires after any successful create/update/delete so the opener can reload the dividends report. */
-  @Output() dataChanged = new EventEmitter<void>();
+  readonly dataChanged = output<void>();
 
   private readonly destroyRef = inject(DestroyRef);
   private readSubscription?: Subscription;

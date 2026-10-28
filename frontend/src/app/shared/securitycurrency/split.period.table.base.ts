@@ -1,5 +1,5 @@
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { computed, DestroyRef, inject, Directive, EventEmitter, Injector, Input, Output, signal } from '@angular/core';
+import { computed, DestroyRef, inject, Directive, Injector, Input, signal, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -19,8 +19,8 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
   protected readonly destroyRef = inject(DestroyRef);
 
   @Input() maxRows: number;
-  @Output() editData: EventEmitter<T> = new EventEmitter<any>();
-  @Output() savedData: EventEmitter<SaveSecuritySuccess> = new EventEmitter<any>();
+  readonly editData = output<any>();
+  readonly savedData = output<any>();
 
   readonly selectedRow = signal<T>(null);
   dataChanged = false;

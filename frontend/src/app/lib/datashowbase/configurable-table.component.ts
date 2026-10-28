@@ -3,17 +3,16 @@ import {
   Component,
   ContentChild,
   ElementRef,
-  EventEmitter,
   inject,
   input,
   Input,
   NgZone,
   OnChanges,
   OnDestroy,
-  Output,
   SimpleChanges,
   TemplateRef,
-  ViewChild
+  ViewChild,
+  output
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -645,17 +644,17 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Emits when selection changes. Used for two-way binding with [(selection)].
    */
-  @Output() selectionChange = new EventEmitter<T | T[] | null>();
+  readonly selectionChange = output<T | T[] | null>();
 
   /**
    * Emits when a row is selected (user action).
    */
-  @Output() rowSelect = new EventEmitter<any>();
+  readonly rowSelect = output<any>();
 
   /**
    * Emits when a row is unselected (user action).
    */
-  @Output() rowUnselect = new EventEmitter<any>();
+  readonly rowUnselect = output<any>();
 
   // ============================================================================
   // Sorting Configuration
@@ -725,7 +724,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * Emits whenever the applied column filters change. The event is Optimus's filter event, its `filters` property is
    * the complete filter map of the table. Lets a parent persist and later restore what the user filtered for.
    */
-  @Output() filterChange = new EventEmitter<any>();
+  readonly filterChange = output<any>();
 
   /**
    * Reference to the Optimus table component for programmatic filter access.
@@ -777,7 +776,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Emits when pagination changes (page number or rows per page).
    */
-  @Output() pageChange = new EventEmitter<any>();
+  readonly pageChange = output<any>();
 
   // ============================================================================
   // Scrolling Configuration
@@ -868,12 +867,16 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Emits when a row is expanded. Event contains the row data.
    */
-  @Output() rowExpand = new EventEmitter<{ data: T }>();
+  readonly rowExpand = output<{
+    data: T;
+  }>();
 
   /**
    * Emits when a row is collapsed. Event contains the row data.
    */
-  @Output() rowCollapse = new EventEmitter<{ data: T }>();
+  readonly rowCollapse = output<{
+    data: T;
+  }>();
 
   // ============================================================================
   // Context Menu Configuration
@@ -1003,7 +1006,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Emits when a column is resized by the user.
    */
-  @Output() colResize = new EventEmitter<any>();
+  readonly colResize = output<any>();
 
   // ============================================================================
   // Drag and Drop
@@ -1012,12 +1015,18 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Emits when drag operation starts on a row.
    */
-  @Output() dragStart = new EventEmitter<{ event: DragEvent; data: T }>();
+  readonly dragStart = output<{
+    event: DragEvent;
+    data: T;
+  }>();
 
   /**
    * Emits when drag operation ends on a row.
    */
-  @Output() dragEnd = new EventEmitter<{ event: DragEvent; data: T }>();
+  readonly dragEnd = output<{
+    event: DragEvent;
+    data: T;
+  }>();
 
   // ============================================================================
   // Click Events
@@ -1027,7 +1036,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * Emits when the table container is clicked.
    * Useful for focus management and menu handling.
    */
-  @Output() componentClick = new EventEmitter<any>();
+  readonly componentClick = output<any>();
 
   // ============================================================================
   // Frozen Columns

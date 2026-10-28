@@ -1,5 +1,5 @@
 import { AppSettings } from '../../shared/app.settings';
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, Input, OnChanges, output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
@@ -51,7 +51,10 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase impleme
   @Input() scrollHeight = '220px';
 
   /** Emits the branch code and its new state when the reader opens or closes a branch. */
-  @Output() expandedChange = new EventEmitter<{ branch: string; open: boolean }>();
+  readonly expandedChange = output<{
+    branch: string;
+    open: boolean;
+  }>();
 
   treeNodes: TreeNode[] = [];
 

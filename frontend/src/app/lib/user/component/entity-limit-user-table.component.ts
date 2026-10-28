@@ -4,14 +4,13 @@ import { GlobalparameterService } from '../../services/globalparameter.service';
 import {
   Component,
   DestroyRef,
-  EventEmitter,
   inject,
   Injector,
   Input,
   OnChanges,
-  Output,
   signal,
-  SimpleChanges
+  SimpleChanges,
+  output
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 
@@ -93,7 +92,7 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements On
 
   @Input() user: User;
   // Master table must be informed about changes thru editing
-  @Output() dateChanged = new EventEmitter<ProcessedActionData>();
+  readonly dateChanged = output<ProcessedActionData>();
 
   /** Translated context menu of the selected limit, null without a selection */
   readonly contextMenuItems = signal<MenuItem[]>(null);

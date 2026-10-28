@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -49,10 +49,10 @@ export class AlgoAlertNotificationTableComponent extends TableConfigBase impleme
   @Input() rows: AlertNotification[] = [];
 
   /** Emits the id of the notification the user wants to be delivered again. */
-  @Output() retry = new EventEmitter<number>();
+  readonly retry = output<number>();
 
   /** Emits the ids of the notifications the user wants to delete; all of them are deletable. */
-  @Output() delete = new EventEmitter<number[]>();
+  readonly delete = output<number[]>();
 
   selectedNotifications: AlertNotification[] = [];
   contextMenuItems: MenuItem[] = [];

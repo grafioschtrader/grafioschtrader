@@ -2,10 +2,9 @@ import {
   AfterContentInit,
   Component,
   ContentChildren,
-  EventEmitter,
   Input,
   OnChanges,
-  Output,
+  output,
   QueryList,
   SimpleChanges
 } from '@angular/core';
@@ -53,8 +52,8 @@ export class StepsComponent implements AfterContentInit, OnChanges {
   @Input() activeIndex = 0;
   @Input() styleClass: string;
   @Input() stepClass: string;
-  @Output() activeIndexChange: EventEmitter<number> = new EventEmitter();
-  @Output() activeLabelChange = new EventEmitter<string>();
+  readonly activeIndexChange = output<number>();
+  readonly activeLabelChange = output<string>();
 
   @ContentChildren(StepComponent) steps: QueryList<StepComponent>;
 

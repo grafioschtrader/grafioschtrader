@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ViewChild, output } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -76,7 +76,7 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   /** Whether the parent security account is new (not yet persisted). */
   @Input() isNewSecurityAccount = false;
 
-  @Output() tradingPeriodsChange = new EventEmitter<SecaccountTradingPeriod[]>();
+  readonly tradingPeriodsChange = output<SecaccountTradingPeriod[]>();
 
   private inputTempIdCounter = -1000;
   private static get MIN_DATE(): Date {

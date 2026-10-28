@@ -1,5 +1,5 @@
 import { finalize, Subscription } from 'rxjs';
-import { DestroyRef, inject, signal, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
+import { DestroyRef, inject, signal, Component, Injector, Input, OnInit, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SecurityDividendsPosition } from '../../entities/view/securitydividends/security.dividends.position';
@@ -211,7 +211,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   }
 
   // Output
-  @Output() dateChanged = new EventEmitter<ProcessedActionData>();
+  readonly dateChanged = output<ProcessedActionData>();
 
   constructor(
     filterService: FilterService,

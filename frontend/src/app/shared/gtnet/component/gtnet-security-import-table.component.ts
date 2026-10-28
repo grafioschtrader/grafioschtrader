@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output, signal, ViewChild } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal, ViewChild, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
@@ -122,7 +122,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   editableTable: EditableTableComponent<GTNetSecurityImpPos>;
 
   @Input() selectedHead: GTNetSecurityImpHead;
-  @Output() positionChanged = new EventEmitter<void>();
+  readonly positionChanged = output<void>();
 
   readonly positions = signal<GTNetSecurityImpPos[]>([]);
   readonly selectedPosition = signal<GTNetSecurityImpPos>(null);

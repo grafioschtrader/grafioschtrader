@@ -1,14 +1,4 @@
-import {
-  Component,
-  ContentChild,
-  EventEmitter,
-  input,
-  Input,
-  OnChanges,
-  SimpleChanges,
-  Output,
-  TemplateRef
-} from '@angular/core';
+import { Component, ContentChild, input, Input, OnChanges, SimpleChanges, TemplateRef, output } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { toClassString } from '../helper/css-class.helper';
 import { FormsModule } from '@angular/forms';
@@ -344,7 +334,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   @Input() selection: TreeNode | null = null;
 
   /** Emits when selection changes. Used for two-way binding with [(selection)]. */
-  @Output() selectionChange = new EventEmitter<TreeNode | null>();
+  readonly selectionChange = output<TreeNode | null>();
 
   /**
    * Forwards the selection of the inner tree table, which types it for every selection mode, as the one node this
@@ -357,16 +347,16 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   }
 
   /** Emits when a tree node is selected (user action). */
-  @Output() nodeSelect = new EventEmitter<any>();
+  readonly nodeSelect = output<any>();
 
   /** Emits when a tree node is unselected (user action). */
-  @Output() nodeUnselect = new EventEmitter<any>();
+  readonly nodeUnselect = output<any>();
 
   /** A node was opened. Emitted so a caller can remember which branches the reader wants to see. */
-  @Output() nodeExpand = new EventEmitter<any>();
+  readonly nodeExpand = output<any>();
 
   /** A node was closed; the counterpart of {@link nodeExpand}. */
-  @Output() nodeCollapse = new EventEmitter<any>();
+  readonly nodeCollapse = output<any>();
 
   // ============================================================================
   // Sorting Configuration
@@ -503,7 +493,7 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   @Input() expansionColumnWidth = 40;
 
   /** Emits the node data when its detail row is opened. */
-  @Output() rowExpand = new EventEmitter<any>();
+  readonly rowExpand = output<any>();
 
   // ============================================================================
   // Locale Configuration
@@ -532,20 +522,20 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   // ============================================================================
 
   /** Emits when an editable checkbox value changes. Payload: {rowData, field, value}. */
-  @Output() checkboxChange = new EventEmitter<{
+  readonly checkboxChange = output<{
     rowData: any;
     field: ColumnConfig;
     value: boolean;
   }>();
 
   /** Emits when the tree table container is clicked (left-click or right-click). */
-  @Output() componentClick = new EventEmitter<any>();
+  readonly componentClick = output<any>();
 
   /** Emits when a cell edit is completed (Enter/Tab/click outside). */
-  @Output() cellEditComplete = new EventEmitter<TreeTableCellEditEvent>();
+  readonly cellEditComplete = output<TreeTableCellEditEvent>();
 
   /** Emits when a cell edit is cancelled (Escape key). */
-  @Output() cellEditCancel = new EventEmitter<TreeTableCellEditEvent>();
+  readonly cellEditCancel = output<TreeTableCellEditEvent>();
 
   // ============================================================================
   // Internal State

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, output } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { merge, Subscription } from 'rxjs';
 import { FormNotifier } from '../../models/form.notifier';
@@ -92,7 +92,7 @@ export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
   @Input() formGroupDefinition: FormGroupDefinition;
   @Input() translateService: TranslateService;
 
-  @Output() submitBt: EventEmitter<any> = new EventEmitter<any>();
+  readonly submitBt = output<any>();
 
   form: UntypedFormGroup;
 

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
+import { Component, Input, OnInit, signal, output } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -60,7 +60,7 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
 export class UserAccessTokenCreateDialogComponent extends SimpleEditBase implements OnInit {
   @Input() formDefinition: ClassDescriptorInputAndShow;
   /** Emitted as soon as the server created the token, while the dialog still shows it. */
-  @Output() tokenCreated = new EventEmitter<void>();
+  readonly tokenCreated = output<void>();
   /** Set once the server created the token; it is held only as long as this dialog is open. */
   readonly created = signal<UserAccessTokenCreated>(null);
 

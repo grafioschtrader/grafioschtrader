@@ -2,20 +2,19 @@ import {
   ChangeDetectorRef,
   Component,
   ContentChild,
-  EventEmitter,
   inject,
   input,
   Input,
   OnChanges,
   OnInit,
-  Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
   signal,
   afterNextRender,
   Injector,
-  DestroyRef
+  DestroyRef,
+  output
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
@@ -468,7 +467,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   private emittedRows?: T[];
 
   /** Emits when data array changes (for two-way binding) */
-  @Output() dataChange = new EventEmitter<T[]>();
+  readonly dataChange = output<T[]>();
 
   /** Array of column configurations defining table structure */
   @Input() fields: ColumnConfig[] = [];
@@ -495,13 +494,13 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   @Input() selection: T | null = null;
 
   /** Emits when selection changes */
-  @Output() selectionChange = new EventEmitter<T | null>();
+  readonly selectionChange = output<T | null>();
 
   /** Emits when a row is selected */
-  @Output() rowSelect = new EventEmitter<any>();
+  readonly rowSelect = output<any>();
 
   /** Emits when a row is unselected */
-  @Output() rowUnselect = new EventEmitter<any>();
+  readonly rowUnselect = output<any>();
 
   // ============================================================================
   // Sorting Configuration
@@ -664,34 +663,38 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   // ============================================================================
 
   /** Emits when user initiates row editing */
-  @Output() rowEditInit = new EventEmitter<RowEditEvent<T>>();
+  readonly rowEditInit = output<RowEditEvent<T>>();
 
   /** Emits when user saves row edits (parent should handle persistence) */
-  @Output() rowEditSave = new EventEmitter<RowEditSaveEvent<T>>();
+  readonly rowEditSave = output<RowEditSaveEvent<T>>();
 
   /** Emits when user cancels row editing */
-  @Output() rowEditCancel = new EventEmitter<RowEditEvent<T>>();
+  readonly rowEditCancel = output<RowEditEvent<T>>();
 
   /** Emits when a new row is added via context menu */
-  @Output() rowAdded = new EventEmitter<RowEditEvent<T>>();
+  readonly rowAdded = output<RowEditEvent<T>>();
 
   /** Emits when a row delete button is clicked. Parent handles actual deletion logic. */
-  @Output() rowDelete = new EventEmitter<RowEditEvent<T>>();
+  readonly rowDelete = output<RowEditEvent<T>>();
 
   /** Emits when a field value changes during editing */
-  @Output() fieldValueChange = new EventEmitter<FieldValueChangeEvent<T>>();
+  readonly fieldValueChange = output<FieldValueChangeEvent<T>>();
 
   /** Emits when validation fails during save attempt */
-  @Output() validationError = new EventEmitter<ValidationErrorEvent<T>>();
+  readonly validationError = output<ValidationErrorEvent<T>>();
 
   /** Emits when the table container is clicked */
-  @Output() componentClick = new EventEmitter<any>();
+  readonly componentClick = output<any>();
 
   /** Emits when a row is expanded. */
-  @Output() rowExpand = new EventEmitter<{ data: T }>();
+  readonly rowExpand = output<{
+    data: T;
+  }>();
 
   /** Emits when a row is collapsed. */
-  @Output() rowCollapse = new EventEmitter<{ data: T }>();
+  readonly rowCollapse = output<{
+    data: T;
+  }>();
 
   // ============================================================================
   // Internal State

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ViewChild, output } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -80,7 +80,7 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
   @Input() feedSupport: string;
   @Input() responseFormat: string;
   @Input() editable: boolean = true;
-  @Output() fieldMappingsChange = new EventEmitter<GenericConnectorFieldMapping[]>();
+  readonly fieldMappingsChange = output<GenericConnectorFieldMapping[]>();
 
   constructor(
     filterService: FilterService,

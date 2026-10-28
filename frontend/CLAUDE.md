@@ -75,9 +75,12 @@ periodic `ApplicationRef.tick()`.
   `imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]`. The tuple includes the form component,
   `DisableControlDirective`, `NgxErrorsDirective` and `NgxErrorDirective`. The Angular API ratchet forbids own `@NgModule`
   declarations.
+- **Outputs use `readonly name = output<T>()`** and emit with `name.emit(value)`. Keep an existing public alias with
+  `output<T>({ alias: 'publicName' })`. The Angular API ratchet forbids `@Output` and `new EventEmitter` in both hosts
+  and the library.
 - **Signal APIs only in new and reworked code.** Use `input()`, `output()`, `model()`, `viewChild()` and
   `contentChild()`; never add an `@Input`, `@Output`, `EventEmitter`, `@ViewChild` or `@ContentChild`. The remaining
-  decorators are converted in one sweep with the Angular schematics (`output-migration`, `signal-queries-migration`,
+  input and query decorators are converted with the Angular schematics (`signal-queries-migration`,
   `signal-input-migration`), so do not convert unrelated components by hand on the side. `dynamic-form` stays on
   reactive forms, because its fields are built at runtime from `ClassDescriptorInputAndShow`; a new form whose fields
   are known statically may use Signal Forms.
@@ -679,8 +682,8 @@ PascalCase constant.
 
 **Key Differences**:
 
-- Uses `DynamicDialogConfig` and `DynamicDialogRef` instead of `@Input/@Output`
-- Closes via `dynamicDialogRef.close()` instead of `EventEmitter`
+- Uses `DynamicDialogConfig` and `DynamicDialogRef` to pass data and return results
+- Closes via `dynamicDialogRef.close()` instead of emitting `closeDialog`
 - Data passed via `dynamicDialogConfig.data`
 
 **Example**:

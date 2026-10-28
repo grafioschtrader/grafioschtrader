@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, output } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -57,8 +57,8 @@ import { GenericConnectorFieldMappingTableComponent } from './generic-connector-
 export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBase implements OnChanges {
   @Input() endpoint: GenericConnectorEndpoint;
   @Input() editable: boolean = true;
-  @Output() editEndpoint = new EventEmitter<void>();
-  @Output() fieldMappingsChange = new EventEmitter<GenericConnectorFieldMapping[]>();
+  readonly editEndpoint = output<void>();
+  readonly fieldMappingsChange = output<GenericConnectorFieldMapping[]>();
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);

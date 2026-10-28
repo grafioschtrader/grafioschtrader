@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
+import { Component, Injector, Input, OnInit, output } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -55,7 +55,7 @@ export class TenantDividendsCashaccountExtendedComponent extends TenantDividends
   @Input() year: number;
   @Input() cashAccountPositions: CashAccountPosition[];
 
-  @Output() dateChanged = new EventEmitter<ProcessedActionData>();
+  readonly dateChanged = output<ProcessedActionData>();
 
   cashAccountTableInputFilter: CashAccountTableInputFilter;
 

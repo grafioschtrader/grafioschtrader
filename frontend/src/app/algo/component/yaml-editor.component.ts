@@ -2,14 +2,13 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter,
   Input,
   OnDestroy,
   OnChanges,
   SimpleChanges,
-  Output,
   ViewChild,
-  signal
+  signal,
+  output
 } from '@angular/core';
 import * as yaml from 'js-yaml';
 import { HttpClient } from '@angular/common/http';
@@ -71,8 +70,8 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
 
   @Input() format: 'FEES' | 'FEES_ACCOUNT' | 'TOKENS' | 'CALENDAR' | 'TAXES' | 'STRATEGY' | 'CUSTODY';
   @Input() activatable = true;
-  @Output() syntaxValidChange = new EventEmitter<boolean>();
-  @Output() validationPendingChange = new EventEmitter<boolean>();
+  readonly syntaxValidChange = output<boolean>();
+  readonly validationPendingChange = output<boolean>();
   readonly diagnostics = signal<YamlDiagnostic[]>([]);
   readonly validated = signal(false);
   private readonly validationPending = signal(false);
@@ -176,7 +175,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
     return this._value;
   }
 
-  @Output() valueChange = new EventEmitter<string>();
+  readonly valueChange = output<string>();
 
   /** JSON Schema object for autocompletion and hover documentation */
   @Input() schema: any;

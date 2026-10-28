@@ -1,14 +1,4 @@
-import {
-  afterNextRender,
-  DestroyRef,
-  Directive,
-  EventEmitter,
-  inject,
-  Injector,
-  Input,
-  Output,
-  ViewChild
-} from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, inject, Injector, Input, ViewChild, output } from '@angular/core';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FeedIdentifier, FeedSupport, IFeedConnector } from './ifeed.connector';
@@ -40,7 +30,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   // Access child components
   @ViewChild(DynamicFormComponent, { static: true }) dynamicForm: DynamicFormComponent;
   // Output for parent view
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
   connectorSubscribe: { [fieldName: string]: Subscription } = {};
   feedPriceConnectors: IFeedConnector[];
   protected readonly ID_CONNECTOR_HISTORY = 'idConnectorHistory';

@@ -1,15 +1,4 @@
-import {
-  Component,
-  computed,
-  DestroyRef,
-  EventEmitter,
-  inject,
-  Injector,
-  Input,
-  OnChanges,
-  Output,
-  signal
-} from '@angular/core';
+import { Component, computed, DestroyRef, inject, Injector, Input, OnChanges, signal, output } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { SecurityService } from '../service/security.service';
@@ -79,7 +68,7 @@ import { TableModule } from '@openng/optimus-ui/table';
 export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase implements OnChanges {
   @Input() historyquoteQualityIds: HistoryquoteQualityIds;
   @Input() groupTitle: string;
-  @Output() changedIdSecurity = new EventEmitter<SecurityIdWithCurrency>();
+  readonly changedIdSecurity = output<SecurityIdWithCurrency>();
 
   readonly selectedSecurity = signal<IHistoryquoteQualityWithSecurityProp>(null);
   readonly hqwspList = signal<IHistoryquoteQualityWithSecurityProp[]>([]);

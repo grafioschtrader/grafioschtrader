@@ -31,7 +31,6 @@ nennt das Ergebnis eines Probelaufs mit `--dry-run`.
 | Bereich | Heute | Angular-22-Ziel | Schematic |
 | --- | --- | --- | --- |
 | Eingaben | 447 × `@Input()` in 157 Dateien (210 davon in `lib`), 40 × `input()` | `input()`, `input.required()`, `model()` | `signal-input-migration`: 392 von 438 |
-| Ausgaben | 89 × `@Output()` / `new EventEmitter` in 47 Dateien, 3 × `output()` | `output()` | `output-migration`: 87 von 87 |
 | View-/Content-Queries | 91 × `@ViewChild(ren)`, 8 × `@ContentChild(ren)`, 1 × `viewChild()` | `viewChild()`, `viewChildren()`, `contentChild()` | `signal-queries-migration`: 86 von 94 |
 | Dependency Injection | 534 Konstruktoren, 164 × `inject()` | `inject()` | `inject-migration`: 379 Dateien |
 | Services | 114 × `@Injectable`, davon 15 `providedIn: 'root'`; rund 95 Services einzeln in `app.config.ts` registriert | `@Service()` | `service-migration` |
@@ -77,7 +76,7 @@ Jede Stufe erweitert den Test um ihre Muster, sobald der Bestand bereinigt ist:
 
 | Stufe | Verbotenes Muster |
 | --- | --- |
-| §4.2 | `@Input(`, `@Output(`, `new EventEmitter`, `@ViewChild(`, `@ViewChildren(`, `@ContentChild(`, `@ContentChildren(` |
+| §4.2 | `@Input(`, `@ViewChild(`, `@ViewChildren(`, `@ContentChild(`, `@ContentChildren(` |
 | §4.3 | Konstruktor mit Parametern in einer Klasse mit `@Component`, `@Directive`, `@Pipe` oder `@Service`; `@Injectable()` außerhalb der Ausnahmeliste von §4.3 |
 | §4.4 | `new BehaviorSubject`; `activatedRoute.params` und `activatedRoute.paramMap` |
 
@@ -104,9 +103,8 @@ Entscheidung.
 
 Ausführung in dieser Reihenfolge, jeweils ein Commit:
 
-1. `ng g @angular/core:output-migration` – alle 87 Ausgaben.
-2. `ng g @angular/core:signal-queries-migration` – 86 von 94 Queries.
-3. `ng g @angular/core:signal-input-migration` – 392 von 438 Eingaben.
+1. `ng g @angular/core:signal-queries-migration` – 86 von 94 Queries.
+2. `ng g @angular/core:signal-input-migration` – 392 von 438 Eingaben.
 
 Für die verbleibenden 46 Eingaben und 8 Queries listet ein erneuter Lauf mit `--insert-todos` die Gründe. Sie werden
 nach diesen Regeln von Hand umgestellt:

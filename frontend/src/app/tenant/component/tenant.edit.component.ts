@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Directive, EventEmitter, Output, ViewChild } from '@angular/core';
+import { DestroyRef, inject, Directive, ViewChild, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -35,7 +35,7 @@ export abstract class TenantEditComponent {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
   // Output for parent view
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
 
   configObject: { [name: string]: FieldConfig };
   config: FieldConfig[] = [];

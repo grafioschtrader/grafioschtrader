@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { Component, DestroyRef, inject, Input, signal, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -100,7 +100,7 @@ export class UDFFillProposalsDialogComponent {
   @Input() visibleDialog: boolean;
 
   /** Emits when the dialog closes */
-  @Output() closeDialog = new EventEmitter<void>();
+  readonly closeDialog = output<void>();
 
   readonly proposals = signal<UDFFillProposal[]>([]);
   /** Securities whose proposal is ticked; every change publishes a new set */

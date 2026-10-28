@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, inject, Injector, Input, OnInit, Output, signal } from '@angular/core';
+import { Component, DestroyRef, inject, Injector, Input, OnInit, signal, output } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { TableConfigBase } from '../../datashowbase/table.config.base';
@@ -79,7 +79,7 @@ import { BaseSettings } from '../../base.settings';
 export class GTNetConfigEntityTableComponent extends TableConfigBase implements OnInit {
   @Input() gtNetEntities: GTNetEntity[];
   @Input() exchangeKindTypes: ExchangeKindTypeInfo[] = [];
-  @Output() dataChanged = new EventEmitter<ProcessedActionData>();
+  readonly dataChanged = output<ProcessedActionData>();
 
   readonly configEntities = signal<GTNetConfigEntityDisplay[]>([]);
   readonly selectedEntity = signal<GTNetConfigEntityDisplay>(null);

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild, output } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -59,7 +59,7 @@ export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearc
   waitc: WatchlistAddInstrumentTableComponent;
 
   /** Event emitted when the dialog is closed, providing the result of the operation. */
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
 
   /**
    * Creates an instance of WatchlistAddInstrumentDialogComponent.

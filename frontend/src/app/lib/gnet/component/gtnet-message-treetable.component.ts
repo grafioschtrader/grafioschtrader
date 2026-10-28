@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output, signal, ViewChild } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal, ViewChild, output } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { FormsModule } from '@angular/forms';
@@ -212,7 +212,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   @Input() formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
   /** Controls whether the filter row is displayed. Default is true. */
   @Input() showFilter: boolean = true;
-  @Output() dataChanged = new EventEmitter<ProcessedActionData>();
+  readonly dataChanged = output<ProcessedActionData>();
   @ViewChild('cm') contextMenu: any;
   @ViewChild('tt') treeTable: TreeTable;
 

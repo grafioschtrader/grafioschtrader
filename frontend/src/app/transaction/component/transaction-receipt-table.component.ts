@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Injector, input, computed, effect, signal, untracked, Output } from '@angular/core';
+import { Component, Injector, input, computed, effect, signal, untracked, output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FilterService, TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableModule } from '@openng/optimus-ui/treetable';
@@ -97,7 +97,7 @@ export class TransactionReceiptTableComponent extends TableConfigBase {
   readonly marginBased = input(false);
 
   /** Emits the currently checked transactions whenever the selection changes. */
-  @Output() selectedChange = new EventEmitter<Transaction[]>();
+  readonly selectedChange = output<Transaction[]>();
 
   readonly selected = signal<Transaction[]>([]);
   readonly selectedNodes = signal<TreeNode[]>([]);

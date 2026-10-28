@@ -1,6 +1,18 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DestroyableInjector, Injector, runInInjectionContext } from '@angular/core';
 import { Subject, throwError } from 'rxjs';
 import { YamlEditorComponent } from './yaml-editor.component';
+
+let injector: DestroyableInjector;
+beforeEach(() => {
+  injector = Injector.create({ providers: [] });
+});
+afterEach(() => injector.destroy());
+
+/** Supplies the context required by outputs while keeping schema and validation tests free of rendering. */
+function createEditor(...args: ConstructorParameters<typeof YamlEditorComponent>): YamlEditorComponent {
+  return runInInjectionContext(injector, () => new YamlEditorComponent(...args));
+}
 
 const TAX_SCHEMA = {
   properties: {
@@ -36,7 +48,7 @@ function model(...lines: string[]): { getLineContent(line: number): string } {
 
 describe('YamlEditorComponent schema assistance', () => {
   function editor(): any {
-    const editor = new YamlEditorComponent() as any;
+    const editor = createEditor() as any;
     editor.schema = TAX_SCHEMA;
     return editor;
   }
@@ -87,7 +99,7 @@ describe('YamlEditorComponent schema assistance', () => {
 
 describe('YAML validation before submission', () => {
   it('rejects syntax errors synchronously and accepts a correction', () => {
-    const component = new YamlEditorComponent();
+    const component = createEditor();
     component.value = 'rules: [';
     expect(component.checkSyntax()).toBe(false);
     expect(component.diagnostics()[0].line).toBeGreaterThan(0);
@@ -98,7 +110,7 @@ describe('YAML validation before submission', () => {
 
   it('never authorizes a save or displays errors from an older text revision', async () => {
     const response = new Subject<any[]>();
-    const component = new YamlEditorComponent({ post: () => response } as any);
+    const component = createEditor({ post: () => response } as any);
     component.getHeaders = () => ({ headers: null });
     component.format = 'FEES';
     component.value = 'rules: []';
@@ -112,7 +124,7 @@ describe('YAML validation before submission', () => {
 
   it('does not send invalid syntax to the server and keeps request failures visible', async () => {
     const post = vi.fn();
-    const component = new YamlEditorComponent({ post } as any);
+    const component = createEditor({ post } as any);
     component.format = 'TOKENS';
     component.value = 'seed: [';
     expect(await component.validateForSubmit()).toBe(false);
@@ -126,7 +138,7 @@ describe('YAML validation before submission', () => {
   });
 
   it('resolves account-name mappings and distinguishes custody expression paths', () => {
-    const component = new YamlEditorComponent() as any;
+    const component = createEditor() as any;
     component.schema = { type: 'object', additionalProperties: { properties: { accruedFees: { type: 'number' } } } };
     expect(component.findSchemaContext(model("'My account':", '  '), 2, 2).properties).toHaveProperty('accruedFees');
     expect(

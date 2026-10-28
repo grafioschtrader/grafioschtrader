@@ -1,4 +1,4 @@
-import { DestroyRef, inject, signal, Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { DestroyRef, inject, signal, Component, OnInit, output } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -88,7 +88,7 @@ export class AlgoAlertDiagnosticsDialogComponent implements OnInit {
   }
 
   protected readonly destroyRef = inject(DestroyRef);
-  @Output() closed = new EventEmitter<void>();
+  readonly closed = output<void>();
   readonly evaluations = signal<AlertEvaluation[]>([]);
   readonly trading = signal<any[]>([]);
   readonly notifications = signal<AlertNotification[]>([]);

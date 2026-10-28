@@ -1,14 +1,13 @@
 import {
   afterNextRender,
   Component,
-  EventEmitter,
   Injector,
   Input,
   OnChanges,
   OnDestroy,
-  Output,
   signal,
-  SimpleChanges
+  SimpleChanges,
+  output
 } from '@angular/core';
 
 import { Historyquote } from '../../entities/historyquote';
@@ -171,7 +170,7 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
 })
 export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquote> implements OnChanges, OnDestroy {
   @Input() timeSeriesParams: TimeSeriesParam[];
-  @Output() showLegacyRequested = new EventEmitter<void>();
+  readonly showLegacyRequested = output<void>();
 
   minDate: Date = new Date(
     sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK

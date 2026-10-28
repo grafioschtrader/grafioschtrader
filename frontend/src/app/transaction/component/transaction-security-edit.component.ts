@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild, signal } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, signal, output } from '@angular/core';
 
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
@@ -112,7 +112,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   // Access the form
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  readonly closeDialog = output<ProcessedActionData>();
 
   // Form configuration
   config: FieldFormGroup[] = [];

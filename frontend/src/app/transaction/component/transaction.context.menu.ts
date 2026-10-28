@@ -6,7 +6,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { TransactionService } from '../service/transaction.service';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { DestroyRef, Directive, EventEmitter, inject, Injector, Output, ViewChild, signal } from '@angular/core';
+import { DestroyRef, Directive, inject, Injector, ViewChild, signal, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { Security } from '../../entities/security';
@@ -49,7 +49,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   @ViewChild('cm') contextMenu: any;
 
   /** Emits processed action data when transaction operations complete */
-  @Output() dateChanged = new EventEmitter<ProcessedActionData>();
+  readonly dateChanged = output<ProcessedActionData>();
 
   /** Currently selected transaction in the table */
   readonly selectedTransaction = signal<Transaction>(null);
