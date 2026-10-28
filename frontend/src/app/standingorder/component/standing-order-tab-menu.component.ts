@@ -20,6 +20,8 @@ import { StandingOrderService } from '../service/standing.order.service';
   imports: [SharedTabMenuComponent, RouterOutlet, TranslateModule]
 })
 export class StandingOrderTabMenuComponent implements OnInit {
+  private standingOrderService = inject(StandingOrderService);
+
   private readonly destroyRef = inject(DestroyRef);
   readonly simulationTenant = signal(false);
   readonly tabs = signal<TabItem[]>([]);
@@ -35,8 +37,6 @@ export class StandingOrderTabMenuComponent implements OnInit {
   };
 
   defaultRoute = AppSettings.TENANT_STANDING_ORDER_CASHACCOUNT;
-
-  constructor(private standingOrderService: StandingOrderService) {}
 
   ngOnInit(): void {
     this.standingOrderService

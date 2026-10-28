@@ -1,22 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TradingDaysMinus } from '../../entities/trading.days.minus';
 import { AppSettings } from '../../shared/app.settings';
 import { catchError } from 'rxjs/operators';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { SaveTradingDays } from '../../tradingcalendar/service/trading.days.plus.service';
 import { TradingDaysWithDateBoundaries } from '../../tradingcalendar/model/trading.days.with.date.boundaries';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class TradingDaysMinusService extends AuthServiceWithLogout<TradingDaysMinus> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getTradingDaysMinusByStockexchangeAndYear(
     idStockexchange: number,
     year: number

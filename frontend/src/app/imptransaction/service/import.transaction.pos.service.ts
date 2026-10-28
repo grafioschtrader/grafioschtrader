@@ -1,26 +1,19 @@
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { ImportTransactionPos } from '../../entities/import.transaction.pos';
-import { Injectable } from '@angular/core';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppSettings } from '../../shared/app.settings';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class ImportTransactionPosService
   extends AuthServiceWithLogout<ImportTransactionPos>
   implements DeleteService, ServiceEntityUpdate<ImportTransactionPos>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getCombineTemplateAndImpTransPosListByTransactionHead(
     idTransactionHead: number
   ): Observable<CombineTemplateAndImpTransPos[]> {

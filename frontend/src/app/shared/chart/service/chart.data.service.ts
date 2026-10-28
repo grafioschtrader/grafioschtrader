@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ChartData } from '../plotly.helper';
 
@@ -9,7 +9,7 @@ import { ChartData } from '../plotly.helper';
  * 2) chart component --> request data from Data provider
  * 3) Data provider Component --> sends data to chart component
  */
-@Injectable()
+@Service()
 export class ChartDataService {
   // lastCallBackFN: (traceIndex: number, dataPointIndex: number) => void;
   private idShownChart: string = null;

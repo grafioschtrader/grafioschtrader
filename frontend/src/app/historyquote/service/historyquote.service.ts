@@ -1,16 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 
 import { Historyquote, HistoryquoteCreateType } from '../../entities/historyquote';
 
 import { AppSettings } from '../../shared/app.settings';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Observable } from 'rxjs';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpParams } from '@angular/common/http';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { TaFormDefinition, TaTraceIndicatorData } from '../component/indicator.definitions';
 import { HistoryquoteChartResponse } from '../../entities/projection/historyquote.chart.response';
 import { HistoryquoteDateClose } from '../../entities/projection/historyquote.date.close';
@@ -20,15 +18,11 @@ import { ISecuritycurrencyIdDateClose } from '../../entities/projection/i.securi
 import { BaseSettings } from '../../lib/base.settings';
 import { HistoryquoteDeleteBounds } from '../../securitycurrency/model/historyquote.quality.group';
 
-@Injectable()
+@Service()
 export class HistoryquoteService
   extends AuthServiceWithLogout<Historyquote>
   implements ServiceEntityUpdate<Historyquote>, DeleteService, UploadServiceFunction
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getHistoryqoutesByIdSecuritycurrencyWithMissing(
     idSecuritycurrency: number,
     isCurrency: boolean

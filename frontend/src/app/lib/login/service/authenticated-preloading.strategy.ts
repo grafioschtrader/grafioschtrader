@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { PreloadingStrategy, Route } from '@angular/router';
 import { EMPTY, Observable, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -12,7 +12,7 @@ import { GlobalSessionNames } from '../../global.session.names';
  * The router asks the strategy again after every navigation, so the navigation that follows the login starts the
  * preloading. Each host lists this class among its providers.
  */
-@Injectable()
+@Service()
 export class AuthenticatedPreloadingStrategy implements PreloadingStrategy {
   /** Upper bound for the wait on an idle period, after which the chunks are requested anyway. */
   private static readonly IDLE_TIMEOUT_MS = 2000;

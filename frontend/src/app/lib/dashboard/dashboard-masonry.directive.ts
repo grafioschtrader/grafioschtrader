@@ -1,4 +1,14 @@
-import { AfterViewInit, Directive, ElementRef, NgZone, OnDestroy, input, effect, untracked } from '@angular/core';
+import {
+  AfterViewInit,
+  Directive,
+  ElementRef,
+  NgZone,
+  OnDestroy,
+  input,
+  effect,
+  untracked,
+  inject
+} from '@angular/core';
 
 /**
  * Packs the dashboard cards column by column instead of row by row.
@@ -21,6 +31,8 @@ import { AfterViewInit, Directive, ElementRef, NgZone, OnDestroy, input, effect,
   host: { '[class.dashboard-masonry]': 'dashboardMasonry()' }
 })
 export class DashboardMasonryDirective implements AfterViewInit, OnDestroy {
+  private zone = inject(NgZone);
+
   /** Height of one raster row in pixels; a card spans as many of them as it is tall. */
   private static readonly ROW_HEIGHT = 1;
 
@@ -35,10 +47,9 @@ export class DashboardMasonryDirective implements AfterViewInit, OnDestroy {
   private cards: MutationObserver;
   private frame = 0;
 
-  constructor(
-    host: ElementRef<HTMLElement>,
-    private zone: NgZone
-  ) {
+  constructor() {
+    const host = inject<ElementRef<HTMLElement>>(ElementRef);
+
     this.grid = host.nativeElement;
 
     effect(() => {

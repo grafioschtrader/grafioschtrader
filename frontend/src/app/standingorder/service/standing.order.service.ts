@@ -1,12 +1,9 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import {
   QuoteToleranceRange,
   StandingOrder,
@@ -17,15 +14,11 @@ import { Transaction } from '../../entities/transaction';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class StandingOrderService
   extends AuthServiceWithLogout<StandingOrder>
   implements DeleteService, ServiceEntityUpdate<StandingOrder>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getAllForTenant(): Observable<StandingOrder[]> {
     return <Observable<StandingOrder[]>>(
       this.httpClient

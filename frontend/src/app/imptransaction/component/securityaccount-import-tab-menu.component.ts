@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 
 import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -34,6 +34,11 @@ import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navi
   imports: [RouterModule, TabsModule, TranslateModule]
 })
 export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+  private gps = inject(GlobalparameterService);
+  private treeNavState = inject(TreeNavigationStateService);
+
   tabs: TabItem[] = [];
   readonly activeIndex = signal(0);
 
@@ -41,13 +46,6 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
   private successFailedImportTransParam: any = null;
   private routeParamSubscribe: Subscription;
   private initialized = false;
-
-  constructor(
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private gps: GlobalparameterService,
-    private treeNavState: TreeNavigationStateService
-  ) {}
 
   ngOnInit(): void {
     this.tabs = [

@@ -2,16 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DestroyableInjector, Injector, runInInjectionContext } from '@angular/core';
 import { Subject, throwError } from 'rxjs';
 import { YamlEditorComponent } from './yaml-editor.component';
+import { HttpClient } from '@angular/common/http';
 
-let injector: DestroyableInjector;
+let injectors: DestroyableInjector[];
 beforeEach(() => {
-  injector = Injector.create({ providers: [] });
+  injectors = [];
 });
-afterEach(() => injector.destroy());
+afterEach(() => injectors.forEach((injector) => injector.destroy()));
 
 /** Supplies the context required by outputs while keeping schema and validation tests free of rendering. */
-function createEditor(...args: ConstructorParameters<typeof YamlEditorComponent>): YamlEditorComponent {
-  return runInInjectionContext(injector, () => new YamlEditorComponent(...args));
+function createEditor(http: HttpClient | null = null): YamlEditorComponent {
+  const injector = Injector.create({ providers: [{ provide: HttpClient, useValue: http }] });
+  injectors.push(injector);
+  return runInInjectionContext(injector, () => new YamlEditorComponent());
 }
 
 const TAX_SCHEMA = {

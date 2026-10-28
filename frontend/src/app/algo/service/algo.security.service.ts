@@ -2,24 +2,17 @@ import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service
 import { AlgoSecurity, AlgoSecurityStrategyImplType } from '../model/algo.security';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Observable } from 'rxjs';
 import { AppSettings } from '../../shared/app.settings';
 import { catchError } from 'rxjs/operators';
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class AlgoSecurityService
   extends AuthServiceWithLogout<AlgoSecurity>
   implements DeleteService, ServiceEntityUpdate<AlgoSecurity>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getAllForTenant(): Observable<AlgoSecurity[]> {
     return <Observable<AlgoSecurity[]>>(
       this.httpClient

@@ -1,4 +1,4 @@
-import { Component, signal, output, input, linkedSignal } from '@angular/core';
+import { Component, signal, output, input, linkedSignal, inject } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -62,6 +62,9 @@ import { ProcessedAction } from '../../lib/types/processed.action';
   `
 })
 export class GtnetSecurityLookupDialogComponent {
+  private lookupService = inject(GtnetSecurityLookupService);
+  private translateService = inject(TranslateService);
+
   readonly visibleDialogInput = input(false, { alias: 'visibleDialog' });
   readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
   readonly isin = input<string>(undefined);
@@ -79,11 +82,6 @@ export class GtnetSecurityLookupDialogComponent {
 
   /** Subscription to the current lookup request, cancelled on dialog close or new search */
   private lookupSubscription: Subscription;
-
-  constructor(
-    private lookupService: GtnetSecurityLookupService,
-    private translateService: TranslateService
-  ) {}
 
   /**
    * Starts the search when the dialog has opened. Optimus UI emits onShow at the end of the enter motion; the state

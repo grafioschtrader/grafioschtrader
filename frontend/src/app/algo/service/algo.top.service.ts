@@ -1,15 +1,12 @@
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { AlgoTop } from '../model/algo.top';
 import { AlgoHierarchyDto } from '../model/algo-hierarchy-dto';
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { Observable } from 'rxjs';
 import { AppSettings } from '../../shared/app.settings';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import {
   AlgoTopCreate,
   AlgoTopCreateFromPortfolio,
@@ -17,15 +14,11 @@ import {
 } from '../../entities/backend/algo.top.create';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class AlgoTopService
   extends AuthServiceWithLogout<AlgoTop>
   implements DeleteService, ServiceEntityUpdate<AlgoTop>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getAlgoTopByIdTenantOrderByName(): Observable<AlgoTop[]> {
     return <Observable<AlgoTop[]>>(
       this.httpClient

@@ -47,7 +47,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
 
   // connectorFieldConfig: FieldConfig[];
 
-  protected constructor() {
+  constructor() {
     super();
     this.destroyRef.onDestroy(() => this.dialogSession.unsubscribe());
   }

@@ -68,18 +68,16 @@ type PageState = 'checking' | 'consent' | 'error' | 'redirecting';
   `
 })
 export class McpOAuthAuthorizeComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private mcpOAuthService = inject(McpOAuthService);
+
   readonly state = signal<PageState>('checking');
   readonly errorKey = signal<string>(null);
   readonly validation = signal<OAuthValidationResponse>(null);
   readonly deciding = signal(false);
 
   private readonly destroyRef = inject(DestroyRef);
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private mcpOAuthService: McpOAuthService
-  ) {}
 
   ngOnInit(): void {
     if (!sessionStorage.getItem(GlobalSessionNames.JWT)) {

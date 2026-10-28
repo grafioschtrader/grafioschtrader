@@ -1,26 +1,20 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { WatchlistIndicatorColumn, SecuritycurrencyIndicatorGroup } from '../model/watchlist-indicator';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 
 /** Tenant-owned indicator definition CRUD and atomic default/order operations. */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class WatchlistIndicatorService
   extends AuthServiceWithLogout<WatchlistIndicatorColumn>
   implements DeleteService, ServiceEntityUpdate<WatchlistIndicatorColumn>
 {
   private readonly url = BaseSettings.API_ENDPOINT + 'watchlistindicatorcolumn';
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
   markColors(): Observable<{ key: string; value: string }[]> {
     return this.httpClient.get<{ key: string; value: string }[]>(this.url + '/markcolors', this.getHeaders());
   }

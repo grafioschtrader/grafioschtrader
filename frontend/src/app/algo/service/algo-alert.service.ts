@@ -1,9 +1,6 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { catchError } from 'rxjs/operators';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
 export interface StrategyAssignment {
   idAlgoRuleStrategy: number;
@@ -67,12 +64,9 @@ export interface AlgoTopAlertGroup {
 }
 
 /** Tenant-scoped live alert diagnostics and explicit retry actions. */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AlgoAlertService extends AuthServiceWithLogout<AlertNotification> {
   private endpoint = `${BaseSettings.API_ENDPOINT}algoalerts`;
-  constructor(login: LoginService, http: HttpClient, toast: MessageToastService) {
-    super(login, http, toast);
-  }
   evaluations() {
     return this.httpClient
       .get<AlertEvaluation[]>(`${this.endpoint}/evaluations`, this.getHeaders())

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { BaseService } from '../../lib/login/service/base.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -7,11 +7,9 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
 import { Stockexchange } from '../../entities/stockexchange';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class MultipleRequestToOneService extends BaseService {
-  constructor(private httpClient: HttpClient) {
-    super();
-  }
+  private httpClient = inject(HttpClient);
 
   public getDataForCurrencySecuritySearch(): Observable<DataForCurrencySecuritySearch> {
     return <Observable<DataForCurrencySecuritySearch>>(

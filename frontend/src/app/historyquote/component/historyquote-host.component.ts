@@ -25,13 +25,13 @@ import { HistoryquoteLegacyComponent } from './historyquote-legacy.component';
   imports: [HistoryquoteTableComponent, HistoryquoteLegacyComponent]
 })
 export class HistoryquoteHostComponent implements OnInit {
+  private activatedRoute = inject(ActivatedRoute);
+
   readonly viewMode = signal<'live' | 'legacy'>('live');
   readonly timeSeriesParams = signal<TimeSeriesParam[]>([]);
   readonly idSecuritycurrency = signal<number>(null);
 
   private readonly destroyRef = inject(DestroyRef);
-
-  constructor(private activatedRoute: ActivatedRoute) {}
 
   ngOnInit(): void {
     this.activatedRoute.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((paramMap: ParamMap) => {

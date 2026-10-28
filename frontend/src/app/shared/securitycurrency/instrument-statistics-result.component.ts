@@ -56,6 +56,8 @@ import { InstrumentStatisticsSummaryComponent } from './instrument-statistics-su
   ]
 })
 export class InstrumentStatisticsResultComponent implements OnInit {
+  private securityService = inject(SecurityService);
+
   readonly idSecuritycurrency = input<number>(undefined);
   readonly dateFrom = input<Date | string>(undefined);
   readonly dateTo = input<Date | string>(undefined);
@@ -75,8 +77,6 @@ export class InstrumentStatisticsResultComponent implements OnInit {
   private readonly statisticsCache = inject(InstrumentStatisticsCacheService, {
     optional: true
   });
-
-  constructor(private securityService: SecurityService) {}
 
   ngOnInit(): void {
     const statistics = this.statisticsCache

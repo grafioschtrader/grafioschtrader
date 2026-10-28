@@ -1,11 +1,8 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { BaseSettings } from '../app/lib/base.settings';
 import { AuthServiceWithLogout } from '../app/lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../app/lib/login/service/log-in.service';
-import { MessageToastService } from '../app/lib/message/message.toast.service';
 import { ServiceEntityUpdate } from '../app/lib/edit/service.entity.update';
 
 /**
@@ -22,15 +19,11 @@ export class GrafioschTenant {
  * Creates and updates the tenant through {@code /api/tenant}, which the backend serves from
  * {@code TenantBaseResource<T>} extended by this module's {@code TenantResource}.
  */
-@Injectable()
+@Service()
 export class GrafioschTenantService
   extends AuthServiceWithLogout<GrafioschTenant>
   implements ServiceEntityUpdate<GrafioschTenant>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   update(tenant: GrafioschTenant): Observable<GrafioschTenant> {
     return this.updateEntity(tenant, tenant.idTenant, BaseSettings.TENANT_KEY);
   }

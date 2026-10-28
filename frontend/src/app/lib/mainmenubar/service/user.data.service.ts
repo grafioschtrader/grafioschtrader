@@ -1,9 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { lastValueFrom, Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { BaseAuthService } from '../../login/service/base.auth.service';
-import { MessageToastService } from '../../message/message.toast.service';
 import { BaseSettings } from '../../base.settings';
 
 /**
@@ -11,12 +9,8 @@ import { BaseSettings } from '../../base.settings';
  * Provides functionality for users to download their personal data as a ZIP archive and to
  * permanently delete their account along with all associated data.
  */
-@Injectable()
+@Service()
 export class UserDataService extends BaseAuthService<any> {
-  constructor(httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(httpClient, messageToastService);
-  }
-
   /**
    * Exports all personal data for the current user as a ZIP archive.
    * This includes tenant data, portfolios, transactions, securities, and all related information.

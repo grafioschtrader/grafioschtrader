@@ -1,13 +1,10 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { AuthServiceWithLogout } from '../../../lib/login/service/base.auth.service.with.logout';
 import { ServiceEntityUpdate } from '../../../lib/edit/service.entity.update';
 import { DeleteService } from '../../../lib/datashowbase/delete.service';
-import { LoginService } from '../../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../../lib/message/message.toast.service';
 import { BaseSettings } from '../../../lib/base.settings';
 import { AppSettings } from '../../app.settings';
 import { GTNetSecurityImpHead } from '../model/gtnet-security-imp-head';
@@ -16,15 +13,11 @@ import { GTNetSecurityImpHead } from '../model/gtnet-security-imp-head';
  * Service for managing GTNet security import headers.
  * Provides CRUD operations for organizing security import batches.
  */
-@Injectable()
+@Service()
 export class GTNetSecurityImpHeadService
   extends AuthServiceWithLogout<GTNetSecurityImpHead>
   implements DeleteService, ServiceEntityUpdate<GTNetSecurityImpHead>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Gets all import headers for the current tenant.
    *

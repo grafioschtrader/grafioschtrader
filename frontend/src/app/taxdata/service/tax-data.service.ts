@@ -1,22 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { BaseSettings } from '../../lib/base.settings';
 import { UploadServiceFunction } from '../../lib/generaldialog/model/file.upload.param';
 import { IctaxExchangeRate, TaxCountry, TaxUpload, TaxYear } from '../model/tax-data.model';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 
-@Injectable()
+@Service()
 export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements UploadServiceFunction {
   private static readonly BASE_URL = BaseSettings.API_ENDPOINT + 'taxdata';
-
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
 
   getCantons(): Observable<ValueKeyHtmlSelectOptions[]> {
     return <Observable<ValueKeyHtmlSelectOptions[]>>(

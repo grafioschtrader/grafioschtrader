@@ -46,7 +46,7 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   protected simulationTenant = false;
   private showInactive = false;
 
-  protected constructor() {
+  constructor() {
     super();
     this.addColumn(DataType.NumericInteger, 'idStandingOrder', 'ID', true, false);
     this.addColumnFeqH(DataType.String, 'transactionType', true, false, { translateValues: TranslateValue.NORMAL });

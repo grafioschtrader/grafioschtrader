@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, viewChild, input, linkedSignal, computed } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, viewChild, input, linkedSignal, computed, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { DashboardConfig, DashboardResult } from '../../lib/dashboard/dashboard.types';
@@ -67,6 +67,10 @@ import { HoldingMoversTreetableComponent } from './holding-movers-treetable.comp
   `
 })
 export class HoldingMoversWidgetComponent implements AfterViewInit, OnDestroy {
+  translateService = inject(TranslateService);
+  private dashboardService = inject(DashboardService);
+  private userSettingsService = inject(UserSettingsService);
+
   readonly result = input<DashboardResult>(undefined);
 
   readonly form = viewChild<DynamicFormComponent>('form');
@@ -86,12 +90,9 @@ export class HoldingMoversWidgetComponent implements AfterViewInit, OnDestroy {
   /** Refresh for the latest chosen date; a newer date replaces a request still outstanding */
   private refreshSubscription: Subscription;
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    private dashboardService: DashboardService,
-    private userSettingsService: UserSettingsService
-  ) {
+  constructor() {
+    const gps = inject(GlobalparameterService);
+
     this.formConfig = AppHelper.getDefaultFormConfig(gps, 4, null, true);
     this.config = [
       DynamicFieldHelper.createFieldPcalendar(DataType.DateString, 'chosenDate', 'DASHBOARD_MOVERS_DATE', false)

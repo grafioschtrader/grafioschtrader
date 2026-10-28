@@ -1,26 +1,19 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { ImportTransactionPlatform } from '../../entities/import.transaction.platform';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { AppSettings } from '../../shared/app.settings';
 import { Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { IPlatformTransactionImport } from '../../portfolio/component/iplatform.transaction.import';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class ImportTransactionPlatformService
   extends AuthServiceWithLogout<ImportTransactionPlatform>
   implements DeleteService, ServiceEntityUpdate<ImportTransactionPlatform>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getAllImportTransactionPlatforms(): Observable<ImportTransactionPlatform[]> {
     return <Observable<ImportTransactionPlatform[]>>(
       this.httpClient

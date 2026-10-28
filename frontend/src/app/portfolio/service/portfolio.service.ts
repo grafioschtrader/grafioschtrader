@@ -1,27 +1,21 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Portfolio } from '../../entities/portfolio';
 import { AppSettings } from '../../shared/app.settings';
 import { AccountPositionGrandSummary } from '../../entities/view/account.position.grand.summary';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
 import { SecurityDividendsChart } from '../../entities/view/securitydividends/security.dividends.chart';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { TransactionCostGrandSummary } from '../../entities/view/transactioncost/transaction.cost.grand.summary';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TenantPortfolioSummary } from '../../tenant/model/tenant.portfolio.summary';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class PortfolioService extends AuthServiceWithLogout<Portfolio> implements ServiceEntityUpdate<Portfolio> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getPortfolioByIdSecuritycashaccount(idSecuritycashaccount: number): Observable<Portfolio> {
     return <Observable<Portfolio>>(
       this.httpClient

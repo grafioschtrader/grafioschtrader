@@ -1,13 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { TabItem } from '../../types/tab.item';
 
 /**
  * Helper service for managing tab-related session storage operations
  * Handles both legacy index-based and modern route-based storage
  */
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class SessionStorageTabHelper {
   /**
    * Get saved active route from session storage

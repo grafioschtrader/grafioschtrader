@@ -1,16 +1,13 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { HistoryquoteLegacy } from '../../entities/historyquote.legacy';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { LegacySplitRequest } from '../model/legacy.split.request';
 
 /**
@@ -18,15 +15,11 @@ import { LegacySplitRequest } from '../model/legacy.split.request';
  * flow) and deleted through the inherited entity endpoints; the security-scoped bulk operations (list, forgotten split,
  * delete-all, CSV import) target {@code /historyquotelegacy/security/{id}}.
  */
-@Injectable()
+@Service()
 export class HistoryquoteLegacyService
   extends AuthServiceWithLogout<HistoryquoteLegacy>
   implements ServiceEntityUpdate<HistoryquoteLegacy>, DeleteService
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   update(historyquoteLegacy: HistoryquoteLegacy): Observable<HistoryquoteLegacy> {
     return this.updateEntity(
       historyquoteLegacy,

@@ -28,6 +28,12 @@ import { BaseSettings } from '../../lib/base.settings';
  */
 @Directive()
 export abstract class TenantEditComponent {
+  protected gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+  protected gps: GlobalparameterService = inject(GlobalparameterService);
+  protected messageToastService: MessageToastService = inject(MessageToastService);
+  protected tenantService: TenantService = inject(TenantService);
+  public translateService: TranslateService = inject(TranslateService);
+
   protected readonly destroyRef = inject(DestroyRef);
 
   existingTenant: Tenant;
@@ -42,11 +48,6 @@ export abstract class TenantEditComponent {
   formConfig: FormConfig;
 
   protected constructor(
-    protected gpsGT: GlobalparameterGTService,
-    protected gps: GlobalparameterService,
-    protected messageToastService: MessageToastService,
-    protected tenantService: TenantService,
-    public translateService: TranslateService,
     private nonModal: boolean,
     private labelColumns: number
   ) {}

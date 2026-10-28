@@ -1,8 +1,5 @@
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { InputAndShowDefinitionStrategy } from '../model/input.and.show.definition.strategy';
 import { AppSettings } from '../../shared/app.settings';
@@ -14,15 +11,11 @@ import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { AlgoLevelType } from '../model/algo.top';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class AlgoStrategyService
   extends AuthServiceWithLogout<AlgoStrategy>
   implements DeleteService, ServiceEntityUpdate<AlgoStrategy>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getStrategiesForLevel(algoLevelType: AlgoLevelType): Observable<AlgoStrategyImplementationType[]> {
     return <Observable<AlgoStrategyImplementationType[]>>(
       this.httpClient

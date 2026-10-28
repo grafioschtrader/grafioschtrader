@@ -65,11 +65,9 @@ export interface YamlDiagnostic {
   `
 })
 export class YamlEditorComponent extends BaseService implements AfterViewInit, OnDestroy, OnInit {
-  readonly editorContainer = viewChild<ElementRef<HTMLDivElement>>('editorContainer');
+  private http = inject(HttpClient) ?? null;
 
-  constructor(private http: HttpClient = null) {
-    super();
-  }
+  readonly editorContainer = viewChild<ElementRef<HTMLDivElement>>('editorContainer');
 
   readonly format = input<'FEES' | 'FEES_ACCOUNT' | 'TOKENS' | 'CALENDAR' | 'TAXES' | 'STRATEGY' | 'CUSTODY'>(
     undefined

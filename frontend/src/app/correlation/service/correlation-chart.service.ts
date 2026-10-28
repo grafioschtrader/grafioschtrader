@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { CorrelationRollingResult } from '../../entities/correlation.set';
 
@@ -11,7 +11,7 @@ export interface CorrelationChartInput {
 }
 
 /** Keeps the latest matrix selection available when the lower chart outlet opens. */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class CorrelationChartService {
   private input = new BehaviorSubject<CorrelationChartInput>(null);
   readonly input$ = this.input.asObservable();

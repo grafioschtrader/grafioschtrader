@@ -1,7 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Watchlist } from '../../entities/watchlist';
 import { AppSettings } from '../../shared/app.settings';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { SecuritycurrencyGroup, SecuritycurrencyUDFGroup } from '../../entities/view/securitycurrency.group';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { SecuritycurrencyLists } from '../../entities/view/securitycurrency.lists';
@@ -9,28 +8,23 @@ import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlis
 import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
 import { Observable } from 'rxjs';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpParams } from '@angular/common/http';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { TenantLimit } from '../../shared/types/tenant.limit';
 import { AddSearchToListService } from '../component/add-instrument-table.component';
 import { IntraHistoricalWatchlistProblem } from '../model/intra.historical.watchlist.problem';
 import { WatchlistMoveStatus } from '../model/watchlist.move.status';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class WatchlistService
   extends AuthServiceWithLogout<Watchlist>
   implements ServiceEntityUpdate<Watchlist>, AddSearchToListService<Watchlist>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getSecuritiesCurrenciesWatchlistLimits(idWatchlist: number): Observable<TenantLimit[]> {
     return <Observable<TenantLimit[]>>(
       this.httpClient

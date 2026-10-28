@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { Router } from '@angular/router';
@@ -9,17 +9,15 @@ import { TransactionReceiptService } from '../../transaction/service/transaction
 /**
  * Menu and function to show a history quotes as chart or table. It is shown in additional area.
  */
-@Injectable()
+@Service()
 export class TimeSeriesQuotesService {
+  private router = inject(Router);
+  private transactionReceiptService = inject(TransactionReceiptService);
+
   private idSecuritycurrency: number;
   private currencySecurity: string;
   private optionalParameters: OptionalParameters = { idPortfolio: null, idSecurityaccount: null, noMarketValue: false };
   private timeSeriesParams: TimeSeriesParam[] = [];
-
-  constructor(
-    private router: Router,
-    private transactionReceiptService: TransactionReceiptService
-  ) {}
 
   getMenuItems(
     idSecuritycurrency: number,

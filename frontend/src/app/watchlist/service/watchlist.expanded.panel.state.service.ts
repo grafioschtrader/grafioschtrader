@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 
 /**
  * Remembers which accordion panels of an expanded watchlist row are open. The component of an expanded row is
@@ -11,7 +11,7 @@ import { Injectable } from '@angular/core';
  * watchlist area and are forgotten as soon as the watchlist area is left.
  * </p>
  */
-@Injectable()
+@Service()
 export class WatchlistExpandedPanelStateService {
   /** Open panel values per instrument. */
   private readonly openPanels = new Map<number, string[]>();

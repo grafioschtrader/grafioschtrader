@@ -1,5 +1,4 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { BankruptSecurity, BankruptSecurityRow } from '../../entities/bankrupt.security';
@@ -8,19 +7,13 @@ import { BaseSettings } from '../../lib/base.settings';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 
 /** REST client for the instruments marked as no longer receiving price data. */
-@Injectable()
+@Service()
 export class BankruptSecurityService
   extends AuthServiceWithLogout<BankruptSecurity>
   implements DeleteService, ServiceEntityUpdate<BankruptSecurity>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /** Every marker with the instrument behind it and the two newest closing dates. */
   public getAllWithSecurityName(): Observable<BankruptSecurityRow[]> {
     return <Observable<BankruptSecurityRow[]>>(

@@ -1,12 +1,9 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { RiskFreeInstrumentOption, RiskFreeRateMapping } from '../../entities/risk.free.rate.mapping';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
@@ -17,15 +14,11 @@ import { AppSettings } from '../../shared/app.settings';
  * the shared {@link AuthServiceWithLogout#updateEntity} helper, which picks PUT vs POST based on whether the entity
  * already has an id.
  */
-@Injectable()
+@Service()
 export class RiskFreeRateMappingService
   extends AuthServiceWithLogout<RiskFreeRateMapping>
   implements DeleteService, ServiceEntityUpdate<RiskFreeRateMapping>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getAll(): Observable<RiskFreeRateMapping[]> {
     return <Observable<RiskFreeRateMapping[]>>(
       this.httpClient

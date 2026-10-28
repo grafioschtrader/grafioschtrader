@@ -114,7 +114,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   protected internalColumnConfigs: ColumnConfig[];
   private subscriptionRequestFromChart: Subscription;
 
-  protected constructor() {
+  constructor() {
     super();
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
   }

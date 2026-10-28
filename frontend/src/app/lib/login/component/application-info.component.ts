@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, inject } from '@angular/core';
 import { ApplicationInfo } from '../../services/actuator.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -21,7 +21,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   imports: [TranslateModule]
 })
 export class ApplicationInfoComponent {
-  readonly applicationInfo = input<ApplicationInfo>(undefined);
+  translateService = inject(TranslateService);
 
-  constructor(public translateService: TranslateService) {}
+  readonly applicationInfo = input<ApplicationInfo>(undefined);
 }

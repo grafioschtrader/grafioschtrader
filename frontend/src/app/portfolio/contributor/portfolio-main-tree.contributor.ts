@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import moment from 'moment';
@@ -44,21 +45,17 @@ const loadSecurityaccountEditDynamic: DialogComponentLoader = () =>
  */
 @Injectable()
 export class PortfolioMainTreeContributor extends MainTreeContributor {
+  private portfolioService = inject(PortfolioService);
+  private securityaccountService = inject(SecurityaccountService);
+  private tenantService = inject(TenantService);
+  private globalParamService = inject(GlobalparameterService);
+  private messageToastService = inject(MessageToastService);
+  private confirmationService = inject(ConfirmationService);
+  private translateService = inject(TranslateService);
+
   private tenant: Tenant;
   private tenantLimits: { [key: string]: TenantLimit };
   private rootNode: TreeNode;
-
-  constructor(
-    private portfolioService: PortfolioService,
-    private securityaccountService: SecurityaccountService,
-    private tenantService: TenantService,
-    private globalParamService: GlobalparameterService,
-    private messageToastService: MessageToastService,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService
-  ) {
-    super();
-  }
 
   getTreeOrder(): number {
     return 0; // Portfolio is first

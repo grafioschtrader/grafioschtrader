@@ -1,16 +1,11 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { afterNextRender, Component, inject, Injector, OnInit } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { Tenant } from '../../entities/tenant';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { TenantService } from '../service/tenant.service';
 import { TenantEditComponent } from './tenant.edit.component';
 
 /**
@@ -29,19 +24,14 @@ import { TenantEditComponent } from './tenant.edit.component';
   imports: [DynamicFormComponent]
 })
 export class TenantEditDynamicComponent extends TenantEditComponent implements OnInit {
+  private dynamicDialogConfig = inject(DynamicDialogConfig);
+  private dynamicDialogRef = inject(DynamicDialogRef);
+
   onlyCurrency: boolean;
   private readonly renderInjector = inject(Injector);
 
-  constructor(
-    private dynamicDialogConfig: DynamicDialogConfig,
-    private dynamicDialogRef: DynamicDialogRef,
-    gpsGT: GlobalparameterGTService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    tenantService: TenantService,
-    translateService: TranslateService
-  ) {
-    super(gpsGT, gps, messageToastService, tenantService, translateService, false, 6);
+  constructor() {
+    super(false, 6);
   }
 
   ngOnInit(): void {

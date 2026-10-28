@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Subject } from 'rxjs';
 
 /**
  * Service that informs about the possible resizing of a view.
  */
-@Injectable()
+@Service()
 export class ViewSizeChangedService {
   private splitTreeMain;
   /** Sizes restored by the collapse entry; the initial split also covers a tree collapsed by dragging the gutter */

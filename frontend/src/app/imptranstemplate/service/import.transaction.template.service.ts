@@ -1,28 +1,22 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { ImportTransactionTemplate } from '../../entities/import.transaction.template';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { AppSettings } from '../../shared/app.settings';
 import { lastValueFrom, Observable } from 'rxjs';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { HttpParams } from '@angular/common/http';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { FormTemplateCheck } from '../component/form.template.check';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { ImportTransactionPos } from '../../entities/import.transaction.pos';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class ImportTransactionTemplateService
   extends AuthServiceWithLogout<ImportTransactionTemplate>
   implements DeleteService, ServiceEntityUpdate<ImportTransactionTemplate>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getImportTransactionPlatformByPlatform(
     idTransactionImportPlatform: number,
     excludeTemplate: boolean

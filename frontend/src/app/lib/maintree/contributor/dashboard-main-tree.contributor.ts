@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TranslateService } from '@ngx-translate/core';
@@ -25,12 +26,8 @@ import { BaseSettings } from '../../base.settings';
  */
 @Injectable()
 export class DashboardMainTreeContributor extends MainTreeContributor {
-  constructor(
-    private translateService: TranslateService,
-    private gps: GlobalparameterService
-  ) {
-    super();
-  }
+  private translateService = inject(TranslateService);
+  private gps = inject(GlobalparameterService);
 
   /** Before the portfolios, which are the first of the other contributors. */
   getTreeOrder(): number {

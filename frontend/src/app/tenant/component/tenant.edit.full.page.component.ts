@@ -1,12 +1,8 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AfterViewInit, Component, OnInit, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { Tenant } from '../../entities/tenant';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TenantService } from '../service/tenant.service';
 import { TenantEditComponent } from './tenant.edit.component';
 
 /**
@@ -30,15 +26,10 @@ import { TenantEditComponent } from './tenant.edit.component';
   imports: [TranslateModule, DynamicFormComponent]
 })
 export class TenantEditFullPageComponent extends TenantEditComponent implements OnInit, AfterViewInit {
-  constructor(
-    private loginService: LoginService,
-    gpsGT: GlobalparameterGTService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    tenantService: TenantService,
-    translateService: TranslateService
-  ) {
-    super(gpsGT, gps, messageToastService, tenantService, translateService, true, 4);
+  private loginService = inject(LoginService);
+
+  constructor() {
+    super(true, 4);
   }
 
   ngOnInit(): void {

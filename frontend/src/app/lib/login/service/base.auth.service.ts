@@ -1,3 +1,4 @@
+import { inject } from '@angular/core';
 import { MessageToastService } from '../../message/message.toast.service';
 import { Observable, throwError } from 'rxjs';
 import { ValidationError } from './validation.error';
@@ -13,18 +14,14 @@ import { BaseService } from './base.service';
 import { BaseSettings } from '../../base.settings';
 
 export abstract class BaseAuthService<T> extends BaseService {
+  protected httpClient: HttpClient = inject(HttpClient);
+  protected messageToastService: MessageToastService = inject(MessageToastService);
+
   private static readonly classNameClassMap = {
     LimitEntityTransactionError,
     SingleNativeMsgError,
     ValidationError
   };
-
-  protected constructor(
-    protected httpClient: HttpClient,
-    protected messageToastService: MessageToastService
-  ) {
-    super();
-  }
 
   /**
    * Creates a create/put or update/post request depending on the id of the entity.

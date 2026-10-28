@@ -1,27 +1,20 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
 
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { TradingCalendarRuleSet } from '../../entities/trading.calendar.rule.set';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 
-@Injectable()
+@Service()
 export class TradingCalendarRuleSetService
   extends AuthServiceWithLogout<TradingCalendarRuleSet>
   implements ServiceEntityUpdate<TradingCalendarRuleSet>, DeleteService
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   public getAllRuleSets(): Observable<TradingCalendarRuleSet[]> {
     return <Observable<TradingCalendarRuleSet[]>>(
       this.httpClient

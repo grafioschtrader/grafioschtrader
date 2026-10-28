@@ -457,6 +457,8 @@ export interface ValidationErrorEvent<T> {
   `
 })
 export class EditableTableComponent<T = any> {
+  private translateService = inject(TranslateService);
+
   protected readonly toClassString = toClassString;
   // ============================================================================
   // Data and Column Configuration
@@ -759,7 +761,7 @@ export class EditableTableComponent<T = any> {
   /** Marks this table after state changes made outside a template event, such as the delayed start of editing. */
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  constructor(private translateService: TranslateService) {
+  constructor() {
     effect(() => {
       this.data();
       untracked(() => {

@@ -1,12 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { Observable } from 'rxjs';
 import { AppSettings } from '../../shared/app.settings';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { DeleteReadAllService } from '../../lib/udfmeta/components/udf.metadata.table';
 import { BaseSettings } from '../../lib/base.settings';
 import {
@@ -30,22 +27,11 @@ import {
  * Handles CRUD operations for user-defined field metadata applicable to securities and financial instruments.
  * Supports asset class and instrument type filtering to ensure UDF fields appear only for relevant security types.
  */
-@Injectable()
+@Service()
 export class UDFMetadataSecurityService
   extends AuthServiceWithLogout<UDFMetadataSecurity>
   implements DeleteReadAllService<UDFMetadataSecurity>, ServiceEntityUpdate<UDFMetadataSecurity>
 {
-  /**
-   * Creates the UDF metadata security service.
-   *
-   * @param loginService - Service for authentication and session management
-   * @param httpClient - HTTP client for REST API calls
-   * @param messageToastService - Service for displaying user notifications
-   */
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Retrieves all security UDF metadata entries accessible to the current user.
    * Returns both user-specific metadata (owned by the current user) and system-wide metadata (idUser = 0).

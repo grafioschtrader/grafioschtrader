@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 
@@ -10,12 +10,10 @@ import type { TransactionReceiptDialogData } from '../component/transaction-rece
  * through the Optimus DialogService. The dialog is loaded on first use, so it stays out of the bundle of the application
  * shell.
  */
-@Injectable()
+@Service()
 export class TransactionReceiptService {
-  constructor(
-    private dialogService: DialogService,
-    private translateService: TranslateService
-  ) {}
+  private dialogService = inject(DialogService);
+  private translateService = inject(TranslateService);
 
   /**
    * Opens the receipt dialog listing the security's transactions with checkbox selection.

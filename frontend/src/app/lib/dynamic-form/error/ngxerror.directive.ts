@@ -1,15 +1,4 @@
-import {
-  Directive,
-  ElementRef,
-  forwardRef,
-  Inject,
-  Renderer2,
-  computed,
-  effect,
-  input,
-  signal,
-  untracked
-} from '@angular/core';
+import { Directive, ElementRef, Renderer2, computed, effect, input, signal, untracked, inject } from '@angular/core';
 import { NgxErrorsDirective } from './ngxerrors.directive';
 import { ErrorOptions } from './ngxerrors';
 import { toArray } from './toArray';
@@ -28,6 +17,9 @@ import { RuleEvent } from './error.message.rules';
   host: { '[hidden]': 'hidden()' }
 })
 export class NgxErrorDirective {
+  private ngxErrors = inject(NgxErrorsDirective);
+  private renderer = inject(Renderer2);
+
   readonly hidden = signal(true);
   /** Element of the input; it may arrive after the error message has rendered. */
   readonly elementRef = input<ElementRef>();
@@ -38,10 +30,7 @@ export class NgxErrorDirective {
   private readonly errorNames = computed(() => toArray(this.ngxError()));
   private overrule = false;
 
-  constructor(
-    @Inject(forwardRef(() => NgxErrorsDirective)) private ngxErrors: NgxErrorsDirective,
-    private renderer: Renderer2
-  ) {
+  constructor() {
     effect((onCleanup) => {
       const control = this.ngxErrors.control();
       this.rules();

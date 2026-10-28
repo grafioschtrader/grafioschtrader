@@ -1,6 +1,6 @@
-import { Inject, Injectable, Optional } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { combineLatest, Observable, of } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { MAIN_TREE_CONTRIBUTOR, MainTreeContributor } from './main-tree-contributor.interface';
 import { ProcessedActionData } from '../../types/processed.action.data';
@@ -10,11 +10,13 @@ import { ProcessedActionData } from '../../types/processed.action.data';
  * This service is injected into MainTreeComponent to abstract away
  * the details of working with multiple contributors.
  */
-@Injectable()
+@Service()
 export class MainTreeContributorManager {
   private contributors: MainTreeContributor[];
 
-  constructor(@Optional() @Inject(MAIN_TREE_CONTRIBUTOR) contributors: MainTreeContributor[]) {
+  constructor() {
+    const contributors = inject(MAIN_TREE_CONTRIBUTOR, { optional: true });
+
     this.contributors = contributors || [];
     // Filter out disabled contributors and sort by tree order
     this.contributors = this.contributors

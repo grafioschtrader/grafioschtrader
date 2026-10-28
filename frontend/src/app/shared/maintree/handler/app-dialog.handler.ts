@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -22,11 +23,9 @@ import { AlgoTopCreate } from '../../../entities/backend/algo.top.create';
  */
 @Injectable()
 export class AppDialogHandler implements DialogHandler {
-  constructor(
-    private translateService: TranslateService,
-    private dialogService: DialogService,
-    private messageToastService: MessageToastService
-  ) {}
+  private translateService = inject(TranslateService);
+  private dialogService = inject(DialogService);
+  private messageToastService = inject(MessageToastService);
 
   openEditDialog(
     loadComponent: DialogComponentLoader,

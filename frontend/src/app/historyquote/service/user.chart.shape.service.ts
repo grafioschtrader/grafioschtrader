@@ -1,8 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { BaseSettings } from '../../lib/base.settings';
@@ -12,12 +9,8 @@ import { AppSettings } from '../../shared/app.settings';
  * Service for managing chart drawing shapes via REST API.
  * Handles retrieval, persistence, and deletion of Plotly.js shapes per security/currency pair.
  */
-@Injectable()
+@Service()
 export class UserChartShapeService extends AuthServiceWithLogout<any> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Retrieves saved chart shapes for a specific security/currency pair.
    *

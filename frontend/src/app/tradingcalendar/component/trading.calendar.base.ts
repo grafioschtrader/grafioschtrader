@@ -1,8 +1,6 @@
+import { inject } from '@angular/core';
 import { AddRemoveDay } from '../service/trading.days.plus.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { RangeSelectDays } from '../../lib/fullyearcalendar/Interface/range.select.days';
 import { HelpIds } from '../../lib/help/help.ids';
 import moment from 'moment';
@@ -14,15 +12,13 @@ import { BaseSettings } from '../../lib/base.settings';
  * Base class for trading calendar
  */
 export abstract class TradingCalendarBase extends CalendarNavigation {
+  protected messageToastService: MessageToastService = inject(MessageToastService);
+
   protected constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
     markExistingColor: string[],
-    activePanelService: ActivePanelService,
-    protected messageToastService: MessageToastService,
     public titleKey?: string
   ) {
-    super(translateService, gps, activePanelService, markExistingColor);
+    super(markExistingColor);
   }
 
   abstract hasRightsToModify(): boolean;

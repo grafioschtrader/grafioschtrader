@@ -49,17 +49,15 @@ export interface UserAccessTokenDialogData {
   `
 })
 export class UserAccessTokenDialogComponent implements OnInit {
+  private dynamicDialogConfig = inject<DynamicDialogConfig<UserAccessTokenDialogData>>(DynamicDialogConfig);
+  private userAccessTokenService = inject(UserAccessTokenService);
+
   introKey: string;
   readonly clientInfo = signal<AccessTokenClientInfo>(null);
   readonly configSnippet = computed(() =>
     this.clientInfo()?.configSnippet?.replace('${TIME_ZONE}', Intl.DateTimeFormat().resolvedOptions().timeZone)
   );
   private readonly destroyRef = inject(DestroyRef);
-
-  constructor(
-    private dynamicDialogConfig: DynamicDialogConfig<UserAccessTokenDialogData>,
-    private userAccessTokenService: UserAccessTokenService
-  ) {}
 
   ngOnInit(): void {
     this.introKey = this.dynamicDialogConfig.data?.introKey;

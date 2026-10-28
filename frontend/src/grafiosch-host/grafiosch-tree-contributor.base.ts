@@ -1,3 +1,4 @@
+import { inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { Observable, of } from 'rxjs';
@@ -17,9 +18,7 @@ import { ProcessedActionData } from '../app/lib/types/processed.action.data';
  * in its tree needs the full contract, and the library must not suggest that a contributor is normally static.</p>
  */
 export abstract class GrafioschTreeContributorBase extends MainTreeContributor {
-  protected constructor(protected translateService: TranslateService) {
-    super();
-  }
+  protected translateService: TranslateService = inject(TranslateService);
 
   /** Nothing in this host's tree depends on loaded data, so a refresh has nothing to do. */
   refreshNodes(rootNode: TreeNode): Observable<void> {

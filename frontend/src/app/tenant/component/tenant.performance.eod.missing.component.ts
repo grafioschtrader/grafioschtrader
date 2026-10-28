@@ -1,8 +1,8 @@
-import { computed, signal, Component, OnInit } from '@angular/core';
+import { computed, signal, Component, OnInit, inject } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import moment from 'moment';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -18,11 +18,9 @@ import { FullyearcalendarLibComponent } from '../../lib/fullyearcalendar/fullyea
 import { RangeSelectDays } from '../../lib/fullyearcalendar/Interface/range.select.days';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HelpIds } from '../../lib/help/help.ids';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { HoldingService } from '../../performanceperiod/service/holding.service';
 import { BusinessHelper } from '../../shared/helper/business.helper';
@@ -97,6 +95,12 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
   ]
 })
 export class TenantPerformanceEodMissingComponent extends CalendarNavigation implements IGlobalMenuAttach, OnInit {
+  private timeSeriesQuotesService = inject(TimeSeriesQuotesService);
+  private holdingService = inject(HoldingService);
+  private messageToastService = inject(MessageToastService);
+  private router = inject(Router);
+  private dataChangedService = inject(DataChangedService);
+
   readonly missingQuotesWithSecurities = signal<MissingQuotesWithSecurities>(null);
   readonly securities = computed(() => {
     const report = this.missingQuotesWithSecurities();
@@ -114,17 +118,8 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
 
   private readDataSub?: Subscription;
 
-  constructor(
-    private timeSeriesQuotesService: TimeSeriesQuotesService,
-    private holdingService: HoldingService,
-    private messageToastService: MessageToastService,
-    private router: Router,
-    private dataChangedService: DataChangedService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    activePanelService: ActivePanelService
-  ) {
-    super(translateService, gps, activePanelService, ['yellow']);
+  constructor() {
+    super(['yellow']);
   }
 
   ngOnInit(): void {

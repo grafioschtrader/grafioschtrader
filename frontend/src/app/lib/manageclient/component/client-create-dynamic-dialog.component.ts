@@ -1,11 +1,11 @@
-import { afterNextRender, Component, OnInit } from '@angular/core';
+import { afterNextRender, Component, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { combineLatest } from 'rxjs';
 import { DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 
 import { PasswordBaseComponent } from '../../login/component/password.base.component';
-import { GlobalparameterService, PasswordRegexProperties } from '../../services/globalparameter.service';
+import { PasswordRegexProperties } from '../../services/globalparameter.service';
 import { MessageToastService } from '../../message/message.toast.service';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
@@ -37,15 +37,9 @@ import { ManageClientService } from '../service/manage-client.service';
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class ClientCreateDynamicDialogComponent extends PasswordBaseComponent implements OnInit {
-  constructor(
-    private dynamicDialogRef: DynamicDialogRef,
-    private manageClientService: ManageClientService,
-    private messageToastService: MessageToastService,
-    gps: GlobalparameterService,
-    translateService: TranslateService
-  ) {
-    super(gps, translateService);
-  }
+  private dynamicDialogRef = inject(DynamicDialogRef);
+  private manageClientService = inject(ManageClientService);
+  private messageToastService = inject(MessageToastService);
 
   ngOnInit(): void {
     combineLatest([this.gps.getUserFormDefinitions(), this.gps.getPasswordRegexProperties()])

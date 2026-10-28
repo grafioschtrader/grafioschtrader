@@ -1,22 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
 import { ServiceEntityUpdate } from '../../edit/service.entity.update';
 import { User } from '../../entities/user';
-import { LoginService } from '../../login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../message/message.toast.service';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { DeleteService } from '../../datashowbase/delete.service';
 import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
 import { BaseSettings } from '../../base.settings';
 
-@Injectable()
+@Service()
 export class UserAdminService extends AuthServiceWithLogout<User> implements DeleteService, ServiceEntityUpdate<User> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   public getAllUsers(): Observable<User[]> {
     return <Observable<User[]>>(
       this.httpClient

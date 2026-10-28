@@ -1,15 +1,16 @@
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { SvgIconRegistryService } from 'angular-svg-icon';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 import { AssetclassType } from '../../shared/types/assetclass.type';
 import { DistributionFrequency } from '../../shared/types/distribution.frequency';
 import { Security } from '../../entities/security';
-import { AppSettings } from '../../shared/app.settings';
 import { Assetclass } from '../../entities/assetclass';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class ProductIconService {
+  private iconReg = inject(SvgIconRegistryService);
+
   readonly icons = [
     'bo',
     'c',
@@ -33,7 +34,7 @@ export class ProductIconService {
     'm'
   ];
 
-  constructor(private iconReg: SvgIconRegistryService) {
+  constructor() {
     this.icons.forEach((icon) => this.iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + icon + '.svg', icon));
   }
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Optimus } from '@openng/optimus-ui/config';
@@ -45,7 +45,10 @@ const GrafioschPreset = definePreset(Aura, {
   imports: [RouterOutlet, MessageToastComponent]
 })
 export class GrafioschAppComponent {
-  constructor(translateService: TranslateService, optimusConfig: Optimus) {
+  constructor() {
+    const translateService = inject(TranslateService);
+    const optimusConfig = inject(Optimus);
+
     translateService.addLangs(['en', 'de']);
     translateService.setDefaultLang(GrafioschSettings.DEFAULT_LANGUAGE);
     localStorage.setItem(GlobalSessionNames.EXTERNAL_HELP_URL, GrafioschSettings.HELP_URL_BASE);

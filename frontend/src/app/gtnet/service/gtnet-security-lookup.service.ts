@@ -1,11 +1,8 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { AppSettings } from '../../shared/app.settings';
 import { SecurityGtnetLookupRequest, SecurityGtnetLookupResponse } from '../model/gtnet-security-lookup';
@@ -14,12 +11,8 @@ import { SecurityGtnetLookupRequest, SecurityGtnetLookupResponse } from '../mode
  * Service for looking up security metadata from local database and GTNet peers.
  * Provides functionality to search for securities by ISIN, currency, and ticker symbol.
  */
-@Injectable()
+@Service()
 export class GtnetSecurityLookupService extends AuthServiceWithLogout<any> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Lookup security metadata by ISIN, currency, and/or ticker symbol.
    * Searches local database first, then queries configured GTNet peers.

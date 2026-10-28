@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { SimulationContextService } from './simulation.context.service';
+import { Injector, runInInjectionContext } from '@angular/core';
+import { ManageClientService } from '../../lib/manageclient/service/manage-client.service';
 
 /**
  * The Vitest setup of this project runs without a DOM, so the two session entries the service reads are backed by a
@@ -36,7 +38,8 @@ describe('SimulationContextService', () => {
         onSwitched?.();
       }
     };
-    service = new SimulationContextService(manageClient as never);
+    const injector = Injector.create({ providers: [{ provide: ManageClientService, useValue: manageClient }] });
+    service = runInInjectionContext(injector, () => new SimulationContextService());
   });
 
   it('reports a simulation while the entered environment is the tenant of the session', () => {

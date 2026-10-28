@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { IdsAccounts } from '../model/ids.accounts';
 
@@ -7,7 +7,7 @@ import { IdsAccounts } from '../model/ids.accounts';
  * the year the user clicked and every change of the underlying transactions; the chart component listens and reloads
  * or switches its year. The account selection is kept as the latest value, so a chart opened later still receives it.
  */
-@Injectable()
+@Service()
 export class TenantDividendsChartService {
   private accounts = new BehaviorSubject<IdsAccounts>(null);
   private yearSelected = new BehaviorSubject<number>(null);

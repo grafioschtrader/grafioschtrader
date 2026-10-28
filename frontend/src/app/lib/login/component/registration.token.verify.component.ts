@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GlobalparameterService } from '../../services/globalparameter.service';
 import { LoginService } from '../service/log-in.service';
@@ -15,15 +15,13 @@ import { TranslateModule } from '@ngx-translate/core';
   imports: [TranslateModule]
 })
 export class RegistrationTokenVerifyComponent implements OnInit, OnDestroy {
+  private gps = inject(GlobalparameterService);
+  private activatedRoute = inject(ActivatedRoute);
+  private router = inject(Router);
+  private loginService = inject(LoginService);
+
   token: string;
   private routeSubscribe: Subscription;
-
-  constructor(
-    private gps: GlobalparameterService,
-    private activatedRoute: ActivatedRoute,
-    private router: Router,
-    private loginService: LoginService
-  ) {}
 
   ngOnInit(): void {
     this.routeSubscribe = this.activatedRoute.queryParams.subscribe((params) => {

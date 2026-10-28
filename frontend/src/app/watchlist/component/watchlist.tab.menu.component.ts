@@ -1,7 +1,7 @@
 import { DestroyRef, inject, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { Params, RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 
 import { Tab, TabList, Tabs } from '@openng/optimus-ui/tabs';
@@ -64,6 +64,10 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
   providers: [InstrumentStatisticsCacheService, WatchlistExpandedPanelStateService]
 })
 export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
+  private treeNavState = inject(TreeNavigationStateService);
+  private uDFMetadataSecurityService = inject(UDFMetadataSecurityService);
+  private uDFMetadataGeneralService = inject(UDFMetadataGeneralService);
+
   protected readonly destroyRef = inject(DestroyRef);
   /** The current watchlist object containing ID and data. */
   private watchlist: Watchlist;
@@ -76,26 +80,6 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
 
   /** Flag to track if this is the initial component load. */
   private isFirstLoad: boolean = true;
-
-  /**
-   * Creates an instance of WatchlistTabMenuComponent.
-   *
-   * @param router Angular Router for navigation
-   * @param activatedRoute Current activated route for parameter access
-   * @param translateService Translation service for internationalization
-   * @param uDFMetadataSecurityService Service for loading UDF security metadata
-   * @param uDFMetadataGeneralService Service for loading UDF general metadata
-   */
-  constructor(
-    router: Router,
-    activatedRoute: ActivatedRoute,
-    translateService: TranslateService,
-    private treeNavState: TreeNavigationStateService,
-    private uDFMetadataSecurityService: UDFMetadataSecurityService,
-    private uDFMetadataGeneralService: UDFMetadataGeneralService
-  ) {
-    super(router, activatedRoute, translateService);
-  }
 
   /**
    * Initializes the component with UDF metadata loading and watchlist subscription setup.

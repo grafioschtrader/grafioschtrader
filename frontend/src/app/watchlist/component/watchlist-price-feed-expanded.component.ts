@@ -1,4 +1,4 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { AccordionModule } from '@openng/optimus-ui/accordion';
 import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
@@ -70,6 +70,8 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
   ]
 })
 export class WatchlistPriceFeedExpandedComponent implements OnInit {
+  private panelStateService = inject(WatchlistExpandedPanelStateService);
+
   /** The instrument of the expanded row together with its feed URLs. */
   readonly position = input<SecuritycurrencyPosition<Security | Currencypair>>(undefined);
   /** Key-value mapping of feed connector IDs to human-readable names. */
@@ -84,13 +86,6 @@ export class WatchlistPriceFeedExpandedComponent implements OnInit {
 
   /** The panels the user has open, restored from the state service when the row is expanded again. */
   openPanels: string[] = [];
-
-  /**
-   * Creates an instance of WatchlistPriceFeedExpandedComponent.
-   *
-   * @param panelStateService Service which remembers the open panels per instrument for the watchlist session
-   */
-  constructor(private panelStateService: WatchlistExpandedPanelStateService) {}
 
   /**
    * Restores the panels the user had open for this instrument. Without an earlier choice both panels stay closed.

@@ -1,22 +1,16 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Service } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
-import { MessageToastService } from '../../message/message.toast.service';
-import { LoginService } from '../../login/service/log-in.service';
 import { BaseSettings } from '../../base.settings';
 import { GTNetExchangeLogTree } from '../model/gtnet-exchange-log';
 
 /**
  * Service for GTNet exchange log operations.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchangeLogTree> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Gets the exchange log tree for a specific GTNet and entity kind.
    *

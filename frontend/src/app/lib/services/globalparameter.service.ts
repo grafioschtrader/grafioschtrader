@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
-import { MessageToastService } from '../message/message.toast.service';
+import { Service } from '@angular/core';
 import { Globalparameters } from '../entities/globalparameters';
 import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
 import { Observable } from 'rxjs';
-import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
+import { HttpContext, HttpParams } from '@angular/common/http';
 import { SKIP_AUTH_HEADERS } from '../login/service/auth.http.interceptor';
 import { GlobalSessionNames } from '../global.session.names';
 import { catchError, shareReplay } from 'rxjs/operators';
@@ -17,15 +16,15 @@ import { AppHelper } from '../helper/app.helper';
 import { Auditable } from '../entities/auditable';
 import { FeatureType } from '../login/model/configuration-with-login';
 import { BaseAuthService } from '../login/service/base.auth.service';
-import NumberFormat = Intl.NumberFormat;
 import moment from 'moment';
 import 'moment/locale/de-ch.js';
 import 'moment/locale/de.js';
 import 'moment/locale/en-gb.js';
 import 'moment/locale/en-au.js';
 import 'moment/locale/en-nz.js';
+import NumberFormat = Intl.NumberFormat;
 
-@Injectable()
+@Service()
 export class GlobalparameterService
   extends BaseAuthService<Globalparameters>
   implements ServiceEntityUpdate<Globalparameters>
@@ -54,10 +53,6 @@ export class GlobalparameterService
   private currencyPrecisionMap: { [currency: string]: number };
   private numberFormatPrecisionCache = new Map<number, NumberFormat>();
   private formDefinitionCache: { [entityAndDialog: string]: Observable<ClassDescriptorInputAndShow> } = {};
-
-  constructor(httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(httpClient, messageToastService);
-  }
 
   public getAllGlobalparameters(): Observable<Globalparameters[]> {
     return <Observable<Globalparameters[]>>(

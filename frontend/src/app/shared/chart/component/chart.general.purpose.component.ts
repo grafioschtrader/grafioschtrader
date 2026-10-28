@@ -28,6 +28,13 @@ import { GlobalparameterService } from '../../../lib/services/globalparameter.se
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
+  private gps = inject(GlobalparameterService);
+  private translateService = inject(TranslateService);
+  private chartDataService = inject(ChartDataService);
+  private viewSizeChangedService = inject(ViewSizeChangedService);
+  private activePanelService = inject(ActivePanelService);
+  private activatedRoute = inject(ActivatedRoute);
+
   readonly chartElement = viewChild<ElementRef>('chart');
 
   private subscriptionViewSizeChanged: Subscription;
@@ -36,15 +43,6 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   private chartData: ChartData;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
   private destroyed = false;
-
-  constructor(
-    private gps: GlobalparameterService,
-    private translateService: TranslateService,
-    private chartDataService: ChartDataService,
-    private viewSizeChangedService: ViewSizeChangedService,
-    private activePanelService: ActivePanelService,
-    private activatedRoute: ActivatedRoute
-  ) {}
 
   ngOnInit(): void {
     this.activePanelService.registerPanel(this);

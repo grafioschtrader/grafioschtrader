@@ -1,10 +1,10 @@
-import { afterNextRender, Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { afterNextRender, Component, OnDestroy, OnInit, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../service/log-in.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { MessageToastService } from '../../message/message.toast.service';
-import { GlobalparameterService, PasswordRegexProperties } from '../../services/globalparameter.service';
+import { PasswordRegexProperties } from '../../services/globalparameter.service';
 import { User } from '../../entities/user';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { PasswordBaseComponent } from './password.base.component';
@@ -65,23 +65,17 @@ import { ApplicationInfoComponent } from './application-info.component';
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, ProgressBarModule, ApplicationInfoComponent]
 })
 export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {
+  private messageToastService = inject(MessageToastService);
+  private actuatorService = inject(ActuatorService);
+  private activatedRoute = inject(ActivatedRoute);
+  private router = inject(Router);
+  private loginService = inject(LoginService);
+
   readonly progressValue = signal<number>(undefined);
   readonly errorLastRegistration = signal<string>(undefined);
   queryParams: any;
   readonly confirmEmail = signal(false);
   readonly applicationInfo = signal<ApplicationInfo>(null);
-
-  constructor(
-    private messageToastService: MessageToastService,
-    private actuatorService: ActuatorService,
-    private activatedRoute: ActivatedRoute,
-    private router: Router,
-    private loginService: LoginService,
-    gps: GlobalparameterService,
-    translateService: TranslateService
-  ) {
-    super(gps, translateService);
-  }
 
   ngOnInit(): void {
     combineLatest([

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { inject } from '@angular/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { Observable, of } from 'rxjs';
 
@@ -23,14 +23,9 @@ import { GrafioschTreeContributorBase } from './grafiosch-tree-contributor.base'
  */
 @Injectable()
 export class GrafioschMainTreeContributor extends GrafioschTreeContributorBase {
-  private rootNode: TreeNode;
+  private gps = inject(GlobalparameterService);
 
-  constructor(
-    translateService: TranslateService,
-    private gps: GlobalparameterService
-  ) {
-    super(translateService);
-  }
+  private rootNode: TreeNode;
 
   getTreeOrder(): number {
     return 2;

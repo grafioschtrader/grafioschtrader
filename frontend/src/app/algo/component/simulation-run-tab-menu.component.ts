@@ -1,7 +1,7 @@
 import { DestroyRef, inject, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Params, RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { Tab, TabList, Tabs } from '@openng/optimus-ui/tabs';
 import { BaseTabMenuComponent } from '../../lib/tabmenu/component/base.tab.menu.component';
@@ -34,10 +34,6 @@ export class SimulationRunTabMenuComponent extends BaseTabMenuComponent implemen
   /** Tenant id of the simulation environment the tabs belong to. */
   private idTenant: number;
   private routeSubscribe: Subscription;
-
-  constructor(router: Router, activatedRoute: ActivatedRoute, translateService: TranslateService) {
-    super(router, activatedRoute, translateService);
-  }
 
   override ngOnInit(): void {
     super.ngOnInit();

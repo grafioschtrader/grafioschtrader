@@ -1,11 +1,9 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Service } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { AppSettings } from '../../shared/app.settings';
 import { SecurityLookupResponse } from '../model/security-lookup';
@@ -14,12 +12,8 @@ import { SecurityLookupResponse } from '../model/security-lookup';
  * Asks the backend to look up a security at the data providers by ISIN, currency, exchange and asset class. The backend
  * proposes master data and, per feed, the connectors that deliver data for the listing; nothing is saved.
  */
-@Injectable()
+@Service()
 export class SecurityLookupService extends AuthServiceWithLogout<any> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Looks up the listings of an instrument.
    *

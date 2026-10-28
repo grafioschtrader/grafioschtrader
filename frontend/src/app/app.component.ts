@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MessageToastComponent } from './lib/message/message.toast.component';
 import { TranslateService } from '@ngx-translate/core';
@@ -18,7 +18,6 @@ import { BaseSettings } from './lib/base.settings';
 import { GlobalSessionNames } from './lib/global.session.names';
 import { UDFSpecialTypeRegistry } from './lib/udfmeta/model/udf.special.type.registry';
 import { UDFSpecialType } from './udfmetasecurity/model/udf.metadata.security';
-import { TASK_EXTENDED_SERVICE } from './lib/taskdatamonitor/service/task.extend.service.token';
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -133,13 +132,15 @@ const MyPreset = definePreset(Aura, {
   imports: [RouterOutlet, MessageToastComponent]
 })
 export class AppComponent implements OnDestroy {
+  private router = inject(Router);
+
   private readonly subscription: Subscription;
 
-  constructor(
-    translateService: TranslateService,
-    optimusConfig: Optimus,
-    private router: Router
-  ) {
+  constructor() {
+    const translateService = inject(TranslateService);
+    const optimusConfig = inject(Optimus);
+    const router = this.router;
+
     translateService.addLangs(['en', 'de']);
     // this language will be used as a fallback when a translation isn't found in the current language
     translateService.setDefaultLang(AppSettings.DEFAULT_LANGUAGE);

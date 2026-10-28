@@ -76,6 +76,12 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
   </p-dialog>`
 })
 export class AlgoAlertDiagnosticsDialogComponent implements OnInit {
+  private service = inject(AlgoAlertService);
+  private gps = inject(GlobalparameterService);
+  private translateService = inject(TranslateService);
+  private confirmationService = inject(ConfirmationService);
+  private messageToastService = inject(MessageToastService);
+
   private readonly pendingReads = new Map<string, Subscription>();
   private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
     this.pendingReads.forEach((request) => request.unsubscribe())
@@ -94,13 +100,9 @@ export class AlgoAlertDiagnosticsDialogComponent implements OnInit {
   readonly notifications = signal<AlertNotification[]>([]);
   readonly busy = signal(false);
   readOnly: boolean;
-  constructor(
-    private service: AlgoAlertService,
-    private gps: GlobalparameterService,
-    private translateService: TranslateService,
-    private confirmationService: ConfirmationService,
-    private messageToastService: MessageToastService
-  ) {
+  constructor() {
+    const gps = this.gps;
+
     this.readOnly = gps.isReadOnlyUser();
   }
   ngOnInit(): void {

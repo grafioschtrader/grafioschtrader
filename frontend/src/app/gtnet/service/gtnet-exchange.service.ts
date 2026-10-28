@@ -1,11 +1,8 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { AppSettings } from '../../shared/app.settings';
 import { GTNetSupplierWithDetails, GTSecuritiyCurrencyExchange } from '../../lib/gnet/model/gtnet';
@@ -18,14 +15,8 @@ import { Currencypair } from '../../entities/currencypair';
  * The GTNet exchange fields (gtNetLastpriceRecv, gtNetHistoricalRecv, gtNetLastpriceSend,
  * gtNetHistoricalSend) are now directly on the Security and Currencypair entities.
  */
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class GTNetExchangeService extends AuthServiceWithLogout<Security> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Retrieves all securities with their GTNet exchange configuration.
    *

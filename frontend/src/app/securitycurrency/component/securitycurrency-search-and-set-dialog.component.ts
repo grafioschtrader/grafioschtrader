@@ -1,12 +1,10 @@
-import { afterNextRender, Component, viewChild } from '@angular/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { afterNextRender, Component, viewChild, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { SecuritycurrencySearchBase } from './securitycurrency.search.base';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { SecuritycurrencySearchAndSetTableComponent } from './securitycurrency-search-and-set-table.component';
 import { Security } from '../../entities/security';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
-import { MultipleRequestToOneService } from '../../shared/service/multiple.request.to.one.service';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 
@@ -37,17 +35,14 @@ export class SecuritycurrencySearchAndSetDialogComponent
   extends SecuritycurrencySearchBase
   implements CallBackSetSecurity
 {
+  private dynamicDialogConfig = inject(DynamicDialogConfig);
+  private dynamicDialogRef = inject(DynamicDialogRef);
+
   // Access child components
   readonly sissdc = viewChild(SecuritycurrencySearchAndSetTableComponent);
 
-  constructor(
-    gps: GlobalparameterService,
-    multipleRequestToOneService: MultipleRequestToOneService,
-    translateService: TranslateService,
-    private dynamicDialogConfig: DynamicDialogConfig,
-    private dynamicDialogRef: DynamicDialogRef
-  ) {
-    super(false, gps, multipleRequestToOneService, translateService);
+  constructor() {
+    super(false);
     this.supplementCriteria.set(this.dynamicDialogConfig.data.supplementCriteria);
     // The form and the result table exist once the dialog has rendered for the first time.
     afterNextRender(() => this.initialize());

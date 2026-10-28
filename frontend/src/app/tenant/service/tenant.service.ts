@@ -1,14 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { FxObservationReport } from '../../entities/fx.observation';
 
-import { AppSettings } from '../../shared/app.settings';
 import { Tenant } from '../../entities/tenant';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Observable } from 'rxjs';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpParams } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
 import {
@@ -20,12 +17,8 @@ import {
 import { TaxStatementExportRequest } from '../../taxdata/service/tax-data.service';
 import { PerformanceReportSettings } from '../../performanceperiod/model/performance-report';
 
-@Injectable()
+@Service()
 export class TenantService extends AuthServiceWithLogout<Tenant> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getReportSettings(): Observable<PerformanceReportSettings | null> {
     return this.httpClient
       .get<PerformanceReportSettings | null>(

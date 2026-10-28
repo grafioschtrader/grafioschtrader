@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal, input, linkedSignal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, input, linkedSignal, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -57,6 +57,11 @@ import { TabsModule } from '@openng/optimus-ui/tabs';
   providers: [TabMenuService]
 })
 export class SharedTabMenuComponent implements OnInit, OnDestroy {
+  private tabMenuService = inject(TabMenuService);
+  private activatedRoute = inject(ActivatedRoute);
+  private translateService = inject(TranslateService);
+  private sessionStorageHelper = inject(SessionStorageTabHelper);
+
   /**
    * Array of tab items to display in the tab menu.
    * @example [{ label: 'TAB_ONE', route: 'route-one', icon: '' }]
@@ -84,13 +89,6 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
   readonly activeRoute = signal('');
 
   private subscription: Subscription;
-
-  constructor(
-    private tabMenuService: TabMenuService,
-    private activatedRoute: ActivatedRoute,
-    private translateService: TranslateService,
-    private sessionStorageHelper: SessionStorageTabHelper
-  ) {}
 
   /**
    * Initializes the component, handles session storage restoration,

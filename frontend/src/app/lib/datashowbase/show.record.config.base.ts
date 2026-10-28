@@ -59,7 +59,7 @@ export abstract class ShowRecordConfigBase {
    *
    * @protected
    */
-  protected constructor() {
+  constructor() {
     this.baseLocale = {
       language: this.gps.getUserLang(),
       locale: this.gps.getLocale(),

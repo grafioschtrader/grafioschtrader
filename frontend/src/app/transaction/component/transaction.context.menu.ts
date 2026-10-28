@@ -90,7 +90,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   /**
    * Creates a new TransactionContextMenu instance with required services.
    */
-  protected constructor() {
+  constructor() {
     super();
     this.pageFirstRowSelectedRow.set(this.parentChildRegisterService.getRowPosition(null));
     this.destroyRef.onDestroy(() => this.destroy());

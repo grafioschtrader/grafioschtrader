@@ -2,28 +2,21 @@ import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { AlgoAssetclass } from '../model/algo.assetclass';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Observable } from 'rxjs';
 import { AppSettings } from '../../shared/app.settings';
 import { catchError } from 'rxjs/operators';
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { BaseSettings } from '../../lib/base.settings';
 import { AddSearchToListService } from '../../watchlist/component/add-instrument-table.component';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { SecuritycurrencyLists } from '../../entities/view/securitycurrency.lists';
 import { AppHelper } from '../../lib/helper/app.helper';
 
-@Injectable()
+@Service()
 export class AlgoAssetclassService
   extends AuthServiceWithLogout<AlgoAssetclass>
   implements DeleteService, ServiceEntityUpdate<AlgoAssetclass>, AddSearchToListService<AlgoAssetclass>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getAlgoAssetclassByIdTenantAndIdAlgoAssetclassParent(idAlgoAssetclassSecurity: number): Observable<AlgoAssetclass[]> {
     return <Observable<AlgoAssetclass[]>>(
       this.httpClient

@@ -1,9 +1,8 @@
-import { Injectable, Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'replace'
 })
-@Injectable()
 export class ReplacePipe implements PipeTransform {
   constructor() {}
 

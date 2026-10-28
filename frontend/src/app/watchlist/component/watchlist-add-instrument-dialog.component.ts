@@ -67,12 +67,8 @@ export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearc
    * @param {MultipleRequestToOneService} multipleRequestToOneService - Service for handling multiple requests
    * @param {TranslateService} translateService - Angular translation service
    */
-  constructor(
-    gps: GlobalparameterService,
-    multipleRequestToOneService: MultipleRequestToOneService,
-    translateService: TranslateService
-  ) {
-    super(true, gps, multipleRequestToOneService, translateService);
+  constructor() {
+    super(true);
   }
 
   /** Handles dialog hide event and emits close dialog event with no change action. */

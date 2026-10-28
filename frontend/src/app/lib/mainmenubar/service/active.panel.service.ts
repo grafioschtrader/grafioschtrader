@@ -1,4 +1,4 @@
-import { Injectable, signal, untracked } from '@angular/core';
+import { signal, untracked, Service } from '@angular/core';
 import { IGlobalMenuAttach } from '../component/iglobal.menu.attach';
 import { TopMenuTypes } from '../component/top.menu.types';
 import { MenuItem } from '@openng/optimus-ui/api';
@@ -17,7 +17,7 @@ import { MenuItem } from '@openng/optimus-ui/api';
  * 2. Component activates when user interacts: activePanelService.activatePanel(this, {showMenu, editMenu})
  * 3. Component destroys itself on ngOnDestroy: activePanelService.destroyPanel(this)
  */
-@Injectable()
+@Service()
 export class ActivePanelService {
   /**
    * The top-level menu items of the main menu bar, set by the menubar and indexed by the TopMenuTypes enum. Every

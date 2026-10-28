@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -12,16 +13,14 @@ import { TabItem } from '../../types/tab.item';
  */
 @Injectable()
 export class TabMenuService {
+  private router = inject(Router);
+  private translateService = inject(TranslateService);
+
   /** Subject for tracking the currently active route. */
   private activeRouteSubject = new BehaviorSubject<string>('');
 
   /** Observable stream of the currently active route for components to subscribe to. */
   activeRoute$ = this.activeRouteSubject.asObservable();
-
-  constructor(
-    private router: Router,
-    private translateService: TranslateService
-  ) {}
 
   /**
    * Initialize tabs with translation and router tracking.

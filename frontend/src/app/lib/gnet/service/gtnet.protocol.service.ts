@@ -1,10 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map, shareReplay, tap } from 'rxjs/operators';
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
-import { LoginService } from '../../login/service/log-in.service';
-import { MessageToastService } from '../../message/message.toast.service';
 import { BaseSettings } from '../../base.settings';
 import { GTNetMessageCodeType } from '../model/gtnet.message';
 import { GTNetProtocolDescriptor, messageCodeName } from '../model/gtnet.protocol';
@@ -16,17 +13,13 @@ import { GTNetProtocolDescriptor, messageCodeName } from '../model/gtnet.protoco
  * every component that needs them calls {@link load} in its own initialization and the request is made at most once.
  * The lookups are synchronous because they are called while a context menu is being built.
  */
-@Injectable()
+@Service()
 export class GTNetProtocolService extends AuthServiceWithLogout<any> {
   /** Descriptors by constant name, empty until the first load has come back. */
   private byName = new Map<string, GTNetProtocolDescriptor>();
 
   /** The in-flight or completed request, shared so that several components cause one call. */
   private loaded$: Observable<GTNetProtocolDescriptor[]>;
-
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
 
   /**
    * Loads the protocol once and caches it.

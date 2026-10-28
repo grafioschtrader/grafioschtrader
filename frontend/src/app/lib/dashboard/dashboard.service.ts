@@ -1,8 +1,5 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../login/service/base.auth.service.with.logout';
-import { LoginService } from '../login/service/log-in.service';
-import { MessageToastService } from '../message/message.toast.service';
 import { BaseSettings } from '../base.settings';
 import {
   DashboardCatalogue,
@@ -12,11 +9,8 @@ import {
   DashboardWidget
 } from './dashboard.types';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class DashboardService extends AuthServiceWithLogout<DashboardDocument> {
-  constructor(login: LoginService, http: HttpClient, toast: MessageToastService) {
-    super(login, http, toast);
-  }
   load() {
     return this.httpClient.get<DashboardDocument>(`${BaseSettings.API_ENDPOINT}dashboard`, this.getHeaders());
   }

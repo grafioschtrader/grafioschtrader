@@ -1,19 +1,12 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
-import { LoginService } from '../../login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../message/message.toast.service';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { MailInboxWithSend, MailSendRecv } from '../model/mail.send.recv';
 import { BaseSettings } from '../../base.settings';
 
-@Injectable()
+@Service()
 export class MailSendRecvService extends AuthServiceWithLogout<MailSendRecv> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   public getMailsByUserOrRole(): Observable<MailInboxWithSend> {
     return <Observable<MailInboxWithSend>>(
       this.httpClient

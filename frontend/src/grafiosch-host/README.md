@@ -50,16 +50,16 @@ the users from `testdata/users.json` (password `A123abcd`). The browser suite of
 This is the concrete answer to "what does an application built on `lib` have to bring along?". Everything else comes
 from the library.
 
-| Extension point                                                                  | Host implementation                                                                                                                                                                     |
-| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DIALOG_HANDLER`                                                                 | `grafiosch-dialog.handler.ts`                                                                                                                                                           |
-| `AfterLoginHandler`                                                              | `grafiosch-after-login.handler.ts`                                                                                                                                                      |
-| `MAIN_TREE_CONTRIBUTOR` (multi)                                                  | `grafiosch-basedata-main-tree.contributor.ts` and `grafiosch-main-tree.contributor.ts`, sharing `grafiosch-tree-contributor.base.ts` — at least one, or `/mainview` shows an empty tree |
-| `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE`                                       | the library `TaskTypeBase`; this host has no extended task types, so the service is bound to `null`                                                                                     |
-| `PERSONAL_DATA_ZIP_NAME`                                                         | optional — the library default `personalData.zip` is used; Grafioschtrader overrides it with `gtPersonalData.zip`                                                                       |
-| The tenant page                                                                  | `grafiosch-tenant-edit.component.ts` + `grafiosch-tenant.service.ts` — `TenantBase` is extended per application                                                                         |
-| Application owned route keys                                                     | `grafiosch.settings.ts` — only the paths the library does not choose for itself; the values match the Grafioschtrader ones so a browser spec can move between the two suites            |
-| Route table, Optimus `MessageService`, the NLS app initializer, the service list | `main.ts`                                                                                                                                                                               |
+| Extension point                                                             | Host implementation                                                                                                                                                                     |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DIALOG_HANDLER`                                                            | `grafiosch-dialog.handler.ts`                                                                                                                                                           |
+| `AfterLoginHandler`                                                         | `grafiosch-after-login.handler.ts`                                                                                                                                                      |
+| `MAIN_TREE_CONTRIBUTOR` (multi)                                             | `grafiosch-basedata-main-tree.contributor.ts` and `grafiosch-main-tree.contributor.ts`, sharing `grafiosch-tree-contributor.base.ts` — at least one, or `/mainview` shows an empty tree |
+| `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE`                                  | the library `TaskTypeBase`; this host has no extended task types, so the service is bound to `null`                                                                                     |
+| `PERSONAL_DATA_ZIP_NAME`                                                    | optional — the library default `personalData.zip` is used; Grafioschtrader overrides it with `gtPersonalData.zip`                                                                       |
+| The tenant page                                                             | `grafiosch-tenant-edit.component.ts` + `grafiosch-tenant.service.ts` — `TenantBase` is extended per application                                                                         |
+| Application owned route keys                                                | `grafiosch.settings.ts` — only the paths the library does not choose for itself; the values match the Grafioschtrader ones so a browser spec can move between the two suites            |
+| Route table, Optimus services, scoped providers and the NLS app initializer | `main.ts`                                                                                                                                                                               |
 
 The navigation tree deliberately uses **two** contributors, mirroring Grafioschtrader's BaseData/AdminData split, so
 that the merge in `MainTreeService` (filter by `isEnabled()`, sort by `getTreeOrder()`, flatten) is exercised and not
@@ -99,11 +99,11 @@ deadlock, no entry means no menu and no menu means no entry.
 > polyfill, the same as Grafioschtrader. Library components notify Angular through signals, input changes or
 > `markForCheck`. Fix stale views where the library state is owned; the host needs no refresh workaround.
 
-> **The existing library services are not `providedIn: 'root'`;** new ones are `@Service()` and need no entry. Every
-> host lists the ones its routes reach, including those
-> only the shell needs — `ManageClientService` and `UserDataService` for the menu bar, `DataChangedService` and
-> `TreeNavigationStateService` for the main tree. A missing entry surfaces late and unhelpfully, as NG0201 while
-> rendering `/mainview`.
+> **Library services are auto-provided through `@Service()`.** A host supplies token implementations and overrides
+> (`AfterLoginHandler`, `DIALOG_HANDLER`, `MAIN_TREE_CONTRIBUTOR`), Optimus services and explicit scoped providers such
+> as `TabMenuService`. The library's ordinary services, including those used by the shell, need no provider list.
+> Component-owned providers retain their local lifetime. `src/angular-api.ratchet.spec.ts` guards the documented
+> exceptions and rejects redundant entries for auto-provided services.
 
 ## NLS
 

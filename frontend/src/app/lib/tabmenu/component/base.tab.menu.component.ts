@@ -34,6 +34,10 @@ import { TabItem } from '../../types/tab.item';
  */
 @Directive()
 export abstract class BaseTabMenuComponent implements OnInit, OnDestroy {
+  protected router: Router = inject(Router);
+  protected activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  protected translateService: TranslateService = inject(TranslateService);
+
   // Public properties accessible by derived classes
   tabs: TabItem[] = [];
   activeRoute: string = '';
@@ -43,11 +47,7 @@ export abstract class BaseTabMenuComponent implements OnInit, OnDestroy {
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  protected constructor(
-    protected router: Router,
-    protected activatedRoute: ActivatedRoute,
-    protected translateService: TranslateService
-  ) {}
+  constructor() {}
 
   ngOnInit(): void {
     // Initialize tabs from derived class

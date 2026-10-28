@@ -1,26 +1,19 @@
 import { Assetclass } from '../../entities/assetclass';
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppSettings } from '../../shared/app.settings';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
-import { HttpClient } from '@angular/common/http';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class AssetclassService
   extends AuthServiceWithLogout<Assetclass>
   implements DeleteService, ServiceEntityUpdate<Assetclass>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   public getAllAssetclass(): Observable<Assetclass[]> {
     return <Observable<Assetclass[]>>(
       this.httpClient

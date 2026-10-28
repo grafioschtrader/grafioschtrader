@@ -1,27 +1,21 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 
 import { AppSettings } from '../../shared/app.settings';
 import { Transaction } from '../../entities/transaction';
 import { ExDateFromTaxDataResult } from '../../entities/ex.date.from.tax.data.result';
 import { CashaccountTransactionPosition } from '../../entities/view/cashaccount.transaction.position';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { catchError } from 'rxjs/operators';
 import { Observable } from 'rxjs/internal/Observable';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { ProposedMarginFinanceCost } from '../model/proposed.margin.finance.cost';
 import { ClosedMarginPosition } from '../model/closed.margin.position';
 import { CashAccountTableInputFilter } from '../component/transaction-cashaccount-table.component';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class TransactionService extends AuthServiceWithLogout<Transaction> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getConnectedMarginPositionByIdTransaction(idTransaction: number): Observable<ClosedMarginPosition> {
     return <Observable<ClosedMarginPosition>>(
       this.httpClient

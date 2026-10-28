@@ -1,9 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
 import { UDFData } from '../model/udf.metadata';
-import { LoginService } from '../../login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../message/message.toast.service';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { BaseSettings } from '../../base.settings';
@@ -13,19 +10,8 @@ import { BaseSettings } from '../../base.settings';
  * Handles retrieval, creation, and update of actual UDF data entered by users for specific entity instances.
  * Unlike UDFMetadataGeneralService which manages field definitions, this service manages the field values.
  */
-@Injectable()
+@Service()
 export class UDFDataService extends AuthServiceWithLogout<UDFData> {
-  /**
-   * Creates the UDF data service.
-   *
-   * @param loginService - Service for authentication and session management
-   * @param httpClient - HTTP client for REST API calls
-   * @param messageToastService - Service for displaying user notifications
-   */
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Retrieves UDF data values for a specific entity instance.
    * Returns the user-entered values for all UDF fields defined for this entity type.

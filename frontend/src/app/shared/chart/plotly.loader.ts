@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 
@@ -31,11 +31,11 @@ export function loadPlotly(): Promise<PlotlyInstance> {
  * Gives the chart components access to {@link loadPlotly} and reports a failed import once per attempt, however many
  * charts wait for it.
  */
-@Injectable()
+@Service()
 export class PlotlyLoaderService {
-  private reportedAttempt: Promise<PlotlyInstance> | null = null;
+  private messageToastService = inject(MessageToastService);
 
-  constructor(private messageToastService: MessageToastService) {}
+  private reportedAttempt: Promise<PlotlyInstance> | null = null;
 
   /**
    * @returns Promise of the Plotly library; it rejects when the bundle cannot be loaded

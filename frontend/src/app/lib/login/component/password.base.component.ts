@@ -18,6 +18,9 @@ import { GlobalparameterService, PasswordRegexProperties } from '../../services/
  */
 @Directive()
 export abstract class PasswordBaseComponent {
+  protected gps: GlobalparameterService = inject(GlobalparameterService);
+  protected translateService: TranslateService = inject(TranslateService);
+
   // Access child components
   readonly form = viewChild(DynamicFormComponent);
 
@@ -42,10 +45,7 @@ export abstract class PasswordBaseComponent {
   /** Validator added by {@link setValidators} per field, so a repeated call replaces it instead of adding another */
   private addedValidators: { [field: string]: ValidatorFn } = {};
 
-  protected constructor(
-    protected gps: GlobalparameterService,
-    protected translateService: TranslateService
-  ) {}
+  constructor() {}
 
   protected preparePasswordFields(): void {
     this.setValidators(PasswordBaseComponent.password, Validators.pattern(this.passwordRegexProperties.regex), {

@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
@@ -26,17 +26,15 @@ import { ButtonModule } from '@openng/optimus-ui/button';
   imports: [TranslateModule, ButtonModule]
 })
 export class LogoutAdminSelfReleaseDynamicDialogComponent {
-  readonly loading = signal(false);
+  private translateService = inject(TranslateService);
+  private gps = inject(GlobalparameterService);
+  private messageToastService = inject(MessageToastService);
+  private loginService = inject(LoginService);
+  private router = inject(Router);
+  private dynamicDialogRef = inject(DynamicDialogRef);
+  private dynamicDialogConfig = inject(DynamicDialogConfig);
 
-  constructor(
-    private translateService: TranslateService,
-    private gps: GlobalparameterService,
-    private messageToastService: MessageToastService,
-    private loginService: LoginService,
-    private router: Router,
-    private dynamicDialogRef: DynamicDialogRef,
-    private dynamicDialogConfig: DynamicDialogConfig
-  ) {}
+  readonly loading = signal(false);
 
   confirm(): void {
     this.loading.set(true);

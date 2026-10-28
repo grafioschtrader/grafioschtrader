@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -148,6 +148,8 @@ export interface WatchlistFilterSortSettingsData {
   ]
 })
 export class WatchlistFilterSortSettingsDialogComponent {
+  private filterSortStateService = inject(WatchlistFilterSortStateService);
+
   /** The two scopes as dropdown options. */
   scopeOptions: SelectItem[];
 
@@ -165,11 +167,10 @@ export class WatchlistFilterSortSettingsDialogComponent {
 
   private readonly idWatchlist: number;
 
-  constructor(
-    dynamicDialogConfig: DynamicDialogConfig,
-    translateService: TranslateService,
-    private filterSortStateService: WatchlistFilterSortStateService
-  ) {
+  constructor() {
+    const dynamicDialogConfig = inject(DynamicDialogConfig);
+    const translateService = inject(TranslateService);
+
     const data: WatchlistFilterSortSettingsData = dynamicDialogConfig.data;
     this.idWatchlist = data.idWatchlist;
     this.scopeOptions = [

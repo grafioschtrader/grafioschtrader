@@ -102,11 +102,18 @@ periodic `ApplicationRef.tick()`.
   `dynamic-form` stays on
   reactive forms, because its fields are built at runtime from `ClassDescriptorInputAndShow`; a new form whose fields
   are known statically may use Signal Forms.
-- **New services use `@Service()` and `inject()`.** `@Service()` is the Angular 22 shorthand for a root-provided,
+- **Services use `@Service()` and `inject()`.** `@Service()` is the Angular 22 shorthand for a root-provided,
   tree-shakable singleton and supports `inject()` only, no constructor injection. Such a service needs no entry in
   `app.config.ts` or `src/grafiosch-host/main.ts`. Keep `@Injectable()` only for a class a host replaces through a
   provider (`AfterLoginHandler`), one bound to a token with `useClass` (`AppDialogHandler`), or one provided per
-  component.
+  component. This includes token-only tree contributors and both hosts' dialog/login handlers. `TabMenuService` and
+  `TaxYearCorrectionService` retain their explicit scoped providers. The file-to-reason exception list lives in
+  `src/angular-api.ratchet.spec.ts`; no other `@Injectable()` is allowed.
+- **Angular classes use no constructor injection.** Declare dependencies as `inject()` fields and keep template
+  access `public` or `protected`. Abstract bases retain only documented view configuration or screen-selected strategy
+  arguments. A parameterless constructor on an abstract base is public so a component can inherit it after its empty
+  constructor is removed. Plain models and helpers constructed with `new` keep their ordinary constructor arguments.
+  `strictInjectionParameters` and the Angular API ratchet enforce this in both hosts.
 - **`NgZone` is not needed for change detection.** `NgZone.run` refreshes nothing. `runOutsideAngular` around a
   `ResizeObserver` or a layout pass remains in the library, which a host with zone.js may still consume; a result of
   such a callback that reaches a template is written to a signal.
@@ -1143,10 +1150,10 @@ Two traps worth knowing:
 - **The host runs zoneless, like Grafioschtrader.** A library change that shows a stale view shows it in both hosts;
   library state owners notify every asynchronous change (see "Change detection"). Verify shell changes against this
   host as well, because its shell differs from the one of Grafioschtrader.
-- **The existing library services are not `providedIn: 'root'`** (new ones are `@Service()`, see "Change
-  detection"). Every host lists the ones its routes reach, including those only the shell needs (`ManageClientService` and `UserDataService` for the menu bar, `DataChangedService` and
-  `TreeNavigationStateService` for the main tree). A missing entry surfaces late, as NG0201 while rendering
-  `/mainview`.
+- **Library services use `@Service()` and need no host provider entry.** Hosts supply token bindings and overrides,
+  Optimus services and explicitly scoped services such as `TabMenuService`. Keep component providers where they define
+  a local lifetime, including `DialogService` and the tax-correction table's service. The Angular API ratchet forbids
+  redundant root-service entries in either host.
 
 Texts used from `src/grafiosch-host/**` count as library layer for `node scripts/nls-tool.mjs check`, exactly like
 `src/app/lib/**`: this host is served by a backend that ships the `grafiosch-base` bundle alone.

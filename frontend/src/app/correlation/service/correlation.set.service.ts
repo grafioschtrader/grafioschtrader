@@ -6,10 +6,8 @@ import {
   SamplingPeriodType
 } from '../../entities/correlation.set';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { HttpClient, HttpParams, HttpResourceRequest } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { Injectable } from '@angular/core';
+import { HttpParams, HttpResourceRequest } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { Observable } from 'rxjs';
@@ -21,15 +19,11 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { AddSearchToListService } from '../../watchlist/component/add-instrument-table.component';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class CorrelationSetService
   extends AuthServiceWithLogout<CorrelationSet>
   implements DeleteService, ServiceEntityUpdate<CorrelationSet>, AddSearchToListService<CorrelationSet>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getCorrelationSetByTenant(): Observable<CorrelationSet[]> {
     return <Observable<CorrelationSet[]>>(
       this.httpClient

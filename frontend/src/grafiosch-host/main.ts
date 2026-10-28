@@ -19,13 +19,10 @@ import { GlobalSessionNames } from '../app/lib/global.session.names';
 import { AppHelper } from '../app/lib/helper/app.helper';
 import { ConnectorApiKeyTableComponent } from '../app/lib/connectorapikey/component/connector.api.key.table.component';
 import { SplitLayoutComponent } from '../app/lib/layout/component/split.layout.component';
-import { ViewSizeChangedService } from '../app/lib/layout/service/view.size.changed.service';
 import { LoginComponent } from '../app/lib/login/component/login.component';
 import { RegisterComponent } from '../app/lib/login/component/register.component';
 import { RegistrationTokenVerifyComponent } from '../app/lib/login/component/registration.token.verify.component';
 import { AfterLoginHandler } from '../app/lib/login/service/after-login.handler';
-import { LoginService } from '../app/lib/login/service/log-in.service';
-import { ReleaseNoteService } from '../app/lib/login/service/release.note.service';
 import { GlobalSettingsTableComponent } from '../app/lib/globalsettings/global.settings.table.component';
 import { GTNetAdminMessagesComponent } from '../app/lib/gnet/component/gtnet-admin-messages.component';
 import { GTNetExchangeLogComponent } from '../app/lib/gnet/component/gtnet-exchange-log.component';
@@ -33,54 +30,26 @@ import { GTNetExchangeLogTabMenuComponent } from '../app/lib/gnet/component/gtne
 import { GTNetMessageAnswerTableComponent } from '../app/lib/gnet/component/gtnet-message-answer-table.component';
 import { GTNetSetupTableComponent } from '../app/lib/gnet/component/gtnet.setup.table.component';
 import { GTNetTabMenuComponent } from '../app/lib/gnet/component/gtnet-tabmenu.component';
-import { GTNetConfigEntityService } from '../app/lib/gnet/service/gtnet.config.entity.service';
-import { GTNetConfigService } from '../app/lib/gnet/service/gtnet.config.service';
-import { GTNetMessageAnswerService } from '../app/lib/gnet/service/gtnet.message.answer.service';
-import { GTNetProtocolService } from '../app/lib/gnet/service/gtnet.protocol.service';
-import { GTNetMessageService } from '../app/lib/gnet/service/gtnet.message.service';
-import { GTNetService } from '../app/lib/gnet/service/gtnet.service';
 import { MailForwardSettingTableEditComponent } from '../app/lib/mail/component/mail.forward.setting.table.edit.component';
 import { SendRecvForwardTabMenuComponent } from '../app/lib/mail/component/send.recv.forward.tab.menu.component';
 import { SendRecvTreetableComponent } from '../app/lib/mail/component/send.recv.treetable.component';
-import { MailSendRecvService } from '../app/lib/mail/service/mail.send.recv.service';
-import { MailSettingForwardService } from '../app/lib/mail/service/mail.setting.forward.service';
-import { MainDialogService } from '../app/lib/mainmenubar/service/main.dialog.service';
-import { ManageClientService } from '../app/lib/manageclient/service/manage-client.service';
-import { ActivePanelService } from '../app/lib/mainmenubar/service/active.panel.service';
-import { UserDataService } from '../app/lib/mainmenubar/service/user.data.service';
 import { MAIN_TREE_CONTRIBUTOR } from '../app/lib/maintree/contributor/main-tree-contributor.interface';
 import { DashboardMainTreeContributor } from '../app/lib/maintree/contributor/dashboard-main-tree.contributor';
-import { MainTreeContributorManager } from '../app/lib/maintree/contributor/main-tree-contributor.manager';
 import { DIALOG_HANDLER } from '../app/lib/maintree/handler/dialog-handler.interface';
-import { DataChangedService } from '../app/lib/maintree/service/data.changed.service';
-import { MainTreeService } from '../app/lib/maintree/service/main-tree.service';
-import { TreeNavigationStateService } from '../app/lib/maintree/service/tree.navigation.state.service';
-import { MessageToastService } from '../app/lib/message/message.toast.service';
 import { ProposeChangeTabMenuComponent } from '../app/lib/proposechange/component/propose.change.tab.menu.component';
 import { RequestForYouTableComponent } from '../app/lib/proposechange/component/request.for.you.table.component';
 import { YourProposalTableComponent } from '../app/lib/proposechange/component/your.proposal.table.component';
-import { ProposeChangeEntityService } from '../app/lib/proposechange/service/propose.change.entity.service';
-import { ProposeUserTaskService } from '../app/lib/dynamicdialog/service/propose.user.task.service';
-import { ActuatorService } from '../app/lib/services/actuator.service';
-import { ConnectorApiKeyService } from '../app/lib/connectorapikey/service/connector.api.key.service';
-import { GlobalparameterService } from '../app/lib/services/globalparameter.service';
 import { adminGuard, authGuard } from '../app/lib/services/guards.definition';
-import { UserSettingsService } from '../app/lib/services/user.settings.service';
 import { TabMenuService } from '../app/lib/tabmenu/service/tab.menu.service';
 import { TaskDataChangeTableComponent } from '../app/lib/taskdatamonitor/component/task.data.change.table.component';
 import { TaskDataChangeTabMenuComponent } from '../app/lib/taskdatamonitor/component/task-data-change-tab-menu.component';
-import { TaskDataChangeService } from '../app/lib/taskdatamonitor/service/task.data.change.service';
 import { TASK_EXTENDED_SERVICE } from '../app/lib/taskdatamonitor/service/task.extend.service.token';
 import { TASK_TYPE_ENUM } from '../app/lib/taskdatamonitor/service/task.type.enum.token';
 import { TaskTypeBase } from '../app/lib/taskdatamonitor/types/task.type.base';
 import { MultiTranslateHttpLoader } from '../app/lib/translator/multi.translate.http.loader';
 import { showNlsBootstrapFailure } from '../app/lib/translator/nls.bootstrap.failure';
 import { UDFMetadataGeneralTableComponent } from '../app/lib/udfmeta/components/udf.metadata.general.table.component';
-import { UDFMetadataGeneralService } from '../app/lib/udfmeta/service/udf.metadata.general.service';
-import { UDFSpecialTypeDisableUserService } from '../app/lib/udfmeta/service/udf.special.type.disable.user.service';
-import { UserAdminService } from '../app/lib/user/service/user.admin.service';
 import { UserTableComponent } from '../app/lib/user/component/user.table.component';
-import { EntityLimitService } from '../app/lib/entitylimit/service/entity.limit.service';
 import { EntityLimitTableComponent } from '../app/lib/entitylimit/component/entity.limit.table.component';
 
 import { GrafioschAppComponent } from './app.component';
@@ -90,7 +59,7 @@ import { GrafioschBaseDataMainTreeContributor } from './grafiosch-basedata-main-
 import { GrafioschMainTreeContributor } from './grafiosch-main-tree.contributor';
 import { GrafioschSettings } from './grafiosch.settings';
 import { GrafioschTenantEditComponent } from './grafiosch-tenant-edit.component';
-import { GrafioschTenantService } from './grafiosch-tenant.service';
+import { DASHBOARD_ROUTES } from '../app/lib/dashboard/dashboard.routes';
 
 /**
  * The route table mirrors the shape of Grafioschtrader's: the three public routes of the registration flow, the
@@ -243,7 +212,6 @@ bootstrapApplication(GrafioschAppComponent, {
       withPreloading(AuthenticatedPreloadingStrategy),
       withNavigationErrorHandler(handleLazyLoadNavigationError)
     ),
-    AuthenticatedPreloadingStrategy,
     provideAngularSvgIcon(),
     provideTranslateService({
       fallbackLang: GrafioschSettings.DEFAULT_LANGUAGE,
@@ -253,63 +221,19 @@ bootstrapApplication(GrafioschAppComponent, {
         deps: [HttpClient]
       }
     }),
-
-    // Library services. They are not providedIn: 'root', so every host lists the ones its routes reach - including
-    // the ones only the shell needs: the menu bar of SplitLayoutComponent injects ManageClientService and
-    // UserDataService, the main tree injects DataChangedService and TreeNavigationStateService. A missing entry
-    // surfaces late and unhelpfully, as NG0201 while rendering /mainview.
-    ActivePanelService,
     { provide: SETTINGS_MENU_EXTENSIONS, useValue: accessTokenSettingsMenu, multi: true },
-    ActuatorService,
     ConfirmationService,
-    ConnectorApiKeyService,
-    DataChangedService,
     DialogService,
     FilterService,
-    GlobalparameterService,
-    LoginService,
-    MailSendRecvService,
-    MailSettingForwardService,
-    MainDialogService,
-    ManageClientService,
-    MessageToastService,
     MessageService,
-    ProposeChangeEntityService,
-    ProposeUserTaskService,
-    ReleaseNoteService,
     TabMenuService,
-    TaskDataChangeService,
-    TreeNavigationStateService,
-    UDFMetadataGeneralService,
-    UDFSpecialTypeDisableUserService,
-    UserAdminService,
-    UserDataService,
-    EntityLimitService,
-    UserSettingsService,
-    ViewSizeChangedService,
-
-    // The GTNet services of the library. GTNetExchangeLogService is the only one of the six declared
-    // providedIn: 'root' and therefore the only one missing here.
-    GTNetConfigEntityService,
-    GTNetConfigService,
-    GTNetMessageAnswerService,
-    GTNetProtocolService,
-    GTNetMessageService,
-    GTNetService,
-
-    // Host owned.
-    GrafioschTenantService,
-
     // The batch monitor lets an application register its own task types and a service that resolves the entity behind
     // a task. This host has neither, so the library enum is used and the extended service is left unbound.
     { provide: TASK_TYPE_ENUM, useValue: TaskTypeBase },
     { provide: TASK_EXTENDED_SERVICE, useValue: null },
-
     // The three extension points a host has to implement, see the interfaces in lib/maintree and lib/login.
     { provide: DIALOG_HANDLER, useClass: GrafioschDialogHandler },
     { provide: AfterLoginHandler, useClass: GrafioschAfterLoginHandler },
-    MainTreeContributorManager,
-    MainTreeService,
     {
       provide: MAIN_TREE_CONTRIBUTOR,
       useClass: DashboardMainTreeContributor,
@@ -325,7 +249,6 @@ bootstrapApplication(GrafioschAppComponent, {
       useClass: GrafioschMainTreeContributor,
       multi: true
     },
-
     // Load the user interface texts before anything renders. The backend is their only source since issue #214, so a
     // failure here must stop the bootstrap: without it every component would paint raw translation keys and look
     // broken rather than disconnected.
@@ -346,4 +269,3 @@ bootstrapApplication(GrafioschAppComponent, {
     })
   ]
 }).catch((error) => console.error(error));
-import { DASHBOARD_ROUTES } from '../app/lib/dashboard/dashboard.routes';

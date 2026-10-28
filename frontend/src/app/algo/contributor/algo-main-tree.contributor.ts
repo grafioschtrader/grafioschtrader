@@ -1,5 +1,6 @@
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { Injectable } from '@angular/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { inject } from '@angular/core';
 import { Observable, of, forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { MenuItem, TreeNode, ConfirmationService } from '@openng/optimus-ui/api';
@@ -63,24 +64,20 @@ const loadAlgoSimulationRunStartDynamicDialog: DialogComponentLoader = () =>
  */
 @Injectable()
 export class AlgoMainTreeContributor extends MainTreeContributor {
+  private gps = inject(GlobalparameterService);
+  private algoTopService = inject(AlgoTopService);
+  private tenantService = inject(TenantService);
+  private manageClientService = inject(ManageClientService);
+  private simulationContext = inject(SimulationContextService);
+  private portfolioService = inject(PortfolioService);
+  private messageToastService = inject(MessageToastService);
+  private confirmationService = inject(ConfirmationService);
+  private translateService = inject(TranslateService);
+  private dataChangedService = inject(DataChangedService);
+
   private rootNode: TreeNode;
   private simulationTenants: SimulationTenantInfo[] = [];
   private monitoringId: number | null = null;
-
-  constructor(
-    private gps: GlobalparameterService,
-    private algoTopService: AlgoTopService,
-    private tenantService: TenantService,
-    private manageClientService: ManageClientService,
-    private simulationContext: SimulationContextService,
-    private portfolioService: PortfolioService,
-    private messageToastService: MessageToastService,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService,
-    private dataChangedService: DataChangedService
-  ) {
-    super();
-  }
 
   getTreeOrder(): number {
     return 2; // Algo comes after Watchlist

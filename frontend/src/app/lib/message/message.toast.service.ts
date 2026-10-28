@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { InfoLevelType } from './info.leve.type';
 import { MessageContainer } from './message.container';
 import { Subject } from 'rxjs';
 
-@Injectable()
+@Service()
 export class MessageToastService {
   private showMessageSource = new Subject<MessageContainer>();
   showMessageSource$ = this.showMessageSource.asObservable();

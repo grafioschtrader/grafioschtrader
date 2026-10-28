@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, Inject, signal, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, viewChild, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
@@ -36,6 +36,14 @@ import { DialogComponentLoader } from '../handler/lazy-dialog';
   imports: [TreeModule, ContextMenuModule, ConfirmDialogModule, ButtonModule, SharedModule, TranslateModule]
 })
 export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
+  private dataChangedService = inject(DataChangedService);
+  private activePanelService = inject(ActivePanelService);
+  private router = inject(Router);
+  translateService = inject(TranslateService);
+  private dialogHandler = inject<DialogHandler>(DIALOG_HANDLER);
+  private mainTreeService = inject(MainTreeService);
+  private treeNavState = inject(TreeNavigationStateService);
+
   readonly contextMenu = viewChild<any>('cm');
 
   /**
@@ -52,15 +60,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
   private subscription: Subscription;
 
-  constructor(
-    private dataChangedService: DataChangedService,
-    private activePanelService: ActivePanelService,
-    private router: Router,
-    public translateService: TranslateService,
-    @Inject(DIALOG_HANDLER) private dialogHandler: DialogHandler,
-    private mainTreeService: MainTreeService,
-    private treeNavState: TreeNavigationStateService
-  ) {
+  constructor() {
     // Setup component callbacks for the service
     this.mainTreeService.setComponentCallbacks({
       handleEdit: (loadComponent: DialogComponentLoader, parentObject: any, data: any, titleKey: string) =>

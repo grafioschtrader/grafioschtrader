@@ -39,6 +39,10 @@ import {
  */
 @Directive()
 export abstract class SecuritycurrencySearchBase implements OnInit {
+  protected gps: GlobalparameterService = inject(GlobalparameterService);
+  protected multipleRequestToOneService: MultipleRequestToOneService = inject(MultipleRequestToOneService);
+  public translateService: TranslateService = inject(TranslateService);
+
   /**
    * Field which turns the name into a regular expression. It only modifies how 'name' is matched, it is not a search
    * criterion of its own, which is why it is excluded from the emptiness check of the second group.
@@ -62,12 +66,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   /** Value subscription of the current opening; a new opening replaces it, so openings do not accumulate. */
   private formValueSubscription: Subscription;
 
-  protected constructor(
-    protected multiplyAddClose: boolean,
-    protected gps: GlobalparameterService,
-    protected multipleRequestToOneService: MultipleRequestToOneService,
-    public translateService: TranslateService
-  ) {
+  protected constructor(protected multiplyAddClose: boolean) {
     inject(DestroyRef).onDestroy(() => this.formValueSubscription?.unsubscribe());
   }
 

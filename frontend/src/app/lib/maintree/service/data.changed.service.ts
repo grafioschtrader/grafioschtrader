@@ -1,8 +1,8 @@
 import { ProcessedActionData } from '../../types/processed.action.data';
 import { Subject } from 'rxjs';
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 
-@Injectable()
+@Service()
 export class DataChangedService {
   private dataChanged = new Subject<ProcessedActionData>();
   dateChanged$ = this.dataChanged.asObservable();

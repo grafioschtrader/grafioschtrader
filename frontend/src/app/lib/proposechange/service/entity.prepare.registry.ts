@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { DialogComponentLoader } from '../../maintree/handler/lazy-dialog';
 import { PrepareCallParam } from '../component/general.entity.prepare.edit';
 
@@ -11,7 +11,7 @@ import { PrepareCallParam } from '../component/general.entity.prepare.edit';
  * The registry pattern provides a clean separation between the generic propose change workflow (in lib)
  * and application-specific entity implementations (in the main app).
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class EntityPrepareRegistry {
   /**
    * Map of entity type identifiers to their preparation handlers.

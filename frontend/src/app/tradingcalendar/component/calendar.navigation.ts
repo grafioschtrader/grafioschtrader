@@ -14,6 +14,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, Subscription } from 'rxjs';
 
 export abstract class CalendarNavigation implements IGlobalMenuAttach {
+  public translateService: TranslateService = inject(TranslateService);
+  protected gps: GlobalparameterService = inject(GlobalparameterService);
+  protected activePanelService: ActivePanelService = inject(ActivePanelService);
+
   protected readonly destroyRef = inject(DestroyRef);
   private menuSubscription?: Subscription;
   readonly NEW_DATE_COLOR = 'yellow';
@@ -35,13 +39,8 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   readonly consumedGT = 'consumedGT';
   readonly contextMenuItems = signal<MenuItem[]>([]);
 
-  protected constructor(
-    public translateService: TranslateService,
-    protected gps: GlobalparameterService,
-    protected activePanelService: ActivePanelService,
-    protected markExistingColors: string[]
-  ) {
-    const language: string = gps.getUserLang();
+  protected constructor(protected markExistingColors: string[]) {
+    const language: string = this.gps.getUserLang();
 
     this.locale = {
       dayNamesMin: Helper.CALENDAR_LANG[language].dayNamesMin,

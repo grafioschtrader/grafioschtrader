@@ -1,4 +1,4 @@
-import { Injectable, Inject, Optional } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
@@ -15,7 +15,7 @@ import { DialogComponentLoader } from '../handler/lazy-dialog';
  * This service acts as a facade between the MainTreeComponent and all contributors,
  * eliminating the need for the component to know about specific contributor implementations.
  */
-@Injectable()
+@Service()
 export class MainTreeService {
   private contributors: MainTreeContributor[];
   private portfolioTrees: TreeNode[] = [];
@@ -70,7 +70,9 @@ export class MainTreeService {
     refreshTree?: () => void;
   } = {};
 
-  constructor(@Optional() @Inject(MAIN_TREE_CONTRIBUTOR) contributors: MainTreeContributor[]) {
+  constructor() {
+    const contributors = inject(MAIN_TREE_CONTRIBUTOR, { optional: true });
+
     this.contributors = contributors || [];
     // Filter out disabled contributors and sort by tree order
     this.contributors = this.contributors

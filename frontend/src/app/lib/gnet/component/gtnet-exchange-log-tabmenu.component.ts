@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 import { SharedTabMenuComponent } from '../../tabmenu/component/shared.tab.menu.component';
@@ -21,11 +21,11 @@ import { GTNetService } from '../service/gtnet.service';
   `
 })
 export class GTNetExchangeLogTabMenuComponent implements OnInit {
+  private gtNetService = inject(GTNetService);
+
   /** One tab per exchange kind, known once the GTNet overview is loaded */
   readonly tabs = signal<TabItem[]>([]);
   readonly defaultRoute = signal('');
-
-  constructor(private gtNetService: GTNetService) {}
 
   ngOnInit(): void {
     this.gtNetService.getAllGTNetsWithMessages().subscribe((response) => {

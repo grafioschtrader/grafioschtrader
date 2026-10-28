@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Service } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -9,19 +9,13 @@ import { ServiceEntityUpdate } from '../../edit/service.entity.update';
 import { EntityLimit } from '../../entities/entity.limit';
 import { LimitKeyDefinition } from '../model/limit.key.definition';
 import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
-import { LoginService } from '../../login/service/log-in.service';
-import { MessageToastService } from '../../message/message.toast.service';
 import { BaseSettings } from '../../base.settings';
 
-@Injectable()
+@Service()
 export class EntityLimitService
   extends AuthServiceWithLogout<EntityLimit>
   implements DeleteService, ServiceEntityUpdate<EntityLimit>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   public getAllEntityLimits(): Observable<EntityLimit[]> {
     return <Observable<EntityLimit[]>>(
       this.httpClient

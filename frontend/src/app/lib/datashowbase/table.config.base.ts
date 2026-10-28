@@ -88,7 +88,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   /**
    * Creates a new table configuration base.
    */
-  protected constructor() {
+  constructor() {
     super();
     this.formLocale = this.gps.getLocale();
   }

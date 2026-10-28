@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 
-@Injectable()
+@Service()
 export class ParentChildRegisterService {
   childPreservePages: ChildPreservePage[] = [];
   pageServerMap: Map<number, PageFirstRowSelectedRow> = new Map();

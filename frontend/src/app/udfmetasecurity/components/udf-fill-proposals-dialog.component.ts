@@ -93,6 +93,10 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
   imports: [DialogModule, ButtonModule, TranslateModule]
 })
 export class UDFFillProposalsDialogComponent {
+  private uDFMetadataSecurityService = inject(UDFMetadataSecurityService);
+  private translateService = inject(TranslateService);
+  private messageToastService = inject(MessageToastService);
+
   /** The field with the fill source LLM */
   readonly field = input<UDFMetadataSecurity>(undefined);
 
@@ -108,19 +112,6 @@ export class UDFFillProposalsDialogComponent {
   readonly decisionText = signal<string>(null);
 
   private readonly destroyRef = inject(DestroyRef);
-
-  /**
-   * Creates the dialog.
-   *
-   * @param uDFMetadataSecurityService - Service with the proposal endpoints
-   * @param translateService - Translation of the summary of a decision
-   * @param messageToastService - Shows that a run was queued
-   */
-  constructor(
-    private uDFMetadataSecurityService: UDFMetadataSecurityService,
-    private translateService: TranslateService,
-    private messageToastService: MessageToastService
-  ) {}
 
   load(): void {
     this.uDFMetadataSecurityService

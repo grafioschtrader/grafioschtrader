@@ -1,23 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Cashaccount } from '../../entities/cashaccount';
 import { Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class CashaccountService extends AuthServiceWithLogout<Cashaccount> implements ServiceEntityUpdate<Cashaccount> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getCashaccountPositionGroupSummary(idCashaccount: number, untilDate: Date): Observable<AccountPositionGroupSummary> {
     return <Observable<AccountPositionGroupSummary>>(
       this.httpClient

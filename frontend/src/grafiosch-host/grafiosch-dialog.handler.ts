@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { Observable, of } from 'rxjs';
 
@@ -17,10 +18,8 @@ import { InfoLevelType } from '../app/lib/message/info.leve.type';
  */
 @Injectable()
 export class GrafioschDialogHandler implements DialogHandler {
-  constructor(
-    private dialogService: DialogService,
-    private messageToastService: MessageToastService
-  ) {}
+  private dialogService = inject(DialogService);
+  private messageToastService = inject(MessageToastService);
 
   openEditDialog(
     loadComponent: DialogComponentLoader,

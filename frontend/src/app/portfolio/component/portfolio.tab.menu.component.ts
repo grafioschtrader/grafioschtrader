@@ -1,7 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
-import { GlobalSessionNames } from '../../lib/global.session.names';
 import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
 import { Portfolio } from '../../entities/portfolio';
 import { Subscription } from 'rxjs';
@@ -29,6 +28,11 @@ import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.m
   imports: [SharedTabMenuComponent, RouterModule]
 })
 export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+  private treeNavState = inject(TreeNavigationStateService);
+  private sessionStorageHelper = inject(SessionStorageTabHelper);
+
   readonly tabs: TabItem[] = [
     {
       label: AppSettings.PORTFOLIO.toUpperCase(),
@@ -52,13 +56,6 @@ export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
 
   private routeSubscribe: Subscription;
   private portfolio: Portfolio;
-
-  constructor(
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private treeNavState: TreeNavigationStateService,
-    private sessionStorageHelper: SessionStorageTabHelper
-  ) {}
 
   navigateWithPortfolio = (route: string): void => {
     if (!this.portfolio) {

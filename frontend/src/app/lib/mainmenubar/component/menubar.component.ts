@@ -1,5 +1,5 @@
-import { Component, Inject, Optional, OnDestroy, OnInit } from '@angular/core';
-import { SETTINGS_MENU_EXTENSIONS, SettingsMenuExtension } from '../service/settings-menu-extensions';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { SETTINGS_MENU_EXTENSIONS } from '../service/settings-menu-extensions';
 import { LoginService } from '../../login/service/log-in.service';
 import { ActivePanelService } from '../service/active.panel.service';
 import { TopMenuTypes } from './top.menu.types';
@@ -39,25 +39,25 @@ import { GlobalSessionNames } from '../../global.session.names';
   providers: [DialogService]
 })
 export class MenubarComponent implements OnInit, OnDestroy {
+  translateService = inject(TranslateService);
+  mainDialogService = inject(MainDialogService);
+  private messageToastService = inject(MessageToastService);
+  activePanelService = inject(ActivePanelService);
+  private loginService = inject(LoginService);
+  private viewSizeChangedService = inject(ViewSizeChangedService);
+  private location = inject(Location);
+  private gps = inject(GlobalparameterService);
+  private userDataService = inject(UserDataService);
+  private confirmationService = inject(ConfirmationService);
+  private manageClientService = inject(ManageClientService);
+  private dialogService = inject(DialogService);
+  private personalDataZipName = inject(PERSONAL_DATA_ZIP_NAME);
+  private settingsExtensions = inject(SETTINGS_MENU_EXTENSIONS, { optional: true });
+
   menuItems: MenuItem[] = new Array<MenuItem>(4);
   private subscriptionViewSizeChanged: Subscription;
 
-  constructor(
-    public translateService: TranslateService,
-    public mainDialogService: MainDialogService,
-    private messageToastService: MessageToastService,
-    public activePanelService: ActivePanelService,
-    private loginService: LoginService,
-    private viewSizeChangedService: ViewSizeChangedService,
-    private location: Location,
-    private gps: GlobalparameterService,
-    private userDataService: UserDataService,
-    private confirmationService: ConfirmationService,
-    private manageClientService: ManageClientService,
-    private dialogService: DialogService,
-    @Inject(PERSONAL_DATA_ZIP_NAME) private personalDataZipName: string,
-    @Optional() @Inject(SETTINGS_MENU_EXTENSIONS) private settingsExtensions: SettingsMenuExtension[]
-  ) {
+  constructor() {
     this.activePanelService.topMenuItems.set(this.menuItems);
   }
 

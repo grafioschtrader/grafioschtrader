@@ -1,13 +1,12 @@
-import { Component, OnInit, input, linkedSignal } from '@angular/core';
+import { Component, OnInit, input, linkedSignal, inject } from '@angular/core';
 import { MainDialogService } from '../../mainmenubar/service/main.dialog.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { LoginService } from '../service/log-in.service';
 import { ChangePasswordDTO } from '../model/change.password.dto';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { MessageToastService } from '../../message/message.toast.service';
 import { PasswordBaseComponent } from './password.base.component';
 import { AppHelper } from '../../helper/app.helper';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { UserSettingsDialogs } from '../../mainmenubar/component/user-settings-dialogs';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -43,20 +42,18 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class PasswordEditComponent extends PasswordBaseComponent implements OnInit {
+  private mainDialogService = inject(MainDialogService);
+  private messageToastService = inject(MessageToastService);
+  private loginService = inject(LoginService);
+
   readonly forcePasswordChange = input<boolean>(undefined);
   readonly visibleDialogInput = input<boolean>(undefined, { alias: 'visibleDialog' });
   readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
 
   private static readonly passwordOld = 'passwordOld';
 
-  constructor(
-    private mainDialogService: MainDialogService,
-    private messageToastService: MessageToastService,
-    private loginService: LoginService,
-    gps: GlobalparameterService,
-    translateService: TranslateService
-  ) {
-    super(gps, translateService);
+  constructor() {
+    super();
     this.changePasswdFormDefinition(JSON.parse(sessionStorage.getItem(GlobalSessionNames.USER_FORM_DEFINITION)));
   }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 import { ManageClientService } from '../../lib/manageclient/service/manage-client.service';
 import { AppSettings } from '../../shared/app.settings';
@@ -14,9 +14,9 @@ import { AppSettings } from '../../shared/app.settings';
  * The value is written only after the backend has authorized the switch into a SIMULATION_COPY child of the user's home
  * tenant, so it never claims a context the server would refuse.
  */
-@Injectable()
+@Service()
 export class SimulationContextService {
-  constructor(private manageClientService: ManageClientService) {}
+  private manageClientService = inject(ManageClientService);
 
   /**
    * @returns true when the session operates in a simulation environment

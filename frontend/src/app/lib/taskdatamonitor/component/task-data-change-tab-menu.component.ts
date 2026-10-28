@@ -53,17 +53,15 @@ import { MAIN_TASK_QUEUE, TaskDataChangeFormConstraints, TaskQueueInfo } from '.
   imports: [TranslateModule, RouterModule, Tabs, TabList, Tab]
 })
 export class TaskDataChangeTabMenuComponent implements OnInit {
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+  private taskDataChangeService = inject(TaskDataChangeService);
+
   /** Prefix of the child route of a queue, so the route of a queue cannot be mistaken for another part of the URL */
   static readonly QUEUE_ROUTE_PREFIX = 'queue-';
   readonly tabs = signal<TabItem[]>([]);
   readonly activeRoute = signal(TaskDataChangeTabMenuComponent.routeOf(MAIN_TASK_QUEUE));
   private readonly destroyRef = inject(DestroyRef);
-
-  constructor(
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private taskDataChangeService: TaskDataChangeService
-  ) {}
 
   /** The child route of a queue. */
   static routeOf(queue: string): string {

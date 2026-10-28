@@ -102,6 +102,63 @@ const MASTER_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reas
   }
 };
 
+/** Host token implementations and component-scoped state retain explicit providers. */
+const INJECTABLE_EXCEPTIONS: Record<string, string> = {
+  'app/algo/contributor/algo-main-tree.contributor.ts': 'Bound only to the multi-provider MAIN_TREE_CONTRIBUTOR.',
+  'app/lib/maintree/contributor/dashboard-main-tree.contributor.ts':
+    'Bound only to the multi-provider MAIN_TREE_CONTRIBUTOR.',
+  'app/lib/tabmenu/service/tab.menu.service.ts':
+    'SharedTabMenuComponent provides its own navigation state; retain explicit providers.',
+  'app/portfolio/contributor/portfolio-main-tree.contributor.ts':
+    'Bound only to the multi-provider MAIN_TREE_CONTRIBUTOR.',
+  'app/shared/contributor/admindata-main-tree.contributor.ts':
+    'Bound only to the multi-provider MAIN_TREE_CONTRIBUTOR.',
+  'app/shared/contributor/basedata-main-tree.contributor.ts': 'Bound only to the multi-provider MAIN_TREE_CONTRIBUTOR.',
+  'app/shared/login/gt-after-login.handler.ts':
+    'Replaces the application-neutral AfterLoginHandler token in Grafioschtrader.',
+  'app/shared/maintree/handler/app-dialog.handler.ts': 'Bound only to the DIALOG_HANDLER token in Grafioschtrader.',
+  'app/taxdata/service/tax-year-correction.service.ts': 'TaxYearCorrectionTableComponent provides its own instance.',
+  'app/watchlist/contributor/watchlist-main-tree.contributor.ts':
+    'Bound only to the multi-provider MAIN_TREE_CONTRIBUTOR.',
+  'grafiosch-host/grafiosch-after-login.handler.ts':
+    'Replaces the application-neutral AfterLoginHandler token in the library host.',
+  'grafiosch-host/grafiosch-basedata-main-tree.contributor.ts':
+    'The library host binds this class only to MAIN_TREE_CONTRIBUTOR.',
+  'grafiosch-host/grafiosch-dialog.handler.ts': 'Bound only to the DIALOG_HANDLER token in the library host.',
+  'grafiosch-host/grafiosch-main-tree.contributor.ts':
+    'The library host binds this class only to MAIN_TREE_CONTRIBUTOR.'
+};
+
+/** Remaining view configuration on abstract Angular classes, with services resolved through inject(). */
+const OTHER_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason: string }> = {
+  'app/securitycurrency/component/securitycurrency.search.base.ts': {
+    parameters: ['multiplyAddClose:boolean'],
+    reason: 'The concrete search dialog chooses whether adding an instrument closes it.'
+  },
+  'app/tenant/component/tenant.edit.component.ts': {
+    parameters: ['nonModal:boolean', 'labelColumns:number'],
+    reason: 'Embedded and modal tenant editors choose their layout and modality.'
+  }
+};
+
+/** Uses the decorator matcher for aliases and namespace imports while restricting the match to each class. */
+function angularClasses(source: string, decorators: readonly string[]) {
+  const parsed = ts.createSourceFile('source.ts', source, ts.ScriptTarget.Latest, true);
+  const imports = parsed.statements
+    .filter(ts.isImportDeclaration)
+    .map((node) => node.getText(parsed))
+    .join('\n');
+  return parsed.statements
+    .filter(ts.isClassDeclaration)
+    .filter((node) => hasAngularDecorator(imports + '\n' + node.getText(parsed), decorators))
+    .map((node) => ({
+      name: node.name?.text ?? '',
+      parameters: (node.members.find(ts.isConstructorDeclaration)?.parameters ?? []).map((parameter) =>
+        `${parameter.name.getText(parsed)}:${parameter.type?.getText(parsed) ?? 'any'}`.replace(/\s/g, '')
+      )
+    }));
+}
+
 /** Follows inheritance across files, without matching constructor examples in comments or strings. */
 function hierarchyConstructorParameters(
   sources: Record<string, string>,
@@ -375,6 +432,87 @@ describe('Angular API ratchet', () => {
       hierarchyConstructorParameters(sources, 'TransactionBaseOperations'),
       'Resolve transaction-dialog dependencies with inject(). See frontend/CLAUDE.md.'
     ).toEqual({});
+  });
+
+  it('matches constructor injection only on Angular classes, including aliased decorators', () => {
+    expect(
+      angularClasses(
+        "import { Component as C } from '@angular/core'; @C({}) class View { constructor(private service: DataService) {} } class Model { constructor(value: string) {} }",
+        ['Component', 'Directive', 'Pipe', 'Service', 'Injectable']
+      )
+    ).toEqual([{ name: 'View', parameters: ['service:DataService'] }]);
+    expect(
+      angularClasses(
+        "import * as ng from '@angular/core'; @ng.Service() class Data { private http = ng.inject(HttpClient); } // constructor(http: HttpClient)",
+        ['Service']
+      )
+    ).toEqual([{ name: 'Data', parameters: [] }]);
+  });
+
+  it('permits only documented configuration arguments on Angular classes in either host', () => {
+    const allowed = {
+      ...TABLE_CONSTRUCTOR_PARAMETERS,
+      ...FORM_CONSTRUCTOR_PARAMETERS,
+      ...MASTER_CONSTRUCTOR_PARAMETERS,
+      ...OTHER_CONSTRUCTOR_PARAMETERS
+    };
+    for (const file of collectSources(SRC)) {
+      const relative = path.relative(SRC, file).replace(/\\/g, '/');
+      for (const declaration of angularClasses(fs.readFileSync(file, 'utf8'), [
+        'Component',
+        'Directive',
+        'Pipe',
+        'Service',
+        'Injectable'
+      ])) {
+        if (declaration.parameters.length)
+          expect(declaration.parameters, relative + ': ' + declaration.name).toEqual(
+            allowed[relative]?.parameters ?? []
+          );
+      }
+    }
+    expect(Object.values(allowed).every((entry) => entry.reason.length > 0)).toBe(true);
+  });
+
+  it('keeps Injectable only for documented host bindings and scoped services', () => {
+    const found = collectSources(SRC)
+      .filter((file) => hasAngularDecorator(fs.readFileSync(file, 'utf8'), ['Injectable']))
+      .map((file) => path.relative(SRC, file).replace(/\\/g, '/'))
+      .sort();
+    expect(found, 'Use @Service() for root singletons. See frontend/CLAUDE.md.').toEqual(
+      Object.keys(INJECTABLE_EXCEPTIONS).sort()
+    );
+    expect(Object.values(INJECTABLE_EXCEPTIONS).every((reason) => reason.length > 0)).toBe(true);
+  });
+
+  it('does not register auto-provided services explicitly in either host', () => {
+    const rootServices = new Set(
+      collectSources(SRC).flatMap((file) =>
+        angularClasses(fs.readFileSync(file, 'utf8'), ['Service']).map((declaration) => declaration.name)
+      )
+    );
+    for (const relative of ['app/app.config.ts', 'grafiosch-host/main.ts']) {
+      const parsed = ts.createSourceFile(
+        relative,
+        fs.readFileSync(path.join(SRC, relative), 'utf8'),
+        ts.ScriptTarget.Latest,
+        true
+      );
+      const redundant: string[] = [];
+      function visit(node: ts.Node): void {
+        if (
+          ts.isPropertyAssignment(node) &&
+          node.name.getText(parsed) === 'providers' &&
+          ts.isArrayLiteralExpression(node.initializer)
+        ) {
+          for (const entry of node.initializer.elements)
+            if (ts.isIdentifier(entry) && rootServices.has(entry.text)) redundant.push(entry.text);
+        }
+        ts.forEachChild(node, visit);
+      }
+      visit(parsed);
+      expect(redundant, relative + ': @Service() needs no provider entry.').toEqual([]);
+    }
   });
 
   it('matches change hooks and initialization flags without matching examples in comments or strings', () => {

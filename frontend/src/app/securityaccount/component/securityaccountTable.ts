@@ -31,7 +31,7 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
 
   groupMapping: Map<string, any> = new Map();
 
-  protected constructor() {
+  constructor() {
     super();
     this.groupMapping.set(
       SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY],

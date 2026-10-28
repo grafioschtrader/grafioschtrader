@@ -43,6 +43,11 @@ export interface TransactionReceiptDialogData {
   imports: [TranslateModule, ButtonModule, TransactionReceiptTableComponent]
 })
 export class TransactionReceiptDialogComponent implements OnInit {
+  private dynamicDialogConfig = inject(DynamicDialogConfig);
+  private dynamicDialogRef = inject(DynamicDialogRef);
+  private securityService = inject(SecurityService);
+  private transactionService = inject(TransactionService);
+
   private readonly destroyRef = inject(DestroyRef);
   private readonly summary = signal<SecurityTransactionSummary>(null);
   readonly transactions = computed(
@@ -56,13 +61,6 @@ export class TransactionReceiptDialogComponent implements OnInit {
   );
   readonly selected = signal<Transaction[]>([]);
   readonly downloading = signal(false);
-
-  constructor(
-    private dynamicDialogConfig: DynamicDialogConfig,
-    private dynamicDialogRef: DynamicDialogRef,
-    private securityService: SecurityService,
-    private transactionService: TransactionService
-  ) {}
 
   ngOnInit(): void {
     const data: TransactionReceiptDialogData = this.dynamicDialogConfig.data;

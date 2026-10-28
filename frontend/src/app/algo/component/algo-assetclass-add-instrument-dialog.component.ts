@@ -1,9 +1,7 @@
 import { SecuritycurrencySearchBase } from '../../securitycurrency/component/securitycurrency.search.base';
 import { Component, output, viewChild, input } from '@angular/core';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MultipleRequestToOneService } from '../../shared/service/multiple.request.to.one.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { AlgoAssetclassAddInstrumentTableComponent } from './algo-assetclass-add-instrument-table.component';
@@ -57,12 +55,8 @@ export class AlgoAssetclassAddInstrumentDialogComponent extends Securitycurrency
    * @param multipleRequestToOneService - Loads the select options of the search form
    * @param translateService - Angular translation service
    */
-  constructor(
-    gps: GlobalparameterService,
-    multipleRequestToOneService: MultipleRequestToOneService,
-    translateService: TranslateService
-  ) {
-    super(true, gps, multipleRequestToOneService, translateService);
+  constructor() {
+    super(true);
   }
 
   /** Instruments may have been added, so the hierarchy is always reloaded. */

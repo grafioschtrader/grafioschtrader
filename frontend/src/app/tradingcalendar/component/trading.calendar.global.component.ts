@@ -1,11 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { Component, OnInit, inject } from '@angular/core';
 import { AddRemoveDay, SaveTradingDays, TradingDaysPlusService } from '../service/trading.days.plus.service';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { TradingCalendarBase } from './trading.calendar.base';
 import { TradingDaysWithDateBoundaries } from '../model/trading.days.with.date.boundaries';
 import { AuditHelper } from '../../lib/helper/audit.helper';
@@ -35,25 +32,14 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
   ]
 })
 export class TradingCalendarGlobalComponent extends TradingCalendarBase implements OnInit {
+  private tradingDaysPlusService = inject(TradingDaysPlusService);
+
   public static readonly GLOBAL_TRADING_DAYS_COLOR = 'lime';
   readonly DATE_ATTRIBUTE = 'tradingDate';
   private readDataSub?: Subscription;
 
-  constructor(
-    private tradingDaysPlusService: TradingDaysPlusService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    activePanelService: ActivePanelService,
-    messageToastService: MessageToastService
-  ) {
-    super(
-      translateService,
-      gps,
-      [TradingCalendarGlobalComponent.GLOBAL_TRADING_DAYS_COLOR],
-      activePanelService,
-      messageToastService,
-      'TRADING_CALENDAR_GLOBAL'
-    );
+  constructor() {
+    super([TradingCalendarGlobalComponent.GLOBAL_TRADING_DAYS_COLOR], 'TRADING_CALENDAR_GLOBAL');
   }
 
   ngOnInit(): void {

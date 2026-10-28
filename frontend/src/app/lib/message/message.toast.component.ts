@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { MessageToastService } from './message.toast.service';
 import { InfoLevelType } from './info.leve.type';
 import { TranslateService } from '@ngx-translate/core';
@@ -40,13 +40,14 @@ import { ToastModule } from '@openng/optimus-ui/toast';
   imports: [ToastModule]
 })
 export class MessageToastComponent implements OnDestroy {
+  private messageService = inject(MessageService);
+  translateService = inject(TranslateService);
+
   subscription: Subscription;
 
-  constructor(
-    private messageService: MessageService,
-    messageToastService: MessageToastService,
-    public translateService: TranslateService
-  ) {
+  constructor() {
+    const messageToastService = inject(MessageToastService);
+
     this.subscription = messageToastService.showMessageSource$.subscribe((messageConainer) => {
       if (messageConainer.i8n) {
         this.translateInterpolateParams(messageConainer);

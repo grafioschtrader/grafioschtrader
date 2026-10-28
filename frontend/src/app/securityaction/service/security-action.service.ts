@@ -1,9 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { BaseSettings } from '../../lib/base.settings';
 import {
@@ -14,16 +11,12 @@ import {
 } from '../model/security-action.model';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 
-@Injectable()
+@Service()
 export class SecurityActionService
   extends AuthServiceWithLogout<SecurityAction>
   implements ServiceEntityUpdate<SecurityAction>
 {
   private static readonly BASE_URL = BaseSettings.API_ENDPOINT + 'securityaction';
-
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
 
   update(entity: SecurityAction): Observable<SecurityAction> {
     return this.createSecurityAction(entity);

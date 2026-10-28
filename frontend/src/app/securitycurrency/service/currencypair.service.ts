@@ -1,26 +1,20 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { Currencypair } from '../../entities/currencypair';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { CurrencypairWithHistoryquote } from '../../entities/view/currencypair.with.historyquote';
 import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
 import { Observable } from 'rxjs';
 import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpParams } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { HistoryquoteDateClose } from '../../entities/projection/historyquote.date.close';
 import { SecurityCurrencyService } from './security.currency.service';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class CurrencypairService extends SecurityCurrencyService<Currencypair> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getCurrencypairByIdSecuritycurrency(idSecuritycurrency: number): Observable<Currencypair> {
     return <Observable<Currencypair>>(
       this.httpClient

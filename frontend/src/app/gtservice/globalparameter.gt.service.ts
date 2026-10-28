@@ -1,8 +1,5 @@
 import { Observable, of } from 'rxjs';
-import { GlobalSessionNames } from '../lib/global.session.names';
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../lib/message/message.toast.service';
+import { Service } from '@angular/core';
 import { ValueKeyHtmlSelectOptions } from '../lib/dynamic-form/models/value.key.html.select.options';
 import { AppSettings } from '../shared/app.settings';
 import { catchError, tap } from 'rxjs/operators';
@@ -14,12 +11,8 @@ import { BaseSettings } from '../lib/base.settings';
 import { GlobalGTSessionNames } from '../shared/global.gt.session.names';
 import { MaxInstrumentLimits } from './max.instrument.limits';
 
-@Injectable()
+@Service()
 export class GlobalparameterGTService extends BaseAuthService<Globalparameters> {
-  constructor(httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(httpClient, messageToastService);
-  }
-
   public getIntraUpdateTimeout(): Observable<number> {
     return this.getGlobalparameterNumber(
       GlobalGTSessionNames.UPDATE_TIME_OUT,

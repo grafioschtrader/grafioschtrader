@@ -1,12 +1,9 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { inject, Service } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
-import { LoginService } from '../../login/service/log-in.service';
-import { MessageToastService } from '../../message/message.toast.service';
 import { BaseSettings } from '../../base.settings';
 import { GlobalSessionNames } from '../../global.session.names';
 import { TenantAccessInfo } from '../model/tenant-access-info';
@@ -18,16 +15,9 @@ import { SharedViewerInfo } from '../model/shared-viewer-info';
  *
  * Lives in the shared library because managing tenants/users on behalf of clients is a generic capability.
  */
-@Injectable()
+@Service()
 export class ManageClientService extends AuthServiceWithLogout<any> {
-  constructor(
-    loginService: LoginService,
-    httpClient: HttpClient,
-    messageToastService: MessageToastService,
-    private router: Router
-  ) {
-    super(loginService, httpClient, messageToastService);
-  }
+  private router = inject(Router);
 
   /** Lists the home tenant plus all tenants the user has been granted access to. */
   public getAccessibleTenants(): Observable<TenantAccessInfo[]> {

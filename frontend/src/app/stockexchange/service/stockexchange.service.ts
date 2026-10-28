@@ -1,27 +1,21 @@
 import { Stockexchange } from '../../entities/stockexchange';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AppSettings } from '../../shared/app.settings';
 import { Observable } from 'rxjs';
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpParams } from '@angular/common/http';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { StockexchangeHasSecurity } from '../model/stockexchange.has.security';
 import { StockexchangeBaseData } from '../model/stockexchange.base.data';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class StockexchangeService
   extends AuthServiceWithLogout<Stockexchange>
   implements ServiceEntityUpdate<Stockexchange>, DeleteService
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   public getAllStockexchangesBaseData(): Observable<StockexchangeBaseData> {
     return <Observable<StockexchangeBaseData>>(
       this.httpClient

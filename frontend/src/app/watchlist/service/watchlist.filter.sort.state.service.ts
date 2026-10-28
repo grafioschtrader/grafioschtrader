@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { SortMeta } from '@openng/optimus-ui/api';
 import { ColumnConfig, getFilterKey } from '../../lib/datashowbase/column.config';
@@ -89,15 +89,17 @@ const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
  * performance view is not lost while the user looks at the price feed view.
  * </p>
  */
-@Injectable()
+@Service()
 export class WatchlistFilterSortStateService {
+  private usersettingsService = inject(UserSettingsService);
+
   /** Emits after every change, so an open table can re-apply the settings without being recreated. */
   public readonly changed$: Observable<void>;
 
   private readonly changedSubject = new Subject<void>();
   private state: WatchlistFilterSortState;
 
-  constructor(private usersettingsService: UserSettingsService) {
+  constructor() {
     this.changed$ = this.changedSubject.asObservable();
     this.state = this.readState();
   }

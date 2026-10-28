@@ -1,4 +1,4 @@
-import { Component, OnDestroy, signal, output, input } from '@angular/core';
+import { Component, OnDestroy, signal, output, input, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
 import { Subscription, finalize } from 'rxjs';
@@ -89,6 +89,9 @@ import { UDFFillTestResultComponent } from './udf-fill-test-result.component';
   imports: [DialogModule, ButtonModule, TranslateModule, ProgressSpinnerModule, UDFFillTestResultComponent]
 })
 export class UDFFillRuleProposalDialogComponent implements OnDestroy {
+  private uDFMetadataSecurityService = inject(UDFMetadataSecurityService);
+  private translateService = inject(TranslateService);
+
   /** The saved field the rule is proposed for */
   readonly idUDFMetadata = input<number>(undefined);
 
@@ -107,16 +110,6 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   readonly selected = signal<ReadonlySet<number>>(new Set());
   readonly loading = signal(false);
   private pendingRequest: Subscription;
-
-  /**
-   * Creates the dialog.
-   *
-   * @param uDFMetadataSecurityService - Service with the proposal endpoints
-   */
-  constructor(
-    private uDFMetadataSecurityService: UDFMetadataSecurityService,
-    private translateService: TranslateService
-  ) {}
 
   /**
    * Loads what would be sent; nothing leaves the instance yet.

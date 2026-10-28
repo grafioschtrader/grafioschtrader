@@ -1,9 +1,7 @@
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError } from 'rxjs';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
 
 /** The OAuth parameters a client sends to the authorization endpoint, in their wire names. */
@@ -34,17 +32,11 @@ export interface OAuthValidationResponse {
  * Server calls of the OAuth authorization page. The validation is anonymous, because a client sends the user here
  * before any login; the consent needs the user's login.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class McpOAuthService extends AuthServiceWithLogout<any> {
-  private readonly endpoint = BaseSettings.API_ENDPOINT + 'oauth/';
+  private plainHttp = inject(HttpClient);
 
-  constructor(
-    login: LoginService,
-    private plainHttp: HttpClient,
-    messages: MessageToastService
-  ) {
-    super(login, plainHttp, messages);
-  }
+  private readonly endpoint = BaseSettings.API_ENDPOINT + 'oauth/';
 
   /** Errors are part of the answer; the page decides between showing them and redirecting. */
   validate(request: OAuthAuthorizationRequest): Observable<OAuthValidationResponse> {

@@ -1,14 +1,12 @@
 import { Observable } from 'rxjs';
 import { BaseService } from '../login/service/base.service';
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BaseSettings } from '../base.settings';
 
-@Injectable()
+@Service()
 export class ActuatorService extends BaseService {
-  constructor(private httpClient: HttpClient) {
-    super();
-  }
+  private httpClient = inject(HttpClient);
 
   public applicationInfo(): Observable<ApplicationInfo> {
     return <Observable<ApplicationInfo>>(

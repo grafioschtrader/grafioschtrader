@@ -47,7 +47,7 @@ export abstract class TransactionBaseOperations {
   /**
    * Creates a new TransactionBaseOperations instance with required services.
    */
-  protected constructor() {
+  constructor() {
     this.destroyRef.onDestroy(() => this.endDialogSession());
   }
 

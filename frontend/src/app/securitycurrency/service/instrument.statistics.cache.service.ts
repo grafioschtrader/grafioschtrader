@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { catchError, Observable, shareReplay, throwError } from 'rxjs';
 import { SecurityService } from './security.service';
 import { InstrumentStatisticsResult } from '../../entities/view/instrument.statistics.result';
@@ -16,12 +16,12 @@ import { InstrumentStatisticsResult } from '../../entities/view/instrument.stati
  * watchlist area, across watchlist and tab changes.
  * </p>
  */
-@Injectable()
+@Service()
 export class InstrumentStatisticsCacheService {
+  private securityService = inject(SecurityService);
+
   /** Shared responses per instrument and period, keyed by {@link #getKey}. */
   private readonly cache = new Map<string, Observable<InstrumentStatisticsResult>>();
-
-  constructor(private securityService: SecurityService) {}
 
   /**
    * Returns the statistics of an instrument, from the cache when they were requested before with the same period.

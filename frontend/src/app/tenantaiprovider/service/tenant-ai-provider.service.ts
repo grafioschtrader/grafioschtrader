@@ -1,23 +1,17 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable, catchError } from 'rxjs';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { TenantAIProvider, TenantAIProviderOptions, AIKeyTestResult } from '../model/tenant-ai-provider';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class TenantAIProviderService
   extends AuthServiceWithLogout<TenantAIProvider>
   implements ServiceEntityUpdate<TenantAIProvider>, DeleteService
 {
   private readonly endpoint = BaseSettings.API_ENDPOINT + 'tenantaiprovider';
-  constructor(login: LoginService, http: HttpClient, messages: MessageToastService) {
-    super(login, http, messages);
-  }
   getAll(): Observable<TenantAIProvider[]> {
     return this.httpClient
       .get<TenantAIProvider[]>(this.endpoint, this.getHeaders())

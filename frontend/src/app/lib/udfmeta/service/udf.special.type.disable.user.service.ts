@@ -1,10 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
 import { UDFSpecialTypeDisableUser } from '../model/udf.metadata';
 import { Observable } from 'rxjs';
-import { LoginService } from '../../login/service/log-in.service';
-import { HttpClient } from '@angular/common/http';
-import { MessageToastService } from '../../message/message.toast.service';
 import { catchError, map } from 'rxjs/operators';
 import { BaseSettings } from '../../base.settings';
 import { UDFSpecialTypeRegistry } from '../model/udf.special.type.registry';
@@ -14,19 +11,8 @@ import { UDFSpecialTypeRegistry } from '../model/udf.special.type.registry';
  * Allows users to hide UDF fields with special purposes that they don't need in their workflow,
  * providing a cleaner UI by showing only relevant fields.
  */
-@Injectable()
+@Service()
 export class UDFSpecialTypeDisableUserService extends AuthServiceWithLogout<UDFSpecialTypeDisableUser> {
-  /**
-   * Creates the UDF special type disable user service.
-   *
-   * @param loginService - Service for authentication and session management
-   * @param httpClient - HTTP client for REST API calls
-   * @param messageToastService - Service for displaying user notifications
-   */
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Retrieves the list of UDF special types that the current user has disabled.
    * These special types will be hidden in UDF editing interfaces for this user.

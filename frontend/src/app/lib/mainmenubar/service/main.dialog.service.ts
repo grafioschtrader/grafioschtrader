@@ -1,11 +1,11 @@
-import { Injectable, signal } from '@angular/core';
+import { signal, Service } from '@angular/core';
 import { UserSettingsDialogs } from '../component/user-settings-dialogs';
 
 /**
  * The referencing of dialogs and their usage is implemented in different components, therefore this service exists.
  * These dialogs are usually available from GT menu bar. Therefore, these dialogs can be activated from any component.
  */
-@Injectable()
+@Service()
 export class MainDialogService {
   /** Visibility per {@link UserSettingsDialogs}; a signal, so the dialog host follows a menu command or a close */
   readonly visibleDialogs = signal<boolean[]>([false, false]);

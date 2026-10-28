@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 
 /**
  * Shared state service for passing entity data between tree navigation and routed components.
@@ -13,7 +13,7 @@ import { Injectable } from '@angular/core';
  * component; without the mirror that component would find no entity and render nothing useful. The session storage is
  * per tab and is cleared on logout.
  */
-@Injectable()
+@Service()
 export class TreeNavigationStateService {
   /** Prefix of the session storage keys, keeps them apart from the other entries of the application. */
   private static readonly STORAGE_PREFIX = 'treeNav_';

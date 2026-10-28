@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { Tenant } from '../../entities/tenant';
 import { Observable, from, switchMap } from 'rxjs';
@@ -6,20 +6,14 @@ import { AppSettings } from '../../shared/app.settings';
 import { catchError, map } from 'rxjs/operators';
 import { plainToClass } from 'class-transformer';
 import moment from 'moment';
-import { LoginService } from '../../lib/login/service/log-in.service';
-import { HttpClient, HttpParams, HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { HttpParams, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { PerformancePeriod } from '../model/performance.period';
 import { MissingQuotesWithSecurities } from '../../tenant/model/missing.quotes.with.securities';
 import { BaseSettings } from '../../lib/base.settings';
 import { PerformanceReportOptions, PerformanceReportRequest } from '../model/performance-report';
 
-@Injectable()
+@Service()
 export class HoldingService extends AuthServiceWithLogout<Tenant> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getReportOptions(): Observable<PerformanceReportOptions> {
     return this.httpClient
       .get<PerformanceReportOptions>(

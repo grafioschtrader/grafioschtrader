@@ -1,4 +1,4 @@
-import { Component, OnDestroy, output, input, effect, untracked } from '@angular/core';
+import { Component, OnDestroy, output, input, effect, untracked, inject } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { merge, Subscription } from 'rxjs';
 import { FormNotifier } from '../../models/form.notifier';
@@ -90,6 +90,8 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
   ]
 })
 export class DynamicFormComponent implements OnDestroy {
+  private _formBuilder = inject(UntypedFormBuilder);
+
   readonly formConfig = input<FormConfig>(undefined);
   readonly config = input<FieldFormGroup[]>([]);
   readonly formGroupDefinition = input<FormGroupDefinition>(undefined);
@@ -111,7 +113,7 @@ export class DynamicFormComponent implements OnDestroy {
   /** Events of the current group and its controls; replaced whenever a new group is built. */
   private controlEventsSubscription: Subscription;
 
-  constructor(private _formBuilder: UntypedFormBuilder) {
+  constructor() {
     effect(() => {
       this.config();
       this.formConfig();

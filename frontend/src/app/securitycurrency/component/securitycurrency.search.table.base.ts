@@ -13,7 +13,7 @@ import { AppSettings } from '../../shared/app.settings';
 export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
   private readonly securitycurrencyListSignal = signal<(Security | Currencypair)[]>([]);
 
-  protected constructor() {
+  constructor() {
     super();
 
     this.addFieldDefinition();

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { MenuItem, TreeNode, ConfirmationService } from '@openng/optimus-ui/api';
@@ -35,6 +36,14 @@ const loadWatchlistEditDynamic: DialogComponentLoader = () =>
  */
 @Injectable()
 export class WatchlistMainTreeContributor extends MainTreeContributor {
+  private watchlistService = inject(WatchlistService);
+  private tenantService = inject(TenantService);
+  private globalParamService = inject(GlobalparameterService);
+  private messageToastService = inject(MessageToastService);
+  private confirmationService = inject(ConfirmationService);
+  private translateService = inject(TranslateService);
+  private dataChangedService = inject(DataChangedService);
+
   private tenant: Tenant;
   private hasSecurityObject: { [key: number]: number } = {};
   private rootNode: TreeNode;
@@ -44,18 +53,6 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
    * can rebuild the nodes without reloading the watchlist names and the tenant limits again.
    */
   private watchlists: Watchlist[];
-
-  constructor(
-    private watchlistService: WatchlistService,
-    private tenantService: TenantService,
-    private globalParamService: GlobalparameterService,
-    private messageToastService: MessageToastService,
-    private confirmationService: ConfirmationService,
-    private translateService: TranslateService,
-    private dataChangedService: DataChangedService
-  ) {
-    super();
-  }
 
   getTreeOrder(): number {
     return 1; // Watchlist comes after Portfolio

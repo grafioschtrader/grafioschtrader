@@ -1,4 +1,4 @@
-import { Component, signal, output, input, linkedSignal } from '@angular/core';
+import { Component, signal, output, input, linkedSignal, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
@@ -94,6 +94,8 @@ import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../mod
   `
 })
 export class SecurityLookupDialogComponent {
+  private securityLookupService = inject(SecurityLookupService);
+
   readonly visibleDialogInput = input(false, { alias: 'visibleDialog' });
   readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
   readonly isin = input<string>(undefined);
@@ -126,8 +128,6 @@ export class SecurityLookupDialogComponent {
   /** Prevents a second emission when "Apply" closes the dialog */
   private selectionHandled = false;
   private lookupSubscription: Subscription;
-
-  constructor(private securityLookupService: SecurityLookupService) {}
 
   /**
    * Starts the lookup when the dialog has opened. Optimus UI emits onShow at the end of the enter motion; the state

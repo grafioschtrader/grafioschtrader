@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MainDialogService } from '../service/main.dialog.service';
 import { PasswordEditComponent } from '../../login/component/password-edit.component';
 import { NicknameLangEditComponent } from '../../login/component/nickname-lang-edit.component';
@@ -22,8 +22,8 @@ import { UserSettingsDialogs } from './user-settings-dialogs';
   imports: [PasswordEditComponent, NicknameLangEditComponent]
 })
 export class MainDialogComponent {
+  mainDialogService = inject(MainDialogService);
+
   // Otherwise enum DialogVisible can't be used in a html template
   UserSettingsDialogs: typeof UserSettingsDialogs = UserSettingsDialogs;
-
-  constructor(public mainDialogService: MainDialogService) {}
 }

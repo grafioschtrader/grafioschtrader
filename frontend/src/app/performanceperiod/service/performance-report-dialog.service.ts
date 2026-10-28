@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, inject, signal, Service } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { MenuItem } from '@openng/optimus-ui/api';
@@ -16,7 +16,7 @@ import { HoldingService } from './holding.service';
  * Single entry to the PDF report dialog: the period performance passes its displayed period, the tenant and portfolio
  * holdings pass their reporting date, including cash-only portfolios.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class PerformanceReportDialogService {
   private holding = inject(HoldingService);
   private tenant = inject(TenantService);

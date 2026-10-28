@@ -1,4 +1,4 @@
-import { ComponentRef, Directive, Type, ViewContainerRef, input, effect, untracked } from '@angular/core';
+import { ComponentRef, Directive, Type, ViewContainerRef, input, effect, untracked, inject } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { FormButtonComponent } from '../form-button/form-button.component';
 import { FormInputComponent } from '../form-input/form-input.component';
@@ -42,13 +42,15 @@ const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
   selector: 'dynamicField'
 })
 export class DynamicFieldDirective {
+  private viewContainerRef = inject(ViewContainerRef);
+
   readonly config = input<FieldConfig>(undefined);
   readonly formConfig = input<FormConfig>(undefined);
   readonly group = input<UntypedFormGroup>(undefined);
 
   component: ComponentRef<FieldFormFormGroupConfig>;
 
-  constructor(private viewContainerRef: ViewContainerRef) {
+  constructor() {
     effect(() => {
       this.config();
       this.formConfig();

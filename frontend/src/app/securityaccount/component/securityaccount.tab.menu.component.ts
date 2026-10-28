@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ActivatedRoute, Params, Router, RouterOutlet } from '@angular/router';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
+import { Params, RouterOutlet } from '@angular/router';
 import { AppSettings } from '../../shared/app.settings';
 import { Securityaccount } from '../../entities/securityaccount';
 import { Subscription } from 'rxjs';
@@ -36,6 +36,9 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
   imports: [Tabs, TabList, Tab, RouterOutlet, TranslatePipe]
 })
 export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
+  private treeNavState = inject(TreeNavigationStateService);
+  private gpsGT = inject(GlobalparameterGTService);
+
   private routeParamSubscribe: Subscription;
   private queryParamSubscribe: Subscription;
   private securityaccount: Securityaccount;
@@ -48,16 +51,6 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
    * competing navigation that resets the child router-outlet (e.g. losing the failed-import param).
    */
   private lastHandledId: number;
-
-  constructor(
-    router: Router,
-    activatedRoute: ActivatedRoute,
-    translateService: TranslateService,
-    private treeNavState: TreeNavigationStateService,
-    private gpsGT: GlobalparameterGTService
-  ) {
-    super(router, activatedRoute, translateService);
-  }
 
   override ngOnInit(): void {
     // Initialize tabs first

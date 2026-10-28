@@ -1,24 +1,18 @@
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
 import { TaskDataChange, TaskDataChangeFormConstraints } from '../types/task.data.change';
-import { LoginService } from '../../login/service/log-in.service';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { MessageToastService } from '../../message/message.toast.service';
+import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs/internal/Observable';
 import { catchError } from 'rxjs/operators';
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { ServiceEntityUpdate } from '../../edit/service.entity.update';
 import { DeleteService } from '../../datashowbase/delete.service';
 import { BaseSettings } from '../../base.settings';
 
-@Injectable()
+@Service()
 export class TaskDataChangeService
   extends AuthServiceWithLogout<TaskDataChange>
   implements ServiceEntityUpdate<TaskDataChange>, DeleteService
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Retrieves all task data changes, optionally filtered by task IDs.
    * @param idTasks Optional array of task IDs to filter by. If null/undefined, all tasks are returned.

@@ -1,12 +1,9 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { AuthServiceWithLogout } from '../../../lib/login/service/base.auth.service.with.logout';
 import { DeleteService } from '../../../lib/datashowbase/delete.service';
-import { LoginService } from '../../../lib/login/service/log-in.service';
-import { MessageToastService } from '../../../lib/message/message.toast.service';
 import { BaseSettings } from '../../../lib/base.settings';
 import { AppSettings } from '../../app.settings';
 import { GTNetSecurityImpPos } from '../model/gtnet-security-imp-pos';
@@ -17,15 +14,11 @@ import { UploadHistoryquotesSuccess, UploadServiceFunction } from '../../../lib/
  * Service for managing GTNet security import positions.
  * Provides CRUD operations for individual security entries within an import batch.
  */
-@Injectable()
+@Service()
 export class GTNetSecurityImpPosService
   extends AuthServiceWithLogout<GTNetSecurityImpPos>
   implements DeleteService, UploadServiceFunction
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   /**
    * Gets all positions for a specific import header.
    *

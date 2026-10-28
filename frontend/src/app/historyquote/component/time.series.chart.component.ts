@@ -183,6 +183,17 @@ interface Data {
   imports: [FormsModule, DatePicker, Select, ContextMenu, TranslatePipe, IndicatorEditComponent]
 })
 export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlobalMenuAttach {
+  private messageToastService = inject(MessageToastService);
+  private usersettingsService = inject(UserSettingsService);
+  private viewSizeChangedService = inject(ViewSizeChangedService);
+  private securityService = inject(SecurityService);
+  private currencypairService = inject(CurrencypairService);
+  private gps = inject(GlobalparameterService);
+  private historyquoteService = inject(HistoryquoteService);
+  private activatedRoute = inject(ActivatedRoute);
+  private translateService = inject(TranslateService);
+  private activePanelService = inject(ActivePanelService);
+
   readonly container = viewChild<ElementRef>('container');
   readonly chartElement = viewChild<ElementRef>('chart');
 
@@ -240,20 +251,12 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   /** Raised by every plot, so a plot still waiting for the library is dropped when a newer one follows. */
   private plotVersion = 0;
 
-  constructor(
-    private messageToastService: MessageToastService,
-    private usersettingsService: UserSettingsService,
-    private viewSizeChangedService: ViewSizeChangedService,
-    private securityService: SecurityService,
-    private currencypairService: CurrencypairService,
-    private gps: GlobalparameterService,
-    private historyquoteService: HistoryquoteService,
-    private activatedRoute: ActivatedRoute,
-    private translateService: TranslateService,
-    private activePanelService: ActivePanelService,
-    confirmationService: ConfirmationService,
-    userChartShapeService: UserChartShapeService
-  ) {
+  constructor() {
+    const gps = this.gps;
+    const translateService = this.translateService;
+    const confirmationService = inject(ConfirmationService);
+    const userChartShapeService = inject(UserChartShapeService);
+
     this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
     //  this.yearRange = `2000:${new Date().getFullYear()}`;
     this.indicatorDefinitions = new IndicatorDefinitions();

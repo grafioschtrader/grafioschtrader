@@ -1,4 +1,4 @@
-import { afterNextRender, Component, OnInit, viewChild } from '@angular/core';
+import { afterNextRender, Component, OnInit, viewChild, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { DynamicFormComponent } from '../app/lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
@@ -40,18 +40,18 @@ import { GrafioschTenant, GrafioschTenantService } from './grafiosch-tenant.serv
   imports: [TranslateModule, DynamicFormComponent]
 })
 export class GrafioschTenantEditComponent implements OnInit {
+  translateService = inject(TranslateService);
+  private loginService = inject(LoginService);
+  private messageToastService = inject(MessageToastService);
+  private tenantService = inject(GrafioschTenantService);
+
   readonly form = viewChild<DynamicFormComponent>('form');
 
   config: FieldConfig[] = [];
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig;
 
-  constructor(
-    public translateService: TranslateService,
-    private loginService: LoginService,
-    private messageToastService: MessageToastService,
-    private tenantService: GrafioschTenantService
-  ) {
+  constructor() {
     afterNextRender(() => this.form().setDefaultValuesAndEnableSubmit());
   }
 

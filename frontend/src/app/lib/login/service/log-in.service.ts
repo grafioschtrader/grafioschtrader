@@ -1,14 +1,13 @@
 import { Observable } from 'rxjs';
-import { Injectable, Optional } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
 import { User } from '../../entities/user';
-import { MessageToastService } from '../../message/message.toast.service';
 import { Router } from '@angular/router';
 import { ChangePasswordDTO } from '../model/change.password.dto';
 import { GlobalSessionNames } from '../../global.session.names';
 import { catchError } from 'rxjs/operators';
-import { HttpClient, HttpContext, HttpHeaders } from '@angular/common/http';
+import { HttpContext, HttpHeaders } from '@angular/common/http';
 import { SKIP_AUTH_HEADERS } from './auth.http.interceptor';
 import { BaseAuthService } from './base.auth.service';
 import { UserOwnProjection } from '../../entities/projection/user.own.projection';
@@ -19,19 +18,13 @@ import { BaseSettings } from '../../base.settings';
 import { AfterLoginHandler } from './after-login.handler';
 import { ConfigurationWithLogin } from '../model';
 
-@Injectable()
+@Service()
 export class LoginService extends BaseAuthService<User> {
-  constructor(
-    private router: Router,
-    public translateService: TranslateService,
-    private gps: GlobalparameterService,
-    private optimusConfig: Optimus,
-    httpClient: HttpClient,
-    messageToastService: MessageToastService,
-    @Optional() private afterLoginHandler?: AfterLoginHandler
-  ) {
-    super(httpClient, messageToastService);
-  }
+  private router = inject(Router);
+  translateService = inject(TranslateService);
+  private gps = inject(GlobalparameterService);
+  private optimusConfig = inject(Optimus);
+  private afterLoginHandler = inject(AfterLoginHandler, { optional: true });
 
   public static setGlobalLang(translateService: TranslateService, optimusConfig: Optimus): void {
     if (translateService.getLangs().find((lang) => lang === sessionStorage.getItem(GlobalSessionNames.LANGUAGE))) {

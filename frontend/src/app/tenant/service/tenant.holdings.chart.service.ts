@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
 import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
@@ -22,7 +22,7 @@ export interface HoldingsChartInput {
  * publishes every loaded report; the chart component draws the chart the user selected. The latest value is kept, so a
  * chart opened after the load still receives it.
  */
-@Injectable()
+@Service()
 export class TenantHoldingsChartService {
   private chartInput = new BehaviorSubject<HoldingsChartInput>(null);
 

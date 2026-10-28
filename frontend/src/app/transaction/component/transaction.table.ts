@@ -37,7 +37,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
    *
    */
 
-  protected constructor() {
+  constructor() {
     super();
 
     this.addColumn(DataType.DateNumeric, 'transactionTime', 'DATE', true, false, {

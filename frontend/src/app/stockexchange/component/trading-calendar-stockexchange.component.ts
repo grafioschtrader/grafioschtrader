@@ -1,4 +1,4 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TradingCalendarBase } from '../../tradingcalendar/component/trading.calendar.base';
 import {
@@ -6,10 +6,7 @@ import {
   SaveTradingDays,
   TradingDaysPlusService
 } from '../../tradingcalendar/service/trading.days.plus.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { CopyTradingDaysFromSourceToTarget, TradingDaysMinusService } from '../service/trading.days.minus.service';
 import { forkJoin, Observable, Subscription } from 'rxjs';
 import { RangeSelectDays } from '../../lib/fullyearcalendar/Interface/range.select.days';
@@ -50,6 +47,10 @@ import { FormsModule } from '@angular/forms';
   ]
 })
 export class TradingCalendarStockexchangeComponent extends TradingCalendarBase implements OnInit {
+  private tradingDaysMinusService = inject(TradingDaysMinusService);
+  private tradingDaysPlusService = inject(TradingDaysPlusService);
+  private dialogService = inject(DialogService);
+
   static readonly SYSTEM_CREATED_COLOR = 'red';
   static readonly USER_CREATED_COLOR = 'blue';
   readonly stockexchange = input<Stockexchange>(undefined);
@@ -72,25 +73,11 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   private dateCreateTypes: { [key: number]: CreateType };
   private readDataSub?: Subscription;
 
-  constructor(
-    private tradingDaysMinusService: TradingDaysMinusService,
-    private tradingDaysPlusService: TradingDaysPlusService,
-    private dialogService: DialogService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    activePanelService: ActivePanelService,
-    messageToastService: MessageToastService
-  ) {
-    super(
-      translateService,
-      gps,
-      [
-        TradingCalendarStockexchangeComponent.USER_CREATED_COLOR,
-        TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR
-      ],
-      activePanelService,
-      messageToastService
-    );
+  constructor() {
+    super([
+      TradingCalendarStockexchangeComponent.USER_CREATED_COLOR,
+      TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR
+    ]);
   }
 
   ngOnInit(): void {

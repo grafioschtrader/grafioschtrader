@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { FxObservationReport } from '../../entities/fx.observation';
 import { FxMarkupPreviewRequest, FxQuote } from '../../entities/fx.markup';
 import { AppSettings } from '../../shared/app.settings';
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { FeeModelComparisonResponse } from '../../entities/fee.model.comparison';
 import { Securityaccount } from '../../entities/securityaccount';
 import { TradingPeriodTransactionSummary } from '../../entities/trading.period.transaction.summary';
@@ -12,24 +11,19 @@ import {
   TransactionCostEstimateResult
 } from '../../entities/transaction.cost.estimate';
 import { Observable } from 'rxjs';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpParams } from '@angular/common/http';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class SecurityaccountService
   extends AuthServiceWithLogout<Securityaccount>
   implements ServiceEntityUpdate<Securityaccount>
 {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getFxObservations(idAccount: number): Observable<FxObservationReport> {
     return this.httpClient
       .get<FxObservationReport>(

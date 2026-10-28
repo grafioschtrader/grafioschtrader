@@ -1,16 +1,14 @@
-import { Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { SKIP_AUTH_HEADERS } from './auth.http.interceptor';
 import { BaseSettings } from '../../base.settings';
 import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 
-@Injectable()
+@Service()
 export class ReleaseNoteService {
-  constructor(
-    private httpClient: HttpClient,
-    private translateService: TranslateService
-  ) {}
+  private httpClient = inject(HttpClient);
+  private translateService = inject(TranslateService);
 
   getTopReleaseNotes(limit: number = 3): Observable<ReleaseNote[]> {
     const params = new HttpParams().set('lang', this.translateService.getBrowserLang()).set('limit', limit.toString());

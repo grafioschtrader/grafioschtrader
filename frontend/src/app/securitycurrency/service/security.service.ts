@@ -1,16 +1,14 @@
 import { Security } from '../../entities/security';
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { SecurityOpenPositionPerSecurityaccount } from '../../entities/view/security.open.position.per.securityaccount';
 import { Observable } from 'rxjs';
 import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
-import { HttpClient, HttpHeaders, HttpParams, HttpResourceRequest } from '@angular/common/http';
+import { HttpHeaders, HttpParams, HttpResourceRequest } from '@angular/common/http';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { catchError } from 'rxjs/operators';
-import { LoginService } from '../../lib/login/service/log-in.service';
 import {
   HisotryqouteLinearFilledSummary,
   HistoryquoteFillGapsBounds,
@@ -29,12 +27,8 @@ import { ITaskExtendService } from '../../lib/taskdatamonitor/component/itask.ex
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { BaseSettings } from '../../lib/base.settings';
 
-@Injectable()
+@Service()
 export class SecurityService extends SecurityCurrencyService<Security> implements ITaskExtendService {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
-    super(loginService, httpClient, messageToastService);
-  }
-
   getTradableSecuritiesByTenantAndIdWatchlist(idWatchlist: number): Observable<Security[]> {
     return <Observable<Security[]>>(
       this.httpClient

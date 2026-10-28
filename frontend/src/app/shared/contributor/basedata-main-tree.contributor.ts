@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TranslateService } from '@ngx-translate/core';
@@ -18,14 +19,10 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
  */
 @Injectable()
 export class BaseDataMainTreeContributor extends MainTreeContributor {
-  private rootNode: TreeNode;
+  private translateService = inject(TranslateService);
+  private globalParamService = inject(GlobalparameterService);
 
-  constructor(
-    private translateService: TranslateService,
-    private globalParamService: GlobalparameterService
-  ) {
-    super();
-  }
+  private rootNode: TreeNode;
 
   getTreeOrder(): number {
     return 3; // BaseData comes after Watchlist

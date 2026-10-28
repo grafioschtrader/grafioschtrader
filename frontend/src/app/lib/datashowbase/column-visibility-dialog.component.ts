@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { TranslateModule } from '@ngx-translate/core';
 import { CheckboxModule } from '@openng/optimus-ui/checkbox';
@@ -90,6 +90,8 @@ export interface ColumnVisibilityOwner {
   ]
 })
 export class ColumnVisibilityDialogComponent {
+  private dynamicDialogConfig = inject(DynamicDialogConfig);
+
   /** Upper bound of the number of columns which can be fixed on the left */
   static readonly MAX_FROZEN_COLUMNS = 6;
 
@@ -102,7 +104,7 @@ export class ColumnVisibilityDialogComponent {
 
   private owner: ColumnVisibilityOwner = null;
 
-  constructor(private dynamicDialogConfig: DynamicDialogConfig) {
+  constructor() {
     this.fields = this.dynamicDialogConfig.data.fields;
     this.frozenColumns = this.dynamicDialogConfig.data.frozenColumns ?? null;
     this.owner = this.dynamicDialogConfig.data.owner ?? null;
