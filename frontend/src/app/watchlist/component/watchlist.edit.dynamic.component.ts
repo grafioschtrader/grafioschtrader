@@ -93,9 +93,9 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
    * Enables submit button, populates form with existing data if editing, and sets focus.
    */
   private initializeForm(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     if (this.callParam.thisObject != null) {
-      this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+      this.form().transferBusinessObjectToForm(this.callParam.thisObject);
     }
     this.configObject.name.elementRef.nativeElement.focus();
   }
@@ -113,7 +113,7 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
       Object.assign(watchlist, this.callParam.thisObject);
     }
     watchlist.idTenant = this.gps.getIdTenant();
-    this.form.cleanMaskAndTransferValuesToBusinessObject(watchlist);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(watchlist);
     return watchlist;
   }
 }

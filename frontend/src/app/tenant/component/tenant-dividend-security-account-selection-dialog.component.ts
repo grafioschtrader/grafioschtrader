@@ -1,4 +1,4 @@
-import { afterNextRender, inject, Injector, Component, Input, ViewChild, output } from '@angular/core';
+import { afterNextRender, inject, Injector, Component, Input, output, viewChild } from '@angular/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { Portfolio } from '../../entities/portfolio';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -71,10 +71,8 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
 
-  @ViewChild('securityaccountTree', { static: true })
-  securityaccountTree: TenantDividendAccountSelectionComponent;
-  @ViewChild('cashaccountTree', { static: true })
-  cashaccountTree: TenantDividendAccountSelectionComponent;
+  readonly securityaccountTree = viewChild<TenantDividendAccountSelectionComponent>('securityaccountTree');
+  readonly cashaccountTree = viewChild<TenantDividendAccountSelectionComponent>('cashaccountTree');
 
   private readonly renderInjector = inject(Injector);
 
@@ -91,7 +89,7 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   }
 
   get disableButton(): boolean {
-    return this.securityaccountTree.getSelectedAccountIds().length === 0;
+    return this.securityaccountTree().getSelectedAccountIds().length === 0;
   }
 
   public onShow(event): void {
@@ -102,7 +100,10 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
     this.closeDialog.emit(
       new ProcessedActionData(
         ProcessedAction.CREATED,
-        new IdsAccounts(this.securityaccountTree.getSelectedAccountIds(), this.cashaccountTree.getSelectedAccountIds())
+        new IdsAccounts(
+          this.securityaccountTree().getSelectedAccountIds(),
+          this.cashaccountTree().getSelectedAccountIds()
+        )
       )
     );
   }
@@ -112,7 +113,7 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   }
 
   private prepareData(): void {
-    this.securityaccountTree.prepareData();
-    this.cashaccountTree.prepareData();
+    this.securityaccountTree().prepareData();
+    this.cashaccountTree().prepareData();
   }
 }

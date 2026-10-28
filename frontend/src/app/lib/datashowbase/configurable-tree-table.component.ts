@@ -1,4 +1,4 @@
-import { Component, ContentChild, input, Input, OnChanges, SimpleChanges, TemplateRef, output } from '@angular/core';
+import { Component, contentChild, input, Input, OnChanges, SimpleChanges, TemplateRef, output } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { toClassString } from '../helper/css-class.helper';
 import { FormsModule } from '@angular/forms';
@@ -211,9 +211,9 @@ export interface TreeTableCellEditEvent {
                       <p-treeTableToggler [rowNode]="rowNode" />
                     }
                     <!-- Cell content rendering -->
-                    @if (customCellTemplate) {
+                    @if (customCellTemplate(); as customCellTemplateValue) {
                       <ng-container
-                        *ngTemplateOutlet="customCellTemplate; context: { $implicit: rowData, field: field }" />
+                        *ngTemplateOutlet="customCellTemplateValue; context: { $implicit: rowData, field: field }" />
                     } @else if (field.templateName === 'owner') {
                       <span
                         [pTooltip]="getValue(rowData, field)"
@@ -244,10 +244,10 @@ export interface TreeTableCellEditEvent {
                           (onChange)="onCheckboxChange(rowData, field, $event)" />
                       }
                     } @else if (field.templateName === 'icon') {
-                      @if (iconTemplate) {
+                      @if (iconTemplate(); as iconTemplateValue) {
                         <ng-container
                           *ngTemplateOutlet="
-                            iconTemplate;
+                            iconTemplateValue;
                             context: {
                               $implicit: rowData,
                               field: field,
@@ -422,10 +422,10 @@ export class ConfigurableTreeTableComponent implements OnChanges {
   // ============================================================================
 
   /** Custom template for rendering cells. Overrides default cell rendering. */
-  @ContentChild('customCell') customCellTemplate?: TemplateRef<any>;
+  readonly customCellTemplate = contentChild<TemplateRef<any>>('customCell');
 
   /** Custom template for rendering icon cells (templateName='icon'). */
-  @ContentChild('iconCell') iconTemplate?: TemplateRef<any>;
+  readonly iconTemplate = contentChild<TemplateRef<any>>('iconCell');
 
   /** Footer template projected into p-treeTable footer slot. */
   @Input() footerTemplate?: TemplateRef<any>;

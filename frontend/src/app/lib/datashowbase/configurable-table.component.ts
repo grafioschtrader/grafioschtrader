@@ -1,7 +1,7 @@
 import {
   AfterViewChecked,
   Component,
-  ContentChild,
+  contentChild,
   ElementRef,
   inject,
   input,
@@ -11,8 +11,8 @@ import {
   OnDestroy,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
-  output
+  output,
+  viewChild
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -452,10 +452,10 @@ export interface CellMark {
                     }
                   }
                   <!-- Cell content rendering -->
-                  @if (customCellTemplate) {
+                  @if (customCellTemplate(); as customCellTemplateValue) {
                     <!-- Use custom cell template if provided -->
                     <ng-container
-                      *ngTemplateOutlet="customCellTemplate; context: { $implicit: rowData, field: field }" />
+                      *ngTemplateOutlet="customCellTemplateValue; context: { $implicit: rowData, field: field }" />
                   } @else if (field.templateName === 'owner') {
                     <span
                       [pTooltip]="getCellTooltip(rowData, field)"
@@ -478,10 +478,10 @@ export interface CellMark {
                         aria-hidden="true"></i
                     ></span>
                   } @else if (field.templateName === 'icon') {
-                    @if (iconTemplate) {
+                    @if (iconTemplate(); as iconTemplateValue) {
                       <ng-container
                         *ngTemplateOutlet="
-                          iconTemplate;
+                          iconTemplateValue;
                           context: {
                             $implicit: rowData,
                             field: field,
@@ -492,10 +492,10 @@ export interface CellMark {
                       <span>{{ getValue(rowData, field) }}</span>
                     }
                   } @else if (field.templateName === 'svgIcon') {
-                    @if (svgIconTemplate) {
+                    @if (svgIconTemplate(); as svgIconTemplateValue) {
                       <ng-container
                         *ngTemplateOutlet="
-                          svgIconTemplate;
+                          svgIconTemplateValue;
                           context: {
                             $implicit: rowData,
                             field: field,
@@ -508,9 +508,9 @@ export interface CellMark {
                   } @else if (field.templateName === 'linkIcon') {
                     @if (getValue(rowData, field)) {
                       <a [href]="getValue(rowData, field)" target="_blank">
-                        @if (linkIconTemplate) {
+                        @if (linkIconTemplate(); as linkIconTemplateValue) {
                           <ng-container
-                            *ngTemplateOutlet="linkIconTemplate; context: { $implicit: rowData, field: field }" />
+                            *ngTemplateOutlet="linkIconTemplateValue; context: { $implicit: rowData, field: field }" />
                         } @else {
                           <i class="fa fa-external-link"></i>
                         }
@@ -729,7 +729,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
   /**
    * Reference to the Optimus table component for programmatic filter access.
    */
-  @ViewChild('table') table: Table;
+  readonly table = viewChild<Table>('table');
 
   /**
    * FilterType enum exposed for template usage.
@@ -914,26 +914,26 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * Custom template for rendering cells. Overrides default cell rendering.
    * Receives row and field as context.
    */
-  @ContentChild('customCell') customCellTemplate?: TemplateRef<any>;
+  readonly customCellTemplate = contentChild<TemplateRef<any>>('customCell');
 
   /**
    * Custom template for rendering icon cells (templateName='icon').
    * Receives row, field, and value as context.
    */
-  @ContentChild('iconCell') iconTemplate?: TemplateRef<any>;
+  readonly iconTemplate = contentChild<TemplateRef<any>>('iconCell');
 
   /**
    * Custom template for rendering a second kind of icon cell (templateName='svgIcon'), for a column whose icon is
    * derived from the row while the column value itself stays the plain, sortable and filterable one.
    * Receives row, field, and value as context.
    */
-  @ContentChild('svgIconCell') svgIconTemplate?: TemplateRef<any>;
+  readonly svgIconTemplate = contentChild<TemplateRef<any>>('svgIconCell');
 
   /**
    * Custom template for rendering link icon cells (templateName='linkIcon').
    * Receives row and field as context.
    */
-  @ContentChild('linkIconCell') linkIconTemplate?: TemplateRef<any>;
+  readonly linkIconTemplate = contentChild<TemplateRef<any>>('linkIconCell');
 
   // ============================================================================
   // Cell Behavior Callbacks
@@ -1265,7 +1265,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    */
   getSelectFilterValue(field: ColumnConfig): any {
     // Optimus removes the entry instead of blanking it, so a missing key means "not filtered".
-    return this.table?.filters?.[getFilterKey(field)]?.['value'] ?? null;
+    return this.table()?.filters?.[getFilterKey(field)]?.['value'] ?? null;
   }
 
   /**
@@ -1283,9 +1283,10 @@ export class ConfigurableTableComponent<T = any> implements OnChanges, AfterView
    * again, otherwise filters entered before would keep hiding rows without any visible control to reset them.
    */
   clearFilters(): void {
-    if (this.table) {
-      this.table.filters = {};
-      this.table._filter();
+    const table = this.table();
+    if (table) {
+      table.filters = {};
+      table._filter();
     }
   }
 

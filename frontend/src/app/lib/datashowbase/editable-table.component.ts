@@ -1,7 +1,7 @@
 import {
   ChangeDetectorRef,
   Component,
-  ContentChild,
+  contentChild,
   inject,
   input,
   Input,
@@ -9,12 +9,12 @@ import {
   OnInit,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
   signal,
   afterNextRender,
   Injector,
   DestroyRef,
-  output
+  output,
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
@@ -245,10 +245,10 @@ export interface ValidationErrorEvent<T> {
                       </ng-template>
 
                       <ng-template pTemplate="output">
-                        @if (customCellTemplate) {
+                        @if (customCellTemplate(); as customCellTemplateValue) {
                           <ng-container
                             *ngTemplateOutlet="
-                              customCellTemplate;
+                              customCellTemplateValue;
                               context: {
                                 $implicit: rowData,
                                 field: field,
@@ -656,7 +656,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   // ============================================================================
 
   /** Custom template for rendering cells in display mode */
-  @ContentChild('customCell') customCellTemplate?: TemplateRef<any>;
+  readonly customCellTemplate = contentChild<TemplateRef<any>>('customCell');
 
   // ============================================================================
   // Edit Lifecycle Events
@@ -704,7 +704,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   expandedRowKeys: { [key: string]: boolean } = {};
 
   /** Reference to Optimus table component */
-  @ViewChild('table') table: Table;
+  readonly table = viewChild<Table>('table');
 
   /** Map of row keys to cloned row data for cancel restoration */
   private clonedRows: { [key: string]: T } = {};
@@ -1325,9 +1325,10 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
       // Initialize edit state (clone for cancel, init options, clear errors)
       this.onRowEditInit(row, rowIndex);
 
-      if (this.table) {
+      const table = this.table();
+      if (table) {
         // Directly set Optimus's editing state — no DOM manipulation needed
-        this.table.initRowEdit(row);
+        table.initRowEdit(row);
         // A new value input also refreshes the Optimus table when this method is called by a menu command.
         this.rows.update((rows) => [...rows]);
         this.changeDetectorRef.markForCheck();
@@ -1335,7 +1336,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
         // Focus first editable cell after Angular change detection renders the edit inputs
         afterNextRender(
           () => {
-            const tableEl = this.table.el.nativeElement;
+            const tableEl = this.table().el.nativeElement;
             const rows = tableEl.querySelectorAll('tbody tr');
             if (rows[rowIndex]) {
               this.focusFirstEditableCell(rows[rowIndex]);

@@ -3,7 +3,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
 import { FormConfig } from '../../dynamic-form/models/form.config';
-import { DestroyRef, Directive, inject, signal, ViewChild } from '@angular/core';
+import { DestroyRef, Directive, inject, signal, viewChild } from '@angular/core';
 import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { forkJoin, Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -39,7 +39,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   private menuSubscription?: Subscription;
 
   // Access child components
-  @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   // Form configuration
   formConfig: FormConfig;
@@ -273,9 +273,9 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   protected setFieldValues() {
     this.ignoreChangeOnMonitorField = true;
     if (this.selectedEntity) {
-      this.form.transferBusinessObjectToForm(this.selectedEntity);
+      this.form().transferBusinessObjectToForm(this.selectedEntity);
     } else {
-      this.form.setDefaultValues();
+      this.form().setDefaultValues();
     }
     this.setChildData(this.selectedEntity);
     this.ignoreChangeOnMonitorField = false;

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, OnInit, signal, TemplateRef, ViewChild } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal, TemplateRef, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
@@ -102,7 +102,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
 })
 export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
   @Input() entityKind = 'LAST_PRICE';
-  @ViewChild('expandedContent') expandedContent: TemplateRef<any>;
+  readonly expandedContent = viewChild<TemplateRef<any>>('expandedContent');
 
   readonly exchangeLogTrees = signal<GTNetExchangeLogTree[]>([]);
   mainTableFields: ColumnConfig[] = [];

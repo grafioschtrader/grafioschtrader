@@ -5,10 +5,10 @@ import {
   Injector,
   DestroyRef,
   signal,
-  ViewChild,
   Component,
   Input,
-  OnInit
+  OnInit,
+  viewChild
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -169,7 +169,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
   private formRender: ReturnType<typeof afterNextRender>;
-  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
+  readonly yamlEditor = viewChild(YamlEditorComponent);
   @Input() algoCallParam: AlgoCallParam;
 
   dynamicModel: any = {};
@@ -258,7 +258,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    * submit from again.
    */
   async submitComplexStrategy(): Promise<void> {
-    if (!(await this.yamlEditor.validateForSubmit())) return;
+    if (!(await this.yamlEditor().validateForSubmit())) return;
     if (this.destroyRef.destroyed || !this.visibleDialog()) return;
     if (this.yamlContent() && this.parseYaml(this.yamlContent()) === undefined) {
       return;

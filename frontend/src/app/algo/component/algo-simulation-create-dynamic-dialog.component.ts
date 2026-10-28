@@ -214,10 +214,11 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEdi
   }
 
   private initializeForm(): void {
-    this.form.setValue('tenantName', this.algoTop.name);
+    this.form().setValue('tenantName', this.algoTop.name);
 
-    this.form.setValue('initializationMode', SimulationInitializationMode.COPY_PORTFOLIO);
-    this.form.form
+    this.form().setValue('initializationMode', SimulationInitializationMode.COPY_PORTFOLIO);
+    const form = this.form();
+    form.form
       ?.get('initializationMode')
       ?.valueChanges.pipe(this.untilDialogClosed())
       .subscribe((mode) => {
@@ -227,7 +228,7 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEdi
         this.previewSignature = undefined;
         this.toggleCashBalanceFields(mode === SimulationInitializationMode.MANUAL_CASH);
       });
-    this.form.form
+    form.form
       ?.get('simulationStartDate')
       ?.valueChanges.pipe(this.untilDialogClosed())
       .subscribe((date) => {
@@ -296,7 +297,7 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEdi
       initializationMode: null
     };
     // Reads individual controls, including the disabled portfolio-derived opening date.
-    this.form.cleanMaskAndTransferValuesToBusinessObject(dto);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(dto);
     dto.idAlgoTop = this.algoTop.idAlgoAssetclassSecurity;
     dto.tenantName = value.tenantName;
     dto.initializationMode = value.initializationMode;

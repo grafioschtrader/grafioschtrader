@@ -82,7 +82,7 @@ export class AlgoCreateFromPortfolioDynamicDialogComponent extends SimpleDynamic
   }
 
   override submit(value: { [name: string]: any }): void {
-    this.form.cleanMaskAndTransferValuesToBusinessObject(this.dto);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(this.dto);
     this.algoTopService
       .createFromPortfolio(this.dto)
       .pipe(this.untilDialogClosed())

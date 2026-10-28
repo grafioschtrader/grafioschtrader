@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, Inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, Inject, signal, viewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
@@ -36,7 +36,7 @@ import { DialogComponentLoader } from '../handler/lazy-dialog';
   imports: [TreeModule, ContextMenuModule, ConfirmDialogModule, ButtonModule, SharedModule, TranslateModule]
 })
 export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
-  @ViewChild('cm', { static: true }) contextMenu: any;
+  readonly contextMenu = viewChild<any>('cm');
 
   /**
    * Only used to get the Optimus UI p-tabmenu working. For example when portfolio is clicked the 2nd time in the
@@ -117,7 +117,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     const typeNodeData: TypeNodeData = event.node.data;
     this.contextMenuItems.set(this.getEditMenuItemsByTypeNode(event.node));
     if (!this.contextMenuItems()) {
-      this.contextMenu.hide();
+      this.contextMenu().hide();
     }
   }
 
@@ -131,7 +131,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   callMeDeactivate(): void {}
 
   hideContextMenu(): void {
-    this.contextMenu.hide();
+    this.contextMenu().hide();
   }
 
   onComponentClick(event) {

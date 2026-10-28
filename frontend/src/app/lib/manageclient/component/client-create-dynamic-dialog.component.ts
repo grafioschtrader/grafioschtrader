@@ -67,8 +67,8 @@ export class ClientCreateDynamicDialogComponent extends PasswordBaseComponent im
 
   submit(value: { [name: string]: any }): void {
     const businessObject: any = {};
-    this.form.cleanMaskAndTransferValuesToBusinessObject(businessObject, true);
-    this.form.setDisableAll(true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(businessObject, true);
+    this.form().setDisableAll(true);
     this.manageClientService
       .createClient({
         email: businessObject.email,
@@ -80,7 +80,7 @@ export class ClientCreateDynamicDialogComponent extends PasswordBaseComponent im
           this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, businessObject));
         },
         error: () => {
-          this.form.setDisableAll(false);
+          this.form().setDisableAll(false);
           this.configObject.submit.disabled = false;
         }
       });

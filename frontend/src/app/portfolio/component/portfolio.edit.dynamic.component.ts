@@ -71,9 +71,9 @@ export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfol
 
   /** Initializes the rendered form once; arriving currency options must not reset values already entered. */
   private initializeForm(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     if (this.callParam.thisObject != null) {
-      this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+      this.form().transferBusinessObjectToForm(this.callParam.thisObject);
     } else {
       this.configObject.currency.formControl.setValue((<Tenant>this.callParam.parentObject).currency);
     }

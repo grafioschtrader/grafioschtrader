@@ -1,4 +1,4 @@
-import { afterNextRender, Component, computed, Injector, QueryList, signal, ViewChildren } from '@angular/core';
+import { afterNextRender, Component, computed, Injector, signal, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormsModule } from '@angular/forms';
@@ -103,8 +103,7 @@ import { ProcessedActionData } from '../../types/processed.action.data';
   providers: [DialogService]
 })
 export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
-  @ViewChildren(GTNetMessageTreeTableComponent)
-  messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
+  readonly messageTreeTables = viewChildren(GTNetMessageTreeTableComponent);
 
   private readonly domainRemoteName = 'domainRemoteName';
   readonly gtNetMyEntryId = signal<number>(null);
@@ -338,7 +337,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
    * Clears the selection in all message tree table components once the expanded row is rendered.
    */
   private clearTreeTableSelection(): void {
-    afterNextRender(() => this.messageTreeTables?.forEach((treeTable) => treeTable.clearSelection()), {
+    afterNextRender(() => this.messageTreeTables()?.forEach((treeTable) => treeTable.clearSelection()), {
       injector: this.injector
     });
   }

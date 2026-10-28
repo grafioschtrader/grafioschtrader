@@ -276,7 +276,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       .subscribe((data) => {
         if (!this.configObject.transactionCost.invisible) {
           const values: any = {};
-          this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
+          this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);
           this.configObject.debitAmount.formControl.setValue(
             values.cashaccountAmount + (values.transactionCost ? values.transactionCost : 0)
           );
@@ -304,7 +304,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     if (this.transactionCallParam.transaction) {
       Object.assign(transaction, this.transactionCallParam.transaction);
     }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(transaction);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(transaction);
     transaction.cashaccount = this.getCashaccountByIdCashaccountFromPortfolios(
       this.portfolios,
       transaction.idCashaccount
@@ -442,7 +442,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       this.configObject.idCashaccount.formControl.setValue(this.transactionCallParam.cashaccount.idSecuritycashAccount);
       this.changeTransactionType(this.configObject.transactionType.formControl.value);
     } else {
-      this.form.transferBusinessObjectToForm(this.transactionCallParam.transaction);
+      this.form().transferBusinessObjectToForm(this.transactionCallParam.transaction);
       this.configObject.cashaccountAmount.formControl.setValue(
         BusinessHelper.getTotalAmountFromTransaction(this.transactionCallParam.transaction) -
           (this.transactionCallParam.transaction.transactionCost === null

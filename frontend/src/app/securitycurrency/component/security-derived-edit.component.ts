@@ -2,12 +2,12 @@ import {
   Component,
   Input,
   OnInit,
-  ViewChild,
   afterNextRender,
   AfterRenderRef,
   inject,
   Injector,
-  signal
+  signal,
+  viewChild
 } from '@angular/core';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
@@ -80,8 +80,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
   // Access child components
-  @ViewChild(DynamicFormComponent, { static: true })
-  dynamicForm: DynamicFormComponent;
+  readonly dynamicForm = viewChild(DynamicFormComponent);
 
   readonly derivedData = 'DERIVED_DATA';
   supplementCriteria: SupplementCriteria;
@@ -233,7 +232,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       this,
       this.proposeChangeEntityWithEntity,
       this.securityCallParam,
-      this.dynamicForm,
+      this.dynamicForm(),
       value
     );
     if (this.baseInstrument) {

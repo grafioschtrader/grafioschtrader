@@ -1,5 +1,4 @@
 import {
-  ViewChild,
   Component,
   Input,
   OnInit,
@@ -8,7 +7,8 @@ import {
   effect,
   inject,
   Injector,
-  signal
+  signal,
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
@@ -139,7 +139,7 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
   ]
 })
 export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
-  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
+  readonly yamlEditor = viewChild(YamlEditorComponent);
   static readonly DIALOG_WIDTH = 900;
 
   @Input() callParam: TradingPlatformPlan;
@@ -253,7 +253,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
 
   async save(): Promise<void> {
     const untilClosed = this.untilDialogClosed<Securityaccount | TradingPlatformPlan>();
-    if (!(await this.yamlEditor.validateForSubmit())) return;
+    if (!(await this.yamlEditor().validateForSubmit())) return;
     if (this.isDynamic) {
       const sa = new Securityaccount();
       Object.assign(sa, this.securityaccount);
@@ -318,7 +318,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
     const revision = ++this.estimateRevision;
     this.estimateSubscription?.unsubscribe();
     const untilClosed = this.untilDialogClosed<TransactionCostEstimateResult>();
-    if (!(await this.yamlEditor.validateForSubmit())) return;
+    if (!(await this.yamlEditor().validateForSubmit())) return;
     if (revision !== this.estimateRevision) return;
     this.testResult.set(null);
 

@@ -1,5 +1,5 @@
 import { SecuritycurrencySearchBase } from '../../securitycurrency/component/securitycurrency.search.base';
-import { Component, Input, ViewChild, output } from '@angular/core';
+import { Component, Input, output, viewChild } from '@angular/core';
 import { TenantLimit } from '../../shared/types/tenant.limit';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -52,8 +52,7 @@ export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySea
   @Input() tenantLimits: TenantLimit[];
 
   /** Reference to the child table component that displays and manages instrument selection */
-  @ViewChild(CorrelationSetAddInstrumentTableComponent)
-  csaitc: CorrelationSetAddInstrumentTableComponent;
+  readonly csaitc = viewChild(CorrelationSetAddInstrumentTableComponent);
 
   /** Event emitter that notifies parent component when dialog is closed with action data */
   readonly closeDialog = output<ProcessedActionData>();
@@ -95,7 +94,7 @@ export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySea
 
   /** Clears the instrument list in the child table component, removing all displayed search results. */
   childClearList(): void {
-    this.csaitc.clearList();
+    this.csaitc().clearList();
   }
 
   /**
@@ -105,6 +104,6 @@ export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySea
    * @param securitycurrencySearch The search criteria object containing filters and parameters
    */
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
-    this.csaitc.loadData(this.idCorrelationSet, securitycurrencySearch);
+    this.csaitc().loadData(this.idCorrelationSet, securitycurrencySearch);
   }
 }

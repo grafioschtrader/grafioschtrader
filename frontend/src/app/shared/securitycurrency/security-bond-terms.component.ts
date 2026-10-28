@@ -2,6 +2,7 @@ import {
   afterNextRender,
   AfterRenderRef,
   DestroyRef,
+  effect,
   inject,
   Injector,
   signal,
@@ -11,7 +12,8 @@ import {
   OnDestroy,
   OnInit,
   SimpleChanges,
-  ViewChild
+  untracked,
+  viewChild
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin, map, Subscription, switchMap } from 'rxjs';
@@ -88,7 +90,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   private initializeAfterRender: AfterRenderRef;
-  private dynamicForm: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
   private couponRateSubscribe: Subscription;
   private applyingCouponRatePrefill = false;
   private couponRateOverridden = false;
@@ -99,19 +101,17 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
   private couponDayCountOverridden = false;
   private lastCouponDayCountPrefill: string = null;
 
-  @ViewChild(DynamicFormComponent) set form(form: DynamicFormComponent) {
-    this.dynamicForm = form;
-    if (form) {
-      this.scheduleInitialization();
-    }
-  }
-
   constructor(
     public translateService: TranslateService,
     private gps: GlobalparameterService,
     private taxDataService: TaxDataService
   ) {
     super();
+    effect(() => {
+      if (this.form()) {
+        untracked(() => this.scheduleInitialization());
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -153,7 +153,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.entity && this.dynamicForm) {
+    if (changes.entity && this.form()) {
       this.scheduleInitialization();
       return;
     }
@@ -172,15 +172,15 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
   }
 
   transfer(target: Security): boolean {
-    if (!this.dynamicForm) {
+    if (!this.form()) {
       return false;
     }
-    this.dynamicForm.form.markAllAsTouched();
-    if (this.dynamicForm.form.invalid) {
+    this.form().form.markAllAsTouched();
+    if (this.form().form.invalid) {
       return false;
     }
     const bondTerms: SecurityBondTerms = {};
-    this.dynamicForm.cleanMaskAndTransferValuesToBusinessObject(bondTerms, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(bondTerms, true);
     if (bondTerms.couponDayCount === '') {
       bondTerms.couponDayCount = null;
     }
@@ -202,15 +202,15 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnCh
   }
 
   private initializeForm(): void {
-    if (!this.dynamicForm || !this.configObject) {
+    if (!this.form() || !this.configObject) {
       return;
     }
     this.couponRateSubscribe?.unsubscribe();
     this.couponDayCountSubscribe?.unsubscribe();
-    this.dynamicForm.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     const storedTerms = this.entity?.simulationMetadata?.bondTerms;
     if (storedTerms) {
-      this.dynamicForm.transferBusinessObjectToForm(storedTerms);
+      this.form().transferBusinessObjectToForm(storedTerms);
     }
     this.couponRateOverridden = storedTerms?.couponRate != null;
     this.lastCouponRatePrefill = null;

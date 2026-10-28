@@ -165,7 +165,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   setCalculatedDebitAmount(): number {
     const values: any = {};
-    this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);
 
     if (this.currencypair) {
       const debitAmount = this.calcDebitAmount(values);
@@ -506,14 +506,14 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         newTransactions[i].transactionType =
           TransactionType[i === this.WithIndex ? TransactionType.WITHDRAWAL : TransactionType.DEPOSIT];
       }
-      this.form.cleanMaskAndTransferValuesToBusinessObject(newTransactions[i]);
+      this.form().cleanMaskAndTransferValuesToBusinessObject(newTransactions[i]);
     }
     return new CashAccountTransfer(newTransactions[0], newTransactions[1]);
   }
 
   private viewToBusinessModel(cashAccountTransfer: CashAccountTransfer): CashAccountTransfer {
     const values: any = {};
-    this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);
     cashAccountTransfer.withdrawalTransaction.cashaccount = this.getCashaccountByIdCashaccountFormPortfolios(
       this.portfolios,
       values.idDebitCashaccount

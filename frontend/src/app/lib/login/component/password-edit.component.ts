@@ -62,7 +62,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
   ngOnInit(): void {
     this.gps.getPasswordRegexProperties().subscribe((prp) => {
       this.passwordRegexProperties = prp;
-      this.form.setDefaultValuesAndEnableSubmit();
+      this.form().setDefaultValuesAndEnableSubmit();
       super.preparePasswordFields();
       this.configObject[PasswordEditComponent.passwordOld].elementRef.nativeElement.focus();
     });
@@ -70,7 +70,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
 
   submit(value: { [name: string]: any }): void {
     const changePassword = new ChangePasswordDTO();
-    this.form.cleanMaskAndTransferValuesToBusinessObject(changePassword);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(changePassword);
     changePassword.passwordNew = value.password;
     this.loginService.updatePassword(changePassword).subscribe((successfullyChanged) => {
       this.messageToastService.showMessage(InfoLevelType.INFO, successfullyChanged.message);

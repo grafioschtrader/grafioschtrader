@@ -43,6 +43,8 @@ Before an Angular migration schematic, preserve the current working sources, inc
 schematic analyses both application tsconfigs, verify shared external templates and import lists against that snapshot:
 Angular 22.2.3 can apply the same replacement repeatedly and duplicate their contents. Verify template structure,
 bindings and component logic after the migration, then format the changed files.
+For migrations shared by both hosts, expose one application project at a time in `angular.json`, run the schematic
+for each host in turn, and restore the exact workspace configuration afterwards. This avoids overlapping edits.
 
 Angular 22 makes `OnPush` the component default. Every component of GT and the reusable library runs with it, and
 both hosts run zoneless: neither loads zone.js nor calls `provideZoneChangeDetection()`. A view is refreshed only when
@@ -78,10 +80,16 @@ periodic `ApplicationRef.tick()`.
 - **Outputs use `readonly name = output<T>()`** and emit with `name.emit(value)`. Keep an existing public alias with
   `output<T>({ alias: 'publicName' })`. The Angular API ratchet forbids `@Output` and `new EventEmitter` in both hosts
   and the library.
+- **Queries use `readonly child = viewChild(Child)` / `contentChild(Child)`**, read with `child()`.
+  `viewChildren(Child)` and `contentChildren(Child)` return signals of readonly arrays; use `children()` directly
+  instead of `QueryList.toArray()`. Query decorators are forbidden by the Angular API ratchet. Optional projected
+  templates use `@if (cellTemplate(); as cell)`, then pass `cell` to `NgTemplateOutlet`. Signal queries have no
+  `static` option: access view results in `ngAfterViewInit` or a render callback, never in `ngOnInit`. Replace a query
+  setter's side effects with an `effect`, using `untracked` for work that must not become another dependency.
 - **Signal APIs only in new and reworked code.** Use `input()`, `output()`, `model()`, `viewChild()` and
   `contentChild()`; never add an `@Input`, `@Output`, `EventEmitter`, `@ViewChild` or `@ContentChild`. The remaining
-  input and query decorators are converted with the Angular schematics (`signal-queries-migration`,
-  `signal-input-migration`), so do not convert unrelated components by hand on the side. `dynamic-form` stays on
+  input decorators are converted with the Angular `signal-input-migration` schematic, so do not convert unrelated
+  components by hand on the side. `dynamic-form` stays on
   reactive forms, because its fields are built at runtime from `ClassDescriptorInputAndShow`; a new form whose fields
   are known statically may use Signal Forms.
 - **New services use `@Service()` and `inject()`.** `@Service()` is the Angular 22 shorthand for a root-provided,

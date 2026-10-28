@@ -10,7 +10,7 @@ import {
   OnInit,
   signal,
   SimpleChanges,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription, merge } from 'rxjs';
@@ -110,7 +110,7 @@ export class PerformanceTotalChartWidgetComponent
   /** Set by the dashboard while this card takes over the whole dashboard area. */
   @Input() maximized = false;
 
-  @ViewChild('plot') plotElement: ElementRef<HTMLDivElement>;
+  readonly plotElement = viewChild<ElementRef<HTMLDivElement>>('plot');
 
   readonly chart = signal<PerformanceTotalChart>(undefined);
   config: FieldConfig[];
@@ -187,7 +187,7 @@ export class PerformanceTotalChartWidgetComponent
     // Outside Angular, because a re-layout of the plot changes nothing a template binds to.
     this.zone.runOutsideAngular(() => {
       this.resizeObserver = new ResizeObserver(() => this.resizePlot());
-      this.resizeObserver.observe(this.plotElement.nativeElement);
+      this.resizeObserver.observe(this.plotElement().nativeElement);
     });
     this.drawPlot();
   }
@@ -196,8 +196,9 @@ export class PerformanceTotalChartWidgetComponent
     this.destroyed = true;
     this.settingsSubscription?.unsubscribe();
     this.resizeObserver?.disconnect();
-    if (this.plotElement) {
-      this.plotly?.purge(this.plotElement.nativeElement);
+    const plotElement = this.plotElement();
+    if (plotElement) {
+      this.plotly?.purge(plotElement.nativeElement);
     }
   }
 
@@ -250,7 +251,7 @@ export class PerformanceTotalChartWidgetComponent
     if (!this.viewReady) {
       return;
     }
-    const element = this.plotElement.nativeElement;
+    const element = this.plotElement().nativeElement;
     const chart = this.chart();
     if (!chart || chart.reasonKey || !chart.points.length) {
       this.plotly?.purge(element);
@@ -272,7 +273,7 @@ export class PerformanceTotalChartWidgetComponent
   }
 
   private resizePlot(): void {
-    const element = this.plotElement?.nativeElement as any;
+    const element = this.plotElement()?.nativeElement as any;
     if (element?.data && element.offsetParent) {
       this.plotly?.Plots.resize(element);
     }

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, OnInit, signal, ViewChild, output } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal, output, viewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { FormsModule } from '@angular/forms';
@@ -213,8 +213,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   /** Controls whether the filter row is displayed. Default is true. */
   @Input() showFilter: boolean = true;
   readonly dataChanged = output<ProcessedActionData>();
-  @ViewChild('cm') contextMenu: any;
-  @ViewChild('tt') treeTable: TreeTable;
+  readonly contextMenu = viewChild<any>('cm');
+  readonly treeTable = viewChild<TreeTable>('tt');
 
   public static consumedGT = 'consumedGT';
 
@@ -419,12 +419,14 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   onComponentClick(event): void {
     event[GTNetMessageTreeTableComponent.consumedGT] = true;
-    this.contextMenu && this.contextMenu.hide();
+    const contextMenu = this.contextMenu();
+    contextMenu && contextMenu.hide();
     this.setMenuItemsToActivePanel();
   }
 
   hideContextMenu(): void {
-    this.contextMenu && this.contextMenu.hide();
+    const contextMenu = this.contextMenu();
+    contextMenu && contextMenu.hide();
   }
 
   callMeDeactivate(): void {}
@@ -661,7 +663,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    */
   private getFilteredDeletableMessages(): GTNetMessage[] {
     const deletable: GTNetMessage[] = [];
-    const filteredNodes = this.treeTable?.filteredNodes ?? this.rootNode.children;
+    const filteredNodes = this.treeTable()?.filteredNodes ?? this.rootNode.children;
 
     const traverse = (nodes: TreeNode[]) => {
       nodes?.forEach((node) => {

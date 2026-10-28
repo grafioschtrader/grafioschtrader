@@ -1,13 +1,4 @@
-import {
-  AfterContentInit,
-  Component,
-  ContentChildren,
-  Input,
-  OnChanges,
-  output,
-  QueryList,
-  SimpleChanges
-} from '@angular/core';
+import { AfterContentInit, Component, contentChildren, Input, OnChanges, output, SimpleChanges } from '@angular/core';
 
 import { StepperModule } from '@openng/optimus-ui/stepper';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -18,7 +9,7 @@ import { StepComponent } from './step.component';
   template: `
     <p-stepper [value]="activeIndex + 1" [class]="styleClass">
       <p-step-list>
-        @for (step of steps.toArray(); track step; let i = $index) {
+        @for (step of steps(); track step; let i = $index) {
           <p-step [value]="i + 1" [class]="step.styleClass || stepClass" (click)="onStepClick(i)">
             {{ step.label }}
           </p-step>
@@ -38,7 +29,7 @@ import { StepComponent } from './step.component';
         </p-button>
       }
 
-      @if (activeIndex < steps.length - 1) {
+      @if (activeIndex < steps().length - 1) {
         <p-button type="button" (click)="next()">
           Next
           <i class="pi pi-chevron-right ml-2"></i>
@@ -55,24 +46,20 @@ export class StepsComponent implements AfterContentInit, OnChanges {
   readonly activeIndexChange = output<number>();
   readonly activeLabelChange = output<string>();
 
-  @ContentChildren(StepComponent) steps: QueryList<StepComponent>;
+  readonly steps = contentChildren(StepComponent);
 
   ngAfterContentInit() {
     this.updateSteps();
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (!this.steps) {
-      return;
-    }
-
     if (changes['activeIndex']) {
       this.updateSteps();
     }
   }
 
   private updateSteps() {
-    this.steps.toArray().forEach((step: StepComponent, index: number) => {
+    this.steps().forEach((step: StepComponent, index: number) => {
       if (!step.styleClass) {
         step.styleClass = this.stepClass;
       }
@@ -100,7 +87,7 @@ export class StepsComponent implements AfterContentInit, OnChanges {
   }
 
   next() {
-    if (this.activeIndex < this.steps.length - 1) {
+    if (this.activeIndex < this.steps().length - 1) {
       this.activeIndex++;
       this.activeIndexChange.emit(this.activeIndex);
       this.updateSteps();

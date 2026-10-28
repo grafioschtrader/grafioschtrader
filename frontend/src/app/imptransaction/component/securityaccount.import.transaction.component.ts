@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs/operators';
 
@@ -110,8 +110,7 @@ export class SecurityaccountImportTransactionComponent
   private static readonly STORAGE_KEY_SELECTED_HEAD = 'selectedImportTransactionHead';
 
   // Access child component
-  @ViewChild(SecurityaccountImportTransactionTableComponent, { static: true })
-  sitdc: SecurityaccountImportTransactionTableComponent;
+  readonly sitdc = viewChild(SecurityaccountImportTransactionTableComponent);
 
   // Child Dialogs
   readonly visibleUploadFileDialog = signal(false);
@@ -279,7 +278,7 @@ export class SecurityaccountImportTransactionComponent
   }
 
   setChildData(selectedEntity: ImportTransactionHead): void {
-    this.sitdc.parentSelectionChanged(this.selectedEntity, this, this.importTransactionTemplates);
+    this.sitdc().parentSelectionChanged(this.selectedEntity, this, this.importTransactionTemplates);
   }
 
   prepareEditMenu(): MenuItem[] {
@@ -317,7 +316,7 @@ export class SecurityaccountImportTransactionComponent
     });
 
     // Add menu items of child data table
-    menuItems.push(...this.sitdc.prepareEditMenu());
+    menuItems.push(...this.sitdc().prepareEditMenu());
 
     return menuItems;
   }
@@ -400,7 +399,7 @@ export class SecurityaccountImportTransactionComponent
   }
 
   protected override prepareShowMenu(): MenuItem[] {
-    const menuItems = this.sitdc.prepareShowMenu();
+    const menuItems = this.sitdc().prepareShowMenu();
     return menuItems;
   }
 

@@ -1,4 +1,4 @@
-import { ViewChild, Component, Input, OnInit, computed, signal } from '@angular/core';
+import { Component, Input, OnInit, computed, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -77,7 +77,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
   </p-dialog>`
 })
 export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
-  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
+  readonly yamlEditor = viewChild(YamlEditorComponent);
   @Input() country: TaxCountry;
   readonly yaml = signal('');
   readonly schema = signal<object>(undefined);
@@ -178,7 +178,7 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
 
   async save(yaml: string = this.yaml()): Promise<void> {
     const revision = ++this.validationRevision;
-    if (yaml !== null && !(await this.yamlEditor.validateForSubmit())) return;
+    if (yaml !== null && !(await this.yamlEditor().validateForSubmit())) return;
     if (this.destroyRef.destroyed || revision !== this.validationRevision) return;
     this.service
       .saveTaxModel(this.country.idTaxCountry, yaml)
@@ -189,7 +189,7 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
   async preview(): Promise<void> {
     const revision = ++this.validationRevision;
     this.previewSubscription?.unsubscribe();
-    if (!(await this.yamlEditor.validateForSubmit())) {
+    if (!(await this.yamlEditor().validateForSubmit())) {
       if (!this.destroyRef.destroyed && revision === this.validationRevision) this.configObject.submit.disabled = false;
       return;
     }

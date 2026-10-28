@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ActivatedRoute, Params } from '@angular/router';
@@ -75,8 +75,7 @@ export class GTNetSecurityImportComponent
   private static readonly MAIN_FIELD = 'idGtNetSecurityImpHead';
   private static readonly STORAGE_KEY_SELECTED_HEAD = 'selectedGtNetSecurityImpHead';
 
-  @ViewChild(GTNetSecurityImportTableComponent)
-  tableComponent: GTNetSecurityImportTableComponent;
+  readonly tableComponent = viewChild(GTNetSecurityImportTableComponent);
 
   /** Import transaction head ID passed from transaction import context */
   private idTransactionHead: number = null;
@@ -178,8 +177,9 @@ export class GTNetSecurityImportComponent
   }
 
   setChildData(selectedEntity: GTNetSecurityImpHead): void {
-    if (this.tableComponent) {
-      this.tableComponent.loadPositions(selectedEntity);
+    const tableComponent = this.tableComponent();
+    if (tableComponent) {
+      tableComponent.loadPositions(selectedEntity);
     }
   }
 
@@ -196,8 +196,9 @@ export class GTNetSecurityImportComponent
       });
     }
 
-    if (this.tableComponent) {
-      const tableMenuItems = this.tableComponent.prepareEditMenu();
+    const tableComponent = this.tableComponent();
+    if (tableComponent) {
+      const tableMenuItems = tableComponent.prepareEditMenu();
       if (tableMenuItems.length > 0) {
         menuItems.push({ separator: true });
         menuItems.push(...tableMenuItems);
@@ -211,7 +212,11 @@ export class GTNetSecurityImportComponent
    * Checks if there are positions without linked securities.
    */
   private hasUnmatchedPositions(): boolean {
-    return this.tableComponent?.positions().some((p) => !p.security) ?? false;
+    return (
+      this.tableComponent()
+        ?.positions()
+        .some((p) => !p.security) ?? false
+    );
   }
 
   /**

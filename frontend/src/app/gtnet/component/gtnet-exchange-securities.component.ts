@@ -1,4 +1,4 @@
-import { Component, Injector, signal, ViewChild } from '@angular/core';
+import { Component, Injector, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormsModule } from '@angular/forms';
@@ -95,7 +95,7 @@ import { HelpIds } from '../../lib/help/help.ids';
               type="text"
               class="w-full"
               style="flex: 1 1 auto; width: 100%"
-              (input)="configurableTable.table.filterGlobal($any($event.target).value, 'contains')"
+              (input)="configurableTable().table().filterGlobal($any($event.target).value, 'contains')"
               [placeholder]="'SEARCH' | translate" />
           </div>
         </div>
@@ -142,8 +142,7 @@ import { HelpIds } from '../../lib/help/help.ids';
   providers: [DialogService]
 })
 export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent<Security> {
-  @ViewChild(ConfigurableTableComponent)
-  configurableTable: ConfigurableTableComponent;
+  readonly configurableTable = viewChild(ConfigurableTableComponent);
 
   /** Filter to show only active securities */
   activeOnly = true;
@@ -318,7 +317,7 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
    * Returns the ConfigurableTableComponent reference for the base class.
    */
   override getConfigurableTable(): ConfigurableTableComponent {
-    return this.configurableTable;
+    return this.configurableTable();
   }
 
   /**

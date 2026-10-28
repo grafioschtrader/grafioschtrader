@@ -4,7 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { ErrorMessageRules, RuleEvent } from '../../dynamic-form/error/error.message.rules';
 import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
 import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { ChangeDetectorRef, DestroyRef, Directive, inject, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, DestroyRef, Directive, inject, Injector, viewChild } from '@angular/core';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { equalTo } from '../../validator/validator';
 import { FieldDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
@@ -19,7 +19,7 @@ import { GlobalparameterService, PasswordRegexProperties } from '../../services/
 @Directive()
 export abstract class PasswordBaseComponent {
   // Access child components
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   private static readonly passwordConfirm = 'passwordConfirm';
   private static readonly password = 'password';

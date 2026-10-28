@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, viewChild } from '@angular/core';
 import { ChangedViewSizeType, ViewSizeChangedService } from '../service/view.size.changed.service';
 import { RouterModule } from '@angular/router';
 
@@ -35,7 +35,7 @@ declare function Split(ids, options);
   imports: [RouterModule, MenubarComponent, MainTreeComponent, MainDialogComponent]
 })
 export class SplitLayoutComponent implements OnInit {
-  @ViewChild('split', { static: true }) splitElementRef: ElementRef;
+  readonly splitElementRef = viewChild<ElementRef>('split');
 
   constructor(private viewSizeChangedService: ViewSizeChangedService) {}
 

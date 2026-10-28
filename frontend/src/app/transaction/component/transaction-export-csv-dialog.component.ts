@@ -1,4 +1,4 @@
-import { afterNextRender, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, inject, OnInit, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpResponse } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -42,7 +42,7 @@ export interface TransactionExportCsvDialogData {
 })
 export class TransactionExportCsvDialogComponent extends FormBase implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   constructor(
     private dynamicDialogConfig: DynamicDialogConfig,
@@ -52,7 +52,7 @@ export class TransactionExportCsvDialogComponent extends FormBase implements OnI
     private transactionService: TransactionService
   ) {
     super();
-    afterNextRender(() => this.form.setDefaultValuesAndEnableSubmit());
+    afterNextRender(() => this.form().setDefaultValuesAndEnableSubmit());
   }
 
   ngOnInit(): void {
@@ -67,7 +67,7 @@ export class TransactionExportCsvDialogComponent extends FormBase implements OnI
 
   submit(value: { [name: string]: any }): void {
     const request: { dateFrom?: string; dateTo?: string } = {};
-    this.form.cleanMaskAndTransferValuesToBusinessObject(request, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(request, true);
     const data: TransactionExportCsvDialogData = this.dynamicDialogConfig.data || {};
     this.transactionService
       .exportTransactionsCsv(data.idPortfolio ?? null, request.dateFrom ?? null, request.dateTo ?? null)

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivePanelService } from '../../../lib/mainmenubar/service/active.panel.service';
 import { ActivatedRoute } from '@angular/router';
@@ -28,7 +28,7 @@ import { GlobalparameterService } from '../../../lib/services/globalparameter.se
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
-  @ViewChild('chart', { static: true }) chartElement: ElementRef;
+  readonly chartElement = viewChild<ElementRef>('chart');
 
   private subscriptionViewSizeChanged: Subscription;
   private subscriptionChartDataChanged: Subscription;
@@ -111,27 +111,23 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   }
 
   private plot(plotly: PlotlyInstance): void {
-    plotly.purge(this.chartElement.nativeElement);
+    const chartElement = this.chartElement();
+    plotly.purge(chartElement.nativeElement);
 
     if (this.chartData.legendTooltipMap) {
       plotly
-        .newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout, this.chartData.options)
+        .newPlot(chartElement.nativeElement, this.chartData.data, this.chartData.layout, this.chartData.options)
         .then(this.attachTooltip.bind(this));
-      this.chartElement.nativeElement.on('plotly_afterplot', this.attachTooltip.bind(this));
+      chartElement.nativeElement.on('plotly_afterplot', this.attachTooltip.bind(this));
     } else {
-      plotly.newPlot(
-        this.chartElement.nativeElement,
-        this.chartData.data,
-        this.chartData.layout,
-        this.chartData.options
-      );
+      plotly.newPlot(chartElement.nativeElement, this.chartData.data, this.chartData.layout, this.chartData.options);
     }
     if (this.chartData.callBackFN) {
-      PlotlyHelper.registerPlotlyClick(this.chartElement.nativeElement, this.chartData.callBackFN);
+      PlotlyHelper.registerPlotlyClick(chartElement.nativeElement, this.chartData.callBackFN);
     }
   }
 
   private attachTooltip(): void {
-    PlotlyHelper.attachTooltip(this.chartData.legendTooltipMap, this.chartElement);
+    PlotlyHelper.attachTooltip(this.chartData.legendTooltipMap, this.chartElement());
   }
 }

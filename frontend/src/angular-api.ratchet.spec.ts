@@ -138,6 +138,43 @@ function collectSources(dir: string, extensions = ['.ts'], out: string[] = []): 
 }
 
 describe('Angular API ratchet', () => {
+  it('matches query decorators, including aliases and namespace imports', () => {
+    const queries = ['ViewChild', 'ViewChildren', 'ContentChild', 'ContentChildren'];
+    for (const query of queries) {
+      for (const source of [
+        `class Example { @${query}('child') child: unknown; }`,
+        `import { ${query} as Query } from '@angular/core'; class Example { @Query('child') child: unknown; }`,
+        `import * as ng from '@angular/core'; class Example { @ng.${query}('child') child: unknown; }`
+      ]) {
+        expect(hasAngularDecorator(source, queries), source).toBe(true);
+      }
+    }
+    for (const source of [
+      'class Example { readonly child = viewChild(Child); readonly children = contentChildren(Child); }',
+      '// @ViewChild(Child)',
+      'const example = `@ContentChildren(Child)`;'
+    ]) {
+      expect(hasAngularDecorator(source, queries), source).toBe(false);
+    }
+  });
+
+  it('finds no query decorators in either host or the shared library', () => {
+    const violations = collectSources(SRC)
+      .filter((file) =>
+        hasAngularDecorator(fs.readFileSync(file, 'utf8'), [
+          'ViewChild',
+          'ViewChildren',
+          'ContentChild',
+          'ContentChildren'
+        ])
+      )
+      .map((file) => path.relative(SRC, file).replace(/\\/g, '/'));
+    expect(
+      violations,
+      'Declare queries with viewChild/viewChildren or contentChild/contentChildren. See frontend/CLAUDE.md.'
+    ).toEqual([]);
+  });
+
   it('matches legacy outputs and EventEmitter construction, including aliases', () => {
     expect(hasAngularDecorator('class Example { @Output() changed = emitter; }', ['Output'])).toBe(true);
     expect(

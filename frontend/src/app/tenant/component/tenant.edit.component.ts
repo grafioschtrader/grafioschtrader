@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Directive, ViewChild, output } from '@angular/core';
+import { DestroyRef, inject, Directive, output, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -32,7 +32,7 @@ export abstract class TenantEditComponent {
 
   existingTenant: Tenant;
 
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
@@ -71,7 +71,7 @@ export abstract class TenantEditComponent {
     if (this.existingTenant) {
       Object.assign(tenant, this.existingTenant);
     }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(tenant);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(tenant);
     this.tenantService
       .update(tenant)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -99,7 +99,7 @@ export abstract class TenantEditComponent {
 
   protected loadData() {
     // Reset and focus before the options are requested: a tenant name typed while they load must survive their arrival.
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     (this.configObject.tenantName ?? this.configObject.currency).elementRef?.nativeElement.focus();
     forkJoin([this.gpsGT.getCurrencies(), this.gps.getCountriesForSelectBox()])
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -112,7 +112,7 @@ export abstract class TenantEditComponent {
           );
         }
         if (this.existingTenant) {
-          this.form.transferBusinessObjectToForm(this.existingTenant);
+          this.form().transferBusinessObjectToForm(this.existingTenant);
         }
       });
   }

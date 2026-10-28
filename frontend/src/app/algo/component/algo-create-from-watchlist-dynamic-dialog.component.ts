@@ -86,7 +86,7 @@ export class AlgoCreateFromWatchlistDynamicDialogComponent extends SimpleDynamic
   }
 
   override submit(value: { [name: string]: any }): void {
-    this.form.cleanMaskAndTransferValuesToBusinessObject(this.dto);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(this.dto);
     this.algoTopService
       .createFromWatchlist(this.dto)
       .pipe(this.untilDialogClosed())

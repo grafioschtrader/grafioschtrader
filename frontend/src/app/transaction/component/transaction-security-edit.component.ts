@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild, signal, output } from '@angular/core';
+import { Component, Input, OnInit, signal, output, viewChild } from '@angular/core';
 
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
@@ -110,7 +110,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   @Input() transactionCallParam: TransactionCallParam;
 
   // Access the form
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   readonly closeDialog = output<ProcessedActionData>();
 
@@ -1029,7 +1029,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       Object.assign(transaction, this.transactionCallParam.transaction);
     }
 
-    this.form.cleanMaskAndTransferValuesToBusinessObject(transaction);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(transaction);
     if (transaction.idCashaccount && this.portfolios) {
       transaction.cashaccount = this.getCashaccountByIdCashaccountFormPortfolios(
         this.portfolios,
@@ -1054,7 +1054,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     // Reset transaction locked state
     this.resetTransactionLocked();
 
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
 
     if (this.transactionCallParam.transactionType === TransactionType.FINANCE_COST) {
       this.transactionEditType = new TransactionSecurityEditFinanceCost(this.transactionCallParam);
@@ -1115,7 +1115,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       this.transactionCallParam.transactionType !== TransactionType.DIVIDEND
     );
     this.transactionCallParam.transaction &&
-      this.form.transferBusinessObjectToForm(this.transactionCallParam.transaction);
+      this.form().transferBusinessObjectToForm(this.transactionCallParam.transaction);
   }
 
   private loadStrategyAssignments(): void {

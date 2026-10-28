@@ -1,4 +1,4 @@
-import { afterNextRender, DestroyRef, Directive, inject, Injector, Input, ViewChild, output } from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, inject, Injector, Input, output, viewChild } from '@angular/core';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FeedIdentifier, FeedSupport, IFeedConnector } from './ifeed.connector';
@@ -28,7 +28,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   @Input() securityCurrencypairCallParam: Security | Securitycurrency;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
   // Access child components
-  @ViewChild(DynamicFormComponent, { static: true }) dynamicForm: DynamicFormComponent;
+  readonly dynamicForm = viewChild(DynamicFormComponent);
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
   connectorSubscribe: { [fieldName: string]: Subscription } = {};
@@ -111,12 +111,12 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   }
 
   protected prepareExistingSecuritycurrency(focusControl: FieldConfig): void {
-    this.dynamicForm.setDefaultValuesAndEnableSubmit();
+    this.dynamicForm().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
       this.translateService,
       this.gps,
       this.securityCurrencypairCallParam,
-      this.dynamicForm,
+      this.dynamicForm(),
       this.configObject,
       this.proposeChangeEntityWithEntity
     );

@@ -113,11 +113,11 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
 
   submit(value: { [name: string]: any }): void {
     const user = new User();
-    this.form.cleanMaskAndTransferValuesToBusinessObject(user);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(user);
     const date = new Date();
     user.timezoneOffset = date.getTimezoneOffset();
     this.loginService.logout();
-    this.form.setDisableAll(true);
+    this.form().setDisableAll(true);
     this.showProgressIndicator();
     this.loginService.update(user).subscribe({
       next: (newUser) => {
@@ -127,7 +127,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
       },
       error: () => {
         this.progressValue.set(undefined);
-        this.form.setDisableAll(false);
+        this.form().setDisableAll(false);
         this.configObject.submit.disabled = false;
       }
     });

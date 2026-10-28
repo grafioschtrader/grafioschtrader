@@ -8,7 +8,7 @@ import {
   OnInit,
   signal,
   untracked,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -88,7 +88,7 @@ interface SeasonalReturnsParams {
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, ProgressBarModule, SeasonalityTableComponent]
 })
 export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMenuAttach {
-  @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   menuItems: MenuItem[] = [];
 
@@ -221,7 +221,7 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
     this.toggleControl('includeDividends', result.dividendsAvailable);
     this.toggleControl('inTenantCurrency', result.currencyConversionAvailable);
     // The toggles change without events, which the form does not notice by itself.
-    this.form.notifier.notify();
+    this.form().notifier.notify();
   }
 
   private toggleControl(name: string, enabled: boolean): void {

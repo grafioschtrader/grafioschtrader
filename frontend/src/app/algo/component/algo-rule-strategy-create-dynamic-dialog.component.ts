@@ -205,7 +205,7 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
   }
 
   override submit(value: { [name: string]: any }): void {
-    this.form.cleanMaskAndTransferValuesToBusinessObject(this.algoTopCreate);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(this.algoTopCreate);
     this.algoTopCreate.assetclassPercentageList = [];
     for (let i = 1; i <= this.assetclassCounter; i++) {
       this.algoTopCreate.assetclassPercentageList.push(

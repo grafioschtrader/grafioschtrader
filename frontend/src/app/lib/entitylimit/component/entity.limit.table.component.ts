@@ -1,4 +1,4 @@
-import { Component, Injector, signal, ViewChild } from '@angular/core';
+import { Component, Injector, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
@@ -85,8 +85,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
   /** The row the edit dialog works on, null when a new one is created. */
   callParam: EntityLimit;
 
-  @ViewChild(ConfigurableTableComponent)
-  private configurableTable: ConfigurableTableComponent;
+  private readonly configurableTable = viewChild(ConfigurableTableComponent);
 
   /** Key ids whose default row is mandatory, so the delete action can be withheld for exactly those rows. */
   private readonly mandatoryKeyIds = signal(new Set<string>());
@@ -247,7 +246,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
   override toggleFilterRow(): void {
     super.toggleFilterRow();
     if (!this.showFilterRow) {
-      this.configurableTable?.clearFilters();
+      this.configurableTable()?.clearFilters();
     }
   }
 

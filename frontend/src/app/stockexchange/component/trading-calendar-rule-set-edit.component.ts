@@ -1,4 +1,4 @@
-import { ViewChild, Component, effect, Input, OnInit, signal } from '@angular/core';
+import { Component, effect, Input, OnInit, signal, viewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -94,7 +94,7 @@ export class TradingCalendarRuleSetEditComponent
   extends SimpleEntityEditBase<TradingCalendarRuleSet>
   implements OnInit
 {
-  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
+  readonly yamlEditor = viewChild(YamlEditorComponent);
   @Input() callParam: TradingCalendarRuleSet;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
@@ -189,8 +189,8 @@ export class TradingCalendarRuleSetEditComponent
 
   /** Options and YAML validation can finish in either order; neither may enable submit before the other. */
   updateSubmitState(): void {
-    this.configObject.submit.disabled =
-      !this.optionsLoaded || !this.yamlEditor?.syntaxValid || this.yamlEditor.validating;
+    const yamlEditor = this.yamlEditor();
+    this.configObject.submit.disabled = !this.optionsLoaded || !yamlEditor?.syntaxValid || yamlEditor.validating;
   }
 
   /**
@@ -198,7 +198,7 @@ export class TradingCalendarRuleSetEditComponent
    * save as well, but reporting them here lists every problem at once instead of the first one as a toast.
    */
   override async submit(value: { [name: string]: any }): Promise<void> {
-    if (await this.yamlEditor.validateForSubmit()) {
+    if (await this.yamlEditor().validateForSubmit()) {
       if (!this.destroyRef.destroyed && this.optionsLoaded) super.submit(value);
     } else this.updateSubmitState();
   }

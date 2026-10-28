@@ -1,4 +1,4 @@
-import { afterNextRender, Component, DestroyRef, inject, Injector, OnInit, ViewChild } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, inject, Injector, OnInit, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBase } from '../../edit/form.base';
 import { AppHelper } from '../../helper/app.helper';
@@ -33,7 +33,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   imports: [...DYNAMIC_FORM_IMPORTS]
 })
 export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   private readonly NEW_LINE = '\n';
   private readonly USER_TO_ANY_USER_PARAM = -1;
@@ -89,7 +89,7 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
 
   submit(value: { [name: string]: any }): void {
     const mailSendRecv = new MailSendRecv();
-    this.form.cleanMaskAndTransferValuesToBusinessObject(mailSendRecv, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(mailSendRecv, true);
     mailSendRecv.replyToRolePrivate = value.replyToRolePrivate
       ? ReplyToRolePrivateType.REPLY_IS_PRIVATE
       : ReplyToRolePrivateType.REPLY_NORMAL;

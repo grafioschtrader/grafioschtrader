@@ -7,7 +7,7 @@ import {
   OnDestroy,
   OnInit,
   signal,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -70,7 +70,7 @@ export class LastSessionsPerformanceWidgetComponent
 {
   @Input() result: DashboardResult;
 
-  @ViewChild('form') form: DynamicFormComponent;
+  readonly form = viewChild<DynamicFormComponent>('form');
 
   readonly performance = signal<LastSessionsPerformance>(undefined);
   /** Newest session first: a card is read from the top and the last session is what the reader came for. */

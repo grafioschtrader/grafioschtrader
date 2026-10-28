@@ -1,5 +1,5 @@
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { afterNextRender, DestroyRef, Directive, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, inject, Injector, Input, OnInit, viewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
@@ -36,7 +36,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   private static readonly NAME_REGEX = 'nameRegex';
 
   // Access child components
-  @ViewChild(DynamicFormComponent) dynamicFormComponent: DynamicFormComponent;
+  readonly dynamicFormComponent = viewChild(DynamicFormComponent);
   @Input() supplementCriteria: SupplementCriteria;
 
   // Groups are manly for the handling of inputs visibility
@@ -128,7 +128,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
 
   submit(value: { [name: string]: any }): void {
     const securitycurrencySearch: SecuritycurrencySearch = new SecuritycurrencySearch();
-    this.dynamicFormComponent.cleanMaskAndTransferValuesToBusinessObject(securitycurrencySearch);
+    this.dynamicFormComponent().cleanMaskAndTransferValuesToBusinessObject(securitycurrencySearch);
     this.childLoadData(securitycurrencySearch);
     this.configObject.submit.disabled = false;
   }
@@ -140,7 +140,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   }
 
   protected initialize(): void {
-    this.dynamicFormComponent.form.setValidators(atLeastOneFieldValidator);
+    this.dynamicFormComponent().form.setValidators(atLeastOneFieldValidator);
     const denyAssetClass = [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN];
     if (this.supplementCriteria && this.supplementCriteria.onlySecurity) {
       denyAssetClass.push(AssetclassType.CURRENCY_PAIR);
@@ -172,7 +172,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
             dfcss.stockexchanges,
             true
           );
-        this.dynamicFormComponent.setDefaultValuesAndEnableSubmit();
+        this.dynamicFormComponent().setDefaultValuesAndEnableSubmit();
         this.valueChangedOnForm();
         this.configObject.isin.elementRef.nativeElement.focus();
       });
@@ -184,17 +184,17 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
 
   private valueChangedOnForm(): void {
     this.formValueSubscription?.unsubscribe();
-    this.formValueSubscription = this.dynamicFormComponent.form.valueChanges.subscribe((security: Security) => {
+    this.formValueSubscription = this.dynamicFormComponent().form.valueChanges.subscribe((security: Security) => {
       if (!this.monitor) {
         this.monitor = true;
-        this.dynamicFormComponent.controls
-          .filter((fieldConfig) => fieldConfig.userDefinedValue === this.secondGroup)
+        this.dynamicFormComponent()
+          .controls.filter((fieldConfig) => fieldConfig.userDefinedValue === this.secondGroup)
           .forEach((fieldConfig) => AppHelper.invisibleAndHide(fieldConfig, security.isin && security.isin !== ''));
 
         if (!security.isin || security.isin === '') {
           const secondGroupIsEmpty = this.isSecondGroupEmpty();
-          this.dynamicFormComponent.controls
-            .filter((fieldConfig) => fieldConfig.userDefinedValue === this.firstGroup)
+          this.dynamicFormComponent()
+            .controls.filter((fieldConfig) => fieldConfig.userDefinedValue === this.firstGroup)
             .forEach((fieldConfig) => AppHelper.invisibleAndHide(fieldConfig, !secondGroupIsEmpty));
           AppHelper.invisibleAndHide(
             this.configObject.name,
@@ -219,8 +219,8 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   }
 
   private isSecondGroupEmpty(): boolean {
-    const foundFieldConfig = this.dynamicFormComponent.controls
-      .filter(
+    const foundFieldConfig = this.dynamicFormComponent()
+      .controls.filter(
         (fieldConfig) =>
           fieldConfig.userDefinedValue === this.secondGroup &&
           fieldConfig.field !== SecuritycurrencySearchBase.NAME_REGEX

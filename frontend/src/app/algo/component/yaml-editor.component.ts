@@ -6,9 +6,9 @@ import {
   OnDestroy,
   OnChanges,
   SimpleChanges,
-  ViewChild,
   signal,
-  output
+  output,
+  viewChild
 } from '@angular/core';
 import * as yaml from 'js-yaml';
 import { HttpClient } from '@angular/common/http';
@@ -61,8 +61,7 @@ export interface YamlDiagnostic {
   `
 })
 export class YamlEditorComponent extends BaseService implements AfterViewInit, OnDestroy, OnChanges {
-  @ViewChild('editorContainer', { static: true })
-  editorContainer: ElementRef<HTMLDivElement>;
+  readonly editorContainer = viewChild<ElementRef<HTMLDivElement>>('editorContainer');
 
   constructor(private http: HttpClient = null) {
     super();
@@ -247,7 +246,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
   }
 
   private createEditor(monaco: any): void {
-    this.editor = monaco.editor.create(this.editorContainer.nativeElement, {
+    this.editor = monaco.editor.create(this.editorContainer().nativeElement, {
       value: this._value,
       language: 'yaml',
       theme: 'vs',

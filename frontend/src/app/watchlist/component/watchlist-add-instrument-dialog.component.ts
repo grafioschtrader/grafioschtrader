@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, output } from '@angular/core';
+import { Component, Input, output, viewChild } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -55,8 +55,7 @@ export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearc
   @Input() tenantLimits: TenantLimit[];
 
   /** Reference to the child table component that displays search results. */
-  @ViewChild(WatchlistAddInstrumentTableComponent)
-  waitc: WatchlistAddInstrumentTableComponent;
+  readonly waitc = viewChild(WatchlistAddInstrumentTableComponent);
 
   /** Event emitted when the dialog is closed, providing the result of the operation. */
   readonly closeDialog = output<ProcessedActionData>();
@@ -88,7 +87,7 @@ export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearc
 
   /** Clears the search results list in the child table component. */
   childClearList(): void {
-    this.waitc.clearList();
+    this.waitc().clearList();
   }
 
   /**
@@ -97,6 +96,6 @@ export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearc
    * @param {SecuritycurrencySearch} securitycurrencySearch - Search criteria for securities and currencies
    */
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
-    this.waitc.loadData(this.idWatchlist, securitycurrencySearch);
+    this.waitc().loadData(this.idWatchlist, securitycurrencySearch);
   }
 }

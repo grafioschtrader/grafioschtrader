@@ -5,7 +5,7 @@ import { ProposeTransientTransfer } from '../entities/propose.transient.transfer
 import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
 import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { TranslateService } from '@ngx-translate/core';
-import { ChangeDetectorRef, DestroyRef, Directive, inject, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, DestroyRef, Directive, inject, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MonoTypeOperatorFunction, Subscription } from 'rxjs';
 import { untilSessionEnds } from './dialog.session';
@@ -35,7 +35,7 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
   /**
    * Reference to the dynamic form component for accessing form controls and validation.
    */
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   /** Lifetime of the component, for subscriptions created outside an injection context */
   protected readonly destroyRef = inject(DestroyRef);
@@ -137,7 +137,7 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
    * @returns {T} The updated target entity with form data applied
    */
   public copyFormToPrivateBusinessObject(targetEntity: T, existingEntity: T): T {
-    return EditHelper.copyFormToPrivateBusinessObject(targetEntity, existingEntity, this.form);
+    return EditHelper.copyFormToPrivateBusinessObject(targetEntity, existingEntity, this.form());
   }
 
   /**
@@ -157,7 +157,7 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
       targetEntity,
       existingEntity,
       proposeChangeEntityWithEntity,
-      this.form,
+      this.form(),
       this
     );
   }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, signal, viewChild } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import {
   AcceptRequestTypes,
@@ -93,7 +93,7 @@ import { BaseSettings } from '../../base.settings';
 })
 export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements OnInit {
   @Input() callParam: GTNetCallParam;
-  @ViewChild('entityTable') entityTable: EditableTableComponent<GTNetEntity>;
+  readonly entityTable = viewChild<EditableTableComponent<GTNetEntity>>('entityTable');
 
   private readonly BASE_SETTING = 'BASE_SETTING';
 
@@ -451,7 +451,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       gtNet.serverOnline = GTNetServerOnlineStatusTypes[value['serverOnline']] as any;
 
       // Get entity configurations from the table
-      const entities = this.entityTable?.getData() || this.gtNetEntities();
+      const entities = this.entityTable()?.getData() || this.gtNetEntities();
       gtNet.gtNetEntities = entities.map((entity) => this.convertEntityForSave(entity));
     }
 

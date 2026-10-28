@@ -11,7 +11,7 @@ import {
   OnDestroy,
   signal,
   untracked,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
 import {
@@ -126,8 +126,7 @@ export class CorrelationComponent
   private static readonly MAIN_FIELD = 'idCorrelationSet';
 
   /** Reference to the correlation table child component */
-  @ViewChild(CorrelationTableComponent, { static: true })
-  correlationTableComponent: CorrelationTableComponent;
+  readonly correlationTableComponent = viewChild(CorrelationTableComponent);
 
   /** Formatted time period string showing date range of overlapping price data */
   readonly timePeriod = computed(() => {
@@ -230,7 +229,7 @@ export class CorrelationComponent
       const result = this.correlationResult();
       if (result) {
         untracked(() =>
-          this.correlationTableComponent.parentSelectionChanged(this.calculationTarget().correlationSet, result)
+          this.correlationTableComponent().parentSelectionChanged(this.calculationTarget().correlationSet, result)
         );
       }
     });
@@ -310,7 +309,7 @@ export class CorrelationComponent
    */
   saveAndCalculate(event): void {
     const edited = Object.assign(new CorrelationSet(), this.selectedEntity);
-    this.form.cleanMaskAndTransferValuesToBusinessObject(edited);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(edited);
     this.correlationSetService
       .update(edited)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -363,7 +362,7 @@ export class CorrelationComponent
    */
   setChildDataAndCalculateWhenPossible(selectedEntity: CorrelationSet, calculate: boolean): void {
     this.childEntityList = selectedEntity?.securitycurrencyList ?? [];
-    this.correlationTableComponent.parentSelectionChanged(selectedEntity, null);
+    this.correlationTableComponent().parentSelectionChanged(selectedEntity, null);
     this.calculationTarget.set(
       selectedEntity?.securitycurrencyList.length >= 2 && calculate ? { correlationSet: selectedEntity } : undefined
     );
@@ -405,7 +404,7 @@ export class CorrelationComponent
    */
   override prepareEditMenu(): MenuItem[] {
     const menuItems = this.getBaseEditMenu('CORRELATION_SET');
-    menuItems.push(...this.correlationTableComponent.prepareEditMenu());
+    menuItems.push(...this.correlationTableComponent().prepareEditMenu());
     return menuItems;
   }
 
@@ -414,7 +413,7 @@ export class CorrelationComponent
    * @returns Array of translated menu items for view operations
    */
   protected override prepareShowMenu(): MenuItem[] {
-    const menuItems = this.correlationTableComponent.prepareShowMenu();
+    const menuItems = this.correlationTableComponent().prepareShowMenu();
     return menuItems;
   }
 

@@ -106,7 +106,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     }
     UDFMetadataHelper.removeUDFPropertiesFromObject(currencypair);
     AuditHelper.copyProposeChangeEntityToEntityAfterEdit(this, currencypair, this.proposeChangeEntityWithEntity);
-    this.dynamicForm.cleanMaskAndTransferValuesToBusinessObject(currencypair);
+    this.dynamicForm().cleanMaskAndTransferValuesToBusinessObject(currencypair);
 
     this.currencypairService
       .update(currencypair)

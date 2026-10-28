@@ -1,5 +1,5 @@
 import { SecuritycurrencySearchBase } from '../../securitycurrency/component/securitycurrency.search.base';
-import { Component, Input, ViewChild, output } from '@angular/core';
+import { Component, Input, output, viewChild } from '@angular/core';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MultipleRequestToOneService } from '../../shared/service/multiple.request.to.one.service';
@@ -45,8 +45,7 @@ export class AlgoAssetclassAddInstrumentDialogComponent extends Securitycurrency
   /** The custom category the selected instruments are added to. */
   @Input() idAlgoAssetclassSecurity: number;
 
-  @ViewChild(AlgoAssetclassAddInstrumentTableComponent)
-  aaaitc: AlgoAssetclassAddInstrumentTableComponent;
+  readonly aaaitc = viewChild(AlgoAssetclassAddInstrumentTableComponent);
 
   /** Emitted when the dialog closes; the hierarchy view then reloads to show the added instruments. */
   readonly closeDialog = output<ProcessedActionData>();
@@ -76,10 +75,10 @@ export class AlgoAssetclassAddInstrumentDialogComponent extends Securitycurrency
   }
 
   childClearList(): void {
-    this.aaaitc.clearList();
+    this.aaaitc().clearList();
   }
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
-    this.aaaitc.loadData(this.idAlgoAssetclassSecurity, securitycurrencySearch);
+    this.aaaitc().loadData(this.idAlgoAssetclassSecurity, securitycurrencySearch);
   }
 }

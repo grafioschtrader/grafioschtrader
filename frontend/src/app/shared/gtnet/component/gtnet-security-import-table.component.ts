@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, OnInit, signal, ViewChild, output } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal, output, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
@@ -118,8 +118,7 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
   ]
 })
 export class GTNetSecurityImportTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
-  @ViewChild('editableTable')
-  editableTable: EditableTableComponent<GTNetSecurityImpPos>;
+  readonly editableTable = viewChild<EditableTableComponent<GTNetSecurityImpPos>>('editableTable');
 
   @Input() selectedHead: GTNetSecurityImpHead;
   readonly positionChanged = output<void>();
@@ -339,8 +338,9 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * Handles adding a new row via the editable table.
    */
   handleAddNewRow(): void {
-    if (this.editableTable) {
-      this.editableTable.addNewRow();
+    const editableTable = this.editableTable();
+    if (editableTable) {
+      editableTable.addNewRow();
     }
   }
 
@@ -408,8 +408,9 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       error: () => {
         // On error, reopen the row for editing so user can correct the data
         setTimeout(() => {
-          if (this.editableTable) {
-            this.editableTable.startEditingRow(entity);
+          const editableTable = this.editableTable();
+          if (editableTable) {
+            editableTable.startEditingRow(entity);
           }
         }, 100);
       }

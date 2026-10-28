@@ -1,4 +1,4 @@
-import { afterNextRender, Component, OnInit, ViewChild, signal } from '@angular/core';
+import { afterNextRender, Component, OnInit, signal, viewChild } from '@angular/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateService } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -52,8 +52,7 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
   static readonly DIALOG_WIDTH = 850;
   callParam: CallParam;
 
-  @ViewChild('tradingPeriodTable')
-  tradingPeriodTable: TradingPeriodTableComponent;
+  readonly tradingPeriodTable = viewChild<TradingPeriodTableComponent>('tradingPeriodTable');
 
   readonly tradingPeriods = signal<SecaccountTradingPeriod[]>([]);
   readonly transactionSummaries = signal<TradingPeriodTransactionSummary[]>([]);
@@ -129,9 +128,9 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
 
   /** Loads options and transaction constraints independently after the dynamic form has rendered. */
   private initializeForm(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     if (this.callParam.thisObject != null) {
-      this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+      this.form().transferBusinessObjectToForm(this.callParam.thisObject);
       const secaccount = <Securityaccount>this.callParam.thisObject;
       this.tradingPeriods.set([...(secaccount.tradingPeriods || [])]);
       (<SecurityaccountService>this.serviceEntityUpdate)
@@ -157,7 +156,7 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
       <Securityaccount>this.callParam.thisObject
     );
     securityaccount.portfolio = <Portfolio>this.callParam.parentObject;
-    securityaccount.tradingPeriods = this.tradingPeriodTable?.getData() || this.tradingPeriods();
+    securityaccount.tradingPeriods = this.tradingPeriodTable()?.getData() || this.tradingPeriods();
     return securityaccount;
   }
 

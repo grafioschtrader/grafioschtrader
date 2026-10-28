@@ -1,4 +1,4 @@
-import { computed, Directive, Injector, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { computed, Directive, Injector, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem, SortEvent } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -56,7 +56,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
   /** Entity for dialog calls (required by base class) */
   callParam: T;
 
-  @ViewChild('cmDiv') contextMenuDiv: any;
+  readonly contextMenuDiv = viewChild<any>('cmDiv');
 
   protected constructor(
     entityName: string,
@@ -278,7 +278,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    */
   toggleColumn(field: string, checkboxEvent: any): void {
     const state = checkboxEvent.checked;
-    const table = this.getConfigurableTable()?.table;
+    const table = this.getConfigurableTable()?.table();
     if (!table) {
       return;
     }

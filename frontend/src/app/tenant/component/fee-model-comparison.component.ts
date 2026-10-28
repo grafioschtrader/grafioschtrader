@@ -8,7 +8,7 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppSettings } from '../../shared/app.settings';
@@ -100,9 +100,8 @@ import { TenantService } from '../service/tenant.service';
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, FeeModelComparisonTableComponent, FxObservationTableComponent]
 })
 export class FeeModelComparisonComponent extends ShowRecordConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
-  @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
-  @ViewChild(FeeModelComparisonTableComponent)
-  comparisonTable: FeeModelComparisonTableComponent;
+  readonly form = viewChild(DynamicFormComponent);
+  readonly comparisonTable = viewChild(FeeModelComparisonTableComponent);
 
   formConfig: FormConfig;
   config: FieldFormGroup[] = [];
@@ -184,7 +183,7 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
 
   onComponentClick(event: any): void {
     this.activePanelService.activatePanel(this, {
-      showMenu: this.comparisonTable?.getMenuShowOptions()
+      showMenu: this.comparisonTable()?.getMenuShowOptions()
     });
   }
 

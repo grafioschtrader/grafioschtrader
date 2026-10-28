@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
@@ -87,8 +87,7 @@ import { AppHelpIds } from '../../shared/help/help.ids';
 export class RiskFreeRateMappingTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
   static readonly I18N_RECORD = 'RISK_FREE_RATE_MAPPING';
 
-  @ViewChild('entityTable')
-  entityTable: EditableTableComponent<RiskFreeRateMapping>;
+  readonly entityTable = viewChild<EditableTableComponent<RiskFreeRateMapping>>('entityTable');
 
   /** The edit menu is intentionally empty, see {@link resetMenu} */
   readonly contextMenuItems: MenuItem[] = [];

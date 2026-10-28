@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 import { Helper } from '../../../helper/helper';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
@@ -49,7 +49,7 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
 
   public language;
 
-  @ViewChild(DatePicker) private datePicker: DatePicker;
+  private readonly datePicker = viewChild(DatePicker);
 
   private valueChangedSub: Subscription;
 
@@ -82,15 +82,16 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
    */
   onCalendarBlur(event: Event): void {
     const control = this.group().controls[this.config().field];
-    if (!control || !this.datePicker) {
+    const datePicker = this.datePicker();
+    if (!control || !datePicker) {
       return;
     }
     const enteredText = (event.target as HTMLInputElement)?.value?.trim();
     let errorName: string = null;
     if (enteredText) {
       try {
-        const parsedDate = this.datePicker.parseValueFromString(enteredText);
-        errorName = parsedDate && !this.datePicker.isValidSelection(parsedDate) ? 'calendarDateNotSelectable' : null;
+        const parsedDate = datePicker.parseValueFromString(enteredText);
+        errorName = parsedDate && !datePicker.isValidSelection(parsedDate) ? 'calendarDateNotSelectable' : null;
       } catch (ignored) {
         errorName = 'calendarDateInvalid';
       }

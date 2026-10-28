@@ -1,4 +1,4 @@
-import { Component, Injector, signal, ViewChild } from '@angular/core';
+import { Component, Injector, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormsModule } from '@angular/forms';
@@ -92,7 +92,7 @@ import { Helper } from '../../lib/helper/helper';
             <input
               pInputText
               type="text"
-              (input)="configurableTable.table.filterGlobal($any($event.target).value, 'contains')"
+              (input)="configurableTable().table().filterGlobal($any($event.target).value, 'contains')"
               [placeholder]="'SEARCH' | translate" />
           </span>
           <p-button [label]="'SAVE' | translate" (onClick)="saveChanges()" [disabled]="!hasUnsavedChanges()">
@@ -188,8 +188,7 @@ import { Helper } from '../../lib/helper/helper';
   providers: [DialogService]
 })
 export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseComponent<Currencypair> {
-  @ViewChild(ConfigurableTableComponent)
-  configurableTable: ConfigurableTableComponent;
+  readonly configurableTable = viewChild(ConfigurableTableComponent);
 
   /** Visibility flag for currency pair edit dialog */
   readonly visibleEditCurrencypairDialog = signal(false);
@@ -324,7 +323,7 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
    * Returns the ConfigurableTableComponent reference for the base class.
    */
   override getConfigurableTable(): ConfigurableTableComponent {
-    return this.configurableTable;
+    return this.configurableTable();
   }
 
   /** Only instruments with supplier details have something to expand */

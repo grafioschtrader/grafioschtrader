@@ -9,7 +9,7 @@ import {
   inject,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -86,8 +86,8 @@ export class TenantHoldingsChartComponent
   extends FormBase
   implements OnInit, AfterViewInit, OnDestroy, IGlobalMenuAttach
 {
-  @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
-  @ViewChild('chart', { static: true }) chartElement: ElementRef;
+  readonly form = viewChild(DynamicFormComponent);
+  readonly chartElement = viewChild<ElementRef>('chart');
 
   /** Translation key of the hint shown instead of a chart, null when a chart is shown. */
   readonly noDataTextKey = signal<string>(null);
@@ -180,7 +180,7 @@ export class TenantHoldingsChartComponent
   ngOnDestroy(): void {
     this.destroyed = true;
     this.subscriptions.forEach((s) => s.unsubscribe());
-    this.plotly?.purge(this.chartElement.nativeElement);
+    this.plotly?.purge(this.chartElement().nativeElement);
     this.activePanelService.destroyPanel(this);
   }
 
@@ -208,7 +208,7 @@ export class TenantHoldingsChartComponent
     }
     const figure = this.buildFigure(this.configObject.chartType.formControl.value);
     const version = ++this.drawVersion;
-    this.plotly?.purge(this.chartElement.nativeElement);
+    this.plotly?.purge(this.chartElement().nativeElement);
     if (figure) {
       // Wait until the chart element is no longer hidden, otherwise Plotly measures a zero size.
       afterNextRender(
@@ -217,7 +217,7 @@ export class TenantHoldingsChartComponent
             (plotly) => {
               if (!this.destroyed && version === this.drawVersion) {
                 this.plotly = plotly;
-                plotly.newPlot(this.chartElement.nativeElement, figure.data, figure.layout, this.plotlyConfig);
+                plotly.newPlot(this.chartElement().nativeElement, figure.data, figure.layout, this.plotlyConfig);
               }
             },
             () => {}
@@ -253,8 +253,9 @@ export class TenantHoldingsChartComponent
   }
 
   private resizeChart(): void {
-    if (!this.noDataTextKey() && this.chartElement.nativeElement.data) {
-      this.plotly?.Plots.resize(this.chartElement.nativeElement);
+    const chartElement = this.chartElement();
+    if (!this.noDataTextKey() && chartElement.nativeElement.data) {
+      this.plotly?.Plots.resize(chartElement.nativeElement);
     }
   }
 }

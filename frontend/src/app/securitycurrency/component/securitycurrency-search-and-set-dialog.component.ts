@@ -1,4 +1,4 @@
-import { afterNextRender, Component, ViewChild } from '@angular/core';
+import { afterNextRender, Component, viewChild } from '@angular/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SecuritycurrencySearchBase } from './securitycurrency.search.base';
@@ -38,8 +38,7 @@ export class SecuritycurrencySearchAndSetDialogComponent
   implements CallBackSetSecurity
 {
   // Access child components
-  @ViewChild(SecuritycurrencySearchAndSetTableComponent)
-  sissdc: SecuritycurrencySearchAndSetTableComponent;
+  readonly sissdc = viewChild(SecuritycurrencySearchAndSetTableComponent);
 
   constructor(
     gps: GlobalparameterService,
@@ -59,11 +58,11 @@ export class SecuritycurrencySearchAndSetDialogComponent
   }
 
   childClearList(): void {
-    this.sissdc.clearList();
+    this.sissdc().clearList();
   }
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
-    this.sissdc.loadData(securitycurrencySearch);
+    this.sissdc().loadData(securitycurrencySearch);
   }
 
   protected override initialize(): void {

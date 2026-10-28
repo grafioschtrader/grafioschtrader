@@ -1,4 +1,4 @@
-import { afterNextRender, ViewChild, Component, inject, Injector, Input, OnInit, signal } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, Input, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Validators } from '@angular/forms';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -58,7 +58,7 @@ import { combineLatest } from 'rxjs';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule, FieldsetModule, YamlEditorComponent]
 })
 export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<GenericConnectorDef> implements OnInit {
-  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
+  readonly yamlEditor = viewChild(YamlEditorComponent);
   @Input() callParam: GenericConnectorDef;
 
   readonly tokenConfigYamlValue = signal('');
@@ -88,8 +88,8 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   }
 
   override async submit(value: { [name: string]: any }): Promise<void> {
-    if (await this.yamlEditor.validateForSubmit()) super.submit(value);
-    else this.configObject.submit.disabled = !this.yamlEditor.syntaxValid;
+    if (await this.yamlEditor().validateForSubmit()) super.submit(value);
+    else this.configObject.submit.disabled = !this.yamlEditor().syntaxValid;
   }
 
   ngOnInit(): void {
@@ -186,7 +186,8 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
         this.configObject.geoInclusions.invisible = false;
         this.configObject.geoExclusions.invisible = false;
         this.optionsLoading.set(false);
-        this.configObject.submit.disabled = !this.yamlEditor.syntaxValid || this.yamlEditor.validating;
+        const yamlEditor = this.yamlEditor();
+        this.configObject.submit.disabled = !yamlEditor.syntaxValid || yamlEditor.validating;
       });
   }
 

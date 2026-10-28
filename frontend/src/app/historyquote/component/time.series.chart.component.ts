@@ -1,4 +1,13 @@
-import { ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  AfterViewInit,
+  signal,
+  viewChild
+} from '@angular/core';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   CrossRateRequest,
@@ -173,9 +182,9 @@ interface Data {
   ],
   imports: [FormsModule, DatePicker, Select, ContextMenu, TranslatePipe, IndicatorEditComponent]
 })
-export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
-  @ViewChild('container', { static: true }) container: ElementRef;
-  @ViewChild('chart', { static: true }) chartElement: ElementRef;
+export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlobalMenuAttach {
+  readonly container = viewChild<ElementRef>('container');
+  readonly chartElement = viewChild<ElementRef>('chart');
 
   startDate = new Date(
     sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
@@ -285,10 +294,10 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   // Chart methods
   ///////////////////////////////////////////////////////
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.activePanelService.registerPanel(this);
     // Ready the drawing support before the route parameters can trigger the first plot.
-    this.shapeController.setChartElement(this.chartElement.nativeElement);
+    this.shapeController.setChartElement(this.chartElement().nativeElement);
     this.shapeController.init();
     this.activatedRoute.paramMap.subscribe((paramMap) => {
       const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
@@ -543,7 +552,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private prepareLoadedDataAndPlot(userUserInputDate: boolean) {
-    const element = this.chartElement.nativeElement;
+    const element = this.chartElement().nativeElement;
     // Drawings belong to a single instrument, a comparison of several disables them.
     this.shapeController.setSecuritycurrency(
       this.loadedData.length === 1 ? this.loadedData[0].idSecuritycurrency : null
@@ -1265,7 +1274,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       iDef.menuItem.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
       iDef.shown = false;
       const traceIndices: number[] = iDef.taTraceIndicatorDataList.map((taT) => taT.traceIndex).reverse();
-      this.plotly?.deleteTraces(this.chartElement.nativeElement, traceIndices);
+      this.plotly?.deleteTraces(this.chartElement().nativeElement, traceIndices);
       iDef.taTraceIndicatorDataList.forEach((taT) => (taT.traceIndex = undefined));
       this.adjustTATraceIndices(traceIndices);
     }
@@ -1317,8 +1326,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           );
       }
 
-      this.plotly?.addTraces(this.chartElement.nativeElement, trace);
-      taTraceIndicatorData.traceIndex = this.chartElement.nativeElement.data.length - 1;
+      const chartElement = this.chartElement();
+      this.plotly?.addTraces(chartElement.nativeElement, trace);
+      taTraceIndicatorData.traceIndex = chartElement.nativeElement.data.length - 1;
     });
   }
 
@@ -1435,7 +1445,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       ...this.shapeController.getModeBarButtons()
     ];
     config.displaylogo = false;
-    this.plotly.purge(this.chartElement.nativeElement);
+    this.plotly.purge(this.chartElement().nativeElement);
     this.plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
     element.on('plotly_afterplot', this.attachTooltip.bind(this));
     element.on('plotly_relayout', () => this.shapeController.onRelayout());
@@ -1462,7 +1472,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private attachTooltip(): void {
-    PlotlyHelper.attachTooltip(this.legendTooltipMap, this.chartElement);
+    PlotlyHelper.attachTooltip(this.legendTooltipMap, this.chartElement());
   }
 
   private getLayout(holdingLayout, shapes: any[] = []): any {

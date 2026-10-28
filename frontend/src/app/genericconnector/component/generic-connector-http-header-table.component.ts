@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, output } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, output, viewChild } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -59,8 +59,7 @@ import { GenericConnectorHttpHeader } from '../../entities/generic.connector.htt
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBase implements OnChanges {
-  @ViewChild('entityTable')
-  entityTable: EditableTableComponent<GenericConnectorHttpHeader>;
+  readonly entityTable = viewChild<EditableTableComponent<GenericConnectorHttpHeader>>('entityTable');
 
   @Input() httpHeaders: GenericConnectorHttpHeader[] = [];
   @Input() editable: boolean = true;

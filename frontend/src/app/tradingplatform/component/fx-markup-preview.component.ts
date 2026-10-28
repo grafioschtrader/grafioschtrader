@@ -7,7 +7,7 @@ import {
   input,
   OnInit,
   signal,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -61,7 +61,7 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
   readonly yaml = input('');
   readonly idSecurityaccount = input<number>();
   readonly idTradingPlatformPlan = input<number>();
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
   config: FieldFormGroup[];
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig = { ...this.baseLocale, labelColumns: 4, nonModal: true };
@@ -111,7 +111,7 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
   }
 
   private loadOptions(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     forkJoin([this.gpsGT.getCurrencies(), this.plans.getFxKinds()])
       .pipe(
         switchMap(([currencies, kinds]) =>
@@ -132,8 +132,9 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
     this.previewSubscription?.unsubscribe();
     this.result.set(null);
     this.requestFailed.set(false);
-    if (!this.form.form.valid) {
-      this.form.form.markAllAsTouched();
+    const form = this.form();
+    if (!form.form.valid) {
+      form.form.markAllAsTouched();
       return;
     }
     const value = (name: string) => this.configObject[name].formControl.value;

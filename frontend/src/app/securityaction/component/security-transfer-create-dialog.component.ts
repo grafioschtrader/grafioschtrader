@@ -103,7 +103,7 @@ export class SecurityTransferCreateDialogComponent
           (p) => new ValueKeyHtmlSelectOptions(p.idPortfolio, p.name)
         );
         this.setupPortfolioChangeListener();
-        this.form.setDefaultValuesAndEnableSubmit();
+        this.form().setDefaultValuesAndEnableSubmit();
         if (this.configObject.securityName) {
           this.configObject.securityName.formControl.setValue(data.securityName || '');
         }

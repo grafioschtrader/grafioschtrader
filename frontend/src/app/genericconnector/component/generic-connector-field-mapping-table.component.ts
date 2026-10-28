@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, output } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, output, viewChild } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -73,8 +73,7 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
     'timestamp'
   ];
 
-  @ViewChild('entityTable')
-  entityTable: EditableTableComponent<GenericConnectorFieldMapping>;
+  readonly entityTable = viewChild<EditableTableComponent<GenericConnectorFieldMapping>>('entityTable');
 
   @Input() fieldMappings: GenericConnectorFieldMapping[] = [];
   @Input() feedSupport: string;

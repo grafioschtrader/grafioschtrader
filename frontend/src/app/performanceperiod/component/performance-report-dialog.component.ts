@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, signal, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, signal, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -82,7 +82,7 @@ export interface PerformanceReportDialogData {
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, ButtonModule, ProgressBarModule]
 })
 export class PerformanceReportDialogComponent extends FormBase implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
   data: PerformanceReportDialogData;
   reportDate: string;
   dateFrom: string;
@@ -203,7 +203,7 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
         if (preset !== 'CUSTOM') {
           const sections = this.data.options.presetSections[preset] || [];
           this.configObject.sections.formControl.setValue(sections, { emitEvent: false });
-          this.form.notifier.notify();
+          this.form().notifier.notify();
           this.configObject.annualYears.invisible = !sections.includes('ANNUAL_RETURNS');
           this.configObject.detailColumns.invisible = !sections.includes('HOLDINGS');
           this.selectedSections.set([...sections]);
@@ -213,7 +213,7 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
     this.subscriptions.add(
       this.configObject.sections.formControl.valueChanges.subscribe((sections: string[]) => {
         this.configObject.preset.formControl.setValue('CUSTOM', { emitEvent: false });
-        this.form.notifier.notify();
+        this.form().notifier.notify();
         this.configObject.annualYears.invisible = !sections?.includes('ANNUAL_RETURNS');
         this.configObject.detailColumns.invisible = !sections?.includes('HOLDINGS');
         this.selectedSections.set([...(sections ?? [])]);
@@ -226,7 +226,7 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
       return;
     }
     const request = { ...this.data.window } as PerformanceReportRequest;
-    this.form.cleanMaskAndTransferValuesToBusinessObject(request, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(request, true);
     request.idPortfolio = this.data.window.idPortfolio || null;
     this.downloading.set(true);
     this.subscriptions.add(

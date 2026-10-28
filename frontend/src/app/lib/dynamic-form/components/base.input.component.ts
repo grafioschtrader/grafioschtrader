@@ -1,5 +1,5 @@
 import { FieldFormFormGroupConfig } from '../models/field.form.form.group.config';
-import { AfterViewInit, Directive, ElementRef, OnInit, ViewChild, input } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, OnInit, input, viewChild } from '@angular/core';
 import { FieldConfig } from '../models/field.config';
 import { FormConfig } from '../models/form.config';
 import { UntypedFormGroup, Validators } from '@angular/forms';
@@ -12,7 +12,7 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
   DataType: typeof DataType = DataType;
 
   // @ViewChild('input', {read: ElementRef}) el: ElementRef;
-  @ViewChild('input') el: ElementRef;
+  readonly el = viewChild<ElementRef>('input');
 
   readonly config = input.required<FieldConfig>();
   readonly formConfig = input.required<FormConfig>();
@@ -30,7 +30,7 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
   }
 
   ngAfterViewInit(): void {
-    this.config().elementRef = this.el;
+    this.config().elementRef = this.el();
     this.config().baseInputComponent = this;
   }
 
@@ -47,7 +47,7 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
    * control a field happens to use.
    */
   focus(): void {
-    const target: any = this.el;
+    const target: any = this.el();
     if (target?.nativeElement?.focus) {
       target.nativeElement.focus();
     } else if (typeof target?.focus === 'function') {

@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, OnInit, ViewChild } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, viewChild } from '@angular/core';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -29,7 +29,7 @@ import { BaseSettings } from '../../lib/base.settings';
 })
 export class TaxYearCreateDialogComponent extends FormBase implements OnInit {
   private readonly injector = inject(Injector);
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   constructor(
     public translateService: TranslateService,
@@ -60,7 +60,7 @@ export class TaxYearCreateDialogComponent extends FormBase implements OnInit {
       yearOptions.push(new ValueKeyHtmlSelectOptions(y, String(y)));
     }
     this.configObject.taxYear.valueKeyHtmlOptions = yearOptions;
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
   }
 
   helpLink(): void {

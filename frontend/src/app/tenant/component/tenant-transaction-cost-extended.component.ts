@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Injector, Input, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
@@ -117,7 +117,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
   @Input() firstRowIndex: number;
 
   /** Reference to the Optimus table component for accessing table functionality like CSV export */
-  @ViewChild('dataTable', { static: true }) dataTable: Table;
+  readonly dataTable = viewChild<Table>('dataTable');
 
   /** Currently selected transaction cost position for context menu operations */
   private selectedTransactionCostPosition: TransactionCostPosition;
@@ -247,7 +247,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
   protected override getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
     const localContextMenu: MenuItem[] = [
       { separator: true },
-      { label: 'EXPORT_CSV', command: (e) => this.dataTable.exportCSV() }
+      { label: 'EXPORT_CSV', command: (e) => this.dataTable().exportCSV() }
     ];
     return super.getMenuItemsOnTransaction(transaction).concat(localContextMenu);
   }

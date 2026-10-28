@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../service/log-in.service';
@@ -75,7 +75,7 @@ import { PasswordEditComponent } from './password-edit.component';
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, CardModule, ApplicationInfoComponent, PasswordEditComponent]
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
   readonly applicationInfo = signal<ApplicationInfo>(undefined);
   readonly releaseNotes = signal<ReleaseNote[]>([]);
   queryParams: any;

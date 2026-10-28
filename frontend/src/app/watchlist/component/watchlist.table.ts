@@ -9,7 +9,7 @@ import {
   Directive,
   Injector,
   OnDestroy,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import moment from 'moment';
@@ -181,10 +181,10 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   readonly selectedSecuritycurrencyPosition = signal<SecuritycurrencyPosition<Security | Currencypair>>(undefined);
 
   /** Reference to the context menu component. */
-  @ViewChild('contextMenu') protected contextMenu: any;
+  protected readonly contextMenu = viewChild<any>('contextMenu');
 
   /** Reference to the table component, used to apply and to reset the stored filters. */
-  @ViewChild(ConfigurableTableComponent) protected configurableTable: ConfigurableTableComponent;
+  protected readonly configurableTable = viewChild(ConfigurableTableComponent);
 
   /**
    * Values of the selected row shown in the caption of the table, null when the watchlist type has no such line or it
@@ -310,7 +310,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * often as needed; it does nothing until the table exists.
    */
   protected applyStoredFilters(): void {
-    const table = this.configurableTable?.table;
+    const configurableTable = this.configurableTable();
+    const table = configurableTable?.table();
     if (!table || !this.idWatchlist) {
       return;
     }
@@ -333,7 +334,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       this.storedFiltersApplied = true;
     } else {
       this.storedFiltersApplied = false;
-      this.configurableTable.clearFilters();
+      configurableTable.clearFilters();
     }
   }
 
@@ -911,7 +912,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
 
   /** Hides the context menu if it exists. */
   hideContextMenu(): void {
-    this.contextMenu && this.contextMenu.hide();
+    const contextMenu = this.contextMenu();
+    contextMenu && contextMenu.hide();
   }
 
   /** Returns the help context ID for this component. */
@@ -935,7 +937,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    */
   onComponentClick(event): void {
     if (!event[this.consumedGT]) {
-      this.contextMenu && this.contextMenu.hide();
+      const contextMenu = this.contextMenu();
+      contextMenu && contextMenu.hide();
       this.resetMenu(this.getSSP(this.singleMultiSelection()));
     }
   }

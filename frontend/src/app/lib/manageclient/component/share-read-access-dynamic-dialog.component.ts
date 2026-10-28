@@ -84,8 +84,8 @@ export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent
       return;
     }
     const businessObject: any = {};
-    this.form.cleanMaskAndTransferValuesToBusinessObject(businessObject, true);
-    this.form.setDisableAll(true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(businessObject, true);
+    this.form().setDisableAll(true);
     this.manageClientService
       .shareReadAccess({
         email: businessObject.email,
@@ -97,7 +97,7 @@ export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent
           this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, businessObject));
         },
         error: () => {
-          this.form.setDisableAll(false);
+          this.form().setDisableAll(false);
           this.configObject.submit.disabled = false;
         }
       });

@@ -8,8 +8,8 @@ import {
   reflectComponentType,
   signal,
   Type,
-  ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
@@ -71,8 +71,7 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
   imports: [ConfigurableTableComponent, TranslateModule]
 })
 export class RequestForYouTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
-  @ViewChild('editDialogContainer', { read: ViewContainerRef })
-  editDialogContainer: ViewContainerRef;
+  readonly editDialogContainer = viewChild('editDialogContainer', { read: ViewContainerRef });
 
   /** Translated menu of the selected request, shown as context menu and in the menu bar */
   readonly contextMenuItems = signal<MenuItem[]>([]);
@@ -202,10 +201,11 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity,
     entityMapping: EntityMapping
   ): void {
-    if (this.editDialogContainer) {
-      this.editDialogContainer.clear();
+    const editDialogContainer = this.editDialogContainer();
+    if (editDialogContainer) {
+      editDialogContainer.clear();
 
-      const componentRef = this.editDialogContainer.createComponent(entityMapping.editComponentType as Type<any>);
+      const componentRef = editDialogContainer.createComponent(entityMapping.editComponentType as Type<any>);
       // setInput marks the created component and this view for check, whatever change detection strategy they use
       this.setComponentInputs(componentRef, entityMapping, proposeChangeEntityWithEntity);
       this.setComponentOutputs(componentRef.instance, proposeChangeEntityWithEntity);
@@ -281,8 +281,9 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     }
 
     // Clear the dynamically loaded component
-    if (this.editDialogContainer) {
-      this.editDialogContainer.clear();
+    const editDialogContainer = this.editDialogContainer();
+    if (editDialogContainer) {
+      editDialogContainer.clear();
     }
 
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {

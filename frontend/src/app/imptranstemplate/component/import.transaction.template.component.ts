@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
@@ -113,8 +113,7 @@ export class ImportTransactionTemplateComponent
   private static readonly MAIN_FIELD = 'idTransactionImportPlatform';
 
   // Access child components
-  @ViewChild(ImportTransactionTemplateTableComponent)
-  ittdc: ImportTransactionTemplateTableComponent;
+  readonly ittdc = viewChild(ImportTransactionTemplateTableComponent);
 
   private readonly injector = inject(Injector);
   private readSubscription?: Subscription;
@@ -205,7 +204,7 @@ export class ImportTransactionTemplateComponent
   }
 
   setChildData(selectedEntity: ImportTransactionPlatform): void {
-    this.ittdc.parentSelectionChanged(selectedEntity, this);
+    this.ittdc().parentSelectionChanged(selectedEntity, this);
   }
 
   prepareEditMenu(): MenuItem[] {
@@ -216,10 +215,11 @@ export class ImportTransactionTemplateComponent
     });
     menuItems.push({ separator: true });
     menuItems = menuItems.concat(this.getBaseEditMenu('IMPORT_TRANSACTION_PLATFORM'));
+    const ittdc = this.ittdc();
     menuItems.push({
       label: 'EXPORT_ALL_IMPORTTEMPLATES',
       command: () => this.exportAllTemplates(this.selectedEntity),
-      disabled: this.ittdc.isEmpty()
+      disabled: ittdc.isEmpty()
     });
     if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
       // Which platform carries the Grafioschtrader templates is instance wide, so only an administrator sets it.
@@ -234,10 +234,10 @@ export class ImportTransactionTemplateComponent
     menuItems.push({
       label: 'CHECK_TEMPLATE_FORM' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: () => this.testTemplateDialog(),
-      disabled: !this.selectedEntity || this.ittdc.isEmpty()
+      disabled: !this.selectedEntity || ittdc.isEmpty()
     });
 
-    menuItems.splice(menuItems.length - 2, 0, ...this.ittdc.prepareEditMenu());
+    menuItems.splice(menuItems.length - 2, 0, ...ittdc.prepareEditMenu());
 
     return menuItems;
   }

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnChanges, OnDestroy, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, OnDestroy, signal, viewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { DashboardConfig, DashboardResult } from '../../lib/dashboard/dashboard.types';
@@ -69,7 +69,7 @@ import { HoldingMoversTreetableComponent } from './holding-movers-treetable.comp
 export class HoldingMoversWidgetComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input() result: DashboardResult;
 
-  @ViewChild('form') form: DynamicFormComponent;
+  readonly form = viewChild<DynamicFormComponent>('form');
 
   readonly movers = signal<HoldingMovers>(null);
   readonly expandedBranches = signal<string[]>([]);

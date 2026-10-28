@@ -1,6 +1,6 @@
-import { DestroyRef, inject } from '@angular/core';
+import { DestroyRef, inject, viewChild } from '@angular/core';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
-import { Component, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { CashaccountService } from '../../cashaccount/service/cashaccount.service';
@@ -69,7 +69,7 @@ export class PortfolioCashaccountSummaryComponent
   implements OnInit, OnDestroy, IGlobalMenuAttach
 {
   // @ViewChild('contextMenuPCD', {static: true}) contextMenu: ContextMenu;
-  @ViewChild('contextMenuPCD') contextMenu: any;
+  readonly contextMenu = viewChild<any>('contextMenuPCD');
   untilDate: Date;
 
   // For  transaction dialog
@@ -415,7 +415,7 @@ export class PortfolioCashaccountSummaryComponent
   }
 
   hideContextMenu(): void {
-    this.contextMenu.hide();
+    this.contextMenu().hide();
   }
 
   public getHelpContextId(): string {
@@ -437,7 +437,7 @@ export class PortfolioCashaccountSummaryComponent
 
   onContextMenuClick(event) {
     if (!this.isActivated()) {
-      setTimeout(() => this.contextMenu.hide());
+      setTimeout(() => this.contextMenu().hide());
     }
   }
 

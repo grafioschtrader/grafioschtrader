@@ -4,7 +4,7 @@ import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
 import { SecurityPositionGroupSummary } from '../../entities/view/security.position.group.summary';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
-import { Directive, ElementRef, Injector, ViewChild } from '@angular/core';
+import { Directive, ElementRef, Injector, viewChild } from '@angular/core';
 import { SecurityaccountGroupBase } from './securityaccount.group.base';
 import { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
 import { Subscription } from 'rxjs';
@@ -45,8 +45,8 @@ import type { NgxFileDropEntry } from 'ngx-file-drop';
 @Directive()
 export abstract class SecurityaccountBaseTable extends TableConfigBase implements IGlobalMenuAttach {
   // @ViewChild('cm', { static: false }) contextMenu: ContextMenu;
-  @ViewChild('cm') contextMenu: any;
-  @ViewChild('title') titleElementRef: ElementRef;
+  readonly contextMenu = viewChild<any>('cm');
+  readonly titleElementRef = viewChild<ElementRef>('title');
 
   translatedTitle: string;
 
@@ -233,7 +233,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   public hideContextMenu() {
-    this.contextMenu && this.contextMenu.hide();
+    const contextMenu = this.contextMenu();
+    contextMenu && contextMenu.hide();
   }
 
   public override filterDate(event) {
@@ -567,7 +568,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   protected getTitleChart(): string {
-    return this.titleElementRef.nativeElement.innerHTML.replace(/\s+/g, ' ');
+    return this.titleElementRef().nativeElement.innerHTML.replace(/\s+/g, ' ');
   }
 
   protected getComponentId(): string {

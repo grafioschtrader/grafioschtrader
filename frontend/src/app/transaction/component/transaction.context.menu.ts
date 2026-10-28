@@ -6,7 +6,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { TransactionService } from '../service/transaction.service';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { DestroyRef, Directive, inject, Injector, ViewChild, signal, output } from '@angular/core';
+import { DestroyRef, Directive, inject, Injector, signal, output, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { Security } from '../../entities/security';
@@ -46,7 +46,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   SpecialInvestmentInstruments: typeof SpecialInvestmentInstruments = SpecialInvestmentInstruments;
 
   /** ViewChild reference to the Optimus context menu component */
-  @ViewChild('cm') contextMenu: any;
+  readonly contextMenu = viewChild<any>('cm');
 
   /** Emits processed action data when transaction operations complete */
   readonly dateChanged = output<ProcessedActionData>();
@@ -260,7 +260,8 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
 
   /** Hides the context menu if it is currently visible */
   hideContextMenu(): void {
-    this.contextMenu && this.contextMenu.hide();
+    const contextMenu = this.contextMenu();
+    contextMenu && contextMenu.hide();
   }
 
   /**
@@ -269,7 +270,8 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    */
   onComponentClick(event): void {
     event[this.consumedGT] = true;
-    this.contextMenu && this.contextMenu.hide();
+    const contextMenu = this.contextMenu();
+    contextMenu && contextMenu.hide();
     this.setMenuItemsToActivePanel();
   }
 

@@ -7,8 +7,8 @@ import {
   DestroyRef,
   OnDestroy,
   OnInit,
-  ViewChild,
-  inject
+  inject,
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
@@ -95,7 +95,7 @@ import { PerformanceReportDialogService } from '../service/performance-report-di
 })
 export class PerformancePeriodComponent extends FormBase implements OnInit, OnDestroy, IGlobalMenuAttach {
   // Access the form
-  @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
   readonly performancePeriod = signal<PerformancePeriod>(null);
   readonly periodHoldingsAndDiff = computed(() => {
     const period = this.performancePeriod();
@@ -239,7 +239,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
   submit(value: { [name: string]: any }): void {
     const pWD: PerformanceWindowDef = new PerformanceWindowDef(this.idPortfolio);
-    this.form.cleanMaskAndTransferValuesToBusinessObject(pWD, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(pWD, true);
     this.calculationRequest?.unsubscribe();
     this.loading.set(true);
     this.calculationRequest = this.holdingService
@@ -336,7 +336,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
   private setMonthWeekPeriod(): void {
     const pWD: PerformanceWindowDef = new PerformanceWindowDef(this.idPortfolio);
-    this.form.cleanMaskAndTransferValuesToBusinessObject(pWD, true);
+    this.form().cleanMaskAndTransferValuesToBusinessObject(pWD, true);
     // const dateFrom = this.configObject.dateFrom.formControl.value;
     // const dateTo = this.configObject.dateTo.formControl.value;
     // const period = this.configObject.periodSplit.formControl.value;

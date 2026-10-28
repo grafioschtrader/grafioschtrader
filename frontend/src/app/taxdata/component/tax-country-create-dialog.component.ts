@@ -1,4 +1,4 @@
-import { afterNextRender, Component, DestroyRef, inject, Injector, OnInit, ViewChild } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, inject, Injector, OnInit, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -29,7 +29,7 @@ import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 export class TaxCountryCreateDialogComponent extends FormBase implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   constructor(
     public translateService: TranslateService,
@@ -59,7 +59,7 @@ export class TaxCountryCreateDialogComponent extends FormBase implements OnInit 
         this.configObject.countryCode.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
           countries.filter((country) => !existing.includes(country.key))
         );
-        this.form.setDefaultValuesAndEnableSubmit();
+        this.form().setDefaultValuesAndEnableSubmit();
       });
   }
 

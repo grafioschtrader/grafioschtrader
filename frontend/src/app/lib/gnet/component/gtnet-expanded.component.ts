@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, output } from '@angular/core';
+import { Component, Input, output, viewChild } from '@angular/core';
 
 import { TranslateModule } from '@ngx-translate/core';
 import { AccordionModule } from '@openng/optimus-ui/accordion';
@@ -142,7 +142,7 @@ export class GTNetExpandedComponent {
    * The message tree table, present only while its panel is open. The setup table cannot query it directly — a
    * ViewChildren query does not reach across a component boundary — so the reset is delegated through here.
    */
-  @ViewChild(GTNetMessageTreeTableComponent) messageTreeTable: GTNetMessageTreeTableComponent;
+  readonly messageTreeTable = viewChild(GTNetMessageTreeTableComponent);
 
   readonly PANEL_ENTITIES = 'entities';
   readonly PANEL_MESSAGES = 'messages';
@@ -183,6 +183,6 @@ export class GTNetExpandedComponent {
 
   /** Clears the selection of the message tree table, if that panel is open at all. */
   clearMessageSelection(): void {
-    this.messageTreeTable?.clearSelection();
+    this.messageTreeTable()?.clearSelection();
   }
 }

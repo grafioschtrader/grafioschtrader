@@ -1,6 +1,6 @@
 import { TransactionBaseOperations } from './transaction.base.operations';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
-import { Directive, Input, ViewChild, output } from '@angular/core';
+import { Directive, Input, output, viewChild } from '@angular/core';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { TransactionCallParam } from './transaction.call.parm';
 import { TranslateService } from '@ngx-translate/core';
@@ -32,7 +32,7 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
   readonly closeDialog = output<ProcessedActionData>();
 
   /** Reference to the dynamic form component for accessing form controls and validation */
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+  readonly form = viewChild(DynamicFormComponent);
 
   /** Array of field form groups defining the structure and configuration of the transaction form */
   config: FieldFormGroup[] = [];
@@ -67,7 +67,7 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    */
   preInitialize(): void {
     this.resetTransactionLocked();
-    this.form.setDefaultValuesAndEnableSubmit();
+    this.form().setDefaultValuesAndEnableSubmit();
     this.configObject.transactionTime.formControl.setValue(new Date());
     this.initialize();
   }

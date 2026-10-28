@@ -10,8 +10,8 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
-  inject
+  inject,
+  viewChild
 } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -87,8 +87,8 @@ import { buildCorrelationFigure, CorrelationChartType } from './correlation-char
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class CorrelationChartComponent extends FormBase implements OnInit, AfterViewInit, OnDestroy, IGlobalMenuAttach {
-  @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
-  @ViewChild('chart', { static: true }) chartElement: ElementRef;
+  readonly form = viewChild(DynamicFormComponent);
+  readonly chartElement = viewChild<ElementRef>('chart');
   readonly chartInput = signal<CorrelationChartInput>(null);
   private readonly chartType = signal(CorrelationChartType.Combined);
   private readonly figure = computed(() =>
@@ -140,8 +140,9 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
       this.drawChart();
     });
     this.viewSizeChangedService.viewSizeChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      if (!this.noData() && this.chartElement.nativeElement.data) {
-        this.plotly?.Plots.resize(this.chartElement.nativeElement);
+      const chartElement = this.chartElement();
+      if (!this.noData() && chartElement.nativeElement.data) {
+        this.plotly?.Plots.resize(chartElement.nativeElement);
       }
     });
   }
@@ -186,7 +187,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
     this.destroyed = true;
     this.renderVersion++;
     this.pendingRender?.destroy();
-    this.plotly?.purge(this.chartElement.nativeElement);
+    this.plotly?.purge(this.chartElement().nativeElement);
     this.chartService.shown = false;
     this.activePanelService.destroyPanel(this);
   }
@@ -203,7 +204,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
     this.pendingRender?.destroy();
     const figure = this.figure();
     if (this.noData()) {
-      this.plotly?.purge(this.chartElement.nativeElement);
+      this.plotly?.purge(this.chartElement().nativeElement);
       return;
     }
     const layout = structuredClone(figure.layout);
@@ -218,13 +219,14 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
               return;
             }
             this.plotly = plotly;
-            plotly.react(this.chartElement.nativeElement, data, layout, this.plotlyConfig).then(() => {
+            plotly.react(this.chartElement().nativeElement, data, layout, this.plotlyConfig).then(() => {
+              const chartElement = this.chartElement();
               if (
                 !this.destroyed &&
                 version === this.renderVersion &&
-                this.chartElement.nativeElement.querySelector('g.legend')
+                chartElement.nativeElement.querySelector('g.legend')
               ) {
-                PlotlyHelper.attachTooltip(figure.legendTooltipMap, this.chartElement);
+                PlotlyHelper.attachTooltip(figure.legendTooltipMap, chartElement);
               }
             });
           },

@@ -1,5 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, computed, Input, OnInit, ViewChild, signal } from '@angular/core';
+import { Component, computed, Input, OnInit, signal, viewChild } from '@angular/core';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
@@ -161,14 +161,12 @@ export function isManualIssuerCountryChange(
   ]
 })
 export class SecurityEditComponent extends SecuritycurrencyEdit implements OnInit, CallbackValueChanged {
-  @ViewChild(SecurityBondTermsComponent) bondTerms: SecurityBondTermsComponent;
+  readonly bondTerms = viewChild(SecurityBondTermsComponent);
   // Access child components
-  @ViewChild('splitForm') dynamicSplitForm: DynamicFormComponent;
-  @ViewChild(SecuritysplitEditTableComponent)
-  seetc: SecuritysplitEditTableComponent;
-  @ViewChild('periodPriceForm') dynamicPeriodPriceForm: DynamicFormComponent;
-  @ViewChild(SecurityHistoryquotePeriodEditTableComponent)
-  shpetc: SecurityHistoryquotePeriodEditTableComponent;
+  readonly dynamicSplitForm = viewChild<DynamicFormComponent>('splitForm');
+  readonly seetc = viewChild(SecuritysplitEditTableComponent);
+  readonly dynamicPeriodPriceForm = viewChild<DynamicFormComponent>('periodPriceForm');
+  readonly shpetc = viewChild(SecurityHistoryquotePeriodEditTableComponent);
 
   // Per-instrument limits sourced from the backend (gt.max.instrument.splits /
   // gt.max.instrument.historyquote.periods), loaded in loadHelperData(). The 20 defaults are a safe fallback while
@@ -390,16 +388,16 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
   addSplit(value: { [name: string]: any }): void {
     const securitysplit = new Securitysplit();
-    this.dynamicSplitForm.cleanMaskAndTransferValuesToBusinessObject(securitysplit);
-    this.seetc.addDataRow(securitysplit);
-    this.dynamicSplitForm.setDefaultValuesAndEnableSubmit();
+    this.dynamicSplitForm().cleanMaskAndTransferValuesToBusinessObject(securitysplit);
+    this.seetc().addDataRow(securitysplit);
+    this.dynamicSplitForm().setDefaultValuesAndEnableSubmit();
   }
 
   addHistoryquotePeriod(value: { [name: string]: any }): void {
     const historyquotePeriod = new HistoryquotePeriod();
-    this.dynamicPeriodPriceForm.cleanMaskAndTransferValuesToBusinessObject(historyquotePeriod);
-    this.shpetc.addDataRow(historyquotePeriod);
-    this.dynamicPeriodPriceForm.setDefaultValuesAndEnableSubmit();
+    this.dynamicPeriodPriceForm().cleanMaskAndTransferValuesToBusinessObject(historyquotePeriod);
+    this.shpetc().addDataRow(historyquotePeriod);
+    this.dynamicPeriodPriceForm().setDefaultValuesAndEnableSubmit();
   }
 
   submit(value: { [name: string]: any }): void {
@@ -407,11 +405,11 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       this,
       this.proposeChangeEntityWithEntity,
       <Security>this.securityCurrencypairCallParam,
-      this.dynamicForm,
+      this.dynamicForm(),
       value
     );
     if (this.canEditBondTerms()) {
-      if (!this.bondTerms?.transfer(security)) {
+      if (!this.bondTerms()?.transfer(security)) {
         this.configObject.submit.disabled = false;
         return;
       }
@@ -428,15 +426,17 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           });
           let savedDepending = false;
           if (this.securityEditSupport.hasMarketValue) {
-            if (this.canHaveSplits() && this.seetc) {
+            const seetc = this.seetc();
+            if (this.canHaveSplits() && seetc) {
               savedDepending = true;
-              this.seetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
+              seetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
             }
           } else {
             // Save historical periods
-            if (this.shpetc) {
+            const shpetc = this.shpetc();
+            if (shpetc) {
               savedDepending = true;
-              this.shpetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
+              shpetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
             }
           }
           if (!savedDepending) {
@@ -461,11 +461,11 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   onSelectedSecuritysplit(securitysplit: Securitysplit) {
-    this.dynamicSplitForm.transferBusinessObjectToForm(securitysplit);
+    this.dynamicSplitForm().transferBusinessObjectToForm(securitysplit);
   }
 
   onSelectedHistoryquote(historyquotePeriod: HistoryquotePeriod) {
-    this.dynamicPeriodPriceForm.transferBusinessObjectToForm(historyquotePeriod);
+    this.dynamicPeriodPriceForm().transferBusinessObjectToForm(historyquotePeriod);
   }
 
   override onHide(event) {
@@ -807,7 +807,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         // Only load security splits for an existing security
         if ((<Security>this.securityCurrencypairCallParam).splitPropose) {
           // Propose change
-          this.seetc.setDataList((<Security>this.securityCurrencypairCallParam).splitPropose, true);
+          this.seetc().setDataList((<Security>this.securityCurrencypairCallParam).splitPropose, true);
         } else {
           idxSplitPeriod = observables.length;
           observables.push(
@@ -818,7 +818,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         }
       } else {
         if ((<Security>this.securityCurrencypairCallParam).hpPropose) {
-          this.shpetc.setDataList((<Security>this.securityCurrencypairCallParam).hpPropose, true);
+          this.shpetc().setDataList((<Security>this.securityCurrencypairCallParam).hpPropose, true);
         } else {
           idxSplitPeriod = observables.length;
           observables.push(
@@ -854,9 +854,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
         if (idxSplitPeriod >= 0) {
           if (this.securityEditSupport.hasMarketValue) {
-            this.seetc.setDataList(<Securitysplit[]>data[idxSplitPeriod], false);
+            this.seetc().setDataList(<Securitysplit[]>data[idxSplitPeriod], false);
           } else {
-            this.shpetc.setDataList(<HistoryquotePeriod[]>data[idxSplitPeriod], false);
+            this.shpetc().setDataList(<HistoryquotePeriod[]>data[idxSplitPeriod], false);
           }
         }
         this.dataLoaded.set(true);
@@ -981,7 +981,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       this.prefillIssuerCountryFromIsin(this.configObject.isin.formControl.value);
     }
     this.applyDistributionFrequencyAvailability(assetClass);
-    this.dynamicForm.notifier.notify();
+    this.dynamicForm().notifier.notify();
   }
 
   /**

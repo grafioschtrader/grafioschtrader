@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, output } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, output, viewChild } from '@angular/core';
 import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -64,8 +64,7 @@ import { BaseSettings } from '../../lib/base.settings';
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class TradingPeriodTableComponent extends TableEditConfigBase implements OnChanges {
-  @ViewChild('entityTable')
-  entityTable: EditableTableComponent<SecaccountTradingPeriod>;
+  readonly entityTable = viewChild<EditableTableComponent<SecaccountTradingPeriod>>('entityTable');
 
   /** Trading periods to display and edit. Strings are converted to Date objects internally. */
   @Input() tradingPeriods: SecaccountTradingPeriod[] = [];
@@ -113,7 +112,7 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
    * Returns the current data converted back to ISO date strings for backend persistence.
    */
   getData(): SecaccountTradingPeriod[] {
-    const data = this.entityTable?.getData() || this.tradingPeriods;
+    const data = this.entityTable()?.getData() || this.tradingPeriods;
     return this.convertDatesToStrings(data).map((p) => {
       const copy = { ...p };
       if (copy.idSecaccountTradingPeriod != null && copy.idSecaccountTradingPeriod < 0) {

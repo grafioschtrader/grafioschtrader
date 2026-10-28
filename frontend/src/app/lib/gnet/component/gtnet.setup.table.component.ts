@@ -1,4 +1,4 @@
-import { afterNextRender, Component, Injector, QueryList, signal, ViewChildren } from '@angular/core';
+import { afterNextRender, Component, Injector, signal, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormsModule } from '@angular/forms';
@@ -197,8 +197,7 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
   providers: [DialogService, GTNetConfigService]
 })
 export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
-  @ViewChildren(GTNetExpandedComponent)
-  expandedRows: QueryList<GTNetExpandedComponent>;
+  readonly expandedRows = viewChildren(GTNetExpandedComponent);
 
   minDate: Date = new Date(
     sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
@@ -701,7 +700,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
    * Clears the selection in all message tree table components once the refilled rows are rendered.
    */
   private clearTreeTableSelection(): void {
-    afterNextRender(() => this.expandedRows?.forEach((expandedRow) => expandedRow.clearMessageSelection()), {
+    afterNextRender(() => this.expandedRows()?.forEach((expandedRow) => expandedRow.clearMessageSelection()), {
       injector: this.injector
     });
   }
