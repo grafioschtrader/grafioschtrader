@@ -1,14 +1,11 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SvgIconRegistryService, AngularSvgIconModule } from 'angular-svg-icon';
-import { Component, Injector, OnInit, input } from '@angular/core';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { Component, OnInit, input, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { DividendService } from '../service/dividend.service';
 import { DividendSplitTableBase } from './dividend.split.table.base';
 import { Dividend } from '../../entities/dividend.split';
-import { FilterService } from '@openng/optimus-ui/api';
 import { AppSettings } from '../../shared/app.settings';
 
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -23,6 +20,8 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
   imports: [TranslateModule, ConfigurableTableComponent, AngularSvgIconModule]
 })
 export class WatchlistDividendTableComponent extends DividendSplitTableBase<Dividend> implements OnInit {
+  private dividendService: DividendService = inject(DividendService);
+
   /** Field name constant for the ex-date column */
   private static EX_DATE = 'exDate';
 
@@ -32,33 +31,9 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
   /**
    * Creates a new watchlist dividend table component and configures the table columns.
    *
-   * @param dividendService Service for retrieving dividend data
-   * @param filterService Optimus service for table filtering functionality
-   * @param usersettingsService Service for persisting user table preferences
-   * @param translateService Angular translation service for internationalization
-   * @param gps Global parameter service for locale and formatting settings
-   * @param iconReg Service for registering SVG icons used in the table
    */
-  constructor(
-    private dividendService: DividendService,
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    iconReg: SvgIconRegistryService,
-    injector: Injector
-  ) {
-    super(
-      filterService,
-      usersettingsService,
-      translateService,
-      gps,
-      iconReg,
-      'idDividend',
-      WatchlistDividendTableComponent.EX_DATE,
-      AppSettings.DIVIDEND.toUpperCase(),
-      injector
-    );
+  constructor() {
+    super('idDividend', WatchlistDividendTableComponent.EX_DATE, AppSettings.DIVIDEND.toUpperCase());
     this.addColumnFeqH(DataType.DateNumeric, WatchlistDividendTableComponent.EX_DATE, true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false, {
       fieldValueFN: this.getCreateTypeIcon.bind(this),

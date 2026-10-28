@@ -1,8 +1,6 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, computed, DestroyRef, effect, inject, input, signal, untracked } from '@angular/core';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import {
   HolidayMissing,
   PerformancePeriod,
@@ -209,8 +207,8 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
   readonly translatedTexts = signal<{ [s: string]: string }>({});
   lastPeriodSplit: WeekYear | string;
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.initializeFields();
     effect(() => {
       this.performancePeriod();

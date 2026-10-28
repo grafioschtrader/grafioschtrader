@@ -1,9 +1,8 @@
 import { Component, computed, input } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 
 /** One calculated closure with the name of the rule that produced it. */
@@ -40,8 +39,8 @@ export class TradingCalendarRuleSetPreviewComponent extends ShowRecordConfigBase
     Object.entries(this.closures() ?? {}).map(([closureDate, ruleName]) => ({ closureDate, ruleName }))
   );
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.addColumn(DataType.DateString, 'closureDate', 'CLOSURE_DATE', true, false);
     this.addColumn(DataType.String, 'ruleName', 'RULE_NAME', true, false);
     this.translateHeadersAndColumns();

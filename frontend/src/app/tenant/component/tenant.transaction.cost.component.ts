@@ -1,18 +1,7 @@
-import {
-  afterNextRender,
-  computed,
-  DestroyRef,
-  inject,
-  signal,
-  Component,
-  Injector,
-  OnDestroy,
-  OnInit
-} from '@angular/core';
+import { afterNextRender, computed, DestroyRef, inject, signal, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { Subscription } from 'rxjs';
 import { TransactionCostGrandSummary } from '../../entities/view/transactioncost/transaction.cost.grand.summary';
@@ -26,8 +15,6 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { HelpIds } from '../../lib/help/help.ids';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { AppSettings } from '../../shared/app.settings';
@@ -73,6 +60,12 @@ import { TenantTransactionCostExtendedComponent } from './tenant-transaction-cos
   imports: [ConfigurableTableComponent, TenantTransactionCostExtendedComponent]
 })
 export class TenantTransactionCostComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private router: Router = inject(Router);
+  private chartDataService: ChartDataService = inject(ChartDataService);
+
   /**
    * Used to reference chart trace by the id of the security account. It is used when the
    * users clicks a data point in the chart to select the main table row
@@ -104,19 +97,8 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
 
   private subscriptionRequestFromChart: Subscription;
 
-  constructor(
-    private portfolioService: PortfolioService,
-    private activatedRoute: ActivatedRoute,
-    private activePanelService: ActivePanelService,
-    private router: Router,
-    private chartDataService: ChartDataService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

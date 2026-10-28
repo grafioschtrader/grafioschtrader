@@ -1,10 +1,6 @@
 import { Component, input, computed, effect, untracked } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
@@ -30,13 +26,8 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
 export class AlgoAlertDiagnosticsTableComponent extends TableConfigBase {
   readonly rows = input<any[]>([]);
   readonly trading = input(false);
-  constructor(
-    filter: FilterService,
-    settings: UserSettingsService,
-    translate: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filter, settings, translate, gps);
+  constructor() {
+    super();
     this.rowsPerPage = 20;
 
     effect(() => {

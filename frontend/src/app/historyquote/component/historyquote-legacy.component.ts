@@ -1,8 +1,8 @@
-import { Component, Injector, OnChanges, OnDestroy, signal, SimpleChanges, output, input } from '@angular/core';
+import { Component, OnChanges, OnDestroy, signal, SimpleChanges, output, input, inject } from '@angular/core';
 
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
 import { combineLatest, Subscription } from 'rxjs';
 import { plainToClass } from 'class-transformer';
@@ -13,13 +13,9 @@ import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
 import { CrudMenuOptions } from '../../lib/datashowbase/table.crud.support.menu';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { AuditHelper } from '../../lib/helper/audit.helper';
@@ -125,6 +121,12 @@ export class HistoryquoteLegacyComponent
   extends HistoryquoteTableBase<HistoryquoteLegacy>
   implements OnChanges, OnDestroy
 {
+  private historyquoteService: HistoryquoteService = inject(HistoryquoteService);
+  private historyquoteLegacyService: HistoryquoteLegacyService = inject(HistoryquoteLegacyService);
+  private securityService: SecurityService = inject(SecurityService);
+  private currencypairService: CurrencypairService = inject(CurrencypairService);
+  private iconReg: SvgIconRegistryService = inject(SvgIconRegistryService);
+
   readonly idSecuritycurrency = input<number>(undefined);
   readonly showLiveRequested = output<void>();
 
@@ -142,36 +144,11 @@ export class HistoryquoteLegacyComponent
     uploadFiles: (id, fd) => this.historyquoteLegacyService.uploadFilesLegacy(id, fd)
   };
 
-  constructor(
-    private historyquoteService: HistoryquoteService,
-    private historyquoteLegacyService: HistoryquoteLegacyService,
-    private securityService: SecurityService,
-    private currencypairService: CurrencypairService,
-    private iconReg: SvgIconRegistryService,
-    usersettingsService: UserSettingsService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    gps: GlobalparameterService,
-    translateService: TranslateService,
-    injector: Injector
-  ) {
-    super(
-      AppSettings.HISTORYQUOTE_LEGACY,
-      historyquoteLegacyService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector,
-      [CrudMenuOptions.Allow_Edit, CrudMenuOptions.Allow_Delete]
-    );
+  constructor() {
+    super(AppSettings.HISTORYQUOTE_LEGACY, inject(HistoryquoteLegacyService), [
+      CrudMenuOptions.Allow_Edit,
+      CrudMenuOptions.Allow_Delete
+    ]);
 
     HistoryquoteTableBase.registerCreateTypeIcons(this.iconReg);
     this.addDateColumn();

@@ -1,14 +1,11 @@
-import { Component, computed, DestroyRef, inject, Injector, OnChanges, signal, output, input } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnChanges, signal, output, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { SecurityService } from '../service/security.service';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslatePipe } from '@ngx-translate/core';
 import { HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp } from '../model/historyquote.quality.group';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
-import { FilterService } from '@openng/optimus-ui/api';
 import { TableModule } from '@openng/optimus-ui/table';
 
 /**
@@ -66,6 +63,9 @@ import { TableModule } from '@openng/optimus-ui/table';
   imports: [TableModule, TranslatePipe]
 })
 export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase implements OnChanges {
+  private timeSeriesQuotesService: TimeSeriesQuotesService = inject(TimeSeriesQuotesService);
+  private securityService: SecurityService = inject(SecurityService);
+
   readonly historyquoteQualityIds = input<HistoryquoteQualityIds>(undefined);
   readonly groupTitle = input<string>(undefined);
   readonly changedIdSecurity = output<SecurityIdWithCurrency>();
@@ -80,16 +80,8 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
   private readonly destroyRef = inject(DestroyRef);
   private loadSubscription: Subscription;
 
-  constructor(
-    private timeSeriesQuotesService: TimeSeriesQuotesService,
-    private securityService: SecurityService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
 
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 250 });
     this.addColumnFeqH(DataType.DateString, 'activeFromDate');

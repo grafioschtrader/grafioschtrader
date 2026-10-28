@@ -1,10 +1,7 @@
 import { Component, output, input, effect, untracked } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
@@ -60,14 +57,9 @@ export class AlgoAlertNotificationTableComponent extends TableConfigBase {
   /** A read-only user may inspect deliveries but not trigger one, so the context menu is not offered at all. */
   readonly readOnly: boolean;
 
-  constructor(
-    filter: FilterService,
-    settings: UserSettingsService,
-    translate: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filter, settings, translate, gps);
-    this.readOnly = gps.isReadOnlyUser();
+  constructor() {
+    super();
+    this.readOnly = this.gps.isReadOnlyUser();
     this.rowsPerPage = 20;
     this.addColumnFeqH(DataType.String, 'contextName', true, false, { filterType: FilterType.withOptions });
     this.addColumnFeqH(DataType.String, 'securityName');

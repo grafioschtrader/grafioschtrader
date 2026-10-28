@@ -1,10 +1,6 @@
 import { Component, effect, input, untracked } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
@@ -39,13 +35,8 @@ export class AlgoSimulationRunTableComponent extends TableConfigBase {
   /** Height at which the trail starts to scroll, so the dialog keeps its form and its metrics in view. */
   readonly scrollHeight = input('40vh');
 
-  constructor(
-    filter: FilterService,
-    settings: UserSettingsService,
-    translate: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filter, settings, translate, gps);
+  constructor() {
+    super();
     this.rowsPerPage = 20;
     this.addColumnFeqH(DataType.DateString, 'eventDate');
     this.addColumnFeqH(DataType.String, 'eventType', true, false, {

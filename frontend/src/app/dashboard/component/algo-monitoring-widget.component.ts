@@ -1,13 +1,12 @@
-import { Component, input, computed, effect, untracked } from '@angular/core';
+import { Component, input, computed, effect, untracked, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { DashboardResult } from '../../lib/dashboard/dashboard.types';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { BaseSettings } from '../../lib/base.settings';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { AppSettings } from '../../shared/app.settings';
 import { AlgoMonitoringSummary } from '../model/algo.monitoring.summary';
 
@@ -62,6 +61,8 @@ import { AlgoMonitoringSummary } from '../model/algo.monitoring.summary';
   `
 })
 export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase {
+  private router: Router = inject(Router);
+
   readonly result = input<DashboardResult>(undefined);
 
   readonly summary = computed(() => this.result()?.payload?.custom as AlgoMonitoringSummary);
@@ -77,12 +78,8 @@ export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase {
     'AMOUNT'
   );
 
-  constructor(
-    public override translateService: TranslateService,
-    gps: GlobalparameterService,
-    private router: Router
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.initSummaryFields();
 
     effect(() => {

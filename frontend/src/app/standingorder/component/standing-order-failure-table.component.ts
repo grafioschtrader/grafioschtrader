@@ -1,9 +1,8 @@
 import { Component, input } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { StandingOrderFailure } from '../../entities/standing.order';
 
@@ -39,8 +38,8 @@ import { StandingOrderFailure } from '../../entities/standing.order';
 export class StandingOrderFailureTableComponent extends ShowRecordConfigBase {
   readonly failures = input<StandingOrderFailure[]>([]);
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.addColumnFeqH(DataType.DateString, 'executionDate', true, false);
     this.addColumnFeqH(DataType.String, 'businessError', true, false);
     this.translateHeadersAndColumns();

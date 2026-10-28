@@ -1,17 +1,11 @@
-import { Component, Injector } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TableCrudSupportMenu, CrudMenuOptions } from '../../datashowbase/table.crud.support.menu';
 import { ProposeChangeEntity } from '../../entities/propose.change.entity';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { DataType } from '../../dynamic-form/models/data.type';
-import { MessageToastService } from '../../message/message.toast.service';
-import { UserSettingsService } from '../../services/user.settings.service';
-import { TranslateService } from '@ngx-translate/core';
 import { ProposeChangeEntityService } from '../service/propose.change.entity.service';
 import { plainToInstance } from 'class-transformer';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { TranslateValue } from '../../datashowbase/column.config';
 import { BaseSettings } from '../../base.settings';
 import { TranslateModule } from '@ngx-translate/core';
@@ -44,32 +38,10 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
   imports: [TranslateModule, ConfigurableTableComponent]
 })
 export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChangeEntity> {
-  constructor(
-    private proposeChangeEntityService: ProposeChangeEntityService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      BaseSettings.PROPOSE_CHANGE_ENTITY,
-      proposeChangeEntityService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector,
-      [CrudMenuOptions.Allow_Delete]
-    );
+  private proposeChangeEntityService: ProposeChangeEntityService = inject(ProposeChangeEntityService);
+
+  constructor() {
+    super(BaseSettings.PROPOSE_CHANGE_ENTITY, inject(ProposeChangeEntityService), [CrudMenuOptions.Allow_Delete]);
 
     this.addColumnFeqH(DataType.String, 'entity', true, false, {
       translateValues: TranslateValue.UPPER_CASE

@@ -1,13 +1,9 @@
-import { Component, Injector } from '@angular/core';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { Component, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { SplitPeriodTableBase } from './split.period.table.base';
 import { HistoryquotePeriod } from '../../entities/historyquote.period';
 import { HistoryquotePeriodService } from '../../securitycurrency/service/historyquote.period.service';
-import { FilterService } from '@openng/optimus-ui/api';
 
 import { TableModule } from '@openng/optimus-ui/table';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -24,27 +20,8 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 export class SecurityHistoryquotePeriodEditTableComponent extends SplitPeriodTableBase<HistoryquotePeriod> {
   // readonly dataSortKey = 'fromDate';
 
-  constructor(
-    historyquotePeriodService: HistoryquotePeriodService,
-    messageToastService: MessageToastService,
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(
-      'fromDate',
-      'SECURITY_PERIODS_FROM_MAX',
-      HistoryquotePeriod,
-      messageToastService,
-      historyquotePeriodService,
-      filterService,
-      usersettingsService,
-      translateService,
-      gps,
-      injector
-    );
+  constructor() {
+    super('fromDate', 'SECURITY_PERIODS_FROM_MAX', HistoryquotePeriod, inject(HistoryquotePeriodService));
     this.addColumn(DataType.DateString, 'fromDate', 'FROM_DATE_NEW_PRICE', true, false);
     this.addColumn(DataType.Numeric, 'price', 'CLOSE', true, false);
     this.prepareTableAndTranslate();

@@ -1,7 +1,6 @@
-import { Component, Injector, output, input, linkedSignal, model, effect, untracked } from '@angular/core';
+import { Component, output, input, linkedSignal, model, effect, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
 import { CheckboxModule } from '@openng/optimus-ui/checkbox';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
@@ -9,8 +8,6 @@ import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { SecurityLookupCandidate } from '../model/security-lookup';
 import { Helper } from '../../lib/helper/helper';
 
@@ -138,20 +135,9 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase {
   /**
    * Creates the table and the expansion fields.
    *
-   * @param filterService - Optimus UI filter service
-   * @param usersettingsService - Persists table settings
-   * @param translateService - Translation of headers and enum values
-   * @param gps - Locale and formatting settings
-   * @param injector - Injector of the base class
    */
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.addColumnFeqH(DataType.Boolean, this.takeOverNameField, true, false, { width: 60 });
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 220 });
     this.addColumnFeqH(DataType.String, 'tickerSymbol', true, false, { width: 70 });

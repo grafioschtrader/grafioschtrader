@@ -134,6 +134,15 @@ periodic `ApplicationRef.tick()`.
   `destroyRef`; do not declare your own.
 - **CRUD tables extend `TableCrudSupportMenu`** (`lib/datashowbase/table.crud.support.menu.ts`):
   `entityList`, `selectedEntity`, `visibleDialog` and `contextMenuItems` are signals. Reference: `TenantAIProviderTableComponent`.
+- **The table and record hierarchy resolves services with `inject()` fields.** `ShowRecordConfigBase` owns translation,
+  locale settings and the injector; the table bases own filtering and user settings. Subclasses call `super()` with
+  configuration only. CRUD tables pass `super(entityName, inject(EntityService), crudMenuOptions)` because the deletion
+  strategy is selected by the concrete screen and `DeleteService` is an interface. Watchlist tabs pass their kind,
+  settings key and selection mode. A dependency needed as a `super()` argument is read with `inject(Token)` there,
+  since subclass fields are initialized only after `super()` returns. Do not pass services through intermediate
+  constructors. The Angular API ratchet covers every descendant of `ShowRecordConfigBase`, including tree tables,
+  transaction tables and record views. `TableConfigBase` resolves the filter service; tree-table descendants resolve
+  it only when they offer filters, as `GTNetMessageTreeTableComponent` does.
 - **Transaction tables on `TransactionContextMenu`** use signals for selection, translated context menus, dialog
   visibility and paginator state. Update the selected page row through `selectPageRow()` rather than mutating
   `pageFirstRowSelectedRow()`. Their edit dialogs use `TransactionBaseOperations`: initialise through
@@ -408,13 +417,8 @@ constructor(...) {
   imports: [EditableTableComponent]
 })
 export class MyEditableTableComponent extends TableEditConfigBase {
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
+  constructor() {
+    super();
     // Define columns here using addEditColumnFeqH()
     this.prepareTableAndTranslate();
   }
@@ -747,13 +751,10 @@ Dialog components displaying tables should extend `ShowRecordConfigBase`:
 })
 export class MyTableDialogComponent extends ShowRecordConfigBase {
   readonly items = signal<MyItem[]>([]);
+  private readonly myService = inject(MyService);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    private myService: MyService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.addColumnFeqH(DataType.String, 'name', true, false);
   }
 
@@ -1268,12 +1269,10 @@ Components extending `TableEditConfigBase` must:
 export class MyTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
 
   readonly contextMenuItems = signal<MenuItem[]>([]);
+  private readonly activePanelService = inject(ActivePanelService);
 
-  constructor(
-    private activePanelService: ActivePanelService,
-    // ... other dependencies
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
+  constructor() {
+    super();
   }
 
   // IGlobalMenuAttach interface methods

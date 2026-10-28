@@ -1,9 +1,8 @@
-import { computed, signal, Component, OnDestroy, OnInit } from '@angular/core';
+import { computed, signal, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Params } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
@@ -14,11 +13,9 @@ import { AlgoTop } from '../model/algo.top';
 import { AlgoAssetclass } from '../model/algo.assetclass';
 import { AlgoSecurity } from '../model/algo.security';
 import { SimulationRunSettings } from '../model/simulation.run';
-import { AlgoStrategyService } from '../service/algo.strategy.service';
 import { AlgoSimulationRunService } from '../service/algo-simulation-run.service';
 import { AlgoTreeViewBase } from './algo.tree.view.base';
 import { StrategyDetailComponent } from './strategy-detail.component';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
@@ -92,6 +89,9 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   ]
 })
 export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase implements OnInit, OnDestroy {
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private runService: AlgoSimulationRunService = inject(AlgoSimulationRunService);
+
   readonly getAlgoRowClassCallback = (rowNode: any, rowData: any) => this.getAlgoRowClass(rowNode, rowData);
   /** Undefined while loading, null when the environment has never been replayed. */
   readonly settings = signal<SimulationRunSettings | null>(undefined);
@@ -100,22 +100,9 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
   private routeSubscribe: Subscription;
 
   /**
-   * @param activatedRoute - Carries the tenant id of the simulation environment
-   * @param runService - Loads the settings of the environment's latest replay
-   * @param algoStrategyService - Loads the form definition of a strategy implementation for the strategy detail
-   * @param productIconService - Provides the distribution icon shared with the watchlist
-   * @param translateService - Angular translation service for internationalization support
-   * @param gps - Global parameter service providing user locale and formatting preferences
    */
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    private runService: AlgoSimulationRunService,
-    algoStrategyService: AlgoStrategyService,
-    productIconService: ProductIconService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(algoStrategyService, productIconService, translateService, gps);
+  constructor() {
+    super();
     this.addNameAndPercentageColumns();
     this.addColumnFeqH(DataType.NumericShowZero, 'usedPercentage', true, false, {
       maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,

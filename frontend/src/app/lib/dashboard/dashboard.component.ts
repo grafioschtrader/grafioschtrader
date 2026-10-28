@@ -1,14 +1,13 @@
-import { Component, ElementRef, Inject, NgZone, OnDestroy, OnInit, Type, signal } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit, Type, signal, inject } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { CdkDrag, CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { Subscription } from 'rxjs';
 import { ShowRecordConfigBase } from '../datashowbase/show.record.config.base';
 import { ColumnConfig } from '../datashowbase/column.config';
-import { GlobalparameterService } from '../services/globalparameter.service';
 import { ActivePanelService } from '../mainmenubar/service/active.panel.service';
 import { IGlobalMenuAttach } from '../mainmenubar/component/iglobal.menu.attach';
 import { TranslateHelper } from '../helper/translate.helper';
@@ -57,6 +56,14 @@ import { ProcessedAction } from '../types/processed.action';
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent extends ShowRecordConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
+  private service: DashboardService = inject(DashboardService);
+  private activePanel: ActivePanelService = inject(ActivePanelService);
+  private rendererLoaders: Record<string, DialogComponentLoader> = inject(DASHBOARD_RENDERERS);
+  private configSummaries: Record<string, ColumnConfig> = inject(DASHBOARD_CONFIG_SUMMARIES);
+  private maximizableTypes: ReadonlySet<string> = inject(DASHBOARD_MAXIMIZABLE);
+  private host: ElementRef<HTMLElement> = inject(ElementRef);
+  private zone: NgZone = inject(NgZone);
+
   document: DashboardDocument;
   draft: DashboardWidget[] = [];
   results: Record<string, DashboardResult> = {};
@@ -104,18 +111,8 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   /** Watches the scrolling pane while a card is maximized, so the card follows the splitter and the window. */
   private paneObserver: ResizeObserver | null = null;
 
-  constructor(
-    translate: TranslateService,
-    gps: GlobalparameterService,
-    private service: DashboardService,
-    private activePanel: ActivePanelService,
-    @Inject(DASHBOARD_RENDERERS) private rendererLoaders: Record<string, DialogComponentLoader>,
-    @Inject(DASHBOARD_CONFIG_SUMMARIES) private configSummaries: Record<string, ColumnConfig>,
-    @Inject(DASHBOARD_MAXIMIZABLE) private maximizableTypes: ReadonlySet<string>,
-    private host: ElementRef<HTMLElement>,
-    private zone: NgZone
-  ) {
-    super(translate, gps);
+  constructor() {
+    super();
   }
   ngOnInit(): void {
     this.loadRenderers();

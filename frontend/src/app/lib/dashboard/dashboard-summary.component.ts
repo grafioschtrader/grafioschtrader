@@ -1,8 +1,7 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ShowRecordConfigBase } from '../datashowbase/show.record.config.base';
-import { GlobalparameterService } from '../services/globalparameter.service';
 import { DataType } from '../dynamic-form/models/data.type';
 import { DashboardResult } from './dashboard.types';
 import { DashboardTableComponent } from './dashboard-table.component';
@@ -29,7 +28,7 @@ export class DashboardSummaryComponent extends ShowRecordConfigBase {
   readonly result = input<DashboardResult>(undefined);
   countField = ShowRecordConfigBase.createColumnConfig(DataType.NumericInteger, 'count', '');
   userCountField = ShowRecordConfigBase.createColumnConfig(DataType.NumericInteger, 'userCount', '');
-  constructor(translate: TranslateService, gps: GlobalparameterService) {
-    super(translate, gps);
+  constructor() {
+    super();
   }
 }

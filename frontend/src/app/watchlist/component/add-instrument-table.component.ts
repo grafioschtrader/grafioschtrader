@@ -1,20 +1,16 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { computed, DestroyRef, Directive, inject, Injector, signal, input } from '@angular/core';
+import { computed, DestroyRef, Directive, inject, signal, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
-import { TranslateService } from '@ngx-translate/core';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { SecuritycurrencyLists } from '../../entities/view/securitycurrency.lists';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TenantLimit } from '../../shared/types/tenant.limit';
 import { SecuritycurrencySearchTableBase } from '../../securitycurrency/component/securitycurrency.search.table.base';
-import { FilterService } from '@openng/optimus-ui/api';
 import { Observable } from 'rxjs';
 
 /**
@@ -23,6 +19,8 @@ import { Observable } from 'rxjs';
  */
 @Directive()
 export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableBase {
+  private dataChangedService: DataChangedService = inject(DataChangedService);
+
   /** Tenant limits for controlling maximum number of instruments that can be added */
   readonly tenantLimits = input<TenantLimit[]>(undefined);
 
@@ -46,24 +44,13 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
   /**
    * Creates a new AddInstrumentTable instance.
    * @param instance - The target entity instance to add instruments to
-   * @param dataChangedService - Service for notifying about data changes
    * @param addSearchToListService - Service for searching and adding instruments to lists
-   * @param filterService - Optimus filter service for table filtering
-   * @param translateService - Angular translation service for internationalization
-   * @param gps - Global parameter service for application settings
-   * @param usersettingsService - Service for user-specific settings and preferences
    */
   protected constructor(
     private instance: T,
-    private dataChangedService: DataChangedService,
-    private addSearchToListService: AddSearchToListService<T>,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
+    private addSearchToListService: AddSearchToListService<T>
   ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+    super();
     this.multiSortMeta.push({ field: 'name', order: 1 });
     inject(DestroyRef).onDestroy(() => this.searchSubscription?.unsubscribe());
   }

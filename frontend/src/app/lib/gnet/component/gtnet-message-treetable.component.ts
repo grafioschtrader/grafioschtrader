@@ -17,8 +17,7 @@ import { MsgRequest } from '../model/gtnet';
 import { GTNetService } from '../service/gtnet.service';
 import { GTNetProtocolService } from '../service/gtnet.protocol.service';
 import { FilterService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
 import { HelpIds } from '../../help/help.ids';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
@@ -206,6 +205,13 @@ import { FilterType } from '../../datashowbase/filter.type';
   `
 })
 export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
+  protected override filterService = inject(FilterService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private gtNetMessageService: GTNetMessageService = inject(GTNetMessageService);
+  private gtNetService: GTNetService = inject(GTNetService);
+  private gtNetProtocolService: GTNetProtocolService = inject(GTNetProtocolService);
+  private iconReg: SvgIconRegistryService = inject(SvgIconRegistryService);
+
   readonly gtNetMessages = input<GTNetMessage[]>(undefined);
   readonly incomingPendingIds = input<Set<number>>(undefined);
   readonly outgoingPendingIds = input<Set<number>>(undefined);
@@ -244,18 +250,9 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
   private menuSubscription: Subscription;
 
-  constructor(
-    private activePanelService: ActivePanelService,
-    private gtNetMessageService: GTNetMessageService,
-    private gtNetService: GTNetService,
-    private gtNetProtocolService: GTNetProtocolService,
-    private iconReg: SvgIconRegistryService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps, filterService);
-    this.canAdministerGTNet = gps.hasRole(BaseSettings.ROLE_ADMIN);
+  constructor() {
+    super();
+    this.canAdministerGTNet = this.gps.hasRole(BaseSettings.ROLE_ADMIN);
     GTNetMessageTreeTableComponent.registerIcons(this.iconReg);
     inject(DestroyRef).onDestroy(() => this.menuSubscription?.unsubscribe());
   }

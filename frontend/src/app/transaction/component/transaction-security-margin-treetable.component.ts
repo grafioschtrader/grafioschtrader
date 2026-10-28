@@ -1,18 +1,9 @@
-import { Component, Injector, OnDestroy, OnInit, signal, computed, input } from '@angular/core';
-import { ConfirmationService, FilterService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { Component, OnDestroy, OnInit, signal, computed, input, inject } from '@angular/core';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TransactionContextMenu } from './transaction.context.menu';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { SecurityService } from '../../securitycurrency/service/security.service';
-import {
-  PageFirstRowSelectedRow,
-  ParentChildRegisterService
-} from '../../shared/service/parent.child.register.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { TransactionService } from '../service/transaction.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { PageFirstRowSelectedRow } from '../../shared/service/parent.child.register.service';
 import { Transaction } from '../../entities/transaction';
 import { Security } from '../../entities/security';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
@@ -123,6 +114,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   imports: [TreeTableModule, TooltipModule, ContextMenuModule, TransactionSecurityEditComponent]
 })
 export class TransactionSecurityMarginTreetableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
+  private securityService: SecurityService = inject(SecurityService);
+
   /** Array of security account IDs to filter transactions */
   readonly idsSecurityaccount = input<number[]>(undefined);
 
@@ -171,42 +164,9 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   /**
    * Creates a new instance of TransactionSecurityMarginTreetableComponent.
    *
-   * @param securityService Service for security-related operations and data retrieval
-   * @param parentChildRegisterService Service for managing parent-child component relationships
-   * @param activePanelService Service for managing active panel state
-   * @param transactionService Service for transaction operations and data management
-   * @param confirmationService Optimus service for displaying confirmation dialogs
-   * @param messageToastService Service for displaying toast messages to users
-   * @param filterService Optimus service for table filtering functionality
-   * @param translateService Angular service for internationalization and translations
-   * @param gps Global parameter service for application-wide settings
-   * @param usersettingsService Service for managing user-specific settings
    */
-  constructor(
-    private securityService: SecurityService,
-    parentChildRegisterService: ParentChildRegisterService,
-    activePanelService: ActivePanelService,
-    transactionService: TransactionService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      parentChildRegisterService,
-      activePanelService,
-      transactionService,
-      confirmationService,
-      messageToastService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super();
     this.lang = this.gps.getUserLang();
   }
 

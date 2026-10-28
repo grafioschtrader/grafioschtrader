@@ -2,8 +2,6 @@ import { DestroyRef, inject, signal, Directive, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { Security } from '../../entities/security';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
@@ -24,6 +22,9 @@ import { WatchlistService } from '../service/watchlist.service';
  */
 @Directive()
 export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigBase {
+  private watchlistService: WatchlistService = inject(WatchlistService);
+  private securityService: SecurityService = inject(SecurityService);
+
   protected readonly destroyRef = inject(DestroyRef);
   /**
    * The security or currency pair to display information for. A watchlist delivers its currency pairs as
@@ -44,22 +45,6 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
   /** Content object containing the security currency data for display */
   content: ContentBase;
   private derivedLinks: Subscription;
-
-  /**
-   * Creates a new SecuritycurrencyBaseInfoFields instance.
-   * @param watchlistService Service for watchlist operations and data retrieval
-   * @param securityService Service for security-related operations
-   * @param translateService Angular translation service for internationalization
-   * @param gps Global parameter service for application-wide settings
-   */
-  protected constructor(
-    private watchlistService: WatchlistService,
-    private securityService: SecurityService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
-  }
 
   /**
    * Handles lazy loading of external data provider links.

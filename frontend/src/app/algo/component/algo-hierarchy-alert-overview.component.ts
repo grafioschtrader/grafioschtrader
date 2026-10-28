@@ -1,13 +1,12 @@
 import { DestroyRef, inject, signal, Component, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import {
   AlgoAlertService,
   AlgoTopAlertGroup,
@@ -62,6 +61,8 @@ interface HierarchyAlertRow {
   imports: [TranslateModule, ConfigurableTreeTableComponent]
 })
 export class AlgoHierarchyAlertOverviewComponent extends TreeTableConfigBase implements OnInit {
+  private algoAlertService: AlgoAlertService = inject(AlgoAlertService);
+
   readonly getRowClassCallback = (rowNode: any, rowData: HierarchyAlertRow) => this.getRowClass(rowNode, rowData);
   readonly getCellClassCallback = (rowData: HierarchyAlertRow, field: ColumnConfig) =>
     this.getCellClass(rowData, field);
@@ -73,16 +74,9 @@ export class AlgoHierarchyAlertOverviewComponent extends TreeTableConfigBase imp
   readonly treeNodes = signal<TreeNode[]>([]);
 
   /**
-   * @param algoAlertService - Reads the alerts of the tenant's hierarchies
-   * @param translateService - Angular translation service for internationalization support
-   * @param gps - Global parameter service providing user locale and formatting preferences
    */
-  constructor(
-    private algoAlertService: AlgoAlertService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.addColumn(DataType.String, 'name', 'NAME', true, false);
     this.addColumn(DataType.String, 'algoStrategyImplementations', 'ALGO_STRATEGY_NAME', true, false, {
       translateValues: TranslateValue.NORMAL

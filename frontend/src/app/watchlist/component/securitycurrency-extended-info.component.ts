@@ -1,16 +1,13 @@
 import { Component, effect, input, untracked } from '@angular/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { Securitycurrency } from '../../entities/securitycurrency';
-import { SecurityService } from '../../securitycurrency/service/security.service';
 import { AppSettings } from '../../shared/app.settings';
 import { ContentBase, SecuritycurrencyBaseInfoFields } from './securitycurrency.base.info.fields';
 import { Security } from '../../entities/security';
 import { DistributionFrequency } from '../../shared/types/distribution.frequency';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
-import { WatchlistService } from '../service/watchlist.service';
 import { WatchlistHelper } from './watchlist.helper';
 
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -43,18 +40,9 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
 
   /**
    * Creates an instance of SecuritycurrencyExtendedInfoComponent.
-   * @param watchlistService Service for watchlist operations and data retrieval
-   * @param securityService Service for security-related operations
-   * @param translateService Service for internationalization and translation
-   * @param gps Global parameter service for application-wide settings
    */
-  constructor(
-    watchlistService: WatchlistService,
-    securityService: SecurityService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(watchlistService, securityService, translateService, gps);
+  constructor() {
+    super();
     effect(() => {
       this.securitycurrency();
       this.intradayUrl();

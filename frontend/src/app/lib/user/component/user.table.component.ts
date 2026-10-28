@@ -1,18 +1,14 @@
 import { TableCrudSupportMenu, CrudMenuOptions } from '../../datashowbase/table.crud.support.menu';
-import { Component, Injector, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { UserAdminService } from '../service/user.admin.service';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../message/message.toast.service';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { DataType } from '../../dynamic-form/models/data.type';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { HelpIds } from '../../help/help.ids';
 import { User } from '../../entities/user';
 import { EntityLimitUserTableComponent } from './entity-limit-user-table.component';
@@ -100,6 +96,10 @@ import { BaseSettings } from '../../base.settings';
   ]
 })
 export class UserTableComponent extends TableCrudSupportMenu<User> {
+  private iconReg: SvgIconRegistryService = inject(SvgIconRegistryService);
+  private userAdminService: UserAdminService = inject(UserAdminService);
+  private proposeUserTaskService: ProposeUserTaskService = inject(ProposeUserTaskService);
+
   private static createTypeIconMap: { [key: number]: string } = {
     [UserTaskType.RELEASE_LOGOUT]: 'user_update',
     [UserTaskType.LIMIT_CUD_CHANGE]: 'user_limit_update'
@@ -114,34 +114,8 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
   readonly canExpandRow = (user: User): boolean =>
     user.entityLimitList.length + user.userChangeLimitProposeList.length > 0;
 
-  constructor(
-    private iconReg: SvgIconRegistryService,
-    private userAdminService: UserAdminService,
-    private proposeUserTaskService: ProposeUserTaskService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      BaseSettings.USER,
-      userAdminService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector,
-      [CrudMenuOptions.Allow_Edit]
-    );
+  constructor() {
+    super(BaseSettings.USER, inject(UserAdminService), [CrudMenuOptions.Allow_Edit]);
     UserTableComponent.registerIcons(this.iconReg);
 
     this.addColumn(DataType.NumericInteger, 'idUser', 'ID', true, false, {

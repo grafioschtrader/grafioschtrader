@@ -1,10 +1,9 @@
 import { Component, input, effect, untracked } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { AppSettings } from '../../shared/app.settings';
 import { PerformancePeriodMetrics } from '../model/performance.period';
 
@@ -60,11 +59,9 @@ export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase {
   /**
    * Creates the metrics display.
    *
-   * @param translateService - Translation of the labels, tooltips and the status of the money-weighted return
-   * @param gps - Locale settings for number and date formatting
    */
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.initializeFields();
     effect(() => {
       const metrics = this.metrics();

@@ -1,7 +1,6 @@
-import { Component, Injector, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { plainToInstance } from 'class-transformer';
 import { Subscription } from 'rxjs';
@@ -9,11 +8,7 @@ import { AuditHelper } from '../../lib/helper/audit.helper';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FilterType } from '../../lib/datashowbase/filter.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
 import { HelpIds } from '../../lib/help/help.ids';
 import { BankruptSecurity, BankruptSecurityRow } from '../../entities/bankrupt.security';
@@ -71,36 +66,15 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
   imports: [TranslateModule, ConfigurableTableComponent, BankruptSecurityEditComponent]
 })
 export class BankruptSecurityTableComponent extends TableCrudSupportMenu<BankruptSecurity> {
+  private bankruptSecurityService: BankruptSecurityService = inject(BankruptSecurityService);
+
   readonly callParam = signal<BankruptSecurityCallParam>(null);
 
   private readDataSub?: Subscription;
   private openDialogSub?: Subscription;
 
-  constructor(
-    private bankruptSecurityService: BankruptSecurityService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      AppSettings.BANKRUPT_SECURITY,
-      bankruptSecurityService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super(AppSettings.BANKRUPT_SECURITY, inject(BankruptSecurityService));
     this.addColumn(DataType.String, 'name', 'SECURITY', true, false, { filterType: FilterType.likeDataType });
     this.addColumnFeqH(DataType.String, 'isin', true, false, { filterType: FilterType.likeDataType });
     this.addColumnFeqH(DataType.String, 'currency', true, false, { filterType: FilterType.withOptions });

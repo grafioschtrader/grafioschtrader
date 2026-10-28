@@ -1,26 +1,20 @@
-import { Component, Injector, OnDestroy, OnInit, viewChild, input, linkedSignal } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { Component, OnDestroy, OnInit, viewChild, input, linkedSignal, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { Table, TableModule } from '@openng/optimus-ui/table';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { Security } from '../../entities/security';
 import { Transaction } from '../../entities/transaction';
 import { TransactionCostGrandSummary } from '../../entities/view/transactioncost/transaction.cost.grand.summary';
 import { TransactionCostPosition } from '../../entities/view/transactioncost/transaction.cost.position';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { AppSettings } from '../../shared/app.settings';
-import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 import { TransactionContextMenu } from '../../transaction/component/transaction.context.menu';
 import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
-import { TransactionService } from '../../transaction/service/transaction.service';
 
 /**
  * Component that displays transaction cost positions in a tabular format with support for editing security transactions.
@@ -104,6 +98,8 @@ import { TransactionService } from '../../transaction/service/transaction.servic
   imports: [TranslateModule, TableModule, ContextMenuModule, TooltipModule, TransactionSecurityEditComponent]
 })
 export class TenantTransactionCostExtendedComponent extends TransactionContextMenu implements OnInit, OnDestroy {
+  private securityService: SecurityService = inject(SecurityService);
+
   /** Array of transaction cost positions to be displayed in the table */
   readonly transactionCostPositions = input<TransactionCostPosition[]>(undefined);
 
@@ -126,42 +122,9 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
   /**
    * Creates an instance of TenantTransactionCostExtendedComponent with all required dependencies.
    *
-   * @param securityService Service for handling security-related operations
-   * @param parentChildRegisterService Service for managing parent-child component relationships
-   * @param activePanelService Service for managing active panel state
-   * @param transactionService Service for transaction-related operations
-   * @param confirmationService Service for displaying confirmation dialogs
-   * @param messageToastService Service for displaying toast messages
-   * @param filterService Service for table filtering functionality
-   * @param translateService Service for internationalization and translation
-   * @param gps Global parameter service for application-wide settings
-   * @param usersettingsService Service for managing user-specific settings
    */
-  constructor(
-    private securityService: SecurityService,
-    parentChildRegisterService: ParentChildRegisterService,
-    activePanelService: ActivePanelService,
-    transactionService: TransactionService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      parentChildRegisterService,
-      activePanelService,
-      transactionService,
-      confirmationService,
-      messageToastService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super();
   }
 
   /**

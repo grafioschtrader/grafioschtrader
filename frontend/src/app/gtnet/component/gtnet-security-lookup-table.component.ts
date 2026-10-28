@@ -1,16 +1,13 @@
-import { Component, Injector, OnInit, output, input, computed, effect, untracked } from '@angular/core';
+import { Component, OnInit, output, input, computed, effect, untracked, inject } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { FilterService } from '@openng/optimus-ui/api';
 import moment from 'moment';
 
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { SecurityGtnetLookupDTO } from '../model/gtnet-security-lookup';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
@@ -164,6 +161,9 @@ import { AppSettings } from '../../shared/app.settings';
   ]
 })
 export class GtnetSecurityLookupTableComponent extends TableConfigBase implements OnInit {
+  private securityService: SecurityService = inject(SecurityService);
+  private currencypairService: CurrencypairService = inject(CurrencypairService);
+
   readonly securities = input<SecurityGtnetLookupDTO[]>([]);
   readonly displaySecurities = computed(() =>
     this.securities().map((security, index) => ({
@@ -246,17 +246,9 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   /** User's language for subCategoryNLS lookup */
   private userLang: string;
 
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector,
-    private securityService: SecurityService,
-    private currencypairService: CurrencypairService
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
-    this.userLang = gps.getUserLang();
+  constructor() {
+    super();
+    this.userLang = this.gps.getUserLang();
 
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 200 });
     this.addColumn(DataType.String, 'isin', 'ISIN', true, false, {

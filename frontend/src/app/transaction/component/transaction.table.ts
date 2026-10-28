@@ -1,12 +1,5 @@
-import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
 import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { TranslateService } from '@ngx-translate/core';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TransactionService } from '../service/transaction.service';
-import { Directive, Injector, signal } from '@angular/core';
+import { Directive, signal, inject } from '@angular/core';
 import { TransactionContextMenu } from './transaction.context.menu';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -16,7 +9,7 @@ import { Security } from '../../entities/security';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { TransactionCallParam } from './transaction.call.parm';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { HelpIds } from '../../lib/help/help.ids';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
@@ -34,49 +27,18 @@ import {
  */
 @Directive()
 export abstract class TransactionTable extends TransactionContextMenu {
+  protected currencypairService: CurrencypairService = inject(CurrencypairService);
+
   /** Array of transaction positions displayed in the cash account table */
   readonly cashaccountTransactionPositions = signal<Transaction[]>([]);
 
   /**
    * Creates a new TransactionTable instance with comprehensive service dependencies and predefined column configuration.
    *
-   * @param currencypairService Service for handling currency pair operations and data retrieval
-   * @param parentChildRegisterService Service for managing parent-child component relationships and state preservation
-   * @param activePanelService Service for managing active panel states and menu interactions
-   * @param transactionService Service for transaction CRUD operations and business logic
-   * @param confirmationService Optimus service for displaying confirmation dialogs
-   * @param messageToastService Service for displaying user notification messages
-   * @param filterService Optimus service for table filtering functionality
-   * @param translateService Angular service for internationalization and text translation
-   * @param gps Global parameter service for application-wide settings and configurations
-   * @param usersettingsService Service for managing user-specific settings and preferences
    */
 
-  protected constructor(
-    protected currencypairService: CurrencypairService,
-    parentChildRegisterService: ParentChildRegisterService,
-    activePanelService: ActivePanelService,
-    transactionService: TransactionService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      parentChildRegisterService,
-      activePanelService,
-      transactionService,
-      confirmationService,
-      messageToastService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  protected constructor() {
+    super();
 
     this.addColumn(DataType.DateNumeric, 'transactionTime', 'DATE', true, false, {
       width: 60,
@@ -105,7 +67,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
     this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false, { filterType: FilterType.likeDataType });
     this.addColumn(DataType.Numeric, 'quotation', 'QUOTATION_DIV', true, false, {
       filterType: FilterType.likeDataType,
-      maxFractionDigits: gps.getMaxFractionDigits()
+      maxFractionDigits: this.gps.getMaxFractionDigits()
     });
     this.addColumn(DataType.String, 'currencypair.fromCurrency', 'CURRENCY', true, false, {
       filterType: FilterType.withOptions
@@ -114,7 +76,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
       filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'currencyExRate', 'EXCHANGE_RATE', true, false, {
-      maxFractionDigits: gps.getMaxFractionDigits(),
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
       filterType: FilterType.likeDataType
     });
 

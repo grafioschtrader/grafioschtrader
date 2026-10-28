@@ -4,9 +4,7 @@ import { GTNetExchangeService } from '../service/gtnet-exchange.service';
 import { GTNetExchangeKindType, GTNetSupplierWithDetails } from '../../lib/gnet/model/gtnet';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
-import { TranslateService } from '@ngx-translate/core';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
 
@@ -29,6 +27,8 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
   `
 })
 export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase implements OnInit {
+  private gtNetExchangeService: GTNetExchangeService = inject(GTNetExchangeService);
+
   readonly idSecuritycurrency = input<number>(undefined);
   /** Discriminator type: 'S' for Security, 'C' for Currencypair */
   readonly dtype = input<string>(undefined);
@@ -37,12 +37,8 @@ export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase imple
 
   private readonly destroyRef = inject(DestroyRef);
 
-  constructor(
-    private gtNetExchangeService: GTNetExchangeService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

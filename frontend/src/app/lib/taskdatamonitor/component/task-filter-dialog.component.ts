@@ -1,12 +1,11 @@
-import { Component, Inject, signal, output, input } from '@angular/core';
+import { Component, signal, output, input, inject } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { TASK_TYPE_ENUM } from '../service/task.type.enum.token';
 import { ShowRecordConfigBase } from '../../datashowbase/show.record.config.base';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { TranslateValue } from '../../datashowbase/column.config';
@@ -62,18 +61,16 @@ export interface TaskFilterItem {
   imports: [FormsModule, TranslateModule, DialogModule, ButtonModule, ConfigurableTableComponent]
 })
 export class TaskFilterDialogComponent extends ShowRecordConfigBase {
+  private taskTypeEnum: any = inject(TASK_TYPE_ENUM);
+
   readonly visibleDialog = input(false);
   readonly closeDialog = output<number[] | null>();
 
   readonly taskFilterItems = signal<TaskFilterItem[]>([]);
   readonly selectedItems = signal<TaskFilterItem[]>([]);
 
-  constructor(
-    @Inject(TASK_TYPE_ENUM) private taskTypeEnum: any,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.initializeColumns();
   }
 

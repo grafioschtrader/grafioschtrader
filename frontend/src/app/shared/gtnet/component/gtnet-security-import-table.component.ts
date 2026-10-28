@@ -2,14 +2,11 @@ import { Component, DestroyRef, inject, OnInit, signal, output, viewChild, input
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
-import { TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 
 import { TableEditConfigBase } from '../../../lib/datashowbase/table.edit.config.base';
 import { EditableTableComponent, RowEditSaveEvent } from '../../../lib/datashowbase/editable-table.component';
-import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../../lib/services/user.settings.service';
 import { MessageToastService } from '../../../lib/message/message.toast.service';
 import { DataType } from '../../../lib/dynamic-form/models/data.type';
 import { TranslateValue } from '../../../lib/datashowbase/column.config';
@@ -36,7 +33,6 @@ import { ProcessedAction } from '../../../lib/types/processed.action';
 import { FileUploadParam } from '../../../lib/generaldialog/model/file.upload.param';
 import { UploadFileDialogComponent } from '../../../lib/generaldialog/component/upload-file-dialog.component';
 import { AppHelpIds } from '../../help/help.ids';
-import { HelpIds } from '../../../lib/help/help.ids';
 import { IGlobalMenuAttach } from '../../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../../lib/mainmenubar/service/active.panel.service';
 import { GTNetSecurityImpGapTableComponent } from './gtnet-security-imp-gap-table.component';
@@ -118,6 +114,15 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
   ]
 })
 export class GTNetSecurityImportTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private gtNetSecurityImpPosService: GTNetSecurityImpPosService = inject(GTNetSecurityImpPosService);
+  private gtNetService: GTNetService = inject(GTNetService);
+  private globalparameterGTService: GlobalparameterGTService = inject(GlobalparameterGTService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+  private securityService: SecurityService = inject(SecurityService);
+  private currencypairService: CurrencypairService = inject(CurrencypairService);
+
   readonly editableTable = viewChild<EditableTableComponent<GTNetSecurityImpPos>>('editableTable');
 
   readonly selectedHeadInput = input<GTNetSecurityImpHead>(undefined, { alias: 'selectedHead' });
@@ -161,21 +166,8 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     [idSecuritycurrency: number]: SecurityDataProviderUrls;
   } = {};
 
-  constructor(
-    private activePanelService: ActivePanelService,
-    private gtNetSecurityImpPosService: GTNetSecurityImpPosService,
-    private gtNetService: GTNetService,
-    private globalparameterGTService: GlobalparameterGTService,
-    private messageToastService: MessageToastService,
-    private confirmationService: ConfirmationService,
-    private securityService: SecurityService,
-    private currencypairService: CurrencypairService,
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
+  constructor() {
+    super();
 
     // Configure columns
     this.addEditColumnFeqH(DataType.String, 'isin', false, { width: 120 });
@@ -186,7 +178,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       width: 80
     });
     const tickerCol = this.getColumnConfigByField('tickerSymbol');
-    tickerCol.cec.maxLength = gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Security_Ticker_Symbol);
+    tickerCol.cec.maxLength = this.gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Security_Ticker_Symbol);
 
     this.addEditColumnFeqH(DataType.String, 'currency', true, { width: 100 });
 
@@ -212,7 +204,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     );
     this.addColumn(
       DataType.String,
-      'security.assetClass.subCategoryNLS.map.' + gps.getUserLang(),
+      'security.assetClass.subCategoryNLS.map.' + this.gps.getUserLang(),
       'SUB_ASSETCLASS',
       true,
       true,

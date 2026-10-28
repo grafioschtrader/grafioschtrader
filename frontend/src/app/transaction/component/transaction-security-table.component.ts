@@ -1,25 +1,14 @@
-import { Component, Injector, OnDestroy, OnInit, signal, computed, input } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, computed, input, inject } from '@angular/core';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
 import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
-import { TranslateService } from '@ngx-translate/core';
 import { Security } from '../../entities/security';
 import { Transaction } from '../../entities/transaction';
 import { TransactionCallParam } from './transaction.call.parm';
-import { TransactionService } from '../service/transaction.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TransactionPosition } from '../../entities/view/transaction.position';
 import { TransactionContextMenu } from './transaction.context.menu';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { SecurityService } from '../../securitycurrency/service/security.service';
-import {
-  PageFirstRowSelectedRow,
-  ParentChildRegisterService
-} from '../../shared/service/parent.child.register.service';
 import { BusinessHelper } from '../../shared/helper/business.helper';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { TransactionSecurityFieldDefinition } from './transaction.security.field.definition';
 import { TransactionSecurityOptionalParam } from '../model/transaction.security.optional.param';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -42,6 +31,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   imports: [ConfigurableTableComponent, TransactionSecurityEditComponent, StandingOrderSecurityEditComponent]
 })
 export class TransactionSecurityTableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
+  private securityService: SecurityService = inject(SecurityService);
+
   /** Array of security account identifiers to filter transactions */
   readonly idsSecurityaccount = input<number[]>(undefined);
 
@@ -74,42 +65,9 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   /**
    * Creates an instance of TransactionSecurityTableComponent with required dependencies.
    *
-   * @param securityService Service for security-related operations and data retrieval
-   * @param parentChildRegisterService Service for managing parent-child component relationships
-   * @param activePanelService Service for managing active panel state in the application
-   * @param transactionService Service for transaction operations and data management
-   * @param confirmationService Optimus service for displaying confirmation dialogs
-   * @param messageToastService Service for displaying user notification messages
-   * @param filterService Optimus service for data filtering operations
-   * @param translateService Angular service for internationalization and translations
-   * @param gps Global parameter service for application-wide settings and configurations
-   * @param usersettingsService Service for managing user-specific settings and preferences
    */
-  constructor(
-    private securityService: SecurityService,
-    parentChildRegisterService: ParentChildRegisterService,
-    activePanelService: ActivePanelService,
-    transactionService: TransactionService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      parentChildRegisterService,
-      activePanelService,
-      transactionService,
-      confirmationService,
-      messageToastService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super();
   }
 
   /**

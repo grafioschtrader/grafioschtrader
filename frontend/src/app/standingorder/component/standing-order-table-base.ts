@@ -1,13 +1,10 @@
 import { DestroyRef, Directive, inject, OnDestroy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, Subscription } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -32,6 +29,11 @@ import { BaseSettings } from '../../lib/base.settings';
  */
 @Directive()
 export abstract class StandingOrderTableBase extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
+  protected activePanelService: ActivePanelService = inject(ActivePanelService);
+  protected standingOrderService: StandingOrderService = inject(StandingOrderService);
+  protected messageToastService: MessageToastService = inject(MessageToastService);
+  protected confirmationService: ConfirmationService = inject(ConfirmationService);
+
   protected readonly destroyRef = inject(DestroyRef);
   readonly standingOrders = signal<StandingOrder[]>([]);
   readonly selectedEntity = signal<StandingOrder | null>(null);
@@ -44,17 +46,8 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   protected simulationTenant = false;
   private showInactive = false;
 
-  protected constructor(
-    protected activePanelService: ActivePanelService,
-    protected standingOrderService: StandingOrderService,
-    protected messageToastService: MessageToastService,
-    protected confirmationService: ConfirmationService,
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
+  protected constructor() {
+    super();
     this.addColumn(DataType.NumericInteger, 'idStandingOrder', 'ID', true, false);
     this.addColumnFeqH(DataType.String, 'transactionType', true, false, { translateValues: TranslateValue.NORMAL });
     this.addSubtypeColumns();

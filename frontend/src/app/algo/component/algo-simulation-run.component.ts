@@ -7,7 +7,7 @@ import { AppSettings } from '../../shared/app.settings';
 
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
@@ -21,7 +21,6 @@ import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.conf
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { BaseSettings } from '../../lib/base.settings';
 import { SimulationContextService } from '../service/simulation.context.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { HelpIds } from '../../lib/help/help.ids';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
@@ -33,7 +32,6 @@ import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { TenantService } from '../../tenant/service/tenant.service';
 import { AlgoSimulationRunService } from '../service/algo-simulation-run.service';
 import {
-  SimulationFailureMessage,
   SimulationRunEquityPoint,
   SimulationRunEvent,
   SimulationRunEventWindow,
@@ -225,6 +223,17 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
   ]
 })
 export class AlgoSimulationRunComponent extends SingleRecordConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
+  private router: Router = inject(Router);
+  private chartDataService: ChartDataService = inject(ChartDataService);
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private tenantService: TenantService = inject(TenantService);
+  private runService: AlgoSimulationRunService = inject(AlgoSimulationRunService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private dataChangedService: DataChangedService = inject(DataChangedService);
+  private dialogService: DialogService = inject(DialogService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+  private simulationContext: SimulationContextService = inject(SimulationContextService);
+
   private readonly pendingReads = new Map<string, Subscription>();
   private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
     this.pendingReads.forEach((request) => request.unsubscribe())
@@ -293,21 +302,8 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     'TOTAL'
   );
 
-  constructor(
-    private router: Router,
-    private chartDataService: ChartDataService,
-    private activatedRoute: ActivatedRoute,
-    private tenantService: TenantService,
-    private runService: AlgoSimulationRunService,
-    private activePanelService: ActivePanelService,
-    private dataChangedService: DataChangedService,
-    private dialogService: DialogService,
-    private confirmationService: ConfirmationService,
-    private simulationContext: SimulationContextService,
-    public override translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

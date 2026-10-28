@@ -1,10 +1,6 @@
 import { Component, input, effect, untracked } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../datashowbase/configurable-table.component';
-import { UserSettingsService } from '../services/user.settings.service';
-import { GlobalparameterService } from '../services/globalparameter.service';
 import { DataType } from '../dynamic-form/models/data.type';
 import { DashboardRow } from './dashboard.types';
 import { TranslateValue } from '../datashowbase/column.config';
@@ -23,13 +19,8 @@ import { TranslateValue } from '../datashowbase/column.config';
 export class DashboardTableComponent extends TableConfigBase {
   readonly rows = input<DashboardRow[]>([]);
   readonly type = input('');
-  constructor(
-    filter: FilterService,
-    settings: UserSettingsService,
-    translate: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filter, settings, translate, gps);
+  constructor() {
+    super();
 
     effect(() => {
       this.type();

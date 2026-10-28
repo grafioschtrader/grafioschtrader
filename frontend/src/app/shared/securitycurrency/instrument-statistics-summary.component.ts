@@ -1,8 +1,7 @@
 import { Component, OnInit, input } from '@angular/core';
 import { StatisticsSummary } from '../../entities/view/instrument.statistics.result';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TreeNode } from '@openng/optimus-ui/api';
@@ -39,8 +38,8 @@ export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase im
   rootNodes: TreeNode[];
   readonly negativeValue = (row: any, field: ColumnConfig) => this.isValueByPathMinus(row, field);
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

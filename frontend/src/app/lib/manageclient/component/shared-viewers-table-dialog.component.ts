@@ -1,7 +1,7 @@
-import { Component, Injector, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
+import { ConfirmationService } from '@openng/optimus-ui/api';
 import { TableModule } from '@openng/optimus-ui/table';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -9,8 +9,6 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TableConfigBase } from '../../datashowbase/table.config.base';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { TranslateValue } from '../../datashowbase/column.config';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { MessageToastService } from '../../message/message.toast.service';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { AppHelper } from '../../helper/app.helper';
@@ -66,19 +64,14 @@ import { SharedViewerInfo } from '../model/shared-viewer-info';
   imports: [TranslateModule, TableModule, ButtonModule, TooltipModule]
 })
 export class SharedViewersTableDialogComponent extends TableConfigBase implements OnInit {
+  private manageClientService: ManageClientService = inject(ManageClientService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   readonly sharedViewers = signal<SharedViewerInfo[]>([]);
 
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector,
-    private manageClientService: ManageClientService,
-    private confirmationService: ConfirmationService,
-    private messageToastService: MessageToastService
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

@@ -1,12 +1,9 @@
-import { Component, Injector, OnInit, input } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FailedParsedTemplateState } from './failed.parsed.template.state';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
@@ -68,14 +65,8 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBase implements OnInit {
   readonly failedParsedTemplateStateList = input<FailedParsedTemplateState[]>(undefined);
 
-  constructor(
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

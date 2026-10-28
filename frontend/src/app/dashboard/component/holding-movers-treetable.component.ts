@@ -1,10 +1,8 @@
 import { AppSettings } from '../../shared/app.settings';
 import { Component, output, input, computed, effect, untracked } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { HoldingMoversBranch, HoldingMoversRanking, HoldingMoversRow } from '../model/holding.movers';
 
@@ -58,8 +56,8 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase {
 
   readonly treeNodes = computed(() => this.branches().map((branch) => this.branchNode(branch)));
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.addColumn(DataType.String, 'name', 'DASHBOARD_MOVERS_INSTRUMENT', true, false, {
       width: 160,
       fieldValueFN: this.instrumentLabel.bind(this),

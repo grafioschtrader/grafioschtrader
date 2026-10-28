@@ -7,7 +7,6 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Directive,
-  Injector,
   OnDestroy,
   viewChild
 } from '@angular/core';
@@ -19,11 +18,8 @@ import { WatchlistService } from '../service/watchlist.service';
 import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
 import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { ConfirmationService, FilterService, MenuItem, SortEvent, SortMeta } from '@openng/optimus-ui/api';
-import { TranslateService } from '@ngx-translate/core';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { ConfirmationService, MenuItem, SortEvent, SortMeta } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { Watchlist } from '../../entities/watchlist';
@@ -78,6 +74,20 @@ import {
  */
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements AfterViewInit, OnDestroy, IGlobalMenuAttach {
+  protected dialogService: DialogService = inject(DialogService);
+  protected alarmSetupService: AlarmSetupService = inject(AlarmSetupService);
+  protected timeSeriesQuotesService: TimeSeriesQuotesService = inject(TimeSeriesQuotesService);
+  protected dataChangedService: DataChangedService = inject(DataChangedService);
+  protected activePanelService: ActivePanelService = inject(ActivePanelService);
+  protected watchlistService: WatchlistService = inject(WatchlistService);
+  protected router: Router = inject(Router);
+  protected activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  protected confirmationService: ConfirmationService = inject(ConfirmationService);
+  protected messageToastService: MessageToastService = inject(MessageToastService);
+  protected productIconService: ProductIconService = inject(ProductIconService);
+  protected changeDetectionStrategy: ChangeDetectorRef = inject(ChangeDetectorRef);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   /**
    * Key-value mapping of feed connector IDs to human-readable names.
    * Used for displaying user-friendly connector names in the UI instead of technical IDs.
@@ -243,49 +253,14 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    *
    * @param {WatchListType} watchlistType - Type of watchlist (performance, price feed, etc.)
    * @param {string} storeKey - Local storage key for table settings
-   * @param {DialogService} dialogService - Optimus dialog service
-   * @param {AlarmSetupService} alarmSetupService - Service for alarm setup functionality
-   * @param {TimeSeriesQuotesService} timeSeriesQuotesService - Service for time series operations
-   * @param {DataChangedService} dataChangedService - Service for data change notifications
-   * @param {ActivePanelService} activePanelService - Service for active panel management
-   * @param {WatchlistService} watchlistService - Service for watchlist operations
-   * @param {Router} router - Angular router for navigation
-   * @param {ActivatedRoute} activatedRoute - Current activated route
-   * @param {ConfirmationService} confirmationService - Optimus confirmation dialog service
-   * @param {MessageToastService} messageToastService - Service for toast notifications
-   * @param {ProductIconService} productIconService - Service for product icons
-   * @param {ChangeDetectorRef} changeDetectionStrategy - Angular change detection reference
-   * @param {FilterService} filterService - Optimus filter service
-   * @param {TranslateService} translateService - Angular translation service
-   * @param {GlobalparameterGTService} gpsGT - GT-specific global parameters service
-   * @param {GlobalparameterService} gps - Global parameters service
-   * @param {UserSettingsService} usersettingsService - User settings service
    * @param {string} selectMultiMode - Selection mode (single or multiple)
    */
   protected constructor(
     public watchlistType: WatchListType,
     protected storeKey: string,
-    protected dialogService: DialogService,
-    protected alarmSetupService: AlarmSetupService,
-    protected timeSeriesQuotesService: TimeSeriesQuotesService,
-    protected dataChangedService: DataChangedService,
-    protected activePanelService: ActivePanelService,
-    protected watchlistService: WatchlistService,
-    protected router: Router,
-    protected activatedRoute: ActivatedRoute,
-    protected confirmationService: ConfirmationService,
-    protected messageToastService: MessageToastService,
-    protected productIconService: ProductIconService,
-    protected changeDetectionStrategy: ChangeDetectorRef,
-    filterService: FilterService,
-    translateService: TranslateService,
-    private gpsGT: GlobalparameterGTService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    public selectMultiMode: 'single' | 'multiple',
-    injector: Injector
+    public selectMultiMode: 'single' | 'multiple'
   ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+    super();
     if (selectMultiMode === WatchlistTable.MULTIPLE) {
       this.singleMultiSelection.set([]);
     }

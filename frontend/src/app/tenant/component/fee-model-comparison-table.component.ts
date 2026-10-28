@@ -1,6 +1,4 @@
-import { Component, effect, Injector, input, OnDestroy, untracked } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
+import { Component, effect, input, OnDestroy, untracked } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { FeeModelComparisonDetail } from '../../entities/fee.model.comparison';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
@@ -9,8 +7,6 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { Helper } from '../../lib/helper/helper';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
 
 /**
@@ -43,14 +39,8 @@ export class FeeModelComparisonTableComponent extends TableConfigBase implements
   readonly details = input<FeeModelComparisonDetail[]>([]);
   selectedRow: FeeModelComparisonDetail;
 
-  constructor(
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.rowsPerPage = 20;
     this.addColumnFeqH(DataType.DateString, 'transactionDate', true, true, {
       filterType: FilterType.likeDataType
@@ -84,7 +74,10 @@ export class FeeModelComparisonTableComponent extends TableConfigBase implements
       fieldValueFN: (dataobject: any, field: ColumnConfig, valueField: any) => {
         const rawValue = Helper.getValueByPath(dataobject, field.field);
         if (rawValue != null) {
-          return Number(rawValue).toFixed(AppSettings.FID_PERCENTAGE_FRACTION).split('.').join(gps.getDecimalSymbol());
+          return Number(rawValue)
+            .toFixed(AppSettings.FID_PERCENTAGE_FRACTION)
+            .split('.')
+            .join(this.gps.getDecimalSymbol());
         }
         return rawValue;
       }

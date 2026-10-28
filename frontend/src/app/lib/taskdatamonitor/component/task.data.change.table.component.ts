@@ -1,23 +1,20 @@
-import { Component, Inject, Injector, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap } from '@angular/router';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import {
   MAIN_TASK_QUEUE,
   ProgressStateType,
   TaskDataChange,
   TaskDataChangeFormConstraints
 } from '../types/task.data.change';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { HelpIds } from '../../help/help.ids';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { TaskDataChangeService } from '../service/task.data.change.service';
 import { CrudMenuOptions, TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
-import { MessageToastService } from '../../message/message.toast.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { FilterType } from '../../datashowbase/filter.type';
 import { forkJoin, of, Subscription, switchMap } from 'rxjs';
@@ -140,6 +137,9 @@ import { GlobalSessionNames } from '../../global.session.names';
   ]
 })
 export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataChange> implements OnDestroy {
+  private taskDataChangeService: TaskDataChangeService = inject(TaskDataChangeService);
+  private taskExtendService: ITaskExtendService = inject(TASK_EXTENDED_SERVICE);
+
   private static readonly STORE_KEY = 'u_taskdatachange';
 
   minDate: Date = new Date(
@@ -154,7 +154,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   readonly currentTaskFilter = signal<number[] | null>(null);
 
   readonly tdcFormConstraints = signal<TaskDataChangeFormConstraints>(null);
-  taskTypeEnum: any;
+  taskTypeEnum: any = inject(TASK_TYPE_ENUM);
 
   /** The queue whose tasks are shown */
   readonly queue = signal(MAIN_TASK_QUEUE);
@@ -169,36 +169,15 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   private queueInitialized = false;
   private readonly showMenu = signal<MenuItem[]>([]);
 
-  constructor(
-    private taskDataChangeService: TaskDataChangeService,
-    @Inject(TASK_EXTENDED_SERVICE)
-    private taskExtendService: ITaskExtendService,
-    @Inject(TASK_TYPE_ENUM) taskTypeEnum: any,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
+  constructor() {
     super(
       BaseSettings.TASK_DATE_CHANGE,
-      taskDataChangeService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector,
-      gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Delete] : []
+      inject(TaskDataChangeService),
+      inject(GlobalparameterService).hasRole(BaseSettings.ROLE_ADMIN)
+        ? [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Delete]
+        : []
     );
-    this.taskTypeEnum = taskTypeEnum;
+
     this.frozenColumnsSelectable = true;
 
     this.addColumnFeqH(DataType.NumericInteger, 'idTaskDataChange', true, false);

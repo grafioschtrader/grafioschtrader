@@ -1,11 +1,9 @@
-import { Component, Injector, OnDestroy, OnChanges, signal, input } from '@angular/core';
+import { Component, OnDestroy, OnChanges, signal, input, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, switchMap } from 'rxjs';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
 import { TransactionContextMenu } from '../../transaction/component/transaction.context.menu';
-import { TransactionService } from '../../transaction/service/transaction.service';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 import { Transaction } from '../../entities/transaction';
 import { Security } from '../../entities/security';
@@ -13,11 +11,6 @@ import { Portfolio } from '../../entities/portfolio';
 import { StandingOrder } from '../../entities/standing.order';
 import { StandingOrderService } from '../service/standing.order.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -119,38 +112,17 @@ import { StandingOrderSecurityEditComponent } from './standing-order-security-ed
   ]
 })
 export class StandingOrderTransactionTableComponent extends TransactionContextMenu implements OnChanges, OnDestroy {
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private standingOrderService: StandingOrderService = inject(StandingOrderService);
+
   readonly standingOrder = input<StandingOrder>(undefined);
 
   readonly transactions = signal<Transaction[]>([]);
   private readSubscription?: Subscription;
   private portfolio: Portfolio;
 
-  constructor(
-    private portfolioService: PortfolioService,
-    private standingOrderService: StandingOrderService,
-    parentChildRegisterService: ParentChildRegisterService,
-    activePanelService: ActivePanelService,
-    transactionService: TransactionService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      parentChildRegisterService,
-      activePanelService,
-      transactionService,
-      confirmationService,
-      messageToastService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super();
     this.addColumn(DataType.DateString, 'transactionTime', 'DATE', true, false);
     this.addColumnFeqH(DataType.String, 'transactionType', true, false, {
       translateValues: TranslateValue.NORMAL

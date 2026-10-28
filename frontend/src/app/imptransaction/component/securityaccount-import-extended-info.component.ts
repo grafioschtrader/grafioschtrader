@@ -1,10 +1,9 @@
 import { Component, input, effect, untracked } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ImportSettings } from './import.settings';
@@ -27,8 +26,8 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
   private readonly IMPORT_ASSIGN = 'IMPORT_ASSIGN';
   private readonly IMPORT_STATE = 'IMPORT_STATE';
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.addFieldProperty(DataType.DateTimeString, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE', {
       fieldsetName: this.IMPORT_VALUE
     });

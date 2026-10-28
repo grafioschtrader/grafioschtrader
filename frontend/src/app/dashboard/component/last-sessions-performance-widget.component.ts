@@ -8,9 +8,10 @@ import {
   input,
   linkedSignal,
   effect,
-  untracked
+  untracked,
+  inject
 } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { DashboardConfig, DashboardResult } from '../../lib/dashboard/dashboard.types';
 import { DashboardService } from '../../lib/dashboard/dashboard.service';
@@ -25,7 +26,6 @@ import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { LastSessionsPerformance } from '../model/last.sessions.performance';
 import { LastSessionsPerformanceTableComponent } from './last-sessions-performance-table.component';
@@ -69,6 +69,9 @@ export class LastSessionsPerformanceWidgetComponent
   extends ShowRecordConfigBase
   implements OnInit, AfterViewInit, OnDestroy
 {
+  private dashboardService: DashboardService = inject(DashboardService);
+  private portfolioService: PortfolioService = inject(PortfolioService);
+
   readonly result = input<DashboardResult>(undefined);
 
   readonly form = viewChild<DynamicFormComponent>('form');
@@ -83,13 +86,8 @@ export class LastSessionsPerformanceWidgetComponent
 
   private idPortfolioSubscription: Subscription;
 
-  constructor(
-    public override translateService: TranslateService,
-    gps: GlobalparameterService,
-    private dashboardService: DashboardService,
-    private portfolioService: PortfolioService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.config = [
       DynamicFieldHelper.createFieldSelectNumber('idPortfolio', 'DASHBOARD_LAST_SESSIONS_PORTFOLIO', false, {
         usedLayoutColumns: 8

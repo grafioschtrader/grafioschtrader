@@ -1,17 +1,11 @@
-import { computed, Directive, Injector, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService, MenuItem, SortEvent } from '@openng/optimus-ui/api';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { computed, Directive, OnDestroy, OnInit, signal, viewChild, inject } from '@angular/core';
+import { MenuItem, SortEvent } from '@openng/optimus-ui/api';
 
 import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { GTNetExchangeFields } from '../../lib/gnet/model/gtnet';
 import { GTNetExchangeService } from '../service/gtnet-exchange.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { HelpIds } from '../../lib/help/help.ids';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -35,6 +29,8 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
   extends TableCrudSupportMenu<T>
   implements OnInit, OnDestroy
 {
+  protected gtNetExchangeService: GTNetExchangeService = inject(GTNetExchangeService);
+
   /** IDs of the modified items for the batch save; every change publishes a new set */
   readonly modifiedItems = signal<ReadonlySet<number>>(new Set());
 
@@ -58,33 +54,8 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
 
   readonly contextMenuDiv = viewChild<any>('cmDiv');
 
-  protected constructor(
-    entityName: string,
-    protected gtNetExchangeService: GTNetExchangeService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      entityName,
-      null,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector,
-      []
-    );
+  protected constructor(entityName: string) {
+    super(entityName, null, []);
     this.rowsPerPage = 50;
   }
 

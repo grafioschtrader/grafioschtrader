@@ -1,25 +1,11 @@
-import {
-  DestroyRef,
-  inject,
-  signal,
-  Component,
-  Injector,
-  OnInit,
-  output,
-  input,
-  effect,
-  untracked
-} from '@angular/core';
+import { DestroyRef, inject, signal, Component, OnInit, output, input, effect, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { Security } from '../../entities/security';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
@@ -52,6 +38,8 @@ import { Helper } from '../../lib/helper/helper';
   imports: [TranslateModule, ConfigurableTableComponent]
 })
 export class TenantPerformanceEodMissingTableComponent extends TableConfigBase implements OnInit {
+  private securityService: SecurityService = inject(SecurityService);
+
   /**
    * Contains the missings days -> key = idSecuritycurrency
    */
@@ -67,15 +55,8 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   private readonly destroyRef = inject(DestroyRef);
   readonly rowHighlightClass = (row: Security) => this.getRowHighlightClass(row);
 
-  constructor(
-    private securityService: SecurityService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 250 });
     this.addColumnFeqH(DataType.String, 'isin');
     this.addColumnFeqH(DataType.String, 'currency');

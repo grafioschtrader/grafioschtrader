@@ -1,15 +1,13 @@
 import { Component, DestroyRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 
 import { RiskFreeInstrumentOption, RiskFreeRateMapping } from '../../entities/risk.free.rate.mapping';
 import { RiskFreeRateMappingService } from '../service/risk.free.rate.mapping.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -85,6 +83,12 @@ import { AppHelpIds } from '../../shared/help/help.ids';
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class RiskFreeRateMappingTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private riskFreeRateMappingService: RiskFreeRateMappingService = inject(RiskFreeRateMappingService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   static readonly I18N_RECORD = 'RISK_FREE_RATE_MAPPING';
 
   readonly entityTable = viewChild<EditableTableComponent<RiskFreeRateMapping>>('entityTable');
@@ -110,18 +114,8 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
 
   private newRowCounter = 0;
 
-  constructor(
-    private activePanelService: ActivePanelService,
-    private riskFreeRateMappingService: RiskFreeRateMappingService,
-    private gpsGT: GlobalparameterGTService,
-    private confirmationService: ConfirmationService,
-    private messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
+  constructor() {
+    super();
 
     this.currentUserId = +sessionStorage.getItem(GlobalSessionNames.ID_USER);
 

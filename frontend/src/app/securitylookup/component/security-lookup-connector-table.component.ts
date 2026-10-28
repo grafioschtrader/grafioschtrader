@@ -1,14 +1,11 @@
-import { Component, Injector, output, input, linkedSignal, effect, untracked } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
+import { Component, output, input, linkedSignal, effect, untracked } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { MessageModule } from '@openng/optimus-ui/message';
 
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { ConnectorAlternative } from '../model/security-lookup';
 import { isUsableAlternative, LookupFeed } from '../model/security-lookup-selection';
 import { Helper } from '../../lib/helper/helper';
@@ -93,20 +90,9 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase {
   /**
    * Creates the table columns.
    *
-   * @param filterService - Optimus UI filter service
-   * @param usersettingsService - Persists table settings
-   * @param translateService - Translation of headers and probe statuses
-   * @param gps - Locale and formatting settings
-   * @param injector - Injector of the base class
    */
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.addColumn(DataType.String, 'readableName', 'CONNECTOR', true, false, { width: 150 });
     this.addColumnFeqH(DataType.String, 'urlExtension', true, false, { width: 150 });
     this.addColumnFeqH(DataType.String, 'probeStatus', true, false, {

@@ -1,6 +1,5 @@
-import { Component, Injector, input, computed, effect, signal, untracked, output } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService, TreeNode } from '@openng/optimus-ui/api';
+import { Component, input, computed, effect, signal, untracked, output } from '@angular/core';
+import { TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableModule } from '@openng/optimus-ui/treetable';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
@@ -8,8 +7,6 @@ import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { Transaction } from '../../entities/transaction';
 import { AppSettings } from '../../shared/app.settings';
 import { buildTransactionReceiptTree, getSelectedTransactions } from './transaction-receipt-tree';
@@ -105,14 +102,8 @@ export class TransactionReceiptTableComponent extends TableConfigBase {
     this.marginBased() ? buildTransactionReceiptTree(this.transactions()) : []
   );
 
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.addColumn(DataType.DateTimeString, 'transactionTime', 'DATE', true, false, { width: 120 });
     this.addColumnFeqH(DataType.String, 'transactionType', true, false, {
       translateValues: TranslateValue.NORMAL
@@ -120,7 +111,7 @@ export class TransactionReceiptTableComponent extends TableConfigBase {
     this.addColumn(DataType.String, 'cashaccount.name', AppSettings.CASHACCOUNT.toUpperCase(), true, false);
     this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false);
     this.addColumn(DataType.Numeric, 'quotation', 'QUOTATION_DIV', true, false, {
-      maxFractionDigits: gps.getMaxFractionDigits()
+      maxFractionDigits: this.gps.getMaxFractionDigits()
     });
     this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false, {
       currencyPrecisionField: 'cashaccount.currency'

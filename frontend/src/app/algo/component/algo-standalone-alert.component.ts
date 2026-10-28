@@ -4,12 +4,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlgoAlertDiagnosticsDialogComponent } from './algo-alert-diagnostics-dialog.component';
 import { ButtonModule } from '@openng/optimus-ui/button';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -91,6 +90,13 @@ import { AlgoHierarchyAlertOverviewComponent } from './algo-hierarchy-alert-over
   ]
 })
 export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private algoSecurityService: AlgoSecurityService = inject(AlgoSecurityService);
+  private algoStrategyService: AlgoStrategyService = inject(AlgoStrategyService);
+  protected simulationContext: SimulationContextService = inject(SimulationContextService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+
   private readonly pendingReads = new Map<string, Subscription>();
   private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
     this.pendingReads.forEach((request) => request.unsubscribe())
@@ -118,17 +124,8 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
   /** Strategies whose alert preference is being saved; their checkbox stays disabled until the response arrives. */
   private readonly savingAlerts = signal(new Set<number>());
 
-  constructor(
-    private activePanelService: ActivePanelService,
-    private algoSecurityService: AlgoSecurityService,
-    private algoStrategyService: AlgoStrategyService,
-    protected simulationContext: SimulationContextService,
-    private messageToastService: MessageToastService,
-    private confirmationService: ConfirmationService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
 
     this.addColumn(DataType.String, 'name', 'NAME', true, false, {
       fieldValueFN: this.getNodeName.bind(this)

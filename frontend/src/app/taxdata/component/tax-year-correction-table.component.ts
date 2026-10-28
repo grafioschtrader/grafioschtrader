@@ -1,8 +1,8 @@
 import { Component, DestroyRef, inject, OnChanges, signal, output, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
 
 import { TableEditConfigBase } from '../../lib/datashowbase/table.edit.config.base';
@@ -14,8 +14,6 @@ import {
 import { EditInputType } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -63,6 +61,10 @@ import { TaxYearCorrectionService } from '../service/tax-year-correction.service
   providers: [TaxYearCorrectionService]
 })
 export class TaxYearCorrectionTableComponent extends TableEditConfigBase implements OnChanges {
+  private taxYearCorrectionService: TaxYearCorrectionService = inject(TaxYearCorrectionService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+
   /** The security whose corrections are maintained. */
   readonly idSecuritycurrency = input<number>(undefined);
   /** Tax years offered for new rows in addition to the years with ICTax data (e.g. the report years). */
@@ -86,17 +88,9 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
 
   private readonly TAX_YEAR_CORRECTION = 'TAX_YEAR_CORRECTION';
 
-  constructor(
-    private taxYearCorrectionService: TaxYearCorrectionService,
-    private messageToastService: MessageToastService,
-    private confirmationService: ConfirmationService,
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
-    this.numberLocale = gps.getLocale();
+  constructor() {
+    super();
+    this.numberLocale = this.gps.getLocale();
     const taxYearCol = this.addEditColumnFeqH(DataType.NumericInteger, 'taxYear', true, { width: 90 });
     taxYearCol.cec.inputType = EditInputType.Select;
     taxYearCol.cec.optionsProviderFn = (row: TaxYearCorrection) => this.getYearOptions(row);

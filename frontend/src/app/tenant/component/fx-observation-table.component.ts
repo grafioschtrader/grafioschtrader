@@ -1,14 +1,10 @@
-import { Component, computed, effect, Injector, input, untracked } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
+import { Component, computed, effect, input, untracked } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { FxObservationGroup } from '../../entities/fx.observation';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 
 /** Shared account/transfer statistics table; arithmetic and model coverage are supplied by the backend. */
 @Component({
@@ -41,14 +37,8 @@ export class FxObservationTableComponent extends TableConfigBase {
     }))
   );
 
-  constructor(
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.rowsPerPage = 10;
     this.addColumn(DataType.String, 'currencyPair', 'CURRENCY_PAIR', true, true);
     this.addColumn(DataType.String, 'kindLabel', 'FX_CONVERSION_KIND', true, true, {

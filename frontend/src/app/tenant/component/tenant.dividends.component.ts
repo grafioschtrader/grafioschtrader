@@ -1,20 +1,18 @@
 import { Subscription } from 'rxjs';
-import { computed, DestroyRef, inject, signal, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { computed, DestroyRef, inject, signal, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SecurityDividendsYearGroup } from '../../entities/view/securitydividends/security.dividends.year.group';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
 import { HelpIds } from '../../lib/help/help.ids';
-import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -52,6 +50,14 @@ import { TenantDividendsChartService } from '../service/tenant.dividends.chart.s
   ]
 })
 export class TenantDividendsComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private transactionService: TransactionService = inject(TransactionService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private tenantDividendsChartService: TenantDividendsChartService = inject(TenantDividendsChartService);
+  private router: Router = inject(Router);
+
   readonly securityDividendsGrandTotal = signal<SecurityDividendsGrandTotal>(null);
   readonly securityDividendsYearGroup = computed(
     () => this.securityDividendsGrandTotal()?.securityDividendsYearGroup ?? []
@@ -84,21 +90,8 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
 
   private columnConfigs: ColumnConfig[] = [];
 
-  constructor(
-    private portfolioService: PortfolioService,
-    private activatedRoute: ActivatedRoute,
-    private activePanelService: ActivePanelService,
-    private transactionService: TransactionService,
-    private messageToastService: MessageToastService,
-    private tenantDividendsChartService: TenantDividendsChartService,
-    private router: Router,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
   }
 
   readonly selectedSecurityAccounts = computed(() =>

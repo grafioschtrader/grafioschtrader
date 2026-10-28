@@ -1,14 +1,7 @@
-import { signal, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { signal, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TimeFrame, WatchlistTable, WatchListType } from './watchlist.table';
-import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { WatchlistService } from '../service/watchlist.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import moment from 'moment';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AppSettings } from '../../shared/app.settings';
@@ -18,17 +11,13 @@ import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.
 import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
 import { HelpIds } from '../../lib/help/help.ids';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
-import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
 import { ViewSizeChangedService } from '../../lib/layout/service/view.size.changed.service';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { BusinessHelper } from '../../shared/helper/business.helper';
-import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DatePipe } from '@angular/common';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -99,6 +88,8 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
   ]
 })
 export class WatchlistPerformanceComponent extends WatchlistTable implements OnInit, OnDestroy {
+  private viewSizeChangedService: ViewSizeChangedService = inject(ViewSizeChangedService);
+
   /** Adds the reinvested dividends of the securities to the daily, YTD and time frame changes (total return). */
   readonly includeDividends = signal(false);
   /** Translated hint for a distributing security without dividend data. */
@@ -112,50 +103,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
    * Creates a new WatchlistPerformanceComponent with all required dependencies and initializes performance columns
    * and time frames.
    */
-  constructor(
-    private viewSizeChangedService: ViewSizeChangedService,
-    dialogService: DialogService,
-    alarmSetupService: AlarmSetupService,
-    timeSeriesQuotesService: TimeSeriesQuotesService,
-    dataChangedService: DataChangedService,
-    activePanelService: ActivePanelService,
-    watchlistService: WatchlistService,
-    router: Router,
-    activatedRoute: ActivatedRoute,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    productIconService: ProductIconService,
-    changeDetectionStrategy: ChangeDetectorRef,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gpsGT: GlobalparameterGTService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      WatchListType.PERFORMANCE,
-      AppSettings.WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE,
-      dialogService,
-      alarmSetupService,
-      timeSeriesQuotesService,
-      dataChangedService,
-      activePanelService,
-      watchlistService,
-      router,
-      activatedRoute,
-      confirmationService,
-      messageToastService,
-      productIconService,
-      changeDetectionStrategy,
-      filterService,
-      translateService,
-      gpsGT,
-      gps,
-      usersettingsService,
-      WatchlistTable.SINGLE,
-      injector
-    );
+  constructor() {
+    super(WatchListType.PERFORMANCE, AppSettings.WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE, WatchlistTable.SINGLE);
     const date = new Date();
     this.timeFrames.push(new TimeFrame('THIS_WEEK', moment().weekday()));
     this.timeFrames.push(new TimeFrame('DAYS_30', 30));
@@ -188,7 +137,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       cellTooltipFN: this.priceCellTooltip.bind(this)
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true, {
-      maxFractionDigits: gps.getMaxFractionDigits(),
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
       fractionDigitsField: 'securitycurrency.priceFractionDigits',
       cellTooltipFN: this.priceCellTooltip.bind(this)
     });
@@ -243,15 +192,15 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE', true, true, {
-      maxFractionDigits: gps.getMaxFractionDigits(),
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
       fractionDigitsField: 'securitycurrency.priceFractionDigits'
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sHigh', 'HIGH', true, true, {
-      maxFractionDigits: gps.getMaxFractionDigits(),
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
       fractionDigitsField: 'securitycurrency.priceFractionDigits'
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sLow', 'LOW', true, true, {
-      maxFractionDigits: gps.getMaxFractionDigits(),
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
       fractionDigitsField: 'securitycurrency.priceFractionDigits'
     });
     // Tells which day a price taken from the historical data belongs to. Hidden by default, it only matters for an

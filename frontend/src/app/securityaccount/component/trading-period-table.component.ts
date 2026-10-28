@@ -1,9 +1,6 @@
-import { Component, output, viewChild, input, linkedSignal, effect, untracked } from '@angular/core';
-import { FilterService } from '@openng/optimus-ui/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Component, output, viewChild, input, linkedSignal, effect, untracked, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { TableEditConfigBase } from '../../lib/datashowbase/table.edit.config.base';
@@ -64,6 +61,8 @@ import { BaseSettings } from '../../lib/base.settings';
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class TradingPeriodTableComponent extends TableEditConfigBase {
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   readonly entityTable = viewChild<EditableTableComponent<SecaccountTradingPeriod>>('entityTable');
 
   /** Trading periods to display and edit. Strings are converted to Date objects internally. */
@@ -85,14 +84,8 @@ export class TradingPeriodTableComponent extends TableEditConfigBase {
     );
   }
 
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    private messageToastService: MessageToastService
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
+  constructor() {
+    super();
     this.setupColumns();
 
     effect(() => {

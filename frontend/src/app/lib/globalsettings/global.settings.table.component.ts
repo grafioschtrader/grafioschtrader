@@ -1,15 +1,13 @@
-import { Component, DestroyRef, inject, Injector, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TableConfigBase } from '../datashowbase/table.config.base';
 import { Globalparameters } from '../entities/globalparameters';
-import { FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
 import { Textarea } from '@openng/optimus-ui/textarea';
 import { ConfigurableTableComponent } from '../datashowbase/configurable-table.component';
 import { GlobalSettingsEditComponent } from './global.settings-edit.component';
-import { GlobalparameterService } from '../services/globalparameter.service';
-import { UserSettingsService } from '../services/user.settings.service';
 import { IGlobalMenuAttach } from '../mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../mainmenubar/service/active.panel.service';
 import { DataType } from '../dynamic-form/models/data.type';
@@ -70,6 +68,8 @@ import { HelpIds } from '../help/help.ids';
   imports: [ConfigurableTableComponent, Textarea, TranslateModule, GlobalSettingsEditComponent]
 })
 export class GlobalSettingsTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+
   readonly contextMenuItems = signal<MenuItem[]>([]);
   editMenu: MenuItem;
   readonly globalparametersList = signal<Globalparameters[]>([]);
@@ -82,15 +82,8 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
   readonly canExpandRow = (gp: Globalparameters): boolean => !!gp.propertyBlobAsText;
   private readonly PROPERTY_NAME = 'propertyName';
 
-  constructor(
-    private activePanelService: ActivePanelService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
 
     this.addColumn(DataType.String, this.PROPERTY_NAME, 'PROPERTY_NAME_DESC', true, false, {
       translateValues: TranslateValue.NORMAL,
@@ -115,7 +108,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
       command: (event) => this.handleEditEntity(this.selectedEntity()),
       disabled: !AuditHelper.hasAdminRole(this.gps)
     };
-    TranslateHelper.translateMenuItems([this.editMenu], translateService);
+    TranslateHelper.translateMenuItems([this.editMenu], this.translateService);
   }
 
   ngOnInit(): void {

@@ -1,14 +1,7 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WatchlistTable, WatchListType } from './watchlist.table';
-import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
-import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { WatchlistService } from '../service/watchlist.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AppSettings } from '../../shared/app.settings';
 import { SecurityService } from '../../securitycurrency/service/security.service';
@@ -18,19 +11,15 @@ import { CurrencypairService } from '../../securitycurrency/service/currencypair
 import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
 import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 import { HelpIds } from '../../lib/help/help.ids';
-import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
 import { combineLatest, Observable } from 'rxjs';
 import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { TenantLimit } from '../../shared/types/tenant.limit';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { DatePipe } from '@angular/common';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -99,6 +88,9 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
   ]
 })
 export class WatchlistPriceFeedComponent extends WatchlistTable implements OnInit, OnDestroy {
+  private securityService: SecurityService = inject(SecurityService);
+  private currencypairService: CurrencypairService = inject(CurrencypairService);
+
   /**
    * Field name constant for accessing retry history load count in security currency objects.
    * Used to reference the retryHistoryLoad property in data objects.
@@ -115,71 +107,9 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
    * Initializes the table with price feed specific columns including data providers, retry counts,
    * youngest history dates, and full load timestamps.
    *
-   * @param securityService - Service for security-related operations and data retrieval
-   * @param currencypairService - Service for currency pair operations and data retrieval
-   * @param dialogService - Optimus service for managing dynamic dialogs
-   * @param alarmSetupService - Service for setting up and managing alarms
-   * @param timeSeriesQuotesService - Service for time series quote operations
-   * @param dataChangedService - Service for tracking data changes across components
-   * @param activePanelService - Service for managing active panel state
-   * @param watchlistService - Service for watchlist operations and data management
-   * @param router - Angular router for navigation
-   * @param activatedRoute - Current activated route for parameter access
-   * @param confirmationService - Optimus service for confirmation dialogs
-   * @param messageToastService - Service for displaying toast messages to users
-   * @param productIconService - Service for retrieving product-specific icons
-   * @param changeDetectionStrategy - Angular change detection reference
-   * @param filterService - Optimus service for table filtering functionality
-   * @param translateService - Angular service for internationalization
-   * @param gpsGT - Global parameter service for GT-specific settings
-   * @param gps - Global parameter service for application-wide settings
-   * @param usersettingsService - Service for managing user preferences and settings
    */
-  constructor(
-    private securityService: SecurityService,
-    private currencypairService: CurrencypairService,
-    dialogService: DialogService,
-    alarmSetupService: AlarmSetupService,
-    timeSeriesQuotesService: TimeSeriesQuotesService,
-    dataChangedService: DataChangedService,
-    activePanelService: ActivePanelService,
-    watchlistService: WatchlistService,
-    router: Router,
-    activatedRoute: ActivatedRoute,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    productIconService: ProductIconService,
-    changeDetectionStrategy: ChangeDetectorRef,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gpsGT: GlobalparameterGTService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      WatchListType.PRICE_FEED,
-      AppSettings.WATCHLIST_PRICE_FEED_TABLE_SETTINGS_STORE,
-      dialogService,
-      alarmSetupService,
-      timeSeriesQuotesService,
-      dataChangedService,
-      activePanelService,
-      watchlistService,
-      router,
-      activatedRoute,
-      confirmationService,
-      messageToastService,
-      productIconService,
-      changeDetectionStrategy,
-      filterService,
-      translateService,
-      gpsGT,
-      gps,
-      usersettingsService,
-      WatchlistTable.SINGLE,
-      injector
-    );
+  constructor() {
+    super(WatchListType.PRICE_FEED, AppSettings.WATCHLIST_PRICE_FEED_TABLE_SETTINGS_STORE, WatchlistTable.SINGLE);
     const date = new Date();
     this.addBaseColumns();
     this.addColumn(DataType.String, 'securitycurrency.idConnectorIntra', 'INTRA_DATA_PROVIDER', true, true, {

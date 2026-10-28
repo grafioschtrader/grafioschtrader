@@ -1,8 +1,7 @@
 import { Component, DestroyRef, inject, OnChanges, SimpleChanges, signal, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { EditInputType } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { EditableTableComponent, RowEditSaveEvent } from '../../lib/datashowbase/editable-table.component';
@@ -13,8 +12,6 @@ import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { IctaxExchangeRate, TaxYear } from '../model/tax-data.model';
 import { TaxDataService } from '../service/tax-data.service';
 
@@ -58,6 +55,10 @@ import { TaxDataService } from '../service/tax-data.service';
   imports: [EditableTableComponent]
 })
 export class TaxExchangeRateTableComponent extends TableEditConfigBase implements OnChanges, IGlobalMenuAttach {
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private taxDataService: TaxDataService = inject(TaxDataService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   readonly taxYear = input<TaxYear>(undefined);
 
   contextMenuItems: MenuItem[] = [];
@@ -75,18 +76,10 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
 
   private readonly ICTAX_EXCHANGE_RATE = 'ICTAX_EXCHANGE_RATE';
 
-  constructor(
-    private activePanelService: ActivePanelService,
-    private taxDataService: TaxDataService,
-    private messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
-    this.isAdmin = AuditHelper.hasAdminRole(gps);
-    this.numberLocale = gps.getLocale();
+  constructor() {
+    super();
+    this.isAdmin = AuditHelper.hasAdminRole(this.gps);
+    this.numberLocale = this.gps.getLocale();
     this.destroyRef.onDestroy(() => this.activePanelService.destroyPanel(this));
 
     this.addColumnFeqH(DataType.String, 'currency', true, false, { width: 90 });

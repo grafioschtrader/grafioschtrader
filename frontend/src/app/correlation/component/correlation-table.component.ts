@@ -1,10 +1,7 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, computed, DestroyRef, inject, Injector, OnDestroy, signal, input } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnDestroy, signal, input } from '@angular/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { MenuItem } from '@openng/optimus-ui/api';
 import {
   CorrelationInstrument,
   CorrelationResult,
@@ -159,6 +156,12 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   ]
 })
 export class CorrelationTableComponent extends TableConfigBase implements OnDestroy {
+  private router: Router = inject(Router);
+  private correlationSetService: CorrelationSetService = inject(CorrelationSetService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private dataChangedService: DataChangedService = inject(DataChangedService);
+  private chartDataService: CorrelationChartService = inject(CorrelationChartService);
+
   /** Interface for communication with parent component */
   readonly childToParent = input<ChildToParent>(undefined);
 
@@ -205,29 +208,9 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
   /**
    * Creates an instance of CorrelationTableComponent.
-   * @param router Angular router for navigation
-   * @param correlationSetService Service for correlation set operations
-   * @param messageToastService Service for displaying toast messages
-   * @param dataChangedService Service for data change notifications
-   * @param chartDataService Service for chart data management
-   * @param filterService Optimus filter service
-   * @param translateService Service for internationalization
-   * @param gps Global parameter service
-   * @param usersettingsService Service for user settings persistence
    */
-  constructor(
-    private router: Router,
-    private correlationSetService: CorrelationSetService,
-    private messageToastService: MessageToastService,
-    private dataChangedService: DataChangedService,
-    private chartDataService: CorrelationChartService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.createDynamicTableDefinition(null, null);
     this.addInstrumentsToCorrelationSet();
   }

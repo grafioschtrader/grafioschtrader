@@ -1,13 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { StandingOrderService } from '../service/standing.order.service';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { StandingOrderSecurityEditComponent } from './standing-order-security-edit.component';
 import { StandingOrderFailureTableComponent } from './standing-order-failure-table.component';
@@ -75,26 +69,8 @@ import { TransactionType } from '../../shared/types/transaction.type';
   ]
 })
 export class StandingOrderSecurityTableComponent extends StandingOrderTableBase implements OnInit {
-  constructor(
-    activePanelService: ActivePanelService,
-    standingOrderService: StandingOrderService,
-    messageToastService: MessageToastService,
-    confirmationService: ConfirmationService,
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(
-      activePanelService,
-      standingOrderService,
-      messageToastService,
-      confirmationService,
-      filterService,
-      usersettingsService,
-      translateService,
-      gps
-    );
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

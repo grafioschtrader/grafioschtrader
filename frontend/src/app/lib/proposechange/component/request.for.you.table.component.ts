@@ -3,7 +3,6 @@ import {
   ComponentRef,
   DestroyRef,
   inject,
-  Injector,
   OnInit,
   reflectComponentType,
   signal,
@@ -13,11 +12,9 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { DataType } from '../../dynamic-form/models/data.type';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { TableConfigBase } from '../../datashowbase/table.config.base';
 import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
 import { ProcessedActionData } from '../../types/processed.action.data';
@@ -30,7 +27,7 @@ import { InfoLevelType } from '../../message/info.leve.type';
 import { MessageToastService } from '../../message/message.toast.service';
 import { ProposeChangeEntity } from '../../entities/propose.change.entity';
 import { TranslateValue } from '../../datashowbase/column.config';
-import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { HelpIds } from '../../help/help.ids';
 import { EntityPrepareRegistry } from '../service/entity.prepare.registry';
@@ -71,6 +68,11 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
   imports: [ConfigurableTableComponent, TranslateModule]
 })
 export class RequestForYouTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
+  private entityPrepareRegistry: EntityPrepareRegistry = inject(EntityPrepareRegistry);
+  private proposeChangeEntityService: ProposeChangeEntityService = inject(ProposeChangeEntityService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   readonly editDialogContainer = viewChild('editDialogContainer', { read: ViewContainerRef });
 
   /** Translated menu of the selected request, shown as context menu and in the menu bar */
@@ -87,27 +89,9 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
    * Creates the request for you table component.
    * Initializes table configuration for displaying proposed change requests.
    *
-   * @param entityPrepareRegistry - Registry containing entity handlers and edit components
-   * @param proposeChangeEntityService - Service for managing propose change entities
-   * @param activePanelService - Service for managing active panel state
-   * @param messageToastService - Service for displaying toast messages
-   * @param filterService - Optimus filter service for table filtering
-   * @param translateService - Translation service for i18n
-   * @param gps - Global parameter service for user settings
-   * @param usersettingsService - User settings service for persisting table state
    */
-  constructor(
-    private entityPrepareRegistry: EntityPrepareRegistry,
-    private proposeChangeEntityService: ProposeChangeEntityService,
-    private activePanelService: ActivePanelService,
-    private messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
 
     this.addColumnFeqH(DataType.String, 'proposeChangeEntity.entity', true, false, {
       translateValues: TranslateValue.UPPER_CASE

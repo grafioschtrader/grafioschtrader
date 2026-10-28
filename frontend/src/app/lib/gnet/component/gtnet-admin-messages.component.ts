@@ -1,26 +1,16 @@
-import { afterNextRender, Component, computed, Injector, signal, viewChildren } from '@angular/core';
+import { afterNextRender, Component, computed, signal, viewChildren, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormsModule } from '@angular/forms';
 import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { GTNet, GTNetWithMessages } from '../model/gtnet';
-import {
-  GTNetMessage,
-  GTNetMessageCodeType,
-  MessageVisibility,
-  MsgCallParam,
-  SendReceivedType
-} from '../model/gtnet.message';
+import { GTNetMessage, GTNetMessageCodeType, MsgCallParam, SendReceivedType } from '../model/gtnet.message';
 import { GTNetService } from '../service/gtnet.service';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../message/message.toast.service';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../dynamic-form/models/data.type';
-import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
+import { ColumnConfig } from '../../datashowbase/column.config';
 import { HelpIds } from '../../help/help.ids';
 import { GTNetMessageTreeTableComponent } from './gtnet-message-treetable.component';
 import { combineLatest } from 'rxjs';
@@ -103,6 +93,10 @@ import { ProcessedActionData } from '../../types/processed.action.data';
   providers: [DialogService]
 })
 export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
+  private gtNetService: GTNetService = inject(GTNetService);
+  private gtNetMessageService: GTNetMessageService = inject(GTNetMessageService);
+  private gtNetProtocolService: GTNetProtocolService = inject(GTNetProtocolService);
+
   readonly messageTreeTables = viewChildren(GTNetMessageTreeTableComponent);
 
   private readonly domainRemoteName = 'domainRemoteName';
@@ -138,37 +132,11 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   /** Whether current user has admin role (only admins can send admin messages) */
   protected isUserAdmin: boolean;
 
-  constructor(
-    private gtNetService: GTNetService,
-    private gtNetMessageService: GTNetMessageService,
-    private gtNetProtocolService: GTNetProtocolService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
+  constructor() {
     // No CRUD options - this is a read-only view for GTNet entities
-    super(
-      BaseSettings.GT_NET,
-      gtNetService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector,
-      []
-    );
+    super(BaseSettings.GT_NET, inject(GTNetService), []);
 
-    this.isUserAdmin = gps.hasRole(BaseSettings.ROLE_ADMIN);
+    this.isUserAdmin = this.gps.hasRole(BaseSettings.ROLE_ADMIN);
 
     this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false, {
       width: 200,

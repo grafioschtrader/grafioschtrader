@@ -4,9 +4,8 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { TransactionService } from '../service/transaction.service';
-import { TranslateService } from '@ngx-translate/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { DestroyRef, Directive, inject, Injector, signal, output, viewChild } from '@angular/core';
+import { DestroyRef, Directive, inject, signal, output, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { Security } from '../../entities/security';
@@ -14,14 +13,12 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import {
   PageFirstRowSelectedRow,
   ParentChildRegisterService
 } from '../../shared/service/parent.child.register.service';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 import { StandingOrderCallParam } from '../../standingorder/model/standing.order.call.param';
 import { BaseSettings } from '../../lib/base.settings';
@@ -35,6 +32,12 @@ import { ColumnConfig } from '../../lib/datashowbase/column.config';
  */
 @Directive()
 export abstract class TransactionContextMenu extends TableConfigBase implements IGlobalMenuAttach {
+  protected parentChildRegisterService: ParentChildRegisterService = inject(ParentChildRegisterService);
+  protected activePanelService: ActivePanelService = inject(ActivePanelService);
+  protected transactionService: TransactionService = inject(TransactionService);
+  protected confirmationService: ConfirmationService = inject(ConfirmationService);
+  protected messageToastService: MessageToastService = inject(MessageToastService);
+
   protected readonly destroyRef = inject(DestroyRef);
   private menuSubscription?: Subscription;
   private menuTransaction?: Transaction;
@@ -86,29 +89,9 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
 
   /**
    * Creates a new TransactionContextMenu instance with required services.
-   * @param parentChildRegisterService Service for managing parent-child component relationships and state
-   * @param activePanelService Service for managing active panel state and menu integration
-   * @param transactionService Service for transaction CRUD operations and business logic
-   * @param confirmationService Optimus service for displaying confirmation dialogs
-   * @param messageToastService Service for displaying user notifications and messages
-   * @param filterService Optimus service for table filtering functionality
-   * @param translateService Angular service for internationalization and translation
-   * @param gps Global parameter service for application-wide settings and configuration
-   * @param usersettingsService Service for managing user-specific settings and preferences
    */
-  protected constructor(
-    protected parentChildRegisterService: ParentChildRegisterService,
-    protected activePanelService: ActivePanelService,
-    protected transactionService: TransactionService,
-    protected confirmationService: ConfirmationService,
-    protected messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  protected constructor() {
+    super();
     this.pageFirstRowSelectedRow.set(this.parentChildRegisterService.getRowPosition(null));
     this.destroyRef.onDestroy(() => this.destroy());
   }

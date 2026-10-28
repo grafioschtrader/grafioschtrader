@@ -1,8 +1,5 @@
-import { Component, Injector, OnInit, output, input } from '@angular/core';
-import { FilterService } from '@openng/optimus-ui/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { Component, OnInit, output, input, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { CashAccountPosition } from '../../entities/view/securitydividends/security.dividends.position';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
@@ -51,6 +48,8 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
   imports: [TranslateModule, ConfigurableTableComponent, TransactionCashaccountTableComponent]
 })
 export class TenantDividendsCashaccountExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
+  private parentChildRegisterService: ParentChildRegisterService = inject(ParentChildRegisterService);
+
   readonly securityDividendsGrandTotal = input<SecurityDividendsGrandTotal>(undefined);
   readonly year = input<number>(undefined);
   readonly cashAccountPositions = input<CashAccountPosition[]>(undefined);
@@ -59,15 +58,8 @@ export class TenantDividendsCashaccountExtendedComponent extends TenantDividends
 
   cashAccountTableInputFilter: CashAccountTableInputFilter;
 
-  constructor(
-    private parentChildRegisterService: ParentChildRegisterService,
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

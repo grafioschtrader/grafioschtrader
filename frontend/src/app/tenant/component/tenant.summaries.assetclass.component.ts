@@ -1,27 +1,18 @@
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { DestroyRef, inject } from '@angular/core';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
-import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
-import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { ChartDataService } from '../../shared/chart/service/chart.data.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { SecurityaccountAssetclassCategortypeGroup } from '../../securityaccount/component/securityaccount.assetclass.categortype.group';
 import { SecurityaccountAlgoBucketGroup } from '../../securityaccount/component/securityaccount.algo.bucket.group';
 import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
 import { SecurityaccountBaseTable } from '../../securityaccount/component/securityaccount.base.table';
 import { AppSettings } from '../../shared/app.settings';
-import { OptionalParameters, TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
-import { FilterService, SelectItem } from '@openng/optimus-ui/api';
-import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
+import { OptionalParameters } from '../../historyquote/service/time.series.quotes.service';
+import { SelectItem } from '@openng/optimus-ui/api';
 import { AlgoTopService } from '../../algo/service/algo.top.service';
 import { AlgoTop } from '../../algo/model/algo.top';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -77,6 +68,9 @@ import { NgxFileDropModule } from 'ngx-file-drop';
   ]
 })
 export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable implements OnInit, OnDestroy {
+  private parentChildRegisterService: ParentChildRegisterService = inject(ParentChildRegisterService);
+  private algoTopService: AlgoTopService = inject(AlgoTopService);
+
   private statementReports = inject(PerformanceReportDialogService);
   private reportDestroyRef = inject(DestroyRef);
   private tenantHoldingsChartService = inject(TenantHoldingsChartService);
@@ -92,41 +86,9 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     ];
   }
 
-  constructor(
-    private parentChildRegisterService: ParentChildRegisterService,
-    private algoTopService: AlgoTopService,
-    timeSeriesQuotesService: TimeSeriesQuotesService,
-    alarmSetupService: AlarmSetupService,
-    activePanelService: ActivePanelService,
-    messageToastService: MessageToastService,
-    securityaccountService: SecurityaccountService,
-    productIconService: ProductIconService,
-    activatedRoute: ActivatedRoute,
-    router: Router,
-    chartDataService: ChartDataService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      timeSeriesQuotesService,
-      alarmSetupService,
-      activePanelService,
-      messageToastService,
-      securityaccountService,
-      productIconService,
-      activatedRoute,
-      router,
-      chartDataService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
-    this.securityaccountGroupBase = new SecurityaccountAssetclassCategortypeGroup(translateService, this);
+  constructor() {
+    super();
+    this.securityaccountGroupBase = new SecurityaccountAssetclassCategortypeGroup(this.translateService, this);
     this.createColumns();
   }
 

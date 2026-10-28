@@ -1,8 +1,7 @@
 import { Component, input, effect, untracked } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GenericConnectorDef } from '../../entities/generic.connector.def';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
@@ -59,8 +58,8 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
 export class GenericConnectorDefDetailComponent extends SingleRecordConfigBase {
   readonly connectorDef = input<GenericConnectorDef>(undefined);
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
 
     this.addFieldPropertyFeqH(DataType.String, 'shortId', {
       fieldsetName: 'CONNECTOR_SETTINGS'

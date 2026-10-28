@@ -1,18 +1,13 @@
-import { Component, Injector } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { forkJoin, Subscription } from 'rxjs';
 import { AssetclassService } from '../service/assetclass.service';
 import { Assetclass } from '../../entities/assetclass';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AssetclassCallParam } from './assetclass.call.param';
 import { plainToInstance } from 'class-transformer';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { AppSettings } from '../../shared/app.settings';
@@ -72,38 +67,17 @@ import { AssetclassEditComponent } from './assetclass-edit.component';
   imports: [TranslateModule, ConfigurableTableComponent, AngularSvgIconModule, AssetclassEditComponent]
 })
 export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> {
+  private assetclassService: AssetclassService = inject(AssetclassService);
+  private productIconService: ProductIconService = inject(ProductIconService);
+
   callParam: AssetclassCallParam = new AssetclassCallParam();
   readonly ownerHighlight = (entity: Assetclass, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);
 
   private readDataSub?: Subscription;
 
-  constructor(
-    private assetclassService: AssetclassService,
-    private productIconService: ProductIconService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      AppSettings.ASSETCLASS,
-      assetclassService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super(AppSettings.ASSETCLASS, inject(AssetclassService));
 
     this.addColumn(DataType.String, AppSettings.CATEGORY_TYPE, AppSettings.ASSETCLASS.toUpperCase(), true, false, {
       translateValues: TranslateValue.NORMAL,

@@ -1,6 +1,5 @@
 import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
@@ -67,6 +66,13 @@ import { ConfigurableTreeTableComponent } from '../../datashowbase/configurable-
   imports: [Textarea, AngularSvgIconModule, TranslateModule, ConfigurableTreeTableComponent]
 })
 export class SendRecvTreetableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
+  private sendRecvService: MailSendRecvService = inject(MailSendRecvService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private iconReg: SvgIconRegistryService = inject(SvgIconRegistryService);
+  private dialogService: DialogService = inject(DialogService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   public static createSendRecvIconMap: { [key: string]: string } = {
     [SendRecvType.SEND]: 'send',
     [SendRecvType.RECEIVE]: 'envelope',
@@ -104,17 +110,8 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   sortOrder = -1;
   private sendRecvParentMap: { [idMailInOut: number]: TreeNode } = {};
 
-  constructor(
-    private sendRecvService: MailSendRecvService,
-    private activePanelService: ActivePanelService,
-    private iconReg: SvgIconRegistryService,
-    private dialogService: DialogService,
-    private confirmationService: ConfirmationService,
-    private messageToastService: MessageToastService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
     SendRecvTreetableComponent.registerIcons(this.iconReg);
 
     this.addColumnFeqH(DataType.String, 'idUserFrom', true, false, {
@@ -145,7 +142,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
       [this.replyMenuItem, this.sendToUserRoleMenuItem, this.deleteMenuItem, this.deleteGroupMenuItem].concat(
         this.gps.hasRole(BaseSettings.ROLE_ADMIN) ? [this.sendToUserMenuItem] : []
       ),
-      translateService
+      this.translateService
     );
     this.translateHeadersAndColumns();
   }

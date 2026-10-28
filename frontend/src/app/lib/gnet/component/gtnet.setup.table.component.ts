@@ -1,4 +1,4 @@
-import { afterNextRender, Component, Injector, signal, viewChildren } from '@angular/core';
+import { afterNextRender, Component, signal, viewChildren, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormsModule } from '@angular/forms';
@@ -14,14 +14,11 @@ import {
 } from '../model/gtnet';
 import { GTNetMessage, MsgCallParam } from '../model/gtnet.message';
 import { GTNetService } from '../service/gtnet.service';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../message/message.toast.service';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { InfoLevelType } from '../../message/info.leve.type';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { HelpIds } from '../../help/help.ids';
@@ -197,6 +194,9 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
   providers: [DialogService, GTNetConfigService]
 })
 export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
+  private gtNetService: GTNetService = inject(GTNetService);
+  private gtNetMessageService: GTNetMessageService = inject(GTNetMessageService);
+
   readonly expandedRows = viewChildren(GTNetExpandedComponent);
 
   minDate: Date = new Date(
@@ -258,37 +258,16 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   /** Highlights the own entry */
   readonly isMyEntry = (row: GTNet, field: ColumnConfig): boolean => row.idGtNet === this.gtNetMyEntryId();
 
-  constructor(
-    private gtNetService: GTNetService,
-    private gtNetMessageService: GTNetMessageService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
+  constructor() {
     super(
       BaseSettings.GT_NET,
-      gtNetService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector,
-      gps.hasRole(BaseSettings.ROLE_ADMIN)
+      inject(GTNetService),
+      inject(GlobalparameterService).hasRole(BaseSettings.ROLE_ADMIN)
         ? [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Edit, CrudMenuOptions.Allow_Delete]
         : []
     );
 
-    this.canAdministerGTNet = gps.hasRole(BaseSettings.ROLE_ADMIN);
+    this.canAdministerGTNet = this.gps.hasRole(BaseSettings.ROLE_ADMIN);
 
     this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false, {
       width: 200,

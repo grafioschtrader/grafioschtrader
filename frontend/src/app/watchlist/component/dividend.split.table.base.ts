@@ -1,13 +1,9 @@
-import { DestroyRef, inject, signal, Injector } from '@angular/core';
+import { DestroyRef, inject, signal } from '@angular/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { SvgIconRegistryService } from 'angular-svg-icon';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { DividendSplit } from '../../entities/dividend.split';
 import { DividendSplitSvgCreator } from '../../shared/dividendsplit/dividend.split.svg.creator';
-import { FilterService } from '@openng/optimus-ui/api';
 
 /**
  * Abstract base class for displaying dividend and split data in table format with SVG icon support.
@@ -15,6 +11,8 @@ import { FilterService } from '@openng/optimus-ui/api';
  * icon registration, sorting configuration, and create type visualization.
  */
 export abstract class DividendSplitTableBase<S extends DividendSplit> extends TableConfigBase {
+  private iconReg: SvgIconRegistryService = inject(SvgIconRegistryService);
+
   protected readonly destroyRef = inject(DestroyRef);
 
   /** Array of dividend or split entities to display in the table */
@@ -23,27 +21,16 @@ export abstract class DividendSplitTableBase<S extends DividendSplit> extends Ta
   /**
    * Creates a new dividend/split table base with sorting and icon configuration.
    *
-   * @param filterService Optimus filter service for table filtering capabilities
-   * @param usersettingsService Service for persisting user table preferences
-   * @param translateService Angular translation service for internationalization
-   * @param gps Global parameter service for locale and formatting settings
-   * @param iconReg SVG icon registry service for registering dividend/split icons
    * @param keyfield Primary key field name for table row identification
    * @param sortField Default field name for initial table sorting
    * @param groupTitle Translation key for the table group title
    */
   protected constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    private iconReg: SvgIconRegistryService,
     public keyfield: string,
     sortField: string,
-    public groupTitle: string,
-    injector: Injector
+    public groupTitle: string
   ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+    super();
     this.multiSortMeta.push({ field: sortField, order: -1 });
     DividendSplitSvgCreator.registerIcons(this.iconReg);
   }

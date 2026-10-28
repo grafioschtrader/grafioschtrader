@@ -12,7 +12,7 @@ import {
   effect,
   untracked
 } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription, merge } from 'rxjs';
 import { DashboardConfig, DashboardResult } from '../../lib/dashboard/dashboard.types';
 import { DashboardService } from '../../lib/dashboard/dashboard.service';
@@ -24,10 +24,8 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
 import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
@@ -106,6 +104,11 @@ export class PerformanceTotalChartWidgetComponent
   extends ShowRecordConfigBase
   implements OnInit, AfterViewInit, OnDestroy
 {
+  private dashboardService: DashboardService = inject(DashboardService);
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private elementRef: ElementRef<HTMLElement> = inject(ElementRef);
+  private zone: NgZone = inject(NgZone);
+
   readonly result = input<DashboardResult>(undefined);
   /** Set by the dashboard while this card takes over the whole dashboard area. */
   readonly maximized = input(false);
@@ -131,15 +134,8 @@ export class PerformanceTotalChartWidgetComponent
   /** Set once the chart has loaded the library; cleanup never triggers the import. */
   private plotly: PlotlyInstance;
 
-  constructor(
-    public override translateService: TranslateService,
-    gps: GlobalparameterService,
-    private dashboardService: DashboardService,
-    private portfolioService: PortfolioService,
-    private elementRef: ElementRef<HTMLElement>,
-    private zone: NgZone
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.config = [
       DynamicFieldHelper.createFieldSelectNumber('idPortfolio', 'DASHBOARD_TOTAL_CHART_PORTFOLIO', false, {
         usedLayoutColumns: 6
@@ -149,7 +145,7 @@ export class PerformanceTotalChartWidgetComponent
       })
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    this.plotlyConfig = { ...PlotlyLocales.setPlotyLocales(gps), responsive: false, displaylogo: false };
+    this.plotlyConfig = { ...PlotlyLocales.setPlotyLocales(this.gps), responsive: false, displaylogo: false };
     this.translateService
       .get(['TOTAL_BALANCE', 'INVESTED_CAPITAL', 'DIFFERENCE'])
       .subscribe((texts) => (this.texts = texts));

@@ -1,16 +1,12 @@
-import { Component, Injector, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HelpIds } from '../../help/help.ids';
 import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { GTNetMessageAnswer, GTNetMessageAnswerCallParam } from '../model/gtnet.message.answer';
 import { GTNetMessageAnswerService } from '../service/gtnet.message.answer.service';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../message/message.toast.service';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { BaseSettings } from '../../base.settings';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { TranslateValue } from '../../datashowbase/column.config';
@@ -60,33 +56,17 @@ import { GTNetMessageCodeType } from '../model/gtnet.message';
   providers: [DialogService]
 })
 export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenu<GTNetMessageAnswer> implements OnInit {
+  private gtNetMessageAnswerService: GTNetMessageAnswerService = inject(GTNetMessageAnswerService);
+
   callParam: GTNetMessageAnswerCallParam;
 
-  constructor(
-    private gtNetMessageAnswerService: GTNetMessageAnswerService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
+  constructor() {
     super(
       BaseSettings.GT_NET_MESSAGE_ANSWER,
-      gtNetMessageAnswerService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector,
-      gps.hasRole(BaseSettings.ROLE_ADMIN) ? TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS : []
+      inject(GTNetMessageAnswerService),
+      inject(GlobalparameterService).hasRole(BaseSettings.ROLE_ADMIN)
+        ? TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS
+        : []
     );
   }
 

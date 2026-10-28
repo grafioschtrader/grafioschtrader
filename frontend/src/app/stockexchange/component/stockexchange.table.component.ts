@@ -1,19 +1,15 @@
-import { Component, Injector } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { StockexchangeService } from '../service/stockexchange.service';
 import { Stockexchange } from '../../entities/stockexchange';
 import { forkJoin, Subscription } from 'rxjs';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { plainToInstance } from 'class-transformer';
 import { StockexchangeCallParam } from './stockexchange.call.param';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
@@ -97,6 +93,8 @@ import { TradingCalendarStockexchangeComponent } from './trading-calendar-stocke
   ]
 })
 export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<Stockexchange> {
+  private stockexchangeService: StockexchangeService = inject(StockexchangeService);
+
   callParam: StockexchangeCallParam = new StockexchangeCallParam();
   readonly ownerHighlight = (entity: Stockexchange, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);
@@ -106,31 +104,8 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
   private stockexchangeMics: StockexchangeMic[];
   private readDataSub?: Subscription;
 
-  constructor(
-    private stockexchangeService: StockexchangeService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      AppSettings.STOCKEXCHANGE,
-      stockexchangeService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super(AppSettings.STOCKEXCHANGE, inject(StockexchangeService));
 
     this.addColumnFeqH(DataType.String, 'mic', true, false, {
       width: 40,

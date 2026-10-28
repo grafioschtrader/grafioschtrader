@@ -1,8 +1,6 @@
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { PeriodHoldingAndDiff } from '../model/performance.period';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -49,8 +47,8 @@ export class TenantPerformanceFromToDiffComponent extends SingleRecordConfigBase
       : [];
   });
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.initializeFields();
   }
 

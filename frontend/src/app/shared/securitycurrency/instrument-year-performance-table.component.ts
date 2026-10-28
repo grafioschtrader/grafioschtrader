@@ -1,9 +1,6 @@
-import { Component, computed, Injector, OnInit, input } from '@angular/core';
+import { Component, computed, OnInit, input } from '@angular/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { FilterService } from '@openng/optimus-ui/api';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { LastYears } from '../../entities/view/instrument.statistics.result';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 
@@ -28,14 +25,8 @@ export class InstrumentYearPerformanceTableComponent extends TableConfigBase imp
     return [...this.fields];
   });
 
-  constructor(
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

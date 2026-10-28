@@ -7,6 +7,82 @@ import ts from 'typescript';
 const THIS_FILE = fileURLToPath(import.meta.url);
 const SRC = path.dirname(THIS_FILE);
 
+/** Runtime configuration and screen-selected strategies remain explicit in the table hierarchy. */
+const TABLE_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason: string }> = {
+  'app/gtnet/component/gtnet-exchange-base.component.ts': {
+    parameters: ['entityName:string'],
+    reason: 'The concrete exchange view chooses its entity name.'
+  },
+  'app/lib/datashowbase/table.crud.support.menu.security.ts': {
+    parameters: ['entityName:string', 'deleteService:DeleteService', 'crudMenuOptions:CrudMenuOptions[]'],
+    reason: 'The view chooses the entity, deletion strategy and permitted menu operations.'
+  },
+  'app/lib/datashowbase/table.crud.support.menu.ts': {
+    parameters: ['entityName:string', 'deleteService:DeleteService', 'crudMenuOptions:CrudMenuOptions[]'],
+    reason: 'DeleteService is an interface implemented by the concrete entity service, not an injectable token.'
+  },
+  'app/lib/udfmeta/components/udf.metadata.table.ts': {
+    parameters: [
+      'classz:ClassConstructor<T>',
+      'deleteReadAllService:DeleteReadAllService<UDFMetadata>',
+      'entityName:string'
+    ],
+    reason: 'The metadata view supplies its DTO class, entity name and read/delete strategy.'
+  },
+  'app/shared/securitycurrency/split.period.table.base.ts': {
+    parameters: [
+      'dataSortKey:string',
+      'maxRowMessageKey:string',
+      'classz:ClassConstructor<T>',
+      'deleteCreateMultipleService:DeleteCreateMultiple<T>'
+    ],
+    reason: 'The concrete period view supplies its keys, DTO class and creation/deletion strategy.'
+  },
+  'app/watchlist/component/add-instrument-table.component.ts': {
+    parameters: ['instance:T', 'addSearchToListService:AddSearchToListService<T>'],
+    reason: 'The caller chooses the target list and the strategy that adds instruments to it.'
+  },
+  'app/watchlist/component/dividend.split.table.base.ts': {
+    parameters: ['keyfield:string', 'sortField:string', 'groupTitle:string'],
+    reason: 'Dividend and split views supply their own key, ordering and group heading.'
+  },
+  'app/watchlist/component/watchlist.table.ts': {
+    parameters: ['watchlistType:WatchListType', 'storeKey:string', "selectMultiMode:'single'|'multiple'"],
+    reason: 'Each watchlist tab chooses its kind, persisted settings key and selection mode.'
+  }
+};
+
+/** Follows inheritance across files, without matching constructor examples in comments or strings. */
+function tableConstructorParameters(sources: Record<string, string>): Record<string, string[]> {
+  const classes = new Map<string, { file: string; base?: string; parameters: string[] }>();
+  for (const [file, source] of Object.entries(sources)) {
+    const parsed = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
+    for (const node of parsed.statements) {
+      if (!ts.isClassDeclaration(node) || !node.name) continue;
+      const base = node.heritageClauses?.find((clause) => clause.token === ts.SyntaxKind.ExtendsKeyword)?.types[0];
+      classes.set(node.name.text, {
+        file,
+        base: base?.expression.getText(parsed),
+        parameters: (node.members.find(ts.isConstructorDeclaration)?.parameters ?? []).map((parameter) =>
+          `${parameter.name.getText(parsed)}:${parameter.type?.getText(parsed) ?? 'any'}`.replace(/\s/g, '')
+        )
+      });
+    }
+  }
+  function belongs(name: string, visited = new Set<string>()): boolean {
+    if (name === 'ShowRecordConfigBase') return true;
+    if (visited.has(name)) return false;
+    visited.add(name);
+    const base = classes.get(name)?.base;
+    return !!base && belongs(base, visited);
+  }
+  const result: Record<string, string[]> = {};
+  for (const [name, declaration] of classes) {
+    if (belongs(name) && declaration.parameters.length) result[declaration.file] = declaration.parameters;
+  }
+  return result;
+}
+
 /** Request coordination remains here until the resource migration in specification §4.4. */
 const ON_CHANGES_REQUESTS: Record<string, string> = {
   'app/historyquote/component/historyquote-legacy.component.ts': 'Loads the selected instrument and legacy history.',
@@ -168,6 +244,37 @@ function collectSources(dir: string, extensions = ['.ts'], out: string[] = []): 
 }
 
 describe('Angular API ratchet', () => {
+  it('finds constructor parameters through the table inheritance chain and ignores unrelated classes', () => {
+    expect(
+      tableConstructorParameters({
+        'base.ts': 'class ShowRecordConfigBase {} class TableBase extends ShowRecordConfigBase {}',
+        'view.ts': 'class View extends TableBase { constructor(private gps: GlobalparameterService) { super(); } }',
+        'unrelated.ts': 'class Other { constructor(service: Service) {} } // class Example extends TableBase {}',
+        'text.ts': 'const example = `class Example extends TableBase { constructor(service: Service) {} }`;'
+      })
+    ).toEqual({ 'view.ts': ['gps:GlobalparameterService'] });
+    expect(
+      tableConstructorParameters({
+        'base.ts': 'class ShowRecordConfigBase { protected gps = inject(GlobalparameterService); }',
+        'view.ts': 'class View extends ShowRecordConfigBase { constructor() { super(); } }'
+      })
+    ).toEqual({});
+  });
+
+  it('keeps only documented configuration parameters in the table and record hierarchy', () => {
+    const sources = Object.fromEntries(
+      collectSources(SRC).map((file) => [path.relative(SRC, file).replace(/\\/g, '/'), fs.readFileSync(file, 'utf8')])
+    );
+    const allowed = Object.fromEntries(
+      Object.entries(TABLE_CONSTRUCTOR_PARAMETERS).map(([file, entry]) => [file, entry.parameters])
+    );
+    expect(
+      tableConstructorParameters(sources),
+      'Resolve table dependencies with inject(). See frontend/CLAUDE.md.'
+    ).toEqual(allowed);
+    expect(Object.values(TABLE_CONSTRUCTOR_PARAMETERS).every((entry) => entry.reason.length > 0)).toBe(true);
+  });
+
   it('matches change hooks and initialization flags without matching examples in comments or strings', () => {
     expect(legacyChangeHandling('class Example { ngOnChanges() {} }')).toEqual({
       hook: true,

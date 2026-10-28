@@ -1,12 +1,9 @@
-import { Injector } from '@angular/core';
 import { ShowRecordConfigBase } from './show.record.config.base';
-import { TranslateService } from '@ngx-translate/core';
 import { FilterService, SelectItem } from '@openng/optimus-ui/api';
 import moment from 'moment';
 import { ColumnConfig, ColumnGroupConfig } from './column.config';
 import { AppHelper } from '../helper/app.helper';
 import { Auditable } from '../entities/auditable';
-import { GlobalparameterService } from '../services/globalparameter.service';
 import { BaseSettings } from '../base.settings';
 import { FilterType } from './filter.type';
 import { DataType } from '../dynamic-form/models/data.type';
@@ -23,6 +20,9 @@ import { FilterableTable } from './filterable.table.type';
  * data summaries, and hierarchical data displays.
  */
 export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
+  /** Only descendants that offer table filters resolve the filter service. */
+  protected filterService?: FilterService;
+
   /**
    * Marker used to indicate when click events are consumed by child components.
    * Prevents parent components from processing already-handled click events. It lives here rather than on
@@ -44,23 +44,6 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
 
   /** Names of registered custom filter functions */
   customSearchNames: string[];
-
-  /**
-   * Creates a new table/tree table total base configuration.
-   *
-   * @param translateService - Angular translation service for internationalization
-   * @param gps - Global parameter base service for locale and formatting settings
-   * @param injector - Angular injector for lazy service resolution in subclasses
-   * @param filterService - Optional Optimus service for registering custom filters
-   */
-  protected constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector = null,
-    protected filterService?: FilterService
-  ) {
-    super(translateService, gps, injector);
-  }
 
   /**
    * Configures columns starting from a specified index to use their field names for group display.

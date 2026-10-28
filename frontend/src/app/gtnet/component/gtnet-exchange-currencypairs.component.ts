@@ -1,23 +1,18 @@
-import { Component, Injector, signal, viewChild } from '@angular/core';
+import { Component, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { CheckboxModule } from '@openng/optimus-ui/checkbox';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { InputTextModule } from '@openng/optimus-ui/inputtext';
 
 import { GTNetExchangeBaseComponent } from './gtnet-exchange-base.component';
-import { GTNetExchangeService } from '../service/gtnet-exchange.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { CurrencypairEditComponent } from '../../shared/securitycurrency/currencypair-edit.component';
@@ -198,31 +193,8 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   /** Currency pair to edit */
   currencypairCallParam: Currencypair;
 
-  constructor(
-    gtNetExchangeService: GTNetExchangeService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      'Currencypair',
-      gtNetExchangeService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super('Currencypair');
   }
 
   getTitleKey(): string {

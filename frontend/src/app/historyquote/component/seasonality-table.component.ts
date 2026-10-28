@@ -1,17 +1,14 @@
 import { AppSettings } from '../../shared/app.settings';
-import { Component, Injector, computed, input, effect, untracked } from '@angular/core';
+import { Component, computed, input, effect, untracked } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
-import { FilterService } from '@openng/optimus-ui/api';
 import moment from 'moment';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import {
   SeasonalColumnStat,
   SeasonalPeriodType,
@@ -131,14 +128,8 @@ export class SeasonalityTableComponent extends TableConfigBase {
     { minFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION, maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION }
   );
 
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
 
     effect(() => {
       this.result();

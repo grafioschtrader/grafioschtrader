@@ -10,7 +10,7 @@ import {
   viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { forkJoin, map, Subscription, switchMap } from 'rxjs';
 import { FxQuote } from '../../entities/fx.markup';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
@@ -25,7 +25,6 @@ import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { Helper } from '../../lib/helper/helper';
 import { BaseSettings } from '../../lib/base.settings';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
 import { TradingPlatformPlanService } from '../service/trading.platform.plan.service';
@@ -58,6 +57,10 @@ import { TradingPlatformPlanService } from '../service/trading.platform.plan.ser
   `
 })
 export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements OnInit {
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+  private plans: TradingPlatformPlanService = inject(TradingPlatformPlanService);
+  private accounts: SecurityaccountService = inject(SecurityaccountService);
+
   readonly yaml = input('');
   readonly idSecurityaccount = input<number>();
   readonly idTradingPlatformPlan = input<number>();
@@ -77,14 +80,8 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
     ShowRecordConfigBase.createColumnConfig(DataType.String, 'ruleName', 'MATCHED_RULE')
   ];
 
-  constructor(
-    public override translateService: TranslateService,
-    gps: GlobalparameterService,
-    private gpsGT: GlobalparameterGTService,
-    private plans: TradingPlatformPlanService,
-    private accounts: SecurityaccountService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
     afterNextRender(() => this.loadOptions());
     effect(() => {
       this.yaml();

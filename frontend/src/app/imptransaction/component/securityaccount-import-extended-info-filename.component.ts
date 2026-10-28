@@ -1,10 +1,9 @@
 import { Component, OnInit, input } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 
 import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ImportSettings } from './import.settings';
@@ -21,8 +20,8 @@ import { AppSettings } from '../../shared/app.settings';
 export class SecurityaccountImportExtendedInfoFilenameComponent extends SingleRecordConfigBase implements OnInit {
   readonly combineTemplateAndImpTransPos = input<CombineTemplateAndImpTransPos>(undefined);
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

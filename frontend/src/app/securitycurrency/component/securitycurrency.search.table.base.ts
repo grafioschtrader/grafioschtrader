@@ -1,13 +1,9 @@
-import { Injector, signal } from '@angular/core';
+import { signal } from '@angular/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { Currencypair } from '../../entities/currencypair';
 import { Security } from '../../entities/security';
-import { FilterService } from '@openng/optimus-ui/api';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { AppSettings } from '../../shared/app.settings';
 
@@ -17,14 +13,8 @@ import { AppSettings } from '../../shared/app.settings';
 export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
   private readonly securitycurrencyListSignal = signal<(Security | Currencypair)[]>([]);
 
-  protected constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  protected constructor() {
+    super();
 
     this.addFieldDefinition();
     this.prepareTableAndTranslate();

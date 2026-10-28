@@ -1,12 +1,5 @@
-import { Directive, Injector } from '@angular/core';
+import { Directive } from '@angular/core';
 import { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
-import { SecurityaccountService } from '../service/securityaccount.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateService } from '@ngx-translate/core';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { ChartDataService } from '../../shared/chart/service/chart.data.service';
 import { SecurityaccountGroupBase } from './securityaccount.group.base';
 import { SecurityaccountCurrencyGroup } from './securityaccount.currency.group';
 import { SecurityaccountAssetclassCategortypeGroup } from './securityaccount.assetclass.categortype.group';
@@ -14,15 +7,10 @@ import { SecurityPositionDynamicGroupSummary } from '../../entities/view/securit
 import { SecurityaccountAssetclassSpecInvestGroup } from './securityaccount.assetclass.spec.invest.group';
 import { SecurityaccountAssetclassSubCategoryGroup } from './securityaccount.assetclass.sub.category.group';
 import { SecurityaccountBaseTable } from './securityaccount.base.table';
-import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { SecurityaccountAssetclassGroup } from './securityaccount.assetclass.group';
 import { SecurityAccountGroup } from '../model/security.account.group';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
-import { FilterService } from '@openng/optimus-ui/api';
-import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
 
 /**
  * @whatItDoes It is the base class for components which shows a summary for each security account. Single row
@@ -43,38 +31,8 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
 
   groupMapping: Map<string, any> = new Map();
 
-  protected constructor(
-    timeSeriesQuotesService: TimeSeriesQuotesService,
-    alarmSetupService: AlarmSetupService,
-    activePanelService: ActivePanelService,
-    messageToastService: MessageToastService,
-    securityaccountService: SecurityaccountService,
-    productIconService: ProductIconService,
-    activatedRoute: ActivatedRoute,
-    router: Router,
-    chartDataService: ChartDataService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      timeSeriesQuotesService,
-      alarmSetupService,
-      activePanelService,
-      messageToastService,
-      securityaccountService,
-      productIconService,
-      activatedRoute,
-      router,
-      chartDataService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  protected constructor() {
+    super();
     this.groupMapping.set(
       SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY],
       new SecurityaccountCurrencyGroup(this.translateService, this)
@@ -98,9 +56,9 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
 
     this.groupOptions = [];
     this.selectedGroup = SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY];
-    SelectOptionsHelper.createSelectItemForEnum(translateService, SecurityAccountGroup, this.groupOptions);
+    SelectOptionsHelper.createSelectItemForEnum(this.translateService, SecurityAccountGroup, this.groupOptions);
 
-    this.securityaccountGroupBase = new SecurityaccountCurrencyGroup(translateService, this);
+    this.securityaccountGroupBase = new SecurityaccountCurrencyGroup(this.translateService, this);
     this.createColumns();
   }
 

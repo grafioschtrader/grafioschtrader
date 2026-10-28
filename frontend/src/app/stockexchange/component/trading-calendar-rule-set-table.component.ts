@@ -1,21 +1,17 @@
-import { Component, Injector } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { forkJoin, Subscription } from 'rxjs';
 
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
 import { TradingCalendarRuleSet } from '../../entities/trading.calendar.rule.set';
 import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.set.service';
@@ -76,6 +72,9 @@ import { StockexchangeService } from '../service/stockexchange.service';
   imports: [TranslateModule, TooltipModule, ConfigurableTableComponent, TradingCalendarRuleSetEditComponent]
 })
 export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenu<TradingCalendarRuleSet> {
+  private tradingCalendarRuleSetService: TradingCalendarRuleSetService = inject(TradingCalendarRuleSetService);
+  private stockexchangeService: StockexchangeService = inject(StockexchangeService);
+
   callParam: TradingCalendarRuleSet;
   readonly ownerHighlight = (entity: TradingCalendarRuleSet, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);
@@ -84,32 +83,8 @@ export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenu<T
   /** Maps a market identifier code (MIC) to its ISO country code, for the flag column. */
   private micToCountryCode: { [mic: string]: string } = {};
 
-  constructor(
-    private tradingCalendarRuleSetService: TradingCalendarRuleSetService,
-    private stockexchangeService: StockexchangeService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      AppSettings.TRADING_CALENDAR_RULE_SET,
-      tradingCalendarRuleSetService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super(AppSettings.TRADING_CALENDAR_RULE_SET, inject(TradingCalendarRuleSetService));
 
     this.addColumnFeqH(DataType.String, 'name', true, false, {
       width: 220,

@@ -10,10 +10,9 @@ import {
   linkedSignal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { GTNetExchangeLogService } from '../service/gtnet-exchange-log.service';
 import { GTNetExchangeLogTree, GTNetExchangeLogNode } from '../model/gtnet-exchange-log';
 import { DataType } from '../../dynamic-form/models/data.type';
@@ -111,6 +110,10 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
   ]
 })
 export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
+  private gtNetExchangeLogService: GTNetExchangeLogService = inject(GTNetExchangeLogService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private route: ActivatedRoute = inject(ActivatedRoute);
+
   readonly entityKindInput = input('LAST_PRICE', { alias: 'entityKind' });
   readonly entityKind = linkedSignal(() => this.entityKindInput());
   readonly expandedContent = viewChild<TemplateRef<any>>('expandedContent');
@@ -129,14 +132,8 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
   private supplierNodesCache: Map<number, TreeNode[]> = new Map();
   private consumerNodesCache: Map<number, TreeNode[]> = new Map();
 
-  constructor(
-    private gtNetExchangeLogService: GTNetExchangeLogService,
-    private activePanelService: ActivePanelService,
-    private route: ActivatedRoute,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

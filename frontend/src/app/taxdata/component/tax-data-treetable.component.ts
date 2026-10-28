@@ -1,10 +1,9 @@
 import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -24,7 +23,6 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TaxCountryCreateDialogComponent } from './tax-country-create-dialog.component';
 import { TaxYearCreateDialogComponent } from './tax-year-create-dialog.component';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { TaxExchangeRateTableComponent } from './tax-exchange-rate-table.component';
 import { TaxModelEditComponent } from './tax-model-edit.component';
 
@@ -91,6 +89,11 @@ enum NodeLevel {
   providers: [DialogService]
 })
 export class TaxDataTreetableComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
+  private taxDataService: TaxDataService = inject(TaxDataService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private dialogService: DialogService = inject(DialogService);
+
   private readonly destroyRef = inject(DestroyRef);
   private readSubscription?: Subscription;
   private menuSubscription?: Subscription;
@@ -112,17 +115,10 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   private selectedNode: TreeNode;
   private countryNames: Intl.DisplayNames;
 
-  constructor(
-    private taxDataService: TaxDataService,
-    private activePanelService: ActivePanelService,
-    private messageToastService: MessageToastService,
-    private dialogService: DialogService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
-    this.isAdmin = AuditHelper.hasAdminRole(gps);
-    this.countryNames = new Intl.DisplayNames([gps.getUserLang()], {
+  constructor() {
+    super();
+    this.isAdmin = AuditHelper.hasAdminRole(this.gps);
+    this.countryNames = new Intl.DisplayNames([this.gps.getUserLang()], {
       type: 'region'
     });
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 300 });

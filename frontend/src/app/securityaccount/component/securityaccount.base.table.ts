@@ -4,24 +4,21 @@ import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
 import { SecurityPositionGroupSummary } from '../../entities/view/security.position.group.summary';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
-import { Directive, ElementRef, Injector, viewChild } from '@angular/core';
+import { Directive, ElementRef, viewChild, inject } from '@angular/core';
 import { SecurityaccountGroupBase } from './securityaccount.group.base';
 import { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
 import { Subscription } from 'rxjs';
 import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
 import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
-import { FilterService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
+import { MenuItem, SelectItem } from '@openng/optimus-ui/api';
 import { Portfolio } from '../../entities/portfolio';
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { SecurityaccountService } from '../service/securityaccount.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { ChartDataService } from '../../shared/chart/service/chart.data.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { TranslateService } from '@ngx-translate/core';
 import { AppSettings } from '../../shared/app.settings';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TransactionType } from '../../shared/types/transaction.type';
@@ -44,6 +41,16 @@ import type { NgxFileDropEntry } from 'ngx-file-drop';
 
 @Directive()
 export abstract class SecurityaccountBaseTable extends TableConfigBase implements IGlobalMenuAttach {
+  protected timeSeriesQuotesService: TimeSeriesQuotesService = inject(TimeSeriesQuotesService);
+  protected alarmSetupService: AlarmSetupService = inject(AlarmSetupService);
+  protected activePanelService: ActivePanelService = inject(ActivePanelService);
+  protected messageToastService: MessageToastService = inject(MessageToastService);
+  protected securityaccountService: SecurityaccountService = inject(SecurityaccountService);
+  protected productIconService: ProductIconService = inject(ProductIconService);
+  protected activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  protected router: Router = inject(Router);
+  private chartDataService: ChartDataService = inject(ChartDataService);
+
   // @ViewChild('cm', { static: false }) contextMenu: ContextMenu;
   readonly contextMenu = viewChild<any>('cm');
   readonly titleElementRef = viewChild<ElementRef>('title');
@@ -107,23 +114,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   protected internalColumnConfigs: ColumnConfig[];
   private subscriptionRequestFromChart: Subscription;
 
-  protected constructor(
-    protected timeSeriesQuotesService: TimeSeriesQuotesService,
-    protected alarmSetupService: AlarmSetupService,
-    protected activePanelService: ActivePanelService,
-    protected messageToastService: MessageToastService,
-    protected securityaccountService: SecurityaccountService,
-    protected productIconService: ProductIconService,
-    protected activatedRoute: ActivatedRoute,
-    protected router: Router,
-    private chartDataService: ChartDataService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  protected constructor() {
+    super();
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
   }
 

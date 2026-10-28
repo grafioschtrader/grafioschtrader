@@ -1,21 +1,17 @@
-import { Component, Injector } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { ImportTransactionTemplate } from '../../entities/import.transaction.template';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { ImportTransactionTemplateService } from '../service/import.transaction.template.service';
 import { ParentChildRowSelection } from '../../lib/datashowbase/parent.child.row.selection';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { ImportTransactionPlatform } from '../../entities/import.transaction.platform';
 import { CrudMenuOptions, TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { plainToInstance } from 'class-transformer';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { combineLatest, Subscription } from 'rxjs';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { AppSettings } from '../../shared/app.settings';
@@ -61,6 +57,8 @@ import { ImportTransactionEditTemplateComponent } from './import-transaction-edi
   imports: [TranslateModule, ConfigurableTableComponent, ImportTransactionEditTemplateComponent]
 })
 export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenu<ImportTransactionTemplate> {
+  private importTransactionTemplateService: ImportTransactionTemplateService = inject(ImportTransactionTemplateService);
+
   callParam: CallParam;
   readonly ownerHighlight = (entity: ImportTransactionTemplate, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);
@@ -72,32 +70,11 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
   parentChildRowSelection: ParentChildRowSelection<ImportTransactionTemplate>;
   private languageAsKeyValue: { [key: string]: string } = {};
 
-  constructor(
-    private importTransactionTemplateService: ImportTransactionTemplateService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      AppSettings.IMPORT_TRANSACTION_TEMPLATE,
-      importTransactionTemplateService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector,
-      [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]
-    );
+  constructor() {
+    super(AppSettings.IMPORT_TRANSACTION_TEMPLATE, inject(ImportTransactionTemplateService), [
+      CrudMenuOptions.ParentControl,
+      ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS
+    ]);
 
     this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {
       templateName: BaseSettings.OWNER_TEMPLATE

@@ -1,8 +1,7 @@
 import { Component, output, input, effect, untracked } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GenericConnectorEndpoint } from '../../entities/generic.connector.endpoint';
 import { GenericConnectorFieldMapping } from '../../entities/generic.connector.field.mapping';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -60,8 +59,8 @@ export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBa
   readonly editEndpoint = output<void>();
   readonly fieldMappingsChange = output<GenericConnectorFieldMapping[]>();
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
 
     this.addFieldPropertyFeqH(DataType.String, 'feedSupport', {
       translateValues: TranslateValue.NORMAL,

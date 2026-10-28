@@ -18,6 +18,10 @@ import { GlobalparameterService } from '../services/globalparameter.service';
  * to create specialized display components for tables, single records, or tree structures.
  */
 export abstract class ShowRecordConfigBase {
+  protected translateService: TranslateService = inject(TranslateService);
+  protected gps: GlobalparameterService = inject(GlobalparameterService);
+  protected injector: Injector = inject(Injector);
+
   /** Otherwise enum DataType can't be used in a html template */
   DataType: typeof DataType = DataType;
 
@@ -53,20 +57,13 @@ export abstract class ShowRecordConfigBase {
    * Creates a new show record configuration base.
    * Initializes locale settings from global parameters for consistent formatting across the application.
    *
-   * @param translateService - Angular translation service for internationalization support
-   * @param gps - Global parameter base service providing user locale and formatting preferences
-   * @param injector - Angular injector for lazy service resolution in subclasses
    * @protected
    */
-  protected constructor(
-    protected translateService: TranslateService,
-    protected gps: GlobalparameterService,
-    protected injector: Injector = null
-  ) {
+  protected constructor() {
     this.baseLocale = {
-      language: gps.getUserLang(),
-      locale: gps.getLocale(),
-      dateFormat: gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase()
+      language: this.gps.getUserLang(),
+      locale: this.gps.getLocale(),
+      dateFormat: this.gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase()
     };
   }
 

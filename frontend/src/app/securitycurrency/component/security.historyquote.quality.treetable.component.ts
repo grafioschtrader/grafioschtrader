@@ -2,8 +2,7 @@ import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, Subscription, switchMap } from 'rxjs';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TranslatePipe } from '@ngx-translate/core';
 import { SecurityService } from '../service/security.service';
 import {
   HistoryquoteQualityGroup,
@@ -103,6 +102,10 @@ export class SecurityHistoryquoteQualityTreetableComponent
   extends TreeTableConfigBase
   implements OnInit, IGlobalMenuAttach
 {
+  private timeSeriesQuotesService: TimeSeriesQuotesService = inject(TimeSeriesQuotesService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private securityService: SecurityService = inject(SecurityService);
+
   readonly historyquoteQualityIds = signal<HistoryquoteQualityIds>(null);
   readonly groupTitle = signal<string>(null);
   readonly contextMenuItems = signal<MenuItem[]>(null);
@@ -121,14 +124,8 @@ export class SecurityHistoryquoteQualityTreetableComponent
   private readonly groupRequests = new Subject<string>();
   private menuSubscription: Subscription;
 
-  constructor(
-    private timeSeriesQuotesService: TimeSeriesQuotesService,
-    private activePanelService: ActivePanelService,
-    private securityService: SecurityService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.addColumnFeqH(DataType.String, 'name', true, false, {
       width: 250,
       columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]
@@ -148,7 +145,7 @@ export class SecurityHistoryquoteQualityTreetableComponent
     this.setSameFieldNameForGroupField(1);
     this.translateHeadersAndColumns();
 
-    SelectOptionsHelper.createSelectItemForEnum(translateService, HistoryquoteQualityGrouped, this.groups);
+    SelectOptionsHelper.createSelectItemForEnum(this.translateService, HistoryquoteQualityGrouped, this.groups);
     this.groupRequests
       .pipe(
         switchMap((grouped) => this.securityService.getHistoryquoteQualityHead(grouped)),

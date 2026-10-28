@@ -1,29 +1,18 @@
-import { Component, Injector, OnDestroy, OnInit, signal, input, linkedSignal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, input, linkedSignal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { TransactionService } from '../service/transaction.service';
 import { Transaction } from '../../entities/transaction';
 import { Currencypair } from '../../entities/currencypair';
 import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import { CashaccountTransactionPosition } from '../../entities/view/cashaccount.transaction.position';
 import { TransactionContextMenu } from './transaction.context.menu';
-import { TranslateService } from '@ngx-translate/core';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Security } from '../../entities/security';
 import { Portfolio } from '../../entities/portfolio';
 import { TransactionCallParam } from './transaction.call.parm';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { combineLatest, Observable, of, switchMap } from 'rxjs';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import {
-  ChildPreservePage,
-  PageFirstRowSelectedRow,
-  ParentChildRegisterService
-} from '../../shared/service/parent.child.register.service';
+import { ChildPreservePage, PageFirstRowSelectedRow } from '../../shared/service/parent.child.register.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { AppSettings } from '../../shared/app.settings';
 import { TransactionType } from '../../shared/types/transaction.type';
@@ -58,6 +47,9 @@ export class TransactionCashaccountTableComponent
   extends TransactionContextMenu
   implements ChildPreservePage, OnInit, OnDestroy
 {
+  private currencypairService: CurrencypairService = inject(CurrencypairService);
+  private portfolioService: PortfolioService = inject(PortfolioService);
+
   /** The unique identifier of the security cash account for which transactions are displayed */
   readonly idSecuritycashAccount = input<number>(undefined);
 
@@ -76,44 +68,9 @@ export class TransactionCashaccountTableComponent
 
   /**
    * Creates an instance of TransactionCashaccountTableComponent.
-   * @param currencypairService Service for handling currency pair operations
-   * @param portfolioService Service for portfolio-related operations
-   * @param parentChildRegisterService Service for managing parent-child component relationships
-   * @param activePanelService Service for managing active panel state
-   * @param transactionService Service for transaction operations
-   * @param confirmationService Optimus service for confirmation dialogs
-   * @param messageToastService Service for displaying toast messages
-   * @param filterService Optimus service for table filtering
-   * @param translateService Angular service for internationalization
-   * @param gps Global parameter service for application settings
-   * @param usersettingsService Service for user-specific settings
    */
-  constructor(
-    private currencypairService: CurrencypairService,
-    private portfolioService: PortfolioService,
-    parentChildRegisterService: ParentChildRegisterService,
-    activePanelService: ActivePanelService,
-    transactionService: TransactionService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      parentChildRegisterService,
-      activePanelService,
-      transactionService,
-      confirmationService,
-      messageToastService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super();
   }
 
   /** Initializes the component by setting up table columns, sorting, and registering with parent-child service */

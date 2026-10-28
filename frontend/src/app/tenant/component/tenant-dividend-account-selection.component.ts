@@ -1,8 +1,7 @@
 import { signal, Component, OnInit, input } from '@angular/core';
 import { Portfolio } from '../../entities/portfolio';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 
@@ -75,8 +74,8 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
   readonly portfolioAccounts = signal<TreeNode[]>([]);
   readonly selectedNodes = signal<TreeNode[]>([]);
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

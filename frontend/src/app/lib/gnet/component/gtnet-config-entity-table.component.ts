@@ -1,14 +1,12 @@
-import { Component, DestroyRef, inject, Injector, OnInit, signal, output, input } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, output, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { TableConfigBase } from '../../datashowbase/table.config.base';
-import { ExchangeKindTypeInfo, GTNetConfigEntity, GTNetEntity, SupplierConsumerLogTypes } from '../model/gtnet';
+import { ExchangeKindTypeInfo, GTNetEntity, SupplierConsumerLogTypes } from '../model/gtnet';
 import { DataType } from '../../dynamic-form/models/data.type';
-import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
-import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { TranslateValue } from '../../datashowbase/column.config';
+import { TranslateModule } from '@ngx-translate/core';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
@@ -91,15 +89,9 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
   private menuSubscription: Subscription;
 
-  constructor(
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
-    this.canAdministerGTNet = gps.hasRole(BaseSettings.ROLE_ADMIN);
+  constructor() {
+    super();
+    this.canAdministerGTNet = this.gps.hasRole(BaseSettings.ROLE_ADMIN);
     inject(DestroyRef).onDestroy(() => this.menuSubscription?.unsubscribe());
   }
 

@@ -1,8 +1,7 @@
-import { Component, Injector, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { TranslateModule } from '@ngx-translate/core';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { Subscription } from 'rxjs';
 import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
@@ -10,10 +9,6 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
 import { DataType } from '../../dynamic-form/models/data.type';
 import { TranslateValue } from '../../datashowbase/column.config';
 import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
-import { MessageToastService } from '../../message/message.toast.service';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { HelpIds } from '../../help/help.ids';
 import { BaseSettings } from '../../base.settings';
 import { UserAccessToken } from '../model/user-access-token';
@@ -64,34 +59,13 @@ import { UserAccessTokenCreateDialogComponent } from './user-access-token-create
   `
 })
 export class UserAccessTokenTableComponent extends TableCrudSupportMenu<UserAccessToken> {
+  private userAccessTokenService: UserAccessTokenService = inject(UserAccessTokenService);
+
   readonly formDefinition = signal<ClassDescriptorInputAndShow>(null);
   private readDataSub?: Subscription;
 
-  constructor(
-    private userAccessTokenService: UserAccessTokenService,
-    confirmation: ConfirmationService,
-    messages: MessageToastService,
-    panels: ActivePanelService,
-    dialogs: DialogService,
-    filters: FilterService,
-    translate: TranslateService,
-    gps: GlobalparameterService,
-    settings: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      UserAccessTokenService.USER_ACCESS_TOKEN,
-      userAccessTokenService,
-      confirmation,
-      messages,
-      panels,
-      dialogs,
-      filters,
-      translate,
-      gps,
-      settings,
-      injector
-    );
+  constructor() {
+    super(UserAccessTokenService.USER_ACCESS_TOKEN, inject(UserAccessTokenService));
     this.addColumnFeqH(DataType.String, 'tokenName', true, false);
     this.addColumnFeqH(DataType.String, 'tokenPrefix', true, false);
     this.addColumnFeqH(DataType.String, 'scope', true, false, { translateValues: TranslateValue.NORMAL });

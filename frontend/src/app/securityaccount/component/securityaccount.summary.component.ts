@@ -1,19 +1,13 @@
-import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
-import { SecurityaccountService } from '../service/securityaccount.service';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Params } from '@angular/router';
 
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { SecurityaccountTable } from './securityaccountTable';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { ChartDataService } from '../../shared/chart/service/chart.data.service';
 import { HelpIds } from '../../lib/help/help.ids';
-import { OptionalParameters, TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
+import { OptionalParameters } from '../../historyquote/service/time.series.quotes.service';
 import {
   ImportTransactionHeadService,
   SuccessFailedDirectImportTransaction
@@ -22,10 +16,8 @@ import {
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { AppSettings } from '../../shared/app.settings';
 import { NgxFileDropEntry, NgxFileDropModule } from 'ngx-file-drop';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
-import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -68,42 +60,13 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   ]
 })
 export class SecurityaccountSummaryComponent extends SecurityaccountTable implements OnInit, OnDestroy {
+  protected importTransactionHeadService: ImportTransactionHeadService = inject(ImportTransactionHeadService);
+
   private routeSubscribe: Subscription;
   private idSecurityaccount: number;
 
-  constructor(
-    protected importTransactionHeadService: ImportTransactionHeadService,
-    timeSeriesQuotesService: TimeSeriesQuotesService,
-    alarmSetupService: AlarmSetupService,
-    activePanelService: ActivePanelService,
-    messageToastService: MessageToastService,
-    securityaccountService: SecurityaccountService,
-    productIconService: ProductIconService,
-    activatedRoute: ActivatedRoute,
-    router: Router,
-    chartDataService: ChartDataService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      timeSeriesQuotesService,
-      alarmSetupService,
-      activePanelService,
-      messageToastService,
-      securityaccountService,
-      productIconService,
-      activatedRoute,
-      router,
-      chartDataService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super();
   }
 
   ngOnInit() {

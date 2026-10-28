@@ -1,22 +1,11 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TransactionTable } from '../../transaction/component/transaction.table';
-import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
-import {
-  PageFirstRowSelectedRow,
-  ParentChildRegisterService
-} from '../../shared/service/parent.child.register.service';
-import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { PageFirstRowSelectedRow } from '../../shared/service/parent.child.register.service';
 import { Currencypair } from '../../entities/currencypair';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { combineLatest, Observable, Subscription } from 'rxjs';
-import { TransactionService } from '../../transaction/service/transaction.service';
 import { Transaction } from '../../entities/transaction';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { TranslateService } from '@ngx-translate/core';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ActivatedRoute, Params } from '@angular/router';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
 
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
@@ -46,6 +35,8 @@ import { StandingOrderSecurityEditComponent } from '../../standingorder/componen
   ]
 })
 export class PortfolioTransactionTableComponent extends TransactionTable implements OnInit, OnDestroy {
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+
   /** Subscription for monitoring route parameter changes */
   private routeSubscribe: Subscription;
 
@@ -55,46 +46,10 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
   /**
    * Constructs the portfolio transaction table component with all required dependencies.
    *
-   * @param activatedRoute Service for accessing route parameters and data
-   * @param currencypairService Service for managing currency pair operations and data retrieval
-   * @param parentChildRegisterService Service for coordinating parent-child component relationships
-   * @param activePanelService Service for managing active panel states and menu interactions
-   * @param transactionService Service for transaction data operations and business logic
-   * @param confirmationService PrimNG service for displaying confirmation dialogs
-   * @param messageToastService Service for displaying user notification messages
-   * @param filterService PrimNG service for table filtering functionality
-   * @param translateService Angular service for internationalization and text translation
-   * @param gps Global parameter service for application-wide settings and configurations
-   * @param usersettingsService Service for managing user-specific preferences and settings
    */
 
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    currencypairService: CurrencypairService,
-    parentChildRegisterService: ParentChildRegisterService,
-    activePanelService: ActivePanelService,
-    transactionService: TransactionService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      currencypairService,
-      parentChildRegisterService,
-      activePanelService,
-      transactionService,
-      confirmationService,
-      messageToastService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super();
   }
 
   /**

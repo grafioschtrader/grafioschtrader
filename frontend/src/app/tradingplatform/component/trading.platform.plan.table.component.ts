@@ -1,18 +1,14 @@
-import { Component, Injector, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
 import { TradingPlatformPlan } from '../../entities/tradingplatformplan';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { TradingPlatformPlanService } from '../service/trading.platform.plan.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { HelpIds } from '../../lib/help/help.ids';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
@@ -67,6 +63,8 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
   imports: [TranslateModule, ConfigurableTableComponent, TradingPlatformPlanEditComponent, FeeModelEditComponent]
 })
 export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<TradingPlatformPlan> {
+  private tradingPlatformPlanService: TradingPlatformPlanService = inject(TradingPlatformPlanService);
+
   callParam: TradingPlatformPlan;
   readonly visibleFeeModelDialog = signal(false);
   feeModelCallParam: TradingPlatformPlan;
@@ -75,31 +73,8 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
 
   private readDataSubscription?: Subscription;
 
-  constructor(
-    private tradingPlatformPlanService: TradingPlatformPlanService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      AppSettings.TRADING_PLATFORM_PLAN,
-      tradingPlatformPlanService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super(AppSettings.TRADING_PLATFORM_PLAN, inject(TradingPlatformPlanService));
 
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.en', 'PLATFORM_PLAN_NAME', true, false, {
       headerSuffix: 'EN',

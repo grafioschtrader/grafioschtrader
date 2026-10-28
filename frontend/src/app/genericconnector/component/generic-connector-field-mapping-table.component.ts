@@ -1,9 +1,6 @@
 import { Component, output, viewChild, input, linkedSignal, effect, untracked } from '@angular/core';
-import { FilterService } from '@openng/optimus-ui/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { TableEditConfigBase } from '../../lib/datashowbase/table.edit.config.base';
 import {
   EditableTableComponent,
@@ -82,13 +79,8 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
   readonly editable = input<boolean>(true);
   readonly fieldMappingsChange = output<GenericConnectorFieldMapping[]>();
 
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
+  constructor() {
+    super();
     this.setupColumns();
 
     effect(() => {

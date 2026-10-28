@@ -1,10 +1,8 @@
 import { AccountPositionSummary } from '../../entities/view/account.position.summary';
-import { computed, signal, DestroyRef, inject, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { computed, signal, DestroyRef, inject, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
 import { AccountPositionGrandSummary } from '../../entities/view/account.position.grand.summary';
@@ -21,7 +19,7 @@ import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 import { HelpIds } from '../../lib/help/help.ids';
 import { TenantPortfolioSummary } from '../model/tenant.portfolio.summary';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { FilterService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
+import { MenuItem, SelectItem } from '@openng/optimus-ui/api';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { BaseSettings } from '../../lib/base.settings';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -45,6 +43,12 @@ export class TenantSummariesCashaccountComponent
   extends TableConfigBase
   implements OnInit, OnDestroy, IGlobalMenuAttach
 {
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private router: Router = inject(Router);
+  private chartDataService: ChartDataService = inject(ChartDataService);
+
   TenantPortfolioSummary: typeof TenantPortfolioSummary = TenantPortfolioSummary;
 
   readonly CASHBALANCE_MC = 'cashBalanceMC';
@@ -80,19 +84,8 @@ export class TenantSummariesCashaccountComponent
   private statementReports = inject(PerformanceReportDialogService);
   private reportDestroyRef = inject(DestroyRef);
 
-  constructor(
-    private portfolioService: PortfolioService,
-    private activatedRoute: ActivatedRoute,
-    private activePanelService: ActivePanelService,
-    private router: Router,
-    private chartDataService: ChartDataService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
 
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false, {
       width: 100,
@@ -209,7 +202,7 @@ export class TenantSummariesCashaccountComponent
         columnGroupConfigs: [new ColumnGroupConfig('groupValueMC'), new ColumnGroupConfig('grandValueMC')]
       })
     );
-    this.addDisposalCostColumns(injector.get(GlobalparameterGTService));
+    this.addDisposalCostColumns(this.injector.get(GlobalparameterGTService));
 
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
 

@@ -1,15 +1,13 @@
-import { Component, DestroyRef, inject, Injector, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
+import { ConfirmationService } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { Subscription } from 'rxjs';
 import { TableConfigBase } from '../../datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { TranslateValue } from '../../datashowbase/column.config';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { MessageToastService } from '../../message/message.toast.service';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { AppHelper } from '../../helper/app.helper';
@@ -50,22 +48,17 @@ import { UserAccessTokenService } from '../service/user-access-token.service';
   `
 })
 export class OAuthAuthorizationTableComponent extends TableConfigBase {
+  private userAccessTokenService: UserAccessTokenService = inject(UserAccessTokenService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   readonly authorizations = signal<OAuthAuthorization[]>([]);
   readonly selected = signal<OAuthAuthorization>(null);
   private readonly destroyRef = inject(DestroyRef);
   private readDataSub?: Subscription;
 
-  constructor(
-    private userAccessTokenService: UserAccessTokenService,
-    private confirmationService: ConfirmationService,
-    private messageToastService: MessageToastService,
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.addColumn(DataType.String, 'clientName', 'ACCESS_TOKEN_OAUTH_CLIENT_NAME', true, false);
     this.addColumn(DataType.String, 'clientId', 'ACCESS_TOKEN_OAUTH_CLIENT_ID', true, false);
     this.addColumnFeqH(DataType.String, 'scope', true, false, { translateValues: TranslateValue.NORMAL });

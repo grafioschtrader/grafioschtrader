@@ -1,13 +1,10 @@
-import { Component, computed, effect, Injector, input, untracked } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
+import { Component, computed, effect, input, untracked } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { SecurityLookupHint } from '../model/security-lookup';
 import { hintParams, LookupHintRow } from '../model/security-lookup-hint';
@@ -51,20 +48,9 @@ export class SecurityLookupHintTableComponent extends TableConfigBase {
   /**
    * Creates the table columns.
    *
-   * @param filterService - Optimus UI filter service
-   * @param usersettingsService - Persists table settings
-   * @param translateService - Translation of headers, severities, field labels and hint texts
-   * @param gps - Locale and formatting settings
-   * @param injector - Injector of the base class
    */
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.addColumnFeqH(DataType.String, 'severity', true, false, {
       width: 70,
       translateValues: TranslateValue.NORMAL

@@ -3,10 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { MailSettingForwardService } from '../service/mail.setting.forward.service';
 import {
   MailSendForwardDefault,
@@ -64,6 +61,11 @@ import { TranslateModule } from '@ngx-translate/core';
   imports: [EditableTableComponent, TranslateModule]
 })
 export class MailForwardSettingTableEditComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private mailSettingForwardService: MailSettingForwardService = inject(MailSettingForwardService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+
   /** Translated menu of the selection, shown as context menu and in the menu bar */
   readonly contextMenuItems = signal<MenuItem[]>([]);
   readonly mailSettingForwardList = signal<MailSettingForward[]>([]);
@@ -78,17 +80,8 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
 
   private readonly MAIL_SETTING_FORWARD = 'MAIL_SETTING_FORWARD';
 
-  constructor(
-    private activePanelService: ActivePanelService,
-    private mailSettingForwardService: MailSettingForwardService,
-    private messageToastService: MessageToastService,
-    private confirmationService: ConfirmationService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
+  constructor() {
+    super();
 
     // Configure MESSAGE_COM_TYPE column
     this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_COM_TYPE, true, {

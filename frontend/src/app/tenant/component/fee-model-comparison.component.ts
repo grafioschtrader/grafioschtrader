@@ -13,7 +13,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppSettings } from '../../shared/app.settings';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { FeeModelComparisonResponse } from '../../entities/fee.model.comparison';
 import { Portfolio } from '../../entities/portfolio';
@@ -31,7 +31,6 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
 import { HelpIds } from '../../lib/help/help.ids';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
 import { FeeModelComparisonTableComponent } from './fee-model-comparison-table.component';
@@ -100,6 +99,11 @@ import { TenantService } from '../service/tenant.service';
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, FeeModelComparisonTableComponent, FxObservationTableComponent]
 })
 export class FeeModelComparisonComponent extends ShowRecordConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private securityaccountService: SecurityaccountService = inject(SecurityaccountService);
+  private tenantService: TenantService = inject(TenantService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+
   readonly form = viewChild(DynamicFormComponent);
   readonly comparisonTable = viewChild(FeeModelComparisonTableComponent);
 
@@ -121,15 +125,8 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
 
   private subscriptions: Subscription[] = [];
 
-  constructor(
-    private portfolioService: PortfolioService,
-    private securityaccountService: SecurityaccountService,
-    private tenantService: TenantService,
-    private activePanelService: ActivePanelService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.formConfig = { labelColumns: 2, nonModal: true };
     this.config = [
       DynamicFieldHelper.createFieldSelectNumber('idSecuritycashAccount', 'SECURITYACCOUNT', false, {

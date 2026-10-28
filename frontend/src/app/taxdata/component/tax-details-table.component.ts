@@ -1,10 +1,6 @@
 import { Component, input, effect, untracked } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 
@@ -27,13 +23,8 @@ export class TaxDetailsTableComponent extends TableConfigBase {
   /** Currency inherited from the estimate for match rows, which do not repeat it on every diagnostic. */
   readonly currency = input<string>(undefined);
 
-  constructor(
-    filter: FilterService,
-    settings: UserSettingsService,
-    translate: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filter, settings, translate, gps);
+  constructor() {
+    super();
 
     effect(() => {
       this.mode();

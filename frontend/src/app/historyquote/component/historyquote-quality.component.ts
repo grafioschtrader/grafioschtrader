@@ -1,8 +1,6 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { IHistoryquoteQuality } from '../../entities/view/ihistoryquote.quality';
 import { Securitycurrency } from '../../entities/securitycurrency';
@@ -34,17 +32,15 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   imports: [TooltipModule]
 })
 export class HistoryquoteQualityComponent extends SingleRecordConfigBase implements OnInit {
+  private securityService: SecurityService = inject(SecurityService);
+  private currencypairService: CurrencypairService = inject(CurrencypairService);
+
   readonly historyquoteQuality = input<IHistoryquoteQuality>(undefined);
   readonly securitycurrency = input<Securitycurrency>(undefined);
   private feedConnectorsKV: { [id: string]: string } = {};
 
-  constructor(
-    private securityService: SecurityService,
-    private currencypairService: CurrencypairService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

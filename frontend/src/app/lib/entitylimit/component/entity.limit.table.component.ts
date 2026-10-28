@@ -1,9 +1,9 @@
-import { Component, Injector, signal, viewChild } from '@angular/core';
+import { Component, signal, viewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { forkJoin, Subscription } from 'rxjs';
 
 import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
@@ -11,10 +11,6 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
 import { EntityLimitEditComponent } from './entity.limit.edit.component';
 import { EntityLimit } from '../../entities/entity.limit';
 import { EntityLimitService } from '../service/entity.limit.service';
-import { MessageToastService } from '../../message/message.toast.service';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { HelpIds } from '../../help/help.ids';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
@@ -82,6 +78,8 @@ import { TranslateHelper } from '../../helper/translate.helper';
   imports: [ConfigurableTableComponent, TranslateModule, TooltipModule, EntityLimitEditComponent]
 })
 export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit> {
+  private entityLimitService: EntityLimitService = inject(EntityLimitService);
+
   /** The row the edit dialog works on, null when a new one is created. */
   callParam: EntityLimit;
 
@@ -102,31 +100,8 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
   private readonly showMenuItems = signal<MenuItem[]>(null);
   private readDataSub?: Subscription;
 
-  constructor(
-    private entityLimitService: EntityLimitService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      BaseSettings.ENTITY_LIMIT,
-      entityLimitService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super(BaseSettings.ENTITY_LIMIT, inject(EntityLimitService));
     // The heading is a translated description; key lookup and deletion use the actual entity name.
     this.entityNameUpper = 'ENTITY_LIMIT_INFO_CLASS';
 

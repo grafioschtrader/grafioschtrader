@@ -1,8 +1,6 @@
-import { signal, Component, OnDestroy, OnInit } from '@angular/core';
+import { signal, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlgoTreeViewBase } from './algo.tree.view.base';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { SimulationContextService } from '../service/simulation.context.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ConfirmationService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
@@ -29,14 +27,12 @@ import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseID } from '../../lib/entities/base.id';
 import { AlgoSecurityService } from '../service/algo.security.service';
-import { AlgoStrategyService } from '../service/algo.strategy.service';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AlgoTopService } from '../service/algo.top.service';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
 import { TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop } from '../model/tree.algo.base';
 import { AlgoSecurityEditComponent } from './algo-security-edit.component';
 import { Tenant } from '../../entities/tenant';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
@@ -175,6 +171,16 @@ import {
   ]
 })
 export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGlobalMenuAttach, OnInit, OnDestroy {
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private algoTopService: AlgoTopService = inject(AlgoTopService);
+  private algoAssetclassService: AlgoAssetclassService = inject(AlgoAssetclassService);
+  private algoSecurityService: AlgoSecurityService = inject(AlgoSecurityService);
+  private dataChangedService: DataChangedService = inject(DataChangedService);
+  protected messageToastService: MessageToastService = inject(MessageToastService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+  private simulationContext: SimulationContextService = inject(SimulationContextService);
+
   readonly canEditCellCallback = (rowData: any, field: ColumnConfig) => this.canEditCell(rowData, field);
   readonly isCheckboxVisibleCallback = (rowData: any, field: ColumnConfig) => this.isCheckboxVisible(rowData, field);
   readonly isCheckboxDisabledCallback = (rowData: any, field: ColumnConfig) => this.isCheckboxDisabled(rowData, field);
@@ -205,26 +211,12 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   /** True when no create, update or delete action on the hierarchy may be offered. */
   hierarchyReadOnly: boolean;
 
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    private activePanelService: ActivePanelService,
-    private algoTopService: AlgoTopService,
-    private algoAssetclassService: AlgoAssetclassService,
-    private algoSecurityService: AlgoSecurityService,
-    algoStrategyService: AlgoStrategyService,
-    private dataChangedService: DataChangedService,
-    protected messageToastService: MessageToastService,
-    private confirmationService: ConfirmationService,
-    private simulationContext: SimulationContextService,
-    productIconService: ProductIconService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(algoStrategyService, productIconService, translateService, gps);
+  constructor() {
+    super();
     // The strategy hierarchy belongs to the home tenant: inside a simulation environment it is shown but not
     // edited, and a read-only user may not change it either. Resolved once, because entering or leaving an
     // environment reloads the application.
-    this.hierarchyReadOnly = this.simulationContext.isInSimulation() || gps.isReadOnlyUser();
+    this.hierarchyReadOnly = this.simulationContext.isInSimulation() || this.gps.isReadOnlyUser();
 
     const percentageCol = this.addNameAndPercentageColumns();
     percentageCol.cec = {

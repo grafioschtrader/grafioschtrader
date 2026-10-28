@@ -1,14 +1,11 @@
-import { Component, DestroyRef, inject, Injector, OnDestroy, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, take } from 'rxjs';
 
-import { TranslateService } from '@ngx-translate/core';
 import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { toClipboard } from 'copee';
 
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ParentChildRowSelection } from '../../lib/datashowbase/parent.child.row.selection';
 import { ImportTransactionHead } from '../../entities/import.transaction.head';
@@ -102,6 +99,12 @@ import { Helper } from '../../lib/helper/helper';
   ]
 })
 export class SecurityaccountImportTransactionTableComponent extends TableConfigBase implements OnDestroy {
+  private importTransactionPosService: ImportTransactionPosService = inject(ImportTransactionPosService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private iconReg: SvgIconRegistryService = inject(SvgIconRegistryService);
+  private dialogService: DialogService = inject(DialogService);
+
   public static CHECK_OK = 'A';
   public static TRANSACTION_ERROR = 'E';
   public static createTypeIconMap: { [key: string]: string } = {
@@ -126,19 +129,8 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>;
   private readonly ITP = 'IMPORT_TRANSACTION_POS';
 
-  constructor(
-    private importTransactionPosService: ImportTransactionPosService,
-    private confirmationService: ConfirmationService,
-    private messageToastService: MessageToastService,
-    private iconReg: SvgIconRegistryService,
-    private dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.rowsPerPage = 50;
     this.supplementCriteria = new SupplementCriteria(true, false);
     SecurityaccountImportTransactionTableComponent.registerIcons(this.iconReg);

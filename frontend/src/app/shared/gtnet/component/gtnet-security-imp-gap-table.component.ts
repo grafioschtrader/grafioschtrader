@@ -1,10 +1,7 @@
 import { Component, input, computed, effect, untracked } from '@angular/core';
 
-import { TranslateService } from '@ngx-translate/core';
-
 import { ShowRecordConfigBase } from '../../../lib/datashowbase/show.record.config.base';
 import { ConfigurableTableComponent } from '../../../lib/datashowbase/configurable-table.component';
-import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
 import { DataType } from '../../../lib/dynamic-form/models/data.type';
 import { TranslateValue } from '../../../lib/datashowbase/column.config';
 import { GTNetSecurityImpGap } from '../model/gtnet-security-imp-gap';
@@ -56,8 +53,8 @@ export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase {
    */
   readonly gtNetsMap = input<Map<number, GTNet>>(new Map());
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
 
     this.addColumn(DataType.String, 'gapCode', 'GAP_CODE', true, false, {
       translateValues: TranslateValue.NORMAL,

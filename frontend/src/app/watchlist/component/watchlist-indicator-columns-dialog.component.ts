@@ -1,13 +1,11 @@
-import { DestroyRef, inject, computed, signal, Component, OnInit, Injector } from '@angular/core';
+import { DestroyRef, inject, computed, signal, Component, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TableModule } from '@openng/optimus-ui/table';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { FilterService, ConfirmationService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
+import { ConfirmationService } from '@openng/optimus-ui/api';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { WatchlistIndicatorService } from '../service/watchlist-indicator.service';
 import { WatchlistIndicatorColumn } from '../model/watchlist-indicator';
@@ -81,6 +79,10 @@ import { HelpIds } from '../../lib/help/help.ids';
   `
 })
 export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase implements OnInit {
+  private service: WatchlistIndicatorService = inject(WatchlistIndicatorService);
+  private watchlists: WatchlistService = inject(WatchlistService);
+  private confirmation: ConfirmationService = inject(ConfirmationService);
+
   readonly tableFields = computed(() => {
     this.fieldsRevision();
     return [...this.fields];
@@ -89,17 +91,8 @@ export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase im
   readonly rows = signal<WatchlistIndicatorColumn[]>([]);
   readonly visibleEdit = signal(false);
   readonly callParam = signal<any>(undefined);
-  constructor(
-    filter: FilterService,
-    settings: UserSettingsService,
-    translate: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector,
-    private service: WatchlistIndicatorService,
-    private watchlists: WatchlistService,
-    private confirmation: ConfirmationService
-  ) {
-    super(filter, settings, translate, gps, injector);
+  constructor() {
+    super();
     this.addColumn(DataType.String, 'label', 'WIC_LABEL', true, false);
     this.addColumnFeqH(DataType.String, 'expression', true, false);
     this.addColumn(DataType.String, 'watchlistName', 'ID_WATCHLIST', true, false);

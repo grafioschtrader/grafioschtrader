@@ -1,10 +1,6 @@
 import { AddInstrumentTable } from '../../watchlist/component/add-instrument-table.component';
-import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { Component, Injector } from '@angular/core';
-import { FilterService } from '@openng/optimus-ui/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { Component, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { AlgoAssetclassService } from '../service/algo.assetclass.service';
 import { AlgoAssetclass } from '../model/algo.assetclass';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -27,33 +23,9 @@ export class AlgoAssetclassAddInstrumentTableComponent extends AddInstrumentTabl
   /**
    * Creates the result table of the custom category search.
    *
-   * @param dataChangedService - Notifies the hierarchy view after instruments were added
-   * @param algoAssetclassService - Searches the instruments and adds them to the custom category
-   * @param filterService - Optimus filter service for table filtering
-   * @param translateService - Service for internationalization
-   * @param gps - Global parameter service for application settings
-   * @param usersettingsService - Service for user preference management
-   * @param injector - Angular injector passed to the table base
    */
-  constructor(
-    dataChangedService: DataChangedService,
-    algoAssetclassService: AlgoAssetclassService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      null,
-      dataChangedService,
-      algoAssetclassService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super(null, inject(AlgoAssetclassService));
   }
 
   /** Adds the activity period of each instrument after the base columns. */

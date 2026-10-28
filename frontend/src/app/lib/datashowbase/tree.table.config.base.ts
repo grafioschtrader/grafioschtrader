@@ -1,6 +1,4 @@
-import { TranslateService } from '@ngx-translate/core';
-import { FilterService, TreeNode } from '@openng/optimus-ui/api';
-import { GlobalparameterService } from '../services/globalparameter.service';
+import { TreeNode } from '@openng/optimus-ui/api';
 import { TableTreetableTotalBase } from './table.treetable.total.base';
 import { TranslateHelper } from '../helper/translate.helper';
 import { BaseSettings } from '../base.settings';
@@ -15,21 +13,6 @@ import { BaseSettings } from '../base.settings';
  * support for sorting and filtering operations.
  */
 export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
-  /**
-   * Creates a new tree table configuration base.
-   *
-   * @param translateService - Angular translation service for internationalization
-   * @param gps - Global parameter service for locale and formatting settings
-   * @param filterService - Optional Optimus service for registering custom filters
-   */
-  protected constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    filterService?: FilterService
-  ) {
-    super(translateService, gps, null, filterService);
-  }
-
   /**
    * Initializes tree table configuration including filtering and translations.
    * Must be called after column definitions are complete to set up proper filtering

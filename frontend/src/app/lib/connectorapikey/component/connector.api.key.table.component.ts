@@ -1,18 +1,13 @@
-import { Component, Injector, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map, of, Subscription, switchMap } from 'rxjs';
 
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { ConnectorApiKey, SubscriptionTypeReadableName } from '../types/connector.api.key';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../message/message.toast.service';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { ConnectorApiKeyEditComponent } from './connector.api.key.edit.component';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { HelpIds } from '../../help/help.ids';
 import { ConnectorApiKeyService } from '../service/connector.api.key.service';
 import { DataType } from '../../dynamic-form/models/data.type';
@@ -60,6 +55,8 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
   imports: [ConfigurableTableComponent, TranslateModule, ConnectorApiKeyEditComponent]
 })
 export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<ConnectorApiKey> {
+  private connectorApiKeyService: ConnectorApiKeyService = inject(ConnectorApiKeyService);
+
   connectorApiKey: ConnectorApiKey;
 
   readonly strn = signal<Record<string, SubscriptionTypeReadableName>>({});
@@ -67,31 +64,8 @@ export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<Connecto
   readonly subscriptionTypeOptionsMap = signal<Record<string, ValueKeyHtmlSelectOptions[]>>({});
   private readDataSub?: Subscription;
 
-  constructor(
-    private connectorApiKeyService: ConnectorApiKeyService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      BaseSettings.CONNECTOR_API_KEY,
-      connectorApiKeyService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super(BaseSettings.CONNECTOR_API_KEY, inject(ConnectorApiKeyService));
 
     this.addColumnFeqH(DataType.String, 'idProvider', true, false, {
       fieldValueFN: this.getFeedConnectorReadableName.bind(this)

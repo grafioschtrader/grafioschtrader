@@ -1,12 +1,9 @@
-import { Component, Injector, input, effect, untracked } from '@angular/core';
+import { Component, input, effect, untracked } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
 import { TableConfigBase } from '../../datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { DataType } from '../../dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { GTNetMaintenanceWindow } from '../model/gtnet';
 
 /**
@@ -35,14 +32,8 @@ import { GTNetMaintenanceWindow } from '../model/gtnet';
 export class GTNetMaintenanceWindowTableComponent extends TableConfigBase {
   readonly maintenanceWindows = input<GTNetMaintenanceWindow[]>([]);
 
-  constructor(
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.addColumnFeqH(DataType.DateTimeString, 'fromDateTime', true, false);
     this.addColumnFeqH(DataType.DateTimeString, 'toDateTime', true, false);
     this.multiSortMeta.push({ field: 'fromDateTime', order: -1 });

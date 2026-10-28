@@ -1,20 +1,9 @@
-import { Injector } from '@angular/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { FilterService } from '@openng/optimus-ui/api';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 
 export class TenantDividendsExtendedBase extends TableConfigBase {
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
   }
 
   /**

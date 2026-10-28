@@ -1,9 +1,7 @@
-import { Component, computed, DestroyRef, inject, Injector, signal, input } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Security } from '../../entities/security';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { SecurityService } from '../service/security.service';
 import { CallBackSetSecurity } from './securitycurrency-search-and-set-dialog.component';
@@ -12,7 +10,6 @@ import { combineLatest, Observable } from 'rxjs';
 import { Currencypair } from '../../entities/currencypair';
 import { SecuritycurrencySearchTableBase } from './securitycurrency.search.table.base';
 import { SupplementCriteria } from '../model/supplement.criteria';
-import { FilterService } from '@openng/optimus-ui/api';
 import { TableModule } from '@openng/optimus-ui/table';
 import { ButtonModule } from '@openng/optimus-ui/button';
 
@@ -83,6 +80,9 @@ import { ButtonModule } from '@openng/optimus-ui/button';
   imports: [TableModule, ButtonModule, TranslateModule]
 })
 export class SecuritycurrencySearchAndSetTableComponent extends SecuritycurrencySearchTableBase {
+  private securityService: SecurityService = inject(SecurityService);
+  private currencypairService: CurrencypairService = inject(CurrencypairService);
+
   readonly callBackSetSecurity = input<CallBackSetSecurity>(undefined);
   readonly supplementCriteria = input<SupplementCriteria>(undefined);
 
@@ -94,16 +94,8 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
   });
   private readonly destroyRef = inject(DestroyRef);
 
-  constructor(
-    private securityService: SecurityService,
-    private currencypairService: CurrencypairService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
   }
 
   loadData(securitycurrencySearch: SecuritycurrencySearch): void {

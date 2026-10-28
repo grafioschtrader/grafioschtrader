@@ -1,15 +1,12 @@
 import { TableConfigBase } from '../../datashowbase/table.config.base';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { Component, DestroyRef, inject, Injector, signal, output, input, effect, untracked } from '@angular/core';
+import { Component, DestroyRef, inject, signal, output, input, effect, untracked } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { EntityLimitEditComponent } from '../../entitylimit/component/entity.limit.edit.component';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { DataType } from '../../dynamic-form/models/data.type';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { EntityLimit } from '../../entities/entity.limit';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
 import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
@@ -78,6 +75,12 @@ import { BaseSettings } from '../../base.settings';
   imports: [ConfigurableTableComponent, AngularSvgIconModule, EntityLimitEditComponent]
 })
 export class EntityLimitUserTableComponent extends TableConfigBase implements IGlobalMenuAttach {
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private entityLimitService: EntityLimitService = inject(EntityLimitService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+  private proposeUserTaskService: ProposeUserTaskService = inject(ProposeUserTaskService);
+
   public static readonly ENTITY_LIMIT = 'ENTITY_LIMIT';
 
   readonly user = input<User>(undefined);
@@ -105,19 +108,8 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
   private menuSubscription: Subscription;
 
-  constructor(
-    private activePanelService: ActivePanelService,
-    private entityLimitService: EntityLimitService,
-    private messageToastService: MessageToastService,
-    private confirmationService: ConfirmationService,
-    private proposeUserTaskService: ProposeUserTaskService,
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
 
     this.addColumnFeqH(DataType.String, 'entityName', true, false, {
       fieldValueFN: this.getEntityLabel.bind(this)

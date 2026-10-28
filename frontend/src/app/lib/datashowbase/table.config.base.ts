@@ -1,5 +1,4 @@
-import { Injector } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { inject } from '@angular/core';
 import { FilterService, MenuItem, SortEvent, SortMeta } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { UserSettingsService } from '../services/user.settings.service';
@@ -7,7 +6,6 @@ import { Helper } from '../helper/helper';
 import { ColumnConfig } from './column.config';
 import { TableTreetableTotalBase } from './table.treetable.total.base';
 import { BaseSettings } from '../base.settings';
-import { GlobalparameterService } from '../services/globalparameter.service';
 import { ColumnVisibilityDialogComponent, ColumnVisibilityOwner } from './column-visibility-dialog.component';
 
 /**
@@ -27,6 +25,9 @@ import { ColumnVisibilityDialogComponent, ColumnVisibilityOwner } from './column
  * - Group field management for  table layouts
  */
 export abstract class TableConfigBase extends TableTreetableTotalBase {
+  protected override filterService = inject(FilterService);
+  protected usersettingsService: UserSettingsService = inject(UserSettingsService);
+
   /** Locale string for form and date formatting */
   formLocale: string;
 
@@ -86,22 +87,10 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
 
   /**
    * Creates a new table configuration base.
-   *
-   * @param filterService - Optimus service for registering custom filters
-   * @param usersettingsService - Service for persisting user table preferences
-   * @param translateService - Angular translation service
-   * @param gps - Global parameter base service for locale and formatting
-   * @param injector - Angular injector for lazy service resolution (DialogService)
    */
-  protected constructor(
-    filterService: FilterService,
-    protected usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector = null
-  ) {
-    super(translateService, gps, injector, filterService);
-    this.formLocale = gps.getLocale();
+  protected constructor() {
+    super();
+    this.formLocale = this.gps.getLocale();
   }
 
   /**

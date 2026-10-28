@@ -1,7 +1,5 @@
 import { DataType } from '../dynamic-form/models/data.type';
 import { ColumnConfig, OptionalParams } from './column.config';
-import { GlobalparameterService } from '../services/globalparameter.service';
-import { TranslateService } from '@ngx-translate/core';
 import { ShowRecordConfigBase } from './show.record.config.base';
 
 /**
@@ -16,16 +14,6 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
 
   /** Private cache for grouped field configurations */
   _fieldSetGroups: { [fieldSetName: string]: ColumnConfig[] };
-
-  /**
-   * Creates a new single record configuration.
-   *
-   * @param translateService - Angular translation service for internationalization
-   * @param gps - Global parameter service for locale and formatting settings
-   */
-  protected constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
-  }
 
   /**
    * Gets field configurations organized by their fieldset names.

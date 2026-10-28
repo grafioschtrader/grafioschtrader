@@ -1,19 +1,13 @@
-import { Component, Injector } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { UDFMetadataGeneral, UDFMetadataGeneralParam } from '../model/udf.metadata';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../message/message.toast.service';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { UDFMetadataGeneralService } from '../service/udf.metadata.general.service';
 import { HelpIds } from '../../help/help.ids';
 import { UDFMetaTable } from './udf.metadata.table';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { TranslateValue } from '../../datashowbase/column.config';
 import { GlobalSessionNames } from '../../global.session.names';
-import { UDFSpecialTypeDisableUserService } from '../service/udf.special.type.disable.user.service';
 import { BaseSettings } from '../../base.settings';
 
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -82,45 +76,9 @@ export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGe
   /**
    * Creates the UDF metadata general table component.
    *
-   * @param udfSpecialTypeDisableUserService - Service for managing disabled special types
-   * @param uDFMetadataGeneralService - Service for UDF metadata CRUD operations
-   * @param confirmationService - Optimus confirmation dialog service
-   * @param messageToastService - Service for displaying user notifications
-   * @param activePanelService - Service for managing active panels in the UI
-   * @param dialogService - Optimus dynamic dialog service
-   * @param filterService - Optimus filter service for table filtering
-   * @param translateService - Translation service for i18n support
-   * @param gps - Global parameter service providing user settings and system configuration
-   * @param usersettingsService - Service for managing user preferences
    */
-  constructor(
-    udfSpecialTypeDisableUserService: UDFSpecialTypeDisableUserService,
-    uDFMetadataGeneralService: UDFMetadataGeneralService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      UDFMetadataGeneral,
-      udfSpecialTypeDisableUserService,
-      uDFMetadataGeneralService,
-      BaseSettings.UDF_METADATA_GENERAL,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super(UDFMetadataGeneral, inject(UDFMetadataGeneralService), BaseSettings.UDF_METADATA_GENERAL);
     this.addMetadataBaseFields([
       { field: 'entity', order: 1 },
       { field: 'uiOrder', order: 1 }

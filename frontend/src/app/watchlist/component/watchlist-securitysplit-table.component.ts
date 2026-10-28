@@ -1,14 +1,11 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, Injector, OnInit, input } from '@angular/core';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { Component, OnInit, input, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { SecuritysplitService } from '../../securitycurrency/service/securitysplit.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { SvgIconRegistryService, AngularSvgIconModule } from 'angular-svg-icon';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 import { DividendSplitTableBase } from './dividend.split.table.base';
 import { Securitysplit } from '../../entities/dividend.split';
-import { FilterService } from '@openng/optimus-ui/api';
 
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 
@@ -22,6 +19,8 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
   imports: [TranslateModule, ConfigurableTableComponent, AngularSvgIconModule]
 })
 export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase<Securitysplit> implements OnInit {
+  private securitysplitService: SecuritysplitService = inject(SecuritysplitService);
+
   /** Field name constant for the split date column */
   private static SPLIT_DATE = 'splitDate';
 
@@ -30,33 +29,9 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
 
   /**
    * Creates a new watchlist security split table component with required services and column configuration.
-   * @param securitysplitService Service for loading security split data from the backend
-   * @param filterService Optimus filter service for table filtering functionality
-   * @param usersettingsService Service for managing user table preferences and settings
-   * @param translateService Angular translation service for internationalization
-   * @param gps Global parameter service for locale and formatting settings
-   * @param iconReg SVG icon registry service for displaying creation type icons
    */
-  constructor(
-    private securitysplitService: SecuritysplitService,
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    iconReg: SvgIconRegistryService,
-    injector: Injector
-  ) {
-    super(
-      filterService,
-      usersettingsService,
-      translateService,
-      gps,
-      iconReg,
-      'idSecuritysplit',
-      WatchlistSecuritysplitTableComponent.SPLIT_DATE,
-      'SPLIT',
-      injector
-    );
+  constructor() {
+    super('idSecuritysplit', WatchlistSecuritysplitTableComponent.SPLIT_DATE, 'SPLIT');
     this.addColumnFeqH(DataType.DateNumeric, 'splitDate', true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false, {
       fieldValueFN: this.getCreateTypeIcon.bind(this),

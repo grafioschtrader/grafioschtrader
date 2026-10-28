@@ -1,6 +1,6 @@
 import { DestroyRef, inject, viewChild } from '@angular/core';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
-import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { CashaccountService } from '../../cashaccount/service/cashaccount.service';
@@ -8,7 +8,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { Cashaccount } from '../../entities/cashaccount';
 import { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
 import { TransactionType } from '../../shared/types/transaction.type';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { AccountPositionSummary } from '../../entities/view/account.position.summary';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 import { Portfolio } from '../../entities/portfolio';
@@ -23,9 +23,7 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Subscription } from 'rxjs';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
 import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TenantService } from '../../tenant/service/tenant.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
@@ -33,7 +31,7 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { BusinessHelper } from '../../shared/helper/business.helper';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { AppSettings } from '../../shared/app.settings';
 import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
 import { BaseSettings } from '../../lib/base.settings';
@@ -68,6 +66,16 @@ export class PortfolioCashaccountSummaryComponent
   extends TableConfigBase
   implements OnInit, OnDestroy, IGlobalMenuAttach
 {
+  private parentChildRegisterService: ParentChildRegisterService = inject(ParentChildRegisterService);
+  private confirmationService: ConfirmationService = inject(ConfirmationService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private cashaccountService: CashaccountService = inject(CashaccountService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private dataChangedService: DataChangedService = inject(DataChangedService);
+  private treeNavState: TreeNavigationStateService = inject(TreeNavigationStateService);
+  private tenantService: TenantService = inject(TenantService);
+
   // @ViewChild('contextMenuPCD', {static: true}) contextMenu: ContextMenu;
   readonly contextMenu = viewChild<any>('contextMenuPCD');
   untilDate: Date;
@@ -109,23 +117,8 @@ export class PortfolioCashaccountSummaryComponent
     ];
   }
 
-  constructor(
-    private parentChildRegisterService: ParentChildRegisterService,
-    private confirmationService: ConfirmationService,
-    private activePanelService: ActivePanelService,
-    private cashaccountService: CashaccountService,
-    private messageToastService: MessageToastService,
-    private activatedRoute: ActivatedRoute,
-    private dataChangedService: DataChangedService,
-    private treeNavState: TreeNavigationStateService,
-    private tenantService: TenantService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
 
     this.addColumnFeqH(DataType.String, 'cashaccount.name', true, false, {
       width: 100,

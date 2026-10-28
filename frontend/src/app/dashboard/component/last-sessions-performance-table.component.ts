@@ -1,11 +1,7 @@
 import { Component, input, effect, untracked } from '@angular/core';
-import { FilterService } from '@openng/optimus-ui/api';
-import { TranslateService } from '@ngx-translate/core';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { LastSessionsRow } from '../model/last.sessions.performance';
 
 /**
@@ -59,13 +55,8 @@ export class LastSessionsPerformanceTableComponent extends TableConfigBase {
     'totalBalanceMC'
   ];
 
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(filterService, usersettingsService, translateService, gps);
+  constructor() {
+    super();
     this.addColumn(DataType.DateString, 'date', 'DASHBOARD_LAST_SESSIONS_DATE', true, false, {
       width: 90,
       cellTooltipFN: this.sessionTooltip.bind(this)

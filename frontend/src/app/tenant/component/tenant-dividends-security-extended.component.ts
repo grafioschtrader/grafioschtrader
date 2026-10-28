@@ -1,18 +1,16 @@
 import { finalize, Subscription } from 'rxjs';
-import { linkedSignal, DestroyRef, inject, signal, Component, Injector, OnInit, output, input } from '@angular/core';
+import { linkedSignal, DestroyRef, inject, signal, Component, OnInit, output, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SecurityDividendsPosition } from '../../entities/view/securitydividends/security.dividends.position';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { Security } from '../../entities/security';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { TransactionSecurityOptionalParam } from '../../transaction/model/transaction.security.optional.param';
-import { FilterService, SharedModule } from '@openng/optimus-ui/api';
+import { SharedModule } from '@openng/optimus-ui/api';
 import { TenantDividendsExtendedBase } from './tenant.dividends.extended.base';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { TaxDataService } from '../../taxdata/service/tax-data.service';
@@ -167,6 +165,9 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
   ]
 })
 export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
+  private taxDataService: TaxDataService = inject(TaxDataService);
+  private productIconService: ProductIconService = inject(ProductIconService);
+
   readonly idsSecurityaccount = input<number[]>(undefined);
   readonly securityDividendsGrandTotal = input<SecurityDividendsGrandTotal>(undefined);
   readonly securityDividendsPositionsInput = input<
@@ -214,16 +215,8 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   // Output
   readonly dateChanged = output<ProcessedActionData>();
 
-  constructor(
-    filterService: FilterService,
-    usersettingsService: UserSettingsService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    injector: Injector,
-    private taxDataService: TaxDataService,
-    private productIconService: ProductIconService
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.idTenant = this.gps.getIdTenant();
   }
 

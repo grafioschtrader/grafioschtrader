@@ -1,24 +1,14 @@
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { DestroyRef, inject } from '@angular/core';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
-import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { SecurityaccountTable } from '../../securityaccount/component/securityaccountTable';
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 
-import { ActivatedRoute, Router } from '@angular/router';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { ChartDataService } from '../../shared/chart/service/chart.data.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { AppSettings } from '../../shared/app.settings';
-import { OptionalParameters, TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
-import { FilterService } from '@openng/optimus-ui/api';
-import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
+import { OptionalParameters } from '../../historyquote/service/time.series.quotes.service';
 
 import { TableModule } from '@openng/optimus-ui/table';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
@@ -70,38 +60,8 @@ export class TenantSummariesSecurityaccountComponent extends SecurityaccountTabl
     ];
   }
 
-  constructor(
-    timeSeriesQuotesService: TimeSeriesQuotesService,
-    alarmSetupService: AlarmSetupService,
-    activePanelService: ActivePanelService,
-    messageToastService: MessageToastService,
-    securityaccountService: SecurityaccountService,
-    productIconService: ProductIconService,
-    activatedRoute: ActivatedRoute,
-    router: Router,
-    chartDataService: ChartDataService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      timeSeriesQuotesService,
-      alarmSetupService,
-      activePanelService,
-      messageToastService,
-      securityaccountService,
-      productIconService,
-      activatedRoute,
-      router,
-      chartDataService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super();
   }
 
   ngOnInit() {

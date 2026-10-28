@@ -1,19 +1,9 @@
-import { signal, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { signal, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CellMark } from '../../lib/datashowbase/configurable-table.component';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { WatchlistTable, WatchListType } from './watchlist.table';
-import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
-import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { WatchlistService } from '../service/watchlist.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { AppSettings } from '../../shared/app.settings';
 import { combineLatest } from 'rxjs';
 
@@ -21,8 +11,6 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 
-import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { HelpIds } from '../../lib/help/help.ids';
 
 import { MenuItem } from '@openng/optimus-ui/api';
@@ -73,59 +61,19 @@ import { SecuritycurrencyIndicatorGroup, WatchlistIndicatorColumn } from '../mod
 })
 /** Daily-series indicator table; column identity and types are supplied by the backend. */
 export class WatchlistIndicatorComponent extends WatchlistTable implements OnInit, OnDestroy {
+  private indicatorService: WatchlistIndicatorService = inject(WatchlistIndicatorService);
+
   readonly indicatorGroup = signal<SecuritycurrencyIndicatorGroup>(undefined);
   private definitions = new Map<string, WatchlistIndicatorColumn>();
-  constructor(
-    private indicatorService: WatchlistIndicatorService,
-    dialogService: DialogService,
-    alarmSetupService: AlarmSetupService,
-    timeSeriesQuotesService: TimeSeriesQuotesService,
-    dataChangedService: DataChangedService,
-    activePanelService: ActivePanelService,
-    watchlistService: WatchlistService,
-    router: Router,
-    activatedRoute: ActivatedRoute,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    productIconService: ProductIconService,
-    changeDetectionStrategy: ChangeDetectorRef,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gpsGT: GlobalparameterGTService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      WatchListType.INDICATOR,
-      AppSettings.WATCHLIST_INDICATOR_TABLE_SETTINGS_STORE,
-      dialogService,
-      alarmSetupService,
-      timeSeriesQuotesService,
-      dataChangedService,
-      activePanelService,
-      watchlistService,
-      router,
-      activatedRoute,
-      confirmationService,
-      messageToastService,
-      productIconService,
-      changeDetectionStrategy,
-      filterService,
-      translateService,
-      gpsGT,
-      gps,
-      usersettingsService,
-      WatchlistTable.SINGLE,
-      injector
-    );
+  constructor() {
+    super(WatchListType.INDICATOR, AppSettings.WATCHLIST_INDICATOR_TABLE_SETTINGS_STORE, WatchlistTable.SINGLE);
 
     this.addBaseColumns();
     this.addColumn(DataType.DateTimeString, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {
       cellTooltipFN: this.priceCellTooltip.bind(this)
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true, {
-      maxFractionDigits: gps.getMaxFractionDigits(),
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
       cellTooltipFN: this.priceCellTooltip.bind(this)
     });
     // Reddens with the sessions the historical data source missed, coloured by priceCellStyle of the base class.

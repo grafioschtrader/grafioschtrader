@@ -1,10 +1,9 @@
 import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, switchMap } from 'rxjs';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -77,6 +76,10 @@ export class SecurityActionTreetableComponent
   extends TreeTableConfigBase
   implements OnInit, OnDestroy, IGlobalMenuAttach
 {
+  private securityActionService: SecurityActionService = inject(SecurityActionService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   readonly treeNodes = signal<TreeNode[]>([]);
   /** Row highlighted by the single-selection tree table. */
   tableSelection: TreeNode = null;
@@ -93,15 +96,9 @@ export class SecurityActionTreetableComponent
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
   private menuSubscription: Subscription;
 
-  constructor(
-    private securityActionService: SecurityActionService,
-    private activePanelService: ActivePanelService,
-    private messageToastService: MessageToastService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
-    this.isAdmin = AuditHelper.hasAdminRole(gps);
+  constructor() {
+    super();
+    this.isAdmin = AuditHelper.hasAdminRole(this.gps);
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 250 });
     this.addColumnFeqH(DataType.String, 'isinOld', true, false, { width: 120 });
     this.addColumnFeqH(DataType.String, 'isinNew', true, false, { width: 120 });

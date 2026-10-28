@@ -1,21 +1,11 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, Injector, OnInit } from '@angular/core';
-import {
-  PageFirstRowSelectedRow,
-  ParentChildRegisterService
-} from '../../shared/service/parent.child.register.service';
-import { TranslateService } from '@ngx-translate/core';
-import { TransactionService } from '../../transaction/service/transaction.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { Component, OnInit } from '@angular/core';
+import { PageFirstRowSelectedRow } from '../../shared/service/parent.child.register.service';
 import { Transaction } from '../../entities/transaction';
 import { Currencypair } from '../../entities/currencypair';
 import { combineLatest, Observable } from 'rxjs';
-import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import { TransactionTable } from '../../transaction/component/transaction.table';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { CashTransferRelinkResult } from '../../transaction/service/transaction.service';
@@ -51,43 +41,9 @@ export class TenantTransactionTableComponent extends TransactionTable implements
   /**
    * Creates a new tenant transaction table component with all necessary services for transaction management and display.
    *
-   * @param currencypairService Service for managing currency pair operations and exchange rates
-   * @param parentChildRegisterService Service for managing parent-child component relationships and state
-   * @param activePanelService Service for managing active panel state and menu interactions
-   * @param transactionService Service for transaction data operations and persistence
-   * @param confirmationService Optimus service for displaying confirmation dialogs
-   * @param messageToastService Service for displaying user notification messages
-   * @param filterService Optimus service for table filtering functionality
-   * @param translateService Angular service for internationalization and text translation
-   * @param gps Global parameter service for application-wide settings and configuration
-   * @param usersettingsService Service for managing user-specific settings and preferences
    */
-  constructor(
-    currencypairService: CurrencypairService,
-    parentChildRegisterService: ParentChildRegisterService,
-    activePanelService: ActivePanelService,
-    transactionService: TransactionService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      currencypairService,
-      parentChildRegisterService,
-      activePanelService,
-      transactionService,
-      confirmationService,
-      messageToastService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super();
   }
 
   /**

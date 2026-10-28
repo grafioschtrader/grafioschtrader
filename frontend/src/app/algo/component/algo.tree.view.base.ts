@@ -1,11 +1,9 @@
 import { computed, DestroyRef, inject, signal, Directive } from '@angular/core';
 import { of, Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { plainToClass } from 'class-transformer';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -34,6 +32,9 @@ import { AppHelper } from '../../lib/helper/app.helper';
  */
 @Directive()
 export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
+  protected algoStrategyService: AlgoStrategyService = inject(AlgoStrategyService);
+  protected productIconService: ProductIconService = inject(ProductIconService);
+
   protected readonly destroyRef = inject(DestroyRef);
   private readonly pendingReads = new Map<string, Subscription>();
   private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
@@ -71,21 +72,6 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
     false,
     { maxFractionDigits: 4 }
   );
-
-  /**
-   * @param algoStrategyService - Loads the form definition of a strategy implementation for the strategy detail
-   * @param productIconService - Provides the distribution icon shared with the watchlist
-   * @param translateService - Angular translation service for internationalization support
-   * @param gps - Global parameter service providing user locale and formatting preferences
-   */
-  protected constructor(
-    protected algoStrategyService: AlgoStrategyService,
-    protected productIconService: ProductIconService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
-  }
 
   /**
    * Adds the name column and the percentage column every hierarchy tree starts with.

@@ -1,13 +1,7 @@
-import { Injector, signal } from '@angular/core';
+import { signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UDFMetadata, UDFMetadataParam } from '../model/udf.metadata';
-import { ConfirmationService, FilterService, MenuItem, SortMeta } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../message/message.toast.service';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
+import { MenuItem, SortMeta } from '@openng/optimus-ui/api';
 import { DeleteService } from '../../datashowbase/delete.service';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
@@ -25,6 +19,8 @@ import { UDFSpecialTypeRegistry } from '../model/udf.special.type.registry';
  * column additions and parameter preparation for editing dialogs.
  */
 export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSupportMenu<T> {
+  private udfSpecialTypeDisableUserService: UDFSpecialTypeDisableUserService = inject(UDFSpecialTypeDisableUserService);
+
   /**
    * Array of UDF special type values that the current user has disabled (hidden in UI).
    * Each entry is a numeric value corresponding to a registered IUDFSpecialType.
@@ -37,47 +33,16 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * Creates the UDF metadata table base.
    *
    * @param classz - Class constructor for transforming plain objects to typed instances
-   * @param udfSpecialTypeDisableUserService - Service for managing disabled special types
    * @param deleteReadAllService - Service providing read and delete operations for metadata
    * @param entityName - Entity type name for the metadata being managed
-   * @param confirmationService - Optimus confirmation dialog service
-   * @param messageToastService - Service for displaying user notifications
-   * @param activePanelService - Service for managing active panels in the UI
-   * @param dialogService - Optimus dynamic dialog service
-   * @param filterService - Optimus filter service for table filtering
-   * @param translateService - Translation service for i18n support
-   * @param gps - Global parameter service providing user settings and system configuration
-   * @param usersettingsService - Service for managing user preferences
    * @protected
    */
   protected constructor(
     private classz: ClassConstructor<T>,
-    private udfSpecialTypeDisableUserService: UDFSpecialTypeDisableUserService,
     private deleteReadAllService: DeleteReadAllService<UDFMetadata>,
-    entityName: string,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
+    entityName: string
   ) {
-    super(
-      entityName,
-      deleteReadAllService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+    super(entityName, deleteReadAllService);
   }
 
   /**

@@ -1,20 +1,10 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
-import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
-import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { WatchlistService } from '../service/watchlist.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { AppSettings } from '../../shared/app.settings';
 import { WatchlistTable, WatchListType } from './watchlist.table';
 import { combineLatest, Observable } from 'rxjs';
@@ -23,8 +13,6 @@ import { TenantLimit } from '../../shared/types/tenant.limit';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { HelpIds } from '../../lib/help/help.ids';
-import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DatePipe } from '@angular/common';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -88,76 +76,21 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
   ]
 })
 export class WatchlistDividendSplitFeedComponent extends WatchlistTable implements OnInit, OnDestroy {
+  private securityService: SecurityService = inject(SecurityService);
+  private currencypairService: CurrencypairService = inject(CurrencypairService);
+
   /** Map of feed connector IDs to their human-readable names for display purposes */
   // feedConnectorsKV: { [id: string]: string } = {};
 
   /**
    * Creates a new WatchlistDividendSplitFeedComponent with all required services and dependencies.
    * Initializes the watchlist table with dividend and split feed specific columns and configurations.
-   * @param securityService Service for security-related operations and data access
-   * @param currencypairService Service for currency pair operations and data access
-   * @param dialogService Optimus service for managing dynamic dialogs
-   * @param alarmSetupService Service for setting up and managing security alarms
-   * @param timeSeriesQuotesService Service for time series quote data and operations
-   * @param dataChangedService Service for handling data change notifications across components
-   * @param activePanelService Service for managing active panel state in the application
-   * @param watchlistService Service for watchlist operations and data management
-   * @param router Angular router for navigation between routes
-   * @param activatedRoute Current activated route for accessing route parameters
-   * @param confirmationService Optimus service for displaying confirmation dialogs
-   * @param messageToastService Service for displaying toast notification messages
-   * @param productIconService Service for retrieving product-specific icons
-   * @param changeDetectionStrategy Angular change detection strategy for performance optimization
-   * @param filterService Optimus service for table filtering operations
-   * @param translateService Angular service for internationalization and text translation
-   * @param gpsGT Global parameter service for GT-specific configurations
-   * @param gps Global parameter service for application-wide settings and parameters
-   * @param usersettingsService Service for managing user-specific settings and preferences
    */
-  constructor(
-    private securityService: SecurityService,
-    private currencypairService: CurrencypairService,
-    dialogService: DialogService,
-    alarmSetupService: AlarmSetupService,
-    timeSeriesQuotesService: TimeSeriesQuotesService,
-    dataChangedService: DataChangedService,
-    activePanelService: ActivePanelService,
-    watchlistService: WatchlistService,
-    router: Router,
-    activatedRoute: ActivatedRoute,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    productIconService: ProductIconService,
-    changeDetectionStrategy: ChangeDetectorRef,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gpsGT: GlobalparameterGTService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
+  constructor() {
     super(
       WatchListType.DIVIDEND_SPLIT_FEED,
       AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE,
-      dialogService,
-      alarmSetupService,
-      timeSeriesQuotesService,
-      dataChangedService,
-      activePanelService,
-      watchlistService,
-      router,
-      activatedRoute,
-      confirmationService,
-      messageToastService,
-      productIconService,
-      changeDetectionStrategy,
-      filterService,
-      translateService,
-      gpsGT,
-      gps,
-      usersettingsService,
-      WatchlistTable.MULTIPLE,
-      injector
+      WatchlistTable.MULTIPLE
     );
     this.addBaseColumns();
     this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true, true, {

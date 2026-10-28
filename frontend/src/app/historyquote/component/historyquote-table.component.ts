@@ -1,32 +1,28 @@
 import {
   afterNextRender,
   Component,
-  Injector,
   OnChanges,
   OnDestroy,
   signal,
   SimpleChanges,
   output,
-  input
+  input,
+  inject
 } from '@angular/core';
 
 import { Historyquote } from '../../entities/historyquote';
 import { HistoryquoteSecurityCurrency } from '../model/historyquote.security.currency';
 import { HistoryquoteService } from '../service/historyquote.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
 import { combineLatest, Subscription } from 'rxjs';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
 import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { INameSecuritycurrency } from '../../entities/view/iname.securitycurrency';
 import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import {
   HistoryquoteDeleteBounds,
@@ -43,7 +39,7 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { HistoryquotesWithMissings } from '../model/historyquotes.with.missings';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { FileUploadParam } from '../../lib/generaldialog/model/file.upload.param';
 import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -169,6 +165,12 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
   ]
 })
 export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquote> implements OnChanges, OnDestroy {
+  private iconReg: SvgIconRegistryService = inject(SvgIconRegistryService);
+  private securityService: SecurityService = inject(SecurityService);
+  private currencypairService: CurrencypairService = inject(CurrencypairService);
+  private historyquoteService: HistoryquoteService = inject(HistoryquoteService);
+  private dataChangedService: DataChangedService = inject(DataChangedService);
+
   readonly timeSeriesParams = input<TimeSeriesParam[]>(undefined);
   readonly showLegacyRequested = output<void>();
 
@@ -199,35 +201,8 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   /** Request of the shown instrument; a newer instrument replaces a request that is still pending. */
   private loadSubscription: Subscription;
 
-  constructor(
-    private iconReg: SvgIconRegistryService,
-    private securityService: SecurityService,
-    private currencypairService: CurrencypairService,
-    private historyquoteService: HistoryquoteService,
-    private dataChangedService: DataChangedService,
-    usersettingsService: UserSettingsService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    gps: GlobalparameterService,
-    translateService: TranslateService,
-    injector: Injector
-  ) {
-    super(
-      AppSettings.HISTORYQUOTE,
-      historyquoteService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      dialogService,
-      filterService,
-      translateService,
-      gps,
-      usersettingsService,
-      injector
-    );
+  constructor() {
+    super(AppSettings.HISTORYQUOTE, inject(HistoryquoteService));
 
     HistoryquoteTableBase.registerCreateTypeIcons(this.iconReg);
     this.addDateColumn();

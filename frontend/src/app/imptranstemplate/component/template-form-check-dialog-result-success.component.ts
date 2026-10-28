@@ -2,11 +2,9 @@ import { Component, computed, effect, input, untracked } from '@angular/core';
 
 import { FormTemplateCheck } from './form.template.check';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
-import { AppSettings } from '../../shared/app.settings';
 
 /**
  * Shows the summary of a success full check template against a platform document as text
@@ -42,8 +40,8 @@ export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordC
   readonly TEMPLATE_PURPOSE = 'templatePurpose';
   readonly VALID_SINCE = 'validSince';
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor() {
+    super();
     this.addFieldPropertyFeqH(DataType.String, this.TEMPLATE_PURPOSE);
     this.addFieldPropertyFeqH(DataType.DateString, this.VALID_SINCE);
     this.addFieldPropertyFeqH(DataType.String, 'transactionType', {

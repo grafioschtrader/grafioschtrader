@@ -1,8 +1,7 @@
-import { Component, Injector, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { TranslateModule } from '@ngx-translate/core';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { MessageModule } from '@openng/optimus-ui/message';
 import { forkJoin, finalize } from 'rxjs';
@@ -10,10 +9,6 @@ import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ClassDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { TenantAIProvider, TenantAIProviderOptions, AIKeyTestResult } from '../model/tenant-ai-provider';
 import { TenantAIProviderService } from '../service/tenant-ai-provider.service';
@@ -83,6 +78,8 @@ import { TenantAIProviderEditComponent } from './tenant-ai-provider-edit.compone
   `
 })
 export class TenantAIProviderTableComponent extends TableCrudSupportMenu<TenantAIProvider> {
+  private service: TenantAIProviderService = inject(TenantAIProviderService);
+
   readonly options = signal<TenantAIProviderOptions>(null);
   readonly formDefinition = signal<ClassDescriptorInputAndShow>(null);
   readonly testResult = signal<AIKeyTestResult>(null);
@@ -91,31 +88,8 @@ export class TenantAIProviderTableComponent extends TableCrudSupportMenu<TenantA
   editedEntity: TenantAIProvider;
   existingProviders: string[] = [];
 
-  constructor(
-    private service: TenantAIProviderService,
-    confirmation: ConfirmationService,
-    messages: MessageToastService,
-    panels: ActivePanelService,
-    dialogs: DialogService,
-    filters: FilterService,
-    translate: TranslateService,
-    gps: GlobalparameterService,
-    settings: UserSettingsService,
-    injector: Injector
-  ) {
-    super(
-      'TenantAIProvider',
-      service,
-      confirmation,
-      messages,
-      panels,
-      dialogs,
-      filters,
-      translate,
-      gps,
-      settings,
-      injector
-    );
+  constructor() {
+    super('TenantAIProvider', inject(TenantAIProviderService));
     this.addColumnFeqH(DataType.String, 'provider', true, false, {
       fieldValueFN: (row) => this.options()?.providerNames[row.provider] || row.provider
     });

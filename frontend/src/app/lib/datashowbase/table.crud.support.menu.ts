@@ -1,10 +1,8 @@
 import { TableConfigBase } from './table.config.base';
-import { DestroyRef, Directive, inject, Injector, OnInit, signal } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { DestroyRef, Directive, inject, OnInit, signal } from '@angular/core';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { Subscription } from 'rxjs';
-import { UserSettingsService } from '../services/user.settings.service';
 import { AppHelper } from '../helper/app.helper';
 import { MessageToastService } from '../message/message.toast.service';
 import { InfoLevelType } from '../message/info.leve.type';
@@ -14,7 +12,6 @@ import { ProcessedActionData } from '../types/processed.action.data';
 import { ActivePanelService } from '../mainmenubar/service/active.panel.service';
 import { IGlobalMenuAttach } from '../mainmenubar/component/iglobal.menu.attach';
 import { DeleteService } from './delete.service';
-import { GlobalparameterService } from '../services/globalparameter.service';
 import { AuditHelper } from '../helper/audit.helper';
 import { TranslateHelper } from '../helper/translate.helper';
 import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
@@ -52,6 +49,11 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
   extends TableConfigBase
   implements OnInit, IGlobalMenuAttach
 {
+  protected confirmationService: ConfirmationService = inject(ConfirmationService);
+  protected messageToastService: MessageToastService = inject(MessageToastService);
+  protected activePanelService: ActivePanelService = inject(ActivePanelService);
+  protected dialogService: DialogService = inject(DialogService);
+
   /** All CRUD operations, the default for crudMenuOptions */
   public static readonly ALLOW_ALL_CRUD_OPERATIONS = ALLOW_ALL_CRUD_OPERATIONS;
 
@@ -83,32 +85,14 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    *
    * @param entityName - Name of the entity type for translation and identification
    * @param deleteService - Service providing delete operations for entities
-   * @param confirmationService - Optimus service for confirmation dialogs
-   * @param messageToastService - Service for displaying toast messages
-   * @param activePanelService - Service for global menu integration
-   * @param dialogService - Optimus service for dynamic dialog management
-   * @param filterService - Optimus service for table filtering
-   * @param translateService - Angular translation service
-   * @param gps - Global parameter service for locale and permissions
-   * @param usersettingsService - Service for persisting user preferences
-   * @param injector - Angular injector for lazy service resolution
    * @param crudMenuOptions - Array of allowed CRUD operations (defaults to all operations)
    */
   protected constructor(
     protected entityName: string,
     protected deleteService: DeleteService,
-    protected confirmationService: ConfirmationService,
-    protected messageToastService: MessageToastService,
-    protected activePanelService: ActivePanelService,
-    protected dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector,
     private crudMenuOptions: CrudMenuOptions[] = ALLOW_ALL_CRUD_OPERATIONS
   ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+    super();
     this.entityNameUpper = AppHelper.toUpperCaseWithUnderscore(this.entityName);
     this.entityKeyName = this.gps.getKeyNameByEntityName(entityName);
     this.destroyRef.onDestroy(() => {

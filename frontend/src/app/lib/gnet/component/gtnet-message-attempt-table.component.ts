@@ -1,13 +1,10 @@
-import { Component, Injector, input, effect, untracked } from '@angular/core';
+import { Component, input, effect, untracked } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
 import { TranslateValue } from '../../datashowbase/column.config';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { TableConfigBase } from '../../datashowbase/table.config.base';
 import { DataType } from '../../dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { UserSettingsService } from '../../services/user.settings.service';
 import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
 
 /** Read-only administrator table of the per-target outcomes of outgoing GTNet background messages. */
@@ -30,14 +27,8 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
 export class GTNetMessageAttemptTableComponent extends TableConfigBase {
   readonly messageAttempts = input<GTNetMessageAttemptView[]>([]);
 
-  constructor(
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService,
-    injector: Injector
-  ) {
-    super(filterService, usersettingsService, translateService, gps, injector);
+  constructor() {
+    super();
     this.addColumnFeqH(DataType.DateTimeNumeric, 'messageTimestamp', true, false);
     this.addColumnFeqH(DataType.String, 'messageCode', true, false, { translateValues: TranslateValue.NORMAL });
     this.addColumnFeqH(DataType.String, 'targetDomain', true, false);
