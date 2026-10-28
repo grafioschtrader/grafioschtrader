@@ -3,10 +3,10 @@ package grafiosch.test.gtnet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 
+import grafiosch.common.DataHelper;
+import grafiosch.gtnet.GTNetTime;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -51,7 +51,7 @@ public final class SyntheticPeer {
   public static SyntheticPeer connect(URI peer, String domain) throws Exception {
     SyntheticPeer synthetic = new SyntheticPeer(peer, domain);
     ObjectNode handshake = synthetic.envelope(FIRST_HANDSHAKE);
-    handshake.putObject("gtNetMessageParamMap").putObject("tokenThis").put("paramValue", UUID.randomUUID().toString());
+    handshake.putObject("gtNetMessageParamMap").putObject("tokenThis").put("paramValue", DataHelper.generateGUID());
     ObjectNode payload = handshake.putObject("payload");
     payload.put("domainRemoteName", domain);
     payload.put("timeZone", "UTC");
@@ -193,7 +193,7 @@ public final class SyntheticPeer {
     ObjectNode envelope = GTNetPeerTestSupport.JSON.createObjectNode();
     envelope.put("sourceDomain", domain);
     envelope.put("idSourceGtNetMessage", ++envelopeIds);
-    envelope.put("timestamp", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).toString());
+    envelope.put("timestamp", GTNetTime.now().truncatedTo(ChronoUnit.SECONDS).toString());
     envelope.put("messageCode", messageCode);
     envelope.put("serverBusy", false);
     envelope.put("visibility", 0);

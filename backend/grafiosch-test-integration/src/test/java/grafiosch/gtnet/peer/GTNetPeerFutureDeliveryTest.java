@@ -180,7 +180,7 @@ class GTNetPeerFutureDeliveryTest {
       return;
     }
     var response = GTNetPeerTestSupport.postApi(GTNetPeerTestSupport.PEER_A, "/api/gtnet", jwtA,
-        "{\"domainRemoteName\":\"" + DEAD_PEER_DOMAIN + "\"}");
+        "{\"domainRemoteName\":\"" + DEAD_PEER_DOMAIN + "\",\"timeZone\":\"UTC\"}");
     assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
   }
 

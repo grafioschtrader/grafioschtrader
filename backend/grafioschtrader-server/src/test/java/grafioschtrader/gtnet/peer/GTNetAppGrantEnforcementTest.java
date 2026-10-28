@@ -48,7 +48,7 @@ class GTNetAppGrantEnforcementTest {
   @BeforeAll
   static void connect() throws Exception {
     fixture = GTNetAppPeerFixture.load();
-    jwtB = GTNetPeerTestSupport.loginAdmin(GTNetPeerTestSupport.PEER_B);
+    jwtB = GTNetAppPeerFixture.loginAdmin(GTNetPeerTestSupport.PEER_B);
     // Connected but never granted anything: exactly the state the gate is about.
     synthetic = SyntheticPeer.connect(GTNetPeerTestSupport.PEER_B, SYNTHETIC_DOMAIN);
   }

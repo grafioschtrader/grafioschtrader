@@ -126,12 +126,20 @@ test('fee editor retains rejected text, offers help and previews without saving'
   await dialog.getByRole('button', { name: /^(Validate|Pr.fen)$/ }).click();
   await expect(dialog.getByText(/(Configuration is valid|Konfiguration ist g.ltig)/)).toBeVisible();
   await dialog.getByRole('button', { name: /^(Test fee estimation|Geb.hrensch.tzung testen)$/ }).click();
-  const preview = page.waitForResponse((response) => response.url().includes('/estimatecost'));
-  await dialog
-    .locator('dynamic-form')
-    .getByRole('button', { name: /(Test fee estimation|Geb.hrensch.tzung testen)/ })
-    .click();
-  expect((await (await preview).json()).estimatedCost).toBe(7);
+  const previewRegion = dialog.getByRole('region', { name: /^(Test fee estimation|Geb.hrensch.tzung testen)$/ });
+  await expect(previewRegion).toBeVisible();
+  // The button itself can be stable while the fieldset still expands and clips its contents.
+  // Wait before scrolling to it, otherwise the animation can move it away from the click coordinates.
+  await expect(previewRegion).not.toHaveClass(/p-collapsible-enter-active/);
+  const [preview] = await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/tradingplatformplan/estimatecost') && response.request().method() === 'POST'
+    ),
+    previewRegion.getByRole('button', { name: /^(Test fee estimation|Geb.hrensch.tzung testen)$/ }).click()
+  ]);
+  expect(preview.ok()).toBeTruthy();
+  expect((await preview.json()).estimatedCost).toBe(7);
   expect((await readPlan(page, saved.idTradingPlatformPlan)).feeModelYaml).toBe(FEE);
   await dialog.getByRole('button', { name: /(Save|Speichern)$/ }).click();
   await expect(dialog).toHaveCount(0);

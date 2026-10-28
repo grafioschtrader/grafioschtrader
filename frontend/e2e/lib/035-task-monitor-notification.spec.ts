@@ -44,8 +44,9 @@ async function openTaskMonitor(page: Page): Promise<Locator> {
   }
   await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.click();
-  // The routed table component has no selector of its own; its container is the only one holding a table head.
-  const container = page.locator('.data-container', { has: page.locator('thead') }).first();
+  // The routed table component has no selector of its own; the container of its configurable-table carries the
+  // active border. It is located without its sizing class (data-container-full), like the watchlist table.
+  const container = page.locator('configurable-table > div', { has: page.locator('thead') }).first();
   await container.waitFor({ state: 'visible', timeout: 15_000 });
   return container;
 }

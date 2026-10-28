@@ -94,6 +94,8 @@ export interface TreeTableCellEditEvent {
     @let footerTemplateValue = footerTemplate();
     @let checkboxDisabledFnValue = checkboxDisabledFn();
     @let expandedRowTemplateValue = expandedRowTemplate();
+    @let customCellTemplateValue = customCellTemplate();
+    @let iconTemplateValue = iconTemplate();
 
     <div
       #cmDiv
@@ -215,7 +217,7 @@ export interface TreeTableCellEditEvent {
                       <p-treeTableToggler [rowNode]="rowNode" />
                     }
                     <!-- Cell content rendering -->
-                    @if (customCellTemplate(); as customCellTemplateValue) {
+                    @if (customCellTemplateValue) {
                       <ng-container
                         *ngTemplateOutlet="customCellTemplateValue; context: { $implicit: rowData, field: field }" />
                     } @else if (field.templateName === 'owner') {
@@ -248,7 +250,7 @@ export interface TreeTableCellEditEvent {
                           (onChange)="onCheckboxChange(rowData, field, $event)" />
                       }
                     } @else if (field.templateName === 'icon') {
-                      @if (iconTemplate(); as iconTemplateValue) {
+                      @if (iconTemplateValue) {
                         <ng-container
                           *ngTemplateOutlet="
                             iconTemplateValue;

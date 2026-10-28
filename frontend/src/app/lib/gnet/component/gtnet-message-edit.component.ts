@@ -2,6 +2,7 @@ import { Component, OnInit, input } from '@angular/core';
 import {
   getAvailableMessageCodes,
   getRequestableKindNames,
+  getRevocableKindNames,
   GTNetMessageCodeType,
   MessageVisibility,
   MsgCallParam,
@@ -213,19 +214,24 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
 
   private createViewFromSelectedEnum(gtNetMessageCodeType: string | GTNetMessageCodeType): void {
     let formDef = this.msgCallParam().formDefinitions[gtNetMessageCodeType];
-    // For data request: filter entityKinds MultiSelect to only show requestable kinds
+    // Data request and data revoke: the entityKinds MultiSelect only offers the kinds that can be requested or revoked
     const codeName =
       typeof gtNetMessageCodeType === 'string' ? gtNetMessageCodeType : GTNetMessageCodeType[gtNetMessageCodeType];
-    if (codeName === 'GT_NET_DATA_REQUEST_SEL_RR_C' && this.msgCallParam().targetGtNet && formDef) {
-      const requestableNames = getRequestableKindNames(
-        this.msgCallParam().targetGtNet,
-        this.msgCallParam().exchangeKindTypes
-      );
+    const target = this.msgCallParam().targetGtNet;
+    const kindNames =
+      !target || !formDef
+        ? null
+        : codeName === 'GT_NET_DATA_REQUEST_SEL_RR_C'
+          ? getRequestableKindNames(target, this.msgCallParam().exchangeKindTypes)
+          : codeName === 'GT_NET_DATA_REVOKE_SEL_C'
+            ? getRevocableKindNames(target, this.msgCallParam().exchangeKindTypes)
+            : null;
+    if (kindNames) {
       // Clone the form definition to avoid mutating the cached original
       formDef = {
         ...formDef,
         fieldDescriptorInputAndShows: formDef.fieldDescriptorInputAndShows.map((fd) =>
-          fd.fieldName === 'entityKinds' ? { ...fd, enumValues: requestableNames } : fd
+          fd.fieldName === 'entityKinds' ? { ...fd, enumValues: kindNames } : fd
         )
       };
     }

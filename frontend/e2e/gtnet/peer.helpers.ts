@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 
 export const ADMIN = { email: 'admin@test.local', password: 'A123abcd' };
 export const PEER_A_FRONTEND = process.env.GTNET_PEER_A_FRONTEND_URL ?? 'http://localhost:4201';
@@ -12,6 +12,17 @@ export async function login(page: Page, baseURL: string, user = ADMIN): Promise<
   await page.locator('#password').fill(user.password);
   await page.locator('button[type="submit"]').click();
   await page.waitForURL(/\/mainview/, { timeout: 15_000 });
+}
+
+/**
+ * Types a number into a p-inputNumber field. Like the PrimeNG datepicker it ignores the input event fill() dispatches
+ * without a preceding keydown, so the form control would keep its old value; real key strokes reach the model.
+ */
+export async function typeNumber(field: Locator, value: string): Promise<void> {
+  await field.click();
+  await field.press('Control+A');
+  await field.pressSequentially(value, { delay: 20 });
+  await field.blur();
 }
 
 export async function authHeaders(page: Page): Promise<Record<string, string>> {
@@ -105,7 +116,9 @@ export async function sendMessageFromRow(page: Page, baseURL: string, domain: st
   await row.click();
   await row.click({ button: 'right' });
   const menu = page.locator('[role="menu"]:visible');
-  await menu.getByRole('menuitem', { name: /Send message|Nachricht senden|GT_NET_MESSAGE_SEND/ }).click();
+  await menu
+    .getByRole('menuitem', { name: /Send GT Net Message|GTNet Nachrichten versenden|GT_NET_MESSAGE_SEND/ })
+    .click();
   const dialog = page.locator('.p-dialog:visible');
   await dialog.locator('#messageCode').selectOption(code);
   const response = page.waitForResponse((candidate) => candidate.url().endsWith('/api/gtnet/submitmsg'));

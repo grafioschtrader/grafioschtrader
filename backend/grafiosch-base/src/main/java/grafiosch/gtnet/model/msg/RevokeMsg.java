@@ -1,35 +1,33 @@
 package grafiosch.gtnet.model.msg;
 
-import java.time.LocalDateTime;
+import java.util.Set;
 
+import grafiosch.gtnet.IExchangeKindType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Payload for revoking data exchange agreements (GT_NET_*_REVOKE_SEL_C messages).
+ * Payload for revoking a data exchange (GT_NET_DATA_REVOKE_SEL_C).
  *
- * Used when a domain decides to terminate an existing data sharing arrangement. The revocation takes effect at the
- * specified future time, giving the other party time to adjust their data sourcing strategy.
+ * <p>
+ * The revoke names the kinds of data whose exchange ends, and it takes effect as soon as it is handled: the sender
+ * switches off the exchange of its grant for those kinds, the receiver closes the kinds on its entry of the sender. A
+ * revoke that names no readable kind changes nothing on either side, so the sender refuses to send one.
+ * </p>
  *
- * Different revocation message codes exist for different exchange types:
- * <ul>
- * <li>GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C - Stop sharing server list</li>
- * <li>GT_NET_LASTPRICE_REVOKE_SEL_C - Stop intraday price sharing</li>
- * <li>GT_NET_ENTITY_REVOKE_SEL_C - Stop entity data sharing</li>
- * <li>GT_NET_BOTH_REVOKE_SEL_C - Stop all data sharing</li>
- * </ul>
+ * <p>
+ * The entityKinds field uses the {@link IExchangeKindType} interface, like {@link DataRequestMsg}, so every application
+ * revokes its own exchange kinds through this one message.
+ * </p>
  */
 @Schema(description = """
-    Payload for revoking data exchange agreements. Specifies when the revocation takes effect, giving the other
-    party notice to adjust their data sourcing. Used with various revocation message codes (serverlist, lastprice,
-    entity, or both).""")
+    Payload for revoking a data exchange. Names the kinds of data whose exchange ends; the revoke takes effect as soon
+    as it is handled by both sides.""")
 public class RevokeMsg {
 
   @Schema(description = """
-      UTC timestamp when the revocation takes effect. Must be in the future to give the affected party time to
-      find alternative data sources. After this time, requests from the revoked party will be rejected.""")
+      The kinds of data whose exchange ends. Must contain at least one entity kind with an active exchange.
+      Available kinds depend on the application implementation of IExchangeKindType.""")
   @NotNull
-  @Future
-  public LocalDateTime fromDateTime;
+  public Set<? extends IExchangeKindType> entityKinds;
 }

@@ -31,6 +31,25 @@ import { MAIN_TASK_QUEUE, TaskDataChangeFormConstraints, TaskQueueInfo } from '.
       <router-outlet />
     </div>
   `,
+  // The routed queue table gets the remaining height, so it scrolls inside its own viewport and its caption and column
+  // headers stay visible instead of the whole view scrolling away.
+  styles: [
+    `
+      :host {
+        display: block;
+        height: 100%;
+      }
+      .card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .card ::ng-deep > router-outlet + * {
+        flex: 1;
+        min-height: 0;
+      }
+    `
+  ],
   imports: [TranslateModule, RouterModule, Tabs, TabList, Tab]
 })
 export class TaskDataChangeTabMenuComponent implements OnInit {

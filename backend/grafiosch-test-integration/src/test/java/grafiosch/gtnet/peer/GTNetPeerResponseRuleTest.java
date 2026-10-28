@@ -95,9 +95,10 @@ class GTNetPeerResponseRuleTest {
   void aRequestWithoutRuleOrDefaultIsOnlyAcknowledgedAndWaitsForAnAdministrator() throws Exception {
     deleteRulesOfThisTest();
 
-    // The dispatcher answers AwaitingManualResponse with a plain ack, which is a ping-coded answer and therefore
-    // clearly distinguishable from a decision.
-    assertThat(sendDataRequest()).isEqualTo("GT_NET_PING");
+    // The dispatcher answers AwaitingManualResponse with a deferred acknowledgement, which peer A does not file as the
+    // reply: the request stays open until the decision arrives as a message of its own.
+    int before = submitDataRequest();
+    assertThat(answerAfter(before)).as("no reply before the administrator decided").isNull();
 
     JsonNode pending = newestReceivedRequest(GTNetPeerTestSupport.PEER_B, jwtB, remoteA);
     assertThat(pending).isNotNull();
@@ -114,6 +115,9 @@ class GTNetPeerResponseRuleTest {
         answer.toString());
     assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
     assertThat(newestReceivedRequest(GTNetPeerTestSupport.PEER_B, jwtB, remoteA)).isNull();
+    JsonNode decision = answerAfter(before);
+    assertThat(decision).as("peer A received the manual decision").isNotNull();
+    assertThat(decision.path("messageCode").asString()).isEqualTo(ACCEPT_CODE);
   }
 
   @Test
@@ -140,11 +144,29 @@ class GTNetPeerResponseRuleTest {
   }
 
   private static JsonNode sendDataRequestMessage() throws Exception {
+    JsonNode answer = answerAfter(submitDataRequest());
+    assertThat(answer).as("peer A stored an answer for its data request").isNotNull();
+    return answer;
+  }
+
+  /**
+   * Submits a data request from peer A to peer B.
+   *
+   * @return the newest message id peer A held for peer B before the request, the baseline for {@link #answerAfter}
+   */
+  private static int submitDataRequest() throws Exception {
     int before = newestMessageId(GTNetPeerTestSupport.PEER_A, jwtA, remoteB);
     var response = GTNetPeerTestSupport.submit(GTNetPeerTestSupport.PEER_A, jwtA, remoteB, REQUEST_CODE,
         Map.of("entityKinds", ENTITY_KIND), "GTNet peer response rule probe");
     assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
+    return before;
+  }
 
+  /**
+   * @param before the baseline returned by {@link #submitDataRequest}
+   * @return the newest message peer A stored for peer B after the baseline that is not the request itself, or null
+   */
+  private static JsonNode answerAfter(int before) throws Exception {
     JsonNode answer = null;
     int newest = before;
     for (JsonNode message : messages(GTNetPeerTestSupport.PEER_A, jwtA, remoteB)) {
@@ -154,7 +176,6 @@ class GTNetPeerResponseRuleTest {
         answer = message;
       }
     }
-    assertThat(answer).as("peer A stored an answer for its data request").isNotNull();
     return answer;
   }
 
@@ -197,12 +218,15 @@ class GTNetPeerResponseRuleTest {
   private static void deleteMessagesAfter(URI peer, String jwt, int remoteId, int baselineId) throws Exception {
     List<Integer> ids = new ArrayList<>();
     for (JsonNode message : messages(peer, jwt, remoteId)) {
-      if (message.path("idGtNetMessage").asInt() > baselineId) {
+      // Only the roots: an answer is removed together with its request, and deleteBatch refuses the whole batch
+      // when it names one, which would leave a cooling-off response of this class behind.
+      if (message.path("idGtNetMessage").asInt() > baselineId && !message.path("replyTo").isNumber()) {
         ids.add(message.path("idGtNetMessage").asInt());
       }
     }
     if (!ids.isEmpty()) {
-      GTNetPeerTestSupport.postApi(peer, "/api/gtnet/deletemessagebatch", jwt, ids.toString());
+      var response = GTNetPeerTestSupport.postApi(peer, "/api/gtnet/deletemessagebatch", jwt, ids.toString());
+      assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
     }
   }
 

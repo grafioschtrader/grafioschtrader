@@ -18,7 +18,6 @@ import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.model.msg.SecurityBatchLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Security metadata lookup between two real application peers.
@@ -41,8 +40,8 @@ class GTNetAppSecurityLookupTest {
   @BeforeAll
   static void connect() throws Exception {
     fixture = GTNetAppPeerFixture.load();
-    jwtA = GTNetPeerTestSupport.loginAdmin(GTNetPeerTestSupport.PEER_A);
-    jwtB = GTNetPeerTestSupport.loginAdmin(GTNetPeerTestSupport.PEER_B);
+    jwtA = GTNetAppPeerFixture.loginAdmin(GTNetPeerTestSupport.PEER_A);
+    jwtB = GTNetAppPeerFixture.loginAdmin(GTNetPeerTestSupport.PEER_B);
     synthetic = SyntheticPeer.connect(GTNetPeerTestSupport.PEER_B, SYNTHETIC_DOMAIN);
   }
 
@@ -130,22 +129,6 @@ class GTNetAppSecurityLookupTest {
 
   /** Switches the security-metadata entity kind of peer B, which is what decides between an answer and a refusal. */
   private static void setMetadataAcceptRequest(String acceptRequest) throws Exception {
-    JsonNode state = GTNetPeerTestSupport.readGTNet(GTNetPeerTestSupport.PEER_B, jwtB);
-    int ownId = state.path("gtNetMyEntryId").asInt();
-    for (JsonNode entry : state.path("gtNetList")) {
-      if (entry.path("idGtNet").asInt() == ownId) {
-        ObjectNode ownEntry = ((ObjectNode) entry).deepCopy();
-        for (JsonNode entity : ownEntry.path("gtNetEntities")) {
-          if ("SECURITY_METADATA".equals(entity.path("entityKind").asString())) {
-            ((ObjectNode) entity).put("acceptRequest", acceptRequest);
-          }
-        }
-        var response = GTNetPeerTestSupport.putApi(GTNetPeerTestSupport.PEER_B, "/api/gtnet", jwtB,
-            ownEntry.toString());
-        assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
-        return;
-      }
-    }
-    throw new IllegalStateException("Peer B has no own entry");
+    GTNetAppPeerFixture.setOwnAcceptRequest(GTNetPeerTestSupport.PEER_B, jwtB, "SECURITY_METADATA", acceptRequest);
   }
 }

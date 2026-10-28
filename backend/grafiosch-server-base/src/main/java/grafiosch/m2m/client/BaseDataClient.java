@@ -120,10 +120,17 @@ public class BaseDataClient {
      * every protocol outcome, so a refusal is only visible in the answering code — which is why {@link #isDelivered()}
      * alone must never be read as success.
      *
-     * @return true when the peer answered with GT_NET_ERROR_S
+     * <p>
+     * The daily-limit refusal counts as well. Like the error it is an outcome of the transport, not an answer: the peer
+     * processed nothing, and no decision will follow. Taking it for an accepted delivery left the request open for
+     * good, which kept it undeletable and blocked deleting the peer.
+     * </p>
+     *
+     * @return true when the peer answered with GT_NET_ERROR_S or GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S
      */
     public boolean isRefused() {
-      return isDelivered() && response.messageCode == GNetCoreMessageCode.GT_NET_ERROR_S.getValue();
+      return isDelivered() && (response.messageCode == GNetCoreMessageCode.GT_NET_ERROR_S.getValue()
+          || response.messageCode == GNetCoreMessageCode.GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S.getValue());
     }
 
     /**
@@ -177,10 +184,9 @@ public class BaseDataClient {
    * @throws WebClientRequestException  if the URL is unreachable
    */
   public String getIdentityAnswer(String domainName, String challenge, int connectionTimeoutSeconds) {
-    return getWebClientForDomain(domainName, connectionTimeoutSeconds).get()
-        .uri(uriBuilder -> uriBuilder.path(RequestMappings.GTNET_IDENTITY_M2M_MAP)
-            .queryParam("challenge", challenge).build())
-        .retrieve().bodyToMono(String.class).block();
+    return getWebClientForDomain(domainName, connectionTimeoutSeconds).get().uri(uriBuilder -> uriBuilder
+        .path(RequestMappings.GTNET_IDENTITY_M2M_MAP).queryParam("challenge", challenge).build()).retrieve()
+        .bodyToMono(String.class).block();
   }
 
   /**

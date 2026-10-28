@@ -10,6 +10,12 @@ import grafioschtrader.mcp.oauth.McpOAuthIntegrationTest;
  * Creates integration-owned bank-account transactions after Playwright spec 045 has initialized currency pairs.
  *
  * <p>
+ * {@code TradingDaysPlusResourceTest} runs first: it creates the global trading calendar through next year, which every
+ * dated security transaction of the Playwright specs from 050 on is validated against. Playwright spec 055 adds the
+ * remaining future years through the UI.
+ * </p>
+ *
+ * <p>
  * In particular, the USD/CHF transfer fixture must not trigger on-demand currency-pair creation while a transaction is
  * being saved. The roundtrip runner therefore executes this suite after Playwright 045 and before resuming at 050.
  *
@@ -24,8 +30,8 @@ import grafioschtrader.mcp.oauth.McpOAuthIntegrationTest;
  * </p>
  */
 @Suite
-@SelectClasses({ TransactionResourceTest.class, HoldCashaccountReplayRebuildTest.class, McpServerIntegrationTest.class,
-    McpOAuthIntegrationTest.class })
+@SelectClasses({ TradingDaysPlusResourceTest.class, TransactionResourceTest.class,
+    HoldCashaccountReplayRebuildTest.class, McpServerIntegrationTest.class, McpOAuthIntegrationTest.class })
 public class ResourceTestSuite_50 {
 
 }

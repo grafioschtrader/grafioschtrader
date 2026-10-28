@@ -26,6 +26,14 @@ export async function authHeaders(page: Page): Promise<Record<string, string>> {
   return { 'x-auth-token': token! };
 }
 
+/**
+ * The name of an entity's exchange kind. The REST answer carries entityKind as the number of the exchange-kind
+ * registry, which the same answer lists in exchangeKindTypes.
+ */
+export function kindName(state: any, entity: any): string | undefined {
+  return state.exchangeKindTypes?.find((type: any) => type.value === entity.entityKind)?.name;
+}
+
 export async function readGTNet(page: Page): Promise<any> {
   const response = await page.request.get('/api/gtnet/gtnetwithmessage', { headers: await authHeaders(page) });
   expect(response.ok(), await response.text()).toBeTruthy();
@@ -103,17 +111,32 @@ export async function ensureRemotePeer(page: Page, baseURL: string, remoteURL: s
   return remote;
 }
 
-export async function sendMessageFromRow(page: Page, baseURL: string, domain: string, code: string): Promise<void> {
+/**
+ * Sends a message through the dialog of the setup table. A data request or revoke names its kinds in the entityKinds
+ * MultiSelect, whose options show the translated kind names; entityKind matches the option to pick.
+ */
+export async function sendMessageFromRow(
+  page: Page,
+  baseURL: string,
+  domain: string,
+  code: string,
+  entityKind?: RegExp
+): Promise<void> {
   await openSetup(page, baseURL);
   const row = page.locator('.data-container-full').first().locator('tbody tr', { hasText: domain }).first();
   await row.click();
   await row.click({ button: 'right' });
   await page
     .locator('[role="menu"]:visible')
-    .getByRole('menuitem', { name: /Send message|Nachricht senden|GT_NET_MESSAGE_SEND/ })
+    .getByRole('menuitem', { name: /Send GT Net Message|GTNet Nachrichten versenden|GT_NET_MESSAGE_SEND/ })
     .click();
   const dialog = page.locator('.p-dialog:visible');
   await dialog.locator('#messageCode').selectOption(code);
+  if (entityKind) {
+    await dialog.locator('#entityKinds').click();
+    await page.getByRole('listbox').getByRole('option', { name: entityKind }).click();
+    await page.keyboard.press('Escape');
+  }
   const response = page.waitForResponse((candidate) => candidate.url().endsWith('/api/gtnet/submitmsg'));
   await dialog.locator('button[type="submit"]').click();
   expect((await response).ok()).toBeTruthy();
@@ -150,5 +173,8 @@ export async function submitMessage(
 export async function waitingTasks(page: Page, idTask: string): Promise<any[]> {
   const response = await page.request.get('/api/taskdatachange', { headers: await authHeaders(page) });
   expect(response.ok(), await response.text()).toBeTruthy();
-  return ((await response.json()) as any[]).filter((task) => task.idTask === idTask);
+  // /api/taskdatachange lists every row, the processed ones included
+  return ((await response.json()) as any[]).filter(
+    (task) => task.idTask === idTask && task.progressStateType === 'PROG_WAITING'
+  );
 }

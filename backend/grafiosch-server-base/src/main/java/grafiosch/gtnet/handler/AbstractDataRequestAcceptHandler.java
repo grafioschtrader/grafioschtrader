@@ -25,6 +25,6 @@ public abstract class AbstractDataRequestAcceptHandler extends AbstractDataRespo
   protected void updateEntityForReceive(GTNet remoteGTNet, IExchangeKindType kind) {
     GTNetEntity entity = remoteGTNet.getOrCreateEntityByKind(kind.getValue());
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
-    entity.getOrCreateConfigEntity();
+    grantService.grant(entity);
   }
 }

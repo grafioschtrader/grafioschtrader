@@ -123,7 +123,7 @@ async function openTaskDataMonitorView(page: Page): Promise<void> {
   await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.click();
 
-  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
+  await page.locator('configurable-table').first().waitFor({ state: 'visible', timeout: 15_000 });
   // Let readData() populate the table before the caller counts rows.
   await page.waitForTimeout(800);
 }
@@ -156,7 +156,7 @@ async function selectTaskType(page: Page, dialog: Locator, taskNumber: number): 
 
 /** All data rows of the task table. */
 function taskRows(page: Page): Locator {
-  return page.locator('.data-container tbody tr');
+  return page.locator('configurable-table tbody tr');
 }
 
 /**
@@ -232,7 +232,9 @@ test.describe.serial('schedule CSV-defined batch jobs as admin', () => {
 
       const startTimeInput = toDeChShortDateTime(new Date(Date.now() + task.startDelayMinutes * 60_000));
 
-      const menu = await openContextMenu(page);
+      // The task table's container carries data-container-full, not data-container, so the helper's default panel
+      // locator would never match; the configurable-table wrapper is located without its sizing class instead.
+      const menu = await openContextMenu(page, page.locator('configurable-table > div').first());
       await menu.getByText(CREATE_RX).first().click();
 
       const dialog = page.locator('.p-dialog');

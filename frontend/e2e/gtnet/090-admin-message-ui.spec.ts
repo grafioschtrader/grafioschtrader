@@ -21,7 +21,10 @@ test('sends an admin-only message from the multi-target UI', async ({ page }) =>
     const cleanup = await page.request.post('/api/gtnet/deletemessagebatch', { headers, data: ownedMessageIds });
     expect(cleanup.ok(), await cleanup.text()).toBeTruthy();
   }
-  await page.goto(`${PEER_A_FRONTEND}/mainview/gtnettabmenu/gtnetadminmessages`);
+  // The tab menu navigates to its default tab when it starts, so the admin messages tab is opened by clicking it
+  await page.goto(`${PEER_A_FRONTEND}/mainview/gtnettabmenu`);
+  await page.getByRole('tab', { name: /Admin Messages|Admin-Nachrichten/ }).click();
+  await page.waitForURL(/gtnetadminmessages/);
   const table = page.locator('.data-container-full, .data-container').first();
   await table.waitFor({ state: 'visible' });
   const peerRow = table.locator('tbody tr', { hasText: PEER_B_OWN! }).first();

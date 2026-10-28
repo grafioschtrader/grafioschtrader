@@ -43,7 +43,7 @@ class GTNetAppHistoryquoteExchangeTest {
   @BeforeAll
   static void connect() throws Exception {
     fixture = GTNetAppPeerFixture.load();
-    jwtB = GTNetPeerTestSupport.loginAdmin(GTNetPeerTestSupport.PEER_B);
+    jwtB = GTNetAppPeerFixture.loginAdmin(GTNetPeerTestSupport.PEER_B);
     synthetic = SyntheticPeer.connect(GTNetPeerTestSupport.PEER_B, SYNTHETIC_DOMAIN);
     // A completed handshake no longer entitles a peer to price data: serving it needs an accepted,
     // unrevoked grant for this peer and this kind. The synthetic peer asks for one the way a real peer does.

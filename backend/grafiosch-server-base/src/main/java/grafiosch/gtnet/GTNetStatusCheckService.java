@@ -54,7 +54,9 @@ public class GTNetStatusCheckService {
 
   /**
    * Pings {@code peer} from the identity of {@code myGTNet} and persists the resulting online and busy status, together
-   * with the per-entity {@code serverState}.
+   * with the per-entity {@code serverState}. A delivered answer also updates what the peer publishes about itself (time
+   * zone, spread capability, daily request limit, entity kinds) through {@link GTNetPublishedStateSync}, so a peer that
+   * is only ever pinged does not keep stale metadata.
    *
    * <p>
    * Status decision:
@@ -92,8 +94,12 @@ public class GTNetStatusCheckService {
       GTNetServerOnlineStatusTypes newStatus = GTNetServerOnlineStatusTypes.fromReachable(delivered);
       peer.setServerOnline(newStatus);
 
+      boolean publishedChanged = false;
       if (delivered) {
         peer.setServerBusy(result.serverBusy());
+        // The answer carries what the peer publishes about itself, as every envelope does. Applied before the entity
+        // state below, so the state this check derives from reachability and busy still decides serverState.
+        publishedChanged = GTNetPublishedStateSync.apply(peer, result.response().sourceGtNet);
         log.debug("Peer {} is online (busy={})", peer.getDomainRemoteName(), peer.isServerBusy());
       } else {
         peer.setServerBusy(false);
@@ -107,7 +113,7 @@ public class GTNetStatusCheckService {
       GTNetServerStateTypes entityState = determineEntityState(delivered, peer.isServerBusy());
       boolean stateChanged = updateEntityStates(peer, entityState);
 
-      if (previousStatus != newStatus || stateChanged) {
+      if (previousStatus != newStatus || stateChanged || publishedChanged) {
         gtNetJpaRepository.save(peer);
       }
       return peer;

@@ -126,6 +126,7 @@ export interface ValidationErrorEvent<T> {
   ],
   template: `
     @let expandedRowTemplateValue = expandedRowTemplate();
+    @let customCellTemplateValue = customCellTemplate();
 
     <div #cmDiv (click)="onComponentClick($event)" [class]="toClassString(containerClass())">
       <p-table
@@ -247,7 +248,7 @@ export interface ValidationErrorEvent<T> {
                       </ng-template>
 
                       <ng-template pTemplate="output">
-                        @if (customCellTemplate(); as customCellTemplateValue) {
+                        @if (customCellTemplateValue) {
                           <ng-container
                             *ngTemplateOutlet="
                               customCellTemplateValue;

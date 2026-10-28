@@ -37,10 +37,16 @@ test('a data request awaits manual approval and the approval creates the entity 
     await sendDataRequest(page);
     await approveOnPeerB(peerB);
 
+    // The entity rows of both kinds already exist from the bootstrap; the approval is what gives the requested kind
+    // its GTNetConfigEntity. entityKind is serialized as the number of the exchange-kind registry.
     await expect
       .poll(async () => {
-        const remote = (await readGTNet(page)).gtNetList.find((entry: any) => entry.domainRemoteName === PEER_B_OWN);
-        return (remote?.gtNetEntities ?? []).some((entity: any) => entity.entityKind === ENTITY_KIND);
+        const data = await readGTNet(page);
+        const kind = data.exchangeKindTypes.find((type: any) => type.name === ENTITY_KIND)?.value;
+        const remote = data.gtNetList.find((entry: any) => entry.domainRemoteName === PEER_B_OWN);
+        return (remote?.gtNetEntities ?? []).some(
+          (entity: any) => entity.entityKind === kind && entity.gtNetConfigEntity != null
+        );
       })
       .toBe(true);
   } finally {
@@ -56,17 +62,21 @@ async function sendDataRequest(page: Page): Promise<void> {
   await row.click({ button: 'right' });
   await page
     .locator('[role="menu"]:visible')
-    .getByRole('menuitem', { name: /Send message|Nachricht senden|GT_NET_MESSAGE_SEND/ })
+    .getByRole('menuitem', { name: /Send GT Net Message|GTNet Nachrichten versenden|GT_NET_MESSAGE_SEND/ })
     .click();
   const dialog = page.locator('.p-dialog:visible');
 
   // The dialog filters its options through getAvailableMessageCodes(); that filter is the only guard against sending
-  // a code the peer cannot answer, so the offered set is asserted rather than assumed.
-  const offered = await dialog
-    .locator('#messageCode option')
-    .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value).filter((value) => !!value));
-  expect(offered).toContain(REQUEST_CODE);
-  expect(offered.every((code) => code.endsWith('_C'))).toBeTruthy();
+  // a code the peer cannot answer, so the offered set is asserted rather than assumed. The options arrive
+  // asynchronously after the dialog opens, so they are polled rather than read once.
+  const offeredCodes = () =>
+    dialog
+      .locator('#messageCode option')
+      .evaluateAll((options) =>
+        options.map((option) => (option as HTMLOptionElement).value).filter((value) => !!value)
+      );
+  await expect.poll(offeredCodes).toContain(REQUEST_CODE);
+  expect((await offeredCodes()).every((code) => code.endsWith('_C'))).toBeTruthy();
 
   await dialog.locator('#messageCode').selectOption(REQUEST_CODE);
   await selectEntityKind(page, dialog);
@@ -76,13 +86,18 @@ async function sendDataRequest(page: Page): Promise<void> {
   await dialog.waitFor({ state: 'hidden' });
 }
 
-/** entityKinds is a multi-select whose options come from the backend exchange-kind registry. */
+/**
+ * entityKinds is a multi-select whose options come from the backend exchange-kind registry. The overlay shows the
+ * translated kind (INTEGRATION_STREAM in both bundles of grafiosch-base), not the constant name.
+ */
 async function selectEntityKind(page: Page, dialog: ReturnType<Page['locator']>): Promise<void> {
   const field = dialog.locator('#entityKinds');
   await field.waitFor({ state: 'visible' });
   await field.click();
-  const option = page.locator('.p-multiselect-overlay:visible, .p-multiselect-panel:visible').first();
-  await option.getByText(ENTITY_KIND, { exact: false }).first().click();
+  await page
+    .getByRole('listbox')
+    .getByRole('option', { name: /Integration stream|Integrations-Datenstrom|INTEGRATION_STREAM/ })
+    .click();
   await page.keyboard.press('Escape');
 }
 
@@ -91,9 +106,20 @@ async function approveOnPeerB(peerB: Page): Promise<void> {
   await openSetup(peerB, PEER_B_FRONTEND);
   const row = peerB.locator('.data-container-full').first().locator('tbody tr', { hasText: PEER_A_OWN! }).first();
   await row.locator('a[href="#"]').first().click();
+  // The expanded row is an accordion that renders the message tree only while its panel is open.
+  await peerB
+    .locator('gtnet-expanded p-accordion-header')
+    .filter({ hasText: /GT Message|GT_NET_MESSAGE/ })
+    .first()
+    .click();
   const tree = peerB.locator('gtnet-message-treetable').first();
   await tree.waitFor({ state: 'visible' });
-  const pending = tree.locator('tbody tr', { hasText: REQUEST_CODE }).last();
+  // The tree translates messageCode, so the row carries the text of GT_NET_DATA_REQUEST_SEL_RR_C, not the code.
+  const pending = tree
+    .locator('tbody tr', {
+      hasText: /Request for data exchange|Anfrage für Datenaustausch|GT_NET_DATA_REQUEST_SEL_RR_C/
+    })
+    .last();
   await pending.click();
   await pending.click({ button: 'right' });
   await peerB

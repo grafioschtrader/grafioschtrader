@@ -3,7 +3,6 @@ package grafiosch.gtnet.peer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
-import java.util.UUID;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,6 +11,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import grafiosch.common.DataHelper;
 import grafiosch.test.gtnet.GTNetPeerTestSupport;
 import grafiosch.test.gtnet.SyntheticPeer;
 import tools.jackson.databind.JsonNode;
@@ -62,7 +62,7 @@ class GTNetPeerIdempotencyTest {
   @Order(1)
   void answersARepeatedRequestWithTheAnswerItAlreadyGave() throws Exception {
     ObjectNode refresh = synthetic.newEnvelope(TOKEN_REFRESH);
-    refresh.putObject("gtNetMessageParamMap").putObject("tokenThis").put("paramValue", UUID.randomUUID().toString());
+    refresh.putObject("gtNetMessageParamMap").putObject("tokenThis").put("paramValue", DataHelper.generateGUID());
 
     JsonNode first = synthetic.sendRaw(refresh);
     assertThat(first.path("messageCode").asInt()).as("answer was %s", first).isEqualTo(TOKEN_REFRESH_ACCEPT);

@@ -25,7 +25,7 @@ class GTNetAppSupplierDetailTest {
   @BeforeAll
   static void connect() throws Exception {
     fixture = GTNetAppPeerFixture.load();
-    jwtB = GTNetPeerTestSupport.loginAdmin(GTNetPeerTestSupport.PEER_B);
+    jwtB = GTNetAppPeerFixture.loginAdmin(GTNetPeerTestSupport.PEER_B);
   }
 
   @Test

@@ -20,7 +20,8 @@
  *                   otherwise started via `npm start`), then run Playwright specs 005 through 020.
  *                6. Run `ResourceTestSuite_25`, beginning with PortfolioResourceTest.
  *                7. Run Playwright specs 025 through 045 without repeating the setup project.
- *                8. Run `ResourceTestSuite_50`, which creates transactions after currency-pair setup.
+ *                8. Run `ResourceTestSuite_50`, which creates the global trading calendar through next year
+ *                   and transactions after currency-pair setup.
  *                9. Run Playwright specs 050 through 888 without repeating the setup project.
  *   --lib      Reusable-library suite: recreate `grafiosch_t`, start grafiosch-test-integration
  *              on port 8081 (profile `e2e`), run the backend integration suite `ResourceTestSuite`

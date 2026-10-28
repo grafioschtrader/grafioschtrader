@@ -8,6 +8,7 @@ import {
   PEER_A_OWN,
   PEER_B_FRONTEND,
   PEER_B_OWN,
+  kindName,
   readGTNet,
   sendMessageFromRow,
   submitMessage
@@ -66,10 +67,11 @@ test('both application peers know each other and complete the handshake', async 
 
 /** The exchange kinds a peer has an accepted, unrevoked grant for, sorted so the assertion is order-independent. */
 async function grantedKinds(page: Page, domain: string): Promise<string[]> {
-  const remote = (await readGTNet(page)).gtNetList.find((entry: any) => entry.domainRemoteName === domain);
+  const state = await readGTNet(page);
+  const remote = state.gtNetList.find((entry: any) => entry.domainRemoteName === domain);
   return (remote?.gtNetEntities ?? [])
     .filter((entity: any) => entity.gtNetConfigEntity?.exchange)
-    .map((entity: any) => entity.entityKind)
+    .map((entity: any) => kindName(state, entity))
     .sort();
 }
 

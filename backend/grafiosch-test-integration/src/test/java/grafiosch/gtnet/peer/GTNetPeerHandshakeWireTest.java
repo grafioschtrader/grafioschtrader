@@ -2,9 +2,7 @@ package grafiosch.gtnet.peer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,6 +11,8 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import grafiosch.common.DataHelper;
+import grafiosch.gtnet.GTNetTime;
 import grafiosch.test.gtnet.GTNetPeerTestSupport;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
@@ -65,7 +65,7 @@ class GTNetPeerHandshakeWireTest {
   void anUnknownPeerIsRejectedWhenServerCreationIsOff() throws Exception {
     setAllowServerCreation(false);
 
-    JsonNode reply = send(handshakeEnvelope(UUID.randomUUID().toString()), null);
+    JsonNode reply = send(handshakeEnvelope(DataHelper.generateGUID()), null);
 
     assertThat(reply.path("messageCode").asInt()).isEqualTo(FIRST_HANDSHAKE_REJECT_NOT_IN_LIST);
     assertThat(GTNetPeerTestSupport.readGTNet(GTNetPeerTestSupport.PEER_B, jwtB).toString())
@@ -76,7 +76,7 @@ class GTNetPeerHandshakeWireTest {
   @Order(2)
   void anAcceptedHandshakeReturnsATokenAndLeaksNoneInThePayload() throws Exception {
     setAllowServerCreation(true);
-    String ourTokenForPeerB = UUID.randomUUID().toString();
+    String ourTokenForPeerB = DataHelper.generateGUID();
 
     JsonNode reply = send(handshakeEnvelope(ourTokenForPeerB), null);
 
@@ -98,7 +98,7 @@ class GTNetPeerHandshakeWireTest {
         .postJson(GTNetPeerTestSupport.PEER_B, "/m2m/gtnet", tokenForPeerB, envelope(PING).toString()).statusCode())
             .isEqualTo(200);
 
-    var refused = GTNetPeerTestSupport.postJson(GTNetPeerTestSupport.PEER_B, "/m2m/gtnet", UUID.randomUUID().toString(),
+    var refused = GTNetPeerTestSupport.postJson(GTNetPeerTestSupport.PEER_B, "/m2m/gtnet", DataHelper.generateGUID(),
         envelope(PING).toString());
     assertUnauthorized(refused.statusCode(), refused.body());
   }
@@ -119,7 +119,7 @@ class GTNetPeerHandshakeWireTest {
     supersededTokenForPeerB = tokenForPeerB;
 
     ObjectNode refresh = envelope(TOKEN_REFRESH);
-    refresh.putObject("gtNetMessageParamMap").putObject("tokenThis").put("paramValue", UUID.randomUUID().toString());
+    refresh.putObject("gtNetMessageParamMap").putObject("tokenThis").put("paramValue", DataHelper.generateGUID());
     JsonNode reply = send(refresh, supersededTokenForPeerB);
 
     assertThat(reply.path("messageCode").asInt()).isEqualTo(TOKEN_REFRESH_ACCEPT);
@@ -135,7 +135,7 @@ class GTNetPeerHandshakeWireTest {
             .isEqualTo(200);
 
     var withAnUnrelatedToken = GTNetPeerTestSupport.postJson(GTNetPeerTestSupport.PEER_B, "/m2m/gtnet",
-        UUID.randomUUID().toString(), envelope(PING).toString());
+        DataHelper.generateGUID(), envelope(PING).toString());
     assertUnauthorized(withAnUnrelatedToken.statusCode(), withAnUnrelatedToken.body());
   }
 
@@ -154,7 +154,7 @@ class GTNetPeerHandshakeWireTest {
     String beforeSecondRotation = tokenForPeerB;
 
     ObjectNode refresh = envelope(TOKEN_REFRESH);
-    refresh.putObject("gtNetMessageParamMap").putObject("tokenThis").put("paramValue", UUID.randomUUID().toString());
+    refresh.putObject("gtNetMessageParamMap").putObject("tokenThis").put("paramValue", DataHelper.generateGUID());
     JsonNode reply = send(refresh, beforeSecondRotation);
 
     assertThat(reply.path("messageCode").asInt()).isEqualTo(TOKEN_REFRESH_ACCEPT);
@@ -181,7 +181,7 @@ class GTNetPeerHandshakeWireTest {
   @Test
   @Order(7)
   void aHandshakeWhoseEnvelopeAndPayloadDisagreeIsRefused() throws Exception {
-    ObjectNode handshake = handshakeEnvelope(UUID.randomUUID().toString());
+    ObjectNode handshake = handshakeEnvelope(DataHelper.generateGUID());
     ((ObjectNode) handshake.get("payload")).put("domainRemoteName", OTHER_DOMAIN);
 
     JsonNode reply = send(handshake, null);
@@ -197,7 +197,7 @@ class GTNetPeerHandshakeWireTest {
   @Test
   @Order(8)
   void anUnauthenticatedHandshakeCannotReplaceAnEstablishedRelationship() throws Exception {
-    ObjectNode takeover = handshakeEnvelope(UUID.randomUUID().toString());
+    ObjectNode takeover = handshakeEnvelope(DataHelper.generateGUID());
 
     JsonNode reply = send(takeover, null);
 
@@ -232,7 +232,7 @@ class GTNetPeerHandshakeWireTest {
     ObjectNode envelope = GTNetPeerTestSupport.JSON.createObjectNode();
     envelope.put("sourceDomain", SYNTHETIC_DOMAIN);
     envelope.put("idSourceGtNetMessage", ++envelopeIds);
-    envelope.put("timestamp", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).toString());
+    envelope.put("timestamp", GTNetTime.now().truncatedTo(ChronoUnit.SECONDS).toString());
     envelope.put("messageCode", messageCode);
     envelope.put("serverBusy", false);
     envelope.put("visibility", 0);

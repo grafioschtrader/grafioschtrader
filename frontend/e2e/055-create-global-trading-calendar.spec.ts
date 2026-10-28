@@ -1,12 +1,17 @@
-import { expect, Locator, Page, Response, test } from '@playwright/test';
+import { expect, Locator, Page, Request, Response, test } from '@playwright/test';
 import { holdCalendarResponse } from './calendar.helpers';
 import { loginAsFixtureUser } from './helpers';
 
-// This spec must run before 075-create-security-transactions: the fresh E2E database intentionally starts with an
-// empty global trading calendar, while every security transaction is validated against trading_days_plus.
+// The fresh E2E database starts with an empty global trading calendar, while every security transaction is validated
+// against trading_days_plus. TradingDaysPlusResourceTest (ResourceTestSuite_50) creates the years from 2000 through
+// next year before Playwright resumes at 050, so a failure here cannot cascade into the specs that book, import or
+// replay dated data. This spec verifies those years and enters only the later years through the UI.
 
 const ADMIN = 'admin'; // hg@hugograf.com in users.json
 const FIRST_YEAR = 2000;
+/** First year entered through the UI; the years before it belong to TradingDaysPlusResourceTest. */
+const FIRST_UI_YEAR = new Date().getFullYear() + 2;
+/** GlobalConstants.YOUNGEST_TRADING_CALENDAR_DAY limits the calendar to this year. */
 const LAST_YEAR = 2030;
 const CALENDAR_NODE_RX = /^(Global trading calendar|Handelskalender global)$/i;
 const MARK_YEAR_RX = /^(Marking of all trading days|Markierung aller Handelstage)$/i;
@@ -36,19 +41,36 @@ async function authHeaders(page: Page): Promise<Record<string, string>> {
   return { 'x-auth-token': token!, Accept: 'application/json' };
 }
 
+async function loadTradingDays(page: Page, headers: Record<string, string>, year: number): Promise<string[]> {
+  const response = await page.request.get(`/api/tradingdaysplus/${year}`, { headers });
+  expect(response.ok(), `loading trading calendar ${year}: ${await response.text()}`).toBeTruthy();
+  return ((await response.json()) as TradingDaysResponse).dates;
+}
+
+function isCompleteYear(dates: string[], year: number): boolean {
+  return JSON.stringify([...dates].sort()) === JSON.stringify(expectedTradingDays(year));
+}
+
+/**
+ * Verifies the years created by TradingDaysPlusResourceTest, then clears a partial calendar of the UI years.
+ *
+ * @returns false when the UI years are already complete, so that nothing is left to enter
+ */
 async function prepareFreshCalendar(page: Page): Promise<boolean> {
   const headers = await authHeaders(page);
+  for (let year = FIRST_YEAR; year < FIRST_UI_YEAR; year++) {
+    expect(
+      isCompleteYear(await loadTradingDays(page, headers, year), year),
+      `trading calendar ${year} must be complete; it is created by TradingDaysPlusResourceTest in ResourceTestSuite_50`
+    ).toBeTruthy();
+  }
+
   const existingByYear = new Map<number, string[]>();
   let complete = true;
-
-  for (let year = FIRST_YEAR; year <= LAST_YEAR; year++) {
-    const response = await page.request.get(`/api/tradingdaysplus/${year}`, { headers });
-    expect(response.ok(), `loading trading calendar ${year}: ${await response.text()}`).toBeTruthy();
-    const dates = ((await response.json()) as TradingDaysResponse).dates;
+  for (let year = FIRST_UI_YEAR; year <= LAST_YEAR; year++) {
+    const dates = await loadTradingDays(page, headers, year);
     existingByYear.set(year, dates);
-    if (JSON.stringify([...dates].sort()) !== JSON.stringify(expectedTradingDays(year))) {
-      complete = false;
-    }
+    complete &&= isCompleteYear(dates, year);
   }
 
   if (complete) {
@@ -103,10 +125,29 @@ function weekdayCount(year: number): number {
   return count;
 }
 
-function isTradingDaysResponse(response: Response, method: 'GET' | 'PUT', year?: number): boolean {
-  const pathname = new URL(response.url()).pathname;
+function isTradingDaysRequest(request: Request, method: 'GET' | 'PUT', year?: number): boolean {
+  const pathname = new URL(request.url()).pathname;
   const expectedSuffix = year == null ? '/api/tradingdaysplus' : `/api/tradingdaysplus/${year}`;
-  return response.request().method() === method && pathname.endsWith(expectedSuffix);
+  return request.method() === method && pathname.endsWith(expectedSuffix);
+}
+
+/**
+ * Performs a UI action and returns the response of the trading-calendar request it triggers. A request that fails
+ * without a response (for example a refused connection to the dev server) fails the test at once instead of letting
+ * it wait for a response until the test timeout.
+ */
+async function tradingDaysResponseOf(
+  page: Page,
+  method: 'GET' | 'PUT',
+  year: number | undefined,
+  action: () => Promise<void>
+): Promise<Response> {
+  const requestPromise = page.waitForRequest((request) => isTradingDaysRequest(request, method, year));
+  await action();
+  const request = await requestPromise;
+  const response = await request.response();
+  expect(response, `${method} ${request.url()} failed: ${request.failure()?.errorText}`).not.toBeNull();
+  return response!;
 }
 
 async function renderedDays(calendar: Locator): Promise<RenderedDay[]> {
@@ -157,18 +198,16 @@ async function removeHolidayWhenMarked(
 }
 
 async function selectYear(page: Page, year: number): Promise<Response> {
-  const responsePromise = page.waitForResponse((response) => isTradingDaysResponse(response, 'GET', year));
-  await page.locator('p-select#idYearSelect').click();
-  await page.getByRole('option', { name: String(year), exact: true }).click();
-  return responsePromise;
+  return tradingDaysResponseOf(page, 'GET', year, async () => {
+    await page.locator('p-select#idYearSelect').click();
+    await page.getByRole('option', { name: String(year), exact: true }).click();
+  });
 }
 
 async function navigateToNextYear(page: Page, contentArea: Locator, year: number): Promise<Response> {
   const nextYear = year + 1;
-  const responsePromise = page.waitForResponse((response) => isTradingDaysResponse(response, 'GET', nextYear));
   const nextButton = contentArea.locator('p-footer button').filter({ hasText: new RegExp(`^\\s*${nextYear}\\s*$`) });
-  await nextButton.click();
-  return responsePromise;
+  return tradingDaysResponseOf(page, 'GET', nextYear, () => nextButton.click());
 }
 
 async function assertFreshYear(response: Response, year: number): Promise<void> {
@@ -178,8 +217,12 @@ async function assertFreshYear(response: Response, year: number): Promise<void> 
 }
 
 test.describe.serial('create the global trading calendar as admin', () => {
-  test('marks and saves weekdays excluding New Year and Christmas for 2000-2030', async ({ page }) => {
-    test.setTimeout(600_000);
+  test('marks and saves weekdays excluding New Year and Christmas for the years after next year', async ({ page }) => {
+    test.skip(
+      FIRST_UI_YEAR > LAST_YEAR,
+      'No calendar year is left for the UI; raise GlobalConstants.YOUNGEST_TRADING_CALENDAR_DAY and LAST_YEAR'
+    );
+    test.setTimeout(120_000);
     await loginAsFixtureUser(page, ADMIN);
     if (!(await prepareFreshCalendar(page))) {
       return;
@@ -194,9 +237,9 @@ test.describe.serial('create the global trading calendar as admin', () => {
     const calendar = contentArea.locator('ng-fullyearcalendar-lib');
     await expect(calendar.locator('month-calendar')).toHaveCount(12, { timeout: 15_000 });
 
-    await assertFreshYear(await selectYear(page, FIRST_YEAR), FIRST_YEAR);
+    await assertFreshYear(await selectYear(page, FIRST_UI_YEAR), FIRST_UI_YEAR);
 
-    for (let year = FIRST_YEAR; year <= LAST_YEAR; year++) {
+    for (let year = FIRST_UI_YEAR; year <= LAST_YEAR; year++) {
       await expect(page.locator('p-select#idYearSelect')).toContainText(String(year));
 
       await contentArea.locator('h4').click({ button: 'right' });
@@ -222,14 +265,11 @@ test.describe.serial('create the global trading calendar as admin', () => {
       const finalDraft = await renderedDays(calendar);
       expect(finalDraft.filter((day) => day.backgroundColor === 'yellow')).toHaveLength(expectedDates.length);
 
-      const saveResponsePromise = page.waitForResponse((response) => isTradingDaysResponse(response, 'PUT'));
       // The projected Optimus UI icon is part of the accessible name (for example "\uE95B Save"), so
       // locate the calendar footer button by its visible label instead of an exact role name.
       const saveButton = contentArea.locator('p-footer button').filter({ hasText: /Save|Speichern/i });
       await expect(saveButton).toBeEnabled();
-      await saveButton.click();
-
-      const saveResponse = await saveResponsePromise;
+      const saveResponse = await tradingDaysResponseOf(page, 'PUT', undefined, () => saveButton.click());
       expect(saveResponse.ok(), `PUT trading calendar ${year}`).toBeTruthy();
       const payload = saveResponse.request().postDataJSON() as SaveTradingDaysPayload;
       expect(payload.year).toBe(year);

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, openSetup, PEER_A_FRONTEND, PEER_B_OWN, readGTNet } from './peer.helpers';
+import { login, openSetup, PEER_A_FRONTEND, PEER_B_OWN, readGTNet, typeNumber } from './peer.helpers';
 
 test('edits the handshake-created peer configuration through the setup table', async ({ page }) => {
   await login(page, PEER_A_FRONTEND);
@@ -10,11 +10,11 @@ test('edits the handshake-created peer configuration through the setup table', a
   await row.click({ button: 'right' });
   const menu = page.locator('[role="menu"]:visible');
   await menu
-    .getByRole('menuitem', { name: /Configuration|Konfiguration|GT_NET_CONFIG_EDIT/ })
+    .getByRole('menuitem', { name: /Edit connection config|Verbindungskonfiguration bearbeiten|GT_NET_CONFIG_EDIT/ })
     .first()
     .click();
   const dialog = page.locator('.p-dialog:visible');
-  await dialog.locator('#connectionTimeout').fill('12');
+  await typeNumber(dialog.locator('#connectionTimeout'), '12');
   const saved = page.waitForResponse(
     (response) => response.url().includes('/api/gtnetconfig') && response.request().method() === 'PUT'
   );

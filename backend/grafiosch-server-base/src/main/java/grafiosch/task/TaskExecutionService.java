@@ -56,22 +56,33 @@ public class TaskExecutionService {
         ProgressStateType.PROG_ZOMBIE_CLEANED.getValue());
   }
 
-  /** Executes the persisted task with the timeout declared by its {@link ITask} implementation. */
+  /**
+   * Executes the persisted task with the timeout declared by its {@link ITask} implementation.
+   *
+   * <p>
+   * The final state is the row the worker thread saved, not a second {@code findById}: with open-in-view the calling
+   * request keeps the instance it loaded here in its persistence context, so a re-read would return that instance as
+   * the worker left it after {@code startJob}, still {@code PROG_RUNNING}.
+   * </p>
+   *
+   * @param idTaskDataChange the queued task row to execute
+   * @return the task row in its final state
+   * @throws InterruptedException when the calling thread is interrupted while it waits
+   */
   public TaskDataChange executeWithTimeout(Integer idTaskDataChange) throws InterruptedException {
-    TaskDataChange taskDataChange = taskDataChangeRepository.findById(idTaskDataChange).orElseThrow();
-    executeWithTimeout(taskDataChange);
-    return taskDataChangeRepository.findById(idTaskDataChange).orElseThrow();
+    return executeWithTimeout(taskDataChangeRepository.findById(idTaskDataChange).orElseThrow());
   }
 
   /**
    * Executes one task in its own thread and waits for it at most as long as its timeout. A task still alive after the
-   * timeout is interrupted; if it does not stop, it is marked as zombie and an alert is raised. The calling worker
-   * then goes on, the zombie keeps its thread.
+   * timeout is interrupted; if it does not stop, it is marked as zombie and an alert is raised. The calling worker then
+   * goes on, the zombie keeps its thread.
    *
    * @param taskDataChange the waiting task
+   * @return the task row in its final state as saved by the worker thread
    * @throws InterruptedException when the calling worker is interrupted while it waits
    */
-  public void executeWithTimeout(TaskDataChange taskDataChange) throws InterruptedException {
+  public TaskDataChange executeWithTimeout(TaskDataChange taskDataChange) throws InterruptedException {
     LocalDateTime startTime = LocalDateTime.now();
     ITask task = findTask(taskDataChange).orElseThrow(
         () -> new IllegalArgumentException("No task implementation for task type " + taskDataChange.getIdTask()));
@@ -87,7 +98,7 @@ public class TaskExecutionService {
         worker.interrupt();
         Thread.sleep(WAIT_MILLISECONDS_AFTER_TIMEOUT);
         if (worker.isAlive()) {
-          finishedJob(taskDataChange, startTime, ProgressStateType.PROG_ZOMBIE);
+          running.result = finishedJob(taskDataChange, startTime, ProgressStateType.PROG_ZOMBIE);
           applicationEventPublisher.publishEvent(new AlertEvent(this, AlertBaseType.ALERT_GET_ZOMBIE_BACKGROUND_JOB,
               taskDataChange.getIdTaskDataChange()));
         }
@@ -95,6 +106,7 @@ public class TaskExecutionService {
     } finally {
       runningTasks.remove(taskDataChange.getIdTaskDataChange());
     }
+    return running.result != null ? running.result : taskDataChange;
   }
 
   /**
@@ -113,10 +125,10 @@ public class TaskExecutionService {
     try {
       taskDataChange = startJob(taskDataChange, startTime);
       task.doWork(cloneTaskDataChange(taskDataChange));
-      finishedJob(taskDataChange, startTime, ProgressStateType.PROG_PROCESSED);
+      running.result = finishedJob(taskDataChange, startTime, ProgressStateType.PROG_PROCESSED);
       removeOtherSamePendingJobs(task);
     } catch (TaskInterruptException tie) {
-      finishedJob(taskDataChange, startTime,
+      running.result = finishedJob(taskDataChange, startTime,
           running.timeout ? ProgressStateType.PROG_TIMEOUT : ProgressStateType.PROG_INTERRUPTED);
     } catch (TaskBackgroundException tbe) {
       if (tbe.getErrorMsgOfSystem() != null) {
@@ -129,13 +141,13 @@ public class TaskExecutionService {
       if (tbe.isRollback()) {
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       }
-      finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
+      running.result = finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
     } catch (Exception e) {
       StringWriter errors = new StringWriter();
       e.printStackTrace(new PrintWriter(errors));
       taskDataChange.setFailedStackTrace(errors.toString().substring(0,
           Math.min(TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE, errors.toString().length())));
-      finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
+      running.result = finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
     }
   }
 
@@ -152,10 +164,10 @@ public class TaskExecutionService {
     return taskDataChangeRepository.save(taskDataChange);
   }
 
-  private void finishedJob(TaskDataChange taskDataChange, LocalDateTime startTime,
+  private TaskDataChange finishedJob(TaskDataChange taskDataChange, LocalDateTime startTime,
       ProgressStateType progressStateType) {
     taskDataChange.finishedJob(startTime, progressStateType);
-    taskDataChangeRepository.save(taskDataChange);
+    return taskDataChangeRepository.save(taskDataChange);
   }
 
   public void removeOtherSamePendingJobs(ITask task) {
@@ -198,6 +210,8 @@ public class TaskExecutionService {
     private final TaskDataChange taskDataChange;
     private volatile Thread thread;
     private volatile boolean timeout;
+    /** The row as last saved by {@link #finishedJob}, read by the waiting caller after the join. */
+    private volatile TaskDataChange result;
 
     private RunningTask(ITask taskType, TaskDataChange taskDataChange) {
       this.taskType = taskType;

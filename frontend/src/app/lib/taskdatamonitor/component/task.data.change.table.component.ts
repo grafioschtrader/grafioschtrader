@@ -50,7 +50,9 @@ import { GlobalSessionNames } from '../../global.session.names';
       [(selection)]="selectedEntity"
       [multiSortMeta]="multiSortMeta"
       [customSortFn]="customSorter"
-      [scrollable]="false"
+      [scrollable]="true"
+      [scrollHeight]="'flex'"
+      [frozenColumnCount]="frozenColumnCount"
       [stripedRows]="true"
       [showGridlines]="true"
       [expandable]="true"
@@ -63,7 +65,7 @@ import { GlobalSessionNames } from '../../global.session.names';
       [baseLocale]="baseLocale"
       [formLocale]="formLocale"
       [containerClass]="{
-        'data-container': true,
+        'data-container-full': true,
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }"
@@ -119,6 +121,15 @@ import { GlobalSessionNames } from '../../global.session.names';
       <task-filter-dialog [visibleDialog]="visibleFilterDialog()" (closeDialog)="handleCloseFilterDialog($event)" />
     }
   `,
+  // The table takes the height the tab menu leaves it, so it scrolls in its own viewport below fixed column headers.
+  styles: [
+    `
+      :host {
+        display: block;
+        height: 100%;
+      }
+    `
+  ],
   providers: [DialogService],
   imports: [
     ConfigurableTableComponent,
@@ -188,6 +199,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Delete] : []
     );
     this.taskTypeEnum = taskTypeEnum;
+    this.frozenColumnsSelectable = true;
 
     this.addColumnFeqH(DataType.NumericInteger, 'idTaskDataChange', true, false);
     this.addColumnFeqH(DataType.DateTimeSecondString, 'creationTime', true, true);

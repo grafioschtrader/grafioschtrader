@@ -31,6 +31,8 @@ class GTNetPeerEnvelopeLimitTest {
   /** RFC 2606 reserved name; peer B stores it as an ordinary remote entry and never dials it. */
   private static final String SYNTHETIC_DOMAIN = "http://envelope-limit-probe.example:8099";
   private static final byte PING = 0;
+  /** GT_NET_SETTINGS_UPDATED_ALL_C, an announcement whose sender stores a message row and therefore names its id. */
+  private static final byte SETTINGS_UPDATED = 28;
   private static final byte ERROR = 23;
   private static final URI PEER = GTNetPeerTestSupport.PEER_B;
 
@@ -98,7 +100,8 @@ class GTNetPeerEnvelopeLimitTest {
 
   @Test
   void refusesAnEnvelopeWithoutASenderLocalId() throws Exception {
-    ObjectNode envelope = synthetic.newEnvelope(PING);
+    // The ping is sent transiently and may omit the id, so the rule is exercised with a code whose sender persists.
+    ObjectNode envelope = synthetic.newEnvelope(SETTINGS_UPDATED);
     envelope.remove("idSourceGtNetMessage");
 
     assertRefusedWith(synthetic.sendRaw(envelope), "ENVELOPE_INVALID");

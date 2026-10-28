@@ -57,6 +57,7 @@ import grafiosch.gtnet.GTNetInstanceIdentity;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.GTNetMessageCodeRegistry;
 import grafiosch.gtnet.GTNetProtocolDescriptor;
+import grafiosch.gtnet.GTNetPublishedStateSync;
 import grafiosch.gtnet.GTNetRequestBudgetService;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
 import grafiosch.gtnet.GTNetServerStateTypes;
@@ -75,7 +76,6 @@ import grafiosch.gtnet.handler.GTNetMessageHandler;
 import grafiosch.gtnet.handler.GTNetMessageHandlerRegistry;
 import grafiosch.gtnet.handler.GTNetServerListImporter;
 import grafiosch.gtnet.handler.HandlerResult;
-import grafiosch.gtnet.m2m.model.GTNetEntityPublicDTO;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.gtnet.model.ExchangeKindTypeInfo;
@@ -296,8 +296,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     boolean settingsChanged = isMyEntry && existingEntity != null && hasSettingsChanged(existingEntity, gtNet);
     // Only an instance without a valid own entry claims one, so a peer entry saved later never takes over the identity.
     // A pointer at a row that no longer exists (left behind by a database import) counts as no own entry.
-    boolean claimsOwnEntry = !isMyEntry
-        && (myInstanceEntry == null || !gtNetJpaRepository.existsById(myInstanceEntry))
+    boolean claimsOwnEntry = !isMyEntry && (myInstanceEntry == null || !gtNetJpaRepository.existsById(myInstanceEntry))
         && isThisInstance(gtNet.getDomainRemoteName(), connectionTimeout);
 
     // Validate that AC_PUSH_OPEN is only used for entity kinds that support it
@@ -765,7 +764,15 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       validateModel(payloadModel);
     }
 
+    // Both sides revoke exactly the kinds the message names and nothing when it names none, so such a revoke would be
+    // stored and announced while ending no exchange at all.
+    if (messageCode == GNetCoreMessageCode.GT_NET_DATA_REVOKE_SEL_C
+        && parseEntityKinds(msgRequest.gtNetMessageParamMap).isEmpty()) {
+      throw new DataViolationException("message.code", "g.gtnet.revoke.requires.entity.kinds", null);
+    }
+
     // For handshake and token refresh: generate token server-side and set appropriate payload
+    Map<Integer, InboundTokenState> replacedTokens = Map.of();
     if (messageCode == GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S
         || messageCode == GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_SEL_RR_C) {
       String tokenForRemote = DataHelper.generateGUID();
@@ -778,7 +785,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         // The answerer adopts this token the moment it handles the request and starts calling us with it, while we
         // would otherwise only adopt it when the response arrives. Installing it now, with the token it replaces kept
         // in the overlap window, means neither direction breaks if that response is lost.
-        installRefreshedTokenOptimistically(gtNetList, tokenForRemote);
+        replacedTokens = installRefreshedTokenOptimistically(gtNetList, tokenForRemote);
       }
     }
 
@@ -819,6 +826,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         // The reason the peer gave is kept against the message we sent, so a refusal is visible without a reply row.
         gtNetMessage.setErrorMsgCode(meResponse.errorMsgCode);
         gtNetMessageJpaRepository.saveMsg(gtNetMessage);
+      }
+
+      // A refused refresh leaves the peer on the token it used before, so the optimistic installation is undone
+      if (meResponse != null
+          && meResponse.messageCode == GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_REJECTED_S.getValue()) {
+        restoreReplacedToken(targetGTNet, replacedTokens.get(targetGTNet.getIdGtNet()));
       }
 
       // Apply side effects for outgoing announcement messages
@@ -952,15 +965,50 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    *
    * @param gtNetList      the targets of this refresh, in practice a single peer
    * @param tokenForRemote the token the peer is to use against us from now on
+   * @return the inbound token state each target had before, by its idGtNet, so a rejection can restore it
    */
-  private void installRefreshedTokenOptimistically(List<GTNet> gtNetList, String tokenForRemote) {
+  private Map<Integer, InboundTokenState> installRefreshedTokenOptimistically(List<GTNet> gtNetList,
+      String tokenForRemote) {
+    Map<Integer, InboundTokenState> replaced = new HashMap<>();
     for (GTNet targetGTNet : gtNetList) {
       gtNetConfigJpaRepository.findById(targetGTNet.getIdGtNet()).ifPresent(gtNetConfig -> {
+        replaced.put(targetGTNet.getIdGtNet(), new InboundTokenState(gtNetConfig.getTokenThis(),
+            gtNetConfig.getTokenThisPrevious(), gtNetConfig.getTokenThisPreviousValidUntil()));
         tokenRotationService.rotateTokenThis(gtNetConfig, tokenForRemote);
         gtNetConfigJpaRepository.save(gtNetConfig);
         targetGTNet.setGtNetConfig(gtNetConfig);
       });
     }
+    return replaced;
+  }
+
+  /**
+   * Undoes {@link #installRefreshedTokenOptimistically} for a peer that rejected the refresh. A rejecting peer keeps
+   * calling us with the token it had, and that token is not necessarily still acceptable after the rotation: when an
+   * earlier refresh is still inside its overlap window, rotateTokenThis keeps the older predecessor and drops the token
+   * the peer actually holds, and otherwise the predecessor expires with the window. Either way the peer would be
+   * answered with 401 from then on, so the state before the rotation is put back as it was.
+   *
+   * @param targetGTNet the peer that rejected the refresh
+   * @param before      its inbound token state before the rotation, null when it had no configuration
+   */
+  private void restoreReplacedToken(GTNet targetGTNet, InboundTokenState before) {
+    if (before == null) {
+      return;
+    }
+    gtNetConfigJpaRepository.findById(targetGTNet.getIdGtNet()).ifPresent(gtNetConfig -> {
+      gtNetConfig.setTokenThis(before.tokenThis());
+      gtNetConfig.setTokenThisPrevious(before.tokenThisPrevious());
+      gtNetConfig.setTokenThisPreviousValidUntil(before.previousValidUntil());
+      gtNetConfigJpaRepository.save(gtNetConfig);
+      targetGTNet.setGtNetConfig(gtNetConfig);
+      log.info("Peer {} rejected the token refresh, restored the inbound token it still uses",
+          targetGTNet.getDomainRemoteName());
+    });
+  }
+
+  /** The inbound token of a peer and its overlap predecessor, captured before a refresh rotates them. */
+  private record InboundTokenState(String tokenThis, String tokenThisPrevious, LocalDateTime previousValidUntil) {
   }
 
   /**
@@ -992,11 +1040,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   private void updateEntityForReceive(GTNet remoteGTNet, IExchangeKindType kind) {
     GTNetEntity entity = remoteGTNet.getOrCreateEntityByKind(kind.getValue());
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
-
-    if (entity.getGtNetConfigEntity() == null) {
-      entity.setGtNetConfigEntity(new GTNetConfigEntity());
-    }
-    // Config entity defaults to exchange=true, no need to set explicitly
+    grantService.grant(entity);
   }
 
   /**
@@ -1127,10 +1171,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
       // Step 2: Now add GTNetConfigEntity with proper IDs
       for (IExchangeKindType kind : acceptedKinds) {
-        GTNetEntity entity = targetGTNet.getEntityByKind(kind.getValue()).orElse(null);
-        if (entity != null && entity.getGtNetConfigEntity() == null) {
-          entity.setGtNetConfigEntity(new GTNetConfigEntity());
-        }
+        targetGTNet.getEntityByKind(kind.getValue()).ifPresent(grantService::grant);
       }
       gtNetJpaRepository.save(targetGTNet);
       log.info("Created GTNetConfigEntity with SEND capability for {} entity kinds to {}", acceptedKinds.size(),
@@ -1676,74 +1717,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       }
     }
 
-    // Sync additional fields from sourceGtNet DTO if present
-    GTNetPublicDTO sourceGtNet = envelope.sourceGtNet;
-    if (sourceGtNet != null) {
-      // Sync timezone
-      if (sourceGtNet.getTimeZone() != null && !sourceGtNet.getTimeZone().equals(localRemoteEntry.getTimeZone())) {
-        localRemoteEntry.setTimeZone(sourceGtNet.getTimeZone());
-        needsSave = true;
-      }
-
-      // Sync spread capability
-      if (sourceGtNet.isSpreadCapability() != localRemoteEntry.isSpreadCapability()) {
-        localRemoteEntry.setSpreadCapability(sourceGtNet.isSpreadCapability());
-        needsSave = true;
-      }
-
-      // Sync the remote's daily request limit (what THEY accept from US)
-      if (!java.util.Objects.equals(sourceGtNet.getDailyRequestLimit(), localRemoteEntry.getDailyRequestLimit())) {
-        localRemoteEntry.setDailyRequestLimit(sourceGtNet.getDailyRequestLimit());
-        needsSave = true;
-      }
-
-      // Sync GTNetEntities (data exchange capabilities)
-      if (sourceGtNet.getGtNetEntities() != null) {
-        needsSave |= syncGtNetEntitiesFromDTO(localRemoteEntry, sourceGtNet.getGtNetEntities());
-      }
-    }
+    // Time zone, capabilities, the daily limit and the entity kinds the peer publishes about itself
+    needsSave |= GTNetPublishedStateSync.apply(localRemoteEntry, envelope.sourceGtNet);
 
     if (needsSave) {
       gtNetJpaRepository.save(localRemoteEntry);
     }
-  }
-
-  /**
-   * Synchronizes the GTNetEntity list from a remote source DTO into the local entry. Updates existing entities and adds
-   * new ones based on entityKind.
-   *
-   * @param localEntry     the local GTNet entry to update
-   * @param sourceEntities the entity DTOs from the remote source
-   * @return true if any changes were made
-   */
-  private boolean syncGtNetEntitiesFromDTO(GTNet localEntry, List<GTNetEntityPublicDTO> sourceEntities) {
-    boolean changed = false;
-
-    for (GTNetEntityPublicDTO sourceEntity : sourceEntities) {
-      GTNetEntity localEntity = localEntry.getOrCreateEntityByKind(sourceEntity.getEntityKind());
-
-      // Sync acceptRequest, serverState, and maxLimit from remote
-      if (localEntity.getAcceptRequest() != sourceEntity.getAcceptRequest()) {
-        localEntity.setAcceptRequest(sourceEntity.getAcceptRequest());
-        changed = true;
-      }
-      if (localEntity.getServerState() != sourceEntity.getServerState()) {
-        localEntity.setServerState(sourceEntity.getServerState());
-        changed = true;
-      }
-      if (!java.util.Objects.equals(localEntity.getMaxLimit(), sourceEntity.getMaxLimit())) {
-        localEntity.setMaxLimit(sourceEntity.getMaxLimit());
-        changed = true;
-      }
-
-      // Note: We don't sync the local config (exchange direction is local decision)
-      if (localEntity.getIdGtNetEntity() == null) {
-        // New entity was created
-        changed = true;
-      }
-    }
-
-    return changed;
   }
 
   /**

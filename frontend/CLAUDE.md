@@ -92,7 +92,10 @@ periodic `ApplicationRef.tick()`.
   `viewChildren(Child)` and `contentChildren(Child)` return signals of readonly arrays; use `children()` directly
   instead of `QueryList.toArray()`. Query decorators are forbidden by the Angular API ratchet. Optional projected
   templates use `@if (cellTemplate(); as cell)`, then pass `cell` to `NgTemplateOutlet`. Signal queries have no
-  `static` option: access view results in `ngAfterViewInit` or a render callback, never in `ngOnInit`. Replace a query
+  `static` option: access view results in `ngAfterViewInit` or a render callback, never in `ngOnInit`. A template
+  reads a query once at its top level (`@let cell = customCellTemplate();`), never inside a row or cell: each
+  embedded view inserted for a row marks the query dirty, so a per-cell read collects all views again — the task
+  monitor took 13 s instead of 2 s for 879 rows. Replace a query
   setter's side effects with an `effect`, using `untracked` for work that must not become another dependency.
 - **Signal APIs only in new and reworked code.** Use `input()`, `output()`, `model()`, `viewChild()` and
   `contentChild()`; the Angular API ratchet forbids the corresponding legacy decorators and `EventEmitter`.

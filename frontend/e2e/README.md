@@ -35,8 +35,8 @@ failure and closes/reopens a dialog while a copy response is pending. It removes
 calendar rows at startup and in a final cleanup; shared exchange calendars are never changed. The missing-quote
 calendar uses response fixtures from `testdata/missing-quote-calendar.json` to check a tenant without holdings and
 shared year navigation with holdings but no quote gaps. These responses are delayed and independent of transactions
-created later in the roundtrip or quote downloads. The spec runs after 055, which
-populates global trading days.
+created later in the roundtrip or quote downloads. The spec runs after `ResourceTestSuite_50` and 055, which
+populate the global trading days.
 
 Run it with
 `npx playwright test e2e/056-stockexchange-calendar-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
@@ -261,7 +261,8 @@ The application roundtrip alternates its data-producing suites at the Playwright
 2. Playwright specs `005` through `020`, including trading-platform-plan creation in `015`
 3. `ResourceTestSuite_25` (`PortfolioResourceTest`, watchlists, and task data)
 4. Playwright specs `025` through `045`, including USD/CHF initialization in `045`
-5. `ResourceTestSuite_50` (`TransactionResourceTest` consumes the initialized currency pair)
+5. `ResourceTestSuite_50` (`TradingDaysPlusResourceTest` creates the global trading calendar through next year;
+   `TransactionResourceTest` consumes the initialized currency pair)
 6. Playwright specs `050` through `888` (`auth.setup.ts` is not repeated)
 
 This ordering lets an integration portfolio consume a plan created by `015`, while everything required by
@@ -408,12 +409,22 @@ price period, price-download task or transaction is persisted. Run against the v
 
 ## Global trading calendar spec (055-*)
 
-`055-create-global-trading-calendar.spec.ts` creates the candidate trading days for 2000–2030 before any dated
-security transaction is submitted. The fresh E2E schema deliberately leaves `trading_days_plus` empty, and backend
-transaction validation rejects every date that is absent from that table, so this spec must run before 075.
+The fresh E2E schema deliberately leaves `trading_days_plus` empty, and backend transaction validation rejects every
+date that is absent from that table. The calendar is therefore split between two suites:
 
-The spec is rerunnable: it accepts an already complete calendar unchanged, and if an earlier attempt left only a
-partial calendar, it removes those partial rows through the REST resource before recreating all years through the UI.
+- `TradingDaysPlusResourceTest`, the first class of `ResourceTestSuite_50`, creates the years 2000 through next year
+  through the REST resource. Every spec from 050 on that books, imports or replays dated data relies only on these
+  years, so a failure of the calendar UI no longer cascades into them.
+- `055-create-global-trading-calendar.spec.ts` first verifies that those years are complete — it fails with a
+  pointer to `ResourceTestSuite_50` when they are not — and then enters the years from the year after next through
+  2030 (`GlobalConstants.YOUNGEST_TRADING_CALENDAR_DAY`) through the UI. Once no such year is left, the UI scenario
+  is skipped with a note to raise that boundary.
+
+Every trading-calendar request of the UI scenario fails the test as soon as it ends without a response (for example
+a refused connection to the dev server), instead of waiting for the test timeout.
+
+The spec is rerunnable: it accepts already complete UI years unchanged, and if an earlier attempt left only some of
+them, it removes those partial rows through the REST resource before recreating the UI years through the UI.
 An additional read-only scenario always runs, including on an already complete calendar: it delays the initial
 response, supersedes a year request and toggles an existing day twice without saving, checking the save button and
 year-selection lock.

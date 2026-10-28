@@ -22,8 +22,8 @@ import grafiosch.entities.GTNetEntity;
  * <p>
  * The grant is the {@link GTNetConfigEntity} hanging off the peer's {@link GTNetEntity} for that kind. It is written
  * when a data request is accepted in either direction, and a revoke sets its {@code exchange} flag to false. It is
- * local: {@code syncGtNetEntitiesFromDTO} deliberately leaves it alone when a peer's published state is synchronized,
- * so a peer cannot grant itself anything by what it publishes about itself.
+ * local: {@link GTNetPublishedStateSync} deliberately leaves it alone when a peer's published state is synchronized, so
+ * a peer cannot grant itself anything by what it publishes about itself.
  * </p>
  *
  * <p>
@@ -108,5 +108,16 @@ public class GTNetGrantService {
       configEntity.setExchange(false);
       return true;
     }).orElse(false);
+  }
+
+  /**
+   * Grants the kind of an entity, as an accepted data request does on both sides. A peer that never had a grant gets a
+   * new row; a grant that a revoke or a rejection switched off is switched on again. Only creating a missing row left a
+   * revoked grant switched off, so a data request accepted after a revoke changed nothing.
+   *
+   * @param entity the peer's entity for the granted kind
+   */
+  public void grant(GTNetEntity entity) {
+    entity.getOrCreateConfigEntity().setExchange(true);
   }
 }

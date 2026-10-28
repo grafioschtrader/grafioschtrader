@@ -151,6 +151,12 @@ export interface CellMark {
     @let expandedRowTemplateValue = expandedRowTemplate();
     @let cellMarkFnValue = cellMarkFn();
     @let footerValueFnValue = footerValueFn();
+    <!-- Signal queries are read once here, not per cell: every cell view created from a projected template marks
+         them dirty, so a read per cell would collect all views again and make rendering quadratic in the cell count. -->
+    @let customCellTemplateValue = customCellTemplate();
+    @let iconTemplateValue = iconTemplate();
+    @let svgIconTemplateValue = svgIconTemplate();
+    @let linkIconTemplateValue = linkIconTemplate();
 
     <div #cmDiv (click)="onComponentClick($event)" [class]="toClassString(containerClass(), customClass())">
       <p-table
@@ -457,7 +463,7 @@ export interface CellMark {
                     }
                   }
                   <!-- Cell content rendering -->
-                  @if (customCellTemplate(); as customCellTemplateValue) {
+                  @if (customCellTemplateValue) {
                     <!-- Use custom cell template if provided -->
                     <ng-container
                       *ngTemplateOutlet="customCellTemplateValue; context: { $implicit: rowData, field: field }" />
@@ -483,7 +489,7 @@ export interface CellMark {
                         aria-hidden="true"></i
                     ></span>
                   } @else if (field.templateName === 'icon') {
-                    @if (iconTemplate(); as iconTemplateValue) {
+                    @if (iconTemplateValue) {
                       <ng-container
                         *ngTemplateOutlet="
                           iconTemplateValue;
@@ -497,7 +503,7 @@ export interface CellMark {
                       <span>{{ getValue(rowData, field) }}</span>
                     }
                   } @else if (field.templateName === 'svgIcon') {
-                    @if (svgIconTemplate(); as svgIconTemplateValue) {
+                    @if (svgIconTemplateValue) {
                       <ng-container
                         *ngTemplateOutlet="
                           svgIconTemplateValue;
@@ -513,7 +519,7 @@ export interface CellMark {
                   } @else if (field.templateName === 'linkIcon') {
                     @if (getValue(rowData, field)) {
                       <a [href]="getValue(rowData, field)" target="_blank">
-                        @if (linkIconTemplate(); as linkIconTemplateValue) {
+                        @if (linkIconTemplateValue) {
                           <ng-container
                             *ngTemplateOutlet="linkIconTemplateValue; context: { $implicit: rowData, field: field }" />
                         } @else {

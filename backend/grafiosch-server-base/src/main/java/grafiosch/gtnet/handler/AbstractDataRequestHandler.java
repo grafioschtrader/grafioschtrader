@@ -6,7 +6,6 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import grafiosch.entities.GTNet;
-import grafiosch.entities.GTNetConfigEntity;
 import grafiosch.entities.GTNetEntity;
 import grafiosch.gtnet.AcceptRequestTypes;
 import grafiosch.gtnet.ExchangeKindTypeRegistry;
@@ -110,19 +109,15 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
   }
 
   /**
-   * Creates GTNetConfigEntity for entities that were accepted. Called after initial entity creation to ensure IDs are
-   * available.
+   * Grants the accepted kinds: creates the GTNetConfigEntity, or switches a revoked one on again, through
+   * {@link grafiosch.gtnet.GTNetGrantService#grant}. Called after initial entity creation to ensure IDs are available.
    *
    * @param gtNet the GTNet with entities to update
    * @param kinds the entity kinds to create config entities for
    */
   protected void createConfigEntitiesForAcceptedKinds(GTNet gtNet, Set<IExchangeKindType> kinds) {
     for (IExchangeKindType kind : kinds) {
-      gtNet.getEntityByKind(kind.getValue()).ifPresent(entity -> {
-        if (entity.getGtNetConfigEntity() == null) {
-          entity.setGtNetConfigEntity(new GTNetConfigEntity());
-        }
-      });
+      gtNet.getEntityByKind(kind.getValue()).ifPresent(grantService::grant);
     }
   }
 

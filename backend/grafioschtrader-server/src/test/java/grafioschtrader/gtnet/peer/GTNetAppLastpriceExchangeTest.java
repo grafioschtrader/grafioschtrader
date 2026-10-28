@@ -40,7 +40,7 @@ class GTNetAppLastpriceExchangeTest {
   @BeforeAll
   static void connect() throws Exception {
     fixture = GTNetAppPeerFixture.load();
-    jwtB = GTNetPeerTestSupport.loginAdmin(GTNetPeerTestSupport.PEER_B);
+    jwtB = GTNetAppPeerFixture.loginAdmin(GTNetPeerTestSupport.PEER_B);
     synthetic = SyntheticPeer.connect(GTNetPeerTestSupport.PEER_B, SYNTHETIC_DOMAIN);
     // A completed handshake no longer entitles a peer to price data: serving it needs an accepted,
     // unrevoked grant for this peer and this kind. The synthetic peer asks for one the way a real peer does.
@@ -80,12 +80,19 @@ class GTNetAppLastpriceExchangeTest {
       push.securities.add(price);
     }
 
-    JsonNode reply = synthetic.send(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C.getValue(), push);
+    // Only a Push-Open server accepts pushes; the bootstrap leaves every kind on AC_OPEN
+    GTNetAppPeerFixture.setOwnAcceptRequest(GTNetPeerTestSupport.PEER_B, jwtB, "LAST_PRICE", "AC_PUSH_OPEN");
+    try {
+      JsonNode reply = synthetic.send(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C.getValue(), push);
 
-    assertThat(reply.path("messageCode").asInt())
-        .isEqualTo(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S.getValue());
-    LastpriceExchangeMsg ack = GTNetPeerTestSupport.JSON.treeToValue(reply.path("payload"), LastpriceExchangeMsg.class);
-    assertThat(ack.acceptedCount).isNotNull();
+      assertThat(reply.path("messageCode").asInt())
+          .isEqualTo(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S.getValue());
+      LastpriceExchangeMsg ack = GTNetPeerTestSupport.JSON.treeToValue(reply.path("payload"),
+          LastpriceExchangeMsg.class);
+      assertThat(ack.acceptedCount).isNotNull();
+    } finally {
+      GTNetAppPeerFixture.setOwnAcceptRequest(GTNetPeerTestSupport.PEER_B, jwtB, "LAST_PRICE", "AC_OPEN");
+    }
   }
 
   @Test

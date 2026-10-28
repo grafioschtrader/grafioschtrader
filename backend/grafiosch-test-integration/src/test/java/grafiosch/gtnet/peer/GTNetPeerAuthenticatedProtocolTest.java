@@ -16,6 +16,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import grafiosch.test.gtnet.GTNetPeerTestSupport;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /** Real authenticated protocol traffic between the runner-owned peers. */
 @TestMethodOrder(OrderAnnotation.class)
@@ -68,6 +69,13 @@ class GTNetPeerAuthenticatedProtocolTest {
         GTNetPeerTestSupport
             .postApi(GTNetPeerTestSupport.PEER_A, "/api/gtnet/" + remoteB + "/checkstatus", jwtA, "null").statusCode(),
         "ping after token refresh");
+    // The rejecting peer keeps the token of the accepted refresh. Peer A rotated again before the rejection arrived,
+    // and inside the overlap window that rotation drops exactly this token, so the reverse direction is what breaks.
+    var reverse = GTNetPeerTestSupport.postApi(GTNetPeerTestSupport.PEER_B, "/api/gtnet/" + remoteA + "/checkstatus",
+        jwtB, "null");
+    assertOk(reverse.statusCode(), reverse.body());
+    assertThat(reverse.body()).as("peer B still authenticates at peer A").containsAnyOf("SOS_ONLINE",
+        "\"serverOnline\":1");
   }
 
   @Test
@@ -111,7 +119,11 @@ class GTNetPeerAuthenticatedProtocolTest {
   @Test
   @Order(5)
   void announcementsAndCancellationArePersistedOnBothSides() throws Exception {
+    // Only a change of the published settings enqueues the broadcast, so the test makes one itself.
+    int raisedLimit = raiseOwnDailyRequestLimitOfA();
     runNewestWaitingTask(GTNetPeerTestSupport.PEER_A, jwtA, "GTNET_SETTINGS_BROADCAST");
+    assertThat(entry(GTNetPeerTestSupport.PEER_B, jwtB, remoteA).path("dailyRequestLimit").asInt())
+        .as("peer B synchronised the broadcast limit").isEqualTo(raisedLimit);
     assertOk(GTNetPeerTestSupport.submit(GTNetPeerTestSupport.PEER_A, jwtA, null, "GT_NET_OFFLINE_ALL_C", Map.of(),
         "GTNet peer offline announcement").statusCode(), "offline announcement");
     String from = LocalDateTime.now().plusMinutes(5).truncatedTo(ChronoUnit.SECONDS).toString();
@@ -151,7 +163,7 @@ class GTNetPeerAuthenticatedProtocolTest {
 
   @Test
   @Order(6)
-  void singleAndQueuedAdminDeliveryReachTheRemotePeer() throws Exception {
+  void singleAndMultiTargetAdminMessagesReachTheRemotePeer() throws Exception {
     assertOk(GTNetPeerTestSupport.submit(GTNetPeerTestSupport.PEER_A, jwtA, remoteB, "GT_NET_ADMIN_MESSAGE_SEL_C",
         Map.of(), "GTNet peer single admin message").statusCode(), "single admin");
 
@@ -160,7 +172,8 @@ class GTNetPeerAuthenticatedProtocolTest {
         + "\"gtNetMessageParamMap\":{}}";
     var queued = GTNetPeerTestSupport.postApi(GTNetPeerTestSupport.PEER_A, "/api/gtnet/submitmsgmulti", jwtA, multi);
     assertOk(queued.statusCode(), queued.body());
-    runNewestWaitingTask(GTNetPeerTestSupport.PEER_A, jwtA, "GTNET_ADMIN_MESSAGE_DELIVERY");
+    // A multi-target request with a single valid target is sent synchronously. The queued delivery through
+    // GTNET_ADMIN_MESSAGE_DELIVERY needs at least two peers with a completed handshake, which this topology lacks.
     assertThat(messages(GTNetPeerTestSupport.PEER_B, jwtB, remoteA).toString())
         .contains("GTNet peer queued admin message");
   }
@@ -168,9 +181,34 @@ class GTNetPeerAuthenticatedProtocolTest {
   @Test
   @Order(7)
   void dataExchangeCanBeRevokedAfterProtocolTraffic() throws Exception {
+    // A revoke naming no kind would end nothing on either side, so it is refused before it leaves peer A
+    var empty = GTNetPeerTestSupport.submit(GTNetPeerTestSupport.PEER_A, jwtA, remoteB, "GT_NET_DATA_REVOKE_SEL_C",
+        Map.of(), "GTNet peer empty revoke");
+    assertThat(empty.statusCode()).as(empty.body()).isBetween(400, 499);
+
+    assertThat(integrationStreamGrantOfB().path("exchange").asBoolean()).as("grant of the accepted data request")
+        .isTrue();
     var revoke = GTNetPeerTestSupport.submit(GTNetPeerTestSupport.PEER_A, jwtA, remoteB, "GT_NET_DATA_REVOKE_SEL_C",
         Map.of("entityKinds", "INTEGRATION_STREAM"), "GTNet peer revoke");
     assertOk(revoke.statusCode(), revoke.body());
+    assertThat(integrationStreamGrantOfB().path("exchange").asBoolean()).as("exchange after the revoke").isFalse();
+  }
+
+  /** The grant peer A holds on its entry of peer B for INTEGRATION_STREAM, created by the accepted data request. */
+  private static JsonNode integrationStreamGrantOfB() throws Exception {
+    JsonNode state = GTNetPeerTestSupport.readGTNet(GTNetPeerTestSupport.PEER_A, jwtA);
+    int kind = -1;
+    for (JsonNode type : state.path("exchangeKindTypes")) {
+      if ("INTEGRATION_STREAM".equals(type.path("name").asString())) {
+        kind = type.path("value").asInt();
+      }
+    }
+    for (JsonNode entity : entry(GTNetPeerTestSupport.PEER_A, jwtA, remoteB).path("gtNetEntities")) {
+      if (entity.path("entityKind").asInt() == kind) {
+        return entity.path("gtNetConfigEntity");
+      }
+    }
+    throw new IllegalStateException("Peer A holds no INTEGRATION_STREAM entity for peer B");
   }
 
   @Test
@@ -197,6 +235,30 @@ class GTNetPeerAuthenticatedProtocolTest {
     var response = GTNetPeerTestSupport.postApi(GTNetPeerTestSupport.PEER_A, "/api/integration-gtnet-test/tasks/1/run",
         limited, "null");
     assertThat(response.statusCode()).isEqualTo(403);
+  }
+
+  /**
+   * Raises the daily request limit peer A publishes about itself by one, which saveOnlyAttributes answers by enqueuing
+   * GTNET_SETTINGS_BROADCAST. One more request per day changes nothing for the later classes of the suite.
+   *
+   * @return the limit peer A publishes now
+   */
+  private static int raiseOwnDailyRequestLimitOfA() throws Exception {
+    ObjectNode ownEntry = (ObjectNode) entry(GTNetPeerTestSupport.PEER_A, jwtA, ownA);
+    int raised = ownEntry.path("dailyRequestLimit").asInt(1000) + 1;
+    ownEntry.put("dailyRequestLimit", raised);
+    var response = GTNetPeerTestSupport.putApi(GTNetPeerTestSupport.PEER_A, "/api/gtnet", jwtA, ownEntry.toString());
+    assertOk(response.statusCode(), response.body());
+    return raised;
+  }
+
+  private static JsonNode entry(URI peer, String jwt, int idGtNet) throws Exception {
+    for (JsonNode entry : GTNetPeerTestSupport.readGTNet(peer, jwt).path("gtNetList")) {
+      if (entry.path("idGtNet").asInt() == idGtNet) {
+        return entry;
+      }
+    }
+    throw new IllegalStateException("Entry " + idGtNet + " not found at " + peer);
   }
 
   private static JsonNode messages(URI peer, String jwt, int remoteId) throws Exception {

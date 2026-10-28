@@ -235,9 +235,16 @@ export async function openGenericConnectorView(page: Page): Promise<void> {
   await page.waitForTimeout(800);
 }
 
-/** Activates the master view panel and opens its context menu; returns the visible menu. */
-export async function openContextMenu(page: Page): Promise<Locator> {
-  const contentArea = page.locator('.data-container').first();
+/**
+ * Activates the master view panel and opens its context menu; returns the visible menu.
+ *
+ * @param contentArea - The panel holding the caption heading. Defaults to the first `.data-container`; a view whose
+ *   container uses another sizing class (e.g. `data-container-full`) passes its own locator.
+ */
+export async function openContextMenu(
+  page: Page,
+  contentArea: Locator = page.locator('.data-container').first()
+): Promise<Locator> {
   // Click the heading area, not the container center — the container is filled with child panels
   // (detail/tables) whose own click handlers would consume the panel activation.
   await contentArea.locator('h4').first().click();

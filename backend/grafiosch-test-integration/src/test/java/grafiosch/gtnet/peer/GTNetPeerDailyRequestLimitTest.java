@@ -33,7 +33,8 @@ class GTNetPeerDailyRequestLimitTest {
 
   private static final String REQUEST_CODE = "GT_NET_DATA_REQUEST_SEL_RR_C";
   private static final String ACCEPT_CODE = "GT_NET_DATA_REQUEST_ACCEPT_S";
-  private static final String LIMIT_CODE = "GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S";
+  /** errorMsgCode of the GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S refusal, recorded on the refused request. */
+  private static final String LIMIT_ERROR = "DAILY_LIMIT_EXCEEDED";
   private static final String ENTITY_KIND = "INTEGRATION_STREAM";
   /** Priority used only by this class, so a leftover row can be told apart from the other peer tests. */
   private static final int PRIORITY = 43;
@@ -105,9 +106,16 @@ class GTNetPeerDailyRequestLimitTest {
     // Disagreement on purpose: peer A believes it may still ask, peer B knows it may not.
     raiseStoredLimitOfRemoteB(originalOwnB.path("dailyRequestLimit").asInt(1000) + 1000);
 
-    JsonNode refusal = sendDataRequest();
-    assertThat(refusal.path("messageCode").asString()).isEqualTo(LIMIT_CODE);
-    assertThat(refusal.path("message").asString()).contains("Daily request limit");
+    // The limit refusal is an outcome of the transport, not an answer: peer A files no reply but records the reason
+    // on its request, which counts as a failed delivery and therefore neither stays pending nor blocks deletion.
+    int newestBefore = newestMessageId(GTNetPeerTestSupport.PEER_A, jwtA, remoteB);
+    submitDataRequest();
+
+    assertThat(newestAnswerAfter(newestBefore)).as("a refusal closes nothing").isNull();
+    JsonNode request = newestRequestAfter(newestBefore);
+    assertThat(request).as("peer A stored its data request").isNotNull();
+    assertThat(request.path("errorMsgCode").asString()).isEqualTo(LIMIT_ERROR);
+    assertThat(request.path("deliveryStatus").asString()).isEqualTo("FAILED");
   }
 
   @Test
@@ -155,6 +163,17 @@ class GTNetPeerDailyRequestLimitTest {
     var response = GTNetPeerTestSupport.submit(GTNetPeerTestSupport.PEER_A, jwtA, remoteB, REQUEST_CODE,
         Map.of("entityKinds", ENTITY_KIND), "GTNet peer daily request limit probe");
     assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
+  }
+
+  private static JsonNode newestRequestAfter(int baselineId) throws Exception {
+    JsonNode request = null;
+    for (JsonNode message : messages(GTNetPeerTestSupport.PEER_A, jwtA, remoteB)) {
+      if (message.path("idGtNetMessage").asInt() > baselineId
+          && REQUEST_CODE.equals(message.path("messageCode").asString())) {
+        request = message;
+      }
+    }
+    return request;
   }
 
   private static JsonNode newestAnswerAfter(int baselineId) throws Exception {
@@ -205,12 +224,15 @@ class GTNetPeerDailyRequestLimitTest {
   private static void deleteMessagesAfter(URI peer, String jwt, int remoteId, int baselineId) throws Exception {
     List<Integer> ids = new ArrayList<>();
     for (JsonNode message : messages(peer, jwt, remoteId)) {
-      if (message.path("idGtNetMessage").asInt() > baselineId) {
+      // Only the roots: an answer is removed together with its request, and deleteBatch refuses the whole batch
+      // when it names one, which would leave a cooling-off response of this class behind.
+      if (message.path("idGtNetMessage").asInt() > baselineId && !message.path("replyTo").isNumber()) {
         ids.add(message.path("idGtNetMessage").asInt());
       }
     }
     if (!ids.isEmpty()) {
-      GTNetPeerTestSupport.postApi(peer, "/api/gtnet/deletemessagebatch", jwt, ids.toString());
+      var response = GTNetPeerTestSupport.postApi(peer, "/api/gtnet/deletemessagebatch", jwt, ids.toString());
+      assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
     }
   }
 

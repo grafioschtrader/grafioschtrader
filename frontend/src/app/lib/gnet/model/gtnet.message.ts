@@ -1,6 +1,6 @@
 import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
 import { BaseParam } from '../../entities/base.param';
-import { AcceptRequestTypes, ExchangeKindTypeInfo, GTNet } from './gtnet';
+import { AcceptRequestTypes, ExchangeKindTypeInfo, GTNet, GTNetEntity } from './gtnet';
 
 export class GTNetMessage {
   idGtNetMessage: number;
@@ -272,9 +272,26 @@ function getRemotePeerCodes(params: MsgCallParam): GTNetMessageCodeType[] {
  * Maps entity kind values to their ExchangeKindTypeInfo names.
  */
 export function getRequestableKindNames(target: GTNet, exchangeKindTypes: ExchangeKindTypeInfo[]): string[] {
+  return kindNamesOf(target, exchangeKindTypes, (entity) => isAccepting(entity) && !isExchangeActive(entity));
+}
+
+/**
+ * Returns revocable kind names for filtering the entityKinds MultiSelect of a data revoke.
+ * A kind is revocable while its exchange is active; a revoke of any other kind would end nothing.
+ */
+export function getRevocableKindNames(target: GTNet, exchangeKindTypes: ExchangeKindTypeInfo[]): string[] {
+  return kindNamesOf(target, exchangeKindTypes, (entity) => isExchangeActive(entity));
+}
+
+/** Maps the entity kind values of the target's entities that pass the filter to their ExchangeKindTypeInfo names. */
+function kindNamesOf(
+  target: GTNet,
+  exchangeKindTypes: ExchangeKindTypeInfo[],
+  filter: (entity: GTNetEntity) => boolean
+): string[] {
   return (
     target.gtNetEntities
-      ?.filter((entity) => isAccepting(entity) && !isExchangeActive(entity))
+      ?.filter(filter)
       .map((entity) => {
         const kindValue = typeof entity.entityKind === 'number' ? entity.entityKind : Number(entity.entityKind);
         return exchangeKindTypes.find((k) => k.value === kindValue)?.name;
