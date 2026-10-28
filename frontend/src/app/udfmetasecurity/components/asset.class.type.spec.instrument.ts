@@ -1,8 +1,5 @@
-import { Directive } from '@angular/core';
+import { Directive, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { AssetclassType } from '../../shared/types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
@@ -19,6 +16,8 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
  */
 @Directive()
 export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBase<T> {
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   /** Map of asset class types to their valid special investment instruments */
   protected assetclassSpezInstMap: { [key in AssetclassType]: SpecialInvestmentInstruments[] };
 
@@ -37,28 +36,20 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
    * Creates the asset class type and special instrument base component.
    *
    * @param fieldCategoryType - Form field name for the category type selector
-   * @param gpsGT - GT-specific global parameter service for asset class mappings
    * @param fieldSpecialInvestmentInstrument - Form field name for the special instrument selector
    * @param helpId - Help context identifier for the help system
    * @param i18nRecord - Translation key for the entity record name
-   * @param translateService - Translation service for i18n support
-   * @param gps - Global parameter service providing user settings and system configuration
-   * @param messageToastService - Service for displaying user notifications
    * @param serviceEntityUpdate - Service for entity update operations
    * @protected
    */
   protected constructor(
     private fieldCategoryType: string,
-    private gpsGT: GlobalparameterGTService,
     private fieldSpecialInvestmentInstrument: string,
     helpId: string,
     i18nRecord: string,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
     serviceEntityUpdate: ServiceEntityUpdate<T>
   ) {
-    super(helpId, i18nRecord, translateService, gps, messageToastService, serviceEntityUpdate);
+    super(helpId, i18nRecord, serviceEntityUpdate);
   }
 
   /**

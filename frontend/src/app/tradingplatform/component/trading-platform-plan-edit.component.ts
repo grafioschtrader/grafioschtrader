@@ -1,9 +1,7 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { TradingPlatformPlanService } from '../service/trading.platform.plan.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TradingPlatformPlan } from '../../entities/tradingplatformplan';
@@ -41,26 +39,20 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<TradingPlatformPlan> implements OnInit {
+  private importTransactionPlatformService: ImportTransactionPlatformService = inject(ImportTransactionPlatformService);
+  private tradingPlatformPlanService: TradingPlatformPlanService = inject(TradingPlatformPlanService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   readonly callParam = input<TradingPlatformPlan>(undefined);
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
   private importTransactionPlatformList: ImportTransactionPlatform[] = [];
 
-  constructor(
-    private importTransactionPlatformService: ImportTransactionPlatformService,
-    private tradingPlatformPlanService: TradingPlatformPlanService,
-    private gpsGT: GlobalparameterGTService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN,
       AppHelper.toUpperCaseWithUnderscore(AppSettings.TRADING_PLATFORM_PLAN),
-      translateService,
-      gps,
-      messageToastService,
-      tradingPlatformPlanService
+      inject(TradingPlatformPlanService)
     );
   }
 

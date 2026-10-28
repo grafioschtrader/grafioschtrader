@@ -1,11 +1,9 @@
 import { UDFDataType } from '../../lib/udfmeta/model/udf.metadata';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppSettings } from '../../shared/app.settings';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { UDFMetadataSecurityService } from '../service/udf.metadata.security.service';
-import { Component, computed, OnInit, signal, input } from '@angular/core';
+import { Component, computed, OnInit, signal, input, inject } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -15,7 +13,6 @@ import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { Subscription } from 'rxjs';
 import { UDFMetadataHelper } from '../../lib/udfmeta/components/udf.metadata.helper';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import {
   UDFFillResolverOption,
   UDFFillSource,
@@ -101,6 +98,8 @@ export class UDFMetadataSecurityEditComponent
   extends AssetClassTypeSpecInstrument<UDFMetadataSecurity>
   implements OnInit
 {
+  private uDFMetadataSecurityService: UDFMetadataSecurityService = inject(UDFMetadataSecurityService);
+
   private static readonly FILL_SOURCE = 'fillSource';
   private static readonly FILL_RULE = 'fillRule';
   private static readonly TEST_BUTTON = 'testFillRule';
@@ -154,29 +153,14 @@ export class UDFMetadataSecurityEditComponent
   /**
    * Creates the UDF metadata security edit component.
    *
-   * @param translateService - Translation service for i18n support
-   * @param gpsGT - GT-specific global parameter service for asset class mappings
-   * @param gps - Global parameter service providing user settings and system configuration
-   * @param messageToastService - Service for displaying user notifications
-   * @param uDFMetadataSecurityService - Service for security UDF metadata CRUD operations and the fill endpoints
    */
-  constructor(
-    translateService: TranslateService,
-    gpsGT: GlobalparameterGTService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    private uDFMetadataSecurityService: UDFMetadataSecurityService
-  ) {
+  constructor() {
     super(
       'categoryTypeEnums',
-      gpsGT,
       'specialInvestmentInstrumentEnums',
       HelpIds.HELP_BASEDATA_UDF_METADATA_SECURITY,
       AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
-      translateService,
-      gps,
-      messageToastService,
-      uDFMetadataSecurityService
+      inject(UDFMetadataSecurityService)
     );
   }
 

@@ -1,24 +1,22 @@
 /**
  * Component for editing global parameter values.
  */
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 
 import { SimpleEntityEditBase } from '../edit/simple.entity.edit.base';
 import { Globalparameters } from '../entities/globalparameters';
 import { InputRule } from '../entities/input-rule';
 import { FieldConfig } from '../dynamic-form/models/field.config';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DYNAMIC_FORM_IMPORTS } from '../dynamic-form/dynamic-form.imports';
 import { GlobalparameterService } from '../services/globalparameter.service';
-import { MessageToastService } from '../message/message.toast.service';
 import { DynamicFieldHelper } from '../helper/dynamic.field.helper';
 import { DataType } from '../dynamic-form/models/data.type';
 import { TranslateHelper } from '../helper/translate.helper';
 import { AppHelper } from '../helper/app.helper';
 import { HelpIds } from '../help/help.ids';
 import { BaseSettings } from '../base.settings';
-import { ValidatorFn } from '@angular/forms';
 
 @Component({
   selector: 'globalsettings-edit',
@@ -50,12 +48,8 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
   private selectedPropertyField: string;
   private inputRule: InputRule = null;
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService
-  ) {
-    super(HelpIds.HELP_GLOBAL_SETTINGS, 'GLOBAL_SETTINGS', translateService, gps, messageToastService, gps);
+  constructor() {
+    super(HelpIds.HELP_GLOBAL_SETTINGS, 'GLOBAL_SETTINGS', inject(GlobalparameterService));
   }
 
   ngOnInit(): void {

@@ -1,6 +1,6 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
@@ -10,8 +10,6 @@ import { ClassDescriptorInputAndShow } from '../../lib/dynamicfield/field.descri
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { TenantAIProvider, TenantAIProviderOptions } from '../model/tenant-ai-provider';
 import { TenantAIProviderService } from '../service/tenant-ai-provider.service';
@@ -42,13 +40,8 @@ export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAI
   readonly formDefinition = input<ClassDescriptorInputAndShow>(undefined);
   readonly existingProviders = input<string[]>(undefined);
 
-  constructor(
-    translate: TranslateService,
-    gps: GlobalparameterService,
-    messages: MessageToastService,
-    service: TenantAIProviderService
-  ) {
-    super(HelpIds.HELP_INTRO_SETTINGS, 'TENANT_AI_PROVIDER', translate, gps, messages, service);
+  constructor() {
+    super(HelpIds.HELP_INTRO_SETTINGS, 'TENANT_AI_PROVIDER', inject(TenantAIProviderService));
   }
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));

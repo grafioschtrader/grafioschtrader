@@ -1,10 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { HelpIds } from '../../lib/help/help.ids';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ImportTransactionPlatformService } from '../service/import.transaction.platform.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -33,13 +32,12 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements OnInit {
+  private importTransactionPlatformService: ImportTransactionPlatformService = inject(ImportTransactionPlatformService);
+  public translateService: TranslateService = inject(TranslateService);
+
   private transformSubscription?: Subscription;
-  constructor(
-    private importTransactionPlatformService: ImportTransactionPlatformService,
-    public translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP, gps);
+  constructor() {
+    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP);
   }
 
   ngOnInit(): void {

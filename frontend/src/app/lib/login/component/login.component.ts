@@ -75,6 +75,15 @@ import { PasswordEditComponent } from './password-edit.component';
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, CardModule, ApplicationInfoComponent, PasswordEditComponent]
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
+  private router: Router = inject(Router);
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private releaseNoteService: ReleaseNoteService = inject(ReleaseNoteService);
+  private loginService: LoginService = inject(LoginService);
+  private actuatorService: ActuatorService = inject(ActuatorService);
+  public translateService: TranslateService = inject(TranslateService);
+  private dialogService: DialogService = inject(DialogService);
+  private gps: GlobalparameterService = inject(GlobalparameterService);
+
   readonly form = viewChild(DynamicFormComponent);
   readonly applicationInfo = signal<ApplicationInfo>(undefined);
   readonly releaseNotes = signal<ReleaseNote[]>([]);
@@ -83,16 +92,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   readonly visiblePasswordDialog = signal(false);
   private readonly destroyRef = inject(DestroyRef);
 
-  constructor(
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private releaseNoteService: ReleaseNoteService,
-    private loginService: LoginService,
-    private actuatorService: ActuatorService,
-    public translateService: TranslateService,
-    private dialogService: DialogService,
-    private gps: GlobalparameterService
-  ) {
+  constructor() {
     super();
   }
 

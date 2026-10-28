@@ -26,20 +26,20 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
   imports: [DynamicFormComponent]
 })
 export class TradingCalendarOtherExchangeDynamicDialogComponent extends FormBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  public gps: GlobalparameterService = inject(GlobalparameterService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private tradingDaysMinusService: TradingDaysMinusService = inject(TradingDaysMinusService);
+  private ref: DynamicDialogRef = inject(DynamicDialogRef);
+  private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
+
   private readonly destroyRef = inject(DestroyRef);
   copyTradingDaysFromSourceToTarget: CopyTradingDaysFromSourceToTarget;
 
   readonly YEAR_OR_FULL_PROP = 'copyYearOrFull';
   readonly NAME = 'name';
 
-  constructor(
-    public translateService: TranslateService,
-    public gps: GlobalparameterService,
-    private messageToastService: MessageToastService,
-    private tradingDaysMinusService: TradingDaysMinusService,
-    private ref: DynamicDialogRef,
-    private dynamicDialogConfig: DynamicDialogConfig
-  ) {
+  constructor() {
     super();
   }
 

@@ -33,6 +33,15 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   imports: [...DYNAMIC_FORM_IMPORTS]
 })
 export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  public userAdminService: UserAdminService = inject(UserAdminService);
+  public sendRecvService: MailSendRecvService = inject(MailSendRecvService);
+  public gps: GlobalparameterService = inject(GlobalparameterService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private dialogService: DialogService = inject(DialogService);
+  private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
+  private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
+
   readonly form = viewChild(DynamicFormComponent);
 
   private readonly NEW_LINE = '\n';
@@ -46,16 +55,7 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
 
-  constructor(
-    public translateService: TranslateService,
-    public userAdminService: UserAdminService,
-    public sendRecvService: MailSendRecvService,
-    public gps: GlobalparameterService,
-    private messageToastService: MessageToastService,
-    private dialogService: DialogService,
-    private dynamicDialogRef: DynamicDialogRef,
-    private dynamicDialogConfig: DynamicDialogConfig
-  ) {
+  constructor() {
     super();
   }
 

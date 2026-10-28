@@ -3,11 +3,8 @@ import { Subscription } from 'rxjs';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
+import { TranslateModule } from '@ngx-translate/core';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TenantService } from '../../tenant/service/tenant.service';
 import { AlgoTop } from '../model/algo.top';
 import { Tenant } from '../../entities/tenant';
@@ -99,6 +96,8 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, FormsModule]
 })
 export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEditBase<Tenant> implements OnInit {
+  private tenantService: TenantService = inject(TenantService);
+
   private readonly pendingReads = new Map<string, Subscription>();
   private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
     this.pendingReads.forEach((request) => request.unsubscribe())
@@ -136,23 +135,8 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEdi
     { currencyPrecisionField: 'currency' }
   );
 
-  constructor(
-    private tenantService: TenantService,
-    dynamicDialogConfig: DynamicDialogConfig,
-    dynamicDialogRef: DynamicDialogRef,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService
-  ) {
-    super(
-      dynamicDialogConfig,
-      dynamicDialogRef,
-      HelpIds.HELP_ALGO_TREE,
-      translateService,
-      gps,
-      messageToastService,
-      tenantService
-    );
+  constructor() {
+    super(HelpIds.HELP_ALGO_TREE, inject(TenantService));
   }
 
   ngOnInit(): void {

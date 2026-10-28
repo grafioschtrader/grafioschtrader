@@ -1,9 +1,7 @@
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -45,16 +43,13 @@ export class WatchlistIndicatorColumnEditComponent
   extends SimpleEntityEditBase<WatchlistIndicatorColumn>
   implements OnInit
 {
+  private indicators: WatchlistIndicatorService = inject(WatchlistIndicatorService);
+  private dialogs: DialogService = inject(DialogService);
+
   readonly callParam = input<any>(undefined);
   private benchmark: number;
-  constructor(
-    translate: TranslateService,
-    gps: GlobalparameterService,
-    messages: MessageToastService,
-    private indicators: WatchlistIndicatorService,
-    private dialogs: DialogService
-  ) {
-    super(HelpIds.HELP_WATCHLIST_INDICATOR, 'WATCHLIST_INDICATOR_COLUMN', translate, gps, messages, indicators);
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST_INDICATOR, 'WATCHLIST_INDICATOR_COLUMN', inject(WatchlistIndicatorService));
   }
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));

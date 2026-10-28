@@ -1,9 +1,6 @@
 import { afterNextRender, inject, Injector, Component, OnInit } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
+import { TranslateModule } from '@ngx-translate/core';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AlgoTopService } from '../service/algo.top.service';
 import { WatchlistService } from '../../watchlist/service/watchlist.service';
 import { AlgoTop } from '../model/algo.top';
@@ -37,29 +34,16 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class AlgoCreateFromWatchlistDynamicDialogComponent extends SimpleDynamicEditBase<AlgoTop> implements OnInit {
+  private algoTopService: AlgoTopService = inject(AlgoTopService);
+  private watchlistService: WatchlistService = inject(WatchlistService);
+
   static readonly DIALOG_WIDTH = 500;
   private readonly injector = inject(Injector);
   callParam: CallParam;
   private dto: AlgoTopCreateFromWatchlist;
 
-  constructor(
-    private algoTopService: AlgoTopService,
-    private watchlistService: WatchlistService,
-    dynamicDialogConfig: DynamicDialogConfig,
-    dynamicDialogRef: DynamicDialogRef,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService
-  ) {
-    super(
-      dynamicDialogConfig,
-      dynamicDialogRef,
-      HelpIds.HELP_ALGO_TREE,
-      translateService,
-      gps,
-      messageToastService,
-      algoTopService
-    );
+  constructor() {
+    super(HelpIds.HELP_ALGO_TREE, inject(AlgoTopService));
   }
 
   ngOnInit(): void {

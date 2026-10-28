@@ -1,9 +1,7 @@
 import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { GTNetMessageAnswer, GTNetMessageAnswerCallParam } from '../model/gtnet.message.answer';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { MessageToastService } from '../../message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../help/help.ids';
 import { GTNetMessageAnswerService } from '../service/gtnet.message.answer.service';
 import { GTNetProtocolService } from '../service/gtnet.protocol.service';
@@ -97,26 +95,19 @@ const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
   `
 })
 export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetMessageAnswer> implements OnInit {
+  private gtNetProtocolService: GTNetProtocolService = inject(GTNetProtocolService);
+
   readonly callParam = input<GTNetMessageAnswerCallParam>(undefined);
 
   private readonly injector = inject(Injector);
   private currentTypeFilter: EvalExType = 'ANY';
   private textareaEventsBound = false;
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    gtNetMessageAnswerService: GTNetMessageAnswerService,
-    private gtNetProtocolService: GTNetProtocolService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_GT_NET_AUTOANSWER,
       AppHelper.toUpperCaseWithUnderscore(BaseSettings.GT_NET_MESSAGE_ANSWER),
-      translateService,
-      gps,
-      messageToastService,
-      gtNetMessageAnswerService
+      inject(GTNetMessageAnswerService)
     );
   }
 

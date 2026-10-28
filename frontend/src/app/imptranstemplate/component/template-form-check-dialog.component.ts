@@ -1,7 +1,6 @@
-import { Component, OnInit, signal, input } from '@angular/core';
+import { Component, OnInit, signal, input, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -54,17 +53,16 @@ import { TemplateFormCheckDialogResultFailedComponent } from './template-form-ch
   ]
 })
 export class TemplateFormCheckDialogComponent extends SimpleEditBase implements OnInit {
+  private importTransactionTemplateService: ImportTransactionTemplateService = inject(ImportTransactionTemplateService);
+  public translateService: TranslateService = inject(TranslateService);
+
   readonly importTransactionPlatform = input<ImportTransactionPlatform>(undefined);
 
   readonly formTemplateCheck = signal<FormTemplateCheck>(null);
   private checkSubscription?: Subscription;
 
-  constructor(
-    private importTransactionTemplateService: ImportTransactionTemplateService,
-    public translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP, gps);
+  constructor() {
+    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP);
   }
 
   ngOnInit(): void {

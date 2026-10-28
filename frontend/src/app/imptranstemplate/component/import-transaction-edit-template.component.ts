@@ -1,9 +1,7 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { ImportTransactionTemplateService } from '../service/import.transaction.template.service';
 import { ImportTransactionTemplate, TemplateCategory } from '../../entities/import.transaction.template';
@@ -45,22 +43,16 @@ export class ImportTransactionEditTemplateComponent
   extends SimpleEntityEditBase<ImportTransactionTemplate>
   implements OnInit
 {
+  public importTransactionTemplateService: ImportTransactionTemplateService = inject(ImportTransactionTemplateService);
+
   readonly callParam = input<CallParam>(undefined);
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    public importTransactionTemplateService: ImportTransactionTemplateService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_TEMPLATE,
       'IMPORT_SET',
-      translateService,
-      gps,
-      messageToastService,
-      importTransactionTemplateService
+      inject(ImportTransactionTemplateService)
     );
   }
 

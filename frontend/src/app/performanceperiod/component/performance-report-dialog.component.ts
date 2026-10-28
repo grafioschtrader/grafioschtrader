@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, signal, OnDestroy, OnInit, viewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, signal, OnDestroy, OnInit, viewChild, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -82,6 +82,13 @@ export interface PerformanceReportDialogData {
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, ButtonModule, ProgressBarModule]
 })
 export class PerformanceReportDialogComponent extends FormBase implements OnInit, AfterViewInit, OnDestroy {
+  private dialog: DynamicDialogConfig = inject(DynamicDialogConfig);
+  private ref: DynamicDialogRef = inject(DynamicDialogRef);
+  public translateService: TranslateService = inject(TranslateService);
+  private gps: GlobalparameterService = inject(GlobalparameterService);
+  private holdingService: HoldingService = inject(HoldingService);
+  private tenantService: TenantService = inject(TenantService);
+
   readonly form = viewChild(DynamicFormComponent);
   data: PerformanceReportDialogData;
   reportDate: string;
@@ -94,16 +101,9 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
   readonly transactionsSelected = computed(() => this.selectedSections().includes('TRANSACTIONS'));
   private subscriptions = new Subscription();
 
-  constructor(
-    dialog: DynamicDialogConfig,
-    private ref: DynamicDialogRef,
-    public translateService: TranslateService,
-    private gps: GlobalparameterService,
-    private holdingService: HoldingService,
-    private tenantService: TenantService
-  ) {
+  constructor() {
     super();
-    this.data = dialog.data;
+    this.data = this.dialog.data;
   }
 
   ngOnInit(): void {

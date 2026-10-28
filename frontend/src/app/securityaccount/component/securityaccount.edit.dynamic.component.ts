@@ -1,11 +1,8 @@
-import { afterNextRender, Component, OnInit, signal, viewChild } from '@angular/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TranslateService } from '@ngx-translate/core';
+import { afterNextRender, Component, OnInit, signal, viewChild, inject } from '@angular/core';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { map, Observable, of, switchMap } from 'rxjs';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { Portfolio } from '../../entities/portfolio';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { SecurityaccountService } from '../service/securityaccount.service';
 import { Securityaccount } from '../../entities/securityaccount';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -18,7 +15,6 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { BaseSettings } from '../../lib/base.settings';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { SecaccountTradingPeriod } from '../../entities/secaccount.trading.period';
@@ -49,6 +45,9 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
   imports: [DynamicFormComponent, TradingPeriodTableComponent]
 })
 export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<Securityaccount> implements OnInit {
+  private tradingPlatformPlanService: TradingPlatformPlanService = inject(TradingPlatformPlanService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   static readonly DIALOG_WIDTH = 850;
   callParam: CallParam;
 
@@ -57,25 +56,8 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
   readonly tradingPeriods = signal<SecaccountTradingPeriod[]>([]);
   readonly transactionSummaries = signal<TradingPeriodTransactionSummary[]>([]);
 
-  constructor(
-    private tradingPlatformPlanService: TradingPlatformPlanService,
-    private gpsGT: GlobalparameterGTService,
-    dynamicDialogConfig: DynamicDialogConfig,
-    dynamicDialogRef: DynamicDialogRef,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    securityaccountService: SecurityaccountService
-  ) {
-    super(
-      dynamicDialogConfig,
-      dynamicDialogRef,
-      HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT,
-      translateService,
-      gps,
-      messageToastService,
-      securityaccountService
-    );
+  constructor() {
+    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, inject(SecurityaccountService));
     afterNextRender(() => this.initializeForm());
   }
 

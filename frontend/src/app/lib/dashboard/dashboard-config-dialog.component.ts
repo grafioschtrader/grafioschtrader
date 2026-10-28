@@ -1,8 +1,7 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { SimpleEditBase } from '../edit/simple.edit.base';
-import { GlobalparameterService } from '../services/globalparameter.service';
 import { DYNAMIC_FORM_IMPORTS } from '../dynamic-form/dynamic-form.imports';
 import { DynamicFieldModelHelper } from '../helper/dynamic.field.model.helper';
 import { DynamicFieldHelper } from '../helper/dynamic.field.helper';
@@ -35,13 +34,12 @@ import { FieldConfig } from '../dynamic-form/models/field.config';
   </p-dialog>`
 })
 export class DashboardConfigDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+
   readonly descriptor = input<DashboardDescriptor>(undefined);
   readonly widget = input<DashboardWidget>(undefined);
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_DASHBOARD, gps);
+  constructor() {
+    super(HelpIds.HELP_DASHBOARD);
   }
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));

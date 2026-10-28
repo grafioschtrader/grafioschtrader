@@ -1,9 +1,7 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { GTNetConfig } from '../model/gtnet';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { MessageToastService } from '../../message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../help/help.ids';
 import { GTNetConfigService } from '../service/gtnet.config.service';
 import { AppHelper } from '../../helper/app.helper';
@@ -40,22 +38,12 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
   `
 })
 export class GTNetConfigEditComponent extends SimpleEntityEditBase<GTNetConfig> implements OnInit {
+  private gtNetConfigService: GTNetConfigService = inject(GTNetConfigService);
+
   readonly gtNetConfig = input<GTNetConfig>(undefined);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    private gtNetConfigService: GTNetConfigService
-  ) {
-    super(
-      HelpIds.HELP_GT_NET_SETUP,
-      'GT_NET_CONFIG_EDIT',
-      translateService,
-      gps,
-      messageToastService,
-      gtNetConfigService
-    );
+  constructor() {
+    super(HelpIds.HELP_GT_NET_SETUP, 'GT_NET_CONFIG_EDIT', inject(GTNetConfigService));
   }
 
   ngOnInit(): void {

@@ -1,6 +1,6 @@
-import { Component, input } from '@angular/core';
+import { Component, input, inject } from '@angular/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { HistoryquoteLegacy } from '../../entities/historyquote.legacy';
 import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy.security.currency';
@@ -8,8 +8,6 @@ import { Securitycurrency } from '../../entities/securitycurrency';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { HistoryquoteLegacyService } from '../service/historyquote.legacy.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -41,20 +39,8 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
 export class HistoryquoteLegacyEditComponent extends HistoryquoteEditBase<HistoryquoteLegacy> {
   readonly callParam = input<HistoryquoteLegacySecurityCurrency>(undefined);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    historyquoteLegacyService: HistoryquoteLegacyService
-  ) {
-    super(
-      HelpIds.HELP_WATCHLIST_HISTORYQUOTES_LEGACY,
-      'HISTORYQUOTE_LEGACY',
-      translateService,
-      gps,
-      messageToastService,
-      historyquoteLegacyService
-    );
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES_LEGACY, 'HISTORYQUOTE_LEGACY', inject(HistoryquoteLegacyService));
   }
 
   protected getSecuritycurrency(): Securitycurrency {

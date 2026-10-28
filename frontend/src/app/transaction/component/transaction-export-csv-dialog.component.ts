@@ -41,16 +41,16 @@ export interface TransactionExportCsvDialogData {
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TransactionExportCsvDialogComponent extends FormBase implements OnInit {
+  private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
+  private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
+  public translateService: TranslateService = inject(TranslateService);
+  private gps: GlobalparameterService = inject(GlobalparameterService);
+  private transactionService: TransactionService = inject(TransactionService);
+
   private readonly destroyRef = inject(DestroyRef);
   readonly form = viewChild(DynamicFormComponent);
 
-  constructor(
-    private dynamicDialogConfig: DynamicDialogConfig,
-    private dynamicDialogRef: DynamicDialogRef,
-    public translateService: TranslateService,
-    private gps: GlobalparameterService,
-    private transactionService: TransactionService
-  ) {
+  constructor() {
     super();
     afterNextRender(() => this.form().setDefaultValuesAndEnableSubmit());
   }

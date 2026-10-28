@@ -1,9 +1,7 @@
 import { afterNextRender, Component, inject, Injector, OnInit, signal, viewChild, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Validators } from '@angular/forms';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { GenericConnectorDefService } from '../service/generic.connector.def.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { GenericConnectorDef } from '../../entities/generic.connector.def';
@@ -58,6 +56,10 @@ import { combineLatest } from 'rxjs';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule, FieldsetModule, YamlEditorComponent]
 })
 export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<GenericConnectorDef> implements OnInit {
+  private genericConnectorDefService: GenericConnectorDefService = inject(GenericConnectorDefService);
+  private stockexchangeService: StockexchangeService = inject(StockexchangeService);
+  private httpClient: HttpClient = inject(HttpClient);
+
   readonly yamlEditor = viewChild(YamlEditorComponent);
   readonly callParam = input<GenericConnectorDef>(undefined);
 
@@ -68,21 +70,11 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   private geoTreeNodes: TreeNode[] = [];
   private catTranslations: { [key: string]: string } = {};
 
-  constructor(
-    private genericConnectorDefService: GenericConnectorDefService,
-    private stockexchangeService: StockexchangeService,
-    private httpClient: HttpClient,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService
-  ) {
+  constructor() {
     super(
       AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR,
       AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF),
-      translateService,
-      gps,
-      messageToastService,
-      genericConnectorDefService
+      inject(GenericConnectorDefService)
     );
     this.loadTokenConfigSchema();
   }

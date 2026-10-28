@@ -1,9 +1,6 @@
 import { BaseUDFDataEdit } from './base.udf.data.edit';
 import { Component, OnInit } from '@angular/core';
-import { MessageToastService } from '../../message/message.toast.service';
-import { UDFDataService } from '../service/udf.data.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../help/help.ids';
 import { AppHelper } from '../../helper/app.helper';
 import { UDFMetadataHelper } from './udf.metadata.helper';
@@ -26,18 +23,9 @@ export class UDFGeneralEditComponent extends BaseUDFDataEdit implements OnInit {
   /**
    * Creates the UDF general edit component.
    *
-   * @param messageToastService - Service for displaying user notifications
-   * @param uDFDataService - Service for UDF data CRUD operations
-   * @param translateService - Translation service for i18n support
-   * @param gps - Global parameter service providing user settings and system configuration
    */
-  constructor(
-    messageToastService: MessageToastService,
-    uDFDataService: UDFDataService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(messageToastService, uDFDataService, translateService, HelpIds.HELP_WATCHLIST_UDF, gps);
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST_UDF);
 
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
   }

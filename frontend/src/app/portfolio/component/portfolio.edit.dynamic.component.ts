@@ -1,11 +1,9 @@
-import { afterNextRender, Component, OnInit } from '@angular/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { afterNextRender, Component, OnInit, inject } from '@angular/core';
 import { PortfolioService } from '../service/portfolio.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { Portfolio } from '../../entities/portfolio';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { Tenant } from '../../entities/tenant';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -13,7 +11,6 @@ import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
@@ -32,26 +29,12 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfolio> implements OnInit {
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   callParam: CallParam;
 
-  constructor(
-    private gpsGT: GlobalparameterGTService,
-    dynamicDialogConfig: DynamicDialogConfig,
-    dynamicDialogRef: DynamicDialogRef,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    portfolioService: PortfolioService
-  ) {
-    super(
-      dynamicDialogConfig,
-      dynamicDialogRef,
-      HelpIds.HELP_PORTFOLIO,
-      translateService,
-      gps,
-      messageToastService,
-      portfolioService
-    );
+  constructor() {
+    super(HelpIds.HELP_PORTFOLIO, inject(PortfolioService));
     afterNextRender(() => this.initializeForm());
   }
 

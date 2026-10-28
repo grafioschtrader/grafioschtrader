@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal, viewChild, input } from '@angular/core';
+import { Component, OnInit, computed, signal, viewChild, input, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -6,7 +6,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -77,6 +76,11 @@ import { ProcessedAction } from '../../lib/types/processed.action';
   </p-dialog>`
 })
 export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+  private service: TaxDataService = inject(TaxDataService);
+  private http: HttpClient = inject(HttpClient);
+
   readonly yamlEditor = viewChild(YamlEditorComponent);
   readonly country = input<TaxCountry>(undefined);
   readonly yaml = signal('');
@@ -89,14 +93,8 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
   private validationRevision = 0;
   private previewSubscription?: Subscription;
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    private gpsGT: GlobalparameterGTService,
-    private service: TaxDataService,
-    private http: HttpClient
-  ) {
-    super(HelpIds.HELP_ALGO_HISTORICAL_RUN_TAX_MODEL, gps);
+  constructor() {
+    super(HelpIds.HELP_ALGO_HISTORICAL_RUN_TAX_MODEL);
   }
 
   ngOnInit(): void {

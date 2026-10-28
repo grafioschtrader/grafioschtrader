@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -24,12 +24,12 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [...DYNAMIC_FORM_IMPORTS]
 })
 export class CalcExRateDialogComponent extends FormBase implements OnInit {
-  constructor(
-    public translateService: TranslateService,
-    public gps: GlobalparameterService,
-    private dynamicDialogRef: DynamicDialogRef,
-    private dynamicDialogConfig: DynamicDialogConfig
-  ) {
+  public translateService: TranslateService = inject(TranslateService);
+  public gps: GlobalparameterService = inject(GlobalparameterService);
+  private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
+  private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
+
+  constructor() {
     super();
   }
 

@@ -1,7 +1,7 @@
-import { Component, effect, OnInit, signal, viewChild, input } from '@angular/core';
+import { Component, effect, OnInit, signal, viewChild, input, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { FieldsetModule } from '@openng/optimus-ui/fieldset';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -11,9 +11,7 @@ import { AppSettings } from '../../shared/app.settings';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -94,6 +92,9 @@ export class TradingCalendarRuleSetEditComponent
   extends SimpleEntityEditBase<TradingCalendarRuleSet>
   implements OnInit
 {
+  private tradingCalendarRuleSetService: TradingCalendarRuleSetService = inject(TradingCalendarRuleSetService);
+  private httpClient: HttpClient = inject(HttpClient);
+
   readonly yamlEditor = viewChild(YamlEditorComponent);
   readonly callParam = input<TradingCalendarRuleSet>(undefined);
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
@@ -108,20 +109,11 @@ export class TradingCalendarRuleSetEditComponent
   private previewSubscription?: Subscription;
   private optionsLoaded = false;
 
-  constructor(
-    private tradingCalendarRuleSetService: TradingCalendarRuleSetService,
-    private httpClient: HttpClient,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_BASEDATA_TRADING_CALENDAR_RULE,
       AppHelper.toUpperCaseWithUnderscore(AppSettings.TRADING_CALENDAR_RULE_SET),
-      translateService,
-      gps,
-      messageToastService,
-      tradingCalendarRuleSetService
+      inject(TradingCalendarRuleSetService)
     );
     effect(() => {
       this.ruleYamlValue();

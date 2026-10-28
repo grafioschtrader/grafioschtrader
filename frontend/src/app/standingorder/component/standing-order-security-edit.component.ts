@@ -1,7 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -9,8 +7,6 @@ import { StandingOrderSecurity } from '../../entities/standing.order';
 import { Cashaccount } from '../../entities/cashaccount';
 import { Security } from '../../entities/security';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
-import { StandingOrderService } from '../service/standing.order.service';
-import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -61,27 +57,15 @@ enum InvestMode {
   providers: [DialogService]
 })
 export class StandingOrderSecurityEditComponent extends StandingOrderEditBase implements OnInit {
+  private dialogService: DialogService = inject(DialogService);
+
   private supplementCriteria = new SupplementCriteria(true, false);
 
   /** Security selected via the search dialog. */
   private selectedSecurity: Security | null = null;
 
-  constructor(
-    portfolioService: PortfolioService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    standingOrderService: StandingOrderService,
-    private dialogService: DialogService
-  ) {
-    super(
-      portfolioService,
-      AppHelpIds.HELP_STANDING_ORDER_SECURITY,
-      translateService,
-      gps,
-      messageToastService,
-      standingOrderService
-    );
+  constructor() {
+    super(AppHelpIds.HELP_STANDING_ORDER_SECURITY);
   }
 
   ngOnInit(): void {

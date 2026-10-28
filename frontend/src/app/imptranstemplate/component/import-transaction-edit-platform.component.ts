@@ -2,9 +2,7 @@ import { afterNextRender, Component, inject, Injector, OnInit, input } from '@an
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { ImportTransactionPlatform } from '../../entities/import.transaction.platform';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { ImportTransactionPlatformService } from '../service/import.transaction.platform.service';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
@@ -48,19 +46,11 @@ export class ImportTransactionEditPlatformComponent
   readonly platformTransactionImportHtmlOptions = input<ValueKeyHtmlSelectOptions[]>(undefined);
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    importTransactionPlatformService: ImportTransactionPlatformService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP,
       'IMPORT_TRANSACTION_PLATFORM',
-      translateService,
-      gps,
-      messageToastService,
-      importTransactionPlatformService
+      inject(ImportTransactionPlatformService)
     );
   }
 

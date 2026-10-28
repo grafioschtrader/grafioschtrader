@@ -1,10 +1,8 @@
 import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
 import { HelpIds } from '../../lib/help/help.ids';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ImportTransactionHeadService } from '../service/import.transaction.head.service';
 import { ImportTransactionHead } from '../../entities/import.transaction.head';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -39,25 +37,14 @@ export class SecurityaccountImportTransactionEditHeadComponent
   extends SimpleEntityEditBase<ImportTransactionHead>
   implements OnInit
 {
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   private readonly injector = inject(Injector);
 
   readonly callParam = input<CallParam>(undefined);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    private gpsGT: GlobalparameterGTService,
-    messageToastService: MessageToastService,
-    importTransactionHeadService: ImportTransactionHeadService
-  ) {
-    super(
-      HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT,
-      'IMPORT_SET',
-      translateService,
-      gps,
-      messageToastService,
-      importTransactionHeadService
-    );
+  constructor() {
+    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, 'IMPORT_SET', inject(ImportTransactionHeadService));
   }
 
   ngOnInit(): void {

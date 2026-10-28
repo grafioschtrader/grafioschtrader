@@ -1,7 +1,6 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { SecuritycurrencyEdit } from './securitycurrency.edit';
 import { combineLatest, Observable } from 'rxjs';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
@@ -47,19 +46,17 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
   imports: [TranslateModule, DialogModule, DynamicFormComponent]
 })
 export class CurrencypairEditComponent extends SecuritycurrencyEdit implements OnInit {
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+  private currencypairService: CurrencypairService = inject(CurrencypairService);
+
   // Input from parent component
   readonly visibleEditCurrencypairDialog = input<boolean>(undefined);
 
   existingCurrencypairs: Currencypair[];
 
-  constructor(
-    private messageToastService: MessageToastService,
-    private gpsGT: GlobalparameterGTService,
-    private currencypairService: CurrencypairService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

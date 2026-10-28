@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { SimpleEditBase } from '../../edit/simple.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { HelpIds } from '../../help/help.ids';
 import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
@@ -41,14 +40,13 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class NicknameLangEditComponent extends SimpleEditBase implements OnInit {
-  constructor(
-    public translateService: TranslateService,
-    private messageToastService: MessageToastService,
-    private loginService: LoginService,
-    private mainDialogService: MainDialogService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_INTRO_SETTINGS, gps);
+  public translateService: TranslateService = inject(TranslateService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private loginService: LoginService = inject(LoginService);
+  private mainDialogService: MainDialogService = inject(MainDialogService);
+
+  constructor() {
+    super(HelpIds.HELP_INTRO_SETTINGS);
   }
 
   ngOnInit(): void {

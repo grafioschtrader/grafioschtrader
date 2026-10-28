@@ -1,6 +1,6 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { finalize, Subscription, switchMap, take, tap } from 'rxjs';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -9,8 +9,6 @@ import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppSettings } from '../../shared/app.settings';
@@ -55,6 +53,8 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class BankruptSecurityEditComponent extends SimpleEntityEditBase<BankruptSecurity> implements OnInit {
+  private dialogService: DialogService = inject(DialogService);
+
   readonly callParam = input<BankruptSecurityCallParam>(undefined);
 
   private readonly supplementCriteria = new SupplementCriteria(true, true);
@@ -62,20 +62,11 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
   private searchSubscription?: Subscription;
   readonly searchSecurity = (fieldConfig: FieldConfig): void => this.handleSecuritySearchClick(fieldConfig);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    bankruptSecurityService: BankruptSecurityService,
-    private dialogService: DialogService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_BASEDATA_BANKRUPT_SECURITY,
       AppHelper.toUpperCaseWithUnderscore(AppSettings.BANKRUPT_SECURITY),
-      translateService,
-      gps,
-      messageToastService,
-      bankruptSecurityService
+      inject(BankruptSecurityService)
     );
   }
 

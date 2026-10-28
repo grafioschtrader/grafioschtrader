@@ -1,5 +1,5 @@
 import { FormBase } from '../../edit/form.base';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -27,17 +27,17 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class LogoutReleaseRequestDynamicDialogComponent extends FormBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  public gps: GlobalparameterService = inject(GlobalparameterService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private loginService: LoginService = inject(LoginService);
+  private dialogService: DialogService = inject(DialogService);
+  private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
+  private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
+
   readonly NOTE = 'note';
 
-  constructor(
-    public translateService: TranslateService,
-    public gps: GlobalparameterService,
-    private messageToastService: MessageToastService,
-    private loginService: LoginService,
-    private dialogService: DialogService,
-    private dynamicDialogRef: DynamicDialogRef,
-    private dynamicDialogConfig: DynamicDialogConfig
-  ) {
+  constructor() {
     super();
   }
 

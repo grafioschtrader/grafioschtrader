@@ -1,9 +1,8 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 
 import { TransactionCallParam } from './transaction.call.parm';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { HelpIds } from '../../lib/help/help.ids';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormDefinitionHelper } from '../../shared/edit/form.definition.helper';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -30,13 +29,12 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class TransactionCashaccountConnectDebitCreditDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+
   readonly transactionCallParam = input<TransactionCallParam>(undefined);
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_TRANSACTION_ACCOUNT, gps);
+  constructor() {
+    super(HelpIds.HELP_TRANSACTION_ACCOUNT);
   }
 
   ngOnInit(): void {

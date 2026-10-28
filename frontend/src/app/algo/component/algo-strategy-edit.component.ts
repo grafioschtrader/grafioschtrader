@@ -14,9 +14,7 @@ import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { AlgoStrategy } from '../model/algo.strategy';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AlgoStrategyService } from '../service/algo.strategy.service';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -155,6 +153,8 @@ risk_controls:
   imports: [TranslateModule, DialogModule, DynamicFormComponent, YamlEditorComponent, ButtonModule]
 })
 export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy> implements OnInit {
+  private algoStrategyService: AlgoStrategyService = inject(AlgoStrategyService);
+
   private readonly pendingReads = new Map<string, Subscription>();
   private readonly cleanupReads = inject(DestroyRef).onDestroy(() =>
     this.pendingReads.forEach((request) => request.unsubscribe())
@@ -193,13 +193,8 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
   private static readonly FIELD_STRATEGY_CONFIG = 'strategyConfig';
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    private algoStrategyService: AlgoStrategyService
-  ) {
-    super(HelpIds.HELP_ALGO_STRATEGY, 'ALGO_STRATEGY', translateService, gps, messageToastService, algoStrategyService);
+  constructor() {
+    super(HelpIds.HELP_ALGO_STRATEGY, 'ALGO_STRATEGY', inject(AlgoStrategyService));
     this.loadYamlSchema();
   }
 

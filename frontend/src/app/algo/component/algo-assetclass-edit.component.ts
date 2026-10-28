@@ -1,13 +1,10 @@
 import { switchMap, combineLatest, Observable, of } from 'rxjs';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { AlgoAssetclass } from '../model/algo.assetclass';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { AlgoAssetclassService } from '../service/algo.assetclass.service';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
 import { AssetclassService } from '../../assetclass/service/assetclass.service';
 import { Assetclass } from '../../entities/assetclass';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
@@ -42,15 +39,10 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoAssetclass> implements OnInit {
-  constructor(
-    private assetclassService: AssetclassService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    algoAssetclassService: AlgoAssetclassService,
-    securityaccountService: SecurityaccountService
-  ) {
-    super('ALGO_ASSETCLASS', translateService, gps, messageToastService, algoAssetclassService, securityaccountService);
+  private assetclassService: AssetclassService = inject(AssetclassService);
+
+  constructor() {
+    super('ALGO_ASSETCLASS', inject(AlgoAssetclassService));
   }
 
   ngOnInit(): void {

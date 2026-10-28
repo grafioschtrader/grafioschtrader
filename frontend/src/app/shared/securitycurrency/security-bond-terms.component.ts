@@ -79,6 +79,10 @@ export function defaultCouponDayCount(defaults: CouponDayCountDefaults, currency
   `
 })
 export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDestroy {
+  public translateService: TranslateService = inject(TranslateService);
+  private gps: GlobalparameterService = inject(GlobalparameterService);
+  private taxDataService: TaxDataService = inject(TaxDataService);
+
   readonly entity = input<Security>(undefined);
   readonly securityName = input<string>(undefined);
   /** Currency of the edited security, the basis of the proposed day-count convention. */
@@ -99,11 +103,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
   private couponDayCountOverridden = false;
   private lastCouponDayCountPrefill: string = null;
 
-  constructor(
-    public translateService: TranslateService,
-    private gps: GlobalparameterService,
-    private taxDataService: TaxDataService
-  ) {
+  constructor() {
     super();
     effect(() => {
       this.entity();

@@ -1,7 +1,6 @@
 import { of, switchMap, distinctUntilChanged, Subscription } from 'rxjs';
 import { afterNextRender, inject, Injector, Component, OnDestroy, OnInit } from '@angular/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -14,7 +13,6 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { AlgoTopService } from '../service/algo.top.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { ProcessedAction } from '../../lib/types/processed.action';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -22,7 +20,6 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
 import { AppSettings } from '../../shared/app.settings';
 import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
-import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { AlgoTop } from '../model/algo.top';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
@@ -45,6 +42,10 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
   extends SimpleDynamicEditBase<AlgoTop>
   implements OnInit, OnDestroy
 {
+  private assetclassService: AssetclassService = inject(AssetclassService);
+  private watchlistService: WatchlistService = inject(WatchlistService);
+  private algoTopService: AlgoTopService = inject(AlgoTopService);
+
   static readonly DIALOG_WIDTH = 700;
   private readonly injector = inject(Injector);
   callParam: CallParam;
@@ -62,25 +63,8 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
   );
   private assetsclasses: Assetclass[] = [];
 
-  constructor(
-    private assetclassService: AssetclassService,
-    private watchlistService: WatchlistService,
-    private algoTopService: AlgoTopService,
-    dynamicDialogConfig: DynamicDialogConfig,
-    dynamicDialogRef: DynamicDialogRef,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService
-  ) {
-    super(
-      dynamicDialogConfig,
-      dynamicDialogRef,
-      HelpIds.HELP_WATCHLIST,
-      translateService,
-      gps,
-      messageToastService,
-      algoTopService
-    );
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST, inject(AlgoTopService));
   }
 
   ngOnInit(): void {

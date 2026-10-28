@@ -1,6 +1,5 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { WatchlistService } from '../service/watchlist.service';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
@@ -43,22 +42,18 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private watchlistService: WatchlistService = inject(WatchlistService);
+
   /** The unique identifier of the watchlist to add problem instruments to */
   readonly idWatchlist = input<number>(undefined);
 
   /**
    * Creates a new instance of the watchlist add/edit price problem instrument dialog component.
    *
-   * @param translateService Service for handling internationalization and text translation
-   * @param watchlistService Service for performing watchlist-related operations including adding problem instruments
-   * @param gps Global parameter service for accessing application-wide configuration and user settings
    */
-  constructor(
-    public translateService: TranslateService,
-    private watchlistService: WatchlistService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_WATCHLIST_PRICE_FEED, gps);
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST_PRICE_FEED);
   }
 
   /** Initializes the component by setting up form configuration, field definitions, and validation rules */

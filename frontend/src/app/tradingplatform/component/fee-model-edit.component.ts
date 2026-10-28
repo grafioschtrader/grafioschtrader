@@ -1,20 +1,8 @@
-import {
-  Component,
-  OnInit,
-  Optional,
-  afterNextRender,
-  effect,
-  inject,
-  Injector,
-  signal,
-  viewChild,
-  input
-} from '@angular/core';
+import { Component, OnInit, afterNextRender, effect, inject, Injector, signal, viewChild, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { forkJoin, Subscription } from 'rxjs';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -139,6 +127,16 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
   ]
 })
 export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
+  private tradingPlatformPlanService: TradingPlatformPlanService = inject(TradingPlatformPlanService);
+  private securityaccountService: SecurityaccountService = inject(SecurityaccountService);
+  private stockexchangeService: StockexchangeService = inject(StockexchangeService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+  private httpClient: HttpClient = inject(HttpClient);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  public translateService: TranslateService = inject(TranslateService);
+  private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef, { optional: true });
+  private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig, { optional: true });
+
   readonly yamlEditor = viewChild(YamlEditorComponent);
   static readonly DIALOG_WIDTH = 900;
 
@@ -156,20 +154,9 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
 
   securityaccount: Securityaccount;
 
-  constructor(
-    private tradingPlatformPlanService: TradingPlatformPlanService,
-    private securityaccountService: SecurityaccountService,
-    private stockexchangeService: StockexchangeService,
-    private gpsGT: GlobalparameterGTService,
-    private httpClient: HttpClient,
-    private messageToastService: MessageToastService,
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    @Optional() private dynamicDialogRef: DynamicDialogRef,
-    @Optional() private dynamicDialogConfig: DynamicDialogConfig
-  ) {
-    super(HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN, gps);
-    this.isDynamic = !!dynamicDialogRef;
+  constructor() {
+    super(HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN);
+    this.isDynamic = !!this.dynamicDialogRef;
     this.loadFeeModelSchema();
     this.evalExCompletions = this.buildEvalExCompletions();
     effect(() => {

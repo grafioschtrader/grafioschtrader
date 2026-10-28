@@ -1,4 +1,4 @@
-import { Component, computed, OnInit, signal, input } from '@angular/core';
+import { Component, computed, OnInit, signal, input, inject } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
@@ -6,7 +6,6 @@ import { GenericConnectorEndpoint } from '../../entities/generic.connector.endpo
 import { GenericConnectorDef } from '../../entities/generic.connector.def';
 import { GenericConnectorTestRequest, GenericConnectorTestResult } from '../model/generic-connector-test.model';
 import { GenericConnectorDefService } from '../service/generic.connector.def.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -87,6 +86,9 @@ import { Subscription } from 'rxjs';
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS, FieldsetModule, TableModule]
 })
 export class GenericConnectorTestDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private genericConnectorDefService: GenericConnectorDefService = inject(GenericConnectorDefService);
+
   readonly endpoint = input<GenericConnectorEndpoint>(undefined);
   readonly connectorDef = input<GenericConnectorDef>(undefined);
 
@@ -112,12 +114,8 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
   });
   private testSubscription?: Subscription;
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    private genericConnectorDefService: GenericConnectorDefService
-  ) {
-    super(AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR, gps);
+  constructor() {
+    super(AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR);
   }
 
   ngOnInit(): void {

@@ -1,10 +1,9 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 
 import { ProcessedActionData } from '../../types/processed.action.data';
 import { ProcessedAction } from '../../types/processed.action';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { AppHelper } from '../../helper/app.helper';
 import { SimpleEditBase } from '../../edit/simple.edit.base';
@@ -54,6 +53,10 @@ import { BaseSettings } from '../../base.settings';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class UploadFileDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private userSettingsService: UserSettingsService = inject(UserSettingsService);
+
   /** Configuration parameters passed from parent component defining dialog behavior and upload settings */
   readonly fileUploadParam = input<FileUploadParam>(undefined);
 
@@ -63,18 +66,9 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
   /**
    * Creates a new upload file dialog component.
    *
-   * @param translateService - Angular translation service for internationalization of labels and messages
-   * @param messageToastService - Service for displaying toast notifications with upload results and errors
-   * @param userSettingsService - Service for persisting and retrieving user preferences (CSV format settings)
-   * @param gps - Global parameter service providing application-wide configuration and user settings
    */
-  constructor(
-    public translateService: TranslateService,
-    private messageToastService: MessageToastService,
-    private userSettingsService: UserSettingsService,
-    gps: GlobalparameterService
-  ) {
-    super(null, gps);
+  constructor() {
+    super(null);
   }
 
   /**

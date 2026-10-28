@@ -2,7 +2,6 @@ import { SimpleEditBase } from '../../edit/simple.edit.base';
 import { MessageToastService } from '../../message/message.toast.service';
 import { UDFDataService } from '../service/udf.data.service';
 import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { AppHelper } from '../../helper/app.helper';
 import { UDFData, UDFDataKey, UDFGeneralCallParam } from '../model/udf.metadata';
 import { InfoLevelType } from '../../message/info.leve.type';
@@ -11,7 +10,7 @@ import { ProcessedAction } from '../../types/processed.action';
 import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { FieldDescriptorInputAndShowExtended } from '../../dynamicfield/field.descriptor.input.and.show';
-import { Directive, input } from '@angular/core';
+import { Directive, input, inject } from '@angular/core';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { Helper } from '../../helper/helper';
 import { BaseSettings } from '../../base.settings';
@@ -24,6 +23,10 @@ import { BaseSettings } from '../../base.settings';
  */
 @Directive()
 export abstract class BaseUDFDataEdit extends SimpleEditBase {
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private uDFDataService: UDFDataService = inject(UDFDataService);
+  public translateService: TranslateService = inject(TranslateService);
+
   /** Call parameters containing entity information, existing UDF data, and dialog configuration */
   readonly uDFGeneralCallParam = input<UDFGeneralCallParam>(undefined);
 
@@ -33,21 +36,11 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
   /**
    * Creates the base UDF data edit component.
    *
-   * @param messageToastService - Service for displaying user notifications
-   * @param uDFDataService - Service for UDF data CRUD operations
-   * @param translateService - Translation service for i18n support
    * @param helpId - Help context identifier for the help system
-   * @param gps - Global parameter service providing user settings and system configuration
    * @protected
    */
-  protected constructor(
-    private messageToastService: MessageToastService,
-    private uDFDataService: UDFDataService,
-    public translateService: TranslateService,
-    helpId: string,
-    gps: GlobalparameterService
-  ) {
-    super(helpId, gps);
+  protected constructor(helpId: string) {
+    super(helpId);
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
   }
 

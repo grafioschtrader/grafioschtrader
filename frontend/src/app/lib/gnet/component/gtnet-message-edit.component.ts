@@ -1,4 +1,4 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import {
   getAvailableMessageCodes,
   getRequestableKindNames,
@@ -9,7 +9,6 @@ import {
   shouldShowWaitDaysApply
 } from '../model/gtnet.message';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { MessageToastService } from '../../message/message.toast.service';
 import { HelpIds } from '../../help/help.ids';
 import { AppHelper } from '../../helper/app.helper';
@@ -58,18 +57,17 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
   `
 })
 export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private gtNetService: GTNetService = inject(GTNetService);
+
   readonly msgCallParam = input<MsgCallParam>(undefined);
   private readonly MESSAGE_CODE = 'messageCode';
   private readonly VISIBILITY = 'visibility';
   private classDescriptorInputAndShows: ClassDescriptorInputAndShow;
 
-  constructor(
-    public translateService: TranslateService,
-    private messageToastService: MessageToastService,
-    private gtNetService: GTNetService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_GT_NET_SETUP, gps);
+  constructor() {
+    super(HelpIds.HELP_GT_NET_SETUP);
   }
 
   ngOnInit(): void {

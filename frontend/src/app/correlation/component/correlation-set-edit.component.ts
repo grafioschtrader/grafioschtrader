@@ -1,8 +1,6 @@
 import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { CorrelationSetService } from '../service/correlation.set.service';
 import { CorrelationLimit, CorrelationSet, SamplingPeriodType } from '../../entities/correlation.set';
@@ -50,25 +48,9 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
 
   /**
    * Creates correlation set edit dialog with required services.
-   * @param translateService Service for internationalization and text translation
-   * @param gps Global parameter service for application settings and locale
-   * @param messageToastService Service for displaying user notifications and messages
-   * @param correlationSetService Service for correlation set CRUD operations
    */
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    correlationSetService: CorrelationSetService
-  ) {
-    super(
-      HelpIds.HELP_WATCHLIST_CORRELATION,
-      'CORRELATION_SET',
-      translateService,
-      gps,
-      messageToastService,
-      correlationSetService
-    );
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST_CORRELATION, 'CORRELATION_SET', inject(CorrelationSetService));
     this.destroyRef.onDestroy(() => this.correlationEditingSupport.destroy());
   }
 

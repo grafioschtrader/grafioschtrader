@@ -1,6 +1,5 @@
 import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { HelpIds } from '../../lib/help/help.ids';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TaEditParam, TaEditReturn } from './indicator.definitions';
@@ -30,14 +29,13 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
   imports: [Dialog, DynamicFormComponent, TranslatePipe]
 })
 export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+
   readonly taEditParam = input<TaEditParam>(undefined);
   private readonly injector = inject(Injector);
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES_CHART, gps);
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES_CHART);
   }
 
   ngOnInit(): void {

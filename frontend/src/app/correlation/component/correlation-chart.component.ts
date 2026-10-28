@@ -87,6 +87,13 @@ import { buildCorrelationFigure, CorrelationChartType } from './correlation-char
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class CorrelationChartComponent extends FormBase implements OnInit, AfterViewInit, OnDestroy, IGlobalMenuAttach {
+  private chartService: CorrelationChartService = inject(CorrelationChartService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private viewSizeChangedService: ViewSizeChangedService = inject(ViewSizeChangedService);
+  private usersettingsService: UserSettingsService = inject(UserSettingsService);
+  private gps: GlobalparameterService = inject(GlobalparameterService);
+  public translateService: TranslateService = inject(TranslateService);
+
   readonly form = viewChild(DynamicFormComponent);
   readonly chartElement = viewChild<ElementRef>('chart');
   readonly chartInput = signal<CorrelationChartInput>(null);
@@ -107,14 +114,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   private renderVersion = 0;
   private plotlyConfig: any;
 
-  constructor(
-    private chartService: CorrelationChartService,
-    private activePanelService: ActivePanelService,
-    private viewSizeChangedService: ViewSizeChangedService,
-    private usersettingsService: UserSettingsService,
-    private gps: GlobalparameterService,
-    public translateService: TranslateService
-  ) {
+  constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
   }

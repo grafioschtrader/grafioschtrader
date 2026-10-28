@@ -1,11 +1,9 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { MessageToastService } from '../../message/message.toast.service';
 import { HelpIds } from '../../help/help.ids';
 import { AppHelper } from '../../helper/app.helper';
 import { DataType } from '../../dynamic-form/models/data.type';
@@ -42,20 +40,8 @@ import { BaseSettings } from '../../base.settings';
 export class UserEditComponent extends SimpleEntityEditBase<User> implements OnInit {
   readonly callParam = input<User>(undefined);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    userService: UserAdminService
-  ) {
-    super(
-      HelpIds.HELP_USER,
-      AppHelper.toUpperCaseWithUnderscore(BaseSettings.USER),
-      translateService,
-      gps,
-      messageToastService,
-      userService
-    );
+  constructor() {
+    super(HelpIds.HELP_USER, AppHelper.toUpperCaseWithUnderscore(BaseSettings.USER), inject(UserAdminService));
   }
 
   ngOnInit(): void {

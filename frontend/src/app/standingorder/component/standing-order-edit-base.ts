@@ -1,8 +1,5 @@
-import { Directive, input } from '@angular/core';
+import { Directive, input, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { StandingOrder } from '../../entities/standing.order';
@@ -31,6 +28,8 @@ import { AppSettings } from '../../shared/app.settings';
  */
 @Directive()
 export abstract class StandingOrderEditBase extends SimpleEntityEditBase<StandingOrder> {
+  protected portfolioService: PortfolioService = inject(PortfolioService);
+
   /** Fieldset name for the transaction-related fields group. */
   static readonly FS_TRANSACTION = 'TRANSACTION_DATA';
   /** Fieldset name for the scheduling/execution-related fields group. */
@@ -47,15 +46,8 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
   /** Loaded portfolios, available for subclasses after loadCashaccountsFromPortfolios completes. */
   protected portfolios: Portfolio[] = [];
 
-  protected constructor(
-    protected portfolioService: PortfolioService,
-    helpId: string,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    standingOrderService: StandingOrderService
-  ) {
-    super(helpId, 'STANDING_ORDER', translateService, gps, messageToastService, standingOrderService);
+  protected constructor(helpId: string) {
+    super(helpId, 'STANDING_ORDER', inject(StandingOrderService));
   }
 
   /**

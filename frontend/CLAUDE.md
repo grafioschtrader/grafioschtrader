@@ -148,6 +148,14 @@ periodic `ApplicationRef.tick()`.
   `pageFirstRowSelectedRow()`. Their edit dialogs use `TransactionBaseOperations`: initialise through
   `initializeAfterRender()`, bind streams with `untilDialogClosed()` and end the session on hide. Replace competing
   holdings, quotation and exchange-rate requests through `replaceDialogRequest()`.
+- **The `FormBase` hierarchy resolves dependencies with `inject()` fields.** `FormBase` holds form configuration;
+  `SimpleEditBase` owns the global settings, and `SimpleEntityEditBase` owns translation and toast services.
+  `SimpleDynamicEditBase` also resolves `DynamicDialogConfig` and `DynamicDialogRef` from the dynamic dialog's injector.
+  Constructors keep help IDs, record translation keys, field names and the screen-selected `ServiceEntityUpdate<T>`
+  strategy. Pass `super(helpId)`, `super(helpId, i18nRecord, inject(EntityService))`, or
+  `super(helpId, inject(EntityService))` for dynamic entity dialogs. A dialog available both embedded and dynamically
+  keeps optional context through `inject(DynamicDialogRef, { optional: true })` and
+  `inject(DynamicDialogConfig, { optional: true })`. The Angular API ratchet covers every descendant of `FormBase`.
 - **Watchlist tabs on `WatchlistTable`** hold report, selection, menu and dialog visibility in signals. Their combined
   instrument list is derived from the report; copy rows and instruments before publishing it. Superseded reads are
   cancelled through `replaceWatchlistRequest()`, and stored filters are restored through `afterNextRender`.
@@ -586,13 +594,11 @@ protected abstract initialize(): void;  // Called on dialog show
 })
 export class MyDialogComponent extends SimpleEditBase implements OnInit {
   readonly customInput = input<string>();
+  readonly translateService = inject(TranslateService);
+  private readonly myService = inject(MyService);
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    private myService: MyService
-  ) {
-    super(HelpIds.HELP_MY_DIALOG, gps);
+  constructor() {
+    super(HelpIds.HELP_MY_DIALOG);
   }
 
   ngOnInit(): void {
@@ -639,13 +645,8 @@ protected abstract getNewOrExistingInstanceBeforeSave(value: { [name: string]: a
 export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote> implements OnInit {
   readonly callParam = input<HistoryquoteCallParam>();
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    historyquoteService: HistoryquoteService // implements ServiceEntityUpdate<Historyquote>
-  ) {
-    super(HelpIds.HELP_HISTORYQUOTES, 'HISTORYQUOTE', translateService, gps, messageToastService, historyquoteService);
+  constructor() {
+    super(HelpIds.HELP_HISTORYQUOTES, 'HISTORYQUOTE', inject(HistoryquoteService));
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: any): Historyquote {
@@ -698,16 +699,8 @@ PascalCase constant.
 ```typescript
 // Dialog component
 export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfolio> {
-  constructor(
-    dynamicDialogConfig: DynamicDialogConfig,
-    dynamicDialogRef: DynamicDialogRef,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    portfolioService: PortfolioService
-  ) {
-    super(dynamicDialogConfig, dynamicDialogRef, HelpIds.HELP_PORTFOLIO,
-      translateService, gps, messageToastService, portfolioService);
+  constructor() {
+    super(HelpIds.HELP_PORTFOLIO, inject(PortfolioService));
   }
 }
 
@@ -1027,13 +1020,11 @@ Before writing code, find and read an existing dialog that matches your use case
 })
 export class MyDialogComponent extends SimpleEditBase implements OnInit {
   readonly myInput = input<SomeType>();
+  readonly translateService = inject(TranslateService);
+  private readonly myService = inject(MyService);
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    private myService: MyService
-  ) {
-    super(HelpIds.HELP_MY_FEATURE, gps);
+  constructor() {
+    super(HelpIds.HELP_MY_FEATURE);
   }
 
   ngOnInit(): void {

@@ -1,14 +1,13 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, computed, OnInit, signal, viewChild, input } from '@angular/core';
+import { Component, computed, OnInit, signal, viewChild, input, inject } from '@angular/core';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ProcessedAction } from '../../lib/types/processed.action';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { startWith } from 'rxjs/operators';
@@ -161,6 +160,15 @@ export function isManualIssuerCountryChange(
   ]
 })
 export class SecurityEditComponent extends SecuritycurrencyEdit implements OnInit, CallbackValueChanged {
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+  private stockexchangeService: StockexchangeService = inject(StockexchangeService);
+  private assetclassService: AssetclassService = inject(AssetclassService);
+  private securityService: SecurityService = inject(SecurityService);
+  private securitysplitService: SecuritysplitService = inject(SecuritysplitService);
+  private historyquotePeriodService: HistoryquotePeriodService = inject(HistoryquotePeriodService);
+  private gtnetSecurityLookupService: GtnetSecurityLookupService = inject(GtnetSecurityLookupService);
+
   readonly bondTerms = viewChild(SecurityBondTermsComponent);
   // Access child components
   readonly dynamicSplitForm = viewChild<DynamicFormComponent>('splitForm');
@@ -207,19 +215,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private issuerCountryOverridden = false;
   private lastIssuerCountryPrefill: string = null;
 
-  constructor(
-    private messageToastService: MessageToastService,
-    private gpsGT: GlobalparameterGTService,
-    private stockexchangeService: StockexchangeService,
-    private assetclassService: AssetclassService,
-    private securityService: SecurityService,
-    private securitysplitService: SecuritysplitService,
-    private historyquotePeriodService: HistoryquotePeriodService,
-    private gtnetSecurityLookupService: GtnetSecurityLookupService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

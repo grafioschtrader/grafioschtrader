@@ -1,10 +1,9 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -47,6 +46,11 @@ import { GTNetSecurityImpPosService } from '../../shared/gtnet/service/gtnet-sec
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private gtNetSecurityImpHeadService: GTNetSecurityImpHeadService = inject(GTNetSecurityImpHeadService);
+  private gtNetSecurityImpPosService: GTNetSecurityImpPosService = inject(GTNetSecurityImpPosService);
+
   /** Suggested name for new header (from ImportTransactionHead.name) */
   readonly suggestedHeadName = input('');
 
@@ -57,14 +61,8 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
   private readonly MODE_NEW = 'new';
   private readonly MODE_EXISTING = 'existing';
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    private messageToastService: MessageToastService,
-    private gtNetSecurityImpHeadService: GTNetSecurityImpHeadService,
-    private gtNetSecurityImpPosService: GTNetSecurityImpPosService
-  ) {
-    super(HelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY, gps);
+  constructor() {
+    super(HelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY);
   }
 
   ngOnInit(): void {

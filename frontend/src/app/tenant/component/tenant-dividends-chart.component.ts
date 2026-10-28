@@ -15,7 +15,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { combineLatest, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
@@ -136,6 +136,14 @@ export class TenantDividendsChartComponent
   extends FormBase
   implements OnInit, AfterViewInit, OnDestroy, IGlobalMenuAttach
 {
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private tenantDividendsChartService: TenantDividendsChartService = inject(TenantDividendsChartService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private viewSizeChangedService: ViewSizeChangedService = inject(ViewSizeChangedService);
+  private usersettingsService: UserSettingsService = inject(UserSettingsService);
+  private gps: GlobalparameterService = inject(GlobalparameterService);
+  public translateService: TranslateService = inject(TranslateService);
+
   readonly form = viewChild(DynamicFormComponent);
   readonly chartElement = viewChild<ElementRef>('chart');
 
@@ -164,15 +172,7 @@ export class TenantDividendsChartComponent
   private monthNames: string[];
   private subscriptions: Subscription[] = [];
 
-  constructor(
-    private portfolioService: PortfolioService,
-    private tenantDividendsChartService: TenantDividendsChartService,
-    private activePanelService: ActivePanelService,
-    private viewSizeChangedService: ViewSizeChangedService,
-    private usersettingsService: UserSettingsService,
-    private gps: GlobalparameterService,
-    public translateService: TranslateService
-  ) {
+  constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
     const monthFormat = new Intl.DateTimeFormat(this.gps.getLocale(), { month: 'short' });

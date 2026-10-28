@@ -1,11 +1,9 @@
-import { Component, input } from '@angular/core';
+import { Component, input, inject } from '@angular/core';
 import { Historyquote } from '../../entities/historyquote';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { HistoryquoteService } from '../service/historyquote.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { HistoryquoteSecurityCurrency } from '../model/historyquote.security.currency';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { AppSettings } from '../../shared/app.settings';
@@ -38,19 +36,11 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
 export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote> {
   readonly callParam = input<HistoryquoteSecurityCurrency>(undefined);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    historyquoteService: HistoryquoteService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_WATCHLIST_HISTORYQUOTES,
       AppHelper.toUpperCaseWithUnderscore(AppSettings.HISTORYQUOTE_P_KEY),
-      translateService,
-      gps,
-      messageToastService,
-      historyquoteService
+      inject(HistoryquoteService)
     );
   }
 

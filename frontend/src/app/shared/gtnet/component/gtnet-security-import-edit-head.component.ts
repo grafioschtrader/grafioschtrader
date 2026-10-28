@@ -1,10 +1,8 @@
 import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
 import { HelpIds } from '../../../lib/help/help.ids';
-import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../../lib/message/message.toast.service';
 import { SimpleEntityEditBase } from '../../../lib/edit/simple.entity.edit.base';
 import { DynamicFieldHelper } from '../../../lib/helper/dynamic.field.helper';
 import { DYNAMIC_FORM_IMPORTS } from '../../../lib/dynamic-form/dynamic-form.imports';
@@ -43,20 +41,8 @@ export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<G
 
   private readonly injector = inject(Injector);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    gtNetSecurityImpHeadService: GTNetSecurityImpHeadService
-  ) {
-    super(
-      HelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY,
-      'GTNET_SECURITY_IMP_HEAD',
-      translateService,
-      gps,
-      messageToastService,
-      gtNetSecurityImpHeadService
-    );
+  constructor() {
+    super(HelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY, 'GTNET_SECURITY_IMP_HEAD', inject(GTNetSecurityImpHeadService));
   }
 
   ngOnInit(): void {

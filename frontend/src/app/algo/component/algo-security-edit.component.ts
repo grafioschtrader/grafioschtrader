@@ -1,9 +1,7 @@
 import { switchMap, combineLatest, Observable } from 'rxjs';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { AlgoSecurity } from '../model/algo.security';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { AlgoSecurityService } from '../service/algo.security.service';
 import { AlgoAssetclass } from '../model/algo.assetclass';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -12,7 +10,6 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
 import { distinctUntilChanged } from 'rxjs/operators';
 import { Security } from '../../entities/security';
 import { SecurityService } from '../../securitycurrency/service/security.service';
-import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
@@ -41,15 +38,10 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoSecurity> implements OnInit {
-  constructor(
-    private securityService: SecurityService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    algoSecurityService: AlgoSecurityService,
-    securityaccountService: SecurityaccountService
-  ) {
-    super('ALGO_SECURITY', translateService, gps, messageToastService, algoSecurityService, securityaccountService);
+  private securityService: SecurityService = inject(SecurityService);
+
+  constructor() {
+    super('ALGO_SECURITY', inject(AlgoSecurityService));
   }
 
   ngOnInit(): void {

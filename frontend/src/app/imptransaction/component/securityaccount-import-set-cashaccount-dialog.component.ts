@@ -1,11 +1,10 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
 import { AppHelper } from '../../lib/helper/app.helper';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { HelpIds } from '../../lib/help/help.ids';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { ImportTransactionPosService } from '../service/import.transaction.pos.service';
 import { ProcessedAction } from '../../lib/types/processed.action';
@@ -39,16 +38,15 @@ import { AppSettings } from '../../shared/app.settings';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class SecurityaccountImportSetCashaccountDialogComponent extends SimpleEditBase implements OnInit {
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private importTransactionPosService: ImportTransactionPosService = inject(ImportTransactionPosService);
+  public translateService: TranslateService = inject(TranslateService);
+
   readonly idSecuritycashAccount = input<number>(undefined);
   readonly combineTemplateAndImpTransPos = input<CombineTemplateAndImpTransPos[]>(undefined);
 
-  constructor(
-    private portfolioService: PortfolioService,
-    private importTransactionPosService: ImportTransactionPosService,
-    public translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT, gps);
+  constructor() {
+    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT);
   }
 
   ngOnInit(): void {

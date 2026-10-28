@@ -33,21 +33,21 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   imports: [...DYNAMIC_FORM_IMPORTS]
 })
 export class LimitTransactionRequestDynamicDialogComponent extends FormBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  public gps: GlobalparameterService = inject(GlobalparameterService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private proposeUserTaskService: ProposeUserTaskService = inject(ProposeUserTaskService);
+  private dialogService: DialogService = inject(DialogService);
+  private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
+  private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
+
   dialogTitle: string;
 
   private readonly ENTITY_NAME = 'entity';
   private readonly NOTE_REQUEST = 'noteRequest';
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  constructor(
-    public translateService: TranslateService,
-    public gps: GlobalparameterService,
-    private messageToastService: MessageToastService,
-    private proposeUserTaskService: ProposeUserTaskService,
-    private dialogService: DialogService,
-    private dynamicDialogRef: DynamicDialogRef,
-    private dynamicDialogConfig: DynamicDialogConfig
-  ) {
+  constructor() {
     super();
   }
 

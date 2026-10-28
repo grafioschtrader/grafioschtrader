@@ -1,15 +1,12 @@
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { Directive, input } from '@angular/core';
+import { Directive, input, inject } from '@angular/core';
 import { AlgoCallParam } from '../model/algo.dialog.visible';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
@@ -22,21 +19,16 @@ import { SecurityaccountService } from '../../securityaccount/service/securityac
  */
 @Directive()
 export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEditBase<T> {
+  protected securityaccountService: SecurityaccountService = inject(SecurityaccountService);
+
   readonly algoCallParam = input<AlgoCallParam>(undefined);
 
   protected securityaccount1ChangedSub: Subscription;
   /** The security accounts allowed for the instrument type currently selected in the dialog. */
   protected accountOptions: ValueKeyHtmlSelectOptions[] = [];
 
-  protected constructor(
-    i18nRecord: string,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    serviceEntityUpdate: ServiceEntityUpdate<T>,
-    protected securityaccountService: SecurityaccountService
-  ) {
-    super(HelpIds.HELP_ALGO_TREE, i18nRecord, translateService, gps, messageToastService, serviceEntityUpdate);
+  protected constructor(i18nRecord: string, serviceEntityUpdate: ServiceEntityUpdate<T>) {
+    super(HelpIds.HELP_ALGO_TREE, i18nRecord, serviceEntityUpdate);
   }
 
   override onHide(event): void {

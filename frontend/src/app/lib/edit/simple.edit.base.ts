@@ -23,6 +23,8 @@ import { untilSessionEnds } from './dialog.session';
  */
 @Directive()
 export abstract class SimpleEditBase extends FormBase {
+  public gps: GlobalparameterService = inject(GlobalparameterService);
+
   // Input from parent view
   readonly visibleDialog = input(false);
 
@@ -45,10 +47,12 @@ export abstract class SimpleEditBase extends FormBase {
    */
   private dialogSession = new Subscription();
 
-  constructor(
-    protected helpId: string,
-    public gps: GlobalparameterService
-  ) {
+  /**
+   * Creates a dialog with the help page chosen by its concrete editor.
+   *
+   * @param helpId - Context-sensitive help page of this dialog
+   */
+  constructor(protected helpId: string) {
     super();
     this.destroyRef.onDestroy(() => this.dialogSession.unsubscribe());
   }

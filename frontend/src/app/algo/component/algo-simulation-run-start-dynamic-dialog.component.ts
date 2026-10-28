@@ -1,8 +1,7 @@
-import { signal, Component, OnInit, viewChild } from '@angular/core';
+import { signal, Component, OnInit, viewChild, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { YamlEditorComponent } from './yaml-editor.component';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
+import { TranslateModule } from '@ngx-translate/core';
 import moment from 'moment';
 import { finalize } from 'rxjs/operators';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
@@ -14,8 +13,6 @@ import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.he
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { HelpIds } from '../../lib/help/help.ids';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
@@ -61,6 +58,10 @@ export class AlgoSimulationRunStartDynamicDialogComponent
   extends SimpleDynamicEditBase<SimulationRunResult>
   implements OnInit
 {
+  private http: HttpClient = inject(HttpClient);
+  private runService: AlgoSimulationRunService = inject(AlgoSimulationRunService);
+  private dataChangedService: DataChangedService = inject(DataChangedService);
+
   /** Read by MainTreeDynamicDialogs; the limitation text above the form needs more than the default 400px. */
   static readonly DIALOG_WIDTH = 800;
   readonly yamlEditor = viewChild(YamlEditorComponent);
@@ -69,26 +70,9 @@ export class AlgoSimulationRunStartDynamicDialogComponent
 
   private simulation: SimulationTenantInfo;
 
-  constructor(
-    private http: HttpClient,
-    private runService: AlgoSimulationRunService,
-    private dataChangedService: DataChangedService,
-    dynamicDialogConfig: DynamicDialogConfig,
-    dynamicDialogRef: DynamicDialogRef,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService
-  ) {
+  constructor() {
     // No entity service: submit is overridden, because a run is started rather than saved.
-    super(
-      dynamicDialogConfig,
-      dynamicDialogRef,
-      HelpIds.HELP_ALGO_HISTORICAL_RUN,
-      translateService,
-      gps,
-      messageToastService,
-      null
-    );
+    super(HelpIds.HELP_ALGO_HISTORICAL_RUN, null);
   }
 
   ngOnInit(): void {

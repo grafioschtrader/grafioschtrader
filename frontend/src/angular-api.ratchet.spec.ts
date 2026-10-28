@@ -52,8 +52,53 @@ const TABLE_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reaso
   }
 };
 
+/** Only dialog configuration and the screen-selected persistence strategy remain explicit. */
+const FORM_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason: string }> = {
+  'app/algo/component/algo.assetclass.security.base.edit.ts': {
+    parameters: ['i18nRecord:string', 'serviceEntityUpdate:ServiceEntityUpdate<T>'],
+    reason: 'The concrete algo editor chooses its record label and persistence strategy.'
+  },
+  'app/historyquote/component/historyquote-edit.base.ts': {
+    parameters: ['helpId:string', 'i18nRecord:string', 'serviceEntityUpdate:ServiceEntityUpdate<T>'],
+    reason: 'History and legacy history editors choose their help, record label and persistence strategy.'
+  },
+  'app/lib/edit/simple.dynamic.edit.base.ts': {
+    parameters: ['helpId:string', 'serviceEntityUpdate:ServiceEntityUpdate<T>'],
+    reason: 'The dynamic dialog chooses its help and entity update strategy; dialog context is injected.'
+  },
+  'app/lib/edit/simple.edit.base.ts': {
+    parameters: ['helpId:string'],
+    reason: 'Each dialog chooses its own help page.'
+  },
+  'app/lib/edit/simple.entity.edit.base.ts': {
+    parameters: ['helpId:string', 'i18nRecord:string', 'serviceEntityUpdate:ServiceEntityUpdate<T>'],
+    reason: 'ServiceEntityUpdate is an interface supplied by the concrete entity editor, not an injectable token.'
+  },
+  'app/lib/udfmeta/components/base.udf.data.edit.ts': {
+    parameters: ['helpId:string'],
+    reason: 'The application chooses the help page of its custom-field editor.'
+  },
+  'app/standingorder/component/standing-order-edit-base.ts': {
+    parameters: ['helpId:string'],
+    reason: 'Cash and security standing-order editors have different help pages.'
+  },
+  'app/udfmetasecurity/components/asset.class.type.spec.instrument.ts': {
+    parameters: [
+      'fieldCategoryType:string',
+      'fieldSpecialInvestmentInstrument:string',
+      'helpId:string',
+      'i18nRecord:string',
+      'serviceEntityUpdate:ServiceEntityUpdate<T>'
+    ],
+    reason: 'The concrete asset-class or custom-field editor chooses field names, help, label and persistence strategy.'
+  }
+};
+
 /** Follows inheritance across files, without matching constructor examples in comments or strings. */
-function tableConstructorParameters(sources: Record<string, string>): Record<string, string[]> {
+function hierarchyConstructorParameters(
+  sources: Record<string, string>,
+  rootName = 'ShowRecordConfigBase'
+): Record<string, string[]> {
   const classes = new Map<string, { file: string; base?: string; parameters: string[] }>();
   for (const [file, source] of Object.entries(sources)) {
     const parsed = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
@@ -70,7 +115,7 @@ function tableConstructorParameters(sources: Record<string, string>): Record<str
     }
   }
   function belongs(name: string, visited = new Set<string>()): boolean {
-    if (name === 'ShowRecordConfigBase') return true;
+    if (name === rootName) return true;
     if (visited.has(name)) return false;
     visited.add(name);
     const base = classes.get(name)?.base;
@@ -246,7 +291,7 @@ function collectSources(dir: string, extensions = ['.ts'], out: string[] = []): 
 describe('Angular API ratchet', () => {
   it('finds constructor parameters through the table inheritance chain and ignores unrelated classes', () => {
     expect(
-      tableConstructorParameters({
+      hierarchyConstructorParameters({
         'base.ts': 'class ShowRecordConfigBase {} class TableBase extends ShowRecordConfigBase {}',
         'view.ts': 'class View extends TableBase { constructor(private gps: GlobalparameterService) { super(); } }',
         'unrelated.ts': 'class Other { constructor(service: Service) {} } // class Example extends TableBase {}',
@@ -254,7 +299,7 @@ describe('Angular API ratchet', () => {
       })
     ).toEqual({ 'view.ts': ['gps:GlobalparameterService'] });
     expect(
-      tableConstructorParameters({
+      hierarchyConstructorParameters({
         'base.ts': 'class ShowRecordConfigBase { protected gps = inject(GlobalparameterService); }',
         'view.ts': 'class View extends ShowRecordConfigBase { constructor() { super(); } }'
       })
@@ -269,10 +314,35 @@ describe('Angular API ratchet', () => {
       Object.entries(TABLE_CONSTRUCTOR_PARAMETERS).map(([file, entry]) => [file, entry.parameters])
     );
     expect(
-      tableConstructorParameters(sources),
+      hierarchyConstructorParameters(sources),
       'Resolve table dependencies with inject(). See frontend/CLAUDE.md.'
     ).toEqual(allowed);
     expect(Object.values(TABLE_CONSTRUCTOR_PARAMETERS).every((entry) => entry.reason.length > 0)).toBe(true);
+  });
+
+  it('keeps only documented configuration parameters in the form and edit-dialog hierarchy', () => {
+    expect(
+      hierarchyConstructorParameters(
+        {
+          'base.ts': 'class FormBase {} class SimpleEditBase extends FormBase {}',
+          'dialog.ts':
+            'class Editor extends SimpleEditBase { constructor(private service: EntityService) { super(); } }',
+          'other.ts': 'class Other { constructor(service: EntityService) {} }'
+        },
+        'FormBase'
+      )
+    ).toEqual({ 'dialog.ts': ['service:EntityService'] });
+    const sources = Object.fromEntries(
+      collectSources(SRC).map((file) => [path.relative(SRC, file).replace(/\\/g, '/'), fs.readFileSync(file, 'utf8')])
+    );
+    const allowed = Object.fromEntries(
+      Object.entries(FORM_CONSTRUCTOR_PARAMETERS).map(([file, entry]) => [file, entry.parameters])
+    );
+    expect(
+      hierarchyConstructorParameters(sources, 'FormBase'),
+      'Resolve dialog dependencies with inject(). See frontend/CLAUDE.md.'
+    ).toEqual(allowed);
+    expect(Object.values(FORM_CONSTRUCTOR_PARAMETERS).every((entry) => entry.reason.length > 0)).toBe(true);
   });
 
   it('matches change hooks and initialization flags without matching examples in comments or strings', () => {

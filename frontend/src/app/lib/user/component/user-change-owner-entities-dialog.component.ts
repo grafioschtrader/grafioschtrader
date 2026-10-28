@@ -1,11 +1,10 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 
 import { SimpleEditBase } from '../../edit/simple.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { MessageToastService } from '../../message/message.toast.service';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { HelpIds } from '../../help/help.ids';
 import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
@@ -39,16 +38,15 @@ import { ProcessedAction } from '../../types/processed.action';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class UserChangeOwnerEntitiesDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private userAdminService: UserAdminService = inject(UserAdminService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   readonly fromUser = input<User>(undefined);
   readonly allUsers = input<User[]>(undefined);
 
-  constructor(
-    public translateService: TranslateService,
-    private userAdminService: UserAdminService,
-    private messageToastService: MessageToastService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_USER, gps);
+  constructor() {
+    super(HelpIds.HELP_USER);
   }
 
   ngOnInit(): void {

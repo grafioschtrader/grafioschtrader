@@ -1,6 +1,6 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { forkJoin, of } from 'rxjs';
 
@@ -10,8 +10,6 @@ import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { AppHelper } from '../../helper/app.helper';
 import { AuditHelper } from '../../helper/audit.helper';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { MessageToastService } from '../../message/message.toast.service';
 import { HelpIds } from '../../help/help.ids';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
@@ -77,19 +75,11 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
   /** Scopes already configured per limit key: the role id as text, the empty text for the default row. */
   private usedScopesByKeyId = new Map<string, Set<string>>();
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    entityLimitService: EntityLimitService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_ENTITY_LIMIT,
       AppHelper.toUpperCaseWithUnderscore(BaseSettings.ENTITY_LIMIT),
-      translateService,
-      gps,
-      messageToastService,
-      entityLimitService
+      inject(EntityLimitService)
     );
   }
 

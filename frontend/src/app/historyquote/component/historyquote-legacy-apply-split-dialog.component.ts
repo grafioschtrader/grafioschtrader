@@ -1,9 +1,8 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -44,15 +43,14 @@ import { ProcessedAction } from '../../lib/types/processed.action';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteLegacyApplySplitDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private historyquoteLegacyService: HistoryquoteLegacyService = inject(HistoryquoteLegacyService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   readonly idSecuritycurrency = input<number>(undefined);
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    private historyquoteLegacyService: HistoryquoteLegacyService,
-    private messageToastService: MessageToastService
-  ) {
-    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, gps);
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES);
   }
 
   ngOnInit(): void {

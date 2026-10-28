@@ -21,6 +21,9 @@ import { AppHelper } from '../../lib/helper/app.helper';
 
 @Directive()
 export abstract class SecuritycurrencyEdit extends FormBase {
+  public translateService: TranslateService = inject(TranslateService);
+  public gps: GlobalparameterService = inject(GlobalparameterService);
+
   protected readonly destroyRef = inject(DestroyRef);
   protected readonly injector = inject(Injector);
   private dialogSession = new Subscription();
@@ -44,10 +47,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
 
   // connectorFieldConfig: FieldConfig[];
 
-  protected constructor(
-    public translateService: TranslateService,
-    public gps: GlobalparameterService
-  ) {
+  protected constructor() {
     super();
     this.destroyRef.onDestroy(() => this.dialogSession.unsubscribe());
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, viewChild, input } from '@angular/core';
+import { Component, OnInit, signal, viewChild, input, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import {
   AcceptRequestTypes,
@@ -9,9 +9,7 @@ import {
   GTNetServerOnlineStatusTypes,
   GTNetServerStateTypes
 } from '../model/gtnet';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { MessageToastService } from '../../message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../help/help.ids';
 import { GTNetService } from '../service/gtnet.service';
 import { AppHelper } from '../../helper/app.helper';
@@ -92,6 +90,8 @@ import { BaseSettings } from '../../base.settings';
   `
 })
 export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements OnInit {
+  private gtNetService: GTNetService = inject(GTNetService);
+
   readonly callParam = input<GTNetCallParam>(undefined);
   readonly entityTable = viewChild<EditableTableComponent<GTNetEntity>>('entityTable');
 
@@ -115,23 +115,11 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
   private acceptRequestOptions: ValueKeyHtmlSelectOptions[] = [];
   private serverStateOptions: ValueKeyHtmlSelectOptions[] = [];
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    private gtNetService: GTNetService
-  ) {
-    super(
-      HelpIds.HELP_GT_NET_SETUP,
-      BaseSettings.GT_NET.toUpperCase(),
-      translateService,
-      gps,
-      messageToastService,
-      gtNetService
-    );
+  constructor() {
+    super(HelpIds.HELP_GT_NET_SETUP, BaseSettings.GT_NET.toUpperCase(), inject(GTNetService));
     this.baseLocale = {
-      language: gps.getUserLang(),
-      dateFormat: gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase()
+      language: this.gps.getUserLang(),
+      dateFormat: this.gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase()
     };
   }
 

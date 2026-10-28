@@ -32,6 +32,12 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
  */
 @Directive()
 export abstract class SimpleDynamicEditBase<T> extends FormBase {
+  protected dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
+  protected dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
+  protected translateService: TranslateService = inject(TranslateService);
+  public gps: GlobalparameterService = inject(GlobalparameterService);
+  public messageToastService: MessageToastService = inject(MessageToastService);
+
   /**
    * Reference to the dynamic form component for accessing form controls and validation.
    */
@@ -52,21 +58,11 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
    * Constructor for SimpleDynamicEditBase.
    *
    * @protected
-   * @param {DynamicDialogConfig} dynamicDialogConfig - Configuration for the dynamic dialog
-   * @param {DynamicDialogRef} dynamicDialogRef - Reference to the dynamic dialog instance
    * @param {HelpIds} helpId - Help system identifier for context-sensitive help
-   * @param {TranslateService} translateService - Service for internationalization
-   * @param {GlobalparameterService} gps - Service for accessing global parameters
-   * @param {MessageToastService} messageToastService - Service for displaying toast messages
    * @param {ServiceEntityUpdate<T>} serviceEntityUpdate - Service for updating entities
    */
   protected constructor(
-    protected dynamicDialogConfig: DynamicDialogConfig,
-    protected dynamicDialogRef: DynamicDialogRef,
     protected helpId: string,
-    protected translateService: TranslateService,
-    public gps: GlobalparameterService,
-    public messageToastService: MessageToastService,
     public serviceEntityUpdate: ServiceEntityUpdate<T>
   ) {
     super();

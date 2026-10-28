@@ -1,10 +1,9 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import moment from 'moment';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { IHistoryquoteQuality } from '../../entities/view/ihistoryquote.quality';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -57,6 +56,10 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private historyquoteService: HistoryquoteService = inject(HistoryquoteService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   readonly idSecuritycurrency = input<number>(undefined);
   readonly historyquoteQuality = input<IHistoryquoteQuality>(undefined);
   /** Oldest and most recent stored price, loaded by the opener before this dialog is created. */
@@ -70,13 +73,8 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     new FieldCreateType('manualImported', HistoryquoteCreateType.MANUAL_IMPORTED)
   ];
 
-  constructor(
-    public translateService: TranslateService,
-    private historyquoteService: HistoryquoteService,
-    private messageToastService: MessageToastService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_HISTORYQUOTE_QUALITY, gps);
+  constructor() {
+    super(HelpIds.HELP_HISTORYQUOTE_QUALITY);
   }
 
   ngOnInit(): void {

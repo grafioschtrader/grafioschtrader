@@ -1,15 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { StandingOrderCashaccount } from '../../entities/standing.order';
 import { Cashaccount } from '../../entities/cashaccount';
-import { StandingOrderService } from '../service/standing.order.service';
-import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
@@ -44,22 +40,10 @@ import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase implements OnInit {
-  constructor(
-    portfolioService: PortfolioService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    private gpsGT: GlobalparameterGTService,
-    messageToastService: MessageToastService,
-    standingOrderService: StandingOrderService
-  ) {
-    super(
-      portfolioService,
-      AppHelpIds.HELP_STANDING_ORDER_CASH,
-      translateService,
-      gps,
-      messageToastService,
-      standingOrderService
-    );
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
+  constructor() {
+    super(AppHelpIds.HELP_STANDING_ORDER_CASH);
   }
 
   ngOnInit(): void {

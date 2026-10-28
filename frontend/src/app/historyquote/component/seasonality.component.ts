@@ -88,6 +88,12 @@ interface SeasonalReturnsParams {
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, ProgressBarModule, SeasonalityTableComponent]
 })
 export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMenuAttach {
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private securityService: SecurityService = inject(SecurityService);
+  private gps: GlobalparameterService = inject(GlobalparameterService);
+  public translateService: TranslateService = inject(TranslateService);
+
   readonly form = viewChild(DynamicFormComponent);
 
   menuItems: MenuItem[] = [];
@@ -115,13 +121,7 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
   private formReady = false;
   private readonly destroyRef = inject(DestroyRef);
 
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    private activePanelService: ActivePanelService,
-    private securityService: SecurityService,
-    private gps: GlobalparameterService,
-    public translateService: TranslateService
-  ) {
+  constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, null, false);
     this.formConfig.labelColumns = 2;

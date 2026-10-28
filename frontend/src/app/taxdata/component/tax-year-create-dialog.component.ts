@@ -28,15 +28,15 @@ import { BaseSettings } from '../../lib/base.settings';
   imports: [...DYNAMIC_FORM_IMPORTS]
 })
 export class TaxYearCreateDialogComponent extends FormBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  public gps: GlobalparameterService = inject(GlobalparameterService);
+  private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
+  private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
+
   private readonly injector = inject(Injector);
   readonly form = viewChild(DynamicFormComponent);
 
-  constructor(
-    public translateService: TranslateService,
-    public gps: GlobalparameterService,
-    private dynamicDialogConfig: DynamicDialogConfig,
-    private dynamicDialogRef: DynamicDialogRef
-  ) {
+  constructor() {
     super();
   }
 

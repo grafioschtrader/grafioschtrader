@@ -1,9 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
-import { UDFDataService } from '../../lib/udfmeta/service/udf.data.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { Assetclass } from '../../entities/assetclass';
 import { SecurityUDFHelper } from './security.udf.helper';
@@ -22,13 +19,8 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
   imports: [TranslateModule, DialogModule, DynamicFormComponent]
 })
 export class SecurityUDFEditComponent extends BaseUDFDataEdit implements OnInit {
-  constructor(
-    messageToastService: MessageToastService,
-    uDFDataService: UDFDataService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(messageToastService, uDFDataService, translateService, HelpIds.HELP_WATCHLIST_UDF, gps);
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST_UDF);
 
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
   }

@@ -1,7 +1,4 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
-import { TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { AfterViewInit, Component, OnInit, inject } from '@angular/core';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { Helper } from '../../lib/helper/helper';
 import { BaseSettings } from '../../lib/base.settings';
@@ -13,7 +10,6 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { HelpIds } from '../../lib/help/help.ids';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
@@ -39,29 +35,16 @@ export class SecurityTransferCreateDialogComponent
   extends SimpleDynamicEditBase<SecurityAction>
   implements OnInit, AfterViewInit
 {
+  private securityActionService: SecurityActionService = inject(SecurityActionService);
+  private portfolioService: PortfolioService = inject(PortfolioService);
+
   private idSecurity: number;
   private idSecurityaccountSource: number;
   private units: number;
   private portfolios: Portfolio[] = [];
 
-  constructor(
-    dynamicDialogConfig: DynamicDialogConfig,
-    dynamicDialogRef: DynamicDialogRef,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    private securityActionService: SecurityActionService,
-    private portfolioService: PortfolioService
-  ) {
-    super(
-      dynamicDialogConfig,
-      dynamicDialogRef,
-      HelpIds.HELP_BASEDATA_SECURITY_ACTION_SECURITY_TRANSFER,
-      translateService,
-      gps,
-      messageToastService,
-      securityActionService
-    );
+  constructor() {
+    super(HelpIds.HELP_BASEDATA_SECURITY_ACTION_SECURITY_TRANSFER, inject(SecurityActionService));
   }
 
   ngOnInit(): void {

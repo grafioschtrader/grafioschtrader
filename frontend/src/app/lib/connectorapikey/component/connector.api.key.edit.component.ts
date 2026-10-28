@@ -1,12 +1,10 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { ConnectorApiKey, SubscriptionTypeReadableName } from '../types/connector.api.key';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { MessageToastService } from '../../message/message.toast.service';
 import { HelpIds } from '../../help/help.ids';
 import { ConnectorApiKeyService } from '../service/connector.api.key.service';
 import { AppHelper } from '../../helper/app.helper';
@@ -48,19 +46,11 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
     [providerId: string]: ValueKeyHtmlSelectOptions[];
   }>(undefined);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    connectorApiKeyService: ConnectorApiKeyService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_CONNECTOR_API_KEY,
       AppHelper.toUpperCaseWithUnderscore(BaseSettings.CONNECTOR_API_KEY),
-      translateService,
-      gps,
-      messageToastService,
-      connectorApiKeyService
+      inject(ConnectorApiKeyService)
     );
   }
 

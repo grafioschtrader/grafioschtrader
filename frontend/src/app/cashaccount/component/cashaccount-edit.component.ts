@@ -1,12 +1,10 @@
-import { Component, OnInit, input } from '@angular/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Component, OnInit, input, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { CashaccountService } from '../service/cashaccount.service';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { Cashaccount } from '../../entities/cashaccount';
 import { Portfolio } from '../../entities/portfolio';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
@@ -41,25 +39,18 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> implements OnInit {
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   readonly callParam = input<CallParam>(undefined);
 
   portfolio: Portfolio;
 
-  constructor(
-    private portfolioService: PortfolioService,
-    private gpsGT: GlobalparameterGTService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    cashaccountSercice: CashaccountService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_PORTFOLIO_ACCOUNT,
       AppHelper.toUpperCaseWithUnderscore(AppSettings.CASHACCOUNT),
-      translateService,
-      gps,
-      messageToastService,
-      cashaccountSercice
+      inject(CashaccountService)
     );
   }
 

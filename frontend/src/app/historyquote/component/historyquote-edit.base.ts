@@ -1,6 +1,5 @@
 import { Directive, OnInit, input } from '@angular/core';
 import moment from 'moment';
-import { TranslateService } from '@ngx-translate/core';
 
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
@@ -13,8 +12,6 @@ import { AppSettings } from '../../shared/app.settings';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AuditHelper } from '../../lib/helper/audit.helper';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 
 /**
@@ -37,15 +34,8 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
 {
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
-  protected constructor(
-    helpId: string,
-    i18nRecord: string,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    serviceEntityUpdate: ServiceEntityUpdate<T>
-  ) {
-    super(helpId, i18nRecord, translateService, gps, messageToastService, serviceEntityUpdate);
+  protected constructor(helpId: string, i18nRecord: string, serviceEntityUpdate: ServiceEntityUpdate<T>) {
+    super(helpId, i18nRecord, serviceEntityUpdate);
   }
 
   ngOnInit(): void {

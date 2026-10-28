@@ -1,10 +1,8 @@
 import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { Assetclass } from '../../entities/assetclass';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AssetclassService } from '../service/assetclass.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { AssetclassCallParam } from './assetclass.call.param';
@@ -14,7 +12,6 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { AppSettings } from '../../shared/app.settings';
 import { AssetClassTypeSpecInstrument } from '../../udfmetasecurity/components/asset.class.type.spec.instrument';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
@@ -47,23 +44,13 @@ export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetc
 
   private readonly injector = inject(Injector);
 
-  constructor(
-    translateService: TranslateService,
-    gpsGT: GlobalparameterGTService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    assetclassService: AssetclassService
-  ) {
+  constructor() {
     super(
       AppSettings.CATEGORY_TYPE,
-      gpsGT,
       'specialInvestmentInstrument',
       HelpIds.HELP_BASEDATA_ASSETCLASS,
       AppSettings.ASSETCLASS.toUpperCase(),
-      translateService,
-      gps,
-      messageToastService,
-      assetclassService
+      inject(AssetclassService)
     );
   }
 

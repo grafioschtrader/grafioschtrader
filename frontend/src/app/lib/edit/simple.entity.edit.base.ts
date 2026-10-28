@@ -1,4 +1,3 @@
-import { GlobalparameterService } from '../services/globalparameter.service';
 import { MessageToastService } from '../message/message.toast.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ProcessedActionData } from '../types/processed.action.data';
@@ -12,7 +11,7 @@ import { ProposeTransientTransfer } from '../entities/propose.transient.transfer
 import { TransformedError } from '../login/service/transformed.error';
 import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
 import { plainToClassFromExist } from 'class-transformer';
-import { Directive } from '@angular/core';
+import { Directive, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EditHelper } from './edit.helper';
 
@@ -24,25 +23,22 @@ import { EditHelper } from './edit.helper';
  */
 @Directive()
 export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
+  public translateService: TranslateService = inject(TranslateService);
+  public messageToastService: MessageToastService = inject(MessageToastService);
+
   /**
    * Constructor for SimpleEntityEditBase.
    *
    * @param {HelpIds} helpId - Help system identifier for context-sensitive help
    * @param {string} i18nRecord - Internationalization key for record type
-   * @param {TranslateService} translateService - Service for internationalization
-   * @param {GlobalparameterService} gps - Service for accessing global parameters
-   * @param {MessageToastService} messageToastService - Service for displaying toast messages
    * @param {ServiceEntityUpdate<T>} serviceEntityUpdate - Service for updating entities
    */
   protected constructor(
     helpId: string,
     public i18nRecord: string,
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    public messageToastService: MessageToastService,
     public serviceEntityUpdate: ServiceEntityUpdate<T>
   ) {
-    super(helpId, gps);
+    super(helpId);
   }
 
   /**

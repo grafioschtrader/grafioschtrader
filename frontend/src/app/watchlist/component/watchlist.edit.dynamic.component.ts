@@ -2,10 +2,7 @@ import { afterNextRender, Component, inject, Injector, OnInit } from '@angular/c
 
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { WatchlistService } from '../service/watchlist.service';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -36,6 +33,8 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchlist> implements OnInit {
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   /**
    * Call parameters containing the watchlist entity to be edited and operation context.
    */
@@ -45,32 +44,9 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
   /**
    * Creates an instance of WatchlistEditDynamicComponent.
    *
-   * @param {GlobalparameterGTService} gpsGT - GT-specific global parameters service
-   * @param {DynamicDialogConfig} dynamicDialogConfig - Optimus dialog configuration
-   * @param {DynamicDialogRef} dynamicDialogRef - Optimus dialog reference
-   * @param {TranslateService} translateService - Angular translation service
-   * @param {GlobalparameterService} gps - Global parameters service
-   * @param {MessageToastService} messageToastService - Toast notification service
-   * @param {WatchlistService} watchlistService - Watchlist CRUD service
    */
-  constructor(
-    private gpsGT: GlobalparameterGTService,
-    dynamicDialogConfig: DynamicDialogConfig,
-    dynamicDialogRef: DynamicDialogRef,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    watchlistService: WatchlistService
-  ) {
-    super(
-      dynamicDialogConfig,
-      dynamicDialogRef,
-      HelpIds.HELP_WATCHLIST,
-      translateService,
-      gps,
-      messageToastService,
-      watchlistService
-    );
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST, inject(WatchlistService));
   }
 
   /**

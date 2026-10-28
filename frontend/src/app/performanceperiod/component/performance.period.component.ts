@@ -94,6 +94,14 @@ import { PerformanceReportDialogService } from '../service/performance-report-di
   ]
 })
 export class PerformancePeriodComponent extends FormBase implements OnInit, OnDestroy, IGlobalMenuAttach {
+  private router: Router = inject(Router);
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private holdingService: HoldingService = inject(HoldingService);
+  private gps: GlobalparameterService = inject(GlobalparameterService);
+  private chartDataService: ChartDataService = inject(ChartDataService);
+  public translateService: TranslateService = inject(TranslateService);
+
   // Access the form
   readonly form = viewChild(DynamicFormComponent);
   readonly performancePeriod = signal<PerformancePeriod>(null);
@@ -132,15 +140,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   private reportWindow: PerformanceWindowDef;
   private destroyRef = inject(DestroyRef);
 
-  constructor(
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private activePanelService: ActivePanelService,
-    private holdingService: HoldingService,
-    private gps: GlobalparameterService,
-    private chartDataService: ChartDataService,
-    public translateService: TranslateService
-  ) {
+  constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, null, false);
     this.formConfig.labelColumns = 2;

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, output, input } from '@angular/core';
+import { Component, OnInit, signal, output, input, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -10,7 +10,6 @@ import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { AppHelper } from '../../helper/app.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
-import { GlobalparameterService } from '../../services/globalparameter.service';
 import { MessageToastService } from '../../message/message.toast.service';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { HelpIds } from '../../help/help.ids';
@@ -58,19 +57,18 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
   </p-dialog>`
 })
 export class UserAccessTokenCreateDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private userAccessTokenService: UserAccessTokenService = inject(UserAccessTokenService);
+
   readonly formDefinition = input<ClassDescriptorInputAndShow>(undefined);
   /** Emitted as soon as the server created the token, while the dialog still shows it. */
   readonly tokenCreated = output<void>();
   /** Set once the server created the token; it is held only as long as this dialog is open. */
   readonly created = signal<UserAccessTokenCreated>(null);
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    private messageToastService: MessageToastService,
-    private userAccessTokenService: UserAccessTokenService
-  ) {
-    super(HelpIds.HELP_INTRO_SETTINGS_AI_ASSISTANT, gps);
+  constructor() {
+    super(HelpIds.HELP_INTRO_SETTINGS_AI_ASSISTANT);
   }
 
   ngOnInit(): void {

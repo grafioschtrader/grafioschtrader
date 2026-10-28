@@ -1,9 +1,7 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { UDFDataType, UDFMetadataGeneral, UDFMetadataGeneralParam } from '../model/udf.metadata';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { MessageToastService } from '../../message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../help/help.ids';
 import { UDFMetadataGeneralService } from '../service/udf.metadata.general.service';
 import { GlobalSessionNames } from '../../global.session.names';
@@ -58,24 +56,12 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
   /**
    * Creates the UDF metadata general edit component.
    *
-   * @param translateService - Translation service for i18n support
-   * @param gps - Global parameter service providing user settings and system configuration
-   * @param messageToastService - Service for displaying user notifications
-   * @param uDFMetadataGeneralService - Service for UDF metadata CRUD operations
    */
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    uDFMetadataGeneralService: UDFMetadataGeneralService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_BASEDATA_UDF_METADATA_GENERAL,
       AppHelper.toUpperCaseWithUnderscore(BaseSettings.UDF_METADATA_GENERAL),
-      translateService,
-      gps,
-      messageToastService,
-      uDFMetadataGeneralService
+      inject(UDFMetadataGeneralService)
     );
   }
 

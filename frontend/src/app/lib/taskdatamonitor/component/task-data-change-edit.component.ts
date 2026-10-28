@@ -1,8 +1,6 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { MessageToastService } from '../../message/message.toast.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../help/help.ids';
 import { TaskDataChangeService } from '../service/task.data.change.service';
 import {
@@ -49,25 +47,19 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataChange> implements OnInit {
+  private taskDataChangeService: TaskDataChangeService = inject(TaskDataChangeService);
+
   readonly callParam = input<TaskDataChange>(undefined);
   readonly tdcFormConstraints = input<TaskDataChangeFormConstraints>(undefined);
   readonly taskTypeEnum = input<any>(TaskTypeBase); // Application can provide extended enum
   /** The queue of the monitor tab; only its task types can be created there */
   readonly queue = input<string>(MAIN_TASK_QUEUE);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    private taskDataChangeService: TaskDataChangeService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_TASK_DATA_CHANGE_MONITOR,
       AppHelper.toUpperCaseWithUnderscore(BaseSettings.TASK_DATE_CHANGE),
-      translateService,
-      gps,
-      messageToastService,
-      taskDataChangeService
+      inject(TaskDataChangeService)
     );
   }
 

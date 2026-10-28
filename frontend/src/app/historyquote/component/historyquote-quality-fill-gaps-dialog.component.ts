@@ -1,7 +1,6 @@
-import { Component, OnInit, signal, input } from '@angular/core';
+import { Component, OnInit, signal, input, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import moment from 'moment';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -59,6 +58,10 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private securityService: SecurityService = inject(SecurityService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+
   readonly historyquoteQuality = input<IHistoryquoteQuality>(undefined);
   readonly securitycurrency = input<Securitycurrency>(undefined);
   /** Date boundaries loaded by the opener before this dialog is created. */
@@ -70,13 +73,8 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
   /** Translated warning shown when the trading calendar limits the proposed end date. */
   readonly calendarLimitMessage = signal('');
 
-  constructor(
-    public translateService: TranslateService,
-    private securityService: SecurityService,
-    private messageToastService: MessageToastService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_HISTORYQUOTE_QUALITY, gps);
+  constructor() {
+    super(HelpIds.HELP_HISTORYQUOTE_QUALITY);
   }
 
   ngOnInit(): void {

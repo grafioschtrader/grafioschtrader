@@ -27,16 +27,16 @@ import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
   imports: [...DYNAMIC_FORM_IMPORTS]
 })
 export class TaxCountryCreateDialogComponent extends FormBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  public gps: GlobalparameterService = inject(GlobalparameterService);
+  private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
+  private dialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
+
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   readonly form = viewChild(DynamicFormComponent);
 
-  constructor(
-    public translateService: TranslateService,
-    public gps: GlobalparameterService,
-    private dynamicDialogRef: DynamicDialogRef,
-    private dialogConfig: DynamicDialogConfig
-  ) {
+  constructor() {
     super();
   }
 

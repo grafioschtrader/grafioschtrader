@@ -1,6 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { Helper } from '../../lib/helper/helper';
 import { BaseSettings } from '../../lib/base.settings';
@@ -50,17 +49,16 @@ import { DialogService } from '@openng/optimus-ui/dynamicdialog';
   providers: [DialogService]
 })
 export class SecurityActionCreateDialogComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private securityActionService: SecurityActionService = inject(SecurityActionService);
+  private dialogService: DialogService = inject(DialogService);
+
   private supplementCriteria = new SupplementCriteria(true, false);
   private selectedSecurity: Security | null = null;
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService,
-    private messageToastService: MessageToastService,
-    private securityActionService: SecurityActionService,
-    private dialogService: DialogService
-  ) {
-    super(HelpIds.HELP_BASEDATA_SECURITY_ACTION_ISIN_RENAME, gps);
+  constructor() {
+    super(HelpIds.HELP_BASEDATA_SECURITY_ACTION_ISIN_RENAME);
   }
 
   ngOnInit(): void {

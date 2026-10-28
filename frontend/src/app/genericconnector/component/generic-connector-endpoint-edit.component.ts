@@ -1,7 +1,6 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { GenericConnectorEndpoint } from '../../entities/generic.connector.endpoint';
 import { GenericConnectorDef } from '../../entities/generic.connector.def';
@@ -54,15 +53,14 @@ const ALL_FEED_INSTRUMENT_COMBOS = [
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class GenericConnectorEndpointEditComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+
   readonly endpoint = input<GenericConnectorEndpoint>(undefined);
   readonly connectorDef = input<GenericConnectorDef>(undefined);
   private optionTranslations: Record<string, string> = {};
 
-  constructor(
-    public translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR_ENDPOINTS, gps);
+  constructor() {
+    super(AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR_ENDPOINTS);
   }
 
   ngOnInit(): void {

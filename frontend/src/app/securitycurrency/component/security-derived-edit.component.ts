@@ -12,7 +12,6 @@ import {
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -75,6 +74,14 @@ import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialo
   providers: [DialogService]
 })
 export class SecurityDerivedEditComponent extends SimpleEditBase implements OnInit {
+  public translateService: TranslateService = inject(TranslateService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+  private messageToastService: MessageToastService = inject(MessageToastService);
+  private stockexchangeService: StockexchangeService = inject(StockexchangeService);
+  private assetclassService: AssetclassService = inject(AssetclassService);
+  private securityService: SecurityService = inject(SecurityService);
+  private dialogService: DialogService = inject(DialogService);
+
   // Input from parent component
   readonly securityCallParam = input<Security>(undefined);
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
@@ -100,17 +107,8 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   private readonly FORMULA_PRICES = 'formulaPrices';
   private usedFormulaVars: string[];
 
-  constructor(
-    public translateService: TranslateService,
-    private gpsGT: GlobalparameterGTService,
-    private messageToastService: MessageToastService,
-    private stockexchangeService: StockexchangeService,
-    private assetclassService: AssetclassService,
-    private securityService: SecurityService,
-    private dialogService: DialogService,
-    gps: GlobalparameterService
-  ) {
-    super(HelpIds.HELP_WATCHLIST_DERIVED_INSTRUMENT, gps);
+  constructor() {
+    super(HelpIds.HELP_WATCHLIST_DERIVED_INSTRUMENT);
     this.supplementCriteria = new SupplementCriteria(false, true);
     this.destroyRef.onDestroy(() => {
       this.pendingRender?.destroy();

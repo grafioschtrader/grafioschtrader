@@ -1,9 +1,7 @@
 import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { Stockexchange } from '../../entities/stockexchange';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { StockexchangeService } from '../service/stockexchange.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -54,6 +52,9 @@ import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchange> implements OnInit {
+  private tradingCalendarRuleSetService: TradingCalendarRuleSetService = inject(TradingCalendarRuleSetService);
+  private securityService: SecurityService = inject(SecurityService);
+
   readonly callParam = input<StockexchangeCallParam>(undefined);
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
   private readonly nameMaxLength = 32;
@@ -61,21 +62,11 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   private ruleSetIdByMic: { [mic: string]: number } = {};
   private readonly injector = inject(Injector);
 
-  constructor(
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    stockexchangeService: StockexchangeService,
-    private tradingCalendarRuleSetService: TradingCalendarRuleSetService,
-    private securityService: SecurityService
-  ) {
+  constructor() {
     super(
       HelpIds.HELP_BASEDATA_STOCKEXCHANGE,
       AppHelper.toUpperCaseWithUnderscore(AppSettings.STOCKEXCHANGE),
-      translateService,
-      gps,
-      messageToastService,
-      stockexchangeService
+      inject(StockexchangeService)
     );
   }
 

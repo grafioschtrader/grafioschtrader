@@ -86,6 +86,13 @@ export class TenantHoldingsChartComponent
   extends FormBase
   implements OnInit, AfterViewInit, OnDestroy, IGlobalMenuAttach
 {
+  private tenantHoldingsChartService: TenantHoldingsChartService = inject(TenantHoldingsChartService);
+  private activePanelService: ActivePanelService = inject(ActivePanelService);
+  private viewSizeChangedService: ViewSizeChangedService = inject(ViewSizeChangedService);
+  private usersettingsService: UserSettingsService = inject(UserSettingsService);
+  private gps: GlobalparameterService = inject(GlobalparameterService);
+  public translateService: TranslateService = inject(TranslateService);
+
   readonly form = viewChild(DynamicFormComponent);
   readonly chartElement = viewChild<ElementRef>('chart');
 
@@ -105,14 +112,7 @@ export class TenantHoldingsChartComponent
   private drawVersion = 0;
   private subscriptions: Subscription[] = [];
 
-  constructor(
-    private tenantHoldingsChartService: TenantHoldingsChartService,
-    private activePanelService: ActivePanelService,
-    private viewSizeChangedService: ViewSizeChangedService,
-    private usersettingsService: UserSettingsService,
-    private gps: GlobalparameterService,
-    public translateService: TranslateService
-  ) {
+  constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
   }
