@@ -2,9 +2,8 @@ import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
 import { HelpIds } from '../../lib/help/help.ids';
 import { ImportTransactionPlatformService } from '../service/import.transaction.platform.service';
@@ -15,9 +14,7 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
 import { ImportTransactionTemplate } from '../../entities/import.transaction.template';
 import { ImportTransactionTemplateTableComponent } from './import-transaction-template-table.component';
 import { ParentChildRowSelection } from '../../lib/datashowbase/parent.child.row.selection';
-import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { plainToInstance } from 'class-transformer';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -110,6 +107,11 @@ export class ImportTransactionTemplateComponent
   extends SingleRecordMasterViewBase<ImportTransactionPlatform, ImportTransactionTemplate, CallParam>
   implements OnInit, OnDestroy, ParentChildRowSelection<ImportTransactionTemplate>
 {
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private importTransactionPlatformService: ImportTransactionPlatformService = inject(ImportTransactionPlatformService);
+  private importTransactionTemplateService: ImportTransactionTemplateService = inject(ImportTransactionTemplateService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   private static readonly MAIN_FIELD = 'idTransactionImportPlatform';
 
   // Access child components
@@ -123,27 +125,12 @@ export class ImportTransactionTemplateComponent
   /** The platform of this instance holding the Grafioschtrader authored import templates, null when unset. */
   gtImportPlatformId: number | null;
 
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    private importTransactionPlatformService: ImportTransactionPlatformService,
-    private importTransactionTemplateService: ImportTransactionTemplateService,
-    private gpsGT: GlobalparameterGTService,
-    gps: GlobalparameterService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    translateService: TranslateService
-  ) {
+  constructor() {
     super(
-      gps,
       HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP,
       ImportTransactionTemplateComponent.MAIN_FIELD,
       'IMPORT_TRANSACTION_PLATFORM',
-      importTransactionPlatformService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      translateService
+      inject(ImportTransactionPlatformService)
     );
 
     this.formConfig = { labelColumns: 2, nonModal: true };

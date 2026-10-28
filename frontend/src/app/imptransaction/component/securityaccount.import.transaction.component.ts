@@ -2,15 +2,13 @@ import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs/operators';
 
-import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Params } from '@angular/router';
-import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { forkJoin, Observable, of, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { plainToInstance } from 'class-transformer';
 
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { ImportTransactionHead } from '../../entities/import.transaction.head';
@@ -22,14 +20,12 @@ import { Securityaccount } from '../../entities/securityaccount';
 import { SecurityaccountImportTransactionTableComponent } from './securityaccount-import-transaction-table.component';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ParentChildRowSelection } from '../../lib/datashowbase/parent.child.row.selection';
 import { ImportTransactionTemplateService } from '../../imptranstemplate/service/import.transaction.template.service';
 import { ImportTransactionTemplate } from '../../entities/import.transaction.template';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
@@ -106,6 +102,12 @@ export class SecurityaccountImportTransactionComponent
   extends SingleRecordMasterViewBase<ImportTransactionHead, CombineTemplateAndImpTransPos, CallParam>
   implements OnInit, OnDestroy, ParentChildRowSelection<CombineTemplateAndImpTransPos>
 {
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private importTransactionHeadService: ImportTransactionHeadService = inject(ImportTransactionHeadService);
+  private importTransactionTemplateService: ImportTransactionTemplateService = inject(ImportTransactionTemplateService);
+  private treeNavState: TreeNavigationStateService = inject(TreeNavigationStateService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   private static readonly MAIN_FIELD = 'idTransactionHead';
   private static readonly STORAGE_KEY_SELECTED_HEAD = 'selectedImportTransactionHead';
 
@@ -127,28 +129,12 @@ export class SecurityaccountImportTransactionComponent
   private readSubscription?: Subscription;
   private readonly injector = inject(Injector);
 
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    private importTransactionHeadService: ImportTransactionHeadService,
-    private importTransactionTemplateService: ImportTransactionTemplateService,
-    private treeNavState: TreeNavigationStateService,
-    gps: GlobalparameterService,
-    private gpsGT: GlobalparameterGTService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    translateService: TranslateService
-  ) {
+  constructor() {
     super(
-      gps,
       HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT,
       SecurityaccountImportTransactionComponent.MAIN_FIELD,
       'IMPORT_SET',
-      importTransactionHeadService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      translateService
+      inject(ImportTransactionHeadService)
     );
 
     this.formConfig = { labelColumns: 2, nonModal: true };

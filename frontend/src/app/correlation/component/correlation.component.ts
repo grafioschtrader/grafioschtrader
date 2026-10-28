@@ -20,12 +20,8 @@ import {
   CorrelationSet,
   SamplingPeriodType
 } from '../../entities/correlation.set';
-import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { ActivatedRoute } from '@angular/router';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { TranslateService } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { CorrelationSetService } from '../service/correlation.set.service';
@@ -122,6 +118,9 @@ export class CorrelationComponent
   extends SingleRecordMasterViewBase<CorrelationSet, Securitycurrency, CallParam>
   implements AfterViewInit, OnDestroy, ChildToParent
 {
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private correlationSetService: CorrelationSetService = inject(CorrelationSetService);
+
   /** Primary key field name for correlation set selection */
   private static readonly MAIN_FIELD = 'idCorrelationSet';
 
@@ -184,33 +183,13 @@ export class CorrelationComponent
 
   /**
    * Creates a new correlation component instance with required services and configuration.
-   * @param activatedRoute - Angular activated route for parameter access
-   * @param correlationSetService - Service for correlation set operations
-   * @param gps - Global parameter service for user settings and configuration
-   * @param confirmationService - Optimus confirmation dialog service
-   * @param messageToastService - Service for displaying user messages
-   * @param activePanelService - Service for managing active panel state
-   * @param translateService - Angular translation service for internationalization
    */
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    private correlationSetService: CorrelationSetService,
-    gps: GlobalparameterService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    translateService: TranslateService
-  ) {
+  constructor() {
     super(
-      gps,
       HelpIds.HELP_WATCHLIST_CORRELATION,
       CorrelationComponent.MAIN_FIELD,
       'CORRELATION_SET',
-      correlationSetService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      translateService
+      inject(CorrelationSetService)
     );
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
     this.config = this.correlationEditingSupport.getCorrelationFieldDefinition(

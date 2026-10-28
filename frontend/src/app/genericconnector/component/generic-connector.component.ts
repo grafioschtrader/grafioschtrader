@@ -1,17 +1,14 @@
 import { afterNextRender, AfterRenderRef, Component, inject, Injector, OnInit, signal } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { forkJoin, Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
 import { GenericConnectorDef } from '../../entities/generic.connector.def';
 import { GenericConnectorEndpoint } from '../../entities/generic.connector.endpoint';
 import { GenericConnectorFieldMapping } from '../../entities/generic.connector.field.mapping';
 import { GenericConnectorDefService } from '../service/generic.connector.def.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AppHelpIds } from '../../shared/help/help.ids';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
@@ -138,6 +135,9 @@ export class GenericConnectorComponent
   extends SingleRecordMasterViewBase<GenericConnectorDef, GenericConnectorEndpoint>
   implements OnInit
 {
+  private genericConnectorDefService: GenericConnectorDefService = inject(GenericConnectorDefService);
+  private dialogService: DialogService = inject(DialogService);
+
   readonly visibleEndpointDialog = signal(false);
   readonly visibleTestDialog = signal(false);
   readonly selectedEndpoint = signal<GenericConnectorEndpoint>(null);
@@ -147,25 +147,12 @@ export class GenericConnectorComponent
   private formRender?: AfterRenderRef;
   private lastSelectedConnectorId: number = null;
 
-  constructor(
-    private genericConnectorDefService: GenericConnectorDefService,
-    private dialogService: DialogService,
-    gps: GlobalparameterService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    translateService: TranslateService
-  ) {
+  constructor() {
     super(
-      gps,
       AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR,
       'idGenericConnector',
       AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF),
-      genericConnectorDefService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      translateService
+      inject(GenericConnectorDefService)
     );
 
     this.formConfig = { labelColumns: 2, nonModal: true };

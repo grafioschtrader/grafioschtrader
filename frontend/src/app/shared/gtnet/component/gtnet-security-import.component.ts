@@ -2,17 +2,13 @@ import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, viewCh
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ActivatedRoute, Params } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem } from '@openng/optimus-ui/api';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 
-import { ActivePanelService } from '../../../lib/mainmenubar/service/active.panel.service';
 import { AppSettings } from '../../app.settings';
 import { HelpIds } from '../../../lib/help/help.ids';
 import { SingleRecordMasterViewBase } from '../../../lib/masterdetail/component/single.record.master.view.base';
-import { MessageToastService } from '../../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../../lib/message/info.leve.type';
-import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
 import { DynamicFieldHelper } from '../../../lib/helper/dynamic.field.helper';
 import { DYNAMIC_FORM_IMPORTS } from '../../../lib/dynamic-form/dynamic-form.imports';
 import { TranslateHelper } from '../../../lib/helper/translate.helper';
@@ -72,6 +68,9 @@ export class GTNetSecurityImportComponent
   extends SingleRecordMasterViewBase<GTNetSecurityImpHead, GTNetSecurityImpPos, GTNetSecurityImpHead>
   implements OnInit, OnDestroy
 {
+  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  private gtNetSecurityImpHeadService: GTNetSecurityImpHeadService = inject(GTNetSecurityImpHeadService);
+
   private static readonly MAIN_FIELD = 'idGtNetSecurityImpHead';
   private static readonly STORAGE_KEY_SELECTED_HEAD = 'selectedGtNetSecurityImpHead';
 
@@ -81,25 +80,12 @@ export class GTNetSecurityImportComponent
   private idTransactionHead: number = null;
   private readonly injector = inject(Injector);
 
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    private gtNetSecurityImpHeadService: GTNetSecurityImpHeadService,
-    gps: GlobalparameterService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    translateService: TranslateService
-  ) {
+  constructor() {
     super(
-      gps,
       HelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY,
       GTNetSecurityImportComponent.MAIN_FIELD,
       'GTNET_SECURITY_IMP_HEAD',
-      gtNetSecurityImpHeadService,
-      confirmationService,
-      messageToastService,
-      activePanelService,
-      translateService
+      inject(GTNetSecurityImpHeadService)
     );
 
     this.formConfig = { labelColumns: 2, nonModal: true };

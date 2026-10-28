@@ -34,6 +34,12 @@ import { BaseSettings } from '../../base.settings';
  */
 @Directive()
 export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> implements IGlobalMenuAttach {
+  protected gps: GlobalparameterService = inject(GlobalparameterService);
+  protected confirmationService: ConfirmationService = inject(ConfirmationService);
+  protected messageToastService: MessageToastService = inject(MessageToastService);
+  protected activePanelService: ActivePanelService = inject(ActivePanelService);
+  public translateService: TranslateService = inject(TranslateService);
+
   /** Signal-backed accessors preserve the property API used by all master-detail views. */
   protected readonly destroyRef = inject(DestroyRef);
   private menuSubscription?: Subscription;
@@ -113,26 +119,16 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
    * Shows a singe row of a array. If the value of the main field changes then others shown properties are
    * adjusted to this change.
    *
-   * @param gps Global parameter service.
    * @param helpId Identification for the help service
    * @param mainFieldId if the value of this input field changes, then other properties in the view will be changed as well
    * @param entityName Name of the entity, it is used for translation
    * @param deleteService Service which support deletion of a selected entity
-   * @param confirmationService Confirmation service
-   * @param messageToastService Toast message service
-   * @param activePanelService Service for active panel
-   * @param translateService Service for translation
    */
   protected constructor(
-    protected gps: GlobalparameterService,
     private helpId: string,
     private mainFieldId: string,
     private entityName: string,
-    protected deleteService: DeleteService,
-    protected confirmationService: ConfirmationService,
-    protected messageToastService: MessageToastService,
-    protected activePanelService: ActivePanelService,
-    public translateService: TranslateService
+    protected deleteService: DeleteService
   ) {
     this.destroyRef.onDestroy(() => this.activePanelService.destroyPanel(this));
   }

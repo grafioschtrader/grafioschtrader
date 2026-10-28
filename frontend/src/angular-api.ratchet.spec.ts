@@ -94,6 +94,14 @@ const FORM_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason
   }
 };
 
+/** The master-detail view chooses its identity fields, help page and deletion strategy. */
+const MASTER_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason: string }> = {
+  'app/lib/masterdetail/component/single.record.master.view.base.ts': {
+    parameters: ['helpId:string', 'mainFieldId:string', 'entityName:string', 'deleteService:DeleteService'],
+    reason: 'The concrete view chooses its help, master field, entity label and entity-specific deletion strategy.'
+  }
+};
+
 /** Follows inheritance across files, without matching constructor examples in comments or strings. */
 function hierarchyConstructorParameters(
   sources: Record<string, string>,
@@ -343,6 +351,20 @@ describe('Angular API ratchet', () => {
       'Resolve dialog dependencies with inject(). See frontend/CLAUDE.md.'
     ).toEqual(allowed);
     expect(Object.values(FORM_CONSTRUCTOR_PARAMETERS).every((entry) => entry.reason.length > 0)).toBe(true);
+  });
+
+  it('keeps only documented configuration parameters in the master-detail hierarchy', () => {
+    const sources = Object.fromEntries(
+      collectSources(SRC).map((file) => [path.relative(SRC, file).replace(/\\/g, '/'), fs.readFileSync(file, 'utf8')])
+    );
+    const allowed = Object.fromEntries(
+      Object.entries(MASTER_CONSTRUCTOR_PARAMETERS).map(([file, entry]) => [file, entry.parameters])
+    );
+    expect(
+      hierarchyConstructorParameters(sources, 'SingleRecordMasterViewBase'),
+      'Resolve master-detail dependencies with inject(). See frontend/CLAUDE.md.'
+    ).toEqual(allowed);
+    expect(Object.values(MASTER_CONSTRUCTOR_PARAMETERS).every((entry) => entry.reason.length > 0)).toBe(true);
   });
 
   it('matches change hooks and initialization flags without matching examples in comments or strings', () => {
