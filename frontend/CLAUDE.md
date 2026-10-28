@@ -148,6 +148,9 @@ periodic `ApplicationRef.tick()`.
   `pageFirstRowSelectedRow()`. Their edit dialogs use `TransactionBaseOperations`: initialise through
   `initializeAfterRender()`, bind streams with `untilDialogClosed()` and end the session on hide. Replace competing
   holdings, quotation and exchange-rate requests through `replaceDialogRequest()`.
+  `TransactionBaseOperations` resolves toast, currency-pair, history-quote, translation and settings services with
+  `inject()` fields. Cash and security editors inherit these fields and resolve their own services where used;
+  their constructors have no parameters and call `super()` when present. The Angular API ratchet covers this hierarchy.
 - **The `FormBase` hierarchy resolves dependencies with `inject()` fields.** `FormBase` holds form configuration;
   `SimpleEditBase` owns the global settings, and `SimpleEntityEditBase` owns translation and toast services.
   `SimpleDynamicEditBase` also resolves `DynamicDialogConfig` and `DynamicDialogRef` from the dynamic dialog's injector.

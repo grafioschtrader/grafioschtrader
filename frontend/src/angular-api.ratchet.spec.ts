@@ -367,6 +367,16 @@ describe('Angular API ratchet', () => {
     expect(Object.values(MASTER_CONSTRUCTOR_PARAMETERS).every((entry) => entry.reason.length > 0)).toBe(true);
   });
 
+  it('finds no constructor parameters in the transaction-dialog hierarchy', () => {
+    const sources = Object.fromEntries(
+      collectSources(SRC).map((file) => [path.relative(SRC, file).replace(/\\/g, '/'), fs.readFileSync(file, 'utf8')])
+    );
+    expect(
+      hierarchyConstructorParameters(sources, 'TransactionBaseOperations'),
+      'Resolve transaction-dialog dependencies with inject(). See frontend/CLAUDE.md.'
+    ).toEqual({});
+  });
+
   it('matches change hooks and initialization flags without matching examples in comments or strings', () => {
     expect(legacyChangeHandling('class Example { ngOnChanges() {} }')).toEqual({
       hook: true,

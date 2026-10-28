@@ -1,7 +1,6 @@
 import { Portfolio } from '../../entities/portfolio';
 import { Cashaccount } from '../../entities/cashaccount';
 import { TranslateService } from '@ngx-translate/core';
-import { AppSettings } from '../../shared/app.settings';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { Currencypair } from '../../entities/currencypair';
@@ -22,6 +21,12 @@ import { untilSessionEnds } from '../../lib/edit/dialog.session';
  */
 @Directive()
 export abstract class TransactionBaseOperations {
+  public messageToastService: MessageToastService = inject(MessageToastService);
+  public currencypairService: CurrencypairService = inject(CurrencypairService);
+  public historyquoteService: HistoryquoteService = inject(HistoryquoteService);
+  public translateService: TranslateService = inject(TranslateService);
+  protected gps: GlobalparameterService = inject(GlobalparameterService);
+
   protected readonly destroyRef = inject(DestroyRef);
   protected readonly injector = inject(Injector);
   private dialogSession = new Subscription();
@@ -41,19 +46,8 @@ export abstract class TransactionBaseOperations {
 
   /**
    * Creates a new TransactionBaseOperations instance with required services.
-   * @param messageToastService Service for displaying user notifications
-   * @param currencypairService Service for currency pair operations and data retrieval
-   * @param historyquoteService Service for historical quote data operations
-   * @param translateService Angular translation service for internationalization
-   * @param gps Global parameter service for application-wide settings
    */
-  protected constructor(
-    public messageToastService: MessageToastService,
-    public currencypairService: CurrencypairService,
-    public historyquoteService: HistoryquoteService,
-    public translateService: TranslateService,
-    protected gps: GlobalparameterService
-  ) {
+  protected constructor() {
     this.destroyRef.onDestroy(() => this.endDialogSession());
   }
 

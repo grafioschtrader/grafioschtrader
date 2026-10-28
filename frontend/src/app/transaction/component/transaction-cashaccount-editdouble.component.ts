@@ -1,11 +1,10 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { CashAccountTransfer, TransactionService } from '../service/transaction.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { TransactionCashaccountBaseOperations } from './transaction.cashaccount.base.operations';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { Portfolio } from '../../entities/portfolio';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
@@ -15,11 +14,8 @@ import { Transaction } from '../../entities/transaction';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { Helper } from '../../lib/helper/helper';
-import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { FormConfig } from '../../lib/dynamic-form/models/form.config';
-import { HistoryquoteService } from '../../historyquote/service/historyquote.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { FormDefinitionHelper } from '../../shared/edit/form.definition.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -66,6 +62,10 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TransactionCashaccountEditDoubleComponent extends TransactionCashaccountBaseOperations implements OnInit {
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private transactionService: TransactionService = inject(TransactionService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   // InputMask from parent view
   readonly visibleCashaccountTransactionDoubleDialog = input<boolean>(undefined);
   // @Input() transactionCallParam: TransactionCallParam;
@@ -93,17 +93,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   private debitChashaccountChangedSub: Subscription;
   private creditChashaccountChangedSub: Subscription;
 
-  constructor(
-    private portfolioService: PortfolioService,
-    private transactionService: TransactionService,
-    private gpsGT: GlobalparameterGTService,
-    messageToastService: MessageToastService,
-    currencypairService: CurrencypairService,
-    historyquoteService: HistoryquoteService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(messageToastService, currencypairService, historyquoteService, translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

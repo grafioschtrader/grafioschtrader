@@ -1,8 +1,6 @@
-import { Component, OnInit, signal, output, viewChild, input } from '@angular/core';
+import { Component, OnInit, signal, output, viewChild, input, inject } from '@angular/core';
 
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { Portfolio } from '../../entities/portfolio';
 import { Cashaccount } from '../../entities/cashaccount';
@@ -15,7 +13,6 @@ import { Transaction } from '../../entities/transaction';
 import { TransactionService } from '../service/transaction.service';
 import { AlgoAlertService } from '../../algo/service/algo-alert.service';
 import { SecurityOpenPositionPerSecurityaccount } from '../../entities/view/security.open.position.per.securityaccount';
-import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import { ITransactionEditType } from './i.transaction.edit.type';
 import { TransactionSecurityEditAccumulate } from './transaction.security.edit.accumulate';
 import {
@@ -23,13 +20,12 @@ import {
   TransactionSecurityEditFinanceCost
 } from './transaction.security.edit.reduce';
 import { SecurityaccountOpenPositionUnits } from '../../entities/view/securityaccount.open.position.units';
-import { HistoryquoteService } from '../../historyquote/service/historyquote.service';
 import moment from 'moment';
 import { ActivatedRoute } from '@angular/router';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { TransactionCallParam } from './transaction.call.parm';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { Helper } from '../../lib/helper/helper';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
@@ -105,6 +101,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
 export class TransactionSecurityEditComponent extends TransactionBaseOperations implements OnInit {
+  private transactionService: TransactionService = inject(TransactionService);
+  private algoAlertService: AlgoAlertService = inject(AlgoAlertService);
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private securityService: SecurityService = inject(SecurityService);
+  private activeRoute: ActivatedRoute = inject(ActivatedRoute);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+  private dialogService: DialogService = inject(DialogService);
+
   // InputMask from parent view
   readonly visibleSecurityTransactionDialog = input<boolean>(undefined);
   readonly transactionCallParam = input<TransactionCallParam>(undefined);
@@ -155,21 +159,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   // When this changes, the price of historyquote will be reloaded
   private historyquoteCheck = new ChangedIdSecurityAndTime();
 
-  constructor(
-    private transactionService: TransactionService,
-    private algoAlertService: AlgoAlertService,
-    private portfolioService: PortfolioService,
-    private securityService: SecurityService,
-    private activeRoute: ActivatedRoute,
-    private gpsGT: GlobalparameterGTService,
-    private dialogService: DialogService,
-    messageToastService: MessageToastService,
-    currencypairService: CurrencypairService,
-    historyquoteService: HistoryquoteService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(messageToastService, currencypairService, historyquoteService, translateService, gps);
+  constructor() {
+    super();
   }
 
   ngOnInit(): void {

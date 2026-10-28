@@ -1,4 +1,4 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { Portfolio } from '../../entities/portfolio';
@@ -6,7 +6,7 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ValidatorFn, Validators } from '@angular/forms';
 import { TransactionService } from '../service/transaction.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { Cashaccount } from '../../entities/cashaccount';
 import { gteWithMask, gteWithMaskIncludeNegative, gtDate } from '../../lib/validator/validator';
 import moment from 'moment';
@@ -16,10 +16,8 @@ import { RuleEvent } from '../../lib/dynamic-form/error/error.message.rules';
 import { TransactionCashaccountBaseOperations } from './transaction.cashaccount.base.operations';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { MessageToastService } from '../../lib/message/message.toast.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { FormDefinitionHelper } from '../../shared/edit/form.definition.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -64,6 +62,10 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class TransactionCashaccountEditSingleComponent extends TransactionCashaccountBaseOperations implements OnInit {
+  private portfolioService: PortfolioService = inject(PortfolioService);
+  private transactionService: TransactionService = inject(TransactionService);
+  private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
   /** Controls visibility of the cash account transaction dialog */
   readonly visibleCashaccountTransactionSingleDialog = input<boolean>(undefined);
 
@@ -94,21 +96,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
 
   /**
    * Creates an instance of TransactionCashaccountEditSingleComponent.
-   * @param portfolioService Service for portfolio operations
-   * @param transactionService Service for transaction operations
-   * @param messageToastService Service for displaying user messages
-   * @param translateService Angular translation service
-   * @param gps Global parameter service for application settings
    */
-  constructor(
-    private portfolioService: PortfolioService,
-    private transactionService: TransactionService,
-    private gpsGT: GlobalparameterGTService,
-    messageToastService: MessageToastService,
-    translateService: TranslateService,
-    gps: GlobalparameterService
-  ) {
-    super(messageToastService, null, null, translateService, gps);
+  constructor() {
+    super();
   }
 
   /**
