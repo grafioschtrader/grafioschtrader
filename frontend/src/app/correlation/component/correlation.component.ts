@@ -5,10 +5,12 @@ import {
   AfterViewInit,
   Component,
   computed,
+  effect,
   inject,
   Injector,
   OnDestroy,
   signal,
+  untracked,
   ViewChild
 } from '@angular/core';
 import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
@@ -39,6 +41,9 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { PanelModule } from '@openng/optimus-ui/panel';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
+import { httpResource } from '@angular/common/http';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 import { CorrelationSetEditComponent } from './correlation-set-edit.component';
 
@@ -73,6 +78,14 @@ import { CorrelationSetEditComponent } from './correlation-set-edit.component';
       </dynamic-form>
       <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
       <br />
+      @if (calculation.isLoading()) {
+        <div class="progress-bar-box">
+          <h4>{{ 'LOADING' | translate }}</h4>
+          <p-progressBar mode="indeterminate" [style]="{ height: '6px' }"></p-progressBar>
+        </div>
+      } @else if (calculation.error()) {
+        <p>{{ 'DATA_LOAD_FAILED' | translate }}</p>
+      }
       @if (timePeriod()) {
         <p>
           {{ 'TIME_PERIOD' | translate }} {{ timePeriod() }}
@@ -103,6 +116,7 @@ import { CorrelationSetEditComponent } from './correlation-set-edit.component';
     TranslateModule,
     PanelModule,
     ContextMenuModule,
+    ProgressBarModule,
     DynamicFormModule,
     CorrelationTableComponent,
     CorrelationSetEditComponent
@@ -150,11 +164,24 @@ export class CorrelationComponent
   /** Correlation limits and configuration settings */
   readonly correlationLimit = signal<CorrelationLimit>(null);
 
+  /**
+   * Correlation set whose matrix is calculated, undefined when nothing is to be calculated. Each publication is a new
+   * object, so saving or refreshing the same set calculates it again.
+   */
+  private readonly calculationTarget = signal<{ correlationSet: CorrelationSet } | undefined>(undefined);
+
+  /** Matrix of the calculation target. A newer target cancels a request that is still pending. */
+  readonly calculation = httpResource<CorrelationResult>(() => {
+    const target = this.calculationTarget();
+    return (
+      target && this.correlationSetService.getCalculationByCorrelationSetRequest(target.correlationSet.idCorrelationSet)
+    );
+  });
+
   /** Current correlation calculation results */
-  private readonly correlationResult = signal<CorrelationResult>(null);
+  private readonly correlationResult = computed(() => (this.calculation.hasValue() ? this.calculation.value() : null));
   private readonly injector = inject(Injector);
   private readSubscription?: Subscription;
-  private calculationSubscription?: Subscription;
   private correlationMenuSubscription?: Subscription;
 
   /** Helper class for correlation form configuration and value changes */
@@ -202,6 +229,15 @@ export class CorrelationComponent
       SamplingPeriodType,
       null
     );
+    reportResourceErrors(this.calculation, this.correlationSetService);
+    effect(() => {
+      const result = this.correlationResult();
+      if (result) {
+        untracked(() =>
+          this.correlationTableComponent.parentSelectionChanged(this.calculationTarget().correlationSet, result)
+        );
+      }
+    });
   }
 
   /**
@@ -330,19 +366,11 @@ export class CorrelationComponent
    * @param calculate - Whether to perform correlation calculation
    */
   setChildDataAndCalculateWhenPossible(selectedEntity: CorrelationSet, calculate: boolean): void {
-    this.calculationSubscription?.unsubscribe();
-    this.correlationResult.set(null);
     this.childEntityList = selectedEntity?.securitycurrencyList ?? [];
     this.correlationTableComponent.parentSelectionChanged(selectedEntity, null);
-    if (selectedEntity?.securitycurrencyList.length >= 2 && calculate) {
-      this.calculationSubscription = this.correlationSetService
-        .getCalculationByCorrelationSet(selectedEntity.idCorrelationSet)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((result) => {
-          this.correlationResult.set(result);
-          this.correlationTableComponent.parentSelectionChanged(selectedEntity, result);
-        });
-    }
+    this.calculationTarget.set(
+      selectedEntity?.securitycurrencyList.length >= 2 && calculate ? { correlationSet: selectedEntity } : undefined
+    );
   }
 
   /**

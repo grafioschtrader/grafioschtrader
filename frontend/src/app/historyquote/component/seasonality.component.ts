@@ -1,11 +1,22 @@
-import { afterNextRender, Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  OnInit,
+  signal,
+  untracked,
+  ViewChild
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { httpResource } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { MenuItem } from '@openng/optimus-ui/api';
-import { Subscription } from 'rxjs';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
@@ -16,10 +27,19 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { SeasonalPeriodType, SeasonalReturnsResult } from '../../entities/seasonal.returns.result';
 import { AppHelpIds } from '../../shared/help/help.ids';
 import { SeasonalityTableComponent } from './seasonality-table.component';
+
+/** Inputs of one seasonal return matrix: the instrument from the route and the three form controls. */
+interface SeasonalReturnsParams {
+  idSecuritycurrency: number;
+  periodType: SeasonalPeriodType;
+  includeDividends: boolean;
+  inTenantCurrency: boolean;
+}
 
 /**
  * Seasonality heat map for a single security or currency pair. Peer of the EOD chart and the history-quote table in
@@ -45,17 +65,22 @@ import { SeasonalityTableComponent } from './seasonality-table.component';
         #form="dynamicForm">
       </dynamic-form>
 
-      @if (loading()) {
+      @if (seasonalReturns.isLoading()) {
         <div class="progress-bar-box">
           <h4>{{ 'LOADING' | translate }}</h4>
           <p-progressBar mode="indeterminate" [style]="{ height: '6px' }"></p-progressBar>
         </div>
+      } @else if (seasonalReturns.error()) {
+        <p>{{ 'DATA_LOAD_FAILED' | translate }}</p>
       }
 
       @if (result(); as result) {
         <p>
           <strong>{{ 'CURRENCY' | translate }}:</strong> {{ result.currency }}
         </p>
+        @if (result.yearRows.length === 0) {
+          <p>{{ 'NO_DATA_AVAILABLE' | translate }}</p>
+        }
       }
 
       <seasonality-table [result]="result()"></seasonality-table>
@@ -67,15 +92,30 @@ import { SeasonalityTableComponent } from './seasonality-table.component';
 export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMenuAttach {
   @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
 
-  readonly result = signal<SeasonalReturnsResult>(null);
-  readonly loading = signal(false);
   menuItems: MenuItem[] = [];
+
+  /** Inputs of the displayed matrix; undefined until both the instrument and the form controls are known. */
+  private readonly seasonalParams = signal<SeasonalReturnsParams | undefined>(undefined);
+
+  /** Matrix of the current inputs. Every new inputs object cancels a request that is still pending. */
+  readonly seasonalReturns = httpResource<SeasonalReturnsResult>(() => {
+    const params = this.seasonalParams();
+    return (
+      params &&
+      this.securityService.getSeasonalReturnsRequest(
+        params.idSecuritycurrency,
+        params.periodType,
+        params.includeDividends,
+        params.inTenantCurrency
+      )
+    );
+  });
+
+  readonly result = computed(() => (this.seasonalReturns.hasValue() ? this.seasonalReturns.value() : null));
 
   private idSecuritycurrency: number;
   private formReady = false;
   private readonly destroyRef = inject(DestroyRef);
-  /** Request of the current inputs; a newer input or instrument replaces a request that is still pending. */
-  private reloadSubscription: Subscription;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -89,7 +129,13 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
     this.formConfig.labelColumns = 2;
     // The dynamic-form builds its FormGroup in its own ngOnInit, so the form controls exist after the first render.
     afterNextRender(() => this.initializeControls());
-    this.destroyRef.onDestroy(() => this.reloadSubscription?.unsubscribe());
+    reportResourceErrors(this.seasonalReturns, this.securityService);
+    effect(() => {
+      const result = this.result();
+      if (result) {
+        untracked(() => this.applyCapabilities(result));
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -162,19 +208,14 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
       );
   }
 
+  /** Publishes the current inputs as a new object, so even unchanged inputs request the matrix again. */
   private reload(): void {
-    this.loading.set(true);
-    const periodType: SeasonalPeriodType = this.configObject.periodType.formControl.value;
-    const includeDividends = !!this.configObject.includeDividends.formControl.value;
-    const inTenantCurrency = !!this.configObject.inTenantCurrency.formControl.value;
-    this.reloadSubscription?.unsubscribe();
-    this.reloadSubscription = this.securityService
-      .getSeasonalReturns(this.idSecuritycurrency, periodType, includeDividends, inTenantCurrency)
-      .subscribe((result) => {
-        this.result.set(result);
-        this.applyCapabilities(result);
-        this.loading.set(false);
-      });
+    this.seasonalParams.set({
+      idSecuritycurrency: this.idSecuritycurrency,
+      periodType: this.configObject.periodType.formControl.value,
+      includeDividends: !!this.configObject.includeDividends.formControl.value,
+      inTenantCurrency: !!this.configObject.inTenantCurrency.formControl.value
+    });
   }
 
   /** Enables or disables the dividend and currency toggles based on what the instrument supports. */

@@ -5,7 +5,7 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { SecurityOpenPositionPerSecurityaccount } from '../../entities/view/security.open.position.per.securityaccount';
 import { Observable } from 'rxjs';
 import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpResourceRequest } from '@angular/common/http';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -23,7 +23,7 @@ import { SecurityCurrencypairDerivedLinks } from '../model/security.currencypair
 import { SecurityDataProviderUrls } from '../model/security.data.provider.urls';
 import { SecurityCurrencyService } from './security.currency.service';
 import { InstrumentStatisticsResult } from '../../entities/view/instrument.statistics.result';
-import { SeasonalPeriodType, SeasonalReturnsResult } from '../../entities/seasonal.returns.result';
+import { SeasonalPeriodType } from '../../entities/seasonal.returns.result';
 import moment from 'moment';
 import { ITaskExtendService } from '../../lib/taskdatamonitor/component/itask.extend.service';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
@@ -278,22 +278,27 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     );
   }
 
-  getSeasonalReturns(
+  /**
+   * Builds the request of the seasonal return matrix for an `httpResource` returning a `SeasonalReturnsResult`. Its
+   * failures are reported through `handleResourceError`.
+   *
+   * @param idSecuritycurrency the analysed security or currency pair
+   * @param periodType month or quarter columns
+   * @param includeDividends whether the returns include dividends; ignored by the server when none are available
+   * @param inTenantCurrency whether the returns are converted to the tenant's main currency
+   * @returns the GET request of the matrix
+   */
+  getSeasonalReturnsRequest(
     idSecuritycurrency: number,
     periodType: SeasonalPeriodType,
     includeDividends: boolean,
     inTenantCurrency: boolean
-  ): Observable<SeasonalReturnsResult> {
-    const httpParams = new HttpParams()
-      .append('periodType', periodType)
-      .append('includeDividends', includeDividends)
-      .append('inTenantCurrency', inTenantCurrency);
-    return <Observable<SeasonalReturnsResult>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}` + `${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/seasonalreturns`, {
-        headers: this.prepareHeaders(),
-        params: httpParams
-      })
-      .pipe(catchError(this.handleError.bind(this)));
+  ): HttpResourceRequest {
+    return {
+      url: `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/seasonalreturns`,
+      headers: this.prepareHeaders(),
+      params: { periodType, includeDividends, inTenantCurrency }
+    };
   }
 
   private getDateFromAndTo(dateFrom: Date | string, dateTo: Date | string, httpHeaders: HttpHeaders) {

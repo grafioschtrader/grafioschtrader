@@ -108,6 +108,32 @@ test('replaces an obsolete calculation and clears results for an empty set', asy
   await expect(page.locator('.data-container > p')).toHaveCount(0);
 });
 
+test('reports a failed calculation once and clears the failure for the next set', async ({ page }) => {
+  await fixture(page);
+  let failures = 0;
+  await page.route('**/api/correlationset/calculation/*', (route) => {
+    if (!route.request().url().endsWith('/910001')) {
+      return route.fulfill({ json: result(0.84) });
+    }
+    failures++;
+    return route.fulfill({
+      status: 400,
+      json: { className: 'ValidationError', error: { fieldErrors: [{ field: 'rolling', message: 'rejected' }] } }
+    });
+  });
+  const failure = page.getByText(/The data could not be loaded\.|Die Daten konnten nicht geladen werden\./);
+  const toasts = page.locator('.p-toast-message-error');
+  await choose(page, 910001);
+  await expect(toasts).toHaveCount(1);
+  await expect(failure).toBeVisible();
+  await toasts.locator('.p-toast-close-button').click();
+  await choose(page, 910002);
+  await expect(matrix(page).getByText(/0[.,]84/, { exact: true })).toHaveCount(2);
+  await expect(failure).toHaveCount(0);
+  await expect(toasts).toHaveCount(0);
+  expect(failures).toBe(1);
+});
+
 test('keeps the newer selected set and draft when an earlier save finishes', async ({ page }) => {
   await fixture(page);
   const saved = gate();

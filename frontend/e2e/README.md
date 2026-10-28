@@ -466,7 +466,8 @@ focus stealing a name entry into the ISIN field; the test checks the entered nam
 
 `081-correlation-notification.spec.ts` covers the OnPush master, matrix table, set editor and chart with fresh
 browser-local set/limit/calculation/save/rolling responses. It supersedes a delayed calculation, clears an empty
-set, changes selection during a pending save, reopens the editor with rebuilt rolling options, and switches
+set, reports a rejected calculation with one toast and the load-failure text that the next set's matrix replaces,
+changes selection during a pending save, reopens the editor with rebuilt rolling options, and switches
 between chart modes, pending results, missing closes and no data. No correlation set, instrument, quote or
 transaction is persisted, so it needs only the existing fixture login and no database cleanup. The search case
 checks that the OnPush search dialog shows a delayed search result below the converted matrix host, adds the selected
@@ -1179,7 +1180,13 @@ live view. Nothing is written to the database. Run it with
 as `alledit`. The seasonal returns are intercepted with fixed figures. The first monthly response is held, so the
 progress bar and then the 14 columns must follow its delivery; the capability flags of the response disable the
 main-currency toggle. Switching to quarterly and back to monthly while the quarterly request is still pending must keep
-the monthly table when the quarterly answer arrives late. Nothing is written to the database. Run it with
+the monthly table when the quarterly answer arrives late. The view reads through an `httpResource`, so the spec also
+covers its error reporting: a rejected request shows one toast and the load-failure text, the closed toast does not
+return, and the failed retry shows a new one. Every rejection carries its own text, because the toast outlet hides a
+message identical to one still open, and the retry is selected with `selectOption` alone, because
+`selectDynamicFormOptionByText` dispatches a second `change` and with it a second request. An `ErrorWithLogout` and an
+`ErrorWithLogoutAdmin` answer — the former is what an expired token produces — each show one toast and log out.
+Nothing is written to the database. Run it with
 `npx playwright test e2e/064-seasonality-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## Derived instrument spec (065-*)

@@ -1,14 +1,13 @@
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import {
   CorrelationLimit,
-  CorrelationResult,
   CorrelationRollingResult,
   CorrelationSet,
   SamplingPeriodType
 } from '../../entities/correlation.set';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { LoginService } from '../../lib/login/service/log-in.service';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResourceRequest } from '@angular/common/http';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Injectable } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
@@ -39,15 +38,18 @@ export class CorrelationSetService
     );
   }
 
-  getCalculationByCorrelationSet(idCorrelationSet: number): Observable<CorrelationResult> {
-    return <Observable<CorrelationResult>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.CORRELATION_SET_KEY}/calculation/${idCorrelationSet}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+  /**
+   * Builds the request of the correlation matrix for an `httpResource` returning a `CorrelationResult`. Its
+   * failures are reported through `handleResourceError`.
+   *
+   * @param idCorrelationSet the correlation set to calculate
+   * @returns the GET request of the calculation
+   */
+  getCalculationByCorrelationSetRequest(idCorrelationSet: number): HttpResourceRequest {
+    return {
+      url: `${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/calculation/${idCorrelationSet}`,
+      headers: this.prepareHeaders()
+    };
   }
 
   update(correlationSet: CorrelationSet) {

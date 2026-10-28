@@ -1027,6 +1027,25 @@ Public endpoints (login, registration, token verification, release notes, transl
 and user form definitions) set `context: new HttpContext().set(SKIP_AUTH_HEADERS, true)` even if a session token exists.
 Keep `withXhr()` for upload progress. Error toasts and logout mapping stay in `BaseAuthService`, outside the interceptor.
 
+### `httpResource` for signal-driven reads
+
+Use `httpResource` only for an idempotent GET whose URL or parameters derive from signals, whose view owns loading,
+error and empty state, and where a newer parameter value supersedes a pending request. CUD, uploads, downloads,
+WebSocket or application event streams, form `valueChanges` pipelines, caches shared by several screens and sequences
+combined with RxJS stay on the observable methods of the services.
+
+- The owning service keeps URL construction in a pure `get…Request()` method returning an `HttpResourceRequest`, with
+  `prepareHeaders()` for the media headers; public requests also set `SKIP_AUTH_HEADERS` in its `context`.
+- The component calls `reportResourceErrors(resource, service)` (`lib/login/service/resource.error.report.ts`) in its
+  constructor. It passes each failed request exactly once to `BaseAuthService.handleResourceError`, which shows the same
+  toast and performs the same logout as `handleError`, so the template shows its error state without a toast of its own.
+  A request superseded by a parameter change is aborted and is no error.
+- Read the result through `hasValue()` before `value()`, because `value()` throws in the error state.
+- A signal does not notify for an equal reference: to request unchanged inputs again — after a save, or because the
+  user repeats a choice — publish them as a new object.
+
+References: `SeasonalityComponent`, `CorrelationComponent`.
+
 ## Lazy Loading and Bundle Size
 
 The application bootstraps standalone (`src/main.ts` → `bootstrapApplication(AppComponent, appConfig)`, providers in

@@ -50,6 +50,28 @@ export abstract class BaseAuthService<T> extends BaseService {
   }
 
   protected handleError(error: HttpErrorResponse | any): Observable<TransformedError> {
+    const transformedError = this.reportError(error);
+    return throwError(() => transformedError);
+  }
+
+  /**
+   * Reports the failure of an `httpResource` read exactly as a failed observable request: the same toast, and a logout
+   * for `ErrorWithLogout` / `ErrorWithLogoutAdmin`. The caller passes each failed request once, normally through
+   * `reportResourceErrors`, because every call shows a toast.
+   *
+   * @param error the value of the resource's `error()` signal, typically an `HttpErrorResponse`
+   */
+  handleResourceError(error: HttpErrorResponse | any): void {
+    this.reportError(error);
+  }
+
+  /**
+   * Maps a failed request to a TransformedError, shows it as an error toast and logs out when the server demands it.
+   *
+   * @param error the error of the request, typically an `HttpErrorResponse`
+   * @returns the transformed error the toast was built from
+   */
+  private reportError(error: HttpErrorResponse | any): TransformedError {
     let transformedError: TransformedError = new TransformedError();
     if (error instanceof HttpErrorResponse) {
       const body = error.error;
@@ -81,8 +103,7 @@ export abstract class BaseAuthService<T> extends BaseService {
     } else {
       this.messageToastService.showMessage(InfoLevelType.ERROR, transformedError.msg);
     }
-
-    return throwError(() => transformedError);
+    return transformedError;
   }
 
   /**

@@ -4,8 +4,9 @@ import { watchlistTable } from './watchlist.helpers';
 import { selectDynamicFormOptionByText } from './dynamic-form.helpers';
 
 /**
- * Change notification of the seasonality heat map of Nestlé in the Switzerland watchlist of 060. The seasonal returns
- * are intercepted with fixed figures, so the spec reads and writes nothing in grafioschtrader_t.
+ * Change notification and error reporting of the seasonality heat map of Nestlé in the Switzerland watchlist of 060,
+ * which reads its matrix through an httpResource. The seasonal returns are intercepted with fixed figures or errors,
+ * so the spec reads and writes nothing in grafioschtrader_t.
  */
 const WATCHLIST_NAME = 'Switzerland';
 const SECURITY_RX = /Nestl.+AG/;
@@ -71,8 +72,8 @@ async function interceptSeasonalReturns(page: Page) {
   return { release: (key: string) => gates[key](), arrived };
 }
 
-test('delayed heat map, capability toggles and a superseded period request', async ({ page }) => {
-  const seasonal = await interceptSeasonalReturns(page);
+/** Opens the heat map of Nestlé through the context menu of the watchlist. */
+async function openSeasonality(page: Page): Promise<void> {
   const security = page.locator('td').filter({ hasText: SECURITY_RX }).first();
   await security.click();
   await security.click({ button: 'right' });
@@ -81,6 +82,11 @@ test('delayed heat map, capability toggles and a superseded period request', asy
     .getByText(/^(Seasonality|Saisonalität)$/)
     .first()
     .click();
+}
+
+test('delayed heat map, capability toggles and a superseded period request', async ({ page }) => {
+  const seasonal = await interceptSeasonalReturns(page);
+  await openSeasonality(page);
 
   await seasonal.arrived['MONTHLY'];
   const view = page.locator('seasonality-table').locator('..');
@@ -106,3 +112,52 @@ test('delayed heat map, capability toggles and a superseded period request', asy
   await expect(headers).toHaveCount(14);
   await expect(page.locator('seasonality-table tbody tr')).toHaveCount(2);
 });
+
+test('a rejected request shows one toast and the failed retry a new one', async ({ page }) => {
+  // Each answer carries its own text, because the toast outlet hides a message identical to one still open.
+  let requests = 0;
+  await page.route('**/api/security/*/seasonalreturns*', (route: Route) => {
+    requests++;
+    return route.fulfill({
+      status: 400,
+      json: {
+        className: 'ValidationError',
+        error: { fieldErrors: [{ field: 'periodType', message: `rejected ${requests}` }] }
+      }
+    });
+  });
+  await openSeasonality(page);
+
+  const toasts = page.locator('.p-toast-message-error');
+  await expect(toasts).toHaveCount(1);
+  await expect(toasts).toContainText('rejected 1');
+  await expect(page.getByText(/The data could not be loaded\.|Die Daten konnten nicht geladen werden\./)).toBeVisible();
+  await expect(page.locator('seasonality-table th')).toHaveCount(0);
+  // Once closed, the toast of this failure must not come back from a later evaluation of the resource.
+  await toasts.locator('.p-toast-close-button').click();
+  await expect(toasts).toHaveCount(0);
+  await page.waitForTimeout(500);
+  await expect(toasts).toHaveCount(0);
+
+  // selectOption fires a single change; selectDynamicFormOptionByText dispatches a second one, i.e. a second request.
+  await page.locator('dynamic-form select#periodType').selectOption('QUARTERLY');
+  await expect(toasts).toHaveCount(1);
+  await expect(toasts).toContainText('rejected 2');
+  await page.waitForTimeout(500);
+  await expect(toasts).toHaveCount(1);
+  expect(requests).toBe(2);
+  expect(await page.evaluate(() => sessionStorage.getItem('jwt'))).toBeTruthy();
+});
+
+for (const className of ['ErrorWithLogout', 'ErrorWithLogoutAdmin']) {
+  test(`a ${className} response, as sent for an expired token, logs out once`, async ({ page }) => {
+    await page.route('**/api/security/*/seasonalreturns*', (route: Route) =>
+      route.fulfill({ status: 401, json: { className, error: {} } })
+    );
+    await openSeasonality(page);
+
+    await expect(page.locator('.p-toast-message-error')).toHaveCount(1);
+    await page.waitForURL(/\/login/);
+    expect(await page.evaluate(() => sessionStorage.getItem('jwt'))).toBeNull();
+  });
+}
