@@ -456,7 +456,7 @@ export interface ValidationErrorEvent<T> {
     </div>
   `
 })
-export class EditableTableComponent<T = any> {
+export class EditableTableComponent<T extends object = any> {
   private translateService = inject(TranslateService);
 
   protected readonly toClassString = toClassString;
@@ -489,7 +489,7 @@ export class EditableTableComponent<T = any> {
   readonly fieldsRevision = input(0);
 
   /** Property name used as the unique identifier for each row (required) */
-  readonly dataKey = input<string>(undefined);
+  readonly dataKey = input<string>();
 
   // ============================================================================
   // Selection Configuration
@@ -523,7 +523,7 @@ export class EditableTableComponent<T = any> {
   readonly enableCustomSort = input(true);
 
   /** Callback function for custom sorting logic */
-  readonly customSortFn = input<(event: SortEvent) => void>(undefined);
+  readonly customSortFn = input<(event: SortEvent) => void>();
 
   // ============================================================================
   // Visual Styling
@@ -582,7 +582,7 @@ export class EditableTableComponent<T = any> {
   // ============================================================================
 
   /** Custom function to retrieve cell values for display */
-  readonly valueGetterFn = input<(row: T, field: ColumnConfig) => any>(undefined);
+  readonly valueGetterFn = input<(row: T, field: ColumnConfig) => any>();
 
   /** Locale configuration for date formatting */
   readonly baseLocale = input<BaseLocale>({ language: 'en', dateFormat: 'yy-mm-dd' });
@@ -592,10 +592,10 @@ export class EditableTableComponent<T = any> {
    * user's GT number formatting (GlobalparameterService.getLocale()). Falls back to the runtime default when
    * not set.
    */
-  readonly numberLocale = input<string>(undefined);
+  readonly numberLocale = input<string>();
 
   /** Callback to determine if a numeric value is negative (for red/green coloring) */
-  readonly negativeValueFn = input<(row: T, field: ColumnConfig) => boolean>(undefined);
+  readonly negativeValueFn = input<(row: T, field: ColumnConfig) => boolean>();
 
   // ============================================================================
   // Edit-Specific Configuration
@@ -608,19 +608,19 @@ export class EditableTableComponent<T = any> {
   readonly editColumnWidth = input(100);
 
   /** Callback to determine if a specific row can be edited */
-  readonly canEditRowFn = input<(row: T) => boolean>(undefined);
+  readonly canEditRowFn = input<(row: T) => boolean>();
 
   /** Callback to determine if a specific row can be deleted. When set, shows a trash button per row. */
-  readonly canDeleteRowFn = input<(row: T) => boolean>(undefined);
+  readonly canDeleteRowFn = input<(row: T) => boolean>();
 
   /** Callback to validate row before saving. Return true if valid. */
-  readonly validateRowFn = input<(row: T) => boolean>(undefined);
+  readonly validateRowFn = input<(row: T) => boolean>();
 
   /** Factory function to create new row entities */
-  readonly createNewEntityFn = input<() => T>(undefined);
+  readonly createNewEntityFn = input<() => T>();
 
   /** Field to focus when auto-starting edit on a new row */
-  readonly autoEditField = input<string>(undefined);
+  readonly autoEditField = input<string>();
 
   /** Whether to show inline validation error messages */
   readonly showValidationErrors = input(true);
@@ -650,10 +650,10 @@ export class EditableTableComponent<T = any> {
   readonly expandable = input(false);
 
   /** Template for expanded row content. Receives the row data as context. */
-  readonly expandedRowTemplate = input<TemplateRef<any>>(undefined);
+  readonly expandedRowTemplate = input<TemplateRef<any>>();
 
   /** Callback function to determine if a specific row can be expanded. */
-  readonly canExpandFn = input<(row: T) => boolean>(undefined);
+  readonly canExpandFn = input<(row: T) => boolean>();
 
   /** Width in pixels of the expansion toggle column. */
   readonly expansionColumnWidth = input(24);
@@ -918,16 +918,17 @@ export class EditableTableComponent<T = any> {
   /** Adds a new row and starts editing */
   addNewRow(): void {
     const createNewEntityFn = this.createNewEntityFn();
-    if (!createNewEntityFn) {
+    const dataKey = this.dataKey();
+    if (!createNewEntityFn || dataKey == null) {
       return;
     }
 
     const newEntity = createNewEntityFn();
     const tempKey = -++this.newRowCounter;
 
-    // Assign temporary key if dataKey is null/undefined
-    if (newEntity[this.dataKey() as keyof T] == null) {
-      Object.assign(newEntity, { [this.dataKey()]: tempKey });
+    // Assign a temporary key only when the row has no identifier.
+    if (Reflect.get(newEntity, dataKey) == null) {
+      Reflect.set(newEntity, dataKey, tempKey);
     }
 
     const rowKey = this.getRowKey(newEntity);

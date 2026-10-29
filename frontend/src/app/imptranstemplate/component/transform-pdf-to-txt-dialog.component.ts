@@ -1,6 +1,7 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -31,7 +32,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   </p-dialog>`,
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements OnInit {
+export class TransformPdfToTxtDialogComponent extends SimpleFormEditBase implements OnInit {
   private importTransactionPlatformService: ImportTransactionPlatformService = inject(ImportTransactionPlatformService);
   public translateService: TranslateService = inject(TranslateService);
 
@@ -58,7 +59,7 @@ export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements 
   }
 
   async copyToClipboard(event: unknown) {
-    await navigator.clipboard.writeText(this.configObject.templateAsTxt.formControl.value);
+    await navigator.clipboard.writeText(requireFormControl(this.configObject.templateAsTxt).value);
   }
 
   handleFileInput(files: FileList) {
@@ -67,7 +68,7 @@ export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements 
       .uploadAndTransformPDFToTxt(files.item(0))
       .pipe(this.untilDialogClosed())
       .subscribe((txt: string) => {
-        this.configObject.templateAsTxt.formControl.setValue(txt);
+        requireFormControl(this.configObject.templateAsTxt).setValue(txt);
       });
   }
 

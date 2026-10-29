@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { afterNextRender, Component, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule } from '@ngx-translate/core';
@@ -62,11 +63,13 @@ export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent
             this.preparePasswordFields();
             this.resetToEmailEntry(true);
             // Editing the e-mail after a check re-opens the check so the grant always reflects a checked address.
-            this.configObject.email.formControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-              if (this.checked) {
-                this.resetToEmailEntry(false);
-              }
-            });
+            requireFormControl(this.configObject.email)
+              .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe(() => {
+                if (this.checked) {
+                  this.resetToEmailEntry(false);
+                }
+              });
           },
           { injector: this.injector }
         );
@@ -99,9 +102,9 @@ export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent
 
   /** Resolves the recipient status, then locks the e-mail / check button and reveals the password only when needed. */
   private checkExistence(): void {
-    const email = (this.configObject.email.formControl.value || '').trim();
-    if (!email || this.configObject.email.formControl.invalid) {
-      this.configObject.email.formControl.markAsTouched();
+    const email = (requireFormControl(this.configObject.email).value || '').trim();
+    if (!email || requireFormControl(this.configObject.email).invalid) {
+      requireFormControl(this.configObject.email).markAsTouched();
       return;
     }
     this.manageClientService.checkRecipientStatus(email).subscribe((response) => {
@@ -152,12 +155,12 @@ export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent
     this.configObject.email.readonly = false;
     this.configObject.checkExistence.disabled = false;
     if (clearEmail) {
-      this.configObject.email.formControl.setValue(null);
+      requireFormControl(this.configObject.email).setValue(null);
     }
     AppHelper.disableAndHideInput(this.configObject.password);
     AppHelper.disableAndHideInput(this.configObject.passwordConfirm);
-    this.configObject.password.formControl.setValue(null);
-    this.configObject.passwordConfirm.formControl.setValue(null);
+    requireFormControl(this.configObject.password).setValue(null);
+    requireFormControl(this.configObject.passwordConfirm).setValue(null);
     this.configObject.submit.disabled = true;
     if (clearEmail) {
       setTimeout(() => this.configObject.email.elementRef.nativeElement.focus());

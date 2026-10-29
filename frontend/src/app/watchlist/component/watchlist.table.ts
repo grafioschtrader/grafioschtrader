@@ -217,7 +217,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * Values of the selected row shown in the caption of the table, null when the watchlist type has no such line or it
    * is switched off.
    */
-  readonly positionHeaderFields = signal<ColumnConfig[]>(null);
+  readonly positionHeaderFields = signal<ColumnConfig[] | null>(null);
 
   /** Parameters for UDF general dialogs. */
   uDFGeneralCallParam: UDFGeneralCallParam;
@@ -1436,6 +1436,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {Securitycurrency} securitycurrency - Security or currency entity whose creator will receive the message
    */
   private mailToCreator(securitycurrency: Securitycurrency): void {
+    const creator = securitycurrency.createdBy;
+    if (creator == null) return;
     const subject =
       securitycurrency instanceof CurrencypairWatchlist
         ? (<CurrencypairWatchlist>securitycurrency).name
@@ -1444,14 +1446,16 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       this.translateService,
       this.dialogService,
       new MailSendParam(
-        securitycurrency.createdBy,
+        creator,
         null,
         subject,
         undefined,
         AppSettings.SECURITYCURRENCY,
         securitycurrency.idSecuritycurrency
       )
-    );
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
   /**
@@ -1468,7 +1472,9 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       this.translateService,
       this.dialogService,
       new MailSendParam(0, null, subject, BaseSettings.ROLE_ADMIN)
-    );
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
   /** Handles price update with timeout check to prevent excessive API calls. */

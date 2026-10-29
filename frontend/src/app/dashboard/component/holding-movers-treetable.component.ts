@@ -40,7 +40,7 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase {
   readonly ranking = input<HoldingMoversRanking>('byPercentage');
 
   /** Currency of the amount column; a movers card reports one currency for the whole client. */
-  readonly currency = input<string>(undefined);
+  readonly currency = input<string>();
 
   /** Branch codes the reader has open, owned by the card so both tables of a card open together. */
   readonly expanded = input<string[]>([]);

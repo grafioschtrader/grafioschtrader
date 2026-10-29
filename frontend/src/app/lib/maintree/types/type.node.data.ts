@@ -9,9 +9,9 @@ export class TypeNodeData {
   constructor(
     public treeNodeType: string,
     public route: string,
-    public id: number,
-    public parentObject: string,
-    public entityObject?: string,
+    public id: number | null | undefined,
+    public parentObject: string | null,
+    public entityObject?: string | null,
     public useQueryParams?: boolean
   ) {}
 }

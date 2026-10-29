@@ -179,7 +179,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   readonly pendingExclusions = signal<Set<number>>(new Set());
   private menuRequest: Subscription;
   readonly year = input<number>(undefined);
-  readonly filterTransactionsToYearEnd = input<boolean>(undefined);
+  readonly filterTransactionsToYearEnd = input<boolean>();
 
   /**
    * Expansion state of the security rows, keyed by {@code security.idSecuritycurrency}. The object is owned by the

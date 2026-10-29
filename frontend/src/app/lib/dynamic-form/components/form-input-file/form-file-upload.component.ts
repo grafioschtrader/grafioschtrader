@@ -26,15 +26,13 @@ import { ReactiveFormsModule } from '@angular/forms';
   imports: [ReactiveFormsModule]
 })
 export class FormFileUploadComponent extends BaseInputComponent {
-  fileToUpload: File = null;
+  fileToUpload: File | null = null;
 
   handleChangeFileInput(files: FileList) {
-    if (this.config().handleChangeFileInputFN) {
-      this.config().handleChangeFileInputFN(files);
-    }
+    this.config().handleChangeFileInputFN?.(files);
   }
 
   override reEvaluateRequired(): void {
-    this.isRequired = this.config().validation && this.config().validation.indexOf(FileRequiredValidator.validate) >= 0;
+    this.isRequired = this.config().validation?.includes(FileRequiredValidator.validate) ?? false;
   }
 }

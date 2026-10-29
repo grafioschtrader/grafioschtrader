@@ -22,10 +22,10 @@ export class InputRule {
   static readonly RULE_ENUM = 'enum';
   static readonly RULE_PATTERN = 'pattern';
 
-  min: number = null;
-  max: number = null;
-  enumValues: number[] = null;
-  pattern: string = null;
+  min: number | null = null;
+  max: number | null = null;
+  enumValues: number[] | null = null;
+  pattern: string | null = null;
 
   private constructor() {}
 
@@ -35,7 +35,7 @@ export class InputRule {
    * @param inputRule the DSL string (e.g., "min:1,max:99" or "enum:1,7,12,365")
    * @returns parsed InputRule object, or null if inputRule is null or empty
    */
-  static parse(inputRule: string): InputRule | null {
+  static parse(inputRule: string | null | undefined): InputRule | null {
     if (!inputRule || inputRule.trim() === '') {
       return null;
     }

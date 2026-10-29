@@ -14,7 +14,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 })
 export class InstrumentYearPerformanceTableComponent extends TableConfigBase implements OnInit {
   readonly values = input<LastYears[]>(undefined);
-  readonly mainCurrency = input<string>(undefined);
+  readonly mainCurrency = input<string>();
   datakey = 'year';
   groupTitle = 'CALENDAR_YEAR_RETURN';
   titleRemark = 'ALL_EOD_AND_DIVIDEND';

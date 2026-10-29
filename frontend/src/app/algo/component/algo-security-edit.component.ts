@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { switchMap, combineLatest, Observable } from 'rxjs';
 import { Component, OnInit, inject } from '@angular/core';
 import { AlgoSecurity } from '../model/algo.security';
@@ -114,8 +115,8 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
           this.setAccountOptions(data[1]);
         }
         // The allowed accounts follow the instrument type of the selected security.
-        this.configObject.security.formControl.valueChanges
-          .pipe(
+        requireFormControl(this.configObject.security)
+          .valueChanges.pipe(
             distinctUntilChanged(),
             switchMap((id: number) => this.getAccountOptions(id || undefined)),
             this.untilDialogClosed()

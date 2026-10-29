@@ -1,3 +1,4 @@
+import { requireFieldName, requireFormControl } from '../dynamic-form/models/form-control-access';
 import { DataType } from '../dynamic-form/models/data.type';
 import { InputType } from '../dynamic-form/models/input.type';
 import { FieldConfig } from '../dynamic-form/models/field.config';
@@ -146,33 +147,34 @@ export abstract class Helper {
     targetObject: any,
     createProperty = false
   ): void {
-    if (createProperty || config.field in targetObject) {
+    const field = requireFieldName(config);
+    if (createProperty || field in targetObject) {
       if (config.referencedDataObject) {
-        targetObject[config.field] = this.getReferencedDataObject(config, config.field);
+        targetObject[field] = this.getReferencedDataObject(config, field);
       } else if (
         (config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger) &&
         config.inputType === InputType.Select &&
-        (config.formControl.value == null || config.formControl.value === '')
+        (requireFormControl(config).value == null || requireFormControl(config).value === '')
       ) {
-        targetObject[config.field] = null;
+        targetObject[field] = null;
       } else if (config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger) {
-        targetObject[config.field] = config.formControl.value != null ? +config.formControl.value : null;
+        targetObject[field] = requireFormControl(config).value != null ? +requireFormControl(config).value : null;
       } else if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateString) {
-        if (config.formControl.value) {
+        if (requireFormControl(config).value) {
           this.formatDateString(config, targetObject, BaseSettings.FORMAT_DATE_SHORT_NATIVE);
         } else {
-          targetObject[config.field] = null;
+          targetObject[field] = null;
         }
       } else if (config.dataType === DataType.DateTimeNumeric) {
-        targetObject[config.field] = moment(config.formControl.value).format('YYYY-MM-DDTHH:mm:ss');
+        targetObject[field] = moment(requireFormControl(config).value).format('YYYY-MM-DDTHH:mm:ss');
       } else if (config.dataType === DataType.DateStringShortUS) {
         this.formatDateString(config, targetObject, BaseSettings.FORMAT_DATE_SHORT_US);
-      } else if (config.inputType === InputType.TriStateCheckbox && config.formControl.value == null) {
-        targetObject[config.field] = config.formControl.value;
-      } else if (config.inputType === InputType.Checkbox && config.formControl.value == null) {
-        targetObject[config.field] = false;
+      } else if (config.inputType === InputType.TriStateCheckbox && requireFormControl(config).value == null) {
+        targetObject[field] = requireFormControl(config).value;
+      } else if (config.inputType === InputType.Checkbox && requireFormControl(config).value == null) {
+        targetObject[field] = false;
       } else {
-        targetObject[config.field] = config.formControl.value;
+        targetObject[field] = requireFormControl(config).value;
       }
     }
   }
@@ -183,17 +185,17 @@ export abstract class Helper {
     }
 
     return fieldConfig.referencedDataObject.filter(
-      (refObject: { [x: string]: number }) => refObject[keyProperty] === +fieldConfig.formControl.value
+      (refObject: { [x: string]: number }) => refObject[keyProperty] === +requireFormControl(fieldConfig).value
     )[0];
   }
 
   public static formatDateString(fieldConfig: FieldConfig, targetObject: any, dateFormat: string): void {
-    targetObject[fieldConfig.field] = Helper.formatDateStringAsString(fieldConfig, dateFormat);
+    targetObject[requireFieldName(fieldConfig)] = Helper.formatDateStringAsString(fieldConfig, dateFormat);
   }
 
-  public static formatDateStringAsString(fieldConfig: FieldConfig, dateFormat: string): string {
-    return fieldConfig.formControl.value && fieldConfig.formControl.value.toString().trim().length > 0
-      ? moment(fieldConfig.formControl.value).format(dateFormat)
+  public static formatDateStringAsString(fieldConfig: FieldConfig, dateFormat: string): string | null {
+    return requireFormControl(fieldConfig).value && requireFormControl(fieldConfig).value.toString().trim().length > 0
+      ? moment(requireFormControl(fieldConfig).value).format(dateFormat)
       : null;
   }
 
@@ -228,7 +230,7 @@ export abstract class Helper {
     for (const key in obj) {
       const value = (obj as Record<string, unknown>)[key];
       const currentPath = path.length === 0 ? path.concat(key) : path.concat('.' + key);
-      if (typeof value === 'object') {
+      if (value !== null && typeof value === 'object') {
         if (key === propertyName) {
           result.push(currentPath);
         }

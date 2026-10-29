@@ -63,16 +63,16 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase {
   private readonly distributionFrequencyColumn: ColumnConfig;
 
   /** Translation key of the table title, e.g. ID_CONNECTOR_HISTORY */
-  readonly titleKey = input<string>(undefined);
+  readonly titleKey = input<string>();
 
   /** Feed of the table; decides whether a connector without data may be chosen */
-  readonly feed = input<LookupFeed>(undefined);
+  readonly feed = input.required<LookupFeed>();
 
   /** Connectors offered for this feed */
   readonly alternatives = input<ConnectorAlternative[]>([]);
 
   /** The chosen connector; the dialog preselects it when only one usable connector exists */
-  readonly selectedAlternativeInput = input<ConnectorAlternative>(undefined, { alias: 'selectedAlternative' });
+  readonly selectedAlternativeInput = input<ConnectorAlternative | null>(undefined, { alias: 'selectedAlternative' });
   readonly selectedAlternative = linkedSignal(() => this.selectedAlternativeInput());
 
   /** Shows the distribution frequency derived from the dividends; only meaningful in the dividend table */
@@ -82,10 +82,10 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase {
   readonly disabled = input(false);
 
   /** Translation key of the hint shown below a disabled table */
-  readonly disabledMessageKey = input<string>(undefined);
+  readonly disabledMessageKey = input<string>();
 
   /** Emits the chosen connector, or null when the selection is removed */
-  readonly alternativeSelected = output<ConnectorAlternative>();
+  readonly alternativeSelected = output<ConnectorAlternative | null>();
 
   /**
    * Creates the table columns.

@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import {
   getAvailableMessageCodes,
@@ -20,7 +21,7 @@ import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
 import { BaseParam } from '../../entities/base.param';
 import { Helper } from '../../helper/helper';
-import { SimpleEditBase } from '../../edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../edit/simple.form.edit.base';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { ProcessedActionData } from '../../types/processed.action.data';
 import { ProcessedAction } from '../../types/processed.action';
@@ -56,7 +57,7 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
     </p-dialog>
   `
 })
-export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit {
+export class GTNetMessageEditComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private messageToastService: MessageToastService = inject(MessageToastService);
   private gtNetService: GTNetService = inject(GTNetService);
@@ -85,7 +86,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   }
 
   protected override initialize(): void {
-    this.configObject[this.MESSAGE_CODE].formControl.enable();
+    requireFormControl(this.configObject[this.MESSAGE_CODE]).enable();
     this.valueChangedOnMessageCode();
     this.initializeVisibilityField();
     const msgCallParam = this.msgCallParam();
@@ -102,8 +103,8 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       if (msgCallParam.validResponseCodes.length === 1) {
         const singleCode = msgCallParam.validResponseCodes[0];
         const codeKey = GTNetMessageCodeType[singleCode];
-        this.configObject[this.MESSAGE_CODE].formControl.setValue(codeKey);
-        this.configObject[this.MESSAGE_CODE].formControl.disable();
+        requireFormControl(this.configObject[this.MESSAGE_CODE]).setValue(codeKey);
+        requireFormControl(this.configObject[this.MESSAGE_CODE]).disable();
         // Show waitDaysApply only if configured for this message type
         this.configObject.waitDaysApply.invisible = !shouldShowWaitDaysApply(singleCode);
       } else {
@@ -117,7 +118,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
         [GTNetMessageCodeType[msgCallParam.gtNetMessage.messageCode as keyof typeof GTNetMessageCodeType]],
         false
       );
-      this.configObject[this.MESSAGE_CODE].formControl.setValue(msgCallParam.gtNetMessage[this.MESSAGE_CODE]);
+      requireFormControl(this.configObject[this.MESSAGE_CODE]).setValue(msgCallParam.gtNetMessage[this.MESSAGE_CODE]);
     } else {
       // State-aware filtering: only show codes valid for the current relationship state
       const availableCodes = getAvailableMessageCodes(msgCallParam);
@@ -131,7 +132,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       // Pre-select message code if provided (e.g., from admin messages component)
       if (msgCallParam.preselectedMessageCode != null) {
         const codeKey = GTNetMessageCodeType[msgCallParam.preselectedMessageCode];
-        this.configObject[this.MESSAGE_CODE].formControl.setValue(codeKey);
+        requireFormControl(this.configObject[this.MESSAGE_CODE]).setValue(codeKey);
       }
     }
   }
@@ -156,26 +157,28 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       // Reply mode - check parent visibility
       if (msgCallParam.parentVisibility === MessageVisibility.ADMIN_ONLY) {
         // Parent is ADMIN_ONLY: force reply to ADMIN_ONLY, disable field
-        this.configObject[this.VISIBILITY].formControl.setValue(MessageVisibility[MessageVisibility.ADMIN_ONLY]);
-        this.configObject[this.VISIBILITY].formControl.disable();
+        requireFormControl(this.configObject[this.VISIBILITY]).setValue(
+          MessageVisibility[MessageVisibility.ADMIN_ONLY]
+        );
+        requireFormControl(this.configObject[this.VISIBILITY]).disable();
         this.configObject[this.VISIBILITY].invisible = false;
       } else {
         // Parent is ALL_USERS: allow choice, default to ALL_USERS
-        this.configObject[this.VISIBILITY].formControl.setValue(MessageVisibility[MessageVisibility.ALL_USERS]);
-        this.configObject[this.VISIBILITY].formControl.enable();
+        requireFormControl(this.configObject[this.VISIBILITY]).setValue(MessageVisibility[MessageVisibility.ALL_USERS]);
+        requireFormControl(this.configObject[this.VISIBILITY]).enable();
         this.configObject[this.VISIBILITY].invisible = false;
       }
     } else {
       // New thread - default to ADMIN_ONLY for admin messages, visibility shown when admin message selected
-      this.configObject[this.VISIBILITY].formControl.setValue(MessageVisibility[MessageVisibility.ADMIN_ONLY]);
-      this.configObject[this.VISIBILITY].formControl.enable();
+      requireFormControl(this.configObject[this.VISIBILITY]).setValue(MessageVisibility[MessageVisibility.ADMIN_ONLY]);
+      requireFormControl(this.configObject[this.VISIBILITY]).enable();
       // Visibility will be shown/hidden based on message code selection
     }
   }
 
   private valueChangedOnMessageCode(): void {
-    this.configObject[this.MESSAGE_CODE].formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject[this.MESSAGE_CODE])
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((messageCode: GTNetMessageCodeType) => {
         this.createViewFromSelectedEnum(messageCode);
         this.updateVisibilityFieldDisplay(messageCode);
@@ -262,10 +265,10 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.configObject[this.VISIBILITY].valueKeyHtmlOptions = visibilityOptions;
     }
     if (currentVisibility != null) {
-      this.configObject[this.VISIBILITY].formControl.setValue(currentVisibility);
+      requireFormControl(this.configObject[this.VISIBILITY]).setValue(currentVisibility);
     }
     if (visibilityWasDisabled) {
-      this.configObject[this.VISIBILITY].formControl.disable();
+      requireFormControl(this.configObject[this.VISIBILITY]).disable();
     }
     this.configObject[this.VISIBILITY].invisible = visibilityWasInvisible;
     // The template binds the replaced config array
@@ -277,10 +280,13 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   }
 
   private setExistingModel(): void {
+    const params = this.msgCallParam();
+    const message = params.gtNetMessage;
+    if (!message) return;
     const dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
-      this.msgCallParam().formDefinitions,
+      params.formDefinitions,
       this.MESSAGE_CODE,
-      this.msgCallParam().gtNetMessage.gtNetMessageParamMap,
+      message.gtNetMessageParamMap,
       // A code without payload model has no form definition, e.g. a server list request
       this.classDescriptorInputAndShows?.fieldDescriptorInputAndShows ?? [],
       true
@@ -290,27 +296,27 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
 
   submit(value: { [name: string]: any }): void {
     // Get messageCode from form control directly (disabled controls are excluded from value)
-    const messageCode = value[this.MESSAGE_CODE] ?? this.configObject[this.MESSAGE_CODE].formControl.value;
+    const messageCode = value[this.MESSAGE_CODE] ?? requireFormControl(this.configObject[this.MESSAGE_CODE]).value;
 
     // Include visibility - get from form control if disabled (disabled controls are excluded from value)
-    const visibility = value[this.VISIBILITY] ?? this.configObject[this.VISIBILITY].formControl.value;
+    const visibility = value[this.VISIBILITY] ?? requireFormControl(this.configObject[this.VISIBILITY]).value;
     const gtNetMessageParamMap = this.getMessageParam(value);
 
     // Multi-target mode: use submitMsgToMultiple for batch delivery
     const msgCallParam = this.msgCallParam();
-    if (msgCallParam.targetIds?.length > 0) {
-      const multiRequest = new MultiTargetMsgRequest(msgCallParam.targetIds, value.message, visibility);
+    const targetIds = msgCallParam.targetIds?.slice();
+    if (targetIds && targetIds.length > 0) {
+      const multiRequest = new MultiTargetMsgRequest(targetIds, value.message, visibility);
       multiRequest.gtNetMessageParamMap = gtNetMessageParamMap;
 
       this.gtNetService.submitMsgToMultiple(multiRequest).subscribe({
         next: (gtNetWithMessages: GTNetWithMessages) => {
           // Single target: sent synchronously, multiple targets: queued for background delivery
-          const msgCallParamValue = this.msgCallParam();
-          if (msgCallParamValue.targetIds.length === 1) {
+          if (targetIds.length === 1) {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_SENT');
           } else {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_QUEUED', {
-              count: msgCallParamValue.targetIds.length
+              count: targetIds.length
             });
           }
           this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, gtNetWithMessages));

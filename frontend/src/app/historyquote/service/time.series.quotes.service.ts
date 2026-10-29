@@ -108,5 +108,5 @@ export class TimeSeriesQuotesService {
 export interface OptionalParameters {
   idPortfolio?: number;
   idSecurityaccount?: number;
-  noMarketValue?: boolean;
+  noMarketValue?: boolean | null;
 }

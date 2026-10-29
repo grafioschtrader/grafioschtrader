@@ -32,7 +32,7 @@ export class SecurityaccountAssetclassGroup extends SecurityaccountGroupBaseDyna
         spgs.securityPositionSummaryList[0].security.assetClass,
         null
       );
-      this.translatedGroupValues[groupFieldValue] = valueKeyHtmlSelectOptions.value;
+      this.translatedGroupValues[groupFieldValue] = valueKeyHtmlSelectOptions?.value ?? '';
     });
   }
 

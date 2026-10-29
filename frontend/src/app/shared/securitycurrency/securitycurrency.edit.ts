@@ -1,3 +1,4 @@
+import { requireFieldName, requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { afterNextRender, DestroyRef, Directive, inject, Injector, output, viewChild, input } from '@angular/core';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
@@ -31,10 +32,10 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   readonly securityCurrencypairCallParam = input<Security | Securitycurrency>(undefined);
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
   // Access child components
-  readonly dynamicForm = viewChild(DynamicFormComponent);
+  readonly dynamicForm = viewChild.required(DynamicFormComponent);
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
-  connectorSubscribe: { [fieldName: string]: Subscription } = {};
+  connectorSubscribe: { [fieldName: string]: Subscription | null } = {};
   feedPriceConnectors: IFeedConnector[];
   protected readonly ID_CONNECTOR_HISTORY = 'idConnectorHistory';
   protected readonly ID_CONNECTOR_INTRA = 'idConnectorIntra';
@@ -43,7 +44,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
    * Generic help text of every connector selection, captured before the first selection replaces it with the help of the
    * chosen connector. Keyed by field name, it is restored when no connector is selected or the selected one ships no help.
    */
-  private readonly connectorHelpFallback: { [fieldName: string]: string } = {};
+  private readonly connectorHelpFallback: { [fieldName: string]: string | undefined } = {};
 
   // connectorFieldConfig: FieldConfig[];
 
@@ -64,14 +65,13 @@ export abstract class SecuritycurrencyEdit extends FormBase {
     hideConnector: boolean,
     feedIdentifier: FeedIdentifier
   ): void {
-    const idFieldConfigurations = connectorFieldConfig.filter((field) => field.field.startsWith('id'));
-    const urlFieldConfigurations = connectorFieldConfig.filter((field) => field.field.startsWith('url'));
+    const idFieldConfigurations = connectorFieldConfig.filter((field) => field.field?.startsWith('id'));
+    const urlFieldConfigurations = connectorFieldConfig.filter((field) => field.field?.startsWith('url'));
     if (hideConnector) {
       idFieldConfigurations.forEach((cfc) => {
-        if (this.connectorSubscribe[cfc.field]) {
-          this.connectorSubscribe[cfc.field].unsubscribe();
-          this.connectorSubscribe[cfc.field] = null;
-        }
+        const name = requireFieldName(cfc);
+        this.connectorSubscribe[name]?.unsubscribe();
+        this.connectorSubscribe[name] = null;
       });
     } else {
       this.valueChangedOnFeedConnectors(idFieldConfigurations, urlFieldConfigurations, feedIdentifier);
@@ -120,7 +120,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
       this.configObject,
       this.proposeChangeEntityWithEntity()
     );
-    focusControl.elementRef.nativeElement.focus();
+    focusControl.elementRef?.nativeElement?.focus();
   }
 
   protected disableEnableFeedUrlExtended(
@@ -155,18 +155,19 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   ): void {
     for (let i = 0; i < connectorIdConfigs.length; i++) {
       const connectorConfig = connectorIdConfigs[i];
-      this.connectorSubscribe[connectorConfig.field]?.unsubscribe();
+      const name = requireFieldName(connectorConfig);
+      this.connectorSubscribe[name]?.unsubscribe();
       // Only the very first pass sees the generic text, later passes would capture a connector help text.
-      this.connectorHelpFallback[connectorConfig.field] ??= connectorConfig.labelHelpText;
-      this.connectorSubscribe[connectorConfig.field] = connectorConfig.formControl.valueChanges
-        .pipe(this.untilDialogClosed())
+      this.connectorHelpFallback[name] ??= connectorConfig.labelHelpText;
+      this.connectorSubscribe[name] = requireFormControl(connectorConfig)
+        .valueChanges.pipe(this.untilDialogClosed())
         .subscribe((connector) => {
           const foundConnector = this.feedPriceConnectors.find((fc) => fc.id === connector);
           if (foundConnector) {
             connectorConfig.labelHelpText =
               (this.ID_CONNECTOR_HISTORY === connectorConfig.field
                 ? foundConnector.description?.historicalDescription
-                : foundConnector.description?.intraDescription) || this.connectorHelpFallback[connectorConfig.field];
+                : foundConnector.description?.intraDescription) || this.connectorHelpFallback[name];
             if (
               this.ID_CONNECTOR_INTRA === connectorConfig.field &&
               foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_INTRA]]
@@ -200,7 +201,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
             }
           } else {
             // No connector is chosen
-            connectorConfig.labelHelpText = this.connectorHelpFallback[connectorConfig.field];
+            connectorConfig.labelHelpText = this.connectorHelpFallback[name];
             AppHelper.disableAndHideInput(urlExtends[i]);
           }
           if (connectorConfig.labelShowText) {

@@ -96,7 +96,7 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   readonly idUDFMetadata = input<number>(undefined);
 
   /** Controls the visibility of the dialog */
-  readonly visibleDialog = input<boolean>(undefined);
+  readonly visibleDialog = input<boolean>();
 
   /** Emits the proposed rule when the user takes it over */
   readonly ruleAccepted = output<string>();
@@ -104,8 +104,8 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   /** Emits when the dialog closes */
   readonly closeDialog = output<void>();
 
-  readonly preview = signal<RuleProposalPreview>(null);
-  readonly result = signal<RuleProposalResult>(null);
+  readonly preview = signal<RuleProposalPreview | null>(null);
+  readonly result = signal<RuleProposalResult | null>(null);
   /** Examples ticked for sending; every change publishes a new set */
   readonly selected = signal<ReadonlySet<number>>(new Set());
   readonly loading = signal(false);
@@ -132,8 +132,8 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   }
 
   providerLabels(): string {
-    return this.preview()
-      .providers.map(
+    return (this.preview()?.providers ?? [])
+      .map(
         (p) =>
           p.label +
           ', ' +
@@ -169,7 +169,9 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   }
 
   accept(): void {
-    this.ruleAccepted.emit(this.result().rule);
+    const result = this.result();
+    if (!result) return;
+    this.ruleAccepted.emit(result.rule);
     this.close();
   }
 

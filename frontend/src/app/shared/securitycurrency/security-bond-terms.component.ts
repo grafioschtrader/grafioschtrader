@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import {
   afterNextRender,
   AfterRenderRef,
@@ -38,7 +39,7 @@ import { CouponDayCountDefaults, TaxDataService } from '../../taxdata/service/ta
  * @param name - The security name, may be null
  * @returns The coupon rate in percent, e.g. 3.75, or null when the name carries none
  */
-export function extractCouponRateFromSecurityName(name: string): number | null {
+export function extractCouponRateFromSecurityName(name: string | null | undefined): number | null {
   const match =
     /(?<![\d.,])(\d{1,4}(?:[.,]\d+)?)\s*%/.exec(name ?? '') ?? /^\s*(\d{1,4}(?:[.,]\d+)?)(?=\s|%|$)/.exec(name ?? '');
   if (!match) {
@@ -55,7 +56,10 @@ export function extractCouponRateFromSecurityName(name: string): number | null {
  * @param currency - ISO 4217 code of the security currency, case-insensitive
  * @returns The proposed convention, or null when the currency or the defaults are not available yet
  */
-export function defaultCouponDayCount(defaults: CouponDayCountDefaults, currency: string): string | null {
+export function defaultCouponDayCount(
+  defaults: CouponDayCountDefaults | null | undefined,
+  currency: string | null | undefined
+): string | null {
   const code = currency?.trim().toUpperCase();
   if (!defaults || !code) {
     return null;
@@ -84,9 +88,9 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
   private taxDataService: TaxDataService = inject(TaxDataService);
 
   readonly entity = input<Security>(undefined);
-  readonly securityName = input<string>(undefined);
+  readonly securityName = input<string>();
   /** Currency of the edited security, the basis of the proposed day-count convention. */
-  readonly currency = input<string>(undefined);
+  readonly currency = input<string>();
 
   readonly ready = signal(false);
   private readonly destroyRef = inject(DestroyRef);
@@ -214,7 +218,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
     this.couponRateOverridden = storedTerms?.couponRate != null;
     this.lastCouponRatePrefill = null;
     this.prefillCouponRate();
-    this.couponRateSubscribe = this.configObject.couponRate.formControl.valueChanges.subscribe((couponRate) => {
+    this.couponRateSubscribe = requireFormControl(this.configObject.couponRate).valueChanges.subscribe((couponRate) => {
       if (!this.applyingCouponRatePrefill && couponRate !== this.lastCouponRatePrefill) {
         this.couponRateOverridden = true;
       }
@@ -222,7 +226,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
     this.couponDayCountOverridden = !!storedTerms?.couponDayCount;
     this.lastCouponDayCountPrefill = null;
     this.prefillCouponDayCount();
-    this.couponDayCountSubscribe = this.configObject.couponDayCount.formControl.valueChanges.subscribe(
+    this.couponDayCountSubscribe = requireFormControl(this.configObject.couponDayCount).valueChanges.subscribe(
       (couponDayCount) => {
         if (!this.applyingCouponDayCountPrefill && couponDayCount !== this.lastCouponDayCountPrefill) {
           this.couponDayCountOverridden = true;

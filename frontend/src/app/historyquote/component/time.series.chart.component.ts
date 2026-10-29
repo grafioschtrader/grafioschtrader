@@ -202,7 +202,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   private activePanelService = inject(ActivePanelService);
 
   readonly container = viewChild<ElementRef>('container');
-  readonly chartElement = viewChild<ElementRef>('chart');
+  readonly chartElement = viewChild.required<ElementRef>('chart');
 
   startDate = new Date(
     sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK

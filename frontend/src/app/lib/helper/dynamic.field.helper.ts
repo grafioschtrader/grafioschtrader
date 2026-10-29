@@ -1,3 +1,4 @@
+import { requireFormControl } from '../dynamic-form/models/form-control-access';
 import { DataType } from '../dynamic-form/models/data.type';
 import { CalendarConfig, FieldConfig } from '../dynamic-form/models/field.config';
 import { InputType } from '../dynamic-form/models/input.type';
@@ -169,7 +170,7 @@ export class DynamicFieldHelper {
    * @returns FieldConfig for Optimus button component
    */
   public static createFunctionButtonFieldName(
-    fieldName: string,
+    fieldName: string | null,
     labelKey: string,
     buttonFN: (event?: any) => void,
     fieldOptions?: FieldOptions
@@ -1179,7 +1180,9 @@ export class DynamicFieldHelper {
    * @param currency Currency code to display as prefix (gets space appended)
    */
   public static setCurrency(fieldConfig: FieldConfig, currency: string): void {
-    fieldConfig.inputNumberSettings.currency = currency;
+    const settings = fieldConfig.inputNumberSettings;
+    if (!settings) throw new Error(`Field "${fieldConfig.field}" is not configured as a number input.`);
+    settings.currency = currency;
     FormNotifier.notifyOf(fieldConfig);
   }
 
@@ -1192,8 +1195,10 @@ export class DynamicFieldHelper {
    * @param precision Number of decimal places
    */
   public static adjustNumberFraction(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
-    this.setMinMaxValues(fieldConfig, integerDigits, precision, fieldConfig.inputNumberSettings.allowNegative);
-    fieldConfig.inputNumberSettings.maxFractionDigits = precision;
+    const settings = fieldConfig.inputNumberSettings;
+    if (!settings) throw new Error(`Field "${fieldConfig.field}" is not configured as a number input.`);
+    this.setMinMaxValues(fieldConfig, integerDigits, precision, settings.allowNegative ?? false);
+    settings.maxFractionDigits = precision;
     FormNotifier.notifyOf(fieldConfig);
   }
 
@@ -1205,7 +1210,7 @@ export class DynamicFieldHelper {
    * @returns True if field has required validation
    */
   public static isRequired(fieldConfig: FieldConfig): boolean {
-    return fieldConfig.validation && fieldConfig.validation.includes(Validators.required);
+    return fieldConfig.validation?.includes(Validators.required) ?? false;
   }
 
   /**
@@ -1425,7 +1430,7 @@ export class DynamicFieldHelper {
     inputType: InputType,
     fieldName: string,
     labelKey: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     fieldOptions?: FieldOptions
   ): FieldConfig {
@@ -1442,6 +1447,7 @@ export class DynamicFieldHelper {
       fieldOptions
     );
     if (fieldOptions && fieldOptions.minLength) {
+      if (maxLength == null) throw new Error(`Field "${fieldName}" requires maxLength for range-length validation.`);
       (fieldConfig.validation = fieldConfig.validation || []).push(rangeLength([fieldOptions.minLength, maxLength]));
       (fieldConfig.errors = fieldConfig.errors || []).push({
         name: 'rangeLength',
@@ -1493,9 +1499,9 @@ export class DynamicFieldHelper {
     fieldConfig: FieldConfig,
     fieldName: string,
     labelKey: string,
-    validations: ValidatorFn[],
-    errorMessageRules: ErrorMessageRules[],
-    fieldOptions: FieldOptions
+    validations: ValidatorFn[] | null | undefined,
+    errorMessageRules: ErrorMessageRules[] | null | undefined,
+    fieldOptions?: FieldOptions | null
   ): FieldConfig {
     fieldConfig.field = fieldName;
     fieldConfig.labelKey = labelKey;
@@ -1520,13 +1526,13 @@ export class DynamicFieldHelper {
    */
   public static resetValidator(
     fieldConfig: FieldConfig,
-    validation: ValidatorFn[],
-    errors?: ErrorMessageRules[]
+    validation: ValidatorFn[] | null | undefined,
+    errors?: ErrorMessageRules[] | null
   ): void {
     fieldConfig.validation = validation;
-    fieldConfig.formControl.setValidators(fieldConfig.validation);
+    requireFormControl(fieldConfig).setValidators(validation ?? null);
     fieldConfig.errors = errors;
-    fieldConfig.formControl.updateValueAndValidity();
+    requireFormControl(fieldConfig).updateValueAndValidity();
     fieldConfig.baseInputComponent?.reEvaluateRequired();
     // The required marker lives in the input component, which no property assignment above reaches
     FormNotifier.notifyOf(fieldConfig);
@@ -1615,6 +1621,7 @@ export class DynamicFieldHelper {
       errorRule.param1 = param1;
       errorRule.param2 = param2;
     } else {
+      if (!validError.vFN) throw new Error(`Validation type "${key}" has neither a validator nor a factory.`);
       validatorFn = validError.vFN;
     }
     fieldConfig.errors = [...(fieldConfig.errors || []), errorRule];

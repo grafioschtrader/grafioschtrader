@@ -309,7 +309,7 @@ export class AppHelper {
    * @param field Column configuration possibly carrying fractionDigitsField/fixedFractionDigits
    * @returns Number of fraction digits or undefined
    */
-  private static resolveFractionDigits(rowObject: any, field: ColumnConfig): number {
+  private static resolveFractionDigits(rowObject: any, field: ColumnConfig): number | undefined {
     if (field.fractionDigitsField && rowObject) {
       const fractionDigits = Helper.getValueByPath(rowObject, field.fractionDigitsField);
       if (fractionDigits != null) {
@@ -331,7 +331,11 @@ export class AppHelper {
    * @param currencyFieldOverride Optional currency path of a group configuration
    * @returns Resolved currency code or undefined
    */
-  private static resolvePrecisionCurrency(rowObject: any, field: ColumnConfig, currencyFieldOverride?: string): string {
+  private static resolvePrecisionCurrency(
+    rowObject: any,
+    field: ColumnConfig,
+    currencyFieldOverride?: string
+  ): string | undefined {
     const currencyPath = currencyFieldOverride || field.currencyPrecisionField;
     if (currencyPath && rowObject) {
       const currency = Helper.getValueByPath(rowObject, currencyPath);
@@ -368,8 +372,8 @@ export class AppHelper {
   public static numberFormat(
     gps: GlobalparameterService,
     value: number,
-    maxFractionDigits: number,
-    minFractionDigits: number
+    maxFractionDigits?: number | null,
+    minFractionDigits?: number | null
   ) {
     if (maxFractionDigits != null) {
       if (maxFractionDigits > 0) {
@@ -485,7 +489,7 @@ export class AppHelper {
   public static getDefaultFormConfig(
     gps: GlobalparameterService,
     labelColums: number,
-    helpLinkFN: () => void = null,
+    helpLinkFN: (() => void) | null = null,
     nonModal = false
   ): FormConfig {
     return {
@@ -591,7 +595,7 @@ export class AppHelper {
     translateService: TranslateService,
     confirmationService: ConfirmationService,
     msgKey: string,
-    param: string,
+    param: string | null,
     acceptFN: () => void,
     headerKey: string
   ) {

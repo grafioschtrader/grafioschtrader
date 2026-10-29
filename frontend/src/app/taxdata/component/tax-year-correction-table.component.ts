@@ -209,7 +209,8 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase {
 
   onRowDelete(event: RowEditEvent<TaxYearCorrection>): void {
     const entity = event.row;
-    if (this.isNewRow(entity)) {
+    const idTaxYearCorrection = entity.idTaxYearCorrection;
+    if (idTaxYearCorrection == null || idTaxYearCorrection < 0) {
       this.corrections.update((rows) => rows.filter((c) => c !== entity));
       return;
     }
@@ -219,7 +220,7 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase {
       'MSG_CONFIRM_DELETE_RECORD|' + this.TAX_YEAR_CORRECTION,
       () => {
         this.taxYearCorrectionService
-          .deleteEntity(entity.idTaxYearCorrection)
+          .deleteEntity(idTaxYearCorrection)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(() => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {

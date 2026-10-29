@@ -101,7 +101,7 @@ export class UDFFillProposalsDialogComponent {
   readonly field = input<UDFMetadataSecurity>(undefined);
 
   /** Controls the visibility of the dialog */
-  readonly visibleDialog = input<boolean>(undefined);
+  readonly visibleDialog = input<boolean>();
 
   /** Emits when the dialog closes */
   readonly closeDialog = output<void>();
@@ -109,13 +109,19 @@ export class UDFFillProposalsDialogComponent {
   readonly proposals = signal<UDFFillProposal[]>([]);
   /** Securities whose proposal is ticked; every change publishes a new set */
   readonly selected = signal<ReadonlySet<number>>(new Set());
-  readonly decisionText = signal<string>(null);
+  readonly decisionText = signal<string | null>(null);
 
   private readonly destroyRef = inject(DestroyRef);
 
   load(): void {
+    const id = this.field().idUDFMetadata;
+    if (id == null) {
+      this.proposals.set([]);
+      this.selected.set(new Set());
+      return;
+    }
     this.uDFMetadataSecurityService
-      .getProposals(this.field().idUDFMetadata)
+      .getProposals(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((proposals) => {
         this.proposals.set(proposals);
@@ -135,14 +141,18 @@ export class UDFFillProposalsDialogComponent {
 
   /** Starts a paid run of the language model. */
   suggest(): void {
+    const id = this.field().idUDFMetadata;
+    if (id == null) return;
     this.uDFMetadataSecurityService
-      .suggestValues(this.field().idUDFMetadata)
+      .suggestValues(id)
       .subscribe(() => this.messageToastService.showMessageI18n(InfoLevelType.INFO, 'UDF_FILL_SUGGEST_QUEUED'));
   }
 
   /** Lets the next run ask again for rejected, discarded and not found cells. */
   retry(): void {
-    this.uDFMetadataSecurityService.retryProposals(this.field().idUDFMetadata).subscribe(() => this.load());
+    const id = this.field().idUDFMetadata;
+    if (id == null) return;
+    this.uDFMetadataSecurityService.retryProposals(id).subscribe(() => this.load());
   }
 
   /**
@@ -152,13 +162,15 @@ export class UDFFillProposalsDialogComponent {
    * @param all - True to decide about every listed proposal
    */
   decide(accept: boolean, all: boolean): void {
+    const id = this.field().idUDFMetadata;
+    if (id == null) return;
     const selected = this.selected();
     const decisions = this.proposals()
       .filter((p) => all || selected.has(p.idSecuritycurrency))
       .map((p) => ({ idSecuritycurrency: p.idSecuritycurrency, ruleVersion: p.ruleVersion, value: p.value }));
     const call = accept
-      ? this.uDFMetadataSecurityService.acceptProposals(this.field().idUDFMetadata, decisions)
-      : this.uDFMetadataSecurityService.rejectProposals(this.field().idUDFMetadata, decisions);
+      ? this.uDFMetadataSecurityService.acceptProposals(id, decisions)
+      : this.uDFMetadataSecurityService.rejectProposals(id, decisions);
     call.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((results) => {
       this.decisionText.set(this.summarize(results));
       this.selected.set(new Set());

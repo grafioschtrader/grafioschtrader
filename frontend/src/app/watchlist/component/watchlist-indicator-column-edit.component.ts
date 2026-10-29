@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
@@ -91,8 +92,8 @@ export class WatchlistIndicatorColumnEditComponent
         value: this.translateService.instant(c.value)
       })
     );
-    this.configObject.expression.formControl.valueChanges
-      .pipe(
+    requireFormControl(this.configObject.expression)
+      .valueChanges.pipe(
         debounceTime(350),
         distinctUntilChanged(),
         switchMap((expression) =>
@@ -108,15 +109,15 @@ export class WatchlistIndicatorColumnEditComponent
     this.form().setDefaultValuesAndEnableSubmit();
     this.form().transferBusinessObjectToForm(row);
     if (this.benchmark)
-      this.configObject.benchmarkName.formControl.setValue(
+      requireFormControl(this.configObject.benchmarkName).setValue(
         this.callParam().optParam.benchmarks[this.benchmark] ?? this.translateService.instant('WIC_BENCHMARK_MISSING')
       );
     this.showNumeric(row.resultType !== 'BOOLEAN');
   }
   clearBenchmark(): void {
     this.benchmark = null;
-    this.configObject.benchmarkName.formControl.setValue(null);
-    this.configObject.benchmarkName.formControl.markAsDirty();
+    requireFormControl(this.configObject.benchmarkName).setValue(null);
+    requireFormControl(this.configObject.benchmarkName).markAsDirty();
   }
   private showNumeric(numeric: boolean): void {
     ['decimals', 'lowerMark', 'upperMark', 'markColors'].forEach(
@@ -132,13 +133,14 @@ export class WatchlistIndicatorColumnEditComponent
       closeOnEscape: true,
       data: { supplementCriteria: new SupplementCriteria(false, false) }
     });
+    if (!ref) return;
     ref.onClose.pipe(this.untilDialogClosed()).subscribe((instrument) => {
       if (instrument) {
         this.benchmark = instrument.idSecuritycurrency;
-        this.configObject.benchmarkName.formControl.setValue(
+        requireFormControl(this.configObject.benchmarkName).setValue(
           instrument.name ?? instrument.fromCurrency + '/' + instrument.toCurrency
         );
-        this.configObject.benchmarkName.formControl.markAsDirty();
+        requireFormControl(this.configObject.benchmarkName).markAsDirty();
       }
     });
   }

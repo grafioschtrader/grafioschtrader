@@ -4,13 +4,13 @@ import { AcceptRequestTypes, ExchangeKindTypeInfo, GTNet, GTNetEntity } from './
 
 export class GTNetMessage {
   idGtNetMessage: number;
-  idGtNet: number = null;
+  idGtNet: number | null = null;
   timestamp: number;
-  sendRecv: SendReceivedType | string = null;
-  replyTo: number = null;
-  messageCode: GTNetMessageCodeType | string = null;
+  sendRecv: SendReceivedType | string | null = null;
+  replyTo: number | null = null;
+  messageCode: GTNetMessageCodeType | string | null = null;
   gtNetMessageParamMap: Record<string, BaseParam>;
-  message: string = null;
+  message: string | null = null;
   visibility: MessageVisibility | string = MessageVisibility.ALL_USERS;
   hasBeenRead: boolean = false;
   deliveryStatus: DeliveryStatus | string = DeliveryStatus.PENDING;
@@ -40,7 +40,7 @@ export class MsgCallParam {
    * Pre-selected message code for the dialog. Used by admin messages component
    * to default to admin message codes.
    */
-  public preselectedMessageCode: GTNetMessageCodeType = null;
+  public preselectedMessageCode: GTNetMessageCodeType | null = null;
 
   /**
    * If true, admin message codes (GT_NET_ADMIN_MESSAGE_*) are excluded from the dropdown.
@@ -53,26 +53,26 @@ export class MsgCallParam {
    * List of target GTNet IDs for multi-target admin messages.
    * When set, the edit dialog will use submitMsgToMultiple() instead of submitMsg().
    */
-  public targetIds: number[] = null;
+  public targetIds: number[] | null = null;
 
   /** The target GTNet object when a specific remote peer is selected. Null for broadcast mode. */
-  public targetGtNet: GTNet = null;
+  public targetGtNet: GTNet | null = null;
 
   /** ID of an open maintenance message, if one exists. */
-  public idOpenMaintenanceMessage: number = null;
+  public idOpenMaintenanceMessage: number | null = null;
 
   /** Metadata about all registered exchange kind types from the backend. */
   public exchangeKindTypes: ExchangeKindTypeInfo[] = [];
 
   constructor(
     public formDefinitions: { [type: string]: ClassDescriptorInputAndShow },
-    public idGTNet: number,
-    public replyTo: number,
-    public gtNetMessage: GTNetMessage,
+    public idGTNet: number | null,
+    public replyTo: number | null,
+    public gtNetMessage: GTNetMessage | null,
     public isAllMessage: boolean = false,
-    public validResponseCodes: GTNetMessageCodeType[] = null,
-    public idOpenDiscontinuedMessage: number = null,
-    public parentVisibility: MessageVisibility = null
+    public validResponseCodes: GTNetMessageCodeType[] | null = null,
+    public idOpenDiscontinuedMessage: number | null = null,
+    public parentVisibility: MessageVisibility | null = null
   ) {}
 }
 
@@ -173,7 +173,10 @@ export const REVERSE_CODE_MAP: { [key: number]: GTNetMessageCodeType } = {
 };
 
 /** Gets the cancel code for a reversible announcement message */
-export function getReverseCode(messageCode: GTNetMessageCodeType | string): GTNetMessageCodeType | null {
+export function getReverseCode(
+  messageCode: GTNetMessageCodeType | string | null | undefined
+): GTNetMessageCodeType | null {
+  if (messageCode == null) return null;
   const codeValue =
     typeof messageCode === 'string'
       ? GTNetMessageCodeType[messageCode as keyof typeof GTNetMessageCodeType]

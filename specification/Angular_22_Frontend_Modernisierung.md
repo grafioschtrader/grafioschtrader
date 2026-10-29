@@ -25,7 +25,7 @@ Leitlinien:
 
 ## 2. Bestandsaufnahme
 
-Erhoben über `src/**/*.ts` und `src/**/*.html` (912 TypeScript-Dateien einschließlich Tests).
+Erhoben über `src/**/*.ts` und `src/**/*.html` (925 TypeScript-Dateien einschließlich Tests).
 
 | Bereich | Heute | Angular-22-Ziel |
 | --- | --- | --- |
@@ -39,9 +39,9 @@ Templates nicht mitgezählt):
 | Option | Fehler |
 | --- | --- |
 | Ohne zusätzliche Option | 0 |
-| `--strictNullChecks` | 3216 (`lib` 795, `transaction` 288, `entities` 269, `shared` 267, `algo` 190, `tenant` 153, `watchlist` 150, `historyquote` 148, Rest < 125 je Modul) |
-| `--strictNullChecks --strictPropertyInitialization` | 4034 |
-| `--strict` | 4034 |
+| `--strictNullChecks` | 1272 (`lib` 213, `transaction` 160, `algo` 111, `shared` 106, `watchlist` 98, Rest < 110 je Modul) |
+| `--strictNullChecks --strictPropertyInitialization` | 2077 |
+| `--strict` | 2077 |
 
 ## 3. Querschnittsregeln
 
@@ -79,14 +79,18 @@ Regeln, die beide Hosts betreffen, gelten ebenso für `src/grafiosch-host/README
 
 ### 4.5 Strikte Typisierung
 
-1. **`strictNullChecks` über einen Zählstand.** Das Skript `scripts/strict-null-count.mjs` führt
-   `tsc -p tsconfig.app.json --noEmit --strictNullChecks` aus, zählt die Fehler pro Verzeichnis unter `src/app` und
-   vergleicht sie mit `scripts/strict-null-baseline.json`. Es scheitert, wenn ein Verzeichnis zunimmt, und schreibt
-   mit `--update` den neuen, niedrigeren Stand. Aufruf über `npm run check:strict`, nicht in `npm test`, weil ein
-   vollständiger `tsc`-Lauf rund eine Minute dauert. Abbau in dieser Reihenfolge: `entities` (DTOs machen `null`
-   für alle Verbraucher sichtbar), `lib`, danach die Anwendungsmodule nach Fehlerzahl. Bei null Fehlern wird die
-   Option in `tsconfig.json` gesetzt und das Skript gelöscht. Mit `strictNullChecks` prüft `strictTemplates` auch
-   `null` in Template-Bindungen; diese Fehler kommen beim Einschalten hinzu und werden in derselben Stufe bereinigt.
+1. **`strictNullChecks` über einen Zählstand.** Abbau in größeren Paketen mit gemeinsamer Ursache: Verträge in
+   Formular- und Tabellenbasisklassen zusammen mit ihren Verbrauchern, DTOs mit den betroffenen Anwendungsmodulen,
+   danach die verbleibenden Bereiche nach Fehlerzahl. Wiederkehrende Fehler werden über den zuständigen Basisvertrag
+   behoben; Paketgrenzen folgen diesem Zusammenhang. Bestehende `null`-Initialwerte
+   und optionale Eigenschaften bleiben erhalten; ihre Typen und die Verbraucher bilden fehlende Werte ausdrücklich ab.
+   Jedes Paket wird mit `npm run check:strict` geprüft; `npm run check:strict -- --update` senkt anschließend die
+   Grenzen in `scripts/strict-null-baseline.json`. Die Zählung erfasst den TypeScript-Abhängigkeitsgraphen von
+   `tsconfig.app.json`; Angular-Templates und ausschließlich vom Bibliothekshost verwendete Dateien benötigen eigene
+   Prüfungen. Bei null Fehlern wird die Option in `tsconfig.json` für beide Hosts gesetzt. Mit `strictNullChecks`
+   prüft `strictTemplates` auch `null` in Template-Bindungen; diese Fehler kommen beim Einschalten hinzu und werden
+   in derselben Stufe bereinigt. Danach entfallen `scripts/strict-null-count.mjs`, seine Baseline und Hilfstests sowie
+   die zugehörigen npm-Aufrufe.
 2. **`strictPropertyInitialization` zuletzt.** Eingaben, Queries und Abhängigkeiten sind
    initialisierte Felder; die verbleibenden Fehler betreffen fachliche Felder.
 3. Am Ende steht `"strict": true` in `tsconfig.json`, die Einzeloptionen entfallen.
@@ -162,7 +166,7 @@ nach `frontend/CLAUDE.md`. Bis zu dieser Entscheidung gilt die bestehende Regel.
 | Absicherung | Ratchet-Tests in Vitest statt ESLint | Bewährtes Muster im Projekt, läuft mit `npm test`, keine zusätzliche Werkzeugkette |
 | Typisierte Reactive Forms (`FormGroup<T>`) | Keine Umstellung | Die Felder von `dynamic-form` sind erst zur Laufzeit bekannt; ein generischer Typ bringt dort keinen Gewinn. Typisierung kommt, falls überhaupt, mit Signal Forms |
 | Signal Forms | Prototyp in `dynamic-form`, kein Einzeldialog außerhalb | Nur dort zeigt sich, ob Deskriptoren, Layout und Optimus-Felder tragen |
-| `strictNullChecks` | Zählstand pro Verzeichnis statt Umstellung in einem Schritt | 3216 Fehler sind in einem Commit nicht prüfbar |
+| `strictNullChecks` | Zählstand pro Verzeichnis statt Umstellung in einem Schritt | 1272 Fehler sind in einem Commit nicht prüfbar |
 | `@defer` | Nur nach Messung | Routen, Dialoge und Plotly sind bereits verzögert geladen |
 | Angular Aria | Für neu gebaute eigene Bedienelemente; kein Umbau bestehender Optimus-Komponenten | GT hat heute kein selbst gebautes Bedienelement, das einem Aria-Muster (Listbox, Combobox, Menü, Tabs, Baum, Grid, Toolbar) entspricht |
 

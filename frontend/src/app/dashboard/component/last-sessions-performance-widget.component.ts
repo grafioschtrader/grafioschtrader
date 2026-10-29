@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import {
   AfterViewInit,
   Component,
@@ -124,7 +125,7 @@ export class LastSessionsPerformanceWidgetComponent
   }
 
   ngAfterViewInit(): void {
-    this.idPortfolioSubscription = this.configObject.idPortfolio.formControl.valueChanges.subscribe(() =>
+    this.idPortfolioSubscription = requireFormControl(this.configObject.idPortfolio).valueChanges.subscribe(() =>
       this.reload()
     );
   }

@@ -5,6 +5,7 @@ import { Tenant } from '../../entities/tenant';
 import { Type } from '@angular/core';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { DialogComponentLoader } from '../../lib/maintree/handler/lazy-dialog';
+import { Observable } from 'rxjs';
 
 export class MainTreeDynamicDialogs {
   /** Loads the tenant dialog on first use, so it stays out of the bundle of the application shell. */
@@ -17,7 +18,7 @@ export class MainTreeDynamicDialogs {
     dialogService: DialogService,
     tenant: Tenant,
     onlyCurrency: boolean
-  ): DynamicDialogRef {
+  ): Observable<DynamicDialogRef> {
     const dynamicDialogHelper = new DynamicDialogHelper(
       translateService,
       dialogService,
@@ -33,7 +34,7 @@ export class MainTreeDynamicDialogs {
     dialogService: DialogService,
     callParam: CallParam,
     titleKey: string
-  ): DynamicDialogRef {
+  ): Observable<DynamicDialogRef> {
     const width = (componentType as any).DIALOG_WIDTH || 400;
     const dynamicDialogHelper = new DynamicDialogHelper(translateService, dialogService, componentType, titleKey);
     return dynamicDialogHelper.openDynamicDialog(width, { callParam: callParam });

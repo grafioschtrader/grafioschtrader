@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -115,12 +116,12 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
       this.disableFieldsForEdit(so);
     } else if (callParam?.transaction) {
       const t = callParam.transaction;
-      this.configObject.transactionType.formControl.setValue(t.transactionType);
+      requireFormControl(this.configObject.transactionType).setValue(t.transactionType);
       if (t.cashaccount) {
-        this.configObject.idCashaccount.formControl.setValue(t.cashaccount.idSecuritycashAccount);
+        requireFormControl(this.configObject.idCashaccount).setValue(t.cashaccount.idSecuritycashAccount);
       }
       if (t.cashaccountAmount != null) {
-        this.configObject.cashaccountAmount.formControl.setValue(Math.abs(t.cashaccountAmount));
+        requireFormControl(this.configObject.cashaccountAmount).setValue(Math.abs(t.cashaccountAmount));
       }
     }
   }
@@ -131,7 +132,7 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
     this.copyFormToPrivateBusinessObject(so, existing);
     so.dtype = 'C';
     so.cashaccount = {
-      idSecuritycashAccount: +this.configObject.idCashaccount.formControl.value
+      idSecuritycashAccount: +requireFormControl(this.configObject.idCashaccount).value
     } as Cashaccount;
     return so;
   }

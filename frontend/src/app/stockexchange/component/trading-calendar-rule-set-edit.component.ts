@@ -105,7 +105,7 @@ export class TradingCalendarRuleSetEditComponent
 
   readonly previewYear = signal(new Date().getFullYear());
   readonly previewClosures = signal<{ [date: string]: string }>({});
-  readonly previewError = signal<string>(null);
+  readonly previewError = signal<string | null>(null);
   private previewSubscription?: Subscription;
   private optionsLoaded = false;
 
@@ -124,7 +124,7 @@ export class TradingCalendarRuleSetEditComponent
     });
   }
 
-  get idTradingCalendarRuleSet(): number {
+  get idTradingCalendarRuleSet(): number | null | undefined {
     return this.callParam()?.idTradingCalendarRuleSet;
   }
 
@@ -173,7 +173,8 @@ export class TradingCalendarRuleSetEditComponent
         // A set must not extend itself, so the edited one is removed from the choices. Longer cycles are refused by
         // the backend, which is the only place that can see the whole chain.
         this.configObject.idExtendsRuleSet.valueKeyHtmlOptions = options.filter(
-          (option) => !this.idTradingCalendarRuleSet || +option.key !== this.idTradingCalendarRuleSet
+          (option) =>
+            this.idTradingCalendarRuleSet == null || option.key == null || +option.key !== this.idTradingCalendarRuleSet
         );
         this.optionsLoaded = true;
         this.updateSubmitState();
@@ -212,14 +213,15 @@ export class TradingCalendarRuleSetEditComponent
    * visible. The inherited rules always come from the stored sets.
    */
   loadPreview(): void {
-    if (!this.idTradingCalendarRuleSet) {
+    const id = this.idTradingCalendarRuleSet;
+    if (!id) {
       return;
     }
     this.previewSubscription?.unsubscribe();
     this.previewError.set(null);
     this.previewClosures.set({});
     this.previewSubscription = this.tradingCalendarRuleSetService
-      .previewClosures(this.idTradingCalendarRuleSet, this.previewYear(), this.ruleYamlValue())
+      .previewClosures(id, this.previewYear(), this.ruleYamlValue())
       .pipe(this.untilDialogClosed())
       .subscribe({
         next: (closures) => this.previewClosures.set(closures),

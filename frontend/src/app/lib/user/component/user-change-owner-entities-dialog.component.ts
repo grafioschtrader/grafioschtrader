@@ -1,6 +1,7 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 
-import { SimpleEditBase } from '../../edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../edit/simple.form.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
@@ -37,7 +38,7 @@ import { ProcessedAction } from '../../types/processed.action';
   </p-dialog>`,
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class UserChangeOwnerEntitiesDialogComponent extends SimpleEditBase implements OnInit {
+export class UserChangeOwnerEntitiesDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private userAdminService: UserAdminService = inject(UserAdminService);
   private messageToastService: MessageToastService = inject(MessageToastService);
@@ -74,7 +75,7 @@ export class UserChangeOwnerEntitiesDialogComponent extends SimpleEditBase imple
   }
 
   protected initialize(): void {
-    this.configObject.fromIdUser.formControl.setValue(this.fromUser().nickname);
+    requireFormControl(this.configObject.fromIdUser).setValue(this.fromUser().nickname);
     this.configObject.toIdUser.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
       'idUser',
       'nickname',

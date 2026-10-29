@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import {
   AfterViewInit,
   Component,
@@ -175,8 +176,8 @@ export class PerformanceTotalChartWidgetComponent
   ngAfterViewInit(): void {
     this.viewReady = true;
     this.settingsSubscription = merge(
-      this.configObject.idPortfolio.formControl.valueChanges,
-      this.configObject.range.formControl.valueChanges
+      requireFormControl(this.configObject.idPortfolio).valueChanges,
+      requireFormControl(this.configObject.range).valueChanges
     ).subscribe(() => this.reload());
     // Outside Angular, because a re-layout of the plot changes nothing a template binds to.
     this.zone.runOutsideAngular(() => {
@@ -213,7 +214,7 @@ export class PerformanceTotalChartWidgetComponent
       configOverride,
       true
     );
-    configOverride['range'] = this.configObject.range.formControl.value;
+    configOverride['range'] = requireFormControl(this.configObject.range).value;
     this.dashboardService.refresh(resultValue.instanceId, configOverride).subscribe((result) => {
       const chart = result?.payload?.custom as PerformanceTotalChart;
       if (chart) {

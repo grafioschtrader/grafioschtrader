@@ -324,7 +324,7 @@ export class ConfigurableTreeTableComponent {
   readonly fieldsRevision = input(0);
 
   /** Property name used as the unique identifier for each node. */
-  readonly dataKey = input<string>(undefined);
+  readonly dataKey = input<string>();
 
   // ============================================================================
   // Selection Configuration
@@ -365,7 +365,7 @@ export class ConfigurableTreeTableComponent {
   // ============================================================================
 
   /** Field name for default sort column. */
-  readonly sortField = input<string>(undefined);
+  readonly sortField = input<string>();
 
   /** Sort order: 1 = ascending, -1 = descending. */
   readonly sortOrder = input(1);
@@ -391,7 +391,7 @@ export class ConfigurableTreeTableComponent {
   readonly scrollable = input(false);
 
   /** Height of the scrollable viewport. */
-  readonly scrollHeight = input<string>(undefined);
+  readonly scrollHeight = input<string>();
 
   // ============================================================================
   // Visual Styling
@@ -436,47 +436,47 @@ export class ConfigurableTreeTableComponent {
   readonly iconTemplate = contentChild<TemplateRef<any>>('iconCell');
 
   /** Footer template projected into p-treeTable footer slot. */
-  readonly footerTemplate = input<TemplateRef<any>>(undefined);
+  readonly footerTemplate = input<TemplateRef<any>>();
 
   // ============================================================================
   // Cell Behavior Callbacks
   // ============================================================================
 
   /** Callback to determine if owner cell should be highlighted (bold). */
-  readonly ownerHighlightFn = input<(row: any, field: ColumnConfig) => boolean>(undefined);
+  readonly ownerHighlightFn = input<(row: any, field: ColumnConfig) => boolean>();
 
   /**
    * Callback to control per-row visibility of editableCheck checkboxes.
    * When not provided, all rows render checkboxes (backward compatible).
    * When provided, only rows where the callback returns true show a checkbox.
    */
-  readonly checkboxVisibleFn = input<(rowData: any, field: ColumnConfig) => boolean>(undefined);
+  readonly checkboxVisibleFn = input<(rowData: any, field: ColumnConfig) => boolean>();
 
   /** Keeps a checkbox visible while a row-specific capability or pending save prevents changes. */
-  readonly checkboxDisabledFn = input<(rowData: any, field: ColumnConfig) => boolean>(undefined);
+  readonly checkboxDisabledFn = input<(rowData: any, field: ColumnConfig) => boolean>();
 
   /** Callback to determine if a numeric value is negative. Used with greenRed template. */
-  readonly negativeValueFn = input<(row: any, field: ColumnConfig) => boolean>(undefined);
+  readonly negativeValueFn = input<(row: any, field: ColumnConfig) => boolean>();
 
   /** Custom function to retrieve cell values. */
-  readonly valueGetterFn = input<(row: any, field: ColumnConfig) => any>(undefined);
+  readonly valueGetterFn = input<(row: any, field: ColumnConfig) => any>();
 
   /**
    * Callback returning additional CSS class(es) for a single cell, evaluated per row and column.
    * The returned class is appended to the alignment class derived from the column data type, so a
    * caller can mark individual values without losing the numeric right alignment.
    */
-  readonly cellClassFn = input<(rowData: any, field: ColumnConfig) => string | null>(undefined);
+  readonly cellClassFn = input<(rowData: any, field: ColumnConfig) => string | null>();
 
   // ============================================================================
   // Row Behavior Callbacks
   // ============================================================================
 
   /** Callback returning CSS class(es) for a row based on rowNode and rowData. */
-  readonly rowClassFn = input<(rowNode: any, rowData: any) => string | null>(undefined);
+  readonly rowClassFn = input<(rowNode: any, rowData: any) => string | null>();
 
   /** Callback returning inline background-color for a row. */
-  readonly rowStyleFn = input<(rowData: any) => string | null>(undefined);
+  readonly rowStyleFn = input<(rowData: any) => string | null>();
 
   // ============================================================================
   // Row Expansion Configuration
@@ -486,10 +486,10 @@ export class ConfigurableTreeTableComponent {
   readonly expandable = input(false);
 
   /** Template rendered inside the expanded detail row; receives the node data as $implicit. */
-  readonly expandedRowTemplate = input<TemplateRef<any>>(undefined);
+  readonly expandedRowTemplate = input<TemplateRef<any>>();
 
   /** Callback deciding which nodes may be expanded. Without it every node carries a toggle. */
-  readonly canExpandFn = input<(rowData: any) => boolean>(undefined);
+  readonly canExpandFn = input<(rowData: any) => boolean>();
 
   /** Icon class of the toggle while the detail row is open. */
   readonly expandedIcon = input('fa fa-chevron-down');
@@ -508,7 +508,7 @@ export class ConfigurableTreeTableComponent {
   // ============================================================================
 
   /** Locale configuration for date and number formatting in cell editors. */
-  readonly baseLocale = input<BaseLocale>(undefined);
+  readonly baseLocale = input<BaseLocale>();
 
   // ============================================================================
   // Cell Editing Configuration
@@ -523,7 +523,7 @@ export class ConfigurableTreeTableComponent {
    * @param field - The column configuration
    * @returns true if the cell should be editable
    */
-  readonly canEditCellFn = input<(rowData: any, field: ColumnConfig) => boolean>(undefined);
+  readonly canEditCellFn = input<(rowData: any, field: ColumnConfig) => boolean>();
 
   // ============================================================================
   // Click and Edit Events
@@ -580,7 +580,8 @@ export class ConfigurableTreeTableComponent {
    * @returns true when the detail row is rendered
    */
   isRowExpanded(rowData: any): boolean {
-    return this.expandedRowKeys.has(rowData?.[this.dataKey()]);
+    const dataKey = this.dataKey();
+    return dataKey != null && this.expandedRowKeys.has(rowData?.[dataKey]);
   }
 
   /**
@@ -591,7 +592,10 @@ export class ConfigurableTreeTableComponent {
    */
   toggleRow(rowData: any, event: Event): void {
     event.preventDefault();
-    const key = rowData?.[this.dataKey()];
+    const dataKey = this.dataKey();
+    if (dataKey == null) return;
+    const key = rowData?.[dataKey];
+    if (key == null) return;
     if (this.expandedRowKeys.has(key)) {
       this.expandedRowKeys.delete(key);
     } else {

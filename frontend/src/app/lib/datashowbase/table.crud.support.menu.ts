@@ -62,7 +62,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
   readonly entityList = signal<T[]>([]);
 
   /** Translated context menu of the selected entity, null when there is none */
-  readonly contextMenuItems = signal<MenuItem[]>(null);
+  readonly contextMenuItems = signal<MenuItem[] | null>(null);
 
   /** Currently selected entity in the table */
   readonly selectedEntity = linkedSignal<T[], T | null>({
@@ -129,12 +129,14 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    * @param entity - Entity to delete
    */
   handleDeleteEntity(entity: T): void {
+    const id = this.beforeDelete(entity)[this.entityKeyName];
+    if (typeof id !== 'number' && typeof id !== 'string') return;
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + this.entityNameUpper,
       () =>
-        this.deleteService.deleteEntity(this.beforeDelete(entity)[this.entityKeyName] as number | string).subscribe({
+        this.deleteService.deleteEntity(id).subscribe({
           next: () => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: this.entityNameUpper
@@ -180,7 +182,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    *
    * @returns Help context identifier or null if no help available
    */
-  public getHelpContextId(): string {
+  public getHelpContextId(): string | null {
     return null;
   }
 
@@ -240,7 +242,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    *
    * @returns Array of untranslated menu items or null if no show menu is needed
    */
-  protected prepareShowMenu(): MenuItem[] {
+  protected prepareShowMenu(): MenuItem[] | null {
     return null;
   }
 
@@ -250,7 +252,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    * @param entity - Currently selected entity or null
    * @returns Array of menu items or null if no items are available
    */
-  protected prepareEditMenu(entity: T): MenuItem[] {
+  protected prepareEditMenu(entity: T): MenuItem[] | null {
     const menuItems = this.getEditMenuItems(entity);
     return menuItems.length > 0 ? menuItems : null;
   }

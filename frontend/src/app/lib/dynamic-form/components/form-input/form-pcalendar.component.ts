@@ -1,3 +1,4 @@
+import { requireFieldName } from '../../models/form-control-access';
 import { Component, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 import { Helper } from '../../../helper/helper';
@@ -47,20 +48,20 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
   /** Error names this component sets itself, they must be removed again before a new evaluation. */
   private static readonly OWN_ERRORS = ['calendarDateInvalid', 'calendarDateNotSelectable'];
 
-  public language: (typeof Helper.CALENDAR_LANG)[string];
+  public language: (typeof Helper.CALENDAR_LANG)[string] | undefined;
 
   private readonly datePicker = viewChild(DatePicker);
 
-  private valueChangedSub: Subscription;
+  private valueChangedSub?: Subscription;
 
   override ngOnInit() {
     super.ngOnInit();
-    this.language = Helper.CALENDAR_LANG[this.formConfig().language];
+    const language = this.formConfig().language;
+    this.language = language == null ? undefined : Helper.CALENDAR_LANG[language];
     // Every accepted date, no matter if it was entered or chosen over the calendar, withdraws a former complaint.
     // Otherwise a rejected entry would keep the field invalid even after a correct date was selected.
-    this.valueChangedSub = this.group().controls[this.config().field]?.valueChanges.subscribe(() =>
-      this.setOwnError(this.group().controls[this.config().field], null)
-    );
+    const control = this.group().get(requireFieldName(this.config()));
+    this.valueChangedSub = control?.valueChanges.subscribe(() => this.setOwnError(control, null));
   }
 
   ngOnDestroy(): void {
@@ -81,13 +82,13 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
    * @param event Blur event of the input field, it still carries the text which the user has entered
    */
   onCalendarBlur(event: Event): void {
-    const control = this.group().controls[this.config().field];
+    const control = this.group().get(requireFieldName(this.config()));
     const datePicker = this.datePicker();
     if (!control || !datePicker) {
       return;
     }
     const enteredText = (event.target as HTMLInputElement)?.value?.trim();
-    let errorName: string = null;
+    let errorName: string | null = null;
     if (enteredText) {
       try {
         const parsedDate = datePicker.parseValueFromString(enteredText);
@@ -106,7 +107,7 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
    * @param control Form control of this input field
    * @param errorName Name of the error to set or null when the entry is accepted
    */
-  private setOwnError(control: AbstractControl, errorName: string): void {
+  private setOwnError(control: AbstractControl, errorName: string | null): void {
     const errors = { ...(control.errors || {}) };
     FormPCalendarComponent.OWN_ERRORS.forEach((name) => delete errors[name]);
     if (errorName) {

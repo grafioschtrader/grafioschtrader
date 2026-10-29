@@ -71,8 +71,8 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
 
-  readonly securityaccountTree = viewChild<TenantDividendAccountSelectionComponent>('securityaccountTree');
-  readonly cashaccountTree = viewChild<TenantDividendAccountSelectionComponent>('cashaccountTree');
+  readonly securityaccountTree = viewChild.required<TenantDividendAccountSelectionComponent>('securityaccountTree');
+  readonly cashaccountTree = viewChild.required<TenantDividendAccountSelectionComponent>('cashaccountTree');
 
   private readonly renderInjector = inject(Injector);
 

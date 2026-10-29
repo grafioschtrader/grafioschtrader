@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -75,13 +75,13 @@ import { ProcessedAction } from '../../lib/types/processed.action';
     </details>
   </p-dialog>`
 })
-export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
+export class TaxModelEditComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
   private service: TaxDataService = inject(TaxDataService);
   private http: HttpClient = inject(HttpClient);
 
-  readonly yamlEditor = viewChild(YamlEditorComponent);
+  readonly yamlEditor = viewChild.required(YamlEditorComponent);
   readonly country = input<TaxCountry>(undefined);
   readonly yaml = signal('');
   readonly schema = signal<object>(undefined);

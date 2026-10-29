@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { DestroyRef, Directive, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -46,7 +47,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   private menuSubscription?: Subscription;
 
   // Access child components
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
 
   // Form configuration
   formConfig: FormConfig;
@@ -84,13 +85,13 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   }
   changeOnMainFieldSub: Subscription;
   /** Parameter object passed to edit dialog components. Type is defined by the consuming application. */
-  private readonly callParamState = signal<CP>(null);
+  private readonly callParamState = signal<CP | null>(null);
 
-  get callParam(): CP {
+  get callParam(): CP | null {
     return this.callParamState();
   }
 
-  set callParam(value: CP) {
+  set callParam(value: CP | null) {
     this.callParamState.set(value);
   }
   // For the component Edit-Menu, it shows the same menu items as the context menu
@@ -110,12 +111,12 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
       rows.find((row) => row[this.mainFieldId] === previous?.value?.[this.mainFieldId]) ?? null
   });
 
-  get selectedEntity(): T {
+  get selectedEntity(): T | null {
     return this.selectedEntityState();
   }
 
-  set selectedEntity(value: T) {
-    this.selectedEntityState.set(value);
+  set selectedEntity(value: T | null | undefined) {
+    this.selectedEntityState.set(value ?? null);
   }
   /** Avoid looking for changes on the main select box  */
   protected ignoreChangeOnMonitorField: boolean;
@@ -143,14 +144,14 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   /**
    * Adjust the child view data on the selected parent data
    */
-  abstract setChildData(selectedEntity: T): void;
+  abstract setChildData(selectedEntity: T | null): void;
 
   abstract readData(): void;
 
   valueChangedMainField(): void {
     this.changeOnMainFieldSub?.unsubscribe();
-    this.changeOnMainFieldSub = this.configObject[this.mainFieldId].formControl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.changeOnMainFieldSub = requireFormControl(this.configObject[this.mainFieldId])
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((key: number) => {
         if (!this.ignoreChangeOnMonitorField) {
           this.selectedEntity = this.entityList.find((entity) => entity[this.mainFieldId] === +key);
@@ -160,6 +161,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   }
 
   getBaseEditMenu(entityName: string): MenuItem[] {
+    const selected = this.selectedEntity;
     const menuItems: MenuItem[] = [];
     menuItems.push({
       label: 'CREATE|' + entityName + BaseSettings.DIALOG_MENU_SUFFIX,
@@ -168,7 +170,9 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
     });
     menuItems.push({
       label: 'EDIT_RECORD|' + entityName + BaseSettings.DIALOG_MENU_SUFFIX,
-      command: (event) => this.handleEditEntityOpenDialog(this.selectedEntity),
+      command: () => {
+        if (selected) this.handleEditEntityOpenDialog(selected);
+      },
       disabled: !this.selectedEntity
     });
     menuItems.push({
@@ -178,7 +182,9 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
         !this.childEntityList ||
         this.childEntityList.length > 0 ||
         !AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, this.selectedEntity),
-      command: (event) => this.handleDeleteEntity(this.selectedEntity)
+      command: () => {
+        if (selected) this.handleDeleteEntity(selected);
+      }
     });
     return menuItems;
   }
@@ -187,7 +193,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
     return true;
   }
 
-  handleEditEntityOpenDialog(entity: T): void {
+  handleEditEntityOpenDialog(entity: T | null): void {
     this.prepareCallParam(entity);
     this.visibleEditDialog = true;
   }
@@ -201,6 +207,8 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   }
 
   handleDeleteEntity(entity: T) {
+    const id = entity[this.mainFieldId];
+    if (typeof id !== 'number' && typeof id !== 'string') return;
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
@@ -208,13 +216,13 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
       () => {
         //    entity = this.beforeDelete(entity);
         this.deleteService
-          .deleteEntity(entity[this.mainFieldId] as number | string)
+          .deleteEntity(id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((response) => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: this.entityName
             });
-            if (this.selectedEntity?.[this.mainFieldId] === entity[this.mainFieldId]) {
+            if (this.selectedEntity?.[this.mainFieldId] === id) {
               this.selectedEntity = null;
             }
             this.readData();
@@ -263,7 +271,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   /**
    * Prepare parameter data object for editing component.
    */
-  protected abstract prepareCallParam(entity: T): void;
+  protected abstract prepareCallParam(entity: T | null): void;
 
   /*
   protected beforeDelete(entity: T): T {
@@ -285,7 +293,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   /**
    * Can be overwritten to have a show menu
    */
-  protected prepareShowMenu(): MenuItem[] {
+  protected prepareShowMenu(): MenuItem[] | null {
     return null;
   }
 }

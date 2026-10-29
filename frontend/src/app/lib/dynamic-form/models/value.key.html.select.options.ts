@@ -2,7 +2,7 @@ export class ValueKeyHtmlSelectOptions {
   disabled: boolean;
 
   constructor(
-    public key: number | string,
+    public key: number | string | null,
     public value: string
   ) {}
 }
@@ -25,11 +25,11 @@ export class GroupItem {
    *                  image element.
    */
   constructor(
-    public key: number | string,
-    public value: string,
+    public key: number | string | null,
+    public value: string | null,
     public optionsText: string,
-    public img: string,
-    public iconClass?: string
+    public img: string | null,
+    public iconClass?: string | null
   ) {}
 }
 

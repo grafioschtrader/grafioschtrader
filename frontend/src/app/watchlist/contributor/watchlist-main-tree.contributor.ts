@@ -1,3 +1,4 @@
+import { previousTreeNode } from '../../lib/maintree/types/tree-node-navigation';
 import { Injectable } from '@angular/core';
 import { inject } from '@angular/core';
 import { Observable, combineLatest, of } from 'rxjs';
@@ -251,7 +252,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
    * @private
    */
   private buildWatchlistNodes(rootNode: TreeNode, watchlists: Watchlist[]): void {
-    rootNode.children.splice(0);
+    (rootNode.children ??= []).splice(0);
     for (const watchlist of watchlists) {
       const treeNode = {
         label: watchlist.name,
@@ -264,7 +265,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
           JSON.stringify(watchlist)
         )
       };
-      rootNode.children.push(treeNode);
+      (rootNode.children ??= []).push(treeNode);
     }
   }
 
@@ -274,7 +275,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
    * @param targetLabel - Name of the watchlist the instrument was dropped on
    * @private
    */
-  private showMoveFailed(targetLabel: string): void {
+  private showMoveFailed(targetLabel: string | undefined): void {
     this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MOVE_SECURITY_WATCHLIST_FAILED', {
       to: targetLabel
     });
@@ -291,7 +292,8 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: AppSettings.WATCHLIST.toUpperCase()
             });
-            this.callbacks?.navigateToNode(this.getPreviousNode(treeNode).data);
+            const previous = this.getPreviousNode(treeNode);
+            if (previous?.data) this.callbacks?.navigateToNode(previous.data);
             this.callbacks?.refreshTree();
           },
           error: (err) => console.error('Error deleting watchlist:', err)
@@ -307,16 +309,12 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
     });
   }
 
-  private getPreviousNode(treeNode: TreeNode): TreeNode {
-    let i = 0;
-    while (i < treeNode.parent.children.length && treeNode.parent.children[i] !== treeNode) {
-      i++;
-    }
-    return i === 0 ? treeNode.parent : treeNode.parent.children[i - 1];
+  private getPreviousNode(treeNode: TreeNode): TreeNode | null {
+    return previousTreeNode(treeNode);
   }
 
-  private setLangTrans(key: string, target: TreeNode, suffix: string = ''): void {
-    this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
+  private setLangTrans(key: string | undefined, target: TreeNode, suffix: string = ''): void {
+    if (key) this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
   }
 
   private addMainRoute(suffix: string): string {

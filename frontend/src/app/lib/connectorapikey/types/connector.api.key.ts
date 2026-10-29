@@ -1,11 +1,11 @@
 import { BaseID } from '../../entities/base.id';
 
 export class ConnectorApiKey implements BaseID {
-  idProvider: string = null;
-  apiKey: string = null;
-  subscriptionType: SubscriptionTypeValue = null;
+  idProvider: string | null = null;
+  apiKey: string | null = null;
+  subscriptionType: SubscriptionTypeValue | null = null;
 
-  public getId(): string {
+  public getId(): string | null {
     return this.idProvider;
   }
 }

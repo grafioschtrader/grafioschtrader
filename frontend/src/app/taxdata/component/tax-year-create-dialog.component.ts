@@ -34,7 +34,7 @@ export class TaxYearCreateDialogComponent extends FormBase implements OnInit {
   private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
 
   private readonly injector = inject(Injector);
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
 
   constructor() {
     super();

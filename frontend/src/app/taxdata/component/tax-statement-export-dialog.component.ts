@@ -1,6 +1,6 @@
 import { Component, OnInit, input, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -39,7 +39,7 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
   `,
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class TaxStatementExportDialogComponent extends SimpleEditBase implements OnInit {
+export class TaxStatementExportDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private taxDataService: TaxDataService = inject(TaxDataService);
   private tenantService: TenantService = inject(TenantService);

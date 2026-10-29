@@ -13,19 +13,19 @@ import { Auditable } from '../lib/entities/auditable';
  * </p>
  */
 export class BankruptSecurity extends Auditable implements BaseID {
-  idBankruptSecurity: number = null;
-  idSecuritycurrency: number = null;
+  idBankruptSecurity: number | null = null;
+  idSecuritycurrency?: number | null = null;
   /** Day from which the issuer stopped delivering prices. Documentation only; the filling starts at the last price. */
-  noDataSince: string = null;
+  noDataSince: string | null = null;
   /**
    * First day on which the instrument can no longer be traded. From that day on a historical simulation neither buys
    * nor sells it; independent of noDataSince, because an instrument may still be quoted while its trading is suspended.
    */
-  noTradingSince: string = null;
-  note: string = null;
+  noTradingSince: string | null = null;
+  note: string | null = null;
 
   @Exclude()
-  override getId(): number {
+  override getId(): number | null {
     return this.idBankruptSecurity;
   }
 }
@@ -35,11 +35,11 @@ export class BankruptSecurity extends Auditable implements BaseID {
  * closing dates. It extends the entity rather than standing beside it so that the same object can be edited.
  */
 export class BankruptSecurityRow extends BankruptSecurity {
-  name: string = null;
-  isin: string = null;
-  currency: string = null;
+  name: string | null = null;
+  isin: string | null = null;
+  currency: string | null = null;
   /** Newest closing price a provider, an import or the user supplied, so not a filled one. */
-  lastRealQuoteDate: string = null;
+  lastRealQuoteDate: string | null = null;
   /** Newest closing price of any kind. A later date than lastRealQuoteDate is the filling at work. */
-  lastQuoteDate: string = null;
+  lastQuoteDate: string | null = null;
 }

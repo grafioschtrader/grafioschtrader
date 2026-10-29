@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
@@ -80,32 +81,32 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
     this.updateSubscriptionTypeVisibility(connectorApiKey?.idProvider);
     if (connectorApiKey) {
       this.form().transferBusinessObjectToForm(connectorApiKey);
-      this.configObject.idProvider.formControl.disable();
+      requireFormControl(this.configObject.idProvider).disable();
     } else {
-      this.configObject.idProvider.formControl.enable();
+      requireFormControl(this.configObject.idProvider).enable();
     }
     this.valueChangedOnIdProvider();
   }
 
   valueChangedOnIdProvider(): void {
-    this.configObject.idProvider.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.idProvider)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((selection) => this.updateSubscriptionTypeVisibility(selection));
   }
 
-  private updateSubscriptionTypeVisibility(providerId: string): void {
-    const options = this.subscriptionTypeOptionsMap()[providerId] ?? [];
+  private updateSubscriptionTypeVisibility(providerId: string | null | undefined): void {
+    const options = providerId == null ? [] : (this.subscriptionTypeOptionsMap()[providerId] ?? []);
     this.configObject.subscriptionType.valueKeyHtmlOptions = options;
     // A subscription belongs to its provider; switching providers must require a fresh selection.
-    this.configObject.subscriptionType.formControl.setValue(null);
+    requireFormControl(this.configObject.subscriptionType).setValue(null);
     if (options.length === 0) {
       this.configObject.subscriptionType.invisible = true;
-      this.configObject.subscriptionType.formControl.clearValidators();
+      requireFormControl(this.configObject.subscriptionType).clearValidators();
     } else {
       this.configObject.subscriptionType.invisible = false;
-      this.configObject.subscriptionType.formControl.setValidators(Validators.required);
+      requireFormControl(this.configObject.subscriptionType).setValidators(Validators.required);
     }
-    this.configObject.subscriptionType.formControl.updateValueAndValidity();
+    requireFormControl(this.configObject.subscriptionType).updateValueAndValidity();
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ConnectorApiKey {

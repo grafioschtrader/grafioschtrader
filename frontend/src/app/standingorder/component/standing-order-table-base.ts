@@ -119,7 +119,8 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
 
   onRowExpand(event: { data: StandingOrder }): void {
     const so = event.data;
-    if ((so.failureCount ?? 0) > 0 && !this.failuresMap().has(so.idStandingOrder)) {
+    const id = so.idStandingOrder;
+    if (id != null && (so.failureCount ?? 0) > 0 && !this.failuresMap().has(id)) {
       this.loadFailures(so);
     }
   }
@@ -129,7 +130,8 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   }
 
   getFailuresForOrder(so: StandingOrder): StandingOrderFailure[] {
-    return this.failuresMap().get(so.idStandingOrder) ?? [];
+    const id = so.idStandingOrder;
+    return id == null ? [] : (this.failuresMap().get(id) ?? []);
   }
 
   protected loadData(): void {
@@ -152,7 +154,10 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
         this.standingOrders.set(orders);
         if (this.isActivated()) this.resetMenu();
         orders
-          .filter((so) => previousFailureIds.has(so.idStandingOrder) && (so.failureCount ?? 0) > 0)
+          .filter(
+            (so) =>
+              so.idStandingOrder != null && previousFailureIds.has(so.idStandingOrder) && (so.failureCount ?? 0) > 0
+          )
           .forEach((so) => {
             this.loadFailures(so);
           });
@@ -161,9 +166,11 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   }
 
   private loadFailures(so: StandingOrder): void {
+    const id = so.idStandingOrder;
+    if (id == null) return;
     this.dataSubscriptions.add(
-      this.standingOrderService.getFailures(so.idStandingOrder).subscribe((failures) => {
-        this.failuresMap.update((current) => new Map(current).set(so.idStandingOrder, failures));
+      this.standingOrderService.getFailures(id).subscribe((failures) => {
+        this.failuresMap.update((current) => new Map(current).set(id, failures));
       })
     );
   }
@@ -189,13 +196,15 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   }
 
   protected handleDelete(so: StandingOrder): void {
+    const id = so.idStandingOrder;
+    if (id == null) return;
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|STANDING_ORDER',
       () => {
         this.standingOrderService
-          .deleteEntity(so.idStandingOrder)
+          .deleteEntity(id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(() => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {

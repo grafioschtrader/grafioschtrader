@@ -110,7 +110,7 @@ export interface RuleProposalResult {
 /** Draft of a fill rule, evaluated against the tenant scope of the user without writing anything. */
 export interface UDFFillTestRequest {
   /** The field being edited, or null for a field not yet saved */
-  idUDFMetadata: number;
+  idUDFMetadata: number | null;
   udfDataType: string;
   fieldSize: string;
   categoryTypeEnums: AssetclassType[];

@@ -75,7 +75,8 @@ export class FormInputNumberComponent extends BaseInputComponent {
    * p-inputNumber writes a number (not the formatted string) to the model.
    */
   get currentValue(): number | undefined {
-    const ctrl = this.group()?.get(this.config().field);
+    const field = this.config().field;
+    const ctrl = field == null ? null : this.group().get(field);
     const value = ctrl?.value;
     return value === null || value === undefined ? undefined : Number(value);
   }
@@ -92,7 +93,8 @@ export class FormInputNumberComponent extends BaseInputComponent {
       return false;
     }
 
-    if (this.config().min == null || this.config().min >= 0) {
+    const min = this.config().min;
+    if (min == null || min >= 0) {
       // Negative values are not allowed
       return false;
     }

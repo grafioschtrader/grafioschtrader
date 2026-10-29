@@ -1,11 +1,11 @@
 export class Globalparameters {
-  propertyName: string = null;
-  propertyInt: number = null;
-  propertyString: string = null;
-  propertyDate: string = null;
-  propertyDateTime: string = null;
-  propertyBlob: string = null;
-  propertyBlobAsText: string = null;
-  changedBySystem: boolean = null;
-  inputRule: string = null;
+  propertyName: string | null = null;
+  propertyInt: number | null = null;
+  propertyString: string | null = null;
+  propertyDate: string | null = null;
+  propertyDateTime: string | null = null;
+  propertyBlob: string | null = null;
+  propertyBlobAsText: string | null = null;
+  changedBySystem: boolean | null = null;
+  inputRule: string | null = null;
 }

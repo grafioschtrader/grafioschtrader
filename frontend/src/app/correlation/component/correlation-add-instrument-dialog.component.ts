@@ -41,7 +41,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
 })
 export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility state of the add instrument dialog */
-  readonly visibleAddInstrumentDialog = input<boolean>(undefined);
+  readonly visibleAddInstrumentDialog = input<boolean>();
 
   /** The unique identifier of the correlation set to add instruments to */
   readonly idCorrelationSet = input<number>(undefined);
@@ -50,7 +50,7 @@ export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySea
   readonly tenantLimits = input<TenantLimit[]>(undefined);
 
   /** Reference to the child table component that displays and manages instrument selection */
-  readonly csaitc = viewChild(CorrelationSetAddInstrumentTableComponent);
+  readonly csaitc = viewChild.required(CorrelationSetAddInstrumentTableComponent);
 
   /** Event emitter that notifies parent component when dialog is closed with action data */
   readonly closeDialog = output<ProcessedActionData>();

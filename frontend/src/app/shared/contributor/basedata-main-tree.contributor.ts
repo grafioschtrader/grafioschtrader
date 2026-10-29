@@ -197,8 +197,8 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
     treeNodes.forEach((treeNode) => this.setLangTransNode(treeNode));
   }
 
-  private setLangTrans(key: string, target: TreeNode, suffix: string = ''): void {
-    this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
+  private setLangTrans(key: string | undefined, target: TreeNode, suffix: string = ''): void {
+    if (key) this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
   }
 
   private addMainRoute(suffix: string): string {

@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { AfterViewInit, Component, OnDestroy, viewChild, input, linkedSignal, computed, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -101,7 +102,9 @@ export class HoldingMoversWidgetComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.chosenDateSubscription = this.configObject.chosenDate.formControl.valueChanges.subscribe(() => this.reload());
+    this.chosenDateSubscription = requireFormControl(this.configObject.chosenDate).valueChanges.subscribe(() =>
+      this.reload()
+    );
   }
 
   ngOnDestroy(): void {
@@ -115,7 +118,7 @@ export class HoldingMoversWidgetComponent implements AfterViewInit, OnDestroy {
    */
   private reload(): void {
     const resultValue = this.result();
-    if (!this.configObject.chosenDate.formControl.value || !resultValue?.instanceId) {
+    if (!requireFormControl(this.configObject.chosenDate).value || !resultValue?.instanceId) {
       return;
     }
     // Calendar controls hold local Date objects. Convert through the field's data type so the API receives a

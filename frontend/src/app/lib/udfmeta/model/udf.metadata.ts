@@ -10,10 +10,10 @@ import { FieldDescriptorInputAndShowExtended } from '../../dynamicfield/field.de
  */
 export abstract class UDFMetadata implements BaseID {
   /** Unique identifier for this UDF metadata entry */
-  idUDFMetadata: number = null;
+  idUDFMetadata: number | null = null;
 
   /** Owner user ID. Value of 0 indicates a system-wide UDF available to all users */
-  idUser: number = null;
+  idUser: number | null = null;
 
   /**
    * Special type classification for UDFs with predefined purposes.
@@ -23,19 +23,19 @@ export abstract class UDFMetadata implements BaseID {
   udfSpecialType: number;
 
   /** User-visible field label or name */
-  description: string = null;
+  description: string | null = null;
 
   /** Optional help text displayed to guide users when filling out this field */
-  descriptionHelp: string = null;
+  descriptionHelp: string | null = null;
 
   /** Data type of the field (numeric, string, date, boolean, URL, etc.) */
-  udfDataType: UDFDataType = null;
+  udfDataType: UDFDataType | null = null;
 
   /** Maximum field size or precision specification. Format varies by data type (e.g., "10" for max length, "10,2" for decimal precision) */
-  fieldSize: string = null;
+  fieldSize: string | null = null;
 
   /** Display order for the field in UI forms. Lower numbers appear first */
-  uiOrder: number = null;
+  uiOrder: number | null = null;
 
   /**
    * Returns the unique identifier of this UDF metadata entry.
@@ -44,7 +44,7 @@ export abstract class UDFMetadata implements BaseID {
    * @returns The UDF metadata ID
    */
   @Exclude()
-  getId(): number {
+  getId(): number | null {
     return this.idUDFMetadata;
   }
 }
@@ -56,7 +56,7 @@ export abstract class UDFMetadata implements BaseID {
  */
 export class UDFMetadataGeneral extends UDFMetadata {
   /** Entity type name that this UDF applies to (e.g., "Portfolio", "Watchlist", "Transaction") */
-  entity: string = null;
+  entity: string | null = null;
 }
 
 /**
@@ -111,7 +111,7 @@ export class UDFDataKey {
    * @param idEntity - Specific instance ID of the entity
    */
   constructor(
-    public idUser: number,
+    public idUser: number | null,
     public entity: string,
     public idEntity: number
   ) {}

@@ -101,7 +101,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   readonly messageTreeTables = viewChildren(GTNetMessageTreeTableComponent);
 
   private readonly domainRemoteName = 'domainRemoteName';
-  readonly gtNetMyEntryId = signal<number>(null);
+  readonly gtNetMyEntryId = signal<number | null>(null);
   /** Selected entities for multi-select checkbox mode */
   readonly selectedEntities = signal<GTNet[]>([]);
   /**
@@ -232,6 +232,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
         return;
       }
       const idGtNet = msg.idGtNet;
+      if (idGtNet == null) return;
       const isReceived =
         msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
       if (isReceived) {

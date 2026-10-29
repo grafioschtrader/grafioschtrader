@@ -26,10 +26,10 @@ import { FormNotifier } from '../../models/form.notifier';
   imports: [NgxErrorsDirective, NgxErrorDirective]
 })
 export class ErrorMessageComponent {
-  readonly baseFieldFieldgroupConfig = input<BaseFieldFieldgroupConfig>(undefined);
+  readonly baseFieldFieldgroupConfig = input.required<BaseFieldFieldgroupConfig>();
 
   /** Change notification of the form this field or group belongs to; the template reads its revision. */
-  get notifier(): FormNotifier {
+  get notifier(): FormNotifier | undefined {
     return FormNotifier.of(this.baseFieldFieldgroupConfig());
   }
 }

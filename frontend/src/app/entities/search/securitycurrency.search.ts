@@ -1,19 +1,19 @@
 export class SecuritycurrencySearch {
-  isin: number = null;
-  name: string = null;
-  nameRegex: boolean = null;
-  tickerSymbol: string = null;
-  currency: string = null;
-  idStockexchange: number = null;
-  stockexchangeCountryCode: string = null;
-  assetclassType: string = null;
-  specialInvestmentInstruments: string = null;
-  subCategoryNLS: string = null;
-  onlyTenantPrivate: boolean = null;
-  leverageFactor: number = null;
-  activeDate: string = null;
-  excludeDerivedSecurity: boolean = null;
-  idConnectorHistory: string = null;
-  idConnectorIntra: string = null;
-  withHoldings: boolean = null;
+  isin: number | null = null;
+  name: string | null = null;
+  nameRegex: boolean | null = null;
+  tickerSymbol: string | null = null;
+  currency: string | null = null;
+  idStockexchange: number | null = null;
+  stockexchangeCountryCode: string | null = null;
+  assetclassType: string | null = null;
+  specialInvestmentInstruments: string | null = null;
+  subCategoryNLS: string | null = null;
+  onlyTenantPrivate: boolean | null = null;
+  leverageFactor: number | null = null;
+  activeDate: string | null = null;
+  excludeDerivedSecurity: boolean | null = null;
+  idConnectorHistory: string | null = null;
+  idConnectorIntra: string | null = null;
+  withHoldings: boolean | null = null;
 }

@@ -52,7 +52,7 @@ export class TriStateCheckboxComponent implements ControlValueAccessor {
 
   // Return a string for the data-state attribute (for styling)
   getState(): string {
-    return this.state() === null ? 'indeterminate' : this.state();
+    return this.state() ?? 'indeterminate';
   }
 
   // Handle keyboard inputs for accessibility

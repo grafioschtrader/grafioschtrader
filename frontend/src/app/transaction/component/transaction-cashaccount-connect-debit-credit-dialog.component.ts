@@ -1,7 +1,7 @@
 import { Component, OnInit, input, inject } from '@angular/core';
 
 import { TransactionCallParam } from './transaction.call.parm';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { HelpIds } from '../../lib/help/help.ids';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormDefinitionHelper } from '../../shared/edit/form.definition.helper';
@@ -28,7 +28,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   `,
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
-export class TransactionCashaccountConnectDebitCreditDialogComponent extends SimpleEditBase implements OnInit {
+export class TransactionCashaccountConnectDebitCreditDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
 
   readonly transactionCallParam = input<TransactionCallParam>(undefined);

@@ -72,7 +72,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit {
   readonly progressValue = signal<number>(undefined);
   readonly errorLastRegistration = input<string>(undefined, { alias: 'failure' });
   readonly confirmEmail = signal(false);
-  readonly applicationInfo = signal<ApplicationInfo>(null);
+  readonly applicationInfo = signal<ApplicationInfo | null>(null);
 
   ngOnInit(): void {
     combineLatest([

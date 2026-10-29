@@ -7,20 +7,20 @@ import { Auditable } from '../lib/entities/auditable';
  * rule set, never both.
  */
 export class TradingCalendarRuleSet extends Auditable implements BaseID {
-  idTradingCalendarRuleSet?: number = null;
+  idTradingCalendarRuleSet?: number | null = null;
   /** Market identifier code this rule set was written for. Optional and unique. */
-  mic?: string = null;
-  name: string = null;
+  mic?: string | null = null;
+  name: string | null = null;
   /** Rule set whose rules are evaluated before this one's, so a venue stores only its deviations. */
-  idExtendsRuleSet?: number = null;
+  idExtendsRuleSet?: number | null = null;
   /** The rules as YAML: note, authoritative range, rules, additionalClosures and openDates. */
-  ruleYaml?: string = null;
+  ruleYaml?: string | null = null;
   /** Read only, name of the rule set referenced by idExtendsRuleSet. */
-  nameExtendsRuleSet?: string = null;
+  nameExtendsRuleSet?: string | null = null;
   /** Read only, number of stock exchanges currently using this rule set. */
-  usedByExchanges?: number = null;
+  usedByExchanges?: number | null = null;
 
-  public override getId(): number {
+  public override getId(): number | null | undefined {
     return this.idTradingCalendarRuleSet;
   }
 }

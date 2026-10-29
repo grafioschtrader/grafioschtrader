@@ -68,7 +68,7 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
 export class BankruptSecurityTableComponent extends TableCrudSupportMenu<BankruptSecurity> {
   private bankruptSecurityService: BankruptSecurityService = inject(BankruptSecurityService);
 
-  readonly callParam = signal<BankruptSecurityCallParam>(null);
+  readonly callParam = signal<BankruptSecurityCallParam | null>(null);
 
   private readDataSub?: Subscription;
   private openDialogSub?: Subscription;

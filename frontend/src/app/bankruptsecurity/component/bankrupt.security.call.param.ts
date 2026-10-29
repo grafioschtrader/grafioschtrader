@@ -14,8 +14,8 @@ export class BankruptSecurityCallParam {
   constructor(
     public formDefinition: ClassDescriptorInputAndShow,
     /** The marker being edited, null when one is created. */
-    public bankruptSecurity: BankruptSecurity = null,
+    public bankruptSecurity: BankruptSecurity | null = null,
     /** Name of the instrument, shown in the read-only field; empty while it has still to be searched. */
-    public securityName: string = null
+    public securityName: string | null = null
   ) {}
 }

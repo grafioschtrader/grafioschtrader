@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   afterNextRender,
@@ -94,11 +95,11 @@ export class TenantHoldingsChartComponent
   private gps: GlobalparameterService = inject(GlobalparameterService);
   public translateService: TranslateService = inject(TranslateService);
 
-  readonly form = viewChild(DynamicFormComponent);
-  readonly chartElement = viewChild<ElementRef>('chart');
+  readonly form = viewChild.required(DynamicFormComponent);
+  readonly chartElement = viewChild.required<ElementRef>('chart');
 
   /** Translation key of the hint shown instead of a chart, null when a chart is shown. */
-  readonly noDataTextKey = signal<string>(null);
+  readonly noDataTextKey = signal<string | null>(null);
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderInjector = inject(Injector);
 
@@ -140,14 +141,14 @@ export class TenantHoldingsChartComponent
     afterNextRender(
       () => {
         const storedType = this.usersettingsService.readSingleValue(this.getStoreKey());
-        this.configObject.chartType.formControl.setValue(
+        requireFormControl(this.configObject.chartType).setValue(
           Object.values(HoldingsChartType).includes(storedType)
             ? storedType
             : HoldingsChartType.HOLDINGS_CHART_ASSETCLASS
         );
         this.subscriptions.push(
-          this.configObject.chartType.formControl.valueChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
+          requireFormControl(this.configObject.chartType)
+            .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe((chartType) => {
               this.usersettingsService.saveSingleValue(this.getStoreKey(), chartType);
               this.drawChart();
@@ -205,7 +206,7 @@ export class TenantHoldingsChartComponent
     if (!this.formReady || !this.chartInput()) {
       return;
     }
-    const figure = this.buildFigure(this.configObject.chartType.formControl.value);
+    const figure = this.buildFigure(requireFormControl(this.configObject.chartType).value);
     const version = ++this.drawVersion;
     this.plotly?.purge(this.chartElement().nativeElement);
     if (figure) {

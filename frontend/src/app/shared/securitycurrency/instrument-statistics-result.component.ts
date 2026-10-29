@@ -66,7 +66,7 @@ export class InstrumentStatisticsResultComponent implements OnInit {
    * expanded watchlist row, sets this to false to avoid showing the same title twice.
    */
   readonly showTitle = input(true);
-  readonly isr = signal<InstrumentStatisticsResult>(null);
+  readonly isr = signal<InstrumentStatisticsResult | null>(null);
   private readonly destroyRef = inject(DestroyRef);
 
   /**

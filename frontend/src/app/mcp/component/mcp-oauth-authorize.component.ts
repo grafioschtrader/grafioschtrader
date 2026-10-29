@@ -75,8 +75,8 @@ export class McpOAuthAuthorizeComponent implements OnInit {
   private mcpOAuthService = inject(McpOAuthService);
 
   readonly state = signal<PageState>('checking');
-  readonly errorKey = signal<string>(null);
-  readonly validation = signal<OAuthValidationResponse>(null);
+  readonly errorKey = signal<string | null>(null);
+  readonly validation = signal<OAuthValidationResponse | null>(null);
   readonly deciding = signal(false);
 
   private readonly destroyRef = inject(DestroyRef);
@@ -131,9 +131,11 @@ export class McpOAuthAuthorizeComponent implements OnInit {
   }
 
   decide(approve: boolean): void {
+    const validation = this.validation();
+    if (!validation || this.deciding()) return;
     this.deciding.set(true);
     this.mcpOAuthService
-      .consent(this.validation().authorizationRequestId, approve)
+      .consent(validation.authorizationRequestId, approve)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => this.goTo(response.redirect),

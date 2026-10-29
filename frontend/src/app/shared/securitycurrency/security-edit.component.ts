@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, computed, OnInit, signal, viewChild, input, inject } from '@angular/core';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
@@ -171,9 +172,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
   readonly bondTerms = viewChild(SecurityBondTermsComponent);
   // Access child components
-  readonly dynamicSplitForm = viewChild<DynamicFormComponent>('splitForm');
+  readonly dynamicSplitForm = viewChild.required<DynamicFormComponent>('splitForm');
   readonly seetc = viewChild(SecuritysplitEditTableComponent);
-  readonly dynamicPeriodPriceForm = viewChild<DynamicFormComponent>('periodPriceForm');
+  readonly dynamicPeriodPriceForm = viewChild.required<DynamicFormComponent>('periodPriceForm');
   readonly shpetc = viewChild(SecurityHistoryquotePeriodEditTableComponent);
 
   // Per-instrument limits sourced from the backend (gt.max.instrument.splits /
@@ -183,7 +184,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   readonly maxHistoryquotePeriods = signal(20);
 
   // Input from parent view
-  readonly visibleEditSecurityDialog = input<boolean>(undefined);
+  readonly visibleEditSecurityDialog = input<boolean>();
 
   // Tab management
   activeTabValue: string = 'security';
@@ -194,7 +195,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   periodPrices: FieldConfig[] = [];
   configSplitObject: { [name: string]: FieldConfig };
   configPeriodPrices: { [name: string]: FieldConfig };
-  private readonly selectedAssetClass = signal<Assetclass>(null);
+  private readonly selectedAssetClass = signal<Assetclass | null>(null);
   readonly canHaveSplits = computed(() =>
     Security.canHaveSplitConnector(this.selectedAssetClass(), this.securityEditSupport?.hasMarketValue ?? true)
   );
@@ -301,8 +302,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
    * Connector field are hidden if stock exchange does not support quotes
    */
   valueChangedOnStockexchange(): void {
-    this.configObject.stockexchange.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.stockexchange)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((idStockexchange: number) => {
         this.setHasMarkedValue(idStockexchange);
         this.hideVisibleFeedConnectorsFields(
@@ -317,8 +318,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   valueChangedOnDistributionFrequency(): void {
-    this.configObject.distributionFrequency.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.distributionFrequency)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((distributionFrequency) => {
         this.enableDisableDividendConnector(
           Helper.getReferencedDataObject(this.configObject.assetClass, null),
@@ -345,7 +346,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     if (this.gpsGT.getForceConnectorMatch() !== 2 || !this.dataLoaded()) {
       return;
     }
-    const idStockexchange: number = this.configObject.stockexchange.formControl.value;
+    const idStockexchange: number = requireFormControl(this.configObject.stockexchange).value;
     const assetClass: Assetclass = Helper.getReferencedDataObject(this.configObject.assetClass, null);
     if (!idStockexchange || !assetClass) {
       return;
@@ -376,9 +377,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND],
       this.configObject.idConnectorSplit
     ].forEach((fieldConfig) => {
-      const selected = fieldConfig.formControl.value;
+      const selected = requireFormControl(fieldConfig).value;
       if (selected && !fieldConfig.valueKeyHtmlOptions?.some((option) => option.key === selected)) {
-        fieldConfig.formControl.setValue(null);
+        requireFormControl(fieldConfig).setValue(null);
       }
     });
   }
@@ -426,14 +427,14 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
             const seetc = this.seetc();
             if (this.canHaveSplits() && seetc) {
               savedDepending = true;
-              seetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
+              seetc.save(newSecurity, requireFormControl(this.configObject[AuditHelper.NOTE_REQUEST_INPUT]).value);
             }
           } else {
             // Save historical periods
             const shpetc = this.shpetc();
             if (shpetc) {
               savedDepending = true;
-              shpetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
+              shpetc.save(newSecurity, requireFormControl(this.configObject[AuditHelper.NOTE_REQUEST_INPUT]).value);
             }
           }
           if (!savedDepending) {
@@ -514,9 +515,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
    * @returns The MIC, or null when no stock exchange is chosen
    */
   getSelectedStockexchangeMic(): string {
-    const idStockexchange: number = this.configObject.stockexchange.formControl.value;
-    const stockexchanges = this.configObject.stockexchange.referencedDataObject as Stockexchange[];
-    return stockexchanges?.find((se) => se.idStockexchange === idStockexchange)?.mic ?? null;
+    const idStockexchange: number = requireFormControl(this.configObject.stockexchange).value;
+    const stockexchanges = this.configObject.stockexchange.referencedDataObject as Stockexchange[];    return stockexchanges?.find((se) => se.idStockexchange === idStockexchange)?.mic ?? null;
   }
 
   /**
@@ -575,16 +575,16 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
    */
   private applyGtnetLookupData(dto: SecurityGtnetLookupDTO): void {
     // Set direct field values
-    this.configObject.name.formControl.setValue(dto.name);
+    requireFormControl(this.configObject.name).setValue(dto.name);
     if (dto.isin) {
-      this.configObject.isin.formControl.setValue(dto.isin);
+      requireFormControl(this.configObject.isin).setValue(dto.isin);
     }
     if (dto.tickerSymbol) {
-      this.configObject.tickerSymbol.formControl.setValue(dto.tickerSymbol);
-      this.configObject.tickerSymbol.formControl.markAsTouched();
+      requireFormControl(this.configObject.tickerSymbol).setValue(dto.tickerSymbol);
+      requireFormControl(this.configObject.tickerSymbol).markAsTouched();
     }
     if (dto.distributionFrequency) {
-      this.configObject.distributionFrequency.formControl.setValue(dto.distributionFrequency);
+      requireFormControl(this.configObject.distributionFrequency).setValue(dto.distributionFrequency);
     }
     if (dto.denomination) {
       this.configObject.denomination?.formControl?.setValue(dto.denomination);
@@ -610,7 +610,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     // Map asset class - prefer backend-matched ID (considers subCategoryNLS), fallback to enum matching
     if (dto.matchedAssetClassId) {
       // Backend already matched the asset class including subCategoryNLS consideration
-      this.configObject.assetClass.formControl.setValue(dto.matchedAssetClassId);
+      requireFormControl(this.configObject.assetClass).setValue(dto.matchedAssetClassId);
     } else if (dto.categoryType && dto.specialInvestmentInstrument) {
       // Fallback: match by enum values only
       const assetclasses = this.configObject.assetClass.referencedDataObject as Assetclass[];
@@ -619,7 +619,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           ac.categoryType === dto.categoryType && ac.specialInvestmentInstrument === dto.specialInvestmentInstrument
       );
       if (matchingAssetclass) {
-        this.configObject.assetClass.formControl.setValue(matchingAssetclass.idAssetClass);
+        requireFormControl(this.configObject.assetClass).setValue(matchingAssetclass.idAssetClass);
       }
     }
 
@@ -629,10 +629,10 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       const stockexchanges = this.configObject.stockexchange.referencedDataObject as Stockexchange[];
       const matchingExchange = stockexchanges?.find((se) => se.mic === dto.stockexchangeMic);
       if (
-        matchingExchange &&
+        matchingExchange?.idStockexchange != null &&
         this.securityEditSupport.isStockexchangeOffered(this.configObject, matchingExchange.idStockexchange)
       ) {
-        this.configObject.stockexchange.formControl.setValue(matchingExchange.idStockexchange);
+        requireFormControl(this.configObject.stockexchange).setValue(matchingExchange.idStockexchange);
       }
     }
 
@@ -647,35 +647,35 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private applyMatchedConnectors(dto: SecurityGtnetLookupDTO): void {
     // History connector
     if (dto.matchedHistoryConnector && this.configObject[this.ID_CONNECTOR_HISTORY]) {
-      this.configObject[this.ID_CONNECTOR_HISTORY].formControl.setValue(dto.matchedHistoryConnector);
+      requireFormControl(this.configObject[this.ID_CONNECTOR_HISTORY]).setValue(dto.matchedHistoryConnector);
       if (dto.matchedHistoryUrlExtension && this.configObject.urlHistoryExtend) {
-        this.configObject.urlHistoryExtend.formControl.setValue(dto.matchedHistoryUrlExtension);
+        requireFormControl(this.configObject.urlHistoryExtend).setValue(dto.matchedHistoryUrlExtension);
       }
     }
 
     // Intraday connector
     if (dto.matchedIntraConnector && this.configObject[this.ID_CONNECTOR_INTRA]) {
-      this.configObject[this.ID_CONNECTOR_INTRA].formControl.setValue(dto.matchedIntraConnector);
+      requireFormControl(this.configObject[this.ID_CONNECTOR_INTRA]).setValue(dto.matchedIntraConnector);
       if (dto.matchedIntraUrlExtension && this.configObject.urlIntraExtend) {
-        this.configObject.urlIntraExtend.formControl.setValue(dto.matchedIntraUrlExtension);
+        requireFormControl(this.configObject.urlIntraExtend).setValue(dto.matchedIntraUrlExtension);
       }
     }
 
     // Dividend connector
     if (dto.matchedDividendConnector && this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND]) {
-      this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND].formControl.setValue(
+      requireFormControl(this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND]).setValue(
         dto.matchedDividendConnector
       );
       if (dto.matchedDividendUrlExtension && this.configObject.urlDividendExtend) {
-        this.configObject.urlDividendExtend.formControl.setValue(dto.matchedDividendUrlExtension);
+        requireFormControl(this.configObject.urlDividendExtend).setValue(dto.matchedDividendUrlExtension);
       }
     }
 
     // Split connector
     if (dto.matchedSplitConnector && this.configObject.idConnectorSplit) {
-      this.configObject.idConnectorSplit.formControl.setValue(dto.matchedSplitConnector);
+      requireFormControl(this.configObject.idConnectorSplit).setValue(dto.matchedSplitConnector);
       if (dto.matchedSplitUrlExtension && this.configObject.urlSplitExtend) {
-        this.configObject.urlSplitExtend.formControl.setValue(dto.matchedSplitUrlExtension);
+        requireFormControl(this.configObject.urlSplitExtend).setValue(dto.matchedSplitUrlExtension);
       }
     }
   }
@@ -690,13 +690,17 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
    */
   private valueChangedOnSecurityLookupFields(): void {
     combineLatest([
-      this.configObject.isin.formControl.valueChanges.pipe(startWith(this.configObject.isin.formControl.value)),
-      this.configObject.currency.formControl.valueChanges.pipe(startWith(this.configObject.currency.formControl.value)),
-      this.configObject.stockexchange.formControl.valueChanges.pipe(
-        startWith(this.configObject.stockexchange.formControl.value)
+      requireFormControl(this.configObject.isin).valueChanges.pipe(
+        startWith(requireFormControl(this.configObject.isin).value)
       ),
-      this.configObject.assetClass.formControl.valueChanges.pipe(
-        startWith(this.configObject.assetClass.formControl.value)
+      requireFormControl(this.configObject.currency).valueChanges.pipe(
+        startWith(requireFormControl(this.configObject.currency).value)
+      ),
+      requireFormControl(this.configObject.stockexchange).valueChanges.pipe(
+        startWith(requireFormControl(this.configObject.stockexchange).value)
+      ),
+      requireFormControl(this.configObject.assetClass).valueChanges.pipe(
+        startWith(requireFormControl(this.configObject.assetClass).value)
       )
     ])
       .pipe(this.untilDialogClosed())
@@ -713,12 +717,14 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private valueChangedOnGtnetLookupFields(): void {
     if (this.configObject.gtnetLookup) {
       combineLatest([
-        this.configObject.isin.formControl.valueChanges.pipe(startWith(this.configObject.isin.formControl.value)),
-        this.configObject.tickerSymbol.formControl.valueChanges.pipe(
-          startWith(this.configObject.tickerSymbol.formControl.value)
+        requireFormControl(this.configObject.isin).valueChanges.pipe(
+          startWith(requireFormControl(this.configObject.isin).value)
         ),
-        this.configObject.currency.formControl.valueChanges.pipe(
-          startWith(this.configObject.currency.formControl.value)
+        requireFormControl(this.configObject.tickerSymbol).valueChanges.pipe(
+          startWith(requireFormControl(this.configObject.tickerSymbol).value)
+        ),
+        requireFormControl(this.configObject.currency).valueChanges.pipe(
+          startWith(requireFormControl(this.configObject.currency).value)
         )
       ])
         .pipe(this.untilDialogClosed())
@@ -848,7 +854,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         const securityCurrencypairCallParamValue = this.securityCurrencypairCallParam();
         const isPrivatePaper =
           securityCurrencypairCallParamValue && (<Security>securityCurrencypairCallParamValue).idTenantPrivate !== null;
-        this.configObject.isTenantPrivate.formControl.setValue(isPrivatePaper);
+        requireFormControl(this.configObject.isTenantPrivate).setValue(isPrivatePaper);
 
         if (idxSplitPeriod >= 0) {
           if (this.securityEditSupport.hasMarketValue) {
@@ -858,17 +864,17 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           }
         }
         this.dataLoaded.set(true);
-        this.currentSecurityName.set(this.configObject.name.formControl.value ?? '');
-        this.currentSecurityCurrency.set(this.configObject.currency.formControl.value ?? '');
+        this.currentSecurityName.set(requireFormControl(this.configObject.name).value ?? '');
+        this.currentSecurityCurrency.set(requireFormControl(this.configObject.currency).value ?? '');
         this.issuerCountryOverridden = !!(<Security>this.securityCurrencypairCallParam())?.issuerCountry;
         this.disableEnableInputForExisting();
         const assetClass = this.securityEditSupport.disableEnableFieldsOnAssetclass(
           SecurityDerived.Security,
           this.configObject,
-          this.configObject.assetClass.formControl.value
+          requireFormControl(this.configObject.assetClass).value
         );
         this.applySimulationFieldAvailability(assetClass);
-        this.prefillIssuerCountryFromIsin(this.configObject.isin.formControl.value);
+        this.prefillIssuerCountryFromIsin(requireFormControl(this.configObject.isin).value);
         this.securityEditSupport.setPrivatePaper(SecurityDerived.Security, isPrivatePaper, this.configObject);
 
         // Check for accessible GTNet peers and show lookup button if available
@@ -924,7 +930,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private enableDisableDividendSplitConnector(assetClass: Assetclass): void {
     this.selectedAssetClass.set(assetClass);
     this.hideVisibleFeedConnectorsFields(this.securityEditSupport.connectorSplitConfig, !this.canHaveSplits(), null);
-    this.enableDisableDividendConnector(assetClass, this.configObject.distributionFrequency.formControl.value);
+    this.enableDisableDividendConnector(assetClass, requireFormControl(this.configObject.distributionFrequency).value);
   }
 
   private enableDisableDividendConnector(assetClass: Assetclass, distributionFrequency: string): void {
@@ -942,17 +948,17 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   private valueChangedOnIssuerAndNameFields(): void {
-    this.configObject.isin.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.isin)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((isin) => this.prefillIssuerCountryFromIsin(isin));
-    this.configObject.issuerCountry.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.issuerCountry)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((issuerCountry) => {
         if (
           isManualIssuerCountryChange(
             this.dataLoaded(),
             this.applyingIssuerCountryPrefill,
-            this.configObject.issuerCountry.formControl.dirty,
+            requireFormControl(this.configObject.issuerCountry).dirty,
             issuerCountry,
             this.lastIssuerCountryPrefill
           )
@@ -960,11 +966,11 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           this.issuerCountryOverridden = true;
         }
       });
-    this.configObject.name.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.name)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((name) => this.currentSecurityName.set(name ?? ''));
-    this.configObject.currency.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.currency)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((currency) => this.currentSecurityCurrency.set(currency ?? ''));
   }
 
@@ -973,12 +979,12 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     const canHaveIssuerCountry = Security.canHaveIssuerCountry(assetClass);
     this.configObject.issuerCountry.invisible = !canHaveIssuerCountry;
     if (canHaveIssuerCountry) {
-      this.configObject.issuerCountry.formControl.enable({ emitEvent: false });
+      requireFormControl(this.configObject.issuerCountry).enable({ emitEvent: false });
     } else {
-      this.configObject.issuerCountry.formControl.disable({ emitEvent: false });
+      requireFormControl(this.configObject.issuerCountry).disable({ emitEvent: false });
     }
     if (canHaveIssuerCountry) {
-      this.prefillIssuerCountryFromIsin(this.configObject.isin.formControl.value);
+      this.prefillIssuerCountryFromIsin(requireFormControl(this.configObject.isin).value);
     }
     this.applyDistributionFrequencyAvailability(assetClass);
     this.dynamicForm().notifier.notify();
@@ -993,12 +999,12 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     const canHaveDistributionFrequency = Security.canHaveDistributionFrequency(assetClass);
     distributionFrequency.invisible = !canHaveDistributionFrequency;
     if (canHaveDistributionFrequency) {
-      distributionFrequency.formControl.enable({ emitEvent: false });
+      requireFormControl(distributionFrequency).enable({ emitEvent: false });
     } else {
-      distributionFrequency.formControl.setValue(DistributionFrequency[DistributionFrequency.DF_NONE], {
+      requireFormControl(distributionFrequency).setValue(DistributionFrequency[DistributionFrequency.DF_NONE], {
         emitEvent: false
       });
-      distributionFrequency.formControl.disable({ emitEvent: false });
+      requireFormControl(distributionFrequency).disable({ emitEvent: false });
     }
   }
 
@@ -1015,7 +1021,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       (country) => String(country.key).toUpperCase() === prefix
     );
     const issuerCountry = offered ? prefix : null;
-    const currentValue = this.configObject.issuerCountry.formControl.value;
+    const currentValue = requireFormControl(this.configObject.issuerCountry).value;
     if (!currentValue || currentValue === this.lastIssuerCountryPrefill) {
       this.setIssuerCountry(issuerCountry);
     }
@@ -1023,7 +1029,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
   private setIssuerCountry(issuerCountry: string): void {
     this.applyingIssuerCountryPrefill = true;
-    this.configObject.issuerCountry.formControl.setValue(issuerCountry);
+    requireFormControl(this.configObject.issuerCountry).setValue(issuerCountry);
     this.lastIssuerCountryPrefill = issuerCountry;
     this.applyingIssuerCountryPrefill = false;
   }

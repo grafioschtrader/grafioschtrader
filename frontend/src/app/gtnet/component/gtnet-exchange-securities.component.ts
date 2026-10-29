@@ -137,7 +137,7 @@ import { HelpIds } from '../../lib/help/help.ids';
   providers: [DialogService]
 })
 export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent<Security> {
-  readonly configurableTable = viewChild(ConfigurableTableComponent);
+  readonly configurableTable = viewChild.required(ConfigurableTableComponent);
 
   /** Filter to show only active securities */
   activeOnly = true;
@@ -246,7 +246,7 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   /**
    * Override to build edit menu with security edit option.
    */
-  protected override prepareEditMenu(entity: Security): MenuItem[] {
+  protected override prepareEditMenu(entity: Security): MenuItem[] | null {
     const menuItems: MenuItem[] = [];
 
     if (entity) {

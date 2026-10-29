@@ -77,12 +77,12 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
 
   selectedRow: TransactionCostGroupSummary;
 
-  readonly transactionCostGrandSummary = signal<TransactionCostGrandSummary>(null);
+  readonly transactionCostGrandSummary = signal<TransactionCostGrandSummary | null>(null);
   readonly transactionCostGroupSummaries = computed(
     () => this.transactionCostGrandSummary()?.transactionCostGroupSummaries ?? []
   );
   readonly expandedTCGSid = signal<{ [s: string]: boolean }>({});
-  readonly baseSelectedRow = signal<TransactionCostPosition>(null);
+  readonly baseSelectedRow = signal<TransactionCostPosition | null>(null);
   readonly firstRowIndex = signal(0);
 
   readonly getFooterValue = (field: ColumnConfig): string => {
@@ -139,8 +139,8 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
       .subscribe((data: TransactionCostGrandSummary) => {
         this.transactionCostGrandSummary.set(data);
         this.columnConfigs.forEach((columnConfig) => {
-          columnConfig.headerSuffix = this.transactionCostGrandSummary().mainCurrency;
-          columnConfig.fixedCurrency = this.transactionCostGrandSummary().mainCurrency;
+          columnConfig.headerSuffix = data.mainCurrency;
+          columnConfig.fixedCurrency = data.mainCurrency;
         });
         this.prepareTableAndTranslate();
 
@@ -150,7 +150,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   }
 
   override getMenuShowOptions(): MenuItem[] {
-    const otherMenuShowOptions: MenuItem[] = super.getMenuShowOptions();
+    const otherMenuShowOptions = super.getMenuShowOptions();
     const menuItems: MenuItem[] = [];
     if (otherMenuShowOptions) {
       menuItems.push(...otherMenuShowOptions);
@@ -165,9 +165,12 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   }
 
   chartDataPointClicked(traceIndex: number, dataPointIndex: number) {
-    const tcgs = this.transactionCostGrandSummary().transactionCostGroupSummaries.find(
+    const summary = this.transactionCostGrandSummary();
+    if (!summary) return;
+    const tcgs = summary.transactionCostGroupSummaries.find(
       (tcgsTemp) => tcgsTemp.securityaccount.idSecuritycashAccount === this.chartData[this.refId][traceIndex]
     );
+    if (!tcgs) return;
     this.expandedTCGSid.update((keys) => ({ ...keys, [tcgs.securityaccount.idSecuritycashAccount]: true }));
     afterNextRender(() => this.selectRowAndGoToPage(traceIndex, dataPointIndex, tcgs), { injector: this.injector });
   }
@@ -180,7 +183,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
 
   callMeDeactivate(): void {}
 
-  onComponentClick(event: PanelClickEvent): void {
+  onComponentClick(event: PanelClickEvent | null): void {
     if (event == null || !event[this.consumedGT]) {
       this.menuRequest?.unsubscribe();
       this.menuRequest = TranslateHelper.translateMenuItems$(this.getMenuShowOptions(), this.translateService)
@@ -226,10 +229,12 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   }
 
   private prepareCharDataAndSentToChart(): void {
+    const summary = this.transactionCostGrandSummary();
+    if (!summary) return;
     this.chartData = [];
     this.chartData[this.refId] = [];
     this.chartIdNumberToTransactionCostPosition = [];
-    this.transactionCostGrandSummary().transactionCostGroupSummaries.forEach((tcgs) => {
+    summary.transactionCostGroupSummaries.forEach((tcgs) => {
       const traceSecurityaccount: Partial<ChartTrace> & { refId?: number[] } = PlotlyHelper.initializeChartTrace(
         tcgs.securityaccount.name,
         'scatter',

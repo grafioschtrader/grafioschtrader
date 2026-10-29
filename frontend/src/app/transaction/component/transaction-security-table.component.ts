@@ -49,7 +49,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   readonly transactionSecurityOptionalParam = input<TransactionSecurityOptionalParam[]>(undefined);
 
   /** Optional cutoff date (yyyy-MM-dd) to limit transactions */
-  readonly untilDate = input<string>(undefined);
+  readonly untilDate = input<string>();
 
   /** Column configuration for main currency display formatting */
   currencyColumnConfigMC: ColumnConfig[] = [];

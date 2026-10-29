@@ -1,3 +1,4 @@
+import { previousTreeNode } from '../../lib/maintree/types/tree-node-navigation';
 import { Injectable } from '@angular/core';
 import { inject } from '@angular/core';
 import { Observable, combineLatest, of } from 'rxjs';
@@ -108,7 +109,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
 
         rootNode.data.entityObject = tenantStringify;
         this.tenantLimits = tenantLimits.reduce((ac, tl) => ({ ...ac, [tl.msgKey]: tl }), {});
-        rootNode.children.splice(0);
+        (rootNode.children ??= []).splice(0);
 
         this.addPortfoliosToRootNode(portfolios, tenantStringify, rootNode);
       })
@@ -297,7 +298,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
         expanded: true,
         children: [this.addSecurityaccountToTree(portfolio)]
       };
-      rootNode.children.push(treeNode);
+      (rootNode.children ??= []).push(treeNode);
     }
   }
 
@@ -308,7 +309,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
       data: new TypeNodeData(
         TreeNodeType.SecurityaccountRoot,
         this.addMainRoute(
-          portfolio.securityaccountList.length > 0
+          (portfolio.securityaccountList?.length ?? 0) > 0
             ? AppSettings.SECURITYACCOUNT_SUMMARIES_ROUTE_KEY
             : AppSettings.SECURITYACCOUNT_EMPTY_ROUTE_KEY
         ),
@@ -316,7 +317,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
         null,
         portfolioJson
       ),
-      children: this.addSecurityaccountsToTree(portfolioJson, portfolio.securityaccountList)
+      children: this.addSecurityaccountsToTree(portfolioJson, portfolio.securityaccountList ?? [])
     };
     this.setLangTrans('SECURITYACCOUNTS', securityAccountNode);
     return securityAccountNode;
@@ -367,7 +368,8 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: AppSettings.PORTFOLIO.toUpperCase()
             });
-            this.callbacks?.navigateToNode(this.getPreviousNode(treeNode).data);
+            const previous = this.getPreviousNode(treeNode);
+            if (previous?.data) this.callbacks?.navigateToNode(previous.data);
             this.callbacks?.refreshTree();
           },
           error: (err) => console.error('Error deleting portfolio:', err)
@@ -387,11 +389,13 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: AppSettings.SECURITYACCOUNT.toUpperCase()
             });
-            if (portfolio.securityaccountList.length === 1) {
-              treeNode.parent.data.route = this.addMainRoute(AppSettings.SECURITYACCOUNT_EMPTY_ROUTE_KEY);
-              this.callbacks?.navigateToNode(treeNode.parent.data);
+            const parent = treeNode.parent;
+            if (portfolio.securityaccountList?.length === 1 && parent?.data) {
+              parent.data.route = this.addMainRoute(AppSettings.SECURITYACCOUNT_EMPTY_ROUTE_KEY);
+              this.callbacks?.navigateToNode(parent.data);
             }
-            this.callbacks?.navigateToNode(this.getPreviousNode(treeNode).data);
+            const previous = this.getPreviousNode(treeNode);
+            if (previous?.data) this.callbacks?.navigateToNode(previous.data);
             this.callbacks?.refreshTree();
           },
           error: (err) => console.error('Error deleting security account:', err)
@@ -400,16 +404,12 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
     );
   }
 
-  private getPreviousNode(treeNode: TreeNode): TreeNode {
-    let i = 0;
-    while (i < treeNode.parent.children.length && treeNode.parent.children[i] !== treeNode) {
-      i++;
-    }
-    return i === 0 ? treeNode.parent : treeNode.parent.children[i - 1];
+  private getPreviousNode(treeNode: TreeNode): TreeNode | null {
+    return previousTreeNode(treeNode);
   }
 
-  private setLangTrans(key: string, target: TreeNode, suffix: string = ''): void {
-    this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
+  private setLangTrans(key: string | undefined, target: TreeNode, suffix: string = ''): void {
+    if (key) this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
   }
 
   private addMainRoute(suffix: string): string {

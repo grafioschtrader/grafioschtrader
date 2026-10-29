@@ -158,11 +158,11 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
       });
   }
 
-  protected getContextMenuItems(showMenu: MenuItem[], editMenu: MenuItem[]): MenuItem[] {
+  protected getContextMenuItems(showMenu: MenuItem[], editMenu: MenuItem[] | null): MenuItem[] {
     return editMenu ?? [];
   }
 
-  protected getEditMenu(): MenuItem[] {
+  protected getEditMenu(): MenuItem[] | null {
     return [];
   }
 

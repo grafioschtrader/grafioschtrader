@@ -65,7 +65,7 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
   /** Emitted as soon as the server created the token, while the dialog still shows it. */
   readonly tokenCreated = output<void>();
   /** Set once the server created the token; it is held only as long as this dialog is open. */
-  readonly created = signal<UserAccessTokenCreated>(null);
+  readonly created = signal<UserAccessTokenCreated | null>(null);
 
   constructor() {
     super(HelpIds.HELP_INTRO_SETTINGS_AI_ASSISTANT);

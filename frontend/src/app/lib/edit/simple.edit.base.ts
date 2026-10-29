@@ -52,7 +52,7 @@ export abstract class SimpleEditBase extends FormBase {
    *
    * @param helpId - Context-sensitive help page of this dialog
    */
-  constructor(protected helpId: string) {
+  constructor(protected helpId: string | null) {
     super();
     this.destroyRef.onDestroy(() => this.dialogSession.unsubscribe());
   }

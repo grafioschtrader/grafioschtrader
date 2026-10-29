@@ -1,3 +1,4 @@
+import { requireFieldName } from '../../dynamic-form/models/form-control-access';
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormBase } from '../../edit/form.base';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
@@ -41,7 +42,7 @@ export class LimitTransactionRequestDynamicDialogComponent extends FormBase impl
   private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
   private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
 
-  dialogTitle: string;
+  dialogTitle: string | undefined;
 
   private readonly ENTITY_NAME = 'entity';
   private readonly NOTE_REQUEST = 'noteRequest';
@@ -85,7 +86,7 @@ export class LimitTransactionRequestDynamicDialogComponent extends FormBase impl
       const fieldObject: Record<string, unknown> = {};
       Helper.copyFormSingleFormConfigToBusinessObject(this.formConfig, this.config[i], fieldObject, true);
       proposeUserTask.addProposeChangeField(
-        new ProposeChangeField(this.config[i].field, fieldObject[this.config[i].field])
+        new ProposeChangeField(requireFieldName(this.config[i]), fieldObject[requireFieldName(this.config[i])])
       );
     }
 

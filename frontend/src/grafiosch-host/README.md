@@ -64,6 +64,43 @@ HTTP calls declare their response body types; an error handler that only rethrow
 Login supplies `HttpResponse<ConfigurationWithLogin>` with the token header and configuration body.
 Validators accept `AbstractControl`; generic event handlers keep the concrete event type supplied by the host.
 
+During the null-check migration, `npm run check:strict` guards the per-module diagnostic baseline for the main
+application's TypeScript graph, including the library sources it imports. It does not check Angular templates or
+host-only sources. Keep verifying both host builds. `npm run check:strict -- --update` only lowers module limits;
+retain existing DTO defaults and declare `null` and optional values explicitly when adding their types.
+The shared `BaseAuthService.updateEntity` accepts null/undefined ids for POST creation and existing ids for PUT.
+Operations requiring a persisted id narrow it first and retain that id across asynchronous confirmations.
+`BaseID.getId()` includes null/undefined for new entities. The shared CRUD table checks and captures the deletion id
+before confirmation; form-copy helpers accept null/undefined when no existing entity is being edited.
+`TenantBaseId` follows the same nullable identifier contract for its model subclasses.
+Resource parameters return undefined while a required owner/account id is absent; streams receive checked ids.
+Chart and formatting helpers preserve missing numerical values as gaps rather than zeroes.
+Field definitions keep optional controls until the dynamic form is built. Both hosts use `requireFormControl(config)`
+for required accesses after initialization; it checks the lifecycle precondition and retains the control/group type.
+Optional fields keep guarded accesses, and buttons receive no automatically created control.
+Editors with an unconditional form use `SimpleFormEditBase`; `SimpleEntityEditBase` inherits that contract, and
+`SimpleDynamicEditBase` requires its form too. Conditional form dialogs retain `SimpleEditBase` and optional queries.
+The required-query ratchet checks unconditional targets in every concrete descendant, including this host.
+Signals with a null initial/cleared state include null in their types. Guard a captured value before using a selected
+record or loaded result; master/detail child views accept a null parent to clear their rows. Confirmation callbacks
+retain the original record/id and update selection-dependent state only while that record is still selected.
+`Menus` and `TranslateHelper.translateMenuItems$` preserve absent menus (disabled section) separately from empty arrays.
+Display columns require `ColumnConfig.field`; form buttons may remain unnamed. Data controls use `requireFieldName`
+before creation or transfer. The dynamic form requires `formConfig`; optional signal inputs use `input<T>()`.
+Validator/error arrays can be null or absent, and resetting validation retains the actual control and value.
+Footer paths and number precision overrides remain optional; missing data stays blank and missing required request
+dates prevent submission. Inline row creation needs a data key, and tree row expansion needs a row identifier.
+Navigation ids and serialized parent/entity data can be absent; deletion navigation uses `previousTreeNode` and
+handles a missing parent. Absent help ids and menu sections remain nullable.
+`DynamicDialogHelper.openDynamicDialog` and tree/mail wrappers return an observable reference: subscribe to open,
+then use `switchMap(ref => ref.onClose)` for the close result and bind subscriptions to the owner's lifetime.
+The title is resolved before opening, and a refused opening emits no reference. Direct dialog openings guard null.
+Select options retain null keys for an unassigned selection, and grouped headings may omit key/value and image.
+Guard keys before enum indexing or numeric conversion; zero is a valid key. Entity choices skip missing persisted ids.
+GTNet broadcast targets and new-message reply ids remain nullable; multi-target requests retain their checked targets.
+Audit proposal projection applies explicit null/zero changes; an absent proposal returns undefined and an absent
+custom ownership check grants no rights.
+
 This is the concrete answer to "what does an application built on `lib` have to bring along?". Everything else comes
 from the library.
 

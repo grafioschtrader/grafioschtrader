@@ -41,7 +41,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
 
   protected readonly destroyRef = inject(DestroyRef);
   private menuSubscription?: Subscription;
-  private menuTransaction?: Transaction;
+  private menuTransaction?: Transaction | null;
   private menuSignature?: string;
   protected dataSubscription?: Subscription;
   private editSubscription?: Subscription;
@@ -56,7 +56,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   readonly dateChanged = output<ProcessedActionData>();
 
   /** Currently selected transaction in the table */
-  readonly selectedTransaction = signal<Transaction>(null);
+  readonly selectedTransaction = signal<Transaction | null>(null);
 
   /** Menu items displayed in the context menu for the selected transaction */
   readonly contextMenuItems = signal<MenuItem[]>([]);
@@ -259,7 +259,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
     this.setMenuItemsToActivePanel();
   }
 
-  public getHelpContextId(): string {
+  public getHelpContextId(): string | null {
     return null;
   }
 
@@ -366,7 +366,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param transaction The transaction for which to generate menu items
    * @returns Array of menu items appropriate for the transaction
    */
-  protected getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
+  protected getMenuItemsOnTransaction(transaction: Transaction | null): MenuItem[] {
     const menuItems: MenuItem[] = [];
     if (transaction && transaction.idTransaction >= 0) {
       const permissions = transactionMenuPermissions(transaction, this.canDeleteTransaction(transaction));

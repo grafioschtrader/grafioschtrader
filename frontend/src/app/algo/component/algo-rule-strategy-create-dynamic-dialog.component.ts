@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { of, switchMap, distinctUntilChanged, Subscription } from 'rxjs';
 import { afterNextRender, inject, Injector, Component, OnDestroy, OnInit } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
@@ -166,8 +167,8 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
 
   valueChangedOnWatchlist(): void {
     this.watchlistChangedSub?.unsubscribe();
-    this.watchlistChangedSub = this.configObject.idWatchlist.formControl.valueChanges
-      .pipe(
+    this.watchlistChangedSub = requireFormControl(this.configObject.idWatchlist)
+      .valueChanges.pipe(
         distinctUntilChanged(),
         switchMap((id) => (id ? this.assetclassService.getInvestableAssetclassesByWatchlist(id) : of([]))),
         this.untilDialogClosed()

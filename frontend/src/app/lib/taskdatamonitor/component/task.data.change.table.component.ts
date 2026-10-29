@@ -156,7 +156,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   /** Current task ID filter. Null means no filter (load all). */
   readonly currentTaskFilter = signal<number[] | null>(null);
 
-  readonly tdcFormConstraints = signal<TaskDataChangeFormConstraints>(null);
+  readonly tdcFormConstraints = signal<TaskDataChangeFormConstraints | null>(null);
   taskTypeEnum: any = inject(TASK_TYPE_ENUM);
 
   /** The queue whose tasks are shown */
@@ -327,7 +327,8 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       .filter((name) => taskTypeQueue[name] === queue)
       .map((name) => this.taskTypeEnum[name])
       .filter((id) => typeof id === 'number');
-    return this.currentTaskFilter() ? ids.filter((id) => this.currentTaskFilter().includes(id)) : ids;
+    const filter = this.currentTaskFilter();
+    return filter ? ids.filter((id) => filter.includes(id)) : ids;
   }
 
   protected override readData(): void {
@@ -372,11 +373,13 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   }
 
   protected override addCustomMenusToSelectedEntity(taskDataChange: TaskDataChange, menuItems: MenuItem[]): void {
+    const constraints = this.tdcFormConstraints();
+    if (!constraints || taskDataChange.idTask == null) return;
     if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
       menuItems.push({
         label: 'COPY_RECORD|' + this.entityNameUpper,
         command: (event) => this.copyTaskDataChange(taskDataChange),
-        disabled: this.taskTypeEnum[taskDataChange.idTask] > this.tdcFormConstraints().maxUserCreateTask
+        disabled: this.taskTypeEnum[taskDataChange.idTask] > constraints.maxUserCreateTask
       });
 
       menuItems.push({
@@ -384,7 +387,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
         command: (event) => this.interruptingRunningJob(taskDataChange.idTaskDataChange),
         disabled: !(
           typeof taskDataChange.idTask === 'string' &&
-          this.tdcFormConstraints().canBeInterruptedList.includes(taskDataChange.idTask) &&
+          constraints.canBeInterruptedList.includes(taskDataChange.idTask) &&
           (ProgressStateType[taskDataChange.progressStateType] as string | number) ===
             ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING] as keyof typeof ProgressStateType]
         )

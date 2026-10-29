@@ -40,7 +40,7 @@ export class Securitycurrency extends Auditable {
   /** Timestamp when GTNet exchange settings were last modified. */
   gtNetLastModifiedTime?: string;
 
-  public override getId(): number {
+  public override getId(): number | null | undefined {
     return this.idSecuritycurrency;
   }
 }

@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   afterNextRender,
@@ -145,11 +146,11 @@ export class TenantDividendsChartComponent
   private gps: GlobalparameterService = inject(GlobalparameterService);
   public translateService: TranslateService = inject(TranslateService);
 
-  readonly form = viewChild(DynamicFormComponent);
-  readonly chartElement = viewChild<ElementRef>('chart');
+  readonly form = viewChild.required(DynamicFormComponent);
+  readonly chartElement = viewChild.required<ElementRef>('chart');
 
   /** Translation key of the hint shown instead of an empty chart, null when the chart has data. */
-  readonly noDataTextKey = signal<string>(null);
+  readonly noDataTextKey = signal<string | null>(null);
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderInjector = inject(Injector);
 
@@ -213,12 +214,12 @@ export class TenantDividendsChartComponent
     afterNextRender(
       () => {
         const storedType = this.usersettingsService.readSingleValue(this.getStoreKey(AppSettings.DIV_CHART_TYPE));
-        this.configObject.chartType.formControl.setValue(
+        requireFormControl(this.configObject.chartType).setValue(
           Object.values(IncomeChartType).includes(storedType) ? storedType : IncomeChartType.INCOME_CHART_MONTHLY
         );
         this.subscriptions.push(
-          this.configObject.chartType.formControl.valueChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
+          requireFormControl(this.configObject.chartType)
+            .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe((chartType) => {
               this.usersettingsService.saveSingleValue(this.getStoreKey(AppSettings.DIV_CHART_TYPE), chartType);
               this.drawChart();
@@ -312,7 +313,7 @@ export class TenantDividendsChartComponent
     if (!this.formReady || !this.chartData) {
       return;
     }
-    const chartType: IncomeChartType = this.configObject.chartType.formControl.value;
+    const chartType: IncomeChartType = requireFormControl(this.configObject.chartType).value;
     this.selectedChartType.set(chartType);
     const figure = this.buildFigure(chartType, this.selectedYear);
     this.noDataTextKey.set(figure ? null : CHART_NEEDS_YEAR[chartType] ? 'NO_INCOME_IN_YEAR' : 'NO_DATA_AVAILABLE');
@@ -563,12 +564,9 @@ export class TenantDividendsChartComponent
       let group = byId.get(r.idAssetClass);
       if (!group) {
         const assetclass = this.chartData.assetclasses.find((ac) => ac.idAssetClass === r.idAssetClass);
-        const name = BusinessSelectOptionsHelper.translateAssetclass(
-          this.translateService,
-          language,
-          assetclass,
-          null
-        ).value;
+        const name =
+          BusinessSelectOptionsHelper.translateAssetclass(this.translateService, language, assetclass, null)?.value ??
+          '';
         group = { name, total: 0, netByYear: new Map() };
         byId.set(r.idAssetClass, group);
       }

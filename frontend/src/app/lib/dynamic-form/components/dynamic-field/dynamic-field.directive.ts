@@ -44,9 +44,9 @@ const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
 export class DynamicFieldDirective {
   private viewContainerRef = inject(ViewContainerRef);
 
-  readonly config = input<FieldConfig>(undefined);
-  readonly formConfig = input<FormConfig>(undefined);
-  readonly group = input<UntypedFormGroup>(undefined);
+  readonly config = input.required<FieldConfig>();
+  readonly formConfig = input.required<FormConfig>();
+  readonly group = input.required<UntypedFormGroup>();
 
   component: ComponentRef<FieldFormFormGroupConfig>;
 

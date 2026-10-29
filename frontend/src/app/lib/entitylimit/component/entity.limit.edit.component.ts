@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -103,8 +104,8 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
   }
 
   protected override initialize(): void {
-    this.configObject.limitTypeReadable.formControl.disable();
-    this.configObject.scopeReadable.formControl.disable();
+    requireFormControl(this.configObject.limitTypeReadable).disable();
+    requireFormControl(this.configObject.scopeReadable).disable();
 
     // The roles are awaited together with the keys, because the offered keys depend on which of their scopes are
     // still free and the role selection is filled from the picked key.
@@ -123,8 +124,8 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
         this.roleOptions = roles;
         this.usedScopesByKeyId = this.collectUsedScopes();
         this.configObject.keyId.groupItem = this.toKeyOptions(limitKeyDefinitions);
-        this.configObject.keyId.formControl.valueChanges
-          .pipe(this.untilDialogClosed())
+        requireFormControl(this.configObject.keyId)
+          .valueChanges.pipe(this.untilDialogClosed())
           .subscribe((keyId: string) => this.applyPickedKey(keyId));
         // Fills the role selection while no key is picked yet and, for an existing row, for its fixed key, because a
         // disabled control emits no value change.
@@ -133,7 +134,7 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
 
         if (existingEntityLimitValue) {
           // The key identifies the row, so it stays fixed once the row exists.
-          this.configObject.keyId.formControl.disable();
+          requireFormControl(this.configObject.keyId).disable();
         }
         // Also fills the form from the entity: every control the entity has no property for, the two readable ones
         // included, is reset to its default, so they may only be filled afterwards.
@@ -154,7 +155,7 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
             existingEntityLimitValue.relationEntityName
           );
         }
-        this.configObject.keyId.baseInputComponent.focus();
+        this.configObject.keyId.baseInputComponent?.focus();
       });
   }
 
@@ -174,9 +175,11 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
           entityLimit.idUser == null && entityLimit.idEntityLimit !== this.existingEntityLimit()?.idEntityLimit
       )
       .forEach((entityLimit) => {
-        const usedScopes = usedScopesByKeyId.get(entityLimit.keyId) ?? new Set<string>();
+        const keyId = entityLimit.keyId;
+        if (keyId == null) return;
+        const usedScopes = usedScopesByKeyId.get(keyId) ?? new Set<string>();
         usedScopes.add(entityLimit.idRole == null ? '' : String(entityLimit.idRole));
-        usedScopesByKeyId.set(entityLimit.keyId, usedScopes);
+        usedScopesByKeyId.set(keyId, usedScopes);
       });
     return usedScopesByKeyId;
   }
@@ -215,7 +218,7 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
   }
 
   /** The icons of the data scope column: a globe for data shared between all tenants, a lock for private data. */
-  private toDataScopeIcon(sharedData: boolean): string {
+  private toDataScopeIcon(sharedData: boolean | null | undefined): string | null {
     return sharedData == null ? null : sharedData ? 'fa fa-globe' : 'fa fa-lock';
   }
 
@@ -240,11 +243,11 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
    * leaving it empty would ask for that default row again. A role picked before the key that is no longer offered is
    * cleared, because the native select would otherwise keep posting it while showing nothing.
    */
-  private applyRoleOptions(keyId: string): void {
+  private applyRoleOptions(keyId: string | null | undefined): void {
     if (this.scopedIdUser != null) {
       return;
     }
-    const usedScopes = this.usedScopesByKeyId.get(keyId) ?? new Set<string>();
+    const usedScopes = (keyId == null ? undefined : this.usedScopesByKeyId.get(keyId)) ?? new Set<string>();
     const defaultFree = !usedScopes.has('');
     const freeRoles = this.roleOptions.filter((role) => !usedScopes.has(String(role.key)));
     const idRole = this.configObject.idRole;
@@ -253,9 +256,9 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
       freeRoles,
       defaultFree
     );
-    const pickedRole = idRole.formControl.value;
+    const pickedRole = requireFormControl(idRole).value;
     if (pickedRole != null && pickedRole !== '' && !freeRoles.some((role) => String(role.key) === String(pickedRole))) {
-      idRole.formControl.setValue(null);
+      requireFormControl(idRole).setValue(null);
     }
     DynamicFieldHelper.resetValidator(idRole, defaultFree ? [] : [Validators.required]);
   }
@@ -279,19 +282,19 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
     if (
       this.existingEntityLimit() == null &&
       definition.defaultValue != null &&
-      this.configObject.limitValue.formControl.value == null
+      requireFormControl(this.configObject.limitValue).value == null
     ) {
-      this.configObject.limitValue.formControl.setValue(definition.defaultValue);
+      requireFormControl(this.configObject.limitValue).setValue(definition.defaultValue);
     }
   }
 
   private showReadableKeyParts(
-    limitTypeKey: string,
-    ownerScopeKey: string,
-    countScopeKey: string,
-    relationEntityName: string
+    limitTypeKey: string | null | undefined,
+    ownerScopeKey: string | null | undefined,
+    countScopeKey: string | null | undefined,
+    relationEntityName: string | null | undefined
   ): void {
-    this.configObject.limitTypeReadable.formControl.setValue(
+    requireFormControl(this.configObject.limitTypeReadable).setValue(
       limitTypeKey ? this.translateService.instant(limitTypeKey) : ''
     );
     const scopes: string[] = [];
@@ -304,7 +307,7 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
     if (relationEntityName) {
       scopes.push(this.translateService.instant(AppHelper.toUpperCaseWithUnderscore(relationEntityName)));
     }
-    this.configObject.scopeReadable.formControl.setValue(scopes.join(', '));
+    requireFormControl(this.configObject.scopeReadable).setValue(scopes.join(', '));
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): EntityLimit {

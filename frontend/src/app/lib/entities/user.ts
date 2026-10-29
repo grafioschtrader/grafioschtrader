@@ -5,11 +5,11 @@ import { Auditable } from './auditable';
 
 export class User extends Auditable implements BaseID {
   idUser: number;
-  nickname: string = null;
-  email: string = null;
-  password: string = null;
+  nickname: string | null = null;
+  email: string | null = null;
+  password: string | null = null;
   enabled = false;
-  localeStr: string = null;
+  localeStr: string | null = null;
   timezoneOffset: number;
   mostPrivilegedRole: string;
   securityBreachCount: number;

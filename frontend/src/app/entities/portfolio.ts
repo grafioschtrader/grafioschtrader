@@ -14,7 +14,7 @@ export class Portfolio extends TenantBaseId {
   securityaccountList?: Securityaccount[];
   cashaccountList?: Cashaccount[];
 
-  public getId(): number {
+  public getId(): number | undefined {
     return this.idPortfolio;
   }
 }

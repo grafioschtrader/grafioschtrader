@@ -1,7 +1,7 @@
 import { AssetclassService } from '../../assetclass/service/assetclass.service';
 import { Assetclass } from '../../entities/assetclass';
 import { AssetclassCallParam } from '../../assetclass/component/assetclass.call.param';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { BasePrepareEdit } from '../../lib/proposechange/component/base.prepare.edit';
 import { EntityMapping, PrepareCallParam } from '../../lib/proposechange/component/general.entity.prepare.edit';
@@ -32,7 +32,8 @@ export class AssetclassPrepareEdit extends BasePrepareEdit<Assetclass> implement
    */
   prepareForEditEntity(entity: Assetclass, entityMapping: EntityMapping): Observable<void> {
     const observableAllAssetclasses = this.assetclassService.getAllAssetclass();
-    const observableAssetclassHasSecurity = this.assetclassService.assetclassHasSecurity(entity.idAssetClass);
+    const id = entity.idAssetClass;
+    const observableAssetclassHasSecurity = id == null ? of(false) : this.assetclassService.assetclassHasSecurity(id);
 
     return combineLatest([observableAllAssetclasses, observableAssetclassHasSecurity]).pipe(
       map((data) => {

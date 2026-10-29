@@ -31,7 +31,7 @@ export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase imple
 
   readonly idSecuritycurrency = input<number>(undefined);
   /** Discriminator type: 'S' for Security, 'C' for Currencypair */
-  readonly dtype = input<string>(undefined);
+  readonly dtype = input<string>();
 
   readonly treeNodes = signal<TreeNode[]>([]);
 

@@ -6,9 +6,9 @@ import { Auditable } from '../lib/entities/auditable';
  * idRiskFreeRateMapping; currency is functionally unique.
  */
 export class RiskFreeRateMapping extends Auditable {
-  idRiskFreeRateMapping: number = null;
-  currency: string = null;
-  idSecuritycurrency: number = null;
+  idRiskFreeRateMapping: number | null = null;
+  currency: string | null = null;
+  idSecuritycurrency: number | null = null;
 }
 
 /**

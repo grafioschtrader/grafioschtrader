@@ -6,7 +6,7 @@ export class Watchlist extends TenantBaseId {
   name?: string = null;
 
   @Exclude()
-  public getId(): number {
+  public getId(): number | undefined {
     return this.idWatchlist;
   }
 }

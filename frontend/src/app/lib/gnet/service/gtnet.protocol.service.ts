@@ -46,7 +46,9 @@ export class GTNetProtocolService extends AuthServiceWithLogout<any> {
    * @param messageCode the code as a numeric value or as its constant name
    * @returns the descriptor, or undefined before the protocol is loaded or for an unknown code
    */
-  getDescriptor(messageCode: GTNetMessageCodeType | number | string): GTNetProtocolDescriptor | undefined {
+  getDescriptor(
+    messageCode: GTNetMessageCodeType | number | string | null | undefined
+  ): GTNetProtocolDescriptor | undefined {
     const name = messageCodeName(messageCode);
     return name == null ? undefined : this.byName.get(name);
   }
@@ -57,7 +59,9 @@ export class GTNetProtocolService extends AuthServiceWithLogout<any> {
    * @param messageCode the code being answered
    * @returns the answers, empty when the code is answered by nothing
    */
-  getValidResponseCodes(messageCode: GTNetMessageCodeType | number | string): GTNetMessageCodeType[] {
+  getValidResponseCodes(
+    messageCode: GTNetMessageCodeType | number | string | null | undefined
+  ): GTNetMessageCodeType[] {
     return (this.getDescriptor(messageCode)?.validResponses ?? []).map(
       (name) => GTNetMessageCodeType[name as keyof typeof GTNetMessageCodeType]
     );
@@ -70,7 +74,7 @@ export class GTNetProtocolService extends AuthServiceWithLogout<any> {
    * @param messageCode the code to test
    * @returns true when the code threads
    */
-  isThreadable(messageCode: GTNetMessageCodeType | number | string): boolean {
+  isThreadable(messageCode: GTNetMessageCodeType | number | string | null | undefined): boolean {
     return this.getDescriptor(messageCode)?.threadable ?? false;
   }
 
@@ -92,7 +96,9 @@ export class GTNetProtocolService extends AuthServiceWithLogout<any> {
    * @param requestCode the request the rule is for
    * @returns the answers a rule may choose
    */
-  getAutoAnswerResponseCodes(requestCode: GTNetMessageCodeType | number | string): GTNetMessageCodeType[] {
+  getAutoAnswerResponseCodes(
+    requestCode: GTNetMessageCodeType | number | string | null | undefined
+  ): GTNetMessageCodeType[] {
     return (this.getDescriptor(requestCode)?.validResponses ?? [])
       .filter((name) => this.byName.get(name)?.autoAnswerResponse)
       .map((name) => GTNetMessageCodeType[name as keyof typeof GTNetMessageCodeType]);

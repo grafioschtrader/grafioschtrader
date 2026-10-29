@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Subscription } from 'rxjs';
 import {
   afterNextRender,
@@ -214,7 +215,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.yamlContent.set('');
     this.config = [this.config[0], this.config[this.config.length - 1]];
     this.config[this.config.length - 1].invisible = false;
-    this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.enable();
+    requireFormControl(this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL]).enable();
     this.valueChangedOnAlgoStrategyImplementation();
     const algoCallParam = this.algoCallParam();
     if (algoCallParam.thisObject) {
@@ -294,16 +295,16 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       );
     const algoCallParam = this.algoCallParam();
     this.createViewFromSelectedEnum((<AlgoStrategy>algoCallParam.thisObject).algoStrategyImplementations);
-    this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.setValue(
+    requireFormControl(this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL]).setValue(
       (<AlgoStrategy>algoCallParam.thisObject).algoStrategyImplementations
     );
   }
 
   private valueChangedOnAlgoStrategyImplementation(): void {
-    this.algoStrategyImplementationsChangedSub = this.configObject[
-      AlgoStrategyHelper.FIELD_STRATEGY_IMPL
-    ].formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.algoStrategyImplementationsChangedSub = requireFormControl(
+      this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL]
+    )
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((asi: AlgoStrategyImplementationType) => {
         if (!this.ignoreValueChanged) {
           this.createViewFromSelectedEnum(asi);
@@ -393,7 +394,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       }
     }
     this.form().transferBusinessObjectToForm(model);
-    this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.disable();
+    requireFormControl(this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL]).disable();
     this.ignoreValueChanged = false;
   }
 
@@ -427,7 +428,8 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     );
 
     FormHelper.flattenConfigMap(fieldConfig).forEach((field) => {
-      if (this.strategyDefaults[field.field] != null) field.defaultValue = this.strategyDefaults[field.field];
+      const name = field.field;
+      if (name != null && this.strategyDefaults[name] != null) field.defaultValue = this.strategyDefaults[name];
     });
     this.config = [this.config[0], ...fieldConfig, submitButton];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -451,7 +453,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       if (dynamicModel[field] == null) dynamicModel[field] = value;
     });
     this.form().transferBusinessObjectToForm(dynamicModel);
-    this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.disable();
+    requireFormControl(this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL]).disable();
     this.ignoreValueChanged = false;
   }
 

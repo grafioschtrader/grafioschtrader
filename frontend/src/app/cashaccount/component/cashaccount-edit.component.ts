@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -78,7 +79,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     this.configObject.currency.inputWidth = 5;
     const callParam = this.callParam();
     if (callParam.optParam && callParam.optParam.hasTransaction) {
-      this.configObject.currency.formControl.disable();
+      requireFormControl(this.configObject.currency).disable();
     }
     this.prepareSecurityaccountOption();
     this.form().setDefaultValuesAndEnableSubmit();

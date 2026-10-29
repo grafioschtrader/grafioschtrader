@@ -100,12 +100,12 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   private menuSubscription?: Subscription;
   readonly treeNodes = signal<TreeNode[]>([]);
   /** Row highlighted by the single-selection tree table. */
-  readonly tableSelection = signal<TreeNode>(null);
-  readonly contextMenuItems = signal<MenuItem[]>(null);
+  readonly tableSelection = signal<TreeNode | null>(null);
+  readonly contextMenuItems = signal<MenuItem[] | null>(null);
   fileUploadParam: FileUploadParam;
   readonly visibleUploadFileDialog = signal(false);
   isAdmin: boolean;
-  readonly modelCountry = signal<TaxCountry>(null);
+  readonly modelCountry = signal<TaxCountry | null>(null);
   existingCountries: string[] = [];
 
   closeModel(): void {
@@ -317,6 +317,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
           closable: true,
           closeOnEscape: true
         });
+        if (!ref) return;
         ref.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((countryCode: string) => {
           if (countryCode) {
             this.taxDataService
@@ -341,6 +342,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
           closable: true,
           closeOnEscape: true
         });
+        if (!ref) return;
         ref.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((taxYear: number) => {
           if (taxYear) {
             this.taxDataService

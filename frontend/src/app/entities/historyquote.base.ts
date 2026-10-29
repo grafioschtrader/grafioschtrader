@@ -9,15 +9,15 @@ import { ProposeTransientTransfer } from '../lib/entities/propose.transient.tran
  */
 export abstract class HistoryquoteBase extends ProposeTransientTransfer implements BaseID {
   idSecuritycurrency?: number;
-  date?: string | Date = null;
-  close?: number = null;
-  volume?: number = null;
-  open?: number = null;
-  high?: number = null;
-  low?: number = null;
+  date?: string | Date | null = null;
+  close?: number | null = null;
+  volume?: number | null = null;
+  open?: number | null = null;
+  high?: number | null = null;
+  low?: number | null = null;
   createType?: string | HistoryquoteCreateType;
 
-  abstract override getId(): number;
+  abstract override getId(): number | undefined;
 }
 
 export enum HistoryquoteCreateType {

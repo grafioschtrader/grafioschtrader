@@ -9,8 +9,9 @@ export enum CorrelationChartType {
 }
 
 /** Expresses closes as percentage changes from the common start, without bridging missing quotes. */
-export function percentageCloses(closes: number[]): (number | null)[] | null {
-  const start = closes?.[0];
+export function percentageCloses(closes: (number | null)[] | null | undefined): (number | null)[] | null {
+  if (!closes) return null;
+  const start = closes[0];
   if (start == null || !Number.isFinite(start) || start === 0) {
     return null;
   }

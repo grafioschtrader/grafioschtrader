@@ -3,12 +3,12 @@ import { TaskTypeBase } from './task.type.base';
 
 export class TaskDataChange implements BaseID {
   idTaskDataChange: number;
-  idTask: TaskTypeBase | number | string = null;
+  idTask: TaskTypeBase | number | string | null = null;
   executionPriority: number;
-  entity: string = null;
-  idEntity: number = null;
+  entity: string | null = null;
+  idEntity: number | null = null;
   creationTime: number;
-  earliestStartTime: Date | string = null;
+  earliestStartTime: Date | string | null = null;
   oldValueString: string;
   oldValueNumber: number;
   progressStateType: number;

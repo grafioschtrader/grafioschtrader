@@ -1,4 +1,5 @@
-import { SimpleEditBase } from '../../edit/simple.edit.base';
+import { requireFieldName } from '../../dynamic-form/models/form-control-access';
+import { SimpleFormEditBase } from '../../edit/simple.form.edit.base';
 import { MessageToastService } from '../../message/message.toast.service';
 import { UDFDataService } from '../service/udf.data.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -22,7 +23,7 @@ import { BaseSettings } from '../../base.settings';
  * Subclasses must implement entity-specific initialization logic.
  */
 @Directive()
-export abstract class BaseUDFDataEdit extends SimpleEditBase {
+export abstract class BaseUDFDataEdit extends SimpleFormEditBase {
   private messageToastService: MessageToastService = inject(MessageToastService);
   private uDFDataService: UDFDataService = inject(UDFDataService);
   public translateService: TranslateService = inject(TranslateService);
@@ -130,6 +131,8 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
   private formatDate(value: { [name: string]: any }): void {
     this.config
       .filter((c) => c.dataType === DataType.DateString)
-      .forEach((c) => (value[c.field] = Helper.formatDateStringAsString(c, BaseSettings.FORMAT_DATE_SHORT_NATIVE)));
+      .forEach(
+        (c) => (value[requireFieldName(c)] = Helper.formatDateStringAsString(c, BaseSettings.FORMAT_DATE_SHORT_NATIVE))
+      );
   }
 }

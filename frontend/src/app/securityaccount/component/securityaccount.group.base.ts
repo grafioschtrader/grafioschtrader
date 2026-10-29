@@ -32,7 +32,7 @@ export abstract class SecurityaccountGroupBase<
    */
   public abstract extendColumns(internalColumnConfigs: ColumnConfig[]): void;
 
-  public abstract getGroupValue(security: Security): string | number;
+  public abstract getGroupValue(security: Security): string | number | null | undefined;
 
   public abstract translateGroupValues(securityPositionGroupSummary: T[]): void;
 

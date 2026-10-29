@@ -24,11 +24,11 @@ export class NgxErrorsDirective {
     return !!this.errors;
   }
 
-  hasError(name: string, conditions: ErrorOptions): boolean {
+  hasError(name: string, conditions: ErrorOptions | null | undefined): boolean {
     return this.checkPropState('invalid', name, conditions);
   }
 
-  isValid(name: string, conditions: ErrorOptions): boolean {
+  isValid(name: string, conditions: ErrorOptions | null | undefined): boolean {
     return this.checkPropState('valid', name, conditions);
   }
 
@@ -36,10 +36,14 @@ export class NgxErrorsDirective {
     return this.control()?.getError(name);
   }
 
-  private checkPropState(prop: 'valid' | 'invalid', field: string, conditions: ErrorOptions): boolean {
+  private checkPropState(
+    prop: 'valid' | 'invalid',
+    field: string,
+    conditions: ErrorOptions | null | undefined
+  ): boolean {
     const control = this.control();
     if (!control) {
-      return null;
+      return false;
     }
     const controlPropsState =
       !conditions || toArray(conditions).every((condition: string) => control[condition as keyof AbstractControl]);

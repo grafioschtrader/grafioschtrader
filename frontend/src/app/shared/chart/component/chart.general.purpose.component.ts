@@ -47,7 +47,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   private viewSizeChangedService = inject(ViewSizeChangedService);
   private activePanelService = inject(ActivePanelService);
 
-  readonly chartElement = viewChild<ElementRef>('chart');
+  readonly chartElement = viewChild.required<ElementRef>('chart');
 
   private subscriptionViewSizeChanged: Subscription;
   private subscriptionChartDataChanged: Subscription;
@@ -91,7 +91,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
     this.activePanelService.activatePanel(this);
   }
 
-  public getHelpContextId(): string {
+  public getHelpContextId(): string | null {
     // TODO return ID depending on the chart
     return null;
   }

@@ -32,7 +32,7 @@ export class FormButtonComponent implements FieldFormFormGroupConfig {
   readonly group = input.required<UntypedFormGroup>();
 
   /** Change notification of the form this field belongs to; the template reads its revision. */
-  get notifier(): FormNotifier {
+  get notifier(): FormNotifier | undefined {
     return FormNotifier.of(this.config());
   }
 }

@@ -39,7 +39,7 @@ export class SecuritycurrencySearchAndSetDialogComponent
   private dynamicDialogRef = inject(DynamicDialogRef);
 
   // Access child components
-  readonly sissdc = viewChild(SecuritycurrencySearchAndSetTableComponent);
+  readonly sissdc = viewChild.required(SecuritycurrencySearchAndSetTableComponent);
 
   constructor() {
     super(false);

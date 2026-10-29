@@ -5,12 +5,12 @@
  * A record may also be comment-only (note set, no override).
  */
 export class TaxYearCorrection {
-  idTaxYearCorrection: number = null;
-  idSecuritycurrency: number = null;
-  taxYear: number = null;
+  idTaxYearCorrection: number | null = null;
+  idSecuritycurrency: number | null = null;
+  taxYear: number | null = null;
   useTaxableAmount = false;
-  taxableIncome: number = null;
-  note: string = null;
+  taxableIncome: number | null = null;
+  note: string | null = null;
 }
 
 /**

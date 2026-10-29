@@ -1,7 +1,7 @@
 export class UserOwnProjection {
-  idUser: number = null;
-  email: string = null;
-  nickname: string = null;
-  localeStr: string = null;
+  idUser: number | null = null;
+  email: string | null = null;
+  nickname: string | null = null;
+  localeStr: string | null = null;
   uiShowMyProperty = true;
 }

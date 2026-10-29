@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { AfterViewInit, Component, computed, signal, OnDestroy, OnInit, viewChild, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
@@ -89,7 +90,7 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
   private holdingService: HoldingService = inject(HoldingService);
   private tenantService: TenantService = inject(TenantService);
 
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
   data: PerformanceReportDialogData;
   reportDate: string;
   dateFrom: string;
@@ -172,7 +173,7 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
         : locale
     };
     for (const field of this.config) {
-      if (field.field in initial) {
+      if (field.field != null && field.field in initial) {
         field.defaultValue = initial[field.field as keyof typeof initial];
       }
     }
@@ -199,10 +200,10 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
 
   ngAfterViewInit(): void {
     this.subscriptions.add(
-      this.configObject.preset.formControl.valueChanges.subscribe((preset) => {
+      requireFormControl(this.configObject.preset).valueChanges.subscribe((preset) => {
         if (preset !== 'CUSTOM') {
           const sections = this.data.options.presetSections[preset] || [];
-          this.configObject.sections.formControl.setValue(sections, { emitEvent: false });
+          requireFormControl(this.configObject.sections).setValue(sections, { emitEvent: false });
           this.form().notifier.notify();
           this.configObject.annualYears.invisible = !sections.includes('ANNUAL_RETURNS');
           this.configObject.detailColumns.invisible = !sections.includes('HOLDINGS');
@@ -211,8 +212,8 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
       })
     );
     this.subscriptions.add(
-      this.configObject.sections.formControl.valueChanges.subscribe((sections: string[]) => {
-        this.configObject.preset.formControl.setValue('CUSTOM', { emitEvent: false });
+      requireFormControl(this.configObject.sections).valueChanges.subscribe((sections: string[]) => {
+        requireFormControl(this.configObject.preset).setValue('CUSTOM', { emitEvent: false });
         this.form().notifier.notify();
         this.configObject.annualYears.invisible = !sections?.includes('ANNUAL_RETURNS');
         this.configObject.detailColumns.invisible = !sections?.includes('HOLDINGS');
@@ -233,7 +234,7 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
       this.holdingService.downloadPeriodPerformancePdf(request).subscribe({
         next: (response) => {
           saveAs(response.body, performanceReportFilename(response.headers.get('Content-Disposition')));
-          if (!this.gps.isReadOnlyUser() && this.configObject.rememberSettings.formControl.value) {
+          if (!this.gps.isReadOnlyUser() && requireFormControl(this.configObject.rememberSettings).value) {
             this.subscriptions.add(
               this.tenantService.saveReportSettings(rememberedReportSettings(request)).subscribe({
                 next: () => this.ref.close(),

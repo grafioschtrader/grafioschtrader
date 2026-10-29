@@ -107,16 +107,16 @@ export class SecurityHistoryquoteQualityTreetableComponent
   private activePanelService: ActivePanelService = inject(ActivePanelService);
   private securityService: SecurityService = inject(SecurityService);
 
-  readonly historyquoteQualityIds = signal<HistoryquoteQualityIds>(null);
-  readonly groupTitle = signal<string>(null);
-  readonly contextMenuItems = signal<MenuItem[]>(null);
+  readonly historyquoteQualityIds = signal<HistoryquoteQualityIds | null>(null);
+  readonly groupTitle = signal<string | null>(null);
+  readonly contextMenuItems = signal<MenuItem[] | null>(null);
   securityIdWithCurrency: SecurityIdWithCurrency;
 
   readonly qualityNode = signal<TreeNode[]>([]);
-  readonly historyquoteQualityHead = signal<HistoryquoteQualityHead>(null);
-  readonly selectedNode = signal<TreeNode>(null);
+  readonly historyquoteQualityHead = signal<HistoryquoteQualityHead | null>(null);
+  readonly selectedNode = signal<TreeNode | null>(null);
   selectedGroup: string;
-  readonly lastUpdate = signal<string>(null);
+  readonly lastUpdate = signal<string | null>(null);
 
   groups: SelectItem[] = [];
 

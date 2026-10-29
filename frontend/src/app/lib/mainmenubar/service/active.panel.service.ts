@@ -40,14 +40,14 @@ export class ActivePanelService {
    * The currently active panel in the application.
    * Only one panel can be active at a time. When a new panel is activated, the previous one is deactivated.
    */
-  private readonly activatedPanelSignal = signal<IGlobalMenuAttach>(null);
+  private readonly activatedPanelSignal = signal<IGlobalMenuAttach | null>(null);
 
   /**
    * Gets the currently active panel.
    *
-   * @returns The active panel component, or undefined if no panel is active
+   * @returns The active panel component, or null if no panel is active
    */
-  get activatedPanel(): IGlobalMenuAttach {
+  get activatedPanel(): IGlobalMenuAttach | null {
     return this.activatedPanelSignal();
   }
 
@@ -141,8 +141,8 @@ export class ActivePanelService {
    * @param menuItems - Array of menu items to display, or null/undefined to disable the menu section
    * @private
    */
-  private setMenuItems(menuType: TopMenuTypes, menuItems?: MenuItem[]): void {
-    this.publishTopMenuItem(menuType, { disabled: !menuItems, items: menuItems ? menuItems : null });
+  private setMenuItems(menuType: TopMenuTypes, menuItems?: MenuItem[] | null): void {
+    this.publishTopMenuItem(menuType, { disabled: !menuItems, items: menuItems ?? undefined });
   }
 
   /**
@@ -159,7 +159,7 @@ export class ActivePanelService {
     });
   }
 
-  private setActivatedPanel(panel: IGlobalMenuAttach): void {
+  private setActivatedPanel(panel: IGlobalMenuAttach | null): void {
     untracked(() => this.activatedPanelSignal.set(panel));
   }
 }
@@ -170,8 +170,8 @@ export class ActivePanelService {
  */
 export interface Menus {
   /** Menu items to display in the "Show" menu section of the top menu bar */
-  showMenu?: MenuItem[];
+  showMenu?: MenuItem[] | null;
 
   /** Menu items to display in the "Edit" menu section of the top menu bar */
-  editMenu?: MenuItem[];
+  editMenu?: MenuItem[] | null;
 }

@@ -31,6 +31,6 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 })
 export class FormInputSuggestionComponent extends BaseInputComponent {
   public callSuggestionsFN(event: { query: string }): void {
-    this.config().suggestionsFN(event);
+    this.config().suggestionsFN?.(event);
   }
 }

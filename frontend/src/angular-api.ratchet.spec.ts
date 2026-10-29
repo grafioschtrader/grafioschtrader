@@ -136,8 +136,8 @@ const FORM_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason
     reason: 'The dynamic dialog chooses its help and entity update strategy; dialog context is injected.'
   },
   'app/lib/edit/simple.edit.base.ts': {
-    parameters: ['helpId:string'],
-    reason: 'Each dialog chooses its own help page.'
+    parameters: ['helpId:string|null'],
+    reason: 'Each dialog chooses its help page; null represents an absent help context.'
   },
   'app/lib/edit/simple.entity.edit.base.ts': {
     parameters: ['helpId:string', 'i18nRecord:string', 'serviceEntityUpdate:ServiceEntityUpdate<T>'],

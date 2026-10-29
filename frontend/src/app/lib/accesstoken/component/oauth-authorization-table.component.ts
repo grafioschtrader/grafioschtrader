@@ -53,7 +53,7 @@ export class OAuthAuthorizationTableComponent extends TableConfigBase {
   private messageToastService: MessageToastService = inject(MessageToastService);
 
   readonly authorizations = signal<OAuthAuthorization[]>([]);
-  readonly selected = signal<OAuthAuthorization>(null);
+  readonly selected = signal<OAuthAuthorization | null>(null);
   private readonly destroyRef = inject(DestroyRef);
   private readDataSub?: Subscription;
 

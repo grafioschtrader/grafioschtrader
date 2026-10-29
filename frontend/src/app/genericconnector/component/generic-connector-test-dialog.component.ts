@@ -1,7 +1,7 @@
 import { Component, computed, OnInit, signal, input, inject } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { GenericConnectorEndpoint } from '../../entities/generic.connector.endpoint';
 import { GenericConnectorDef } from '../../entities/generic.connector.def';
 import { GenericConnectorTestRequest, GenericConnectorTestResult } from '../model/generic-connector-test.model';
@@ -18,6 +18,8 @@ import { TableModule } from '@openng/optimus-ui/table';
 import moment from 'moment';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
 
 /**
  * Test dialog for verifying a generic connector endpoint configuration. Lets the user enter a ticker (or currency
@@ -85,14 +87,15 @@ import { Subscription } from 'rxjs';
   `,
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS, FieldsetModule, TableModule]
 })
-export class GenericConnectorTestDialogComponent extends SimpleEditBase implements OnInit {
+export class GenericConnectorTestDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private genericConnectorDefService: GenericConnectorDefService = inject(GenericConnectorDefService);
+  private readonly messageToastService = inject(MessageToastService);
 
   readonly endpoint = input<GenericConnectorEndpoint>(undefined);
   readonly connectorDef = input<GenericConnectorDef>(undefined);
 
-  readonly testResult = signal<GenericConnectorTestResult>(null);
+  readonly testResult = signal<GenericConnectorTestResult | null>(null);
   readonly parsedColumns = computed(() => {
     const rows = this.testResult()?.parsedRows;
     return rows?.length ? Object.keys(rows[0]) : [];
@@ -157,13 +160,20 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
   }
 
   submit(value: { [key: string]: any }): void {
+    const idGenericConnector = this.connectorDef().idGenericConnector;
+    const endpoint = this.endpoint();
+    const { feedSupport, instrumentType } = endpoint;
+    if (idGenericConnector == null || feedSupport == null || instrumentType == null) {
+      this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'REQUIRED_FIELDS_MISSING');
+      this.configObject.submit.disabled = false;
+      return;
+    }
     const request: GenericConnectorTestRequest = {
-      idGenericConnector: this.connectorDef().idGenericConnector,
-      feedSupport: this.endpoint().feedSupport,
-      instrumentType: this.endpoint().instrumentType
+      idGenericConnector,
+      feedSupport,
+      instrumentType
     };
 
-    const endpoint = this.endpoint();
     if (endpoint.tickerBuildStrategy === 'CURRENCY_PAIR' && endpoint.instrumentType === 'CURRENCY') {
       request.fromCurrency = value.fromCurrency;
       request.toCurrency = value.toCurrency;

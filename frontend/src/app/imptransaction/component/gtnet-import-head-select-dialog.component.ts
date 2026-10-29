@@ -1,9 +1,10 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -45,7 +46,7 @@ import { GTNetSecurityImpPosService } from '../../shared/gtnet/service/gtnet-sec
   `,
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase implements OnInit {
+export class GTNetImportHeadSelectDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private messageToastService: MessageToastService = inject(MessageToastService);
   private gtNetSecurityImpHeadService: GTNetSecurityImpHeadService = inject(GTNetSecurityImpHeadService);
@@ -85,10 +86,10 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
   }
 
   submit(value: { [name: string]: any }): void {
-    const mode = this.configObject.mode.formControl.value;
+    const mode = requireFormControl(this.configObject.mode).value;
     const idGtNetSecurityImpHead =
-      mode === this.MODE_EXISTING ? this.configObject.idGtNetSecurityImpHead.formControl.value : undefined;
-    const headName = mode === this.MODE_NEW ? this.configObject.headName.formControl.value : undefined;
+      mode === this.MODE_EXISTING ? requireFormControl(this.configObject.idGtNetSecurityImpHead).value : undefined;
+    const headName = mode === this.MODE_NEW ? requireFormControl(this.configObject.headName).value : undefined;
 
     this.configObject.submit.disabled = true;
 
@@ -116,8 +117,8 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
         this.existingHeads = heads;
         this.setupHeadOptions();
         const suggestedHeadName = this.suggestedHeadName();
-        if (this.configObject.headName.formControl.value === suggestedHeadName) {
-          this.configObject.headName.formControl.setValue(this.suggestUniqueName(suggestedHeadName));
+        if (requireFormControl(this.configObject.headName).value === suggestedHeadName) {
+          requireFormControl(this.configObject.headName).setValue(this.suggestUniqueName(suggestedHeadName));
         }
       });
   }
@@ -142,9 +143,11 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
 
   private setupValueChangeHandlers(): void {
     // Handle mode changes to show/hide appropriate fields
-    this.configObject.mode.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((mode: string) => {
-      this.updateFieldVisibility(mode);
-    });
+    requireFormControl(this.configObject.mode)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((mode: string) => {
+        this.updateFieldVisibility(mode);
+      });
   }
 
   private updateFieldVisibility(mode: string): void {
@@ -156,27 +159,27 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
 
     // Update required validators
     if (isNewMode) {
-      this.configObject.headName.formControl.setValidators([Validators.required]);
-      this.configObject.idGtNetSecurityImpHead.formControl.setValidators([]);
-      this.configObject.idGtNetSecurityImpHead.formControl.setValue(null);
+      requireFormControl(this.configObject.headName).setValidators([Validators.required]);
+      requireFormControl(this.configObject.idGtNetSecurityImpHead).setValidators([]);
+      requireFormControl(this.configObject.idGtNetSecurityImpHead).setValue(null);
     } else {
-      this.configObject.headName.formControl.setValidators([]);
-      this.configObject.idGtNetSecurityImpHead.formControl.setValidators([Validators.required]);
-      this.configObject.headName.formControl.setValue('');
+      requireFormControl(this.configObject.headName).setValidators([]);
+      requireFormControl(this.configObject.idGtNetSecurityImpHead).setValidators([Validators.required]);
+      requireFormControl(this.configObject.headName).setValue('');
     }
 
     // Update validity after changing validators
-    this.configObject.headName.formControl.updateValueAndValidity();
-    this.configObject.idGtNetSecurityImpHead.formControl.updateValueAndValidity();
+    requireFormControl(this.configObject.headName).updateValueAndValidity();
+    requireFormControl(this.configObject.idGtNetSecurityImpHead).updateValueAndValidity();
   }
 
   private initializeFields(): void {
     const initialMode = this.MODE_NEW;
-    this.configObject.mode.formControl.setValue(initialMode);
+    requireFormControl(this.configObject.mode).setValue(initialMode);
 
     // Set suggested name with uniqueness check
     const suggestedName = this.suggestUniqueName(this.suggestedHeadName());
-    this.configObject.headName.formControl.setValue(suggestedName);
+    requireFormControl(this.configObject.headName).setValue(suggestedName);
 
     // Update visibility based on initial mode
     this.updateFieldVisibility(initialMode);

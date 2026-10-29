@@ -1,3 +1,4 @@
+import { previousTreeNode } from '../../lib/maintree/types/tree-node-navigation';
 import { Injectable } from '@angular/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { inject } from '@angular/core';
@@ -115,7 +116,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
 
     // With alerts only, the root node carries no strategies and nothing of them is requested.
     if (!this.useAlgo()) {
-      rootNode.children.splice(0);
+      (rootNode.children ??= []).splice(0);
       return of(undefined);
     }
 
@@ -124,9 +125,9 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
       this.monitoringId = null;
       return this.algoTopService.getAlgoTopByIdTenantOrderByName().pipe(
         map((algoTopList) => {
-          rootNode.children.splice(0);
+          (rootNode.children ??= []).splice(0);
           for (const algoTop of algoTopList) {
-            rootNode.children.push(this.createStrategyNode(algoTop));
+            (rootNode.children ??= []).push(this.createStrategyNode(algoTop));
           }
         })
       );
@@ -140,7 +141,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
       map(([algoTopList, simTenants, tenant]) => {
         this.monitoringId = tenant.idAlgoTop;
         this.simulationTenants = simTenants;
-        rootNode.children.splice(0);
+        (rootNode.children ??= []).splice(0);
         for (const algoTop of algoTopList) {
           const treeNode = this.createStrategyNode(algoTop);
 
@@ -171,7 +172,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             }
           }
 
-          rootNode.children.push(treeNode);
+          (rootNode.children ??= []).push(treeNode);
         }
       })
     );
@@ -398,6 +399,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
    * @param typeNodeData the node data of the simulation environment, carrying the serialized environment
    */
   private handleStartReplay(typeNodeData: TypeNodeData): void {
+    if (!typeNodeData.entityObject) return;
     const sim: SimulationTenantInfo = JSON.parse(typeNodeData.entityObject);
     if (sim.replayBlockedReason) {
       this.messageToastService.showMessage(InfoLevelType.WARNING, sim.replayBlockedReason);
@@ -452,7 +454,8 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: 'STRATEGY'
             });
-            this.callbacks?.navigateToNode(this.getPreviousNode(treeNode).data);
+            const previous = this.getPreviousNode(treeNode);
+            if (previous?.data) this.callbacks?.navigateToNode(previous.data);
             this.callbacks?.refreshTree();
           },
           error: (err) => console.error('Error deleting strategy:', err)
@@ -461,16 +464,12 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
     );
   }
 
-  private getPreviousNode(treeNode: TreeNode): TreeNode {
-    let i = 0;
-    while (i < treeNode.parent.children.length && treeNode.parent.children[i] !== treeNode) {
-      i++;
-    }
-    return i === 0 ? treeNode.parent : treeNode.parent.children[i - 1];
+  private getPreviousNode(treeNode: TreeNode): TreeNode | null {
+    return previousTreeNode(treeNode);
   }
 
-  private setLangTrans(key: string, target: TreeNode, suffix: string = ''): void {
-    this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
+  private setLangTrans(key: string | undefined, target: TreeNode, suffix: string = ''): void {
+    if (key) this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
   }
 
   private addMainRoute(suffix: string): string {

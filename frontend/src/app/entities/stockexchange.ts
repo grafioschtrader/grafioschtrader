@@ -3,24 +3,24 @@ import { Auditable } from '../lib/entities/auditable';
 import { Exclude } from 'class-transformer';
 
 export class Stockexchange extends Auditable implements BaseID {
-  idStockexchange?: number = null;
-  mic: string = null;
-  name: string = null;
-  countryCode: string = null;
-  timeOpen: string = null;
-  timeClose: string = null;
-  timeZone: string = null;
-  secondaryMarket: boolean = null;
-  noMarketValue: boolean = null;
-  idIndexUpdCalendar: number = null;
-  nameIndexUpdCalendar: string = null;
+  idStockexchange?: number | null = null;
+  mic: string | null = null;
+  name: string | null = null;
+  countryCode: string | null = null;
+  timeOpen: string | null = null;
+  timeClose: string | null = null;
+  timeZone: string | null = null;
+  secondaryMarket: boolean | null = null;
+  noMarketValue: boolean | null = null;
+  idIndexUpdCalendar: number | null = null;
+  nameIndexUpdCalendar: string | null = null;
   /** Rule set producing the trading calendar. Mutually exclusive with idIndexUpdCalendar. */
-  idTradingCalendarRuleSet: number = null;
-  nameTradingCalendarRuleSet: string = null;
+  idTradingCalendarRuleSet: number | null = null;
+  nameTradingCalendarRuleSet: string | null = null;
   lastDirectPriceUpdate: number;
-  website: string = null;
+  website: string | null = null;
   @Exclude()
-  public override getId(): number {
+  public override getId(): number | null | undefined {
     return this.idStockexchange;
   }
 }

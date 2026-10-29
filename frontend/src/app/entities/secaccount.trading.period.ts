@@ -1,7 +1,7 @@
 export class SecaccountTradingPeriod {
-  idSecaccountTradingPeriod: number = null;
-  categoryType: string = null;
-  specInvestInstrument: string = null;
-  dateFrom: string | Date = null;
-  dateTo: string | Date = null;
+  idSecaccountTradingPeriod: number | null = null;
+  categoryType: string | null = null;
+  specInvestInstrument: string | null = null;
+  dateFrom: string | Date | null = null;
+  dateTo: string | Date | null = null;
 }

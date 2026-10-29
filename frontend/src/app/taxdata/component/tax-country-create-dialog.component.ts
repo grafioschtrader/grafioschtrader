@@ -34,7 +34,7 @@ export class TaxCountryCreateDialogComponent extends FormBase implements OnInit 
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
 
   constructor() {
     super();

@@ -115,17 +115,22 @@ export class StandingOrderTransactionTableComponent extends TransactionContextMe
   private portfolioService: PortfolioService = inject(PortfolioService);
   private standingOrderService: StandingOrderService = inject(StandingOrderService);
 
-  readonly standingOrder = input<StandingOrder>(undefined);
+  readonly standingOrder = input<StandingOrder>();
 
   readonly transactionResource = rxResource({
-    params: () => this.standingOrder(),
-    stream: ({ params: order }) =>
+    params: () => {
+      const order = this.standingOrder();
+      const idStandingOrder = order?.idStandingOrder;
+      const idCashaccount = order?.cashaccount?.idSecuritycashAccount;
+      return idStandingOrder == null || idCashaccount == null ? undefined : { idStandingOrder, idCashaccount };
+    },
+    stream: ({ params }) =>
       this.portfolioService
-        .getPortfolioByIdSecuritycashaccount(order.cashaccount.idSecuritycashAccount)
+        .getPortfolioByIdSecuritycashaccount(params.idCashaccount)
         .pipe(
           switchMap((portfolio) =>
             this.standingOrderService
-              .getTransactions(order.idStandingOrder)
+              .getTransactions(params.idStandingOrder)
               .pipe(map((transactions) => ({ portfolio, transactions })))
           )
         )

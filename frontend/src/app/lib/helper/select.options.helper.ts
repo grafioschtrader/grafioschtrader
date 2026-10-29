@@ -117,7 +117,7 @@ export class SelectOptionsHelper {
   public static createHtmlOptionsFromEnumAddEmpty(
     translateService: TranslateService,
     e: EnumI,
-    allowedEnums?: any[],
+    allowedEnums?: readonly (string | number)[] | null,
     deny?: boolean
   ): ValueKeyHtmlSelectOptions[] {
     const transactionHtmlOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
@@ -151,7 +151,7 @@ export class SelectOptionsHelper {
   public static createHtmlOptionsFromEnum(
     translateService: TranslateService,
     e: EnumI,
-    allowedEnums?: any[],
+    allowedEnums?: readonly (string | number)[] | null,
     deny?: boolean
   ): ValueKeyHtmlSelectOptions[] {
     const transactionHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
@@ -384,7 +384,7 @@ export class SelectOptionsHelper {
     disabled: any[]
   ): ValueKeyHtmlSelectOptions[] {
     for (const vkhso of valueKeyHtmlSelectOptions) {
-      vkhso.disabled = disabled.indexOf(e[vkhso.key]) >= 0;
+      vkhso.disabled = vkhso.key != null && disabled.indexOf(e[vkhso.key]) >= 0;
     }
     return valueKeyHtmlSelectOptions;
   }
@@ -431,11 +431,11 @@ export class SelectOptionsHelper {
     valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[],
     translateService: TranslateService,
     e: EnumI,
-    allowedEnums?: any[],
+    allowedEnums?: readonly (string | number)[] | null,
     deny?: boolean,
     disabledEnums?: any[]
   ): ValueKeyHtmlSelectOptions[] {
-    let typeAllowedEnums = null;
+    let typeAllowedEnums: string | null = null;
     if (allowedEnums && allowedEnums.length > 0) {
       typeAllowedEnums = typeof allowedEnums[0];
     }
@@ -471,20 +471,17 @@ export class SelectOptionsHelper {
    * @returns True if the enum value should be included in the options
    */
   private static checkAllowEnum(
-    typeAllowedEnums: string,
+    typeAllowedEnums: string | null,
     e: EnumI,
     stringType: string,
-    allowedEnums?: any[],
+    allowedEnums?: readonly (string | number)[] | null,
     deny?: boolean
   ): boolean {
+    if (!allowedEnums) return true;
     if (!typeAllowedEnums || typeAllowedEnums === 'number') {
-      return (
-        !allowedEnums ||
-        (allowedEnums.indexOf(e[stringType]) >= 0 && !deny) ||
-        (allowedEnums.indexOf(e[stringType]) < 0 && deny)
-      );
+      return (allowedEnums.indexOf(e[stringType]) >= 0 && !deny) || (allowedEnums.indexOf(e[stringType]) < 0 && !!deny);
     } else {
-      return (allowedEnums.indexOf(stringType) >= 0 && !deny) || (allowedEnums.indexOf(stringType) < 0 && deny);
+      return (allowedEnums.indexOf(stringType) >= 0 && !deny) || (allowedEnums.indexOf(stringType) < 0 && !!deny);
     }
   }
 
@@ -520,7 +517,7 @@ export class SelectOptionsHelper {
    */
   private static translateValueKeyHtmlSelectOptions(
     translateService: TranslateService,
-    key: string | number,
+    key: string | number | null,
     value: string
   ): ValueKeyHtmlSelectOptions {
     const valueKeyHtmlSelectOptions = new ValueKeyHtmlSelectOptions(key, value);

@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -60,7 +61,11 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
   ): Observable<ValueKeyHtmlSelectOptions[]> {
     return this.securityaccountService
       .getAlgoAccountOptions(idSecuritycurrency, idAssetClass)
-      .pipe(map((options) => options.map((o) => new ValueKeyHtmlSelectOptions(+o.key, o.value))));
+      .pipe(
+        map((options) =>
+          options.flatMap((o) => (o.key == null ? [] : [new ValueKeyHtmlSelectOptions(+o.key, o.value)]))
+        )
+      );
   }
 
   /**
@@ -73,13 +78,13 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
     this.accountOptions = options;
     this.configObject.idSecurityaccount1.valueKeyHtmlOptions = this.withEmpty(options);
     this.clearIfNotOffered('idSecurityaccount1');
-    this.setSecurityaccount2Options(this.configObject.idSecurityaccount1.formControl.value);
+    this.setSecurityaccount2Options(requireFormControl(this.configObject.idSecurityaccount1).value);
   }
 
   /** Recomputes the options of the second priority whenever the first one changes. */
   protected valueChangedOnSecurityaccount1(): void {
-    this.securityaccount1ChangedSub = this.configObject.idSecurityaccount1.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.securityaccount1ChangedSub = requireFormControl(this.configObject.idSecurityaccount1)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((idSecurityaccount: number) => this.setSecurityaccount2Options(idSecurityaccount));
   }
 
@@ -97,9 +102,9 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
 
   private clearIfNotOffered(fieldName: string): void {
     const fc = this.configObject[fieldName];
-    const value = fc.formControl.value;
+    const value = requireFormControl(fc).value;
     if (value != null && value !== '' && !fc.valueKeyHtmlOptions.some((o) => o.key === +value)) {
-      fc.formControl.setValue(null);
+      requireFormControl(fc).setValue(null);
     }
   }
 

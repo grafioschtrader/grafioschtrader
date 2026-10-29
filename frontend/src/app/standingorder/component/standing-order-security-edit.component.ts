@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -157,8 +158,8 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     }
     this.configObject.idSecurityaccount.valueKeyHtmlOptions = securityaccountsHtmlOptions;
     if (securityaccountsHtmlOptions.length === 1) {
-      this.configObject.idSecurityaccount.formControl.setValue(securityaccountsHtmlOptions[0].key);
-      this.configObject.idSecurityaccount.formControl.disable();
+      requireFormControl(this.configObject.idSecurityaccount).setValue(securityaccountsHtmlOptions[0].key);
+      requireFormControl(this.configObject.idSecurityaccount).disable();
     }
     this.setupSecurityaccountChangeListener();
   }
@@ -186,42 +187,42 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     const so = callParam?.standingOrder as StandingOrderSecurity;
     if (so) {
       if (so.idSecurityaccount) {
-        this.configObject.idSecurityaccount.formControl.setValue(so.idSecurityaccount);
+        requireFormControl(this.configObject.idSecurityaccount).setValue(so.idSecurityaccount);
       }
       this.form().transferBusinessObjectToForm(so);
       if (so.security) {
         this.selectedSecurity = so.security as Security;
-        this.configObject.securityName.formControl.setValue(so.security.name);
+        requireFormControl(this.configObject.securityName).setValue(so.security.name);
       }
       // Derive investMode from existing data
       const mode = so.investAmount != null ? InvestMode.INVEST_MODE_AMOUNT : InvestMode.INVEST_MODE_UNITS;
-      this.configObject.investMode.formControl.setValue(InvestMode[mode]);
+      requireFormControl(this.configObject.investMode).setValue(InvestMode[mode]);
       this.applyInvestMode(mode);
     } else if (callParam?.transaction) {
       const t = callParam.transaction;
-      this.configObject.transactionType.formControl.setValue(t.transactionType);
+      requireFormControl(this.configObject.transactionType).setValue(t.transactionType);
       if (t.idSecurityaccount) {
-        this.configObject.idSecurityaccount.formControl.setValue(t.idSecurityaccount);
+        requireFormControl(this.configObject.idSecurityaccount).setValue(t.idSecurityaccount);
       }
       if (t.cashaccount) {
-        this.configObject.idCashaccount.formControl.setValue(t.cashaccount.idSecuritycashAccount);
+        requireFormControl(this.configObject.idCashaccount).setValue(t.cashaccount.idSecuritycashAccount);
       }
       if (t.security) {
         this.selectedSecurity = t.security;
-        this.configObject.securityName.formControl.setValue(t.security.name);
+        requireFormControl(this.configObject.securityName).setValue(t.security.name);
       }
       if (t.units != null) {
-        this.configObject.investMode.formControl.setValue(InvestMode[InvestMode.INVEST_MODE_UNITS]);
-        this.configObject.units.formControl.setValue(Math.abs(t.units));
+        requireFormControl(this.configObject.investMode).setValue(InvestMode[InvestMode.INVEST_MODE_UNITS]);
+        requireFormControl(this.configObject.units).setValue(Math.abs(t.units));
       }
       const investModeNumeric = StandingOrderEditBase.enumFormValueToNumeric(
         InvestMode,
-        this.configObject.investMode.formControl.value
+        requireFormControl(this.configObject.investMode).value
       );
       this.applyInvestMode(investModeNumeric ?? InvestMode.INVEST_MODE_UNITS);
     } else {
       // Default to units mode for new entries
-      this.configObject.investMode.formControl.setValue(InvestMode[InvestMode.INVEST_MODE_UNITS]);
+      requireFormControl(this.configObject.investMode).setValue(InvestMode[InvestMode.INVEST_MODE_UNITS]);
       this.applyInvestMode(InvestMode.INVEST_MODE_UNITS);
     }
     this.applyCostFormulaState();
@@ -246,10 +247,11 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
           closeOnEscape: true,
           data: { supplementCriteria: this.supplementCriteria }
         });
+        if (!ref) return;
         ref.onClose.pipe(this.untilDialogClosed()).subscribe((security: Security | CurrencypairWatchlist) => {
           if (security) {
             this.selectedSecurity = security as Security;
-            this.configObject.securityName.formControl.setValue(security.name);
+            requireFormControl(this.configObject.securityName).setValue(security.name);
           }
         });
       });
@@ -263,7 +265,7 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     // Clear the field not selected by investMode
     const mode = StandingOrderEditBase.enumFormValueToNumeric(
       InvestMode,
-      this.configObject.investMode.formControl.value
+      requireFormControl(this.configObject.investMode).value
     );
     if (mode === InvestMode.INVEST_MODE_UNITS) {
       so.investAmount = null;
@@ -283,14 +285,14 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     delete (so as any).securityName;
     // Wrap cashaccount ID into Cashaccount object for Jackson deserialization
     so.cashaccount = {
-      idSecuritycashAccount: +this.configObject.idCashaccount.formControl.value
+      idSecuritycashAccount: +requireFormControl(this.configObject.idCashaccount).value
     } as Cashaccount;
     // Set security from search dialog selection, existing entity, or transaction
     if (this.selectedSecurity) {
       so.security = this.selectedSecurity;
     }
     // idSecurityaccount comes from the form select (which may be disabled with a single value)
-    so.idSecurityaccount = +this.configObject.idSecurityaccount.formControl.value;
+    so.idSecurityaccount = +requireFormControl(this.configObject.idSecurityaccount).value;
     return so;
   }
 
@@ -298,10 +300,12 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
    * Subscribes to investMode changes and toggles between units and investAmount+fractionalUnits fields.
    */
   private setupInvestModeListener(): void {
-    this.configObject.investMode.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((mode: any) => {
-      const numericMode = StandingOrderEditBase.enumFormValueToNumeric(InvestMode, mode);
-      this.applyInvestMode(numericMode ?? InvestMode.INVEST_MODE_UNITS);
-    });
+    requireFormControl(this.configObject.investMode)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((mode: any) => {
+        const numericMode = StandingOrderEditBase.enumFormValueToNumeric(InvestMode, mode);
+        this.applyInvestMode(numericMode ?? InvestMode.INVEST_MODE_UNITS);
+      });
   }
 
   /**
@@ -311,15 +315,15 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
    */
   private applyInvestMode(mode: number): void {
     if (mode === InvestMode.INVEST_MODE_UNITS) {
-      this.configObject.units.formControl.enable();
-      this.configObject.investAmount.formControl.disable();
-      this.configObject.amountIncludesCosts.formControl.disable();
-      this.configObject.fractionalUnits.formControl.disable();
+      requireFormControl(this.configObject.units).enable();
+      requireFormControl(this.configObject.investAmount).disable();
+      requireFormControl(this.configObject.amountIncludesCosts).disable();
+      requireFormControl(this.configObject.fractionalUnits).disable();
     } else {
-      this.configObject.units.formControl.disable();
-      this.configObject.investAmount.formControl.enable();
-      this.configObject.amountIncludesCosts.formControl.enable();
-      this.configObject.fractionalUnits.formControl.enable();
+      requireFormControl(this.configObject.units).disable();
+      requireFormControl(this.configObject.investAmount).enable();
+      requireFormControl(this.configObject.amountIncludesCosts).enable();
+      requireFormControl(this.configObject.fractionalUnits).enable();
     }
   }
 
@@ -328,11 +332,11 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
    * when a fixed cost value is entered.
    */
   private setupCostFormulaListeners(): void {
-    this.configObject.taxCost.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.taxCost)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe(() => this.applyCostFormulaState());
-    this.configObject.transactionCost.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.transactionCost)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe(() => this.applyCostFormulaState());
   }
 
@@ -341,12 +345,12 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
    * to show only cash accounts from the same portfolio as the selected security account.
    */
   private setupSecurityaccountChangeListener(): void {
-    this.configObject.idSecurityaccount.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.idSecurityaccount)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((idSecurityaccount: number) => {
         this.updateCashaccountOptions(+idSecurityaccount);
       });
-    const currentValue = this.configObject.idSecurityaccount.formControl.value;
+    const currentValue = requireFormControl(this.configObject.idSecurityaccount).value;
     if (currentValue != null) {
       this.updateCashaccountOptions(+currentValue);
     } else {
@@ -364,11 +368,11 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
       );
       this.configObject.idCashaccount.valueKeyHtmlOptions = cashaccountsHtmlOptions;
       if (cashaccountsHtmlOptions.length === 1) {
-        this.configObject.idCashaccount.formControl.setValue(cashaccountsHtmlOptions[0].key);
+        requireFormControl(this.configObject.idCashaccount).setValue(cashaccountsHtmlOptions[0].key);
       }
     } else {
       this.configObject.idCashaccount.valueKeyHtmlOptions = [];
-      this.configObject.idCashaccount.formControl.setValue(null);
+      requireFormControl(this.configObject.idCashaccount).setValue(null);
     }
   }
 
@@ -390,17 +394,17 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
    * Disables the formula field when the corresponding fixed cost field has a value, and vice versa.
    */
   private applyCostFormulaState(): void {
-    const taxCostValue = this.configObject.taxCost.formControl.value;
+    const taxCostValue = requireFormControl(this.configObject.taxCost).value;
     if (taxCostValue != null && taxCostValue !== '' && taxCostValue !== 0) {
-      this.configObject.taxCostFormula.formControl.disable();
+      requireFormControl(this.configObject.taxCostFormula).disable();
     } else {
-      this.configObject.taxCostFormula.formControl.enable();
+      requireFormControl(this.configObject.taxCostFormula).enable();
     }
-    const txnCostValue = this.configObject.transactionCost.formControl.value;
+    const txnCostValue = requireFormControl(this.configObject.transactionCost).value;
     if (txnCostValue != null && txnCostValue !== '' && txnCostValue !== 0) {
-      this.configObject.transactionCostFormula.formControl.disable();
+      requireFormControl(this.configObject.transactionCostFormula).disable();
     } else {
-      this.configObject.transactionCostFormula.formControl.enable();
+      requireFormControl(this.configObject.transactionCostFormula).enable();
     }
   }
 }

@@ -13,5 +13,5 @@ export interface ErrorMessageRules {
   param2?: string | number;
   rules: string[];
   /** Will be set from the translation service */
-  text?: string;
+  text?: string | null;
 }

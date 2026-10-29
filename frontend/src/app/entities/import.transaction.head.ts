@@ -9,7 +9,7 @@ export class ImportTransactionHead implements BaseID {
   /** When true, the import templates are taken from the tenant's Grafioschtrader import platform. */
   useGtPlatform = false;
 
-  public getId(): number {
+  public getId(): number | undefined {
     return this.idTransactionHead;
   }
 }

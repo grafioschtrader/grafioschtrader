@@ -161,7 +161,13 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
 
   getCopySourceStockexchanges(targetIdStockexchange: number): ValueKeyHtmlSelectOptions[] {
     return this.entityList()
-      .filter((stockexhange) => !stockexhange.noMarketValue && targetIdStockexchange !== stockexhange.idStockexchange)
+      .filter(
+        (stockexchange): stockexchange is Stockexchange & { idStockexchange: number; name: string } =>
+          !stockexchange.noMarketValue &&
+          targetIdStockexchange !== stockexchange.idStockexchange &&
+          stockexchange.idStockexchange != null &&
+          stockexchange.name != null
+      )
       .map((stockexchange) => new ValueKeyHtmlSelectOptions(stockexchange.idStockexchange, stockexchange.name));
   }
 
@@ -204,7 +210,9 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     menuItems.push({ separator: true });
     menuItems.push({
       label: 'WEBSITE',
-      command: () => AppHelper.toExternalWebpage(entity.website, 'stockexchange'),
+      command: () => {
+        if (entity?.website) AppHelper.toExternalWebpage(entity.website, 'stockexchange');
+      },
       disabled: !entity?.website
     });
     return menuItems;
@@ -214,6 +222,10 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     this.callParam.hasSecurity = entity && this.hasSecurityObject[this.getId(entity)] !== 0;
     this.callParam.stockexchange = entity;
     this.callParam.stockexchangeMics = this.stockexchangeMics;
-    this.callParam.existingMic = new Set(this.entityList().map((se) => se.mic));
+    this.callParam.existingMic = new Set(
+      this.entityList()
+        .map((se) => se.mic)
+        .filter((mic) => mic != null)
+    );
   }
 }

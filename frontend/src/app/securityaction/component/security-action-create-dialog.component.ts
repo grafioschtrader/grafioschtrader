@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -11,7 +12,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
 import { AppHelper } from '../../lib/helper/app.helper';
 import { HelpIds } from '../../lib/help/help.ids';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { Security } from '../../entities/security';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
@@ -48,7 +49,7 @@ import { DialogService } from '@openng/optimus-ui/dynamicdialog';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule],
   providers: [DialogService]
 })
-export class SecurityActionCreateDialogComponent extends SimpleEditBase implements OnInit {
+export class SecurityActionCreateDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private messageToastService: MessageToastService = inject(MessageToastService);
   private securityActionService: SecurityActionService = inject(SecurityActionService);
@@ -95,23 +96,29 @@ export class SecurityActionCreateDialogComponent extends SimpleEditBase implemen
         closeOnEscape: true,
         data: { supplementCriteria: this.supplementCriteria }
       });
+      if (!ref) return;
       ref.onClose.subscribe((security: Security | CurrencypairWatchlist) => {
         if (security) {
           this.selectedSecurity = security as Security;
-          this.configObject.isinOld.formControl.setValue(this.selectedSecurity.isin);
+          requireFormControl(this.configObject.isinOld).setValue(this.selectedSecurity.isin);
         }
       });
     });
   }
 
   submit(value: any): void {
+    const actionDate = Helper.formatDateStringAsString(
+      this.configObject.actionDate,
+      BaseSettings.FORMAT_DATE_SHORT_NATIVE
+    );
+    if (actionDate == null) return;
     const action: SecurityAction = {
       idSecurityAction: null,
       securityOld: this.selectedSecurity,
       securityNew: null,
       isinOld: value.isinOld,
       isinNew: value.isinNew,
-      actionDate: Helper.formatDateStringAsString(this.configObject.actionDate, BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+      actionDate,
       note: value.note,
       fromFactor: value.fromFactor || null,
       toFactor: value.toFactor || null,

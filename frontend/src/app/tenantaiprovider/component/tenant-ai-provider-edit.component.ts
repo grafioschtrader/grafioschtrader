@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -65,10 +66,10 @@ export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAI
     this.configObject.apiKey.placeholder = this.entity()?.apiKeyHint ?? '';
     const entity = this.entity();
     if (entity) {
-      this.configObject.provider.formControl.disable();
+      requireFormControl(this.configObject.provider).disable();
     }
-    this.configObject.provider.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.provider)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((p) => this.updateKeyInput(p));
     this.updateKeyInput(entity?.provider);
   }
@@ -78,7 +79,7 @@ export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAI
     const required = !this.entity() && needsKey;
     key.invisible = !needsKey;
     if (!needsKey) {
-      key.formControl.setValue(null);
+      requireFormControl(key).setValue(null);
     }
     DynamicFieldHelper.resetValidator(
       key,

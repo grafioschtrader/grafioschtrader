@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { switchMap, combineLatest, Observable, of } from 'rxjs';
 import { Component, OnInit, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
@@ -72,13 +73,13 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     const isCustom = existing && existing.name != null;
     const accountOptionsObservable: Observable<ValueKeyHtmlSelectOptions[]> = this.getAccountOptions(
       undefined,
-      isCustom ? undefined : existing?.assetclass?.idAssetClass
+      isCustom ? undefined : (existing?.assetclass?.idAssetClass ?? undefined)
     );
     this.valueChangedOnSecurityaccount1();
 
     // Subscribe to customCategory checkbox changes
-    this.configObject.customCategory.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.customCategory)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((checked: boolean) => {
         this.updateCustomCategoryDependencies(checked);
       });
@@ -102,8 +103,8 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
           this.setAccountOptions(data[1]);
         } else {
           // Creating: the allowed accounts follow the asset class; a custom category allows every account.
-          this.configObject.assetclass.formControl.valueChanges
-            .pipe(
+          requireFormControl(this.configObject.assetclass)
+            .valueChanges.pipe(
               distinctUntilChanged(),
               switchMap((id: number | string) => this.getAccountOptions(undefined, id ? +id : undefined)),
               this.untilDialogClosed()
@@ -112,7 +113,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
         }
 
         if (isCustom) {
-          this.configObject.customCategory.formControl.setValue(true);
+          requireFormControl(this.configObject.customCategory).setValue(true);
         } else {
           this.updateCustomCategoryDependencies(false);
           this.disableEnableInputForExisting(this.algoCallParam().thisObject != null);
@@ -128,9 +129,9 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(algoAssetclass);
     // Not an entity field: it only asks the hierarchy view to open the instrument search after the save.
-    algoCallParam.addInstrumentsBySearch = !!this.configObject.addInstrumentsBySearch.formControl.value;
+    algoCallParam.addInstrumentsBySearch = !!requireFormControl(this.configObject.addInstrumentsBySearch).value;
     delete (algoAssetclass as AlgoAssetclass & { addInstrumentsBySearch?: boolean }).addInstrumentsBySearch;
-    if (this.configObject.customCategory.formControl.value) {
+    if (requireFormControl(this.configObject.customCategory).value) {
       algoAssetclass.assetclass = null;
     } else {
       algoAssetclass.name = null;
@@ -151,28 +152,29 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     }
     // Disabling must not re-enter the checkbox's valueChanges subscription.
     if (this.algoCallParam().thisObject != null) {
-      this.configObject.customCategory.formControl.disable({ emitEvent: false });
+      requireFormControl(this.configObject.customCategory).disable({ emitEvent: false });
       this.viewChanged();
     }
   }
 
   private enableField(fieldName: string, required: boolean): void {
     const fc = this.configObject[fieldName];
-    fc.formControl.enable();
+    requireFormControl(fc).enable();
     DynamicFieldHelper.resetValidator(fc, required ? [Validators.required] : []);
   }
 
   private disableAndClearField(fieldName: string): void {
     const fc = this.configObject[fieldName];
-    fc.formControl.setValue(null);
+    requireFormControl(fc).setValue(null);
     DynamicFieldHelper.resetValidator(fc, []);
-    fc.formControl.disable();
+    requireFormControl(fc).disable();
   }
 
   private getAssetclassObserver(): Observable<Assetclass> | Observable<Assetclass[]> {
     const algoCallParam = this.algoCallParam();
     if (algoCallParam.thisObject) {
-      return this.assetclassService.getAssetclass((<AlgoAssetclass>algoCallParam.thisObject).assetclass.idAssetClass);
+      const id = (<AlgoAssetclass>algoCallParam.thisObject).assetclass?.idAssetClass;
+      return id == null ? of<Assetclass[]>([]) : this.assetclassService.getAssetclass(id);
     } else {
       return this.assetclassService.getUnusedAssetclassForAlgo(
         (<AlgoTop>algoCallParam.parentObject).idAlgoAssetclassSecurity

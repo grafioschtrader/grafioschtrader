@@ -38,7 +38,9 @@ public class SecurityLookupResource {
   public ResponseEntity<SecurityLookupResponse> lookup(
       @Parameter(description = "ISIN of the instrument", required = true) @RequestParam String isin,
       @Parameter(description = "Trading currency, e.g. CHF", required = true) @RequestParam String currency,
-      @Parameter(description = "MIC of the exchange, e.g. XSWX", required = true) @RequestParam String mic,
+      @Parameter(description = """
+          MIC of the exchange, e.g. XSWX. Absent when the chosen stock exchange has no MIC; the listings are then not
+          restricted to one exchange.""") @RequestParam(required = false) String mic,
       @Parameter(description = "Asset class chosen in the form", required = true) @RequestParam Integer idAssetClass,
       @Parameter(description = "Ticker entered in the form, a fallback search term") @RequestParam(required = false) String ticker) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

@@ -8,6 +8,7 @@ import { FormNotifier } from '../dynamic-form/models/form.notifier';
 import { ColumnConfig, TranslateValue } from '../datashowbase/column.config';
 import { Helper } from './helper';
 import { BaseSettings } from '../base.settings';
+import { ValidationErrorRule } from '../dynamic-form/models/base.field.fieldgroup.config';
 
 /**
  * Utility class providing static helper methods for handling internationalization (i18n) and translation operations.
@@ -111,11 +112,14 @@ export class TranslateHelper {
   public static translateMessageErrors(translateService: TranslateService, fieldConfigs: FieldFormGroup[]) {
     fieldConfigs.forEach((fieldConfig: FieldFormGroup) => {
       if (!FormHelper.isFieldConfig(fieldConfig)) {
-        fieldConfig.errors && this.translateMessageError(translateService, <FieldConfig>fieldConfig);
+        fieldConfig.errors && this.translateMessageError(translateService, fieldConfig);
         this.translateMessageErrors(translateService, (<FormGroupDefinition>fieldConfig).fieldConfig);
       } else {
         fieldConfigs
-          .filter((fc) => (<FieldConfig>fc).labelHelpText && /^[A-Z,_]*$/.test((<FieldConfig>fc).labelHelpText))
+          .filter((fc) => {
+            const text = (<FieldConfig>fc).labelHelpText;
+            return !!text && /^[A-Z,_]*$/.test(text);
+          })
           .forEach((fc) => this.translateLabelHelpText(translateService, <FieldConfig>fc));
 
         fieldConfigs
@@ -139,7 +143,8 @@ export class TranslateHelper {
    * ```
    */
   public static translateLabelHelpText(translateService: TranslateService, fieldConfig: FieldConfig) {
-    translateService.get(fieldConfig.labelHelpText).subscribe((transText) => (fieldConfig.labelHelpText = transText));
+    const text = fieldConfig.labelHelpText;
+    if (text) translateService.get(text).subscribe((transText) => (fieldConfig.labelHelpText = transText));
   }
 
   /**
@@ -155,9 +160,9 @@ export class TranslateHelper {
    * // All error.text properties will be populated with translated messages
    * ```
    */
-  public static translateMessageError(translateService: TranslateService, fieldConfig: FieldConfig) {
+  public static translateMessageError(translateService: TranslateService, fieldConfig: ValidationErrorRule) {
     fieldConfig.errors
-      .filter((e) => !e.text)
+      ?.filter((e) => !e.text)
       .forEach((error) =>
         translateService
           .get(error.keyi18n, {
@@ -213,8 +218,23 @@ export class TranslateHelper {
   public static translateMenuItems$(
     menuItems: MenuItem[],
     translateService: TranslateService,
+    translateParam?: boolean
+  ): Observable<MenuItem[]>;
+  public static translateMenuItems$(
+    menuItems: null | undefined,
+    translateService: TranslateService,
+    translateParam?: boolean
+  ): Observable<null>;
+  public static translateMenuItems$(
+    menuItems: MenuItem[] | null | undefined,
+    translateService: TranslateService,
+    translateParam?: boolean
+  ): Observable<MenuItem[] | null>;
+  public static translateMenuItems$(
+    menuItems: MenuItem[] | null | undefined,
+    translateService: TranslateService,
     translateParam = true
-  ): Observable<MenuItem[]> {
+  ): Observable<MenuItem[] | null> {
     if (!menuItems) {
       return of(null);
     }

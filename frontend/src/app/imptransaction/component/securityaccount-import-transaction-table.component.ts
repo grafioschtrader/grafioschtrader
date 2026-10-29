@@ -123,7 +123,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   private readonly destroyRef = inject(DestroyRef);
   private readSubscription?: Subscription;
   readonly selectedEntities = signal<CombineTemplateAndImpTransPos[]>([]);
-  selectImportTransactionHead: ImportTransactionHead;
+  selectImportTransactionHead: ImportTransactionHead | null;
   importTransactionTemplates: ImportTransactionTemplate[];
   readonly visibleSetCashaccountDialog = signal(false);
   parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>;
@@ -273,7 +273,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   }
 
   parentSelectionChanged(
-    selectImportTransactionHead: ImportTransactionHead,
+    selectImportTransactionHead: ImportTransactionHead | null,
     parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>,
     importTransactionTemplates: ImportTransactionTemplate[]
   ) {
@@ -351,7 +351,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     return failedStates;
   }
 
-  public prepareShowMenu(): MenuItem[] {
+  public prepareShowMenu(): MenuItem[] | null {
     return super.getMenuShowOptions();
   }
 
@@ -491,6 +491,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
           closeOnEscape: true,
           data: { supplementCriteria: this.supplementCriteria }
         });
+        if (!ref) return;
         ref.onClose.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe((security: Security) => {
           if (security) {
             this.importTransactionPosService

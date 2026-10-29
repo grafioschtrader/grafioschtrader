@@ -101,7 +101,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
   private router = inject(Router);
   private dataChangedService = inject(DataChangedService);
 
-  readonly missingQuotesWithSecurities = signal<MissingQuotesWithSecurities>(null);
+  readonly missingQuotesWithSecurities = signal<MissingQuotesWithSecurities | null>(null);
   readonly securities = computed(() => {
     const report = this.missingQuotesWithSecurities();
     return [
@@ -167,7 +167,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     this.yearCalendarData.update((data) => ({ ...data, dates }));
   }
 
-  override getEditMenu(): MenuItem[] {
+  override getEditMenu(): MenuItem[] | null {
     return null;
   }
 
@@ -191,7 +191,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
       this.addRemoveOnOffDay(range.start);
       this.selectedDayByUser = range.start;
       this.selectedDayIdSecurities.set(
-        this.missingQuotesWithSecurities().dateSecurityMissingMap[
+        this.missingQuotesWithSecurities()?.dateSecurityMissingMap[
           moment(range.start).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)
         ] ?? []
       );
@@ -204,13 +204,15 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     this.clearDaySelection(this.selectedDayByUser);
     this.clearCalendarFromTableSelection();
     if (security) {
-      Object.entries(this.missingQuotesWithSecurities().dateSecurityMissingMap).forEach(([date, idsSecurity]) => {
-        if (idsSecurity.indexOf(security.idSecuritycurrency) >= 0) {
-          const tradingDay = new Date(date);
-          tradingDay.setHours(0, 0, 0, 0);
-          this.securityMissingDays.push(tradingDay);
+      Object.entries(this.missingQuotesWithSecurities()?.dateSecurityMissingMap ?? {}).forEach(
+        ([date, idsSecurity]) => {
+          if (idsSecurity.indexOf(security.idSecuritycurrency) >= 0) {
+            const tradingDay = new Date(date);
+            tradingDay.setHours(0, 0, 0, 0);
+            this.securityMissingDays.push(tradingDay);
+          }
         }
-      });
+      );
     }
     this.addRemoveDays(this.securityMissingDays);
   }
@@ -239,7 +241,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     return super.getMenuShowOptions().concat(menuItems);
   }
 
-  protected override getContextMenuItems(showMenu: MenuItem[], editMenu: MenuItem[]): MenuItem[] {
+  protected override getContextMenuItems(showMenu: MenuItem[], editMenu: MenuItem[] | null): MenuItem[] {
     return showMenu.slice(1);
   }
 

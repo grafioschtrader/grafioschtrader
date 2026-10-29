@@ -20,7 +20,7 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
   readonly editData = output<any>();
   readonly savedData = output<any>();
 
-  readonly selectedRow = signal<T>(null);
+  readonly selectedRow = signal<T | null>(null);
   dataChanged = false;
   readonly dataList = signal<T[]>([]);
   /** A new columns reference also updates the projected templates of the OnPush table. */
@@ -84,7 +84,8 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
   }
 
   onClickEdit() {
-    this.editData.emit(this.selectedRow());
+    const selected = this.selectedRow();
+    if (selected) this.editData.emit(selected);
   }
 
   createEntity(type: new () => T, item?: any): T {

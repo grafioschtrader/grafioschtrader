@@ -125,12 +125,12 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
 
   readonly editableTable = viewChild<EditableTableComponent<GTNetSecurityImpPos>>('editableTable');
 
-  readonly selectedHeadInput = input<GTNetSecurityImpHead>(undefined, { alias: 'selectedHead' });
+  readonly selectedHeadInput = input<GTNetSecurityImpHead | null>(undefined, { alias: 'selectedHead' });
   readonly selectedHead = linkedSignal(() => this.selectedHeadInput());
   readonly positionChanged = output<void>();
 
   readonly positions = signal<GTNetSecurityImpPos[]>([]);
-  readonly selectedPosition = signal<GTNetSecurityImpPos>(null);
+  readonly selectedPosition = signal<GTNetSecurityImpPos | null>(null);
   /** Translated menu of the positions, shown as context menu and in the menu bar */
   readonly contextMenuItems = signal<MenuItem[]>([]);
 
@@ -279,7 +279,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    *
    * @param head the selected header or null to clear
    */
-  loadPositions(head: GTNetSecurityImpHead): void {
+  loadPositions(head: GTNetSecurityImpHead | null | undefined): void {
     this.selectedHead.set(head);
     this.selectedPosition.set(null);
     this.resetMenu();
@@ -351,6 +351,8 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * Handles row save events from the editable table.
    */
   onRowEditSave(event: RowEditSaveEvent<GTNetSecurityImpPos>): void {
+    const headId = this.selectedHead()?.idGtNetSecurityImpHead;
+    if (headId == null) return;
     const entity = event.row;
 
     // Validate that at least ISIN or ticker symbol is provided
@@ -360,7 +362,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     }
 
     // Ensure head reference is set
-    entity.idGtNetSecurityImpHead = this.selectedHead().idGtNetSecurityImpHead;
+    entity.idGtNetSecurityImpHead = headId;
 
     // Clean up temporary fields before saving
     const entityToSave = new GTNetSecurityImpPos();
@@ -468,8 +470,9 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * Opens the security edit dialog for the selected position's linked security.
    */
   handleEditSecurity(): void {
-    if (this.selectedPosition()?.security) {
-      this.securityCurrencypairCallParam = this.selectedPosition().security;
+    const security = this.selectedPosition()?.security;
+    if (security) {
+      this.securityCurrencypairCallParam = security;
       this.visibleEditSecurityDialog.set(true);
     }
   }
@@ -490,6 +493,8 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * Opens the CSV upload dialog for importing positions from file.
    */
   handleUploadCSV(): void {
+    const headId = this.selectedHead()?.idGtNetSecurityImpHead;
+    if (headId == null) return;
     this.fileUploadParam = new FileUploadParam(
       AppHelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY,
       null,
@@ -497,7 +502,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       'UPLOAD_CSV_GTNET_SECURITY_IMP_POS',
       false,
       this.gtNetSecurityImpPosService,
-      this.selectedHead().idGtNetSecurityImpHead
+      headId
     );
     this.visibleUploadDialog.set(true);
   }

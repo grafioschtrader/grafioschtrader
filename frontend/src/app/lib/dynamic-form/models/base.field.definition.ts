@@ -6,7 +6,7 @@ import { ValueKeyHtmlSelectOptions } from './value.key.html.select.options';
  */
 export interface BaseFieldDefinition {
   /** Property name of the field */
-  field?: string;
+  field?: string | null;
 
   /**
    * For simple values and referenced datatyes should be name of the bunsiness object property. It is always used to transfer

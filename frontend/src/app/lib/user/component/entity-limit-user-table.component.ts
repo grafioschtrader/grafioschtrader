@@ -89,12 +89,12 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
   readonly dateChanged = output<ProcessedActionData>();
 
   /** Translated context menu of the selected limit, null without a selection */
-  readonly contextMenuItems = signal<MenuItem[]>(null);
+  readonly contextMenuItems = signal<MenuItem[] | null>(null);
 
   /** The limits of the user, followed by a row for every requested limit the user does not have yet */
   readonly entityLimits = signal<EntityLimit[]>([]);
 
-  readonly selectedEntityLimit = signal<EntityLimit>(null);
+  readonly selectedEntityLimit = signal<EntityLimit | null>(null);
   readonly visibleDialog = signal(false);
   entityKeyName: string;
 
@@ -242,7 +242,7 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
    * @param entityLimit - Selected limit or null
    * @returns The menu entries, or null without a selection
    */
-  protected getMenuItemsOnEntityLimit(entityLimit: EntityLimit): MenuItem[] {
+  protected getMenuItemsOnEntityLimit(entityLimit: EntityLimit | null): MenuItem[] | null {
     return entityLimit == null
       ? null
       : [

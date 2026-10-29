@@ -92,7 +92,7 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
   }
 
   getFeedConnectors(
-    idStockexchange?: number,
+    idStockexchange?: number | null,
     assetclassType?: string,
     specInvInstrument?: string
   ): Observable<IFeedConnector[]> {

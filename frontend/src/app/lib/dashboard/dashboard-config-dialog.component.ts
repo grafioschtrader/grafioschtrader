@@ -1,7 +1,7 @@
 import { Component, OnInit, input, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { SimpleEditBase } from '../edit/simple.edit.base';
+import { SimpleFormEditBase } from '../edit/simple.form.edit.base';
 import { DYNAMIC_FORM_IMPORTS } from '../dynamic-form/dynamic-form.imports';
 import { DynamicFieldModelHelper } from '../helper/dynamic.field.model.helper';
 import { DynamicFieldHelper } from '../helper/dynamic.field.helper';
@@ -33,7 +33,7 @@ import { FieldConfig } from '../dynamic-form/models/field.config';
       (submitBt)="submit()" />
   </p-dialog>`
 })
-export class DashboardConfigDialogComponent extends SimpleEditBase implements OnInit {
+export class DashboardConfigDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
 
   readonly descriptor = input<DashboardDescriptor>(undefined);

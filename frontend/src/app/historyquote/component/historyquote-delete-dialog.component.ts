@@ -1,6 +1,7 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import moment from 'moment';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -55,7 +56,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
   `,
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements OnInit {
+export class HistoryquoteDeleteDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private historyquoteService: HistoryquoteService = inject(HistoryquoteService);
   private messageToastService: MessageToastService = inject(MessageToastService);
@@ -111,7 +112,7 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     const hct: HistoryquoteCreateType[] = [];
     this.fieldCreatTypes.forEach((fct) => {
       if (this.historyquoteQuality()[fct.fieldName]) {
-        if (this.configObject[fct.fieldName].formControl.value) {
+        if (requireFormControl(this.configObject[fct.fieldName]).value) {
           hct.push(fct.hct);
         }
       }
@@ -143,28 +144,32 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
 
   protected override initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
-    this.configObject[this.dateFrom].formControl.setValue(
+    requireFormControl(this.configObject[this.dateFrom]).setValue(
       HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds().minDate)
     );
-    this.configObject[this.dateTo].formControl.setValue(
+    requireFormControl(this.configObject[this.dateTo]).setValue(
       HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds().maxDate)
     );
     // Each picker limits the other, so a period whose start lies after its end can not be produced. A value that was
     // already chosen is not corrected by a changed boundary, therefore the opposite date is dragged along.
-    this.configObject[this.dateFrom].formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((dateFrom) => {
-      this.configObject[this.dateTo].calendarConfig.minDate = dateFrom;
-      const dateToControl = this.configObject[this.dateTo].formControl;
-      if (dateFrom && dateToControl.value && dateToControl.value < dateFrom) {
-        dateToControl.setValue(dateFrom);
-      }
-    });
-    this.configObject[this.dateTo].formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((dateTo) => {
-      this.configObject[this.dateFrom].calendarConfig.maxDate = dateTo;
-      const dateFromControl = this.configObject[this.dateFrom].formControl;
-      if (dateTo && dateFromControl.value && dateFromControl.value > dateTo) {
-        dateFromControl.setValue(dateTo);
-      }
-    });
+    requireFormControl(this.configObject[this.dateFrom])
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((dateFrom) => {
+        this.configObject[this.dateTo].calendarConfig.minDate = dateFrom;
+        const dateToControl = this.configObject[this.dateTo].formControl;
+        if (dateFrom && dateToControl.value && dateToControl.value < dateFrom) {
+          dateToControl.setValue(dateFrom);
+        }
+      });
+    requireFormControl(this.configObject[this.dateTo])
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((dateTo) => {
+        this.configObject[this.dateFrom].calendarConfig.maxDate = dateTo;
+        const dateFromControl = this.configObject[this.dateFrom].formControl;
+        if (dateTo && dateFromControl.value && dateFromControl.value > dateTo) {
+          dateFromControl.setValue(dateTo);
+        }
+      });
     // The function button is outside the form and therefore not disabled by an invalid form on its own. Without this
     // the user could send a cleared or out of range date, which the server would only answer with a validation error.
     this.form()
@@ -180,7 +185,7 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
    * @private
    */
   private getDateAsBackendFormat(fieldName: string): string {
-    return moment(this.configObject[fieldName].formControl.value).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
+    return moment(requireFormControl(this.configObject[fieldName]).value).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
   }
 
   /**

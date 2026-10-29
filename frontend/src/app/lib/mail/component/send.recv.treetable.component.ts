@@ -1,3 +1,4 @@
+import { switchMap } from 'rxjs';
 import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
 import { TranslateModule } from '@ngx-translate/core';
@@ -103,8 +104,8 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   private static iconLoadDone = false;
 
   readonly sendRecvRootNode = signal<TreeNode[]>([]);
-  readonly contextMenuItems = signal<MenuItem[]>(null);
-  readonly selectedNode = signal<TreeNode>(null);
+  readonly contextMenuItems = signal<MenuItem[] | null>(null);
+  readonly selectedNode = signal<TreeNode | null>(null);
   /** Stable row class callback of the tree table */
   readonly rowClass = (rowNode: any, rowData: any): string | null => this.getRowClass(rowNode, rowData);
   private readonly destroyRef = inject(DestroyRef);
@@ -169,7 +170,8 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
         this.sendRecvParentMap = {};
         const tn: TreeNode[] = [];
         miws.mailSendRecvList.forEach((mailSendRecv) => {
-          const parent: TreeNode = mailSendRecv.idReplyToLocal && this.sendRecvParentMap[mailSendRecv.idReplyToLocal];
+          const replyId = mailSendRecv.idReplyToLocal;
+          const parent = replyId == null ? undefined : this.sendRecvParentMap[replyId];
           if (parent) {
             parent.children.push({
               data: mailSendRecv,
@@ -231,36 +233,46 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   }
 
   reply(): void {
+    const selected = this.selectedNode();
+    if (!selected) return;
     DynamicDialogs.getOpenedMailSendComponent(
       this.translateService,
       this.dialogService,
-      new MailSendParam(this.selectedNode().data.idUserFrom, this.selectedNode().data)
-    ).onClose.subscribe((mailSendRecv: MailSendRecv) => {
-      mailSendRecv && this.readData();
-    });
+      new MailSendParam(selected.data.idUserFrom, selected.data)
+    )
+      .pipe(
+        switchMap((ref) => ref.onClose),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((mailSendRecv: MailSendRecv) => {
+        mailSendRecv && this.readData();
+      });
   }
 
   sendToUserRoleOrUser(idUser?: number): void {
-    DynamicDialogs.getOpenedMailSendComponent(
-      this.translateService,
-      this.dialogService,
-      new MailSendParam(idUser)
-    ).onClose.subscribe((mailSendRecv: MailSendRecv) => {
-      mailSendRecv && this.readData();
-    });
+    DynamicDialogs.getOpenedMailSendComponent(this.translateService, this.dialogService, new MailSendParam(idUser))
+      .pipe(
+        switchMap((ref) => ref.onClose),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((mailSendRecv: MailSendRecv) => {
+        mailSendRecv && this.readData();
+      });
   }
 
   deleteSingleOrGroup() {
+    const selected = this.selectedNode();
+    if (!selected) return;
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
-      this.selectedNode().parent ? 'MSG_CONFIRM_DELETE_MESSAGE' : 'MSG_CONFIRM_DELETE_MESSAGE_GROUP',
+      selected.parent ? 'MSG_CONFIRM_DELETE_MESSAGE' : 'MSG_CONFIRM_DELETE_MESSAGE_GROUP',
       () => {
-        this.sendRecvService.deleteSingleOrGroup(this.selectedNode().data.idMailSendRecv).subscribe((response) => {
+        this.sendRecvService.deleteSingleOrGroup(selected.data.idMailSendRecv).subscribe((response) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
             i18nRecord: 'MAIL_SEND_RECV'
           });
-          this.selectedNode.set(null);
+          if (this.selectedNode() === selected) this.selectedNode.set(null);
           this.readData();
         });
       }

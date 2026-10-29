@@ -41,7 +41,7 @@ export class LastSessionsPerformanceTableComponent extends TableConfigBase {
   readonly sessions = input<LastSessionsRow[]>([]);
 
   /** Currency of every amount; the card reports one currency for the whole client or portfolio. */
-  readonly currency = input<string>(undefined);
+  readonly currency = input<string>();
 
   /** Height at which the table starts to scroll, so a card cannot grow past its neighbours. */
   readonly scrollHeight = input('220px');

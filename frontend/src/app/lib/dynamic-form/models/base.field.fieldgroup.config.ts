@@ -11,6 +11,6 @@ export interface BaseFieldFieldgroupConfig extends ValidationErrorRule {
 }
 
 export interface ValidationErrorRule {
-  validation?: ValidatorFn[];
-  errors?: ErrorMessageRules[];
+  validation?: ValidatorFn[] | null;
+  errors?: ErrorMessageRules[] | null;
 }

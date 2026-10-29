@@ -21,7 +21,7 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
   isRequired = false;
 
   /** Change notification of the form this field belongs to; the template reads its revision. */
-  get notifier(): FormNotifier {
+  get notifier(): FormNotifier | undefined {
     return FormNotifier.of(this.config());
   }
 
@@ -35,7 +35,7 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
   }
 
   reEvaluateRequired(): void {
-    this.isRequired = this.config().validation && this.config().validation.indexOf(Validators.required) >= 0;
+    this.isRequired = this.config().validation?.includes(Validators.required) ?? false;
   }
 
   /**

@@ -1,3 +1,4 @@
+import { requireFormControl } from '../models/form-control-access';
 import { FieldConfig } from '../models/field.config';
 import { FieldFormGroup, FormGroupDefinition } from '../models/form.group.definition';
 import { InputType } from '../models/input.type';
@@ -33,7 +34,7 @@ export abstract class FormHelper {
    * ```
    */
   public static flattenConfigMap(fieldFormGroups: FieldFormGroup[]): FieldConfig[] {
-    return fieldFormGroups.reduce(
+    return fieldFormGroups.reduce<FieldConfig[]>(
       (explored, toExplore) =>
         explored.concat(
           FormHelper.isFieldConfig(toExplore)
@@ -85,7 +86,7 @@ export abstract class FormHelper {
    * @param fieldFormGroup Object to be checked
    * @returns true if the object is a FieldConfig, false if it's a FormGroupDefinition
    */
-  public static isFieldConfig(fieldFormGroup: FieldFormGroup): boolean {
+  public static isFieldConfig(fieldFormGroup: FieldFormGroup): fieldFormGroup is FieldConfig {
     return fieldFormGroup.hasOwnProperty('inputType');
   }
 
@@ -127,9 +128,9 @@ export abstract class FormHelper {
       if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
         fieldConfig.invisible = false;
         if (disable) {
-          fieldConfig.formControl.disable();
+          requireFormControl(fieldConfig).disable();
         } else {
-          fieldConfig.formControl.enable();
+          requireFormControl(fieldConfig).enable();
         }
       }
     });
@@ -148,10 +149,10 @@ export abstract class FormHelper {
       if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
         const saveVisibleState = fieldConfig.invisible;
         fieldConfig.invisible = false;
-        if (disable && fieldConfig.formControl.value != null) {
-          fieldConfig.formControl.disable();
+        if (disable && requireFormControl(fieldConfig).value != null) {
+          requireFormControl(fieldConfig).disable();
         } else {
-          fieldConfig.formControl.enable();
+          requireFormControl(fieldConfig).enable();
         }
         fieldConfig.invisible = saveVisibleState;
       }

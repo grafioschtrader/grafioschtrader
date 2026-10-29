@@ -14,6 +14,16 @@ function alternative(idConnector: string, probeStatus: string): ConnectorAlterna
 }
 
 describe('security lookup connector selection', () => {
+  it('keeps missing lookup data and cleared selections empty', () => {
+    expect(isUsableAlternative('history', null)).toBe(false);
+    expect(isUsableAlternative('split', undefined)).toBe(false);
+    expect(preselectAlternative('history', null)).toBeNull();
+    expect(preselectAlternative('dividend', undefined)).toBeNull();
+    expect(chooseDistributionFrequency(null, null)).toBeUndefined();
+    expect(preselectNameCandidate(null)).toBeNull();
+    expect(preselectNameCandidate(undefined)).toBeNull();
+  });
+
   it('accepts only a successful probe for price feeds', () => {
     expect(isUsableAlternative('history', alternative('a', 'OK'))).toBe(true);
     expect(isUsableAlternative('history', alternative('a', 'NO_DATA'))).toBe(false);

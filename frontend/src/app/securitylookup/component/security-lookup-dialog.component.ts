@@ -98,14 +98,14 @@ export class SecurityLookupDialogComponent {
 
   readonly visibleDialogInput = input(false, { alias: 'visibleDialog' });
   readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
-  readonly isin = input<string>(undefined);
-  readonly currency = input<string>(undefined);
+  readonly isin = input<string>();
+  readonly currency = input<string>();
   /** MIC of the stock exchange chosen in the security form */
-  readonly mic = input<string>(undefined);
+  readonly mic = input<string>();
   /** Asset class chosen in the form; selects the providers and connectors */
   readonly idAssetClass = input<number>(undefined);
   /** Ticker entered in the form; helps providers that know the ISIN only for another listing */
-  readonly tickerSymbol = input<string>(undefined);
+  readonly tickerSymbol = input<string>();
 
   readonly closeDialog = output<ProcessedActionData>();
 
@@ -117,13 +117,13 @@ export class SecurityLookupDialogComponent {
   ];
 
   readonly loading = signal(false);
-  readonly response = signal<SecurityLookupResponse>(null);
-  readonly errorMessage = signal<string>(null);
-  readonly selectedCandidate = signal<SecurityLookupCandidate>(null);
+  readonly response = signal<SecurityLookupResponse | null>(null);
+  readonly errorMessage = signal<string | null>(null);
+  readonly selectedCandidate = signal<SecurityLookupCandidate | null>(null);
   /** The listing whose name is taken over; by default the first one not written entirely in capitals */
-  readonly nameCandidate = signal<SecurityLookupCandidate>(null);
+  readonly nameCandidate = signal<SecurityLookupCandidate | null>(null);
   /** Chosen connector alternative per feed; every change publishes a new record */
-  readonly selection = signal<Record<LookupFeed, ConnectorAlternative>>(this.emptySelection());
+  readonly selection = signal<Record<LookupFeed, ConnectorAlternative | null>>(this.emptySelection());
 
   /** Prevents a second emission when "Apply" closes the dialog */
   private selectionHandled = false;
@@ -156,7 +156,7 @@ export class SecurityLookupDialogComponent {
    *
    * @param candidate - The chosen listing, or null
    */
-  onCandidateSelected(candidate: SecurityLookupCandidate): void {
+  onCandidateSelected(candidate: SecurityLookupCandidate | null): void {
     this.selectedCandidate.set(candidate);
     const selection = this.emptySelection();
     if (candidate) {
@@ -175,7 +175,7 @@ export class SecurityLookupDialogComponent {
    * @param feed - The feed of the connector table
    * @param alternative - The chosen alternative, or null
    */
-  selectAlternative(feed: LookupFeed, alternative: ConnectorAlternative): void {
+  selectAlternative(feed: LookupFeed, alternative: ConnectorAlternative | null): void {
     this.selection.update((selection) => ({ ...selection, [feed]: alternative }));
   }
 
@@ -216,9 +216,12 @@ export class SecurityLookupDialogComponent {
 
   /** Hands the chosen listing and connectors to the security form and closes the dialog. */
   apply(): void {
+    const candidate = this.selectedCandidate();
+    if (!candidate) return;
+    const nameCandidate = this.nameCandidate() ?? candidate;
     const result: SecurityLookupSelection = {
-      candidate: this.selectedCandidate(),
-      nameCandidate: this.nameCandidate(),
+      candidate,
+      nameCandidate,
       ...this.selection()
     };
     this.selectionHandled = true;
@@ -227,10 +230,14 @@ export class SecurityLookupDialogComponent {
   }
 
   private performLookup(): void {
+    const isin = this.isin();
+    const currency = this.currency();
+    // A stock exchange may have no MIC; the lookup then searches the listings of every exchange.
+    if (isin == null || currency == null) return;
     this.cancelPendingRequest();
     this.loading.set(true);
     this.lookupSubscription = this.securityLookupService
-      .lookup(this.isin(), this.currency(), this.mic(), this.idAssetClass(), this.tickerSymbol())
+      .lookup(isin, currency, this.mic(), this.idAssetClass(), this.tickerSymbol())
       .subscribe({
         next: (response) => {
           this.nameCandidate.set(preselectNameCandidate(response.candidates));
@@ -253,7 +260,7 @@ export class SecurityLookupDialogComponent {
     this.loading.set(false);
   }
 
-  private emptySelection(): Record<LookupFeed, ConnectorAlternative> {
+  private emptySelection(): Record<LookupFeed, ConnectorAlternative | null> {
     return { history: null, intra: null, dividend: null, split: null };
   }
 }

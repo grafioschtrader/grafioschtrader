@@ -1,3 +1,4 @@
+import { requireFieldName, requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import {
   Component,
   OnInit,
@@ -12,7 +13,7 @@ import {
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { Security } from '../../entities/security';
@@ -73,7 +74,7 @@ import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialo
   imports: [TranslateModule, DialogModule, DynamicFormComponent],
   providers: [DialogService]
 })
-export class SecurityDerivedEditComponent extends SimpleEditBase implements OnInit {
+export class SecurityDerivedEditComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
   private messageToastService: MessageToastService = inject(MessageToastService);
@@ -87,7 +88,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
   // Access child components
-  readonly dynamicForm = viewChild(DynamicFormComponent);
+  readonly dynamicForm = viewChild.required(DynamicFormComponent);
 
   readonly derivedData = 'DERIVED_DATA';
   supplementCriteria: SupplementCriteria;
@@ -172,15 +173,15 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securityCallParam())) {
       this.formFields()
         .filter((fieldConfig) => fieldConfig.fieldsetName === this.derivedData)
-        .forEach((fieldConfig) => fieldConfig.formControl.disable());
+        .forEach((fieldConfig) => requireFormControl(fieldConfig).disable());
     }
   }
 
   valueChangedOnFormula(): void {
-    this.configObject[this.FORMULA_PRICES].formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject[this.FORMULA_PRICES])
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((formulaPrices: string) => {
-        if (!this.configObject[this.FORMULA_PRICES].formControl.disabled) {
+        if (!requireFormControl(this.configObject[this.FORMULA_PRICES]).disabled) {
           this.usedFormulaVars = [];
           if (formulaPrices) {
             let match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
@@ -197,7 +198,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   }
 
   handleSecurityClick(fieldConfig: FieldConfig): void {
-    const targetField = fieldConfig.field;
+    const targetField = requireFieldName(fieldConfig);
     this.translateService
       .get('SET_SECURITY')
       .pipe(this.untilDialogClosed())
@@ -212,6 +213,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
           closeOnEscape: true,
           data: { supplementCriteria: this.supplementCriteria }
         }));
+        if (!ref) return;
         ref.onClose.pipe(this.untilDialogClosed()).subscribe((security: Security | CurrencypairWatchlist) => {
           if (security) {
             if (targetField === this.BASE_PRODUCT_NAME) {
@@ -219,7 +221,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
             } else {
               this.additionalInstruments[targetField] = security;
             }
-            this.configObject[targetField].formControl.setValue(security.name);
+            requireFormControl(this.configObject[targetField]).setValue(security.name);
           }
         });
       });
@@ -348,8 +350,8 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
 
     const retained = this.formFields().filter(
       (field) =>
-        !field.field.startsWith(SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_') ||
-        this.usedFormulaVars.includes(field.field.at(-1))
+        !field.field?.startsWith(SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_') ||
+        this.usedFormulaVars.includes(field.field.slice(-1))
     );
     if (fieldConfig.length || retained.length !== this.formFields().length) {
       const fields = [...retained.slice(0, 2), ...fieldConfig, ...retained.slice(2)];
@@ -370,19 +372,19 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       this.securityCallParam().idLinkSecuritycurrency
     );
     this.reduceExpandChoosableAssetclass();
-    this.configObject[this.BASE_PRODUCT_NAME].formControl.setValue(this.baseInstrument.name);
+    requireFormControl(this.configObject[this.BASE_PRODUCT_NAME]).setValue(this.baseInstrument.name);
   }
 
   private setAdditionalInstrumentsForExistingSecurity(scdl: SecurityCurrencypairDerivedLinks): void {
     this.additionalInstruments = SecurityCurrencypairDerivedLinks.getAdditionalInstrumentsForExistingSecurity(scdl);
     for (const [fieldName, securitycurrency] of Object.entries(this.additionalInstruments)) {
-      this.configObject[fieldName].formControl.setValue(securitycurrency.name);
+      requireFormControl(this.configObject[fieldName]).setValue(securitycurrency.name);
     }
     this.disableBaseInstrumentFields();
   }
 
   private reduceExpandChoosableAssetclass(): void {
-    const formula: string = this.configObject[this.FORMULA_PRICES].formControl.value;
+    const formula: string = requireFormControl(this.configObject[this.FORMULA_PRICES]).value;
     if (
       this.baseInstrument &&
       this.baseInstrument.assetClass.categoryType === AssetclassType[AssetclassType.CURRENCY_PAIR] &&
@@ -397,7 +399,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   private setSecurityBaseInstrument(security: Security | CurrencypairWatchlist): void {
     this.baseInstrument = security;
     if (security instanceof CurrencypairWatchlist) {
-      this.configObject.currency.formControl.setValue((<CurrencypairWatchlist>security).fromCurrency);
+      requireFormControl(this.configObject.currency).setValue((<CurrencypairWatchlist>security).fromCurrency);
       this.reduceExpandChoosableAssetclass();
     } else {
       this.form().transferBusinessObjectToForm(security);

@@ -181,9 +181,10 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @returns Translated label text or empty string if no label is configured
    */
   getTextValueColumnTotal(columnConfig: ColumnConfig, arrIndex: number): string {
-    if (columnConfig.columnGroupConfigs[arrIndex].textValueKey) {
+    const group = columnConfig.columnGroupConfigs?.[arrIndex];
+    if (group?.textValueKey) {
       // Empty until the asynchronous translation arrives; a group row may render before that.
-      return columnConfig.columnGroupConfigs[arrIndex].textValueTranslated ?? '';
+      return group.textValueTranslated ?? '';
     }
     return '';
   }
@@ -233,13 +234,15 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @returns Formatted field value ready for display
    */
   getFieldValueColumnTotal(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any) {
+    const group = columnConfig.columnGroupConfigs?.[arrIndex];
+    if (group?.fieldValue == null) return null;
     return this.getFieldValueForFieldColumnTotal(
       columnConfig,
       arrIndex,
       data,
       mapKey,
-      columnConfig.columnGroupConfigs[arrIndex].fieldValue,
-      columnConfig.columnGroupConfigs[arrIndex].currencyPrecisionField
+      group.fieldValue,
+      group.currencyPrecisionField
     );
   }
 

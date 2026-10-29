@@ -12,7 +12,7 @@ export class HistoryquoteLegacy extends HistoryquoteBase {
   transferDate?: string;
 
   @Exclude()
-  override getId(): number {
+  override getId(): number | undefined {
     return this.idHistoryquoteLegacy;
   }
 }

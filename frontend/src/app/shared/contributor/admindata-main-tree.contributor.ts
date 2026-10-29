@@ -127,7 +127,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
     };
 
     if (AuditHelper.hasAdminRole(this.globalParamService)) {
-      gtNetNode.children.push({
+      (gtNetNode.children ??= []).push({
         label: 'GT_NET_MESSAGE_ANSWER',
         icon: 'pi pi-reply',
         data: new TypeNodeData(
@@ -140,14 +140,14 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       });
     }
 
-    gtNetNode.children.push({
+    (gtNetNode.children ??= []).push({
       label: 'GT_NET_EXCHANGE',
       icon: 'pi pi-arrows-h',
       data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GT_NET_EXCHANGE_KEY), null, null, null)
     });
 
     const logEnabled = this.globalParamService.isGtNetLogEnabled();
-    gtNetNode.children.push({
+    (gtNetNode.children ??= []).push({
       label: 'GT_NET_EXCHANGE_LOG',
       icon: 'pi pi-list',
       styleClass: logEnabled ? '' : 'p-disabled',
@@ -161,7 +161,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       )
     });
 
-    this.rootNode.children.push(gtNetNode);
+    (this.rootNode.children ??= []).push(gtNetNode);
   }
 
   private setLangTransNode(treeNode: TreeNode): void {
@@ -175,8 +175,8 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
     treeNodes.forEach((treeNode) => this.setLangTransNode(treeNode));
   }
 
-  private setLangTrans(key: string, target: TreeNode, suffix: string = ''): void {
-    this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
+  private setLangTrans(key: string | undefined, target: TreeNode, suffix: string = ''): void {
+    if (key) this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
   }
 
   private addMainRoute(suffix: string): string {

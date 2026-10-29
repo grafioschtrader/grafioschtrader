@@ -44,7 +44,7 @@ export class Security extends Securitycurrency implements BaseID {
   splitPropose: Securitysplit[];
   hpPropose: HistoryquotePeriod[];
 
-  public static canHaveSplitConnector(assetClass: Assetclass, hasMarketValue: boolean): boolean {
+  public static canHaveSplitConnector(assetClass: Assetclass | null | undefined, hasMarketValue: boolean): boolean {
     return hasMarketValue && assetClass
       ? !(
           (assetClass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND] ||
@@ -103,7 +103,7 @@ export class Security extends Securitycurrency implements BaseID {
     return false;
   }
 
-  public static isBondDirectInvestment(assetClass: Assetclass): boolean {
+  public static isBondDirectInvestment(assetClass: Assetclass | null | undefined): boolean {
     if (!assetClass) {
       return false;
     }

@@ -132,7 +132,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   readonly transactionSecurityOptionalParam = input<TransactionSecurityOptionalParam[]>(undefined);
 
   /** Optional cutoff date (yyyy-MM-dd) to limit transactions */
-  readonly untilDate = input<string>(undefined);
+  readonly untilDate = input<string>();
 
   /** Property key used to store hypothetical transaction data in tree node data */
   readonly HYPOTHETICAL_TRANSACTION_PROPERTY = 'hypotheticalTransactionProperty';
@@ -144,7 +144,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   readonly transactionNodes = signal<TreeNode[]>([]);
 
   /** Currently selected node in the tree table */
-  readonly selectedNode = signal<TreeNode>(null);
+  readonly selectedNode = signal<TreeNode | null>(null);
 
   /** Column configurations for main currency display */
   currencyColumnConfigMC: ColumnConfig[] = [];
@@ -267,14 +267,14 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @param transaction The transaction to generate menu items for
    * @returns Array of menu items for the given transaction
    */
-  protected override getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
+  protected override getMenuItemsOnTransaction(transaction: Transaction | null): MenuItem[] {
+    const hypothetical = this.selectedNode()?.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY];
     const localContextMenu: MenuItem[] = [];
     if (transaction && !transaction.connectedIdTransaction) {
       localContextMenu.push({
         label: 'CLOSE_MARGIN_POSITION',
-        command: (e) =>
-          this.handleClosePosition(transaction, this.selectedNode().data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]),
-        disabled: !this.selectedNode().data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]
+        command: (e) => this.handleClosePosition(transaction, hypothetical),
+        disabled: !hypothetical
       });
       localContextMenu.push({
         label: 'MARGIN_FINANCE_COST',
@@ -292,7 +292,8 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @returns True if the transaction can be deleted, false otherwise
    */
   protected override canDeleteTransaction(transaction: Transaction): boolean {
-    return transaction.connectedIdTransaction !== null || !this.selectedNode().data[this.OPEN_HAS_CLOSE_POSITION];
+    const selected = this.selectedNode();
+    return !!selected && (transaction.connectedIdTransaction !== null || !selected.data[this.OPEN_HAS_CLOSE_POSITION]);
   }
 
   /**

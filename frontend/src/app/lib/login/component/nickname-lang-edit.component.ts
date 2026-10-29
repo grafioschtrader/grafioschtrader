@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { SimpleEditBase } from '../../edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../edit/simple.form.edit.base';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HelpIds } from '../../help/help.ids';
 import { AppHelper } from '../../helper/app.helper';
@@ -39,7 +39,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
   </p-dialog>`,
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class NicknameLangEditComponent extends SimpleEditBase implements OnInit {
+export class NicknameLangEditComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private messageToastService: MessageToastService = inject(MessageToastService);
   private loginService: LoginService = inject(LoginService);

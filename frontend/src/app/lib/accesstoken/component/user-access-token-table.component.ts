@@ -61,7 +61,7 @@ import { UserAccessTokenCreateDialogComponent } from './user-access-token-create
 export class UserAccessTokenTableComponent extends TableCrudSupportMenu<UserAccessToken> {
   private userAccessTokenService: UserAccessTokenService = inject(UserAccessTokenService);
 
-  readonly formDefinition = signal<ClassDescriptorInputAndShow>(null);
+  readonly formDefinition = signal<ClassDescriptorInputAndShow | null>(null);
   private readDataSub?: Subscription;
 
   constructor() {

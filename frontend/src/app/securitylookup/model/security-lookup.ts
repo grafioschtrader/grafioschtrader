@@ -109,8 +109,8 @@ export interface SecurityLookupSelection {
   candidate: SecurityLookupCandidate;
   /** The listing whose name is taken over; another listing than the chosen one may spell the name better */
   nameCandidate: SecurityLookupCandidate;
-  history: ConnectorAlternative;
-  intra: ConnectorAlternative;
-  dividend: ConnectorAlternative;
-  split: ConnectorAlternative;
+  history: ConnectorAlternative | null;
+  intra: ConnectorAlternative | null;
+  dividend: ConnectorAlternative | null;
+  split: ConnectorAlternative | null;
 }

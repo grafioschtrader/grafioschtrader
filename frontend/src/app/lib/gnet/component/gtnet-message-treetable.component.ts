@@ -275,7 +275,9 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * Returns the icon name for a given sendRecv value.
    */
   getSendRecvIcon(entity: GTNetMessage, field: ColumnConfig, valueField: any): string {
-    return GTNetMessageTreeTableComponent.sendRecvIconMap[entity.sendRecv] || 'envelope';
+    return entity.sendRecv == null
+      ? 'envelope'
+      : GTNetMessageTreeTableComponent.sendRecvIconMap[entity.sendRecv] || 'envelope';
   }
 
   ngOnInit(): void {

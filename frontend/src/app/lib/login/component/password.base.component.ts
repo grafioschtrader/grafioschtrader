@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { FormConfig } from '../../dynamic-form/models/form.config';
 import { TranslateService } from '@ngx-translate/core';
@@ -84,8 +85,8 @@ export abstract class PasswordBaseComponent {
     fieldConfig.validation = [...(fieldConfig.validation ?? []).filter((v) => v !== previous), validator];
     this.addedValidators[targetField] = validator;
     fieldConfig.errors = [...(fieldConfig.errors ?? []).filter((e) => e.name !== error.name), error];
-    fieldConfig.formControl.setValidators(fieldConfig.validation);
-    fieldConfig.formControl.updateValueAndValidity();
+    requireFormControl(fieldConfig).setValidators(fieldConfig.validation);
+    requireFormControl(fieldConfig).updateValueAndValidity();
     fieldConfig.baseInputComponent?.reEvaluateRequired();
   }
 

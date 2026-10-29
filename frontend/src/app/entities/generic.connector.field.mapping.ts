@@ -1,8 +1,8 @@
 export class GenericConnectorFieldMapping {
-  idFieldMapping: number = null;
-  targetField: string = null;
-  sourceExpression: string = null;
-  csvColumnIndex: number = null;
-  dividerExpression: string = null;
+  idFieldMapping: number | null = null;
+  targetField: string | null = null;
+  sourceExpression: string | null = null;
+  csvColumnIndex: number | null = null;
+  dividerExpression: string | null = null;
   required: boolean = false;
 }

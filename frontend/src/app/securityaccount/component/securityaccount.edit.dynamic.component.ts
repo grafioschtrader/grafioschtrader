@@ -84,16 +84,20 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
   private tradingPlatformPlanCreateValueKeyHtmlSelectOptions(
     tradingPlatformPlans: TradingPlatformPlan[]
   ): Observable<ValueKeyHtmlSelectOptions[]> {
+    const selectablePlans = tradingPlatformPlans.filter(
+      (plan): plan is TradingPlatformPlan & { idTradingPlatformPlan: number; transactionFeePlan: string } =>
+        plan.idTradingPlatformPlan != null && plan.transactionFeePlan != null
+    );
     this.configObject.tradingPlatformPlan.referencedDataObject = tradingPlatformPlans;
-    if (!tradingPlatformPlans.length) {
+    if (!selectablePlans.length) {
       return of([new ValueKeyHtmlSelectOptions('', '')]);
     }
     return this.translateService
-      .get(tradingPlatformPlans.map((plan) => plan.transactionFeePlan))
+      .get(selectablePlans.map((plan) => plan.transactionFeePlan))
       .pipe(
         map((translations) => [
           new ValueKeyHtmlSelectOptions('', ''),
-          ...tradingPlatformPlans
+          ...selectablePlans
             .map(
               (plan) =>
                 new ValueKeyHtmlSelectOptions(

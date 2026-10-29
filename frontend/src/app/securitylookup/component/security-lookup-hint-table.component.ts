@@ -37,7 +37,7 @@ import { hintParams, LookupHintRow } from '../model/security-lookup-hint';
 })
 export class SecurityLookupHintTableComponent extends TableConfigBase {
   /** Translation key of the table title */
-  readonly titleKey = input<string>(undefined);
+  readonly titleKey = input<string>();
 
   /** Hints to show; the table is hidden when there is none */
   readonly hints = input<SecurityLookupHint[]>([]);

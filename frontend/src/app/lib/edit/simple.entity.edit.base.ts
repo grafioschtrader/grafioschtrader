@@ -4,7 +4,7 @@ import { ProcessedActionData } from '../types/processed.action.data';
 import { ProcessedAction } from '../types/processed.action';
 import { InfoLevelType } from '../message/info.leve.type';
 import { ServiceEntityUpdate } from './service.entity.update';
-import { SimpleEditBase } from './simple.edit.base';
+import { SimpleFormEditBase } from './simple.form.edit.base';
 import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
 import { AuditHelper } from '../helper/audit.helper';
 import { ProposeTransientTransfer } from '../entities/propose.transient.transfer';
@@ -22,7 +22,7 @@ import { EditHelper } from './edit.helper';
  * @template T - The type of entity being edited
  */
 @Directive()
-export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
+export abstract class SimpleEntityEditBase<T> extends SimpleFormEditBase {
   public translateService: TranslateService = inject(TranslateService);
   public messageToastService: MessageToastService = inject(MessageToastService);
 
@@ -84,7 +84,7 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
    * @param {T} existingEntity - The existing entity data to merge
    * @returns {T} The updated target entity with form data applied
    */
-  public copyFormToPrivateBusinessObject(targetEntity: T, existingEntity: T): T {
+  public copyFormToPrivateBusinessObject(targetEntity: T, existingEntity: T | null | undefined): T {
     return EditHelper.copyFormToPrivateBusinessObject(targetEntity, existingEntity, this.form());
   }
 

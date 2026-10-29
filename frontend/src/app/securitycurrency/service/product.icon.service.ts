@@ -107,7 +107,7 @@ export class ProductIconService {
     return icon;
   }
 
-  private getDirectInvestmentIcon(assetclassType: AssetclassType | string): string {
+  private getDirectInvestmentIcon(assetclassType: AssetclassType | string | null): string {
     let icon: string;
     switch (AssetclassType[assetclassType as keyof typeof AssetclassType]) {
       case AssetclassType.EQUITIES:

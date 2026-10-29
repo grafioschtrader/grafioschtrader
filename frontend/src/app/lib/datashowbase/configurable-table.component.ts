@@ -633,7 +633,7 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
    * Property name used as the unique identifier for each row.
    * Used by Optimus for tracking rows during updates and selections.
    */
-  readonly dataKey = input<string>(undefined);
+  readonly dataKey = input<string>();
 
   // ============================================================================
   // Selection Configuration
@@ -690,7 +690,7 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
    * Callback function for custom sorting logic.
    * Receives SortEvent and should sort the data array in place.
    */
-  readonly customSortFn = input<(event: SortEvent) => void>(undefined);
+  readonly customSortFn = input<(event: SortEvent) => void>();
 
   // ============================================================================
   // Filtering Configuration
@@ -851,13 +851,13 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
   /**
    * Template for expanded row content. Receives the row data as context.
    */
-  readonly expandedRowTemplate = input<TemplateRef<any>>(undefined);
+  readonly expandedRowTemplate = input<TemplateRef<any>>();
 
   /**
    * Callback function to determine if a specific row can be expanded.
    * If not provided, all rows are expandable when expandable=true.
    */
-  readonly canExpandFn = input<(row: T) => boolean>(undefined);
+  readonly canExpandFn = input<(row: T) => boolean>();
 
   /**
    * Width in pixels of the expansion toggle column.
@@ -961,18 +961,18 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
    * Callback to determine if owner cell should be highlighted.
    * Used with templateName='owner' to apply bold font weight.
    */
-  readonly ownerHighlightFn = input<(row: T, field: ColumnConfig) => boolean>(undefined);
+  readonly ownerHighlightFn = input<(row: T, field: ColumnConfig) => boolean>();
 
   /**
    * Callback to determine if a numeric value is negative.
    * Used with templateName='greenRed' to apply red color.
    */
-  readonly negativeValueFn = input<(row: T, field: ColumnConfig) => boolean>(undefined);
+  readonly negativeValueFn = input<(row: T, field: ColumnConfig) => boolean>();
 
   /**
    * Custom function to retrieve cell values. If not provided, uses field configuration or Helper.getValueByPath.
    */
-  readonly valueGetterFn = input<(row: T, field: ColumnConfig) => any>(undefined);
+  readonly valueGetterFn = input<(row: T, field: ColumnConfig) => any>();
 
   /**
    * Custom function to compute inline styles for individual table cells.
@@ -986,26 +986,26 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
     ) => {
       [key: string]: string;
     } | null
-  >(undefined);
+  >();
 
   /**
    * Optional function returning a small mark shown before the content of a cell, with a tooltip. Returns null for a
    * cell without mark. Used for example to flag values that were filled automatically.
    */
-  readonly cellMarkFn = input<(row: T, field: ColumnConfig) => CellMark | null>(undefined);
+  readonly cellMarkFn = input<(row: T, field: ColumnConfig) => CellMark | null>();
 
   // ============================================================================
   // Row Behavior Callbacks
   // ============================================================================
 
   /** Callback returning CSS class(es) for a row based on row data. */
-  readonly rowClassFn = input<(row: T) => string | null>(undefined);
+  readonly rowClassFn = input<(row: T) => string | null>();
 
   /**
    * Callback deciding whether a row can be selected; a row it rejects ignores clicks. Without it every row is
    * selectable. Combine it with {@link rowClassFn} to show such rows as unavailable.
    */
-  readonly rowSelectableFn = input<(row: T) => boolean>(undefined);
+  readonly rowSelectableFn = input<(row: T) => boolean>();
 
   /**
    * Adapts {@link rowSelectableFn} to the signature of the table, which passes the row with its index. An arrow
@@ -1021,10 +1021,10 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
   // ============================================================================
 
   /** Callback returning the display value for each footer cell. When provided, a footer row is rendered. */
-  readonly footerValueFn = input<(field: ColumnConfig) => string>(undefined);
+  readonly footerValueFn = input<(field: ColumnConfig) => string>();
 
   /** CSS class applied to each footer cell (e.g., 'row-total' for lightskyblue background). */
-  readonly footerCellClass = input<string>(undefined);
+  readonly footerCellClass = input<string>();
 
   // ============================================================================
   // Column Resizing

@@ -265,7 +265,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       this.getMenuTimeFrame(),
       this.getMenuIncludeDividends(),
       this.getMenuPositionHeader(),
-      ...this.getMenuShowOptions()
+      ...(this.getMenuShowOptions() ?? [])
     ];
     return menuItems;
   }

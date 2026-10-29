@@ -4,11 +4,9 @@ import { Router } from '@angular/router';
 import { MenuItem, MenuItemCommandEvent } from '@openng/optimus-ui/api';
 import { Subscription } from 'rxjs';
 import {
-  CorrelationInstrument,
   CorrelationResult,
   CorrelationRollingResult,
   CorrelationSet,
-  MinMaxDateHistoryquote,
   SamplingPeriodType
 } from '../../entities/correlation.set';
 import { Security } from '../../entities/security';
@@ -163,10 +161,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   private chartDataService: CorrelationChartService = inject(CorrelationChartService);
 
   /** Interface for communication with parent component */
-  readonly childToParent = input<ChildToParent>(undefined);
+  readonly childToParent = input.required<ChildToParent>();
 
   /** Limit instruments per correlation set */
-  readonly tenantLimits = signal<TenantLimit[]>(null);
+  readonly tenantLimits = signal<TenantLimit[] | null>(null);
   private readonly destroyRef = inject(DestroyRef);
   private limitRequest?: Subscription;
 
@@ -184,7 +182,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   readonly visibleAddInstrumentDialog = signal(false);
 
   /** Current correlation set being displayed */
-  readonly correlationSet = signal<CorrelationSet>(null);
+  readonly correlationSet = signal<CorrelationSet | null>(null);
 
   /** Header key for name column */
   private readonly nameHeader = 'name';
@@ -196,13 +194,13 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   private readonly minDate = 'minDate';
 
   /** Current correlation calculation results */
-  private readonly correlationResult = signal<CorrelationResult>(null);
+  private readonly correlationResult = signal<CorrelationResult | null>(null);
 
   /** Subscription for instrument addition events */
   private subscriptionInstrumentAdded: Subscription;
 
   /** Security currency selected in column header */
-  private securityCurrencyColumn: Securitycurrency;
+  private securityCurrencyColumn: Securitycurrency | null = null;
 
   /** Cancels obsolete chart requests when the selection changes. */
   private chartRequest: Subscription;
@@ -229,7 +227,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
     this.securityCurrencyColumn =
       columnHeader !== null && field.userValue != null
-        ? this.correlationSet()?.securitycurrencyList[field.userValue]
+        ? (this.correlationSet()?.securitycurrencyList[field.userValue] ?? null)
         : null;
   }
 
@@ -238,7 +236,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param correlationSet The selected correlation set
    * @param correlationResult The correlation calculation results
    */
-  parentSelectionChanged(correlationSet: CorrelationSet, correlationResult: CorrelationResult): void {
+  parentSelectionChanged(correlationSet: CorrelationSet | null, correlationResult: CorrelationResult | null): void {
     if (this.correlationSet()?.idCorrelationSet !== correlationSet?.idCorrelationSet) {
       this.limitRequest?.unsubscribe();
       this.tenantLimits.set(null);
@@ -258,19 +256,20 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   public prepareEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
+    const set = this.correlationSet();
+    const limits = this.tenantLimits();
     menuItems.push({ separator: true });
     menuItems.push({
       label: 'ADD_EXISTING_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: (e) => this.addExistingSecurity(e),
       disabled:
-        !this.tenantLimits() ||
-        !this.correlationSet() ||
-        this.correlationSet().securitycurrencyList.length >= this.tenantLimits()[0].limit
+        !limits?.length || !set || set.idCorrelationSet == null || set.securitycurrencyList.length >= limits[0].limit
     });
-    if (this.selectedEntity()) {
+    const id = this.selectedEntity()?.idSecuritycurrency;
+    if (id != null) {
       menuItems.push({
         label: 'REMOVE_INSTRUMENT',
-        command: (event) => this.removeInstrumentFromCorrelationSet(this.selectedEntity().idSecuritycurrency)
+        command: (event) => this.removeInstrumentFromCorrelationSet(id)
       });
     }
     return menuItems;
@@ -282,37 +281,32 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   public prepareShowMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
+    const set = this.correlationSet();
+    const selected = this.selectedEntity();
+    const column = this.securityCurrencyColumn;
     if (
-      this.correlationSet() &&
-      SamplingPeriodType[this.correlationSet().samplingPeriod as keyof typeof SamplingPeriodType] !==
-        SamplingPeriodType.ANNUAL_RETURNS
+      set &&
+      SamplingPeriodType[set.samplingPeriod as keyof typeof SamplingPeriodType] !== SamplingPeriodType.ANNUAL_RETURNS
     ) {
-      if (
-        this.selectedEntity() &&
-        this.securityCurrencyColumn &&
-        this.selectedEntity() !== this.securityCurrencyColumn
-      ) {
+      if (selected?.idSecuritycurrency != null && column?.idSecuritycurrency != null && selected !== column) {
         menuItems.push({ separator: true });
         menuItems.push({
-          label: 'CORRELATION_SET_GRAPH|' + this.getMenuName(this.selectedEntity(), this.securityCurrencyColumn),
+          label: 'CORRELATION_SET_GRAPH|' + this.getMenuName(selected, column),
           command: (event) => this.navigateToChartRoute()
         });
         if (
           this.isChartShow() &&
           Object.keys(this.chartPairs).length > 0 &&
-          !this.isGraphForPairShowing(
-            this.selectedEntity().idSecuritycurrency,
-            this.securityCurrencyColumn.idSecuritycurrency
-          )
+          !this.isGraphForPairShowing(selected.idSecuritycurrency, column.idSecuritycurrency)
         ) {
           menuItems.push({
-            label: 'CORRELATION_ADD_GRAPH|' + this.getMenuName(this.selectedEntity(), this.securityCurrencyColumn),
+            label: 'CORRELATION_ADD_GRAPH|' + this.getMenuName(selected, column),
             command: (event) => this.changeToOpenChart()
           });
         }
       }
     }
-    this.selectedEntity() && menuItems.push(...BusinessHelper.getUrlLinkMenus(this.selectedEntity()));
+    if (selected) menuItems.push(...BusinessHelper.getUrlLinkMenus(selected));
     return menuItems;
   }
 
@@ -357,6 +351,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param event The triggering event
    */
   addExistingSecurity(event: MenuItemCommandEvent) {
+    if (this.correlationSet()?.idCorrelationSet == null) return;
     this.updateLimitCount();
     this.visibleAddInstrumentDialog.set(true);
   }
@@ -375,8 +370,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param idSecuritycurrency The ID of the security currency to remove
    */
   removeInstrumentFromCorrelationSet(idSecuritycurrency: number) {
+    const id = this.correlationSet()?.idCorrelationSet;
+    if (id == null) return;
     this.correlationSetService
-      .removeInstrumentFromCorrelationSet(this.correlationSet().idCorrelationSet, idSecuritycurrency)
+      .removeInstrumentFromCorrelationSet(id, idSecuritycurrency)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((correlationSet) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_INSTRUMENT_FROM_CORRELATIONSET');
@@ -392,11 +389,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param valueField The value field (unused)
    * @returns The correlation value or null
    */
-  getCorrelation(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): string | number {
-    if (this.correlationResult()) {
-      const ci: CorrelationInstrument = this.correlationResult().correlationInstruments.find(
-        (cIn) => cIn.idSecuritycurrency === dataobject.idSecuritycurrency
-      );
+  getCorrelation(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): number | null {
+    const result = this.correlationResult();
+    if (result) {
+      const ci = result.correlationInstruments.find((cIn) => cIn.idSecuritycurrency === dataobject.idSecuritycurrency);
       return ci ? ci.correlations[field.userValue] : null;
     } else {
       return null;
@@ -410,12 +406,13 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param valueField The value field (unused)
    * @returns The formatted date or null
    */
-  getMinMaxDate(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): string | number {
-    if (this.correlationResult()) {
-      const mmdh: MinMaxDateHistoryquote = this.correlationResult().mmdhList.find(
-        (mmdHist) => mmdHist.idSecuritycurrency === dataobject.idSecuritycurrency
-      );
-      return AppHelper.getValueByPathWithField(this.gps, this.translateService, mmdh, field, field.field);
+  getMinMaxDate(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): string | number | null {
+    const result = this.correlationResult();
+    if (result) {
+      const mmdh = result.mmdhList.find((mmdHist) => mmdHist.idSecuritycurrency === dataobject.idSecuritycurrency);
+      return mmdh && field.field
+        ? AppHelper.getValueByPathWithField(this.gps, this.translateService, mmdh, field, field.field)
+        : null;
     } else {
       return null;
     }
@@ -427,9 +424,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param field The column configuration
    * @returns HSL color string or null
    */
-  getBackgroundColor(dataobject: Securitycurrency, field: ColumnConfig): string {
+  getBackgroundColor(dataobject: Securitycurrency, field: ColumnConfig): string | null {
     if (field.userValue != null) {
-      const value: number = this.getCorrelation(dataobject, field, null) as number;
+      const value = this.getCorrelation(dataobject, field, null);
+      if (value == null) return null;
       return 'hsl(' + (value + 1) * 58 + ',100%, 50%)';
     }
     return null;
@@ -446,10 +444,11 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * Reads tenant limits once when correlation set is available.
    * @param correlationSet The correlation set to get limits for
    */
-  private readListLimitOnce(correlationSet: CorrelationSet): void {
-    if (!this.tenantLimits() && correlationSet) {
-      this.correlationSetService
-        .getCorrelationSetInstrumentLimit(correlationSet.idCorrelationSet)
+  private readListLimitOnce(correlationSet: CorrelationSet | null): void {
+    const id = correlationSet?.idCorrelationSet;
+    if (!this.tenantLimits() && id != null) {
+      this.limitRequest = this.correlationSetService
+        .getCorrelationSetInstrumentLimit(id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((limit) => {
           this.tenantLimits.set([{ ...limit, actual: this.securitycurrencyList().length }]);
@@ -470,7 +469,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param correlationSet The correlation set to display
    * @param correlationResult The correlation calculation results
    */
-  private createDynamicTableDefinition(correlationSet: CorrelationSet, correlationResult: CorrelationResult): void {
+  private createDynamicTableDefinition(
+    correlationSet: CorrelationSet | null,
+    correlationResult: CorrelationResult | null
+  ): void {
     this.removeAllColumns();
     this.correlationSet.set(
       correlationSet
@@ -492,7 +494,8 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     if (correlationSet) {
       if (correlationResult) {
         if (correlationResult.mmdhList.length === 0) {
-          this.addTickerAndCorrelationColumnDefinition(this.correlationSet());
+          const displaySet = this.correlationSet();
+          if (displaySet) this.addTickerAndCorrelationColumnDefinition(displaySet);
         } else {
           this.addMinMaxColumnDefinition();
         }
@@ -535,8 +538,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     this.subscriptionInstrumentAdded = this.dataChangedService.dateChanged$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((processedActionData) => {
+        const id = this.correlationSet()?.idCorrelationSet;
         if (
-          processedActionData.data?.idCorrelationSet === this.correlationSet()?.idCorrelationSet &&
+          id != null &&
+          processedActionData.data?.idCorrelationSet === id &&
           processedActionData.action === ProcessedAction.UPDATED
         ) {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'ADDED_SECURITY_TO_WATCHLIST');
@@ -548,6 +553,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
   /** Reloads surviving pairs when dates, adjustments or instruments change. */
   public refreshChartWhenCorrelationSetChanges(): void {
+    const set = this.correlationSet();
     const ids = new Set(this.correlationSet()?.securitycurrencyList.map((sc) => sc.idSecuritycurrency) ?? []);
     Object.keys(this.chartPairs).forEach((key) => {
       if (this.chartPairs[key].some((id) => !ids.has(id))) {
@@ -555,9 +561,8 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       }
     });
     if (
-      !this.correlationSet() ||
-      SamplingPeriodType[this.correlationSet().samplingPeriod as keyof typeof SamplingPeriodType] ===
-        SamplingPeriodType.ANNUAL_RETURNS
+      !set ||
+      SamplingPeriodType[set.samplingPeriod as keyof typeof SamplingPeriodType] === SamplingPeriodType.ANNUAL_RETURNS
     ) {
       this.chartPairs = {};
     }
@@ -588,9 +593,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   }
 
   private addSelectedChartPair(): void {
-    const pair = [this.securityCurrencyColumn.idSecuritycurrency, this.selectedEntity().idSecuritycurrency].sort(
-      (a, b) => a - b
-    );
+    const columnId = this.securityCurrencyColumn?.idSecuritycurrency;
+    const rowId = this.selectedEntity()?.idSecuritycurrency;
+    if (columnId == null || rowId == null) return;
+    const pair = [columnId, rowId].sort((a, b) => a - b);
     this.chartPairs[pair.join(',')] = pair;
   }
 
@@ -603,9 +609,11 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       return;
     }
     const set = this.correlationSet();
+    const id = set?.idCorrelationSet;
+    if (!set || id == null) return;
     const title = 'CORRELATION_ROLLING|' + this.childToParent().getPeriodAndRollingWithParamPrefix().join('|');
     this.chartRequest = this.correlationSetService
-      .getRollingCorrelations(set.idCorrelationSet, pairs)
+      .getRollingCorrelations(id, pairs)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (results: CorrelationRollingResult[]) =>
@@ -628,7 +636,7 @@ export interface ChildToParent {
    * Refreshes data in the parent component.
    * @param correlationSet The updated correlation set or null
    */
-  refreshData(correlationSet: CorrelationSet): void;
+  refreshData(correlationSet: CorrelationSet | null): void;
 
   /** Rebuilds the menus after asynchronously loaded instrument limits change. */
   refreshMenus(): void;

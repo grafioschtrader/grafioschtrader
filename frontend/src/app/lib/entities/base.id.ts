@@ -1,3 +1,4 @@
 export interface BaseID {
-  getId(): number | string;
+  /** New entities have no persisted identifier yet. */
+  getId(): number | string | null | undefined;
 }

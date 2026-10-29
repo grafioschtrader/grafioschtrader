@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { UDFDataType } from '../../lib/udfmeta/model/udf.metadata';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppSettings } from '../../shared/app.settings';
@@ -124,16 +125,16 @@ export class UDFMetadataSecurityEditComponent
   private readonly fillSource = signal<string>(UDFFillSource.MANUAL);
 
   /** Draft whose description for the language model is being tested; null hides the test */
-  readonly suggestTestRequest = signal<UDFFillTestRequest>(null);
+  readonly suggestTestRequest = signal<UDFFillTestRequest | null>(null);
 
   /** Parameters containing security UDF metadata to edit and validation exclusion lists */
   readonly callParam = input<UDFMetadataSecurityParam>(undefined);
 
   /** Result of the last test of the fill rule, shown below the form */
-  readonly testResult = signal<UDFFillTestResult>(null);
+  readonly testResult = signal<UDFFillTestResult | null>(null);
 
   /** One line summarising the fill state of an existing automatically filled field */
-  readonly fillStatusText = signal<string>(null);
+  readonly fillStatusText = signal<string | null>(null);
 
   /** Field configurations for data type and field size inputs */
   private configDataTypeFields: FieldConfig[];
@@ -255,21 +256,21 @@ export class UDFMetadataSecurityEditComponent
       this.untilDialogClosed()
     );
     const existing = callParam.uDFMetadataSecurity;
-    this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE].formControl.setValue(
+    requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE]).setValue(
       existing?.fillSource ?? UDFFillSource.MANUAL
     );
     this.transferResolverRule(existing);
     if (existing?.fillSource === UDFFillSource.LLM) {
-      this.configObject[UDFMetadataSecurityEditComponent.FILL_CONTEXT].formControl.setValue(existing.fillRule);
+      requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.FILL_CONTEXT]).setValue(existing.fillRule);
     }
-    this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE].formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE])
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe(() => this.showHideFillRule());
     this.groupControl(UDFMetadataHelper.UDF_DATA_TYPE)
       .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((udt) => this.setFillSourceOptions(udt));
-    this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID].formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID])
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((id) => this.setDefaultArgument(id));
     this.form()
       .form.valueChanges.pipe(this.untilDialogClosed())
@@ -291,7 +292,7 @@ export class UDFMetadataSecurityEditComponent
         this.fillPeriods = offer.fillPeriods ?? [];
         this.setFillSourceOptions(this.groupControl(UDFMetadataHelper.UDF_DATA_TYPE).value);
         this.showHideFillRule();
-        this.configObject[UDFMetadataSecurityEditComponent.FILL_PERIOD].formControl.setValue(
+        requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.FILL_PERIOD]).setValue(
           existing?.fillPeriod ?? ''
         );
       });
@@ -313,15 +314,15 @@ export class UDFMetadataSecurityEditComponent
     fillSourceConfig.valueKeyHtmlOptions = (
       fitting.length > 0 ? fitting.map((o) => o.fillSource) : [UDFFillSource.MANUAL]
     ).map((fs) => new ValueKeyHtmlSelectOptions(fs, this.translateService.instant(fs)));
-    if (!fillSourceConfig.valueKeyHtmlOptions.some((o) => o.key === fillSourceConfig.formControl.value)) {
-      fillSourceConfig.formControl.setValue(UDFFillSource.MANUAL);
+    if (!fillSourceConfig.valueKeyHtmlOptions.some((o) => o.key === requireFormControl(fillSourceConfig).value)) {
+      requireFormControl(fillSourceConfig).setValue(UDFFillSource.MANUAL);
     }
     const resolverConfig = this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID];
     resolverConfig.valueKeyHtmlOptions = this.resolverOptions
       .filter((r) => udfDataType && r.udfDataTypes.includes(udfDataType))
       .map((r) => new ValueKeyHtmlSelectOptions(r.resolverId, this.translateService.instant(r.resolverId)));
-    if (!resolverConfig.valueKeyHtmlOptions.some((o) => o.key === resolverConfig.formControl.value)) {
-      resolverConfig.formControl.setValue(resolverConfig.valueKeyHtmlOptions[0]?.key ?? null);
+    if (!resolverConfig.valueKeyHtmlOptions.some((o) => o.key === requireFormControl(resolverConfig).value)) {
+      requireFormControl(resolverConfig).setValue(resolverConfig.valueKeyHtmlOptions[0]?.key ?? null);
     }
   }
 
@@ -332,10 +333,10 @@ export class UDFMetadataSecurityEditComponent
     if (existing?.fillSource === UDFFillSource.RESOLVER && existing.fillRule) {
       const rule = existing.fillRule.trim();
       const space = rule.indexOf(' ');
-      this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID].formControl.setValue(
+      requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID]).setValue(
         space < 0 ? rule : rule.substring(0, space)
       );
-      this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT].formControl.setValue(
+      requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT]).setValue(
         space < 0 ? null : rule.substring(space + 1).trim()
       );
     }
@@ -357,7 +358,7 @@ export class UDFMetadataSecurityEditComponent
    * them for manual.
    */
   private showHideFillRule(): void {
-    const fillSource = this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE].formControl.value;
+    const fillSource = requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE]).value;
     this.fillSource.set(fillSource);
     const template = fillSource === UDFFillSource.TEMPLATE;
     const resolver = fillSource === UDFFillSource.RESOLVER;
@@ -410,7 +411,7 @@ export class UDFMetadataSecurityEditComponent
       ...this.fillPeriods.map((fp) => new ValueKeyHtmlSelectOptions(fp, this.translateService.instant(fp)))
     ];
     if (!withPeriod) {
-      periodConfig.formControl.setValue('');
+      requireFormControl(periodConfig).setValue('');
     }
   }
 
@@ -420,7 +421,7 @@ export class UDFMetadataSecurityEditComponent
    * @param rule - The proposed rule
    */
   acceptProposedRule(rule: string): void {
-    this.configObject[UDFMetadataSecurityEditComponent.FILL_RULE].formControl.setValue(rule);
+    requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.FILL_RULE]).setValue(rule);
     this.testResult.set(null);
   }
 
@@ -481,7 +482,7 @@ export class UDFMetadataSecurityEditComponent
    * @returns A new draft; a new object also restarts the test of the description
    */
   private createTestRequest(ruleField: string): UDFFillTestRequest {
-    const value = (field: string) => this.configObject[field].formControl.value;
+    const value = (field: string) => requireFormControl(this.configObject[field]).value;
     return {
       idUDFMetadata: this.callParam().uDFMetadataSecurity?.idUDFMetadata ?? null,
       udfDataType: this.groupControl(UDFMetadataHelper.UDF_DATA_TYPE).value,
@@ -497,7 +498,7 @@ export class UDFMetadataSecurityEditComponent
    * Returns a control of the form group that holds the data type and the field size.
    */
   private groupControl(field: string): AbstractControl {
-    return this.configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP].formControl.get([field]);
+    return requireFormControl(this.configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP]).get([field]);
   }
 
   /**
@@ -515,7 +516,7 @@ export class UDFMetadataSecurityEditComponent
     uDFMetadataSecurity.idUser = this.gps.getIdUser();
     // Resolver, argument and description are form fields only; the entity has no such properties, so the form copy
     // above leaves them out and they are read from their controls.
-    const formValue = (field: string) => this.configObject[field].formControl.value;
+    const formValue = (field: string) => requireFormControl(this.configObject[field]).value;
     if (uDFMetadataSecurity.fillSource === UDFFillSource.RESOLVER) {
       // The server stores the rule as resolver ID and normalised argument
       uDFMetadataSecurity.fillRule = [

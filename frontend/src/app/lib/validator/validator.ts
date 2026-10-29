@@ -1,3 +1,4 @@
+import { requireFormControl } from '../dynamic-form/models/form-control-access';
 import { AbstractControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { UDFDataType } from '../udfmeta/model/udf.metadata';
 import { GlobalSessionNames } from '../global.session.names';
@@ -108,18 +109,23 @@ export const gtDate =
 export const dateRange =
   (dateField1: string, dateField2: string, validatorField: string): ValidatorFn =>
   (group: AbstractControl): ValidationErrors | null => {
-    const date1 = group.get(dateField1).value;
-    const date2 = group.get(dateField2).value;
+    const date1 = requireFormControl({ field: dateField1, formControl: group.get(dateField1) }).value;
+    const date2 = requireFormControl({ field: dateField2, formControl: group.get(dateField2) }).value;
     return date1 !== null && date2 !== null && date1 > date2
-      ? { dateRange: { requiredGt: dateRange, actualValue: group.get(validatorField).value } }
+      ? {
+          dateRange: {
+            requiredGt: dateRange,
+            actualValue: requireFormControl({ field: validatorField, formControl: group.get(validatorField) }).value
+          }
+        }
       : null;
   };
 
 export const dataTypeFieldSizeGroup =
   (dataField1: string, dataField2: string, validatorField: string): ValidatorFn =>
   (group: AbstractControl): ValidationErrors | null => {
-    const dataType: string = group.get(dataField1).value;
-    const fieldSize: string = group.get(dataField2).value;
+    const dataType: string = requireFormControl({ field: dataField1, formControl: group.get(dataField1) }).value;
+    const fieldSize: string = requireFormControl({ field: dataField2, formControl: group.get(dataField2) }).value;
     let hasError = false;
     if (dataType && fieldSize) {
       const udfType = UDFDataType[dataType as keyof typeof UDFDataType];
@@ -132,7 +138,9 @@ export const dataTypeFieldSizeGroup =
         if (prefixSuffixStr.length == 2) {
           const prefixSuffix: number[] = prefixSuffixStr.map(Number).filter(Number);
           if (prefixSuffix.length == 2) {
-            const udfConfig: UDFConfig = JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_CONFIG));
+            const storedConfig = sessionStorage.getItem(GlobalSessionNames.UDF_CONFIG);
+            if (storedConfig == null) throw new Error('UDF configuration must be loaded before field-size validation.');
+            const udfConfig: UDFConfig = JSON.parse(storedConfig);
             const ups = udfConfig.uDFPrefixSuffixMap[dataType];
             switch (udfType) {
               case UDFDataType.UDF_Numeric:
@@ -169,7 +177,7 @@ export const gteWithMaskIncludeNegative =
     return v >= +gte || v <= -gte ? null : { gteWithMaskIncludeNegative: { requiredGt: gte, actualValue: v } };
   };
 
-export const webUrl: ValidatorFn = (control: AbstractControl): { [key: string]: boolean } => {
+export const webUrl: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   if (isPresent(Validators.required(control))) {
     return null;
   }
@@ -236,7 +244,7 @@ export const rangeLength =
       : { rangeLength: { param1: rangeLengthParam[0], param2: rangeLengthParam[1] } };
   };
 
-export const email: ValidatorFn = (control: AbstractControl): ValidationErrors => {
+export const email: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   if (isPresent(Validators.required(control))) {
     return null;
   }
@@ -253,7 +261,7 @@ export const email: ValidatorFn = (control: AbstractControl): ValidationErrors =
 
 export const maxValue =
   (value: number): ValidatorFn =>
-  (control: AbstractControl): ValidationErrors => {
+  (control: AbstractControl): ValidationErrors | null => {
     if (!isPresent(value) || isPresent(Validators.required(control))) {
       return null;
     }
@@ -264,7 +272,7 @@ export const maxValue =
 export const equalTo = (equalControl: AbstractControl): ValidatorFn => {
   let subscribe = false;
 
-  return (control: AbstractControl): ValidationErrors => {
+  return (control: AbstractControl): ValidationErrors | null => {
     if (!subscribe) {
       subscribe = true;
       equalControl.valueChanges.subscribe(() => {
@@ -278,7 +286,7 @@ export const equalTo = (equalControl: AbstractControl): ValidatorFn => {
 
 export const notContainStringInList =
   (strArray: Array<string>): ValidatorFn =>
-  (control: AbstractControl): ValidationErrors => {
+  (control: AbstractControl): ValidationErrors | null => {
     if (!isPresent(strArray) || isPresent(Validators.required(control))) {
       return null;
     }
@@ -287,7 +295,7 @@ export const notContainStringInList =
 
 export const range =
   (value: Array<number>): ValidatorFn =>
-  (control: AbstractControl): ValidationErrors => {
+  (control: AbstractControl): ValidationErrors | null => {
     if (!isPresent(value) || isPresent(Validators.required(control))) {
       return null;
     }

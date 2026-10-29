@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import {
   afterNextRender,
   Component,
@@ -63,12 +64,12 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
 
   readonly yaml = input('');
   readonly idSecurityaccount = input<number>();
-  readonly idTradingPlatformPlan = input<number>();
-  readonly form = viewChild(DynamicFormComponent);
+  readonly idTradingPlatformPlan = input<number | null>();
+  readonly form = viewChild.required(DynamicFormComponent);
   config: FieldFormGroup[];
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig = { ...this.baseLocale, labelColumns: 4, nonModal: true };
-  readonly result = signal<FxQuote>(null);
+  readonly result = signal<FxQuote | null>(null);
   readonly requestFailed = signal(false);
   private readonly destroyRef = inject(DestroyRef);
   private previewSubscription: Subscription;
@@ -134,7 +135,9 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
       form.form.markAllAsTouched();
       return;
     }
-    const value = (name: string) => this.configObject[name].formControl.value;
+    const date = Helper.formatDateStringAsString(this.configObject.date, BaseSettings.FORMAT_DATE_SHORT_NATIVE);
+    if (date == null) return;
+    const value = (name: string) => requireFormControl(this.configObject[name]).value;
     const body = {
       idSecurityaccount: this.idSecurityaccount(),
       idTradingPlatformPlan: this.idTradingPlatformPlan(),
@@ -144,7 +147,7 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
         receiveCurrency: value('receiveCurrency'),
         kind: value('kind'),
         amount: value('amount'),
-        date: Helper.formatDateStringAsString(this.configObject.date, BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+        date,
         mic: value('mic')
       }
     };

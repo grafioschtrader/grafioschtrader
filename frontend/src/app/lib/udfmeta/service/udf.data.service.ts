@@ -37,7 +37,7 @@ export class UDFDataService extends AuthServiceWithLogout<UDFData> {
    * @param idUser - User ID for update (1 for existing data, null for new data)
    * @returns Observable emitting the saved UDF data
    */
-  public update(udfData: UDFData, idUser: number): Observable<UDFData> {
+  public update(udfData: UDFData, idUser: number | null): Observable<UDFData> {
     return this.updateEntity(udfData, idUser, BaseSettings.UDF_DATA_KEY);
   }
 

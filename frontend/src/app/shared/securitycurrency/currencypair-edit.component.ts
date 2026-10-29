@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TranslateModule } from '@ngx-translate/core';
@@ -51,7 +52,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   private currencypairService: CurrencypairService = inject(CurrencypairService);
 
   // Input from parent component
-  readonly visibleEditCurrencypairDialog = input<boolean>(undefined);
+  readonly visibleEditCurrencypairDialog = input<boolean>();
 
   existingCurrencypairs: Currencypair[];
 
@@ -86,14 +87,16 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   }
 
   valueChangedOnFromCurrency(): void {
-    this.configObject.fromCurrency.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((data: string) => {
-      const existingFromCurrencies: Currencypair[] = this.existingCurrencypairs.filter(
-        (currencypair) => currencypair.fromCurrency === data
-      );
-      this.configObject.toCurrency.valueKeyHtmlOptions = this.configObject.fromCurrency.valueKeyHtmlOptions.filter(
-        (vKHO) => existingFromCurrencies.filter((currencypair) => currencypair.toCurrency === vKHO.key).length === 0
-      );
-    });
+    requireFormControl(this.configObject.fromCurrency)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((data: string) => {
+        const existingFromCurrencies: Currencypair[] = this.existingCurrencypairs.filter(
+          (currencypair) => currencypair.fromCurrency === data
+        );
+        this.configObject.toCurrency.valueKeyHtmlOptions = this.configObject.fromCurrency.valueKeyHtmlOptions.filter(
+          (vKHO) => existingFromCurrencies.filter((currencypair) => currencypair.toCurrency === vKHO.key).length === 0
+        );
+      });
   }
 
   submit(value: { [name: string]: any }): void {

@@ -2,7 +2,7 @@ import { Component, OnInit, input, inject } from '@angular/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -42,7 +42,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
   `,
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class HistoryquoteLegacyApplySplitDialogComponent extends SimpleEditBase implements OnInit {
+export class HistoryquoteLegacyApplySplitDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private historyquoteLegacyService: HistoryquoteLegacyService = inject(HistoryquoteLegacyService);
   private messageToastService: MessageToastService = inject(MessageToastService);
@@ -65,10 +65,15 @@ export class HistoryquoteLegacyApplySplitDialogComponent extends SimpleEditBase 
   }
 
   submit(value: { [name: string]: any }): void {
+    const splitDate = Helper.formatDateStringAsString(
+      this.configObject.splitDate,
+      BaseSettings.FORMAT_DATE_SHORT_NATIVE
+    );
+    if (splitDate == null) return;
     this.configObject.submit.disabled = true;
     this.historyquoteLegacyService
       .applySplitToLegacy(this.idSecuritycurrency(), {
-        splitDate: Helper.formatDateStringAsString(this.configObject.splitDate, BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+        splitDate,
         fromFactor: value.fromFactor,
         toFactor: value.toFactor
       })

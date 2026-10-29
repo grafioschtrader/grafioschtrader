@@ -177,8 +177,8 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   callParam: HistoryquoteSecurityCurrency;
   readonly firstRow = signal(0);
 
-  readonly nameSecuritycurrency = signal<INameSecuritycurrency>(null);
-  readonly historyquotesWithMissings = signal<HistoryquotesWithMissings>(null);
+  readonly nameSecuritycurrency = signal<INameSecuritycurrency | null>(null);
+  readonly historyquotesWithMissings = signal<HistoryquotesWithMissings | null>(null);
   /** The instrument when it is a security, null for a currency pair and undefined until the first response. */
   readonly security = signal<Security>(undefined);
   readonly visibleUploadFileDialog = signal(false);
@@ -267,6 +267,11 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   }
 
   uploadImportQuotes(): void {
+    const name = this.nameSecuritycurrency();
+    const quotes = this.historyquotesWithMissings();
+    if (!name || !quotes) return;
+    const id = name.getSecuritycurrency().idSecuritycurrency;
+    if (id == null) return;
     this.fileUploadParam = new FileUploadParam(
       HelpIds.HELP_WATCHLIST_HISTORYQUOTES,
       null,
@@ -274,8 +279,8 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
       'IMPORT_QUOTES',
       false,
       this.historyquoteService,
-      this.nameSecuritycurrency().getSecuritycurrency().idSecuritycurrency,
-      this.historyquotesWithMissings().supportedCSVFormats,
+      id,
+      quotes.supportedCSVFormats,
       BaseSettings.CSV_EXPORT_FORMAT
     );
 
@@ -298,8 +303,10 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
    * selectable range while the dynamic form is built.
    */
   deleteCreateTypeQuotes(): void {
+    const quotes = this.historyquotesWithMissings();
+    if (!quotes) return;
     this.historyquoteService
-      .getDeleteBounds(this.historyquotesWithMissings().securitycurrency.idSecuritycurrency)
+      .getDeleteBounds(quotes.securitycurrency.idSecuritycurrency)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((deleteBounds) => {
         this.deleteBounds = deleteBounds;
@@ -312,8 +319,10 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
    * selectable range while the dynamic form is built.
    */
   fillLinearGap(): void {
+    const quotes = this.historyquotesWithMissings();
+    if (!quotes) return;
     this.securityService
-      .getFillGapsBounds(this.historyquotesWithMissings().securitycurrency.idSecuritycurrency)
+      .getFillGapsBounds(quotes.securitycurrency.idSecuritycurrency)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((fillGapsBounds) => {
         this.fillGapsBounds = fillGapsBounds;
@@ -356,7 +365,9 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
 
   protected prepareCallParam(entity: Historyquote) {
     // For a new history quote the idSecuritycurrency is needed
-    this.callParam = new HistoryquoteSecurityCurrency(entity, this.nameSecuritycurrency().getSecuritycurrency());
+    const name = this.nameSecuritycurrency();
+    if (!name) throw new Error('History quote editing requires a loaded security or currency pair.');
+    this.callParam = new HistoryquoteSecurityCurrency(entity, name.getSecuritycurrency());
   }
 
   protected override getId(entity: Historyquote): number {
@@ -370,21 +381,17 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   /**
    * The creation of a history quote depends on the right on the security or currency
    */
-  protected override hasRightsForCreateEntity(historyquote: Historyquote): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(
-      this.gps,
-      this.nameSecuritycurrency().getSecuritycurrency()
-    );
+  protected override hasRightsForCreateEntity(historyquote: Historyquote | null): boolean {
+    const name = this.nameSecuritycurrency();
+    return !!name && AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, name.getSecuritycurrency());
   }
 
   /**
    * The deletion of a history quote depends on the right on the security or currency
    */
-  protected override hasRightsForDeleteEntity(historyquote: Historyquote): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(
-      this.gps,
-      this.nameSecuritycurrency().getSecuritycurrency()
-    );
+  protected override hasRightsForDeleteEntity(historyquote: Historyquote | null): boolean {
+    const name = this.nameSecuritycurrency();
+    return !!name && AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, name.getSecuritycurrency());
   }
 
   /**
@@ -421,7 +428,7 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
       },
       {
         label: 'EXPORT_CSV',
-        command: () => this.downloadCSvFile(this.historyquotesWithMissings().historyquoteList)
+        command: () => this.downloadCSvFile(historyquotesWithMissings.historyquoteList)
       }
     ];
   }

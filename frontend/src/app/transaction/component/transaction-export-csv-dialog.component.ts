@@ -48,7 +48,7 @@ export class TransactionExportCsvDialogComponent extends FormBase implements OnI
   private transactionService: TransactionService = inject(TransactionService);
 
   private readonly destroyRef = inject(DestroyRef);
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
 
   constructor() {
     super();

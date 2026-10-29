@@ -127,10 +127,11 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     const groupFields: ColumnConfig[] = [];
     for (let i = 0; i < this.fields.length; i++) {
       groupFields.push(this.fields[i]);
-      if (this.fields[i].columnGroupConfigs && this.fields[i].columnGroupConfigs[0].colspan) {
+      const group = this.fields[i].columnGroupConfigs?.[0];
+      if (group?.colspan) {
         const nextUsedGroupColumn = this.getNextUsedGroupColumnIndex(i + 1);
-        const newI = Math.min(i + this.fields[i].columnGroupConfigs[0].colspan, nextUsedGroupColumn);
-        this.fields[i].columnGroupConfigs[0].colspan = newI - i;
+        const newI = Math.min(i + group.colspan, nextUsedGroupColumn);
+        group.colspan = newI - i;
         i = newI - 1;
       }
     }
@@ -487,7 +488,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    *
    * @returns Array of menu items with column options, or null if no options available
    */
-  getMenuShowOptions(): MenuItem[] {
+  getMenuShowOptions(): MenuItem[] | null {
     const items = [...this.getColumnsShow(), ...this.getFilterRowShow()];
     return items.length > 0 ? items : null;
   }

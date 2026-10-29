@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   afterNextRender,
@@ -104,8 +105,8 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   public translateService: TranslateService = inject(TranslateService);
 
   // Access the form
-  readonly form = viewChild(DynamicFormComponent);
-  readonly performancePeriod = signal<PerformancePeriod>(null);
+  readonly form = viewChild.required(DynamicFormComponent);
+  readonly performancePeriod = signal<PerformancePeriod | null>(null);
   readonly periodHoldingsAndDiff = computed(() => {
     const period = this.performancePeriod();
     return period ? [period.firstDayTotals, period.lastDayTotals, period.difference] : [];
@@ -113,7 +114,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
   dateFromSubscribe: Subscription;
   dateToSubscribe: Subscription;
-  readonly firstAndMissingTradingDays = signal<FirstAndMissingTradingDays>(null);
+  readonly firstAndMissingTradingDays = signal<FirstAndMissingTradingDays | null>(null);
   private readonly firstTradingDayField = ShowRecordConfigBase.createColumnConfig(
     DataType.DateNumeric,
     'firstEverTradingDay',
@@ -169,10 +170,10 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
               famtd.firstEverTradingDay > famtd.lastTradingDayOfLastYear
                 ? famtd.firstEverTradingDay
                 : famtd.lastTradingDayOfLastYear;
-            this.configObject.dateFrom.formControl.setValue(
+            requireFormControl(this.configObject.dateFrom).setValue(
               BusinessHelper.getDateFromSessionStorage(GlobalGTSessionNames.PERFORMANCE_DATE_FROM, new Date(fromDate))
             );
-            this.configObject.dateTo.formControl.setValue(new Date(famtd.latestTradingDay));
+            requireFormControl(this.configObject.dateTo).setValue(new Date(famtd.latestTradingDay));
             this.configObject.dateFrom.calendarConfig = {
               minDate: new Date(famtd.firstEverTradingDay),
               maxDate: new Date(famtd.secondLatestTradingDay),
@@ -199,8 +200,8 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
   valueChangedOnDateFrom(): void {
     this.dateFromSubscribe?.unsubscribe();
-    this.dateFromSubscribe = this.configObject.dateFrom.formControl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.dateFromSubscribe = requireFormControl(this.configObject.dateFrom)
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((dateFrom: Date) => {
         this.setMinDateForToDate(dateFrom);
         BusinessHelper.saveDateToSessionStore(GlobalGTSessionNames.PERFORMANCE_DATE_FROM, dateFrom);
@@ -210,8 +211,8 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
   valueChangedOnDateTo(): void {
     this.dateToSubscribe?.unsubscribe();
-    this.dateToSubscribe = this.configObject.dateTo.formControl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.dateToSubscribe = requireFormControl(this.configObject.dateTo)
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((dateTo: Date) => {
         this.setMonthWeekPeriod();
       });
@@ -226,7 +227,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event: PanelClickEvent): void {
+  onComponentClick(event: PanelClickEvent | null): void {
     this.activePanelService.activatePanel(this, { showMenu: this.menuItems() });
   }
 
@@ -319,23 +320,29 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   }
 
   private setMinDateForToDate(dateFrom: Date): void {
+    const days = this.firstAndMissingTradingDays();
+    const calendar = this.configObject.dateTo.calendarConfig;
+    if (!days || !calendar) return;
     let dateTo = moment(dateFrom).add(1, 'd');
     while (
-      dateTo.isBefore(this.firstAndMissingTradingDays().latestTradingDay) &&
+      dateTo.isBefore(days.latestTradingDay) &&
       (dateTo.day() === Weekday.Saturday ||
         dateTo.day() === Weekday.Sunday ||
-        this.firstAndMissingTradingDays().holidayAndMissingQuoteDays.some((day) => dateTo.isSame(day, 'day')))
+        days.holidayAndMissingQuoteDays.some((day) => dateTo.isSame(day, 'day')))
     ) {
       dateTo = moment(dateTo).add(1, 'd');
     }
-    this.configObject.dateTo.calendarConfig.minDate = dateTo.toDate();
-    const currentDateTo: Date = this.configObject.dateTo.formControl.value;
-    if (currentDateTo && currentDateTo.getTime() < this.configObject.dateTo.calendarConfig.minDate.getTime()) {
-      this.configObject.dateTo.formControl.setValue(null);
+    calendar.minDate = dateTo.toDate();
+    const currentDateTo: Date = requireFormControl(this.configObject.dateTo).value;
+    if (currentDateTo && currentDateTo.getTime() < calendar.minDate.getTime()) {
+      requireFormControl(this.configObject.dateTo).setValue(null);
     }
   }
 
   private setMonthWeekPeriod(): void {
+    const days = this.firstAndMissingTradingDays();
+    const options = this.configObject.periodSplit.valueKeyHtmlOptions;
+    if (!days || !options) return;
     const pWD: PerformanceWindowDef = new PerformanceWindowDef(this.idPortfolio);
     this.form().cleanMaskAndTransferValuesToBusinessObject(pWD, true);
     // const dateFrom = this.configObject.dateFrom.formControl.value;
@@ -343,21 +350,19 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     // const period = this.configObject.periodSplit.formControl.value;
     const disabled: any[] = [];
     if (pWD.dateFrom && pWD.dateTo) {
-      if (
-        moment(pWD.dateTo).diff(pWD.dateFrom, 'months', true) < this.firstAndMissingTradingDays().minIncludeMonthLimit
-      ) {
+      if (moment(pWD.dateTo).diff(pWD.dateFrom, 'months', true) < days.minIncludeMonthLimit) {
         disabled.push(WeekYear.WM_YEAR);
       }
-      if (moment(pWD.dateTo).diff(pWD.dateFrom, 'weeks', true) > this.firstAndMissingTradingDays().maxWeekLimit) {
+      if (moment(pWD.dateTo).diff(pWD.dateFrom, 'weeks', true) > days.maxWeekLimit) {
         disabled.push(WeekYear.WM_WEEK);
       }
       this.configObject.periodSplit.valueKeyHtmlOptions = SelectOptionsHelper.disableEnableExistingHtmlOptionsFromEnum(
-        this.configObject.periodSplit.valueKeyHtmlOptions.map((option) => ({ ...option })),
+        options.map((option) => ({ ...option })),
         WeekYear,
         disabled
       );
       if (disabled.indexOf(WeekYear[pWD.periodSplit as keyof typeof WeekYear]) >= 0) {
-        this.configObject.periodSplit.formControl.setValue('');
+        requireFormControl(this.configObject.periodSplit).setValue('');
       }
     }
   }
@@ -394,8 +399,10 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   }
 
   private prepareCharDataAndSentToChart(): void {
+    const period = this.performancePeriod();
+    if (!period) return;
     this.chartData = [];
-    const pcdds = this.performancePeriod().performanceChartDayDiff;
+    const pcdds = period.performanceChartDayDiff;
     for (let i = 0; i < pcdds.length; i++) {
       const pcdd = pcdds[i];
       Object.keys(pcdd)

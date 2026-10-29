@@ -68,8 +68,8 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
   readonly portfolios = input<Portfolio[]>(undefined);
   readonly idsAccount = input<number[]>(undefined);
   readonly listAttributeName = input<'securityaccountList' | 'cashaccountList'>(undefined);
-  readonly title = input<string>(undefined);
-  readonly selectionRequired = input<boolean>(undefined);
+  readonly title = input<string>();
+  readonly selectionRequired = input<boolean>();
 
   readonly portfolioAccounts = signal<TreeNode[]>([]);
   readonly selectedNodes = signal<TreeNode[]>([]);

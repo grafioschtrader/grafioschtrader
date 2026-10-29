@@ -7,15 +7,15 @@ import { GTNetMessageCodeType } from './gtnet.message';
  * forming a priority-ordered chain. The priority field determines evaluation order.
  */
 export class GTNetMessageAnswer implements BaseID {
-  idGtNetMessageAnswer: number = null;
-  requestMsgCode: GTNetMessageCodeType | number = null;
-  responseMsgCode: GTNetMessageCodeType | number = null;
+  idGtNetMessageAnswer: number | null = null;
+  requestMsgCode: GTNetMessageCodeType | number | null = null;
+  responseMsgCode: GTNetMessageCodeType | number | null = null;
   priority: number = 1;
-  responseMsgConditional: string = null;
-  responseMsgMessage: string = null;
+  responseMsgConditional: string | null = null;
+  responseMsgMessage: string | null = null;
   waitDaysApply: number = 0;
 
-  getId(): number {
+  getId(): number | null {
     return this.idGtNetMessageAnswer;
   }
 }

@@ -1,6 +1,7 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, signal, input, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { HelpIds } from '../../lib/help/help.ids';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -52,13 +53,13 @@ import { TemplateFormCheckDialogResultFailedComponent } from './template-form-ch
     TemplateFormCheckDialogResultFailedComponent
   ]
 })
-export class TemplateFormCheckDialogComponent extends SimpleEditBase implements OnInit {
+export class TemplateFormCheckDialogComponent extends SimpleFormEditBase implements OnInit {
   private importTransactionTemplateService: ImportTransactionTemplateService = inject(ImportTransactionTemplateService);
   public translateService: TranslateService = inject(TranslateService);
 
   readonly importTransactionPlatform = input<ImportTransactionPlatform>(undefined);
 
-  readonly formTemplateCheck = signal<FormTemplateCheck>(null);
+  readonly formTemplateCheck = signal<FormTemplateCheck | null>(null);
   private checkSubscription?: Subscription;
 
   constructor() {
@@ -81,7 +82,7 @@ export class TemplateFormCheckDialogComponent extends SimpleEditBase implements 
   checkFormAgainstTemplate(event: unknown) {
     const ftc = new FormTemplateCheck(
       this.importTransactionPlatform().idTransactionImportPlatform,
-      this.configObject.templateAsTxt.formControl.value
+      requireFormControl(this.configObject.templateAsTxt).value
     );
     this.checkSubscription?.unsubscribe();
     this.checkSubscription = this.importTransactionTemplateService

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { DialogHandler } from '../../../lib/maintree/handler/dialog-handler.interface';
@@ -43,7 +43,7 @@ export class AppDialogHandler implements DialogHandler {
           this.dialogService,
           callParam,
           titleKey
-        ).onClose,
+        ).pipe(switchMap((ref) => ref.onClose)),
       () => this.reportLoadFailure()
     );
   }
@@ -58,7 +58,7 @@ export class AppDialogHandler implements DialogHandler {
           this.dialogService,
           data,
           onlyCurrency
-        ).onClose,
+        ).pipe(switchMap((ref) => ref.onClose)),
       () => this.reportLoadFailure()
     );
   }

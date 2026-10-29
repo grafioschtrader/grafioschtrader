@@ -5,17 +5,17 @@ import { BaseID } from '../../entities/base.id';
  * it; the token is shown once, in the answer to its creation.
  */
 export class UserAccessToken implements BaseID {
-  idUserAccessToken: number = null;
-  tokenName: string = null;
+  idUserAccessToken: number | null = null;
+  tokenName: string | null = null;
   /** First characters of the token, to tell tokens apart */
-  tokenPrefix: string = null;
-  scope: string = null;
-  createdAt: string = null;
-  expiresAt: string = null;
-  lastUsedAt: string = null;
+  tokenPrefix: string | null = null;
+  scope: string | null = null;
+  createdAt: string | null = null;
+  expiresAt: string | null = null;
+  lastUsedAt: string | null = null;
   expired = false;
 
-  getId(): number {
+  getId(): number | null {
     return this.idUserAccessToken;
   }
 }

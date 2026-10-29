@@ -19,7 +19,8 @@ export class SecurityLookupService extends AuthServiceWithLogout<any> {
    *
    * @param isin - ISIN of the instrument
    * @param currency - Trading currency
-   * @param mic - MIC of the exchange the security is created on
+   * @param mic - MIC of the exchange the security is created on; null when the exchange has none, then the parameter
+   *   is omitted and the listings are not restricted to one exchange
    * @param idAssetClass - Asset class chosen in the form; selects the providers and connectors
    * @param ticker - Ticker entered in the form, a fallback search term; may be empty
    * @returns The candidates and the status of every provider that was asked
@@ -27,15 +28,14 @@ export class SecurityLookupService extends AuthServiceWithLogout<any> {
   lookup(
     isin: string,
     currency: string,
-    mic: string,
+    mic: string | null | undefined,
     idAssetClass: number,
     ticker?: string
   ): Observable<SecurityLookupResponse> {
-    let params = new HttpParams()
-      .set('isin', isin)
-      .set('currency', currency)
-      .set('mic', mic)
-      .set('idAssetClass', idAssetClass);
+    let params = new HttpParams().set('isin', isin).set('currency', currency).set('idAssetClass', idAssetClass);
+    if (mic != null) {
+      params = params.set('mic', mic);
+    }
     if (ticker?.trim()) {
       params = params.set('ticker', ticker.trim());
     }

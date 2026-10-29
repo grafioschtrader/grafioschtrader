@@ -114,7 +114,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
   readonly firstRowIndex = input<number>(undefined);
 
   /** Reference to the Optimus table component for accessing table functionality like CSV export */
-  readonly dataTable = viewChild<Table>('dataTable');
+  readonly dataTable = viewChild.required<Table>('dataTable');
 
   /** Currently selected transaction cost position for context menu operations */
   private selectedTransactionCostPosition: TransactionCostPosition;

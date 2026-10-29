@@ -1,3 +1,4 @@
+import { requireFieldName } from '../../models/form-control-access';
 import { BaseInputComponent } from '../base.input.component';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -52,7 +53,7 @@ export class FormInputTreeSelectComponent extends BaseInputComponent implements 
   override ngOnInit(): void {
     super.ngOnInit();
     // Sync initial value from form control to ngModel
-    const formControl = this.group().get(this.config().field);
+    const formControl = this.group().get(requireFieldName(this.config()));
     this.selectedNodes.set(formControl?.value || undefined);
     // Listen for programmatic changes from the form control
     formControl?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((val) => {
@@ -65,7 +66,8 @@ export class FormInputTreeSelectComponent extends BaseInputComponent implements 
   onSelectionChange(value: any): void {
     this.selectedNodes.set(value);
     this.updatingFromNgModel = true;
-    this.group().get(this.config().field)?.setValue(value);
+    const field = this.config().field;
+    if (field != null) this.group().get(field)?.setValue(value);
     this.updatingFromNgModel = false;
   }
 }

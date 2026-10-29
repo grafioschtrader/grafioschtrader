@@ -80,7 +80,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
   readonly contextMenuItems = signal<MenuItem[]>([]);
   entityMappingArr: { [key: string]: EntityMapping } = {};
   readonly proposeChangeEntityWithEntityList = signal<ProposeChangeEntityWithEntity[]>([]);
-  readonly selectedEntity = signal<ProposeChangeEntityWithEntity>(null);
+  readonly selectedEntity = signal<ProposeChangeEntityWithEntity | null>(null);
 
   private readonly destroyRef = inject(DestroyRef);
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
@@ -305,7 +305,9 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
    */
   onComponentClick(event: PanelClickEvent): void {
     const selected = this.selectedEntity();
-    const menuItems: MenuItem[] = selected ? [{ label: 'EDIT', command: () => this.handleEditEntity(selected) }] : null;
+    const menuItems: MenuItem[] | null = selected
+      ? [{ label: 'EDIT', command: () => this.handleEditEntity(selected) }]
+      : null;
     this.menuSubscription?.unsubscribe();
     this.menuSubscription = TranslateHelper.translateMenuItems$(menuItems, this.translateService).subscribe(
       (translated) => {

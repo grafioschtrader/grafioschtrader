@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { Stockexchange } from '../../entities/stockexchange';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -146,7 +147,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   /** Loads the calendar and time-zone choices once per session, preserving edits made while they are pending. */
   private loadOptions(): void {
     // A MIC needs its rule-set mapping before it can supply defaults. Loading options never resets the form.
-    this.configObject.mic.formControl.disable();
+    requireFormControl(this.configObject.mic).disable();
     this.configObject.submit.disabled = true;
     forkJoin({
       timezones: this.gps.getTimezones(),
@@ -163,7 +164,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
         this.ruleSetIdByMic = mapping;
         this.configObject.submit.disabled = false;
         if (this.canAssignMic()) {
-          this.configObject.mic.formControl.enable();
+          requireFormControl(this.configObject.mic).enable();
           this.valueChangedOnMic();
         }
         afterNextRender(
@@ -180,28 +181,30 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private valueChangedOnOnlyMainStockexchange(): void {
-    this.configObject.onlyMainStockexchange.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.onlyMainStockexchange)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((oms: boolean) => {
         this.configObject.mic.groupItem = this.createMicOptions(oms);
       });
   }
 
   private valueChangedOnMic(): void {
-    this.configObject.mic.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((mic) => {
-      const sm: StockexchangeMic = this.callParam().stockexchangeMics.find((smf) => smf.mic === mic);
-      if (sm) {
-        this.configObject.name.formControl.setValue(sm.name.toLowerCase().substring(0, this.nameMaxLength));
-        this.configObject.countryCode.formControl.setValue(sm.countryCode);
-        this.configObject.website.formControl.setValue(sm.website);
-        this.configObject.timeZone.formControl.setValue(sm.timeZone);
-      }
-      this.disableEnableCountry();
-      // The MIC drives the defaults of this dialog, so it also decides the calendar source: the rule set written for
-      // that MIC is preselected, and a MIC without one leaves the field empty rather than keeping the rule set of the
-      // MIC chosen before. Setting it disables the index, which applyCalendarSourceExclusion takes care of.
-      this.configObject.idTradingCalendarRuleSet.formControl.setValue(this.ruleSetIdByMic[mic] ?? null);
-    });
+    requireFormControl(this.configObject.mic)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((mic) => {
+        const sm: StockexchangeMic = this.callParam().stockexchangeMics.find((smf) => smf.mic === mic);
+        if (sm) {
+          requireFormControl(this.configObject.name).setValue(sm.name.toLowerCase().substring(0, this.nameMaxLength));
+          requireFormControl(this.configObject.countryCode).setValue(sm.countryCode);
+          requireFormControl(this.configObject.website).setValue(sm.website);
+          requireFormControl(this.configObject.timeZone).setValue(sm.timeZone);
+        }
+        this.disableEnableCountry();
+        // The MIC drives the defaults of this dialog, so it also decides the calendar source: the rule set written for
+        // that MIC is preselected, and a MIC without one leaves the field empty rather than keeping the rule set of the
+        // MIC chosen before. Setting it disables the index, which applyCalendarSourceExclusion takes care of.
+        requireFormControl(this.configObject.idTradingCalendarRuleSet).setValue(this.ruleSetIdByMic[mic] ?? null);
+      });
   }
 
   /**
@@ -210,8 +213,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
    */
   private watchCalendarSource(): void {
     for (const field of ['idIndexUpdCalendar', 'idTradingCalendarRuleSet']) {
-      this.configObject[field].formControl.valueChanges
-        .pipe(this.untilDialogClosed())
+      requireFormControl(this.configObject[field])
+        .valueChanges.pipe(this.untilDialogClosed())
         .subscribe(() => this.applyCalendarSourceExclusion());
     }
   }
@@ -225,8 +228,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
    * the dialog. Clearing the value matters because a disabled control is still copied to the business object on save.
    */
   private applyCalendarSourceExclusion(): void {
-    const ruleSetSelected = !!this.configObject.idTradingCalendarRuleSet.formControl.value;
-    const indexSelected = !ruleSetSelected && !!this.configObject.idIndexUpdCalendar.formControl.value;
+    const ruleSetSelected = !!requireFormControl(this.configObject.idTradingCalendarRuleSet).value;
+    const indexSelected = !ruleSetSelected && !!requireFormControl(this.configObject.idIndexUpdCalendar).value;
     this.setCalendarSourceState(this.configObject.idIndexUpdCalendar, ruleSetSelected);
     this.setCalendarSourceState(this.configObject.idTradingCalendarRuleSet, indexSelected);
     this.viewChanged();
@@ -234,14 +237,14 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
 
   private setCalendarSourceState(fieldConfig: FieldConfig, disable: boolean): void {
     if (disable) {
-      if (fieldConfig.formControl.value != null) {
-        fieldConfig.formControl.setValue(null, { emitEvent: false });
+      if (requireFormControl(fieldConfig).value != null) {
+        requireFormControl(fieldConfig).setValue(null, { emitEvent: false });
       }
-      if (fieldConfig.formControl.enabled) {
-        fieldConfig.formControl.disable({ emitEvent: false });
+      if (requireFormControl(fieldConfig).enabled) {
+        requireFormControl(fieldConfig).disable({ emitEvent: false });
       }
-    } else if (fieldConfig.formControl.disabled) {
-      fieldConfig.formControl.enable({ emitEvent: false });
+    } else if (requireFormControl(fieldConfig).disabled) {
+      requireFormControl(fieldConfig).enable({ emitEvent: false });
     }
   }
 
@@ -253,7 +256,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
         distinctUntilChanged(),
         switchMap((countryCode, index) => {
           if (index > 0) {
-            this.configObject.idIndexUpdCalendar.formControl.setValue(null);
+            requireFormControl(this.configObject.idIndexUpdCalendar).setValue(null);
           }
           this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = [];
           return countryCode ? this.getSecurityObservable(countryCode) : of<Security[]>([]);
@@ -267,7 +270,9 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private disableEnableCountry(): void {
-    FormHelper.disableEnableFieldConfigs(!!this.configObject.mic.formControl.value, [this.configObject.countryCode]);
+    FormHelper.disableEnableFieldConfigs(!!requireFormControl(this.configObject.mic).value, [
+      this.configObject.countryCode
+    ]);
   }
 
   private createMicOptions(onlyMainStockexchange: boolean): GroupItem[] {

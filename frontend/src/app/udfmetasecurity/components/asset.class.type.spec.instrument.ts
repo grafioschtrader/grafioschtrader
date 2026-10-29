@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Directive, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
@@ -58,8 +59,8 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
    * to show only those valid for the selected asset class types.
    */
   valueChangedOnCategoryType(): void {
-    this.configObject[this.fieldCategoryType].formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject[this.fieldCategoryType])
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((categoryType) => {
         if (this.configObject[this.fieldCategoryType].inputType === InputType.MultiSelect) {
           const vkh: ValueKeyHtmlSelectOptions[] = [];
@@ -75,7 +76,7 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
             });
           }
           this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions = vkh;
-          vkh.length === 0 && this.configObject[this.fieldSpecialInvestmentInstrument].formControl.setValue('');
+          vkh.length === 0 && requireFormControl(this.configObject[this.fieldSpecialInvestmentInstrument]).setValue('');
         } else {
           if (this.canChangeValues() && categoryType && categoryType.length > 0) {
             this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions =
@@ -84,7 +85,7 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
                   v.key as SpecialInvestmentInstruments
                 )
               );
-            this.configObject[this.fieldSpecialInvestmentInstrument].formControl.setValue(
+            requireFormControl(this.configObject[this.fieldSpecialInvestmentInstrument]).setValue(
               this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions[0].key
             );
           }

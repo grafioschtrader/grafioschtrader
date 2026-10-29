@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { signal } from '@angular/core';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -36,8 +37,8 @@ export class SecurityEditSupport {
   private static readonly HISTORY_SETTINGS = 'HISTORY_SETTINGS';
   private static readonly INTRA_SETTINGS = 'INTRA_SETTINGS';
 
-  private static denominationValidation: ValidatorFn[];
-  private static denominationErrors?: ErrorMessageRules[];
+  private static denominationValidation?: ValidatorFn[] | null;
+  private static denominationErrors?: ErrorMessageRules[] | null;
 
   public readonly ID_CONNECTOR_DIVIDEND = 'idConnectorDividend';
 
@@ -359,15 +360,20 @@ export class SecurityEditSupport {
         ? stockexchanges
         : stockexchanges.filter((stockexchange) => stockexchange.noMarketValue === restrictToNoMarketValue);
     configObject.stockexchange.groupItem = [new GroupItem('', '', '', null)].concat(
-      offered.map(
-        (stockexchange) =>
-          new GroupItem(
-            stockexchange.idStockexchange,
-            stockexchange.name,
-            stockexchange.name,
-            'fi fi-' + (stockexchange.countryCode ? stockexchange.countryCode.toLowerCase() : 'xx')
-          )
-      )
+      offered
+        .filter(
+          (stockexchange): stockexchange is Stockexchange & { idStockexchange: number; name: string } =>
+            stockexchange.idStockexchange != null && stockexchange.name != null
+        )
+        .map(
+          (stockexchange) =>
+            new GroupItem(
+              stockexchange.idStockexchange,
+              stockexchange.name,
+              stockexchange.name,
+              'fi fi-' + (stockexchange.countryCode ? stockexchange.countryCode.toLowerCase() : 'xx')
+            )
+        )
     );
   }
 
@@ -406,15 +412,21 @@ export class SecurityEditSupport {
     this.destroy();
     this.valueChangedOnAssetClass(securityDerived, configObject);
     this.valueChangedOnaActiveFromDate(configObject);
-    !configObject.isTenantPrivate.formControl.disabled &&
+    !requireFormControl(configObject.isTenantPrivate).disabled &&
       this.valueChangedOnPrivateSecurity(securityDerived, configObject);
   }
 
   valueChangedOnAssetClass(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
-    this.assetClassSubscribe = configObject.assetClass.formControl.valueChanges.subscribe((idAssetclass: number) => {
-      const assetClass: Assetclass = this.disableEnableFieldsOnAssetclass(securityDerived, configObject, idAssetclass);
-      this.callbackValueChanged && this.callbackValueChanged.valueChangedOnAssetClassExtend(assetClass);
-    });
+    this.assetClassSubscribe = requireFormControl(configObject.assetClass).valueChanges.subscribe(
+      (idAssetclass: number) => {
+        const assetClass: Assetclass = this.disableEnableFieldsOnAssetclass(
+          securityDerived,
+          configObject,
+          idAssetclass
+        );
+        this.callbackValueChanged && this.callbackValueChanged.valueChangedOnAssetClassExtend(assetClass);
+      }
+    );
   }
 
   disableEnableFieldsOnAssetclass(
@@ -437,16 +449,16 @@ export class SecurityEditSupport {
   }
 
   valueChangedOnaActiveFromDate(configObject: { [name: string]: FieldConfig }): void {
-    this.activeFromDateSubscribe = configObject.activeFromDate.formControl.valueChanges.subscribe(
+    this.activeFromDateSubscribe = requireFormControl(configObject.activeFromDate).valueChanges.subscribe(
       (activeFromDate: Date) => {
         if (activeFromDate) {
           configObject.activeToDate.calendarConfig.minDate = new Date(activeFromDate.getTime() + 86400000);
           if (
-            configObject.activeToDate.formControl.value &&
-            configObject.activeToDate.formControl.value.getTime() <
+            requireFormControl(configObject.activeToDate).value &&
+            requireFormControl(configObject.activeToDate).value.getTime() <
               configObject.activeToDate.calendarConfig.minDate.getTime()
           ) {
-            configObject.activeToDate.formControl.setValue(null);
+            requireFormControl(configObject.activeToDate).setValue(null);
           }
         }
       }
@@ -457,7 +469,7 @@ export class SecurityEditSupport {
    * Private security has no ISIN, ticker symbol and can not be short
    */
   valueChangedOnPrivateSecurity(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
-    this.securitySubscribe = configObject.isTenantPrivate.formControl.valueChanges.subscribe((isPrivate) =>
+    this.securitySubscribe = requireFormControl(configObject.isTenantPrivate).valueChanges.subscribe((isPrivate) =>
       this.setPrivatePaper(securityDerived, isPrivate, configObject)
     );
   }
@@ -551,7 +563,7 @@ export class SecurityEditSupport {
   }
 
   private isHideIsinAndTicker(configObject: { [name: string]: FieldConfig }): boolean {
-    return this.getIsCFDByConfigObject(configObject) || configObject.isTenantPrivate.formControl.value;
+    return this.getIsCFDByConfigObject(configObject) || requireFormControl(configObject.isTenantPrivate).value;
   }
 
   private getIsCFDByConfigObject(configObject: { [name: string]: FieldConfig }): boolean {

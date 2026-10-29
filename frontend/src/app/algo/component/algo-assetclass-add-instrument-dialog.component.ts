@@ -38,12 +38,12 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
 })
 export class AlgoAssetclassAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility of the dialog. */
-  readonly visibleDialog = input<boolean>(undefined);
+  readonly visibleDialog = input<boolean>();
 
   /** The custom category the selected instruments are added to. */
   readonly idAlgoAssetclassSecurity = input<number>(undefined);
 
-  readonly aaaitc = viewChild(AlgoAssetclassAddInstrumentTableComponent);
+  readonly aaaitc = viewChild.required(AlgoAssetclassAddInstrumentTableComponent);
 
   /** Emitted when the dialog closes; the hierarchy view then reloads to show the added instruments. */
   readonly closeDialog = output<ProcessedActionData>();

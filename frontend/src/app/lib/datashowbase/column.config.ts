@@ -15,6 +15,9 @@ import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html
  * table operations with sorting, filtering, and editing capabilities.
  */
 export interface ColumnConfig extends BaseFieldDefinition {
+  /** Every display column has a field path or a synthetic column key. Form buttons may omit theirs. */
+  field: string;
+
   /** Translation key for the column header text */
   headerKey: string;
 
@@ -389,19 +392,19 @@ export class ColumnGroupConfig {
   textValueTranslated: string;
 
   /** Number of columns this group configuration should span */
-  colspan: number;
+  colspan?: number;
 
   /**
    * Path within the group data object to the currency code (e.g. 'currency'). Group/grand-total rows have a
    * different shape than detail rows, so the currency path of the detail column does not apply to them.
    */
-  currencyPrecisionField: string;
+  currencyPrecisionField?: string;
 
   /**
    * Creates a new column group configuration for accessing backend model data.
    *
-   * @param fieldValue - Field path to access the value directly from the backend model data.
-   *                    Use empty string when using fieldTextFN for custom value extraction.
+   * @param fieldValue - Field path to access the value directly from the backend model data;
+   *                    null/undefined for a label-only group or custom fieldTextFN.
    * @param textValueKey - Translation key for the group label text (e.g., "TOTAL", "SUBTOTAL")
    * @param fieldTextFN - Custom function for extracting values when simple field access is insufficient.
    *                     Used when the required value needs special logic to extract from the model data.
@@ -409,14 +412,10 @@ export class ColumnGroupConfig {
    * @param optionalsGropuParams - Additional configuration options including column spanning
    */
   constructor(
-    public fieldValue: string,
-    public textValueKey?: string,
-    public fieldTextFN?: (
-      columnConfig: ColumnConfig,
-      arrIndex: number,
-      groupChangeIndexMap: any,
-      rowIndex: number
-    ) => any,
+    public fieldValue: string | null | undefined,
+    public textValueKey?: string | null,
+    public fieldTextFN?:
+      ((columnConfig: ColumnConfig, arrIndex: number, groupChangeIndexMap: any, rowIndex: number) => any) | null,
     optionalsGropuParams?: OptionalGroupParams
   ) {
     if (optionalsGropuParams) {

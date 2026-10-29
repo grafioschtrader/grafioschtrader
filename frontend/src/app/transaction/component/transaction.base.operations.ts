@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Portfolio } from '../../entities/portfolio';
 import { Cashaccount } from '../../entities/cashaccount';
 import { TranslateService } from '@ngx-translate/core';
@@ -155,7 +156,9 @@ export abstract class TransactionBaseOperations {
    * @param event Event object from user interaction
    */
   oneOverX(event: unknown): void {
-    this.configObject.currencyExRate.formControl.setValue(1 / this.configObject.currencyExRate.formControl.value);
+    requireFormControl(this.configObject.currencyExRate).setValue(
+      1 / requireFormControl(this.configObject.currencyExRate).value
+    );
   }
 
   /**
@@ -163,7 +166,7 @@ export abstract class TransactionBaseOperations {
    * @param event Event object from user interaction
    */
   getTimeDependingExchangeRate(event: unknown): void {
-    const transactionTime: Date = this.configObject.transactionTime.formControl.value;
+    const transactionTime: Date = requireFormControl(this.configObject.transactionTime).value;
     if (this.currencypair.idSecuritycurrency) {
       this.replaceDialogRequest('exchangeRate', () =>
         BusinessHelper.setHistoryquoteCloseToFormControl(
@@ -213,8 +216,9 @@ export abstract class TransactionBaseOperations {
   /** Updates the enabled/disabled state of exchange rate buttons based on form validity */
   protected disableEnableExchangeRateButtons(): void {
     this.configObject.exRateButton.disabled =
-      this.configObject.currencyExRate.formControl.disabled || !this.configObject.transactionTime.formControl.valid;
-    this.configObject.oneOverX.disabled = this.configObject.currencyExRate.formControl.disabled;
+      requireFormControl(this.configObject.currencyExRate).disabled ||
+      !requireFormControl(this.configObject.transactionTime).valid;
+    this.configObject.oneOverX.disabled = requireFormControl(this.configObject.currencyExRate).disabled;
   }
 
   /**

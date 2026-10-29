@@ -38,7 +38,7 @@ export abstract class TenantEditComponent {
 
   existingTenant: Tenant;
 
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
 
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();

@@ -86,14 +86,13 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
 
   readData(yearChange: boolean): void {
     this.readDataSub?.unsubscribe();
+    const id = this.stockexchange()?.idStockexchange;
+    if (id == null) return;
     const plusObservable: Observable<TradingDaysWithDateBoundaries> = this.tradingDaysPlusService.getTradingDaysByYear(
       this.yearCalendarData().year
     );
     const minusObservable: Observable<TradingDaysWithDateBoundaries> =
-      this.tradingDaysMinusService.getTradingDaysMinusByStockexchangeAndYear(
-        this.stockexchange().idStockexchange,
-        this.yearCalendarData().year
-      );
+      this.tradingDaysMinusService.getTradingDaysMinusByStockexchangeAndYear(id, this.yearCalendarData().year);
 
     this.readDataSub = forkJoin([plusObservable, minusObservable])
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -142,9 +141,11 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   saveData(convertedAddRemoveDays: AddRemoveDay[]): void {
+    const id = this.stockexchange()?.idStockexchange;
+    if (id == null) return;
     const year = this.selectedYear();
     this.tradingDaysMinusService
-      .save(this.stockexchange().idStockexchange, new SaveTradingDays(year, convertedAddRemoveDays))
+      .save(id, new SaveTradingDays(year, convertedAddRemoveDays))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((tradingDaysMinus: TradingDaysWithDateBoundaries) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TRADING_CALENDAR_GLOBAL_SAVE', {
@@ -174,6 +175,8 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   copyCalendarFromOtherExchange(fullCopy: boolean): void {
+    const id = this.stockexchange()?.idStockexchange;
+    if (id == null) return;
     this.translateService
       .get(fullCopy ? this.COPY_FULL_TITLE_KEY : this.COPY_YEAR_TITLE_KEY)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -181,7 +184,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
         const ref = this.dialogService.open(TradingCalendarOtherExchangeDynamicDialogComponent, {
           data: {
             copyTradingDaysFromSourceToTarget: new CopyTradingDaysFromSourceToTarget(
-              this.stockexchange().idStockexchange,
+              id,
               this.yearCalendarData().year,
               fullCopy
             ),
@@ -194,6 +197,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
           header: msg,
           width: '400px'
         });
+        if (!ref) return;
 
         ref.onClose
           .pipe(takeUntilDestroyed(this.destroyRef))

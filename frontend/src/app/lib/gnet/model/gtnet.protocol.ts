@@ -49,7 +49,7 @@ export enum MessageCategory {
  * @param messageCode the code as it appears on a message row or in a form control
  * @returns the constant name, or null when the value belongs to no known code
  */
-export function messageCodeName(messageCode: GTNetMessageCodeType | number | string): string | null {
+export function messageCodeName(messageCode: GTNetMessageCodeType | number | string | null | undefined): string | null {
   if (messageCode == null) {
     return null;
   }

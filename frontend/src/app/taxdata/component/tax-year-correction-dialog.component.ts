@@ -45,7 +45,7 @@ export class TaxYearCorrectionDialogComponent {
   readonly yearOptions = input<number[]>([]);
   /** Tax year preselected for new rows, typically the year the dialog was opened from. */
   readonly suggestedYear = input<number>(undefined);
-  readonly visibleDialog = input<boolean>(undefined);
+  readonly visibleDialog = input<boolean>();
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
 

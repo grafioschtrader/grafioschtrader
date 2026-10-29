@@ -74,8 +74,8 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
 
   readonly fieldMappingsInput = input<GenericConnectorFieldMapping[]>([], { alias: 'fieldMappings' });
   readonly fieldMappings = linkedSignal(() => this.fieldMappingsInput());
-  readonly feedSupport = input<string>(undefined);
-  readonly responseFormat = input<string>(undefined);
+  readonly feedSupport = input<string>();
+  readonly responseFormat = input<string>();
   readonly editable = input<boolean>(true);
   readonly fieldMappingsChange = output<GenericConnectorFieldMapping[]>();
 

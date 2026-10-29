@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, afterNextRender, effect, inject, Injector, signal, viewChild, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
@@ -146,7 +147,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
   readonly feeModelYamlValue = signal('');
   readonly feeModelSchema = signal<any>(null);
   evalExCompletions: { [fieldName: string]: YamlFieldCompletion[] };
-  readonly testResult = signal<TransactionCostEstimateResult>(null);
+  readonly testResult = signal<TransactionCostEstimateResult | null>(null);
 
   private readonly injector = inject(Injector);
   private estimateSubscription: Subscription;
@@ -276,7 +277,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
 
   private createMicOptions(stockexchanges: Stockexchange[]): ValueKeyHtmlSelectOptions[] {
     const options = stockexchanges
-      .filter((se) => se.mic)
+      .filter((se): se is Stockexchange & { mic: string } => !!se.mic)
       .map((se) => new ValueKeyHtmlSelectOptions(se.mic, se.name + ' - ' + se.mic));
     return [new ValueKeyHtmlSelectOptions('', ''), ...options];
   }
@@ -314,21 +315,21 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       idTradingPlatformPlan: this.isDynamic
         ? this.securityaccount?.tradingPlatformPlan?.idTradingPlatformPlan
         : this.callParam()?.idTradingPlatformPlan,
-      tradeValue: this.configObject.tradeValue.formControl.value || 0,
-      units: this.configObject.units.formControl.value || 0,
-      specInvestInstrument: this.configObject.specInvestInstrument.formControl.value,
-      categoryType: this.configObject.categoryType.formControl.value,
-      mic: this.configObject.mic.formControl.value || null,
-      currency: this.configObject.currency.formControl.value || null,
-      fixedAssets: this.configObject.fixedAssets.formControl.value,
-      portfolioTotal: this.configObject.portfolioTotal.formControl.value,
-      tenantTotal: this.configObject.tenantTotal.formControl.value,
-      tradeDirection: this.configObject.tradeDirection.formControl.value,
-      settlementCurrency: this.configObject.settlementCurrency.formControl.value || null,
-      tradesInMonth: this.configObject.tradesInMonth.formControl.value,
-      tradesInQuarter: this.configObject.tradesInQuarter.formControl.value,
-      tradesInYear: this.configObject.tradesInYear.formControl.value,
-      securityTradesInMonth: this.configObject.securityTradesInMonth.formControl.value,
+      tradeValue: requireFormControl(this.configObject.tradeValue).value || 0,
+      units: requireFormControl(this.configObject.units).value || 0,
+      specInvestInstrument: requireFormControl(this.configObject.specInvestInstrument).value,
+      categoryType: requireFormControl(this.configObject.categoryType).value,
+      mic: requireFormControl(this.configObject.mic).value || null,
+      currency: requireFormControl(this.configObject.currency).value || null,
+      fixedAssets: requireFormControl(this.configObject.fixedAssets).value,
+      portfolioTotal: requireFormControl(this.configObject.portfolioTotal).value,
+      tenantTotal: requireFormControl(this.configObject.tenantTotal).value,
+      tradeDirection: requireFormControl(this.configObject.tradeDirection).value,
+      settlementCurrency: requireFormControl(this.configObject.settlementCurrency).value || null,
+      tradesInMonth: requireFormControl(this.configObject.tradesInMonth).value,
+      tradesInQuarter: requireFormControl(this.configObject.tradesInQuarter).value,
+      tradesInYear: requireFormControl(this.configObject.tradesInYear).value,
+      securityTradesInMonth: requireFormControl(this.configObject.securityTradesInMonth).value,
       transactionDate: Helper.formatDateStringAsString(
         this.configObject.transactionDate,
         BaseSettings.FORMAT_DATE_SHORT_NATIVE

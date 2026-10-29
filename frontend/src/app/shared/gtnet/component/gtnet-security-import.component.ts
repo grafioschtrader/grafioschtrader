@@ -172,7 +172,7 @@ export class GTNetSecurityImportComponent
     }
   }
 
-  setChildData(selectedEntity: GTNetSecurityImpHead): void {
+  setChildData(selectedEntity: GTNetSecurityImpHead | null): void {
     const tableComponent = this.tableComponent();
     if (tableComponent) {
       tableComponent.loadPositions(selectedEntity);
@@ -246,7 +246,7 @@ export class GTNetSecurityImportComponent
     super.destroy();
   }
 
-  protected prepareCallParam(entity: GTNetSecurityImpHead): void {
+  protected prepareCallParam(entity: GTNetSecurityImpHead | null): void {
     this.callParam = entity;
   }
 

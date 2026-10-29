@@ -97,19 +97,19 @@ export interface GTNetConfig {
 
 export class GTNet implements BaseID {
   idGtNet: number;
-  domainRemoteName: string = null;
-  timeZone: string = null;
+  domainRemoteName: string | null = null;
+  timeZone: string | null = null;
   spreadCapability = true;
-  dailyRequestLimit: number = null;
+  dailyRequestLimit: number | null = null;
   serverBusy = false;
   serverOnline: number | GTNetServerOnlineStatusTypes = GTNetServerOnlineStatusTypes.SOS_UNKNOWN;
   /** Announced day this peer goes out of operation, null when no discontinuation is pending. */
-  closeStartDate: string = null;
+  closeStartDate: string | null = null;
   allowServerCreation = false;
   // Collection of entity-specific configurations
   gtNetEntities: GTNetEntity[] = [];
   // Connection configuration with token presence indicators
-  gtNetConfig: GTNetConfig = null;
+  gtNetConfig: GTNetConfig | null = null;
 
   getId(): number {
     return this.idGtNet;
@@ -118,23 +118,23 @@ export class GTNet implements BaseID {
 
 export class MsgRequest {
   public gtNetMessageParamMap: Record<string, BaseParam>;
-  public waitDaysApply: number = null;
+  public waitDaysApply: number | null = null;
   /**
    * ID of the original message being cancelled. Only used for cancellation messages
    * (GT_NET_MAINTENANCE_CANCEL_ALL_C, GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C).
    */
-  public idOriginalMessage: number = null;
+  public idOriginalMessage: number | null = null;
   /**
    * Visibility level for admin messages. Controls who can see the message:
    * ALL_USERS = visible to everyone, ADMIN_ONLY = visible only to administrators.
    */
-  public visibility: string = null;
+  public visibility: string | null = null;
 
   constructor(
-    public idGTNetTargetDomain: number,
-    public replyTo: number,
+    public idGTNetTargetDomain: number | null,
+    public replyTo: number | null,
     public messageCode: MessageComType | string,
-    public message: string
+    public message: string | null
   ) {}
 }
 

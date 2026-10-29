@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { UDFDataType, UDFMetadataGeneral, UDFMetadataGeneralParam } from '../model/udf.metadata';
@@ -119,8 +120,8 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
   private initializeInformationEntity(): void {
     if (this.configObject.entity.valueKeyHtmlOptions.length == 1 || this.callParam().uDFMetadataGeneral) {
       this.configObject.entity.valueKeyHtmlOptions.length == 1 &&
-        this.configObject.entity.formControl.setValue(this.configObject.entity.valueKeyHtmlOptions[0].key);
-      this.configObject.entity.formControl.disable();
+        requireFormControl(this.configObject.entity).setValue(this.configObject.entity.valueKeyHtmlOptions[0].key);
+      requireFormControl(this.configObject.entity).disable();
     }
   }
 

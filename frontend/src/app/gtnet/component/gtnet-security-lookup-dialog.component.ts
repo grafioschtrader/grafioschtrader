@@ -67,15 +67,15 @@ export class GtnetSecurityLookupDialogComponent {
 
   readonly visibleDialogInput = input(false, { alias: 'visibleDialog' });
   readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
-  readonly isin = input<string>(undefined);
-  readonly currency = input<string>(undefined);
-  readonly tickerSymbol = input<string>(undefined);
+  readonly isin = input<string>();
+  readonly currency = input<string>();
+  readonly tickerSymbol = input<string>();
 
   readonly closeDialog = output<ProcessedActionData>();
 
   readonly loading = signal(false);
-  readonly response = signal<SecurityGtnetLookupResponse>(null);
-  readonly errorMessage = signal<string>(null);
+  readonly response = signal<SecurityGtnetLookupResponse | null>(null);
+  readonly errorMessage = signal<string | null>(null);
 
   /** Flag to prevent double emission when selection closes the dialog */
   private selectionHandled = false;

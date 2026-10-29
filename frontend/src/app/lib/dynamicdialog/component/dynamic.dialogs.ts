@@ -8,6 +8,7 @@ import { LogoutAdminSelfReleaseDynamicDialogComponent } from './logout-admin-sel
 import { LogoutReleaseRequestDynamicDialogComponent } from './logout-release-request-dynamic-dialog.component';
 import { MailSendDynamicDialogComponent, MailSendParam } from './mail-send-dynamic-dialog.component';
 import { DynamicDialogHelper } from './dynamicDialogHelper';
+import { Observable } from 'rxjs';
 
 export class DynamicDialogs extends DynamicDialogHelper {
   public static getOpenedLimitTransactionRequestDynamicComponent(
@@ -21,7 +22,7 @@ export class DynamicDialogs extends DynamicDialogHelper {
       LimitTransactionRequestDynamicDialogComponent,
       'APPLY_LIMIT_TITLE'
     );
-    dynamicDialogHelper.openDynamicDialog(400, { entityName });
+    dynamicDialogHelper.openDynamicDialog(400, { entityName }).subscribe();
     return dynamicDialogHelper;
   }
 
@@ -40,7 +41,7 @@ export class DynamicDialogs extends DynamicDialogHelper {
       LogoutAdminSelfReleaseDynamicDialogComponent,
       'ADMIN_SELF_RELEASE_TITLE'
     );
-    dynamicDialogHelper.openDynamicDialog(400, { email, password });
+    dynamicDialogHelper.openDynamicDialog(400, { email, password }).subscribe();
     return dynamicDialogHelper;
   }
 
@@ -56,7 +57,7 @@ export class DynamicDialogs extends DynamicDialogHelper {
       LogoutReleaseRequestDynamicDialogComponent,
       'RESET_USER_MISUSED'
     );
-    dynamicDialogHelper.openDynamicDialog(400, { email, password });
+    dynamicDialogHelper.openDynamicDialog(400, { email, password }).subscribe();
     return dynamicDialogHelper;
   }
 
@@ -64,7 +65,7 @@ export class DynamicDialogs extends DynamicDialogHelper {
     translateService: TranslateService,
     dialogService: DialogService,
     mailSendParam: MailSendParam
-  ): DynamicDialogRef {
+  ): Observable<DynamicDialogRef> {
     const dynamicDialogHelper = new DynamicDialogHelper(
       translateService,
       dialogService,

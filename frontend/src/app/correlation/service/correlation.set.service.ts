@@ -132,7 +132,7 @@ export class CorrelationSetService
     securityIdsPairs: number[][]
   ): Observable<CorrelationRollingResult[]> {
     let params = new HttpParams();
-    params = params.append('securityIdsPairs', [].concat(...securityIdsPairs).join(','));
+    params = params.append('securityIdsPairs', securityIdsPairs.flat().join(','));
     return this.httpClient
       .get<CorrelationRollingResult[]>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}` + `/corrrolling/${idCorrelationSet}`,

@@ -1,4 +1,4 @@
-import { SimpleEditBase } from './simple.edit.base';
+import { SimpleFormEditBase } from './simple.form.edit.base';
 import { Directive } from '@angular/core';
 
 /**
@@ -6,7 +6,7 @@ import { Directive } from '@angular/core';
  * Extends SimpleEditBase to provide specialized functionality for dynamic field editing.
  */
 @Directive()
-export abstract class DynamicFieldSimpleEditBase extends SimpleEditBase {
+export abstract class DynamicFieldSimpleEditBase extends SimpleFormEditBase {
   /**
    * Override of the onShow method to initialize the component when dialog becomes visible. Unlike SimpleEditBase it
    * initializes at once, without deferring to the next macrotask.

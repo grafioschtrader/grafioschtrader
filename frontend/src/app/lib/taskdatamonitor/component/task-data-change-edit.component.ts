@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { TranslateModule } from '@ngx-translate/core';
@@ -89,7 +90,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
    * none is selected yet.
    */
   override helpLink(): void {
-    const idTaskName = this.configObject.idTask.formControl.value;
+    const idTaskName = requireFormControl(this.configObject.idTask).value;
     this.gps.toExternalHelpWebpage(
       this.gps.getUserLang(),
       getTaskTypeHelpId(idTaskName ? this.taskTypeEnum()[idTaskName] : null)
@@ -97,8 +98,8 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   }
 
   valueChangedOnIdTask(): void {
-    this.configObject.idTask.formControl.valueChanges
-      .pipe(
+    requireFormControl(this.configObject.idTask)
+      .valueChanges.pipe(
         switchMap((idTask) => {
           const taskConfig = this.tdcFormConstraints().taskTypeConfig[idTask];
           this.configObject.entity.valueKeyHtmlOptions = [];
@@ -113,14 +114,14 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
               allowEmpty ? null : [Validators.required],
               allowEmpty ? null : [DynamicFieldHelper.RULE_REQUIRED_DIRTY]
             );
-            this.configObject.entity.formControl.setValue(null);
+            requireFormControl(this.configObject.entity).setValue(null);
             return this.translateOptions(SelectOptionsHelper.createHtmlOptionsFromStringArray(taskConfig, true));
           } else {
             // Scenario A: no entity configuration - hide all entity fields
-            this.configObject.entity.formControl.setValue(null);
+            requireFormControl(this.configObject.entity).setValue(null);
             this.hideIdEntityFields();
             DynamicFieldHelper.resetValidator(this.configObject.entity, null, null);
-            this.configObject.entity.formControl.disable();
+            requireFormControl(this.configObject.entity).disable();
             FormHelper.hideVisibleFieldConfigs(true, [this.configObject.entity]);
             return of([]);
           }
@@ -131,22 +132,22 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   }
 
   valueChangedOnEntity(): void {
-    this.configObject.entity.formControl.valueChanges
-      .pipe(
+    requireFormControl(this.configObject.entity)
+      .valueChanges.pipe(
         switchMap((entity) => {
           this.configObject.idEntity.valueKeyHtmlOptions = [];
           // Options are task-scoped: pick the option map of the currently selected task first.
           const tdcFormConstraints = this.tdcFormConstraints();
           const optionsForTask =
             tdcFormConstraints.entityIdOptions &&
-            tdcFormConstraints.entityIdOptions[this.configObject.idTask.formControl.value];
+            tdcFormConstraints.entityIdOptions[requireFormControl(this.configObject.idTask).value];
           if (!entity || entity.length === 0) {
             // No entity selected: hide both idEntity fields
             this.hideIdEntityFields();
             return of([]);
           } else if (optionsForTask && optionsForTask[entity]) {
             // Entity with predefined options: show select dropdown, hide number input
-            this.configObject.idEntity.formControl.setValue(null);
+            requireFormControl(this.configObject.idEntity).setValue(null);
             FormHelper.disableEnableFieldConfigs(false, [this.configObject.idEntity]);
             DynamicFieldHelper.resetValidator(
               this.configObject.idEntity,
@@ -159,7 +160,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
             );
           } else {
             // Entity without predefined options: show number input, hide select
-            this.configObject.idEntityNum.formControl.setValue(null);
+            requireFormControl(this.configObject.idEntityNum).setValue(null);
             FormHelper.disableEnableFieldConfigs(false, [this.configObject.idEntityNum]);
             DynamicFieldHelper.resetValidator(
               this.configObject.idEntityNum,
@@ -192,10 +193,10 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
       const optionsForTask =
         tdcFormConstraints.entityIdOptions && tdcFormConstraints.entityIdOptions[callParam.idTask as string];
       if (callParam.idEntity != null && callParam.entity && !(optionsForTask && optionsForTask[callParam.entity])) {
-        this.configObject.idEntityNum.formControl.setValue(callParam.idEntity);
+        requireFormControl(this.configObject.idEntityNum).setValue(callParam.idEntity);
       }
     }
-    this.configObject.earliestStartTime.formControl.setValue(moment().add(1, 'm').toDate());
+    requireFormControl(this.configObject.earliestStartTime).setValue(moment().add(1, 'm').toDate());
     this.configObject.idTask.baseInputComponent?.focus();
   }
 
@@ -219,11 +220,14 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
       .pipe(this.untilDialogClosed())
       .subscribe((options) => {
         this.configObject.idTask.groupItem = options
-          .map((option) => {
+          .flatMap((option) => {
+            if (option.key == null) {
+              return [];
+            }
             const label = `${option.value} - ${this.taskTypeEnum()[option.key]}`;
-            return new GroupItem(option.key, label, label, null);
+            return [new GroupItem(option.key, label, label, null)];
           })
-          .sort((a, b) => a.value.localeCompare(b.value));
+          .sort((a, b) => a.optionsText.localeCompare(b.optionsText));
       });
   }
 
@@ -241,7 +245,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     const taskDataChange = this.copyFormToPrivateBusinessObject(new TaskDataChange(), null);
     taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime).utc().format('YYYY-MM-DD HH:mm:ss');
     // Use number input value if present (idEntityNum is not on TaskDataChange, so read from form)
-    const idEntityNumValue = this.configObject.idEntityNum.formControl.value;
+    const idEntityNumValue = requireFormControl(this.configObject.idEntityNum).value;
     if (idEntityNumValue != null) {
       taskDataChange.idEntity = idEntityNumValue;
     }

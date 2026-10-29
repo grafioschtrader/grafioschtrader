@@ -465,6 +465,8 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   }
 
   handleDeleteEntity<T extends BaseID>(entity: T, deleteService: DeleteService): void {
+    const id = entity.getId();
+    if (id == null) return;
     const entityMsg = AppHelper.toUpperCaseWithUnderscore(entity.constructor.name);
     AppHelper.confirmationDialog(
       this.translateService,
@@ -472,7 +474,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       'MSG_CONFIRM_DELETE_RECORD|' + entityMsg,
       () => {
         deleteService
-          .deleteEntity(entity.getId())
+          .deleteEntity(id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((response) => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
@@ -542,7 +544,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     return HelpIds.HELP_ALGO_TREE;
   }
 
-  getMenuShowOptions(): MenuItem[] {
+  getMenuShowOptions(): MenuItem[] | null {
     return null;
   }
 

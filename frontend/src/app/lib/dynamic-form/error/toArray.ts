@@ -1,3 +1,4 @@
 import { ErrorOptions } from './ngxerrors';
 
-export const toArray = (value: ErrorOptions): string[] => (Array.isArray(value) ? value : [value]);
+export const toArray = (value: ErrorOptions | null | undefined): string[] =>
+  value == null ? [] : Array.isArray(value) ? value : [value];

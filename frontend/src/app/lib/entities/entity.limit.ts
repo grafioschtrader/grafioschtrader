@@ -10,16 +10,16 @@ import { BaseID } from './base.id';
  */
 export class EntityLimit extends Auditable implements BaseID {
   idEntityLimit?: number;
-  keyId?: string = null;
-  limitType?: string = null;
-  entityName?: string = null;
-  relationEntityName?: string = null;
-  countScope?: string = null;
-  ownerScope?: string = null;
-  idRole?: number = null;
-  idUser?: number = null;
-  limitValue?: number = null;
-  validUntil?: Date = null;
+  keyId?: string | null = null;
+  limitType?: string | null = null;
+  entityName?: string | null = null;
+  relationEntityName?: string | null = null;
+  countScope?: string | null = null;
+  ownerScope?: string | null = null;
+  idRole?: number | null = null;
+  idUser?: number | null = null;
+  limitValue?: number | null = null;
+  validUntil?: Date | null = null;
 
   /**
    * Translation keys the backend derives for the three limit enums. They are prefixed with the enum name because
@@ -29,7 +29,7 @@ export class EntityLimit extends Auditable implements BaseID {
   countScopeKey?: string;
   ownerScopeKey?: string;
 
-  public override getId(): number {
+  public override getId(): number | undefined {
     return this.idEntityLimit;
   }
 }

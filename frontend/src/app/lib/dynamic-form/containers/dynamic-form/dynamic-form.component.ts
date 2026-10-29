@@ -1,3 +1,4 @@
+import { requireFieldName, requireFormControl } from '../../models/form-control-access';
 import { Component, OnDestroy, output, input, effect, untracked, inject } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { merge, Subscription } from 'rxjs';
@@ -92,10 +93,10 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
 export class DynamicFormComponent implements OnDestroy {
   private _formBuilder = inject(UntypedFormBuilder);
 
-  readonly formConfig = input<FormConfig>(undefined);
+  readonly formConfig = input.required<FormConfig>();
   readonly config = input<FieldFormGroup[]>([]);
-  readonly formGroupDefinition = input<FormGroupDefinition>(undefined);
-  readonly translateService = input<TranslateService>(undefined);
+  readonly formGroupDefinition = input<FormGroupDefinition>();
+  readonly translateService = input<TranslateService>();
 
   readonly submitBt = output<any>();
 
@@ -158,7 +159,7 @@ export class DynamicFormComponent implements OnDestroy {
     );
   }
 
-  get submitButton(): FieldConfig {
+  get submitButton(): FieldConfig | undefined {
     return FormHelper.getFieldConfigs(this.config()).find(
       (config) => (config.inputType === InputType.Button || config.inputType === InputType.Pbutton) && !config.buttonFN
     );
@@ -212,13 +213,16 @@ export class DynamicFormComponent implements OnDestroy {
 
       childGroups[formGroupDefinition.formGroupName] = formGroupDefinition.formControl;
       formGroupDefinition.fieldConfig.forEach((control) =>
-        childGroups[formGroupDefinition.formGroupName].addControl(control.field, this.createControl(control))
+        childGroups[formGroupDefinition.formGroupName].addControl(
+          requireFieldName(control),
+          this.createControl(control)
+        )
       );
-      formGroupDefinition.formControl.setValidators(formGroupDefinition.validation);
+      formGroupDefinition.formControl.setValidators(formGroupDefinition.validation ?? null);
     });
 
     const group = this._formBuilder.group(childGroups);
-    this.controls.forEach((control) => group.addControl(control.field, this.createControl(control)));
+    this.controls.forEach((control) => group.addControl(requireFieldName(control), this.createControl(control)));
     return group;
   }
 
@@ -232,33 +236,34 @@ export class DynamicFormComponent implements OnDestroy {
 
   transferBusinessObjectToForm(sourceObject: any): void {
     this.controlsFlatten.forEach((config) => {
+      const field = requireFieldName(config);
       let value = config.defaultValue;
 
       if (config.dataproperty) {
         // field can not be used to access the input value
         value = Helper.getValueByPath(sourceObject, config.dataproperty);
-      } else if (config.field in sourceObject) {
+      } else if (field in sourceObject) {
         if (
           config.dataType === DataType.DateNumeric ||
           config.dataType === DataType.DateTimeNumeric ||
           config.dataType === DataType.DateString
         ) {
-          if (sourceObject[config.field]) {
-            value = Helper.parseDateOnlyAsLocal(sourceObject[config.field]);
+          if (sourceObject[field]) {
+            value = Helper.parseDateOnlyAsLocal(sourceObject[field]);
           }
         } else if (
           config.inputType === InputType.InputNumber &&
-          sourceObject[config.field] === 0 &&
-          config.inputNumberSettings.treatZeroAsNull
+          sourceObject[field] === 0 &&
+          config.inputNumberSettings?.treatZeroAsNull
         ) {
           value = null;
         } else {
-          value = sourceObject[config.field];
+          value = sourceObject[field];
         }
       }
       if (config.inputType === InputType.Input && config.valueKeyHtmlOptions) {
         // Mapping value to a shown value, this mapping is happened with valueKeyHtmlOptions
-        let valueKeyHtmlOption: ValueKeyHtmlSelectOptions;
+        let valueKeyHtmlOption: ValueKeyHtmlSelectOptions | undefined;
         if (!value) {
           valueKeyHtmlOption = config.valueKeyHtmlOptions.find((valueKeyHtmlOptions) => '' === valueKeyHtmlOptions.key);
         } else {
@@ -266,10 +271,10 @@ export class DynamicFormComponent implements OnDestroy {
             (valueKeyHtmlOptions) => value === valueKeyHtmlOptions.key
           );
         }
-        value = valueKeyHtmlOption.value;
+        value = valueKeyHtmlOption?.value ?? value;
       }
 
-      config.formControl.setValue(value);
+      requireFormControl(config).setValue(value);
     });
     this.notifier.notify();
   }
@@ -292,7 +297,7 @@ export class DynamicFormComponent implements OnDestroy {
     this.form.reset();
     this.controlsFlatten.forEach((config) => {
       if (config.defaultValue !== null && config.defaultValue !== undefined) {
-        config.formControl.setValue(config.defaultValue);
+        requireFormControl(config).setValue(config.defaultValue);
       }
     });
   }
@@ -313,7 +318,7 @@ export class DynamicFormComponent implements OnDestroy {
     const method = disable ? 'disable' : 'enable';
     FormHelper.flattenConfigMap(this.config()).forEach((fieldConfig) => {
       if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
-        fieldConfig.formControl[method]();
+        requireFormControl(fieldConfig)[method]();
       }
       fieldConfig.disabled = disable;
     });
@@ -346,10 +351,10 @@ export class DynamicFormComponent implements OnDestroy {
   createFieldsetConfigs(): FieldsetConfig[] {
     const fieldsetConfigs: FieldsetConfig[] = [];
     const fieldConfigs: FieldConfig[] = this.controls;
-    let oldFieldsetName = '';
-    let fieldsetConfig: FieldsetConfig;
+    let oldFieldsetName: string | undefined;
+    let fieldsetConfig: FieldsetConfig | undefined;
     fieldConfigs.forEach((fieldConfig) => {
-      if (fieldConfig.fieldsetName !== oldFieldsetName) {
+      if (!fieldsetConfig || fieldConfig.fieldsetName !== oldFieldsetName) {
         fieldsetConfig = new FieldsetConfig(fieldConfig.fieldsetName);
         fieldsetConfigs.push(fieldsetConfig);
         oldFieldsetName = fieldConfig.fieldsetName;
@@ -360,12 +365,12 @@ export class DynamicFormComponent implements OnDestroy {
   }
 
   helpLink(event: unknown): void {
-    this.formConfig().helpLinkFN();
+    this.formConfig().helpLinkFN?.();
   }
 }
 
 class FieldsetConfig {
   fieldConfig: FieldConfig[] = [];
 
-  constructor(public fieldsetName: string) {}
+  constructor(public fieldsetName: string | undefined) {}
 }

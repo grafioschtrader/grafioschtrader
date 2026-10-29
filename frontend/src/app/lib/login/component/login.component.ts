@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { Component, DestroyRef, inject, OnInit, signal, viewChild, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -156,7 +157,7 @@ export class LoginComponent extends FormBase implements OnInit {
     if (!passwordRegexOk) {
       this.visiblePasswordDialog.set(true);
       this.configObject.submit.disabled = false;
-      this.configObject.password.formControl.setValue('');
+      requireFormControl(this.configObject.password).setValue('');
     } else {
       const returnUrl = sessionStorage.getItem(GlobalSessionNames.RETURN_AFTER_LOGIN);
       sessionStorage.removeItem(GlobalSessionNames.RETURN_AFTER_LOGIN);

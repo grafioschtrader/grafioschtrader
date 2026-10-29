@@ -123,7 +123,13 @@ export async function expectNoClientMenu(page: Page): Promise<void> {
 export async function attemptCreatePortfolioExpectRejected(page: Page, name: string): Promise<void> {
   await tenantRootNode(page).click({ button: 'right' });
   const menuItem = page.locator('p-contextmenu').getByText(RX.createPortfolioItem).first();
-  if (await menuItem.isVisible().catch(() => false)) {
+  // isVisible() does not wait, and the context menu renders after the right click; probing it immediately took the
+  // "suppressed" branch while the item was still about to appear.
+  const offered = await menuItem
+    .waitFor({ state: 'visible', timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (offered) {
     await menuItem.click();
 
     const dialog = page.locator('.p-dialog').first();

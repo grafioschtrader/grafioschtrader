@@ -10,13 +10,13 @@ export class Assetclass extends Auditable implements BaseID {
   categoryType$?: string;
   specialInvestmentInstrument$?: string;
 
-  idAssetClass?: number = null;
-  categoryType: AssetclassType | string = null;
-  specialInvestmentInstrument: SpecialInvestmentInstruments | string = null;
+  idAssetClass?: number | null = null;
+  categoryType: AssetclassType | string | null = null;
+  specialInvestmentInstrument: SpecialInvestmentInstruments | string | null = null;
   subCategoryNLS: MultilanguageString = new MultilanguageString();
 
   @Exclude()
-  override getId(): number {
+  override getId(): number | null | undefined {
     return this.idAssetClass;
   }
 }

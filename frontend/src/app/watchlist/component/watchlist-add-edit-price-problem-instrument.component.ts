@@ -1,8 +1,9 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { WatchlistService } from '../service/watchlist.service';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -41,7 +42,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   </p-dialog>`,
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS]
 })
-export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditBase implements OnInit {
+export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private watchlistService: WatchlistService = inject(WatchlistService);
 
@@ -91,7 +92,7 @@ export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditB
       }
     ];
     TranslateHelper.translateMessageError(this.translateService, this.configObject.addGroup);
-    this.configObject.addGroup.formControl.setValidators(atLeastOneFieldValidator);
+    requireFormControl(this.configObject.addGroup).setValidators(atLeastOneFieldValidator);
   }
 
   /**

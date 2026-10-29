@@ -80,7 +80,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   readonly dataChanged = output<ProcessedActionData>();
 
   readonly configEntities = signal<GTNetConfigEntityDisplay[]>([]);
-  readonly selectedEntity = signal<GTNetConfigEntityDisplay>(null);
+  readonly selectedEntity = signal<GTNetConfigEntityDisplay | null>(null);
   /** Translated context menu of the selected row */
   readonly contextMenuItems = signal<MenuItem[]>([]);
   readonly visibleDialog = signal(false);

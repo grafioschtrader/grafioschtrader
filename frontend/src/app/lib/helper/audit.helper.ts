@@ -1,3 +1,4 @@
+import { requireFormControl } from '../dynamic-form/models/form-control-access';
 import { Auditable } from '../entities/auditable';
 import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { FieldConfig } from '../dynamic-form/models/field.config';
@@ -34,7 +35,7 @@ export class AuditHelper {
    * Custom ownership check function that can be configured by the application.
    * Should return true if the entity has special ownership rules that grant edit rights.
    */
-  private static customOwnershipCheck: (entity: any, userId: number) => boolean = null;
+  private static customOwnershipCheck: ((entity: any, userId: number) => boolean) | null = null;
 
   /** Field name constant for note request input */
   public static readonly NOTE_REQUEST_INPUT = 'noteRequest';
@@ -66,10 +67,10 @@ export class AuditHelper {
   public static transferToFormAndChangeButtonForProposaleEdit(
     translateService: TranslateService,
     gps: GlobalparameterService,
-    entityAuditable: Auditable,
+    entityAuditable: Auditable | null | undefined,
     form: DynamicFormComponent,
     configObject: { [name: string]: FieldConfig },
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined
   ): void {
     if (entityAuditable) {
       // Existing entity
@@ -111,17 +112,26 @@ export class AuditHelper {
   public static convertToProposeChangeEntityWithEntity(
     entity: any,
     proposeUserTask: ProposeUserTask
-  ): ProposeChangeEntityWithEntity {
-    let pewe: ProposeChangeEntityWithEntity;
+  ): ProposeChangeEntityWithEntity;
+  public static convertToProposeChangeEntityWithEntity(entity: any, proposeUserTask: null | undefined): undefined;
+  public static convertToProposeChangeEntityWithEntity(
+    entity: any,
+    proposeUserTask: ProposeUserTask | null | undefined
+  ): ProposeChangeEntityWithEntity | undefined;
+  public static convertToProposeChangeEntityWithEntity(
+    entity: any,
+    proposeUserTask: ProposeUserTask | null | undefined
+  ): ProposeChangeEntityWithEntity | undefined {
     if (proposeUserTask) {
-      pewe = new ProposeChangeEntityWithEntity();
+      const pewe = new ProposeChangeEntityWithEntity();
       pewe.entity = entity;
       pewe.proposedEntity = JSON.parse(JSON.stringify(entity));
       proposeUserTask.proposeChangeFieldList.forEach((put) => (pewe.proposedEntity[put.field] = put.valueDesarialized));
       pewe.proposeChangeEntity = proposeUserTask;
       (<Auditable>pewe.entity).idProposeRequest = proposeUserTask.idProposeRequest;
+      return pewe;
     }
-    return pewe;
+    return undefined;
   }
 
   /**
@@ -143,7 +153,7 @@ export class AuditHelper {
     entityAuditable: Auditable,
     form: DynamicFormComponent,
     configObject: { [name: string]: FieldConfig },
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined,
     transferToForm: boolean
   ): void {
     if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(gps, entityAuditable)) {
@@ -176,7 +186,7 @@ export class AuditHelper {
       form.transferBusinessObjectToForm(entityAuditable);
     }
     proposeChangeEntityWithEntity &&
-      configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.setValue(
+      requireFormControl(configObject[AuditHelper.NOTE_REQUEST_INPUT]).setValue(
         proposeChangeEntityWithEntity.proposeChangeEntity.noteRequest
       );
   }
@@ -209,7 +219,7 @@ export class AuditHelper {
         closed.emit(
           new ProcessedActionData(
             ProcessedAction.REJECT_DATA_CHANGE,
-            formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].formControl.value
+            requireFormControl(formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT]).value
           )
         )
       )
@@ -244,9 +254,11 @@ export class AuditHelper {
     if (
       formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT] &&
       !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].invisible &&
-      !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.disabled
+      !requireFormControl(formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT]).disabled
     ) {
-      targetEntity.noteRequestOrReject = formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value;
+      targetEntity.noteRequestOrReject = requireFormControl(
+        formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT]
+      ).value;
     }
   }
 
@@ -260,7 +272,9 @@ export class AuditHelper {
    */
   public static copyNoteAcceptRejectToEntity(formBase: FormBase, targetEntity: ProposeTransientTransfer): void {
     if (this.isProposeVisible(formBase)) {
-      targetEntity.noteRequestOrReject = formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].formControl.value;
+      targetEntity.noteRequestOrReject = requireFormControl(
+        formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT]
+      ).value;
     }
   }
 
@@ -274,7 +288,7 @@ export class AuditHelper {
   public static isProposeVisible(formBase: FormBase): boolean {
     return (
       !formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].invisible &&
-      !formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].formControl.disabled
+      !requireFormControl(formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT]).disabled
     );
   }
 
@@ -339,7 +353,7 @@ export class AuditHelper {
     return (
       AuditHelper.hasHigherPrivileges(gps) ||
       gps.isEntityCreatedByUser(entityAuditable) ||
-      (AuditHelper.customOwnershipCheck && AuditHelper.customOwnershipCheck(entityAuditable, gps.getIdUser()))
+      (AuditHelper.customOwnershipCheck?.(entityAuditable, gps.getIdUser()) ?? false)
     );
   }
 
@@ -395,7 +409,7 @@ export class AuditHelper {
       let oldValue = Helper.getValueByPath(proposeChangeEntityWithEntity.entity, field);
       if (oldValue !== Helper.getValueByPath(proposeChangeEntityWithEntity.proposedEntity, field)) {
         if (oldValue != null && fieldConfig.inputType === InputType.Select && fieldConfig.valueKeyHtmlOptions) {
-          oldValue = fieldConfig.valueKeyHtmlOptions.find((v) => v.key === oldValue).value;
+          oldValue = fieldConfig.valueKeyHtmlOptions.find((v) => v.key === oldValue)?.value ?? oldValue;
         }
         configObject[key].labelTitle = oldValue;
       }
@@ -434,14 +448,14 @@ export class AuditHelper {
    * @param textKey Translation key for header text (null to remove)
    */
   private static setHeaderChangeRequest(
-    translateService: TranslateService,
+    translateService: TranslateService | null,
     form: DynamicFormComponent,
-    textKey: string = null
+    textKey: string | null = null
   ) {
-    if (textKey) {
-      form.formConfig().fieldHeaders = form.formConfig().fieldHeaders || {};
+    if (textKey && translateService) {
+      const headers = (form.formConfig().fieldHeaders ??= {});
       translateService.get(textKey).subscribe((text) => {
-        form.formConfig().fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = text;
+        headers[AuditHelper.NOTE_REQUEST_INPUT] = text;
         // The form configuration is not instrumented, so the form is notified explicitly
         form.notifier.notify();
       });

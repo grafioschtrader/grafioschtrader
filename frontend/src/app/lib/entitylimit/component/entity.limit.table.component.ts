@@ -97,7 +97,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    * scope while the daily ones do not.
    */
   private readonly sharedByEntityName = signal(new Map<string, boolean>());
-  private readonly showMenuItems = signal<MenuItem[]>(null);
+  private readonly showMenuItems = signal<MenuItem[] | null>(null);
   private readDataSub?: Subscription;
 
   constructor() {
@@ -199,7 +199,10 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    * unlimited. Role and user overrides, and every daily row, stay freely deletable.
    */
   protected override hasRightsForDeleteEntity(entityLimit: EntityLimit): boolean {
-    return !(entityLimit.idRole == null && entityLimit.idUser == null && this.mandatoryKeyIds().has(entityLimit.keyId));
+    const key = entityLimit.keyId;
+    return (
+      key != null && !(entityLimit.idRole == null && entityLimit.idUser == null && this.mandatoryKeyIds().has(key))
+    );
   }
 
   protected prepareCallParam(entity: EntityLimit): void {
@@ -210,7 +213,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    * Offers the entry that shows and hides the filter row. Without this override the table would have no show menu at
    * all, because TableCrudSupportMenu returns none by default.
    */
-  protected override prepareShowMenu(): MenuItem[] {
+  protected override prepareShowMenu(): MenuItem[] | null {
     return this.showMenuItems();
   }
 
@@ -232,7 +235,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    * @return true for shared data, false for data of one client or user, undefined when the entity is unknown
    */
   isSharedData(entityLimit: EntityLimit): boolean | undefined {
-    return this.sharedByEntityName().get(entityLimit.entityName);
+    return entityLimit.entityName == null ? undefined : this.sharedByEntityName().get(entityLimit.entityName);
   }
 
   private getEntityLabel(entityLimit: EntityLimit, field: ColumnConfig, valueField: any): string {
@@ -277,8 +280,8 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
     return value == null ? '' : (this.roleNameById().get(String(value)) ?? String(value));
   }
 
-  private translateEntityName(entityName: string): string {
-    return this.translateService.instant(AppHelper.toUpperCaseWithUnderscore(entityName));
+  private translateEntityName(entityName: string | null | undefined): string {
+    return entityName == null ? '' : this.translateService.instant(AppHelper.toUpperCaseWithUnderscore(entityName));
   }
 
   public override getHelpContextId(): string {

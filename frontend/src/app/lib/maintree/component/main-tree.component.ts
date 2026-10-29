@@ -52,12 +52,12 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
    * navigator, it could produce
    * an empty p-tabmenu.
    */
-  lastRoute: string;
-  lastId: number;
+  lastRoute: string | null = null;
+  lastId: number | null | undefined = null;
   /** The rendered tree; replaced by a deep clone after every refresh, which the async contributor calls trigger */
   readonly portfolioTrees = signal<TreeNode[]>([]);
-  selectedNode: TreeNode;
-  readonly contextMenuItems = signal<MenuItem[]>(null);
+  selectedNode: TreeNode<TypeNodeData> | null = null;
+  readonly contextMenuItems = signal<MenuItem[] | null>(null);
 
   private subscription: Subscription;
 
@@ -105,7 +105,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.portfolioTrees.set(this.mainTreeService.getClonedPortfolioTrees());
   }
 
-  getEditMenuItemsByTypeNode(treeNode: TreeNode): MenuItem[] {
+  getEditMenuItemsByTypeNode(treeNode: TreeNode): MenuItem[] | null {
     // Delegate to the service
     return this.mainTreeService.getContextMenuItems(treeNode);
   }
@@ -115,10 +115,9 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
   onNodeContextMenuSelect(event: { node: TreeNode<TypeNodeData> }) {
-    const typeNodeData: TypeNodeData = event.node.data;
     this.contextMenuItems.set(this.getEditMenuItemsByTypeNode(event.node));
     if (!this.contextMenuItems()) {
-      this.contextMenu().hide();
+      this.contextMenu()?.hide();
     }
   }
 
@@ -132,7 +131,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   callMeDeactivate(): void {}
 
   hideContextMenu(): void {
-    this.contextMenu().hide();
+    this.contextMenu()?.hide();
   }
 
   onComponentClick(event: PanelClickEvent) {
@@ -163,12 +162,14 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
   public dragOver(event: DragEvent, node: TreeNode) {
-    const dragData = event.dataTransfer.getData('text/plain');
+    const transfer = event.dataTransfer;
+    if (!transfer) return;
+    const dragData = transfer.getData('text/plain');
     const canDrop = this.mainTreeService.canDrop(node, dragData);
     if (canDrop) {
       event.preventDefault();
       event.stopPropagation();
-      event.dataTransfer.dropEffect = 'move';
+      transfer.dropEffect = 'move';
     } else {
     }
   }
@@ -176,15 +177,16 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   public drop(event: DragEvent, treeNode: TreeNode) {
     event.preventDefault();
     event.stopPropagation();
-    const dragData = event.dataTransfer.getData('text/plain');
+    const transfer = event.dataTransfer;
+    if (!transfer) return;
+    const dragData = transfer.getData('text/plain');
     const sourceLabel = this.selectedNode?.label;
     this.mainTreeService.handleDrop(treeNode, dragData, sourceLabel);
   }
 
-  private nodeSelect(node: TreeNode) {
+  private nodeSelect(node: TreeNode<TypeNodeData>) {
     this.selectedNode = node;
-    const data: TypeNodeData = this.selectedNode.data;
-    this.navigateRoute(data);
+    this.navigateRoute(node.data);
   }
 
   /**
@@ -214,7 +216,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     });
   }
 
-  private navigateRoute(data: TypeNodeData) {
+  private navigateRoute(data: TypeNodeData | null | undefined) {
     if (data && data.route) {
       if (data.id) {
         if (!this.lastRoute || this.lastRoute !== data.route || this.lastId !== data.id) {

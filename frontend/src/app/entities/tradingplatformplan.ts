@@ -4,14 +4,14 @@ import { ImportTransactionPlatform } from './import.transaction.platform';
 import { Auditable } from '../lib/entities/auditable';
 
 export class TradingPlatformPlan extends Auditable implements BaseID {
-  idTradingPlatformPlan?: number = null;
+  idTradingPlatformPlan?: number | null = null;
   platformPlanNameNLS: MultilanguageString = new MultilanguageString();
-  transactionFeePlan: string = null;
-  importTransactionPlatform: ImportTransactionPlatform;
-  feeModelYaml?: string = null;
-  countryCode?: string = null;
+  transactionFeePlan: string | null = null;
+  importTransactionPlatform?: ImportTransactionPlatform | null;
+  feeModelYaml?: string | null = null;
+  countryCode?: string | null = null;
 
-  public override getId(): number {
+  public override getId(): number | null | undefined {
     return this.idTradingPlatformPlan;
   }
 }

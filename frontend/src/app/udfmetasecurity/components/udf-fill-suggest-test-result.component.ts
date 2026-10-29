@@ -119,7 +119,7 @@ export class UDFFillSuggestTestResultComponent implements OnDestroy {
   readonly request = input<UDFFillTestRequest>(undefined);
 
   /** The securities picked by the server, null while they are loading */
-  readonly candidates = signal<UDFSuggestTestCandidate[]>(null);
+  readonly candidates = signal<UDFSuggestTestCandidate[] | null>(null);
 
   /** The answers received so far, by security; every arriving answer publishes a new map */
   readonly results = signal<ReadonlyMap<number, UDFSuggestTestResult>>(new Map());

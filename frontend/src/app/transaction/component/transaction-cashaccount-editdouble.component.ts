@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { TranslateModule } from '@ngx-translate/core';
@@ -67,7 +68,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
   // InputMask from parent view
-  readonly visibleCashaccountTransactionDoubleDialog = input<boolean>(undefined);
+  readonly visibleCashaccountTransactionDoubleDialog = input<boolean>();
   // @Input() transactionCallParam: TransactionCallParam;
 
   // Access the form
@@ -135,7 +136,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   isVisibleDialog(): boolean {
-    return this.visibleCashaccountTransactionDoubleDialog();
+    return this.visibleCashaccountTransactionDoubleDialog() ?? false;
   }
 
   ////////////////////////////////////////////////
@@ -147,8 +148,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   valueChangedOnCalcFields(): void {
-    this.valueChangedOnValueCalcFieldsSub = this.configObject.calcGroup.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.valueChangedOnValueCalcFieldsSub = requireFormControl(this.configObject.calcGroup)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((data) => {
         this.setCalculatedDebitAmount();
       });
@@ -160,9 +161,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
     if (this.currencypair) {
       const debitAmount = this.calcDebitAmount(values);
-      this.configObject.debitAmount.formControl.setValue(debitAmount);
+      requireFormControl(this.configObject.debitAmount).setValue(debitAmount);
     } else {
-      this.configObject.debitAmount.formControl.setValue(
+      requireFormControl(this.configObject.debitAmount).setValue(
         values.creditAmount + (values.transactionCost ? values.transactionCost : 0)
       );
     }
@@ -181,8 +182,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   valueChangedOnTransactionTime() {
-    this.transactionTimeChangeSub = this.configObject.transactionTime.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.transactionTimeChangeSub = requireFormControl(this.configObject.transactionTime)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe(() => {
         this.disableEnableExchangeRateButtons();
         this.toggleDebitCashaccountOptionsByTransactionTime();
@@ -194,7 +195,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
    * options are re-toggled separately by {@link filterCreditHtmlOptions} since they are rebuilt on every debit change.
    */
   private toggleDebitCashaccountOptionsByTransactionTime(): void {
-    const transactionTime = this.configObject.transactionTime.formControl.value;
+    const transactionTime = requireFormControl(this.configObject.transactionTime).value;
     if (!transactionTime || !this.portfolios) {
       return;
     }
@@ -206,8 +207,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   valueChangedOnDebitCashaccount(): void {
-    this.debitChashaccountChangedSub = this.configObject.idDebitCashaccount.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.debitChashaccountChangedSub = requireFormControl(this.configObject.idDebitCashaccount)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((data: string) => {
         if (Helper.hasValue(data)) {
           const cp: { cashaccount: Cashaccount; portfolio: Portfolio } =
@@ -230,8 +231,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
    * When cash credit account changes the currency of the must be changed as well
    */
   valueChangedOnCreditCashaccount(): void {
-    this.creditChashaccountChangedSub = this.configObject.idCreditCashaccount.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.creditChashaccountChangedSub = requireFormControl(this.configObject.idCreditCashaccount)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((data: string) => {
         if (data) {
           const cp: { cashaccount: Cashaccount; portfolio: Portfolio } =
@@ -335,7 +336,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
               BusinessHelper.getAndSetQuotationCurrencypair(
                 this.currencypairService,
                 this.currencypair,
-                this.configObject.transactionTime.formControl.value,
+                requireFormControl(this.configObject.transactionTime).value,
                 this.configObject.currencyExRate.formControl
               )
             );
@@ -351,9 +352,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     this.valueChangedOnDebitCashaccount();
     this.valueChangedOnCreditCashaccount();
     // Debit account is always set
-    this.configObject.idDebitCashaccount.formControl.setValue(debitIdCashaccount);
+    requireFormControl(this.configObject.idDebitCashaccount).setValue(debitIdCashaccount);
     if (creditIdCashaccount) {
-      this.configObject.idCreditCashaccount.formControl.setValue(creditIdCashaccount);
+      requireFormControl(this.configObject.idCreditCashaccount).setValue(creditIdCashaccount);
     }
     this.valueChangedOnCalcFields();
   }
@@ -392,11 +393,13 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   private setFormValues(): void {
-    this.configObject.transactionTime.formControl.setValue(new Date(this.transactions[this.WithIndex].transactionTime));
-    this.configObject.currencyExRate.formControl.setValue(this.transactions[this.WithIndex].currencyExRate);
-    this.configObject.transactionCost.formControl.setValue(this.transactions[this.WithIndex].transactionCost);
-    this.configObject.creditAmount.formControl.setValue(this.transactions[this.DepIndex].cashaccountAmount);
-    this.configObject.note.formControl.setValue(this.transactions[this.WithIndex].note);
+    requireFormControl(this.configObject.transactionTime).setValue(
+      new Date(this.transactions[this.WithIndex].transactionTime)
+    );
+    requireFormControl(this.configObject.currencyExRate).setValue(this.transactions[this.WithIndex].currencyExRate);
+    requireFormControl(this.configObject.transactionCost).setValue(this.transactions[this.WithIndex].transactionCost);
+    requireFormControl(this.configObject.creditAmount).setValue(this.transactions[this.DepIndex].cashaccountAmount);
+    requireFormControl(this.configObject.note).setValue(this.transactions[this.WithIndex].note);
 
     this.setupCashaccountSelect(
       this.transactions[this.WithIndex].cashaccount.idSecuritycashAccount,
@@ -414,12 +417,12 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     if (this.debitCashaccount && this.creditCashaccount) {
       this.setCurrencypair();
       if (this.debitCashaccount.currency === this.creditCashaccount.currency) {
-        this.configObject.currencyExRate.formControl.setValue(1);
+        requireFormControl(this.configObject.currencyExRate).setValue(1);
         this.disableCurrencyExRateState();
       } else {
         // this.configObject.currencyExRate.labelSuffix = this.currencypair.toStringFN();
         this.configObject.currencyExRate.labelSuffix = this.currencypair.name;
-        this.configObject.currencyExRate.formControl.enable();
+        requireFormControl(this.configObject.currencyExRate).enable();
         this.getCurrencypair();
       }
       this.adjustNumberInputFractions();
@@ -451,18 +454,18 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     return (
       t === null ||
       (t !== null &&
-        ((this.configObject.idCreditCashaccount.formControl.value &&
+        ((requireFormControl(this.configObject.idCreditCashaccount).value &&
           this.transactions[this.DepIndex].cashaccount.idSecuritycashAccount !==
-            this.configObject.idCreditCashaccount.formControl.value) ||
+            requireFormControl(this.configObject.idCreditCashaccount).value) ||
           (this.transactions[this.WithIndex].cashaccount.idSecuritycashAccount &&
             this.transactions[this.WithIndex].cashaccount.idSecuritycashAccount !==
-              this.configObject.idDebitCashaccount.formControl.value)))
+              requireFormControl(this.configObject.idDebitCashaccount).value)))
     );
   }
 
   private disableCurrencyExRateState(): void {
     // this.configObject.currencyExRate.labelSuffix = '';
-    this.configObject.currencyExRate.formControl.disable();
+    requireFormControl(this.configObject.currencyExRate).disable();
   }
 
   private filterCreditHtmlOptions(debitHtmlOptions: ValueKeyHtmlSelectOptions[], idCashaccountCredit: number): void {
@@ -471,11 +474,11 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     );
 
     this.configObject.idCreditCashaccount.valueKeyHtmlOptions = valueKeyHtmlOptions;
-    if (this.portfolios && this.configObject.transactionTime.formControl.value) {
+    if (this.portfolios && requireFormControl(this.configObject.transactionTime).value) {
       BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
         this.portfolios.flatMap((p) => p.cashaccountList || []),
         this.configObject.idCreditCashaccount,
-        +this.configObject.transactionTime.formControl.value
+        +requireFormControl(this.configObject.transactionTime).value
       );
     }
     this.configObject.idCreditCashaccount.valueKeyHtmlOptions = [
@@ -483,9 +486,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       ...this.configObject.idCreditCashaccount.valueKeyHtmlOptions
     ];
     if (valueKeyHtmlOptions.length === 1) {
-      this.configObject.idCreditCashaccount.formControl.setValue(valueKeyHtmlOptions[0].key);
+      requireFormControl(this.configObject.idCreditCashaccount).setValue(valueKeyHtmlOptions[0].key);
     } else {
-      this.configObject.idCreditCashaccount.formControl.setValue('');
+      requireFormControl(this.configObject.idCreditCashaccount).setValue('');
     }
   }
 

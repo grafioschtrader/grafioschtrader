@@ -68,10 +68,10 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase {
   private securityService: SecurityService = inject(SecurityService);
 
   readonly historyquoteQualityIds = input<HistoryquoteQualityIds>(undefined);
-  readonly groupTitle = input<string>(undefined);
+  readonly groupTitle = input<string>();
   readonly changedIdSecurity = output<SecurityIdWithCurrency>();
 
-  readonly selectedSecurity = signal<IHistoryquoteQualityWithSecurityProp>(null);
+  readonly selectedSecurity = signal<IHistoryquoteQualityWithSecurityProp | null>(null);
   readonly hqwspList = computed(() => (this.qualityResource.hasValue() ? this.qualityResource.value() : []));
   /** A new columns reference re-renders the header and body templates of the OnPush p-table after translation. */
   readonly tableFields = computed(() => {

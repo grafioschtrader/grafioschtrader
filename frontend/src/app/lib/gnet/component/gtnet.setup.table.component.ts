@@ -210,7 +210,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   /** Every write on GTNet belongs to an administrator, so a non-administrator gets no context menu at all. */
   protected readonly canAdministerGTNet: boolean;
   callParam: GTNetCallParam;
-  readonly gtNetMyEntryId = signal<number>(null);
+  readonly gtNetMyEntryId = signal<number | null>(null);
   /** Message count per idGtNet - used to determine if expander should show */
   readonly gtNetMessageCountMap = signal<{ [key: number]: number }>({});
   /** Cache for loaded messages (lazy loaded when row is expanded); every change publishes a new map */
@@ -791,7 +791,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     return row.gtNetEntities?.some((entity) => entity.gtNetConfigEntity != null) ?? false;
   }
 
-  protected override prepareShowMenu(): MenuItem[] {
+  protected override prepareShowMenu(): MenuItem[] | null {
     if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
       return null;
     }

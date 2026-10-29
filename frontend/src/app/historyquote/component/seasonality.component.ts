@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   afterNextRender,
@@ -96,7 +97,7 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
   private gps: GlobalparameterService = inject(GlobalparameterService);
   public translateService: TranslateService = inject(TranslateService);
 
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
 
   menuItems: MenuItem[] = [];
 
@@ -151,12 +152,12 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
   }
 
   private initializeControls(): void {
-    this.configObject.periodType.formControl.setValue(SeasonalPeriodType.MONTHLY);
-    this.configObject.includeDividends.formControl.setValue(false);
-    this.configObject.inTenantCurrency.formControl.setValue(false);
+    requireFormControl(this.configObject.periodType).setValue(SeasonalPeriodType.MONTHLY);
+    requireFormControl(this.configObject.includeDividends).setValue(false);
+    requireFormControl(this.configObject.inTenantCurrency).setValue(false);
     ['periodType', 'includeDividends', 'inTenantCurrency'].forEach((name) =>
-      this.configObject[name].formControl.valueChanges
-        .pipe(takeUntilDestroyed(this.destroyRef))
+      requireFormControl(this.configObject[name])
+        .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => this.reload())
     );
     this.formReady = true;
@@ -215,9 +216,9 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
   private reload(): void {
     this.seasonalParams.set({
       idSecuritycurrency: this.idSecuritycurrency,
-      periodType: this.configObject.periodType.formControl.value,
-      includeDividends: !!this.configObject.includeDividends.formControl.value,
-      inTenantCurrency: !!this.configObject.inTenantCurrency.formControl.value
+      periodType: requireFormControl(this.configObject.periodType).value,
+      includeDividends: !!requireFormControl(this.configObject.includeDividends).value,
+      inTenantCurrency: !!requireFormControl(this.configObject.inTenantCurrency).value
     });
   }
 

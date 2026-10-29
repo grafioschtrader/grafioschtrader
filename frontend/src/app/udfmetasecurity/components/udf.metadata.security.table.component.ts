@@ -94,7 +94,7 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
   readonly visibleProposalsDialog = signal(false);
 
   /** The field whose proposals are shown */
-  readonly proposalsField = signal<UDFMetadataSecurity>(null);
+  readonly proposalsField = signal<UDFMetadataSecurity | null>(null);
 
   /**
    * Creates the UDF metadata security table component.

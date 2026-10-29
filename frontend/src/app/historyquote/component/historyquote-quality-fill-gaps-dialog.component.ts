@@ -1,7 +1,8 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, signal, input, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import moment from 'moment';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { IHistoryquoteQuality } from '../../entities/view/ihistoryquote.quality';
@@ -57,7 +58,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
   `,
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase implements OnInit {
+export class HistoryquoteQualityFillGapsDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private securityService: SecurityService = inject(SecurityService);
   private messageToastService: MessageToastService = inject(MessageToastService);
@@ -98,8 +99,8 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
     this.configObject.execute.disabled = true;
     this.securityService
       .fillHistoryquoteGapsLinear(this.securitycurrency().idSecuritycurrency, {
-        moveWeekendToFriday: this.configObject[this.moveWeekendToFriday].formControl.value,
-        fillUpToDate: moment(this.configObject[this.fillUpToDate].formControl.value).format(
+        moveWeekendToFriday: requireFormControl(this.configObject[this.moveWeekendToFriday]).value,
+        fillUpToDate: moment(requireFormControl(this.configObject[this.fillUpToDate]).value).format(
           BaseSettings.FORMAT_DATE_SHORT_NATIVE
         )
       })
@@ -118,7 +119,7 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
 
   protected override initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
-    this.configObject[this.fillUpToDate].formControl.setValue(
+    requireFormControl(this.configObject[this.fillUpToDate]).setValue(
       HistoryquoteQualityFillGapsDialogComponent.toLocalDate(this.fillGapsBounds().defaultFillUpTo)
     );
     this.prepareCalendarLimitMessage();
@@ -126,12 +127,12 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleEditBase i
     const hasWeekendDays: boolean =
       (historyquoteQuality.quoteSaturday !== null && historyquoteQuality.quoteSaturday > 0) ||
       (historyquoteQuality.quoteSunday !== null && historyquoteQuality.quoteSunday > 0);
-    this.configObject[this.moveWeekendToFriday].formControl.setValue(hasWeekendDays);
-    !hasWeekendDays && this.configObject[this.moveWeekendToFriday].formControl.disable();
+    requireFormControl(this.configObject[this.moveWeekendToFriday]).setValue(hasWeekendDays);
+    !hasWeekendDays && requireFormControl(this.configObject[this.moveWeekendToFriday]).disable();
     // The function button is outside the form and therefore not disabled by an invalid form on its own. Without this
     // the user could send a cleared or out of range date, which the server would only answer with a validation error.
-    this.configObject[this.fillUpToDate].formControl.statusChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject[this.fillUpToDate])
+      .statusChanges.pipe(this.untilDialogClosed())
       .subscribe((status) => (this.configObject.execute.disabled = status !== 'VALID'));
   }
 

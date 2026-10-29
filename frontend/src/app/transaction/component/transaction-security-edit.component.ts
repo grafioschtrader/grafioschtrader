@@ -1,3 +1,5 @@
+import { switchMap } from 'rxjs';
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, signal, output, viewChild, input, inject } from '@angular/core';
 
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
@@ -110,11 +112,11 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private dialogService: DialogService = inject(DialogService);
 
   // InputMask from parent view
-  readonly visibleSecurityTransactionDialog = input<boolean>(undefined);
+  readonly visibleSecurityTransactionDialog = input<boolean>();
   readonly transactionCallParam = input<TransactionCallParam>(undefined);
 
   // Access the form
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
 
   readonly closeDialog = output<ProcessedActionData>();
 
@@ -327,12 +329,12 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   isVisibleDialog(): boolean {
-    return this.visibleSecurityTransactionDialog();
+    return this.visibleSecurityTransactionDialog() ?? false;
   }
 
   valueChangedOnCalcFields(): void {
-    this.subObj[this.valueChangedOnValueCalcFields] = this.configObject.calcGroup.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.subObj[this.valueChangedOnValueCalcFields] = requireFormControl(this.configObject.calcGroup)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((data) => {
         this.calcPosTotalOnChanges(data);
       });
@@ -344,14 +346,14 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
    */
   valueChangedOnCashaccountOrSecurity(): void {
     this.clearCurrencyExRate();
-    const obs1 = this.configObject.idCashaccount.formControl.valueChanges.pipe(
+    const obs1 = requireFormControl(this.configObject.idCashaccount).valueChanges.pipe(
       map((v) => ({
         control: this.configObject.idCashaccount.formControl,
         value: v
       }))
     );
 
-    const obs2 = this.configObject.idSecuritycurrency.formControl.valueChanges.pipe(
+    const obs2 = requireFormControl(this.configObject.idSecuritycurrency).valueChanges.pipe(
       map((v) => ({
         control: this.configObject.idSecuritycurrency.formControl,
         value: v
@@ -361,8 +363,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     this.subObj[this.cashaccountSecurity] = merge(obs1, obs2)
       .pipe(this.untilDialogClosed())
       .subscribe((controlValue) => {
-        if (this.configObject.idSecuritycurrency.formControl.value != null) {
-          this.selectedSecurity = this.getSecurityById(+this.configObject.idSecuritycurrency.formControl.value);
+        if (requireFormControl(this.configObject.idSecuritycurrency).value != null) {
+          this.selectedSecurity = this.getSecurityById(+requireFormControl(this.configObject.idSecuritycurrency).value);
           if (this.selectedSecurity) {
             const transactionCallParam = this.transactionCallParam();
             transactionCallParam.idSecuritycurrency = this.selectedSecurity.idSecuritycurrency;
@@ -395,8 +397,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   valueChangedOnSecurityaccount(): void {
-    this.subObj[this.valueChangedOnIdSecurityaccount] = this.configObject.idSecurityaccount.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.subObj[this.valueChangedOnIdSecurityaccount] = requireFormControl(this.configObject.idSecurityaccount)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((value) => {
         // Change cashaccount when securityaccount was changed
         const portfolio = this.getPortfolioByIdSecurityaccount(+value);
@@ -418,7 +420,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
             this.checkTransactionLocked(effectiveClosedUntil, transactionCallParam.transaction.transactionTime);
           }
 
-          this.selectedSecurity = this.getSecurityById(this.configObject.idSecuritycurrency.formControl.value);
+          this.selectedSecurity = this.getSecurityById(requireFormControl(this.configObject.idSecuritycurrency).value);
 
           if (this.selectedSecurity && !transactionCallParam.transaction) {
             // select default cashaccount depending on selected currency of the security
@@ -441,7 +443,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
    */
   readSecurityaccountAndHoldings(): void {
     if (this.portfolios) {
-      let checkTime: number = +this.configObject.transactionTime.formControl.value;
+      let checkTime: number = +requireFormControl(this.configObject.transactionTime).value;
       if (this.isCloseMarginInstrument) {
         this.setHoldingsForTime(checkTime);
         // this.createSecurityaccountHtmlSelect();
@@ -464,7 +466,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   prepareSecurityOptions(): void {
     const transactionCallParam = this.transactionCallParam();
-    if (transactionCallParam.security) {
+    if (transactionCallParam.security?.idSecuritycurrency != null) {
       const securitiesHtmlSelect: ValueKeyHtmlSelectOptions[] = [];
       securitiesHtmlSelect.push(
         new ValueKeyHtmlSelectOptions(
@@ -483,13 +485,13 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   selectSecurity(): void {
     this.setValueToControl(this.configObject.idSecuritycurrency, this.transactionCallParam().idSecuritycurrency);
-    this.selectedSecurity = this.getSecurityById(this.configObject.idSecuritycurrency.formControl.value);
+    this.selectedSecurity = this.getSecurityById(requireFormControl(this.configObject.idSecuritycurrency).value);
     this.loadStrategyAssignments();
     this.setMarginFlags();
     if (this.configObject.idSecuritycurrency.valueKeyHtmlOptions.length === 1) {
-      this.configObject.idSecuritycurrency.formControl.disable();
+      requireFormControl(this.configObject.idSecuritycurrency).disable();
     } else {
-      this.configObject.idSecuritycurrency.formControl.enable();
+      requireFormControl(this.configObject.idSecuritycurrency).enable();
     }
   }
 
@@ -583,7 +585,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   protected override disableEnableExchangeRateButtons(): void {
     super.disableEnableExchangeRateButtons();
-    this.configObject.calcExRateButton.disabled = this.configObject.currencyExRate.formControl.disabled;
+    this.configObject.calcExRateButton.disabled = requireFormControl(this.configObject.currencyExRate).disabled;
   }
 
   /**
@@ -591,20 +593,22 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
    * On close, the entered amount is used to reverse-calculate the exchange rate.
    */
   private openCalcExRateDialog(): void {
-    const ddh = new DynamicDialogHelper(
-      this.translateService,
-      this.dialogService,
-      CalcExRateDialogComponent,
-      this.configObject.calcExRateButton.labelKey
-    );
-    const ref = ddh.openDynamicDialog(400, {
+    const title = this.configObject.calcExRateButton.labelKey;
+    if (!title) return;
+    const ddh = new DynamicDialogHelper(this.translateService, this.dialogService, CalcExRateDialogComponent, title);
+    const opened = ddh.openDynamicDialog(400, {
       cashaccountCurrency: this.currencyCashaccount
     });
-    ref.onClose.pipe(this.untilDialogClosed()).subscribe((amount: number) => {
-      if (amount != null) {
-        this.calcExRateFromAmount(amount);
-      }
-    });
+    opened
+      .pipe(
+        switchMap((ref) => ref.onClose),
+        this.untilDialogClosed()
+      )
+      .subscribe((amount: number) => {
+        if (amount != null) {
+          this.calcExRateFromAmount(amount);
+        }
+      });
   }
 
   /**
@@ -665,7 +669,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     } else {
       exRate = Math.abs(cashaccountAmount) / Math.abs(rawTotal);
     }
-    this.configObject.currencyExRate.formControl.setValue(exRate);
+    requireFormControl(this.configObject.currencyExRate).setValue(exRate);
   }
 
   private calcPosTotalOnChanges(data: any): void {
@@ -682,7 +686,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   private calcPosTotal(data: any, calcSecurityRisk: boolean): number {
     const currencyExRate =
-      !this.configObject.currencyExRate.formControl.disabled && Helper.hasValue(data.currencyExRate)
+      !requireFormControl(this.configObject.currencyExRate).disabled && Helper.hasValue(data.currencyExRate)
         ? data.currencyExRate
         : 1.0;
     const units = data.units;
@@ -826,7 +830,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     );
 
     if (this.isMarginInstrument) {
-      if (!this.configObject.assetInvestmentValue2.formControl.value) {
+      if (!requireFormControl(this.configObject.assetInvestmentValue2).value) {
         this.setValueToControl(this.configObject.assetInvestmentValue2, 1);
       }
     }
@@ -843,7 +847,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   private timeChangedSubscribe(propertySub: string, control: AbstractControl, hasPriority: boolean): void {
     this.subObj[propertySub] = control.valueChanges.pipe(this.untilDialogClosed()).subscribe((value) => {
-      if (!this.configObject.exDate.formControl.value || hasPriority) {
+      if (!requireFormControl(this.configObject.exDate).value || hasPriority) {
         if (value != null && !moment(value).isBefore(DynamicFieldHelper.minDateCalendar)) {
           if (this.transactionCallParam().security == null) {
             this.prepareAsyncActiveSecurityOptions();
@@ -889,8 +893,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setValueToControl(fieldConfig: FieldConfig, value: any): void {
-    if (fieldConfig.formControl.value !== value) {
-      fieldConfig.formControl.setValue(value);
+    if (requireFormControl(fieldConfig).value !== value) {
+      requireFormControl(fieldConfig).setValue(value);
     }
   }
 
@@ -940,9 +944,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         : null;
     if (financeCostAccount != null) {
       this.setValueToControl(this.configObject.idSecurityaccount, financeCostAccount);
-      this.configObject.idSecurityaccount.formControl.disable();
+      requireFormControl(this.configObject.idSecurityaccount).disable();
     } else if (securityaccountsHtmlSelect.length === 1) {
-      this.configObject.idSecurityaccount.formControl.disable();
+      requireFormControl(this.configObject.idSecurityaccount).disable();
       this.setValueToControl(this.configObject.idSecurityaccount, securityaccountsHtmlSelect[0].key);
     } else {
       // For Edge an empty Option is needed, otherwise the first Account would be selected
@@ -950,7 +954,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         new ValueKeyHtmlSelectOptions('', ''),
         ...securityaccountsHtmlSelect
       ];
-      !(this.closedMarginPosition?.hasPosition === true) && this.configObject.idSecurityaccount.formControl.enable();
+      !(this.closedMarginPosition?.hasPosition === true) &&
+        requireFormControl(this.configObject.idSecurityaccount).enable();
       this.selectAccumulateSecurityaccountWhenAvailable(securityaccountsHtmlSelect);
     }
     const transactionCallParamValue = this.transactionCallParam();
@@ -962,8 +967,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
    * Load securities of the watchlist which were active at transaction time
    */
   private prepareAsyncActiveSecurityOptions(): void {
-    if (this.configObject.transactionTime.formControl.value) {
-      const transactionTime: number = +this.configObject.transactionTime.formControl.value;
+    if (requireFormControl(this.configObject.transactionTime).value) {
+      const transactionTime: number = +requireFormControl(this.configObject.transactionTime).value;
       const timeValue: number = this.getExDate() || transactionTime;
       if (this.securities.length === 0) {
         this.loadSecuritiesOnce(timeValue);
@@ -980,8 +985,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   private getExDate(): number {
     return this.transactionCallParam().transactionType === TransactionType.DIVIDEND &&
-      this.configObject.exDate.formControl.value
-      ? +this.configObject.exDate.formControl.value
+      requireFormControl(this.configObject.exDate).value
+      ? +requireFormControl(this.configObject.exDate).value
       : null;
   }
 
@@ -993,7 +998,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     fieldConfig: FieldConfig,
     accounts: { idSecuritycashAccount: number; activeToDate?: string | Date }[]
   ): void {
-    const time = this.getExDate() || +this.configObject.transactionTime.formControl.value;
+    const time = this.getExDate() || +requireFormControl(this.configObject.transactionTime).value;
     if (time) {
       BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(accounts, fieldConfig, time);
     }
@@ -1103,7 +1108,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         .pipe(this.untilDialogClosed())
         .subscribe((cmp) => {
           this.closedMarginPosition = cmp;
-          cmp.hasPosition && this.configObject.idSecurityaccount.formControl.disable();
+          cmp.hasPosition && requireFormControl(this.configObject.idSecurityaccount).disable();
         });
     }
   }
@@ -1111,7 +1116,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private setTransactionValue(): void {
     const transactionCallParam = this.transactionCallParam();
     this.setValueToControl(this.configObject.transactionType, TransactionType[transactionCallParam.transactionType]);
-    this.configObject.transactionType.formControl.disable();
+    requireFormControl(this.configObject.transactionType).disable();
     AppHelper.invisibleAndHide(
       this.configObject.taxableInterest,
       transactionCallParam.transactionType !== TransactionType.DIVIDEND
@@ -1127,11 +1132,11 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     if (!security || !this.isAccumaulteOrReduce) return;
     const transactionCallParam = this.transactionCallParam();
     if (transactionCallParam.closeMarginPosition) {
-      this.configObject.idAlgoStrategy.formControl.disable();
+      requireFormControl(this.configObject.idAlgoStrategy).disable();
       this.subObj['meanReversionOpening'] = this.transactionService
         .getTransactionByIdTransaction(transactionCallParam.closeMarginPosition.idOpenMarginTransaction)
         .pipe(this.untilDialogClosed())
-        .subscribe((opening) => this.configObject.idAlgoStrategy.formControl.setValue(opening.idAlgoStrategy));
+        .subscribe((opening) => requireFormControl(this.configObject.idAlgoStrategy).setValue(opening.idAlgoStrategy));
     }
     this.subObj['meanReversionAssignment'] = this.algoAlertService
       .assignmentOptions(security)
@@ -1144,9 +1149,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
               new ValueKeyHtmlSelectOptions(strategy.idAlgoRuleStrategy, strategy.name)
           )
         ];
-        const selected = this.configObject.idAlgoStrategy.formControl.value;
+        const selected = requireFormControl(this.configObject.idAlgoStrategy).value;
         if (selected && !strategies.some((s: { idAlgoRuleStrategy: number }) => s.idAlgoRuleStrategy === selected))
-          this.configObject.idAlgoStrategy.formControl.setValue(null);
+          requireFormControl(this.configObject.idAlgoStrategy).setValue(null);
       });
   }
 
@@ -1166,7 +1171,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       transactionCallParam.transactionType === TransactionType.REDUCE
     ) {
       if (!transactionCallParam.transaction) {
-        const transactionTime: Date = this.configObject.transactionTime.formControl.value;
+        const transactionTime: Date = requireFormControl(this.configObject.transactionTime).value;
         if (
           moment(transactionTime).isAfter(moment(security.sTimestamp)) ||
           moment(transactionTime).isSame(new Date(), 'day')
@@ -1226,10 +1231,10 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setCurrencyOnSecurityAndCashaccount(security: Security) {
-    if (this.configObject.idCashaccount.formControl.value && this.portfolios) {
+    if (requireFormControl(this.configObject.idCashaccount).value && this.portfolios) {
       const cashaccountPortfolio = this.getCashaccountByIdCashaccountFormPortfolios(
         this.portfolios,
-        +this.configObject.idCashaccount.formControl.value
+        +requireFormControl(this.configObject.idCashaccount).value
       );
       this.currencyCashaccount = cashaccountPortfolio.cashaccount.currency;
       this.setCurrencyPrefixOnFields(null, this.currencyCashaccount);
@@ -1250,7 +1255,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   private enableDisableCurrencyExRate(enable: boolean): void {
     if (enable) {
-      this.configObject.currencyExRate.formControl.enable();
+      requireFormControl(this.configObject.currencyExRate).enable();
       this.valueChangedOnCA(this.valueChangedOnquotationCA, this.configObject.quotationCA, this.configObject.quotation);
       this.valueChangedOnCA(
         this.valueChangedOnTransactionCostCA,
@@ -1260,7 +1265,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       this.valueChangedOnCA(this.valueChangedOnTaxCostCA, this.configObject.taxCostCA, this.configObject.taxCost);
     } else {
       this.oldCurrencyExChange = null;
-      this.configObject.currencyExRate.formControl.disable();
+      requireFormControl(this.configObject.currencyExRate).disable();
       this.unSubscribeCA(this.valueChangedOnquotationCA, this.configObject.quotationCA);
       this.unSubscribeCA(this.valueChangedOnTransactionCostCA, this.configObject.transactionCostCA);
       this.unSubscribeCA(this.valueChangedOnTaxCostCA, this.configObject.taxCostCA);
@@ -1271,18 +1276,18 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private valueChangedOnCA(propertySub: string, sourceField: FieldConfig, targetField: FieldConfig): void {
     AppHelper.enableAndVisibleInput(sourceField);
     if (!this.subObj[propertySub]) {
-      this.subObj[propertySub] = sourceField.formControl.valueChanges
-        .pipe(this.untilDialogClosed())
+      this.subObj[propertySub] = requireFormControl(sourceField)
+        .valueChanges.pipe(this.untilDialogClosed())
         .subscribe((value) => this.calculateBaseValueFromCurrencyValue(sourceField, targetField));
     }
   }
 
   private currencyExRateHasChanged(): void {
     if (
-      !this.configObject.currencyExRate.formControl.disabled &&
-      this.oldCurrencyExChange !== this.configObject.currencyExRate.formControl.value
+      !requireFormControl(this.configObject.currencyExRate).disabled &&
+      this.oldCurrencyExChange !== requireFormControl(this.configObject.currencyExRate).value
     ) {
-      this.oldCurrencyExChange = this.configObject.currencyExRate.formControl.value;
+      this.oldCurrencyExChange = requireFormControl(this.configObject.currencyExRate).value;
       this.calculateBaseValueFromCurrencyValue(this.configObject.quotationCA, this.configObject.quotation);
       this.calculateBaseValueFromCurrencyValue(this.configObject.transactionCostCA, this.configObject.transactionCost);
       this.calculateBaseValueFromCurrencyValue(this.configObject.taxCostCA, this.configObject.taxCost);
@@ -1290,9 +1295,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private calculateBaseValueFromCurrencyValue(sourceField: FieldConfig, targetField: FieldConfig): void {
-    if (sourceField.formControl.value && this.configObject.currencyExRate.formControl.value) {
-      targetField.formControl.setValue(
-        sourceField.formControl.value / this.configObject.currencyExRate.formControl.value
+    if (requireFormControl(sourceField).value && requireFormControl(this.configObject.currencyExRate).value) {
+      requireFormControl(targetField).setValue(
+        requireFormControl(sourceField).value / requireFormControl(this.configObject.currencyExRate).value
       );
     }
   }
@@ -1300,7 +1305,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private unSubscribeCA(propertySub: string, fieldConfig: FieldConfig): void {
     this.subObj[propertySub] && this.subObj[propertySub].unsubscribe();
     this.subObj[propertySub] = null;
-    fieldConfig.formControl.setValue(null);
+    requireFormControl(fieldConfig).setValue(null);
     AppHelper.disableAndHideInput(fieldConfig);
   }
 
@@ -1310,7 +1315,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         BusinessHelper.getAndSetQuotationCurrencypair(
           this.currencypairService,
           this.currencypair,
-          this.configObject.transactionTime.formControl.value,
+          requireFormControl(this.configObject.transactionTime).value,
           this.configObject.currencyExRate.formControl
         )
       );
@@ -1331,8 +1336,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     return (
       t === null ||
       (t !== null &&
-        (t.cashaccount.idSecuritycashAccount !== this.configObject.idCashaccount.formControl.value ||
-          t.security.idSecuritycurrency !== this.configObject.idSecuritycurrency.formControl.value))
+        (t.cashaccount.idSecuritycashAccount !== requireFormControl(this.configObject.idCashaccount).value ||
+          t.security.idSecuritycurrency !== requireFormControl(this.configObject.idSecuritycurrency).value))
     );
   }
 
@@ -1380,7 +1385,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       if (transactionCallParam?.transaction.idTransaction) {
         existingUnits = Math.min(existingUnits, transactionCallParam?.transaction.units);
       }
-      this.configObject.units.formControl.setValue(existingUnits);
+      requireFormControl(this.configObject.units).setValue(existingUnits);
     }
     return units ? ' / ' + this.volumei18n + ': ' + units : '';
   }

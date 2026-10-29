@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Directive, input, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -41,7 +42,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
   /** Preset for a new standing order, matching the database default: search up to three days into the past. */
   static readonly QUOTE_TOLERANCE_DEFAULT = -3;
 
-  readonly callParam = input<StandingOrderCallParam>(undefined);
+  readonly callParam = input.required<StandingOrderCallParam>();
 
   /** Loaded portfolios, available for subclasses after loadCashaccountsFromPortfolios completes. */
   protected portfolios: Portfolio[] = [];
@@ -159,8 +160,8 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * portfolios, which are available before any cash account value is set by loadCashaccountsFromPortfolios().
    */
   private setupCashaccountPrecisionListener(): void {
-    this.configObject.idCashaccount.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.idCashaccount)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((idCashaccount: any) => {
         const currency = this.getCashaccountCurrency(+idCashaccount);
         if (currency) {
@@ -175,7 +176,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
   /**
    * Resolves the currency of a cash account from the loaded portfolios.
    */
-  private getCashaccountCurrency(idCashaccount: number): string {
+  private getCashaccountCurrency(idCashaccount: number): string | null {
     for (const portfolio of this.portfolios) {
       const cashaccount = portfolio.cashaccountList?.find((ca) => ca.idSecuritycashAccount === idCashaccount);
       if (cashaccount) {
@@ -217,9 +218,11 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * is disabled. For YEARS all three are enabled (subject to periodDayPosition logic).
    */
   private setupRepeatUnitListener(): void {
-    this.configObject.repeatUnit.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((unit: string) => {
-      this.applyRepeatUnit(unit);
-    });
+    requireFormControl(this.configObject.repeatUnit)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((unit: string) => {
+        this.applyRepeatUnit(unit);
+      });
   }
 
   /**
@@ -227,8 +230,8 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * disables and clears it for FIRST_DAY or LAST_DAY since the day is implicit.
    */
   private setupPeriodDayPositionListener(): void {
-    this.configObject.periodDayPosition.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.periodDayPosition)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((pos: string) => {
         this.applyPeriodDayPosition(pos);
       });
@@ -241,22 +244,23 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    */
   protected applyRepeatUnit(unit: string): void {
     if (unit === RepeatUnit[RepeatUnit.DAYS]) {
-      this.configObject.periodDayPosition.formControl.disable();
-      this.configObject.periodDayPosition.formControl.setValue(null);
-      this.configObject.dayOfExecution.formControl.disable();
-      this.configObject.dayOfExecution.formControl.setValue(null);
-      this.configObject.monthOfExecution.formControl.disable();
-      this.configObject.monthOfExecution.formControl.setValue(null);
+      requireFormControl(this.configObject.periodDayPosition).disable();
+      requireFormControl(this.configObject.periodDayPosition).setValue(null);
+      requireFormControl(this.configObject.dayOfExecution).disable();
+      requireFormControl(this.configObject.dayOfExecution).setValue(null);
+      requireFormControl(this.configObject.monthOfExecution).disable();
+      requireFormControl(this.configObject.monthOfExecution).setValue(null);
     } else {
-      this.configObject.periodDayPosition.formControl.enable();
+      requireFormControl(this.configObject.periodDayPosition).enable();
       this.applyPeriodDayPosition(
-        this.configObject.periodDayPosition.formControl.value ?? PeriodDayPosition[PeriodDayPosition.SPECIFIC_DAY]
+        requireFormControl(this.configObject.periodDayPosition).value ??
+          PeriodDayPosition[PeriodDayPosition.SPECIFIC_DAY]
       );
       if (unit === RepeatUnit[RepeatUnit.YEARS]) {
-        this.configObject.monthOfExecution.formControl.enable();
+        requireFormControl(this.configObject.monthOfExecution).enable();
       } else {
-        this.configObject.monthOfExecution.formControl.disable();
-        this.configObject.monthOfExecution.formControl.setValue(null);
+        requireFormControl(this.configObject.monthOfExecution).disable();
+        requireFormControl(this.configObject.monthOfExecution).setValue(null);
       }
     }
   }
@@ -266,10 +270,10 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    */
   protected applyPeriodDayPosition(pos: string): void {
     if (pos === PeriodDayPosition[PeriodDayPosition.SPECIFIC_DAY]) {
-      this.configObject.dayOfExecution.formControl.enable();
+      requireFormControl(this.configObject.dayOfExecution).enable();
     } else {
-      this.configObject.dayOfExecution.formControl.disable();
-      this.configObject.dayOfExecution.formControl.setValue(null);
+      requireFormControl(this.configObject.dayOfExecution).disable();
+      requireFormControl(this.configObject.dayOfExecution).setValue(null);
     }
   }
 
@@ -315,10 +319,10 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
         this.afterPortfoliosLoaded();
         this.setExistingValues();
         this.toggleCashaccountOptionsByValidFrom();
-        this.configObject.validFrom.formControl.valueChanges
-          .pipe(this.untilDialogClosed())
+        requireFormControl(this.configObject.validFrom)
+          .valueChanges.pipe(this.untilDialogClosed())
           .subscribe(() => this.toggleCashaccountOptionsByValidFrom());
-        const unit = this.configObject.repeatUnit.formControl.value;
+        const unit = requireFormControl(this.configObject.repeatUnit).value;
         this.applyRepeatUnit(unit ?? RepeatUnit[RepeatUnit.MONTHS]);
         this.viewChanged();
       });
@@ -329,7 +333,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * account cannot be selected for a standing order that begins after the account's active-until date.
    */
   private toggleCashaccountOptionsByValidFrom(): void {
-    const validFrom = this.configObject.validFrom.formControl.value;
+    const validFrom = requireFormControl(this.configObject.validFrom).value;
     if (!validFrom || !this.portfolios) {
       return;
     }

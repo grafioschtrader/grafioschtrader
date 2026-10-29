@@ -162,6 +162,7 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
       closable: true,
       closeOnEscape: true
     });
+    if (!ref) return;
     ref.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.getWatchlistWithoutUpdate());
   }
   protected override getEditMenuItems(position: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {

@@ -23,7 +23,7 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { SliderModule } from '@openng/optimus-ui/slider';
 import moment from 'moment';
-import { forkJoin, Subject, Subscription } from 'rxjs';
+import { forkJoin, Subject, Subscription, switchMap } from 'rxjs';
 import { debounceTime, finalize } from 'rxjs/operators';
 import { MainTreeDynamicDialogs } from '../../dynamic-dialog/component/main.tree.dynamic.dialogs';
 import { BaseSettings } from '../../lib/base.settings';
@@ -496,16 +496,19 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
       this.replaceAlgoRequest('start-dialog').add(
         this.gps
           .getEntityFormDefinition('SimulationRunRequestDTO')
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe((formDefinition) =>
-            MainTreeDynamicDialogs.getEditDialogComponent(
-              AlgoSimulationRunStartDynamicDialogComponent,
-              this.translateService,
-              this.dialogService,
-              new CallParam({ formDefinition } as any, this.simulation() as any),
-              'SIMULATION_RUN'
-            )
+          .pipe(
+            switchMap((formDefinition) =>
+              MainTreeDynamicDialogs.getEditDialogComponent(
+                AlgoSimulationRunStartDynamicDialogComponent,
+                this.translateService,
+                this.dialogService,
+                new CallParam({ formDefinition } as any, this.simulation() as any),
+                'SIMULATION_RUN'
+              )
+            ),
+            takeUntilDestroyed(this.destroyRef)
           )
+          .subscribe()
       );
     });
   }

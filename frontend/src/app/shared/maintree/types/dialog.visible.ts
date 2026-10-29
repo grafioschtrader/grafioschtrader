@@ -14,7 +14,8 @@ import { CorrelationSet } from '../../../entities/correlation.set';
 
 export class CallParam {
   constructor(
-    public parentObject: Tenant | Portfolio | Securityaccount | ImportTransactionPlatform | AlgoTop | AlgoAssetclass,
+    public parentObject:
+      Tenant | Portfolio | Securityaccount | ImportTransactionPlatform | AlgoTop | AlgoAssetclass | null | undefined,
     public thisObject:
       | Tenant
       | Portfolio
@@ -27,7 +28,9 @@ export class CallParam {
       | ImportTransactionTemplate
       | AlgoAssetclass
       | AlgoSecurity
-      | AlgoTopCreate,
+      | AlgoTopCreate
+      | null
+      | undefined,
     public optParam?: { [key: string]: any }
   ) {}
 }

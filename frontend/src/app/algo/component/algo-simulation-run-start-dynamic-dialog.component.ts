@@ -64,7 +64,7 @@ export class AlgoSimulationRunStartDynamicDialogComponent
 
   /** Read by MainTreeDynamicDialogs; the limitation text above the form needs more than the default 400px. */
   static readonly DIALOG_WIDTH = 800;
-  readonly yamlEditor = viewChild(YamlEditorComponent);
+  readonly yamlEditor = viewChild.required(YamlEditorComponent);
   readonly custodyYaml = signal('');
   readonly custodySchema = signal<object>(undefined);
 

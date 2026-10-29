@@ -5,19 +5,19 @@ import { Securitycurrency } from './securitycurrency';
 import { TenantLimit } from '../shared/types/tenant.limit';
 
 export class CorrelationSet implements BaseID {
-  idCorrelationSet: number = null;
-  name: string = null;
-  note: string = null;
-  samplingPeriod: SamplingPeriodType | string = null;
+  idCorrelationSet: number | null = null;
+  name: string | null = null;
+  note: string | null = null;
+  samplingPeriod: SamplingPeriodType | string | null = null;
   rolling: number = SamplingPeriodType.DAILY_RETURNS;
   securitycurrencyList: (Security | Currencypair)[];
-  dateFrom: Date | string = null;
-  dateTo: Date | string = null;
+  dateFrom: Date | string | null = null;
+  dateTo: Date | string | null = null;
   adjustCurrency: boolean = false;
   /** Adds the reinvested dividends to the prices of dividend-capable securities before the returns are calculated */
   includeDividends: boolean = false;
 
-  public getId(): number {
+  public getId(): number | null {
     return this.idCorrelationSet;
   }
 }

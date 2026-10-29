@@ -43,10 +43,10 @@ import { BaseSettings } from '../base.settings';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalparameters> implements OnInit {
-  readonly globalparameters = input<Globalparameters>(undefined);
-  inputRuleDescription: string = null;
+  readonly globalparameters = input.required<Globalparameters>();
+  inputRuleDescription: string | null = null;
   private selectedPropertyField: string;
-  private inputRule: InputRule = null;
+  private inputRule: InputRule | null = null;
 
   constructor() {
     super(HelpIds.HELP_GLOBAL_SETTINGS, 'GLOBAL_SETTINGS', inject(GlobalparameterService));
@@ -76,6 +76,8 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
   }
 
   private getPropertyDefinition(globalparameters: Globalparameters): FieldConfig {
+    const propertyName = globalparameters.propertyName;
+    if (propertyName == null) throw new Error('A global parameter requires its property name before editing.');
     let fieldConfig: FieldConfig;
 
     if (globalparameters.propertyBlobAsText) {
@@ -89,18 +91,13 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
     } else if (globalparameters.propertyDateTime) {
       this.selectedPropertyField = 'propertyDateTime';
       // Use string input for datetime values (ISO 8601 format)
-      fieldConfig = DynamicFieldHelper.createFieldInputString(
-        this.selectedPropertyField,
-        globalparameters.propertyName,
-        30,
-        true
-      );
+      fieldConfig = DynamicFieldHelper.createFieldInputString(this.selectedPropertyField, propertyName, 30, true);
     } else if (globalparameters.propertyDate) {
       this.selectedPropertyField = 'propertyDate';
       fieldConfig = DynamicFieldHelper.createFieldPcalendar(
         DataType.DateString,
         this.selectedPropertyField,
-        globalparameters.propertyName,
+        propertyName,
         true
       );
     } else if (
@@ -115,7 +112,7 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
       fieldConfig = DynamicFieldHelper.createFieldMinMaxNumber(
         DataType.Numeric,
         this.selectedPropertyField,
-        globalparameters.propertyName,
+        propertyName,
         true,
         min,
         max
@@ -132,12 +129,7 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
     } else {
       this.selectedPropertyField = 'propertyString';
       // Matches the length of the column property_string
-      fieldConfig = DynamicFieldHelper.createFieldInputString(
-        this.selectedPropertyField,
-        globalparameters.propertyName,
-        100,
-        true
-      );
+      fieldConfig = DynamicFieldHelper.createFieldInputString(this.selectedPropertyField, propertyName, 100, true);
       // Add pattern validator from inputRule if present
       if (this.inputRule) {
         const additionalValidators = this.inputRule.getValidators();

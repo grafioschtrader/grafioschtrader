@@ -9,6 +9,8 @@ import { AppHelper, Comparison } from '../../lib/helper/app.helper';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { Security } from '../../entities/security';
 import moment from 'moment';
+import { AssetclassType } from '../types/assetclass.type';
+import { SpecialInvestmentInstruments } from '../types/special.investment.instruments';
 
 export class BusinessSelectOptionsHelper {
   /**
@@ -19,9 +21,10 @@ export class BusinessSelectOptionsHelper {
    * @param fieldConfig The input field which is shown
    */
   public static securityCreateValueKeyHtmlSelectOptions(securities: Security[], fieldConfig: FieldConfig) {
-    fieldConfig.valueKeyHtmlOptions = securities.map(
-      (security) =>
-        new ValueKeyHtmlSelectOptions(security.idSecuritycurrency, security.name + ' / ' + security.currency)
+    fieldConfig.valueKeyHtmlOptions = securities.flatMap((security) =>
+      security.idSecuritycurrency == null
+        ? []
+        : [new ValueKeyHtmlSelectOptions(security.idSecuritycurrency, security.name + ' / ' + security.currency)]
     );
   }
 
@@ -106,12 +109,25 @@ export class BusinessSelectOptionsHelper {
   public static translateAssetclass(
     translateService: TranslateService,
     language: string,
-    assetclass: Assetclass,
-    valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[]
-  ): ValueKeyHtmlSelectOptions {
-    const observableTranslateCategoryType = translateService.get(<string>assetclass.categoryType);
-    const observableTranslateSpecialInvestment = translateService.get(<string>assetclass.specialInvestmentInstrument);
-    const valueKeyHtmlSelectOption = new ValueKeyHtmlSelectOptions(assetclass.idAssetClass, null);
+    assetclass: Assetclass | null | undefined,
+    valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] | null
+  ): ValueKeyHtmlSelectOptions | null {
+    if (
+      assetclass?.idAssetClass == null ||
+      assetclass.categoryType == null ||
+      assetclass.specialInvestmentInstrument == null
+    ) {
+      return null;
+    }
+    const category =
+      typeof assetclass.categoryType === 'number' ? AssetclassType[assetclass.categoryType] : assetclass.categoryType;
+    const instrument =
+      typeof assetclass.specialInvestmentInstrument === 'number'
+        ? SpecialInvestmentInstruments[assetclass.specialInvestmentInstrument]
+        : assetclass.specialInvestmentInstrument;
+    const observableTranslateCategoryType = translateService.get(category);
+    const observableTranslateSpecialInvestment = translateService.get(instrument);
+    const valueKeyHtmlSelectOption = new ValueKeyHtmlSelectOptions(assetclass.idAssetClass, '');
     combineLatest([observableTranslateCategoryType, observableTranslateSpecialInvestment]).subscribe((translated) => {
       let subCategory: string = Helper.getValueByPath(assetclass, 'subCategoryNLS.map.' + language);
       subCategory = subCategory ? subCategory + ' / ' : '';

@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import {
   afterNextRender,
   computed,
@@ -104,14 +105,14 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   private tenantService: TenantService = inject(TenantService);
   private activePanelService: ActivePanelService = inject(ActivePanelService);
 
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
   readonly comparisonTable = viewChild(FeeModelComparisonTableComponent);
 
   formConfig: FormConfig;
   config: FieldFormGroup[] = [];
   configObject: { [name: string]: FieldConfig };
 
-  readonly comparisonResponse = signal<FeeModelComparisonResponse>(null);
+  readonly comparisonResponse = signal<FeeModelComparisonResponse | null>(null);
   readonly details = computed(() => this.comparisonResponse()?.details ?? []);
   readonly accountFxGroups = signal<FxObservationGroup[]>([]);
   readonly transferFxGroups = signal<FxObservationGroup[]>([]);
@@ -151,16 +152,16 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
     );
     afterNextRender(
       () => {
-        this.configObject.excludeZeroCost.formControl.setValue(true);
+        requireFormControl(this.configObject.excludeZeroCost).setValue(true);
         this.subscriptions.push(
-          this.configObject.idSecuritycashAccount.formControl.valueChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
+          requireFormControl(this.configObject.idSecuritycashAccount)
+            .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => {
               this.loadComparison();
               this.loadObservations();
             }),
-          this.configObject.excludeZeroCost.formControl.valueChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
+          requireFormControl(this.configObject.excludeZeroCost)
+            .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => this.loadComparison())
         );
         this.loadSecurityaccounts();
@@ -261,8 +262,8 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   private loadComparison(): void {
     this.comparisonRequest?.unsubscribe();
     this.comparisonResponse.set(null);
-    const idSecuritycashAccount = this.configObject.idSecuritycashAccount.formControl.value;
-    const excludeZeroCost = this.configObject.excludeZeroCost.formControl.value ?? true;
+    const idSecuritycashAccount = requireFormControl(this.configObject.idSecuritycashAccount).value;
+    const excludeZeroCost = requireFormControl(this.configObject.excludeZeroCost).value ?? true;
     if (idSecuritycashAccount) {
       this.comparisonRequest = this.securityaccountService
         .getFeeModelComparison(+idSecuritycashAccount, excludeZeroCost)
@@ -277,7 +278,7 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   private loadObservations(): void {
     this.observationRequest?.unsubscribe();
     this.accountFxGroups.set([]);
-    const idAccount = this.configObject.idSecuritycashAccount.formControl.value;
+    const idAccount = requireFormControl(this.configObject.idSecuritycashAccount).value;
     if (idAccount) {
       this.observationRequest = this.securityaccountService
         .getFxObservations(+idAccount)

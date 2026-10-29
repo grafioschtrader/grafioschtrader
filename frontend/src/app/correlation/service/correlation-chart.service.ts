@@ -17,7 +17,7 @@ export class CorrelationChartService {
   shown = false;
 
   /** Publishes results, or clears stale results when the set or selection changes. */
-  publish(input: CorrelationChartInput): void {
+  publish(input: CorrelationChartInput | null): void {
     this.inputState.set(input);
   }
 }

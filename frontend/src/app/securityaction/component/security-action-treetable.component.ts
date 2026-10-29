@@ -85,7 +85,7 @@ export class SecurityActionTreetableComponent
   /** Row highlighted by the single-selection tree table. */
   tableSelection: TreeNode = null;
   /** Translated menu of the selected node, shown as context menu and in the menu bar */
-  readonly contextMenuItems = signal<MenuItem[]>(null);
+  readonly contextMenuItems = signal<MenuItem[] | null>(null);
   isAdmin: boolean;
   readonly visibleCreateDialog = signal(false);
 
@@ -353,7 +353,7 @@ export class SecurityActionTreetableComponent
           count: application.alreadyPerformedCount
         });
       } else {
-        this.messageToastService.showMessageI18n(null, 'APPLY_ISIN_CHANGE_SUCCESS');
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'APPLY_ISIN_CHANGE_SUCCESS');
       }
       this.readData();
     });
@@ -362,7 +362,7 @@ export class SecurityActionTreetableComponent
   private reverseIsinChange(): void {
     const action: SecurityAction = this.selectedNode.data.entity;
     this.securityActionService.reverseSecurityAction(action.idSecurityAction).subscribe(() => {
-      this.messageToastService.showMessageI18n(null, 'REVERSE_ISIN_CHANGE_SUCCESS');
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REVERSE_ISIN_CHANGE_SUCCESS');
       this.readData();
     });
   }
@@ -378,7 +378,7 @@ export class SecurityActionTreetableComponent
   private reverseTransfer(): void {
     const transfer: SecurityTransfer = this.selectedNode.data.entity;
     this.securityActionService.reverseTransfer(transfer.idSecurityTransfer).subscribe(() => {
-      this.messageToastService.showMessageI18n(null, 'REVERSE_TRANSFER_SUCCESS');
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REVERSE_TRANSFER_SUCCESS');
       this.selectedNode = null;
       this.readData();
     });

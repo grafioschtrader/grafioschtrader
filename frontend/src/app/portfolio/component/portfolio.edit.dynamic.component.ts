@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { afterNextRender, Component, OnInit, inject } from '@angular/core';
 import { PortfolioService } from '../service/portfolio.service';
 import { TranslateModule } from '@ngx-translate/core';
@@ -58,7 +59,7 @@ export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfol
     if (this.callParam.thisObject != null) {
       this.form().transferBusinessObjectToForm(this.callParam.thisObject);
     } else {
-      this.configObject.currency.formControl.setValue((<Tenant>this.callParam.parentObject).currency);
+      requireFormControl(this.configObject.currency).setValue((<Tenant>this.callParam.parentObject).currency);
     }
     this.configObject.name.elementRef?.nativeElement.focus();
     this.gpsGT

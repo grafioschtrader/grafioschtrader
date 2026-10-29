@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
@@ -67,7 +68,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
   /** Controls visibility of the cash account transaction dialog */
-  readonly visibleCashaccountTransactionSingleDialog = input<boolean>(undefined);
+  readonly visibleCashaccountTransactionSingleDialog = input<boolean>();
 
   /** Form configuration object containing locale and validation settings */
   formConfig: FormConfig;
@@ -154,7 +155,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * @returns True if dialog should be visible
    */
   isVisibleDialog(): boolean {
-    return this.visibleCashaccountTransactionSingleDialog();
+    return this.visibleCashaccountTransactionSingleDialog() ?? false;
   }
 
   /**
@@ -164,7 +165,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    */
   selectSingleOptions(fieldConfig: FieldConfig, force: boolean) {
     if (fieldConfig.valueKeyHtmlOptions.length === 1 || (force && fieldConfig.valueKeyHtmlOptions.length > 0)) {
-      fieldConfig.formControl.setValue(fieldConfig.valueKeyHtmlOptions[0].key);
+      requireFormControl(fieldConfig).setValue(fieldConfig.valueKeyHtmlOptions[0].key);
     }
   }
 
@@ -172,8 +173,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Sets up subscription for transaction type changes to adjust form validation and visibility.
    */
   valueChangedOnTransactionType() {
-    this.transactionTypeChangedSub = this.configObject.transactionType.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.transactionTypeChangedSub = requireFormControl(this.configObject.transactionType)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((data: string) => this.changeTransactionType(data));
   }
 
@@ -185,13 +186,13 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     switch (TransactionType[transactionType as keyof typeof TransactionType]) {
       case TransactionType.FEE:
         AppHelper.enableAndVisibleInput(this.configObject.idSecurityaccount);
-        if (this.configObject.idCashaccount.formControl.value) {
+        if (requireFormControl(this.configObject.idCashaccount).value) {
           const cp: {
             cashaccount: Cashaccount;
             portfolio: Portfolio;
           } = this.getCashaccountByIdCashaccountFromPortfolios(
             this.portfolios,
-            +this.configObject.idCashaccount.formControl.value
+            +requireFormControl(this.configObject.idCashaccount).value
           );
           this.prepareSecurityaccount(cp.portfolio);
         }
@@ -222,8 +223,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Change observer on cash account is needed for the currency determination
    */
   valueChangedOnCashaccount(): void {
-    this.chashaccountChangedSub = this.configObject.idCashaccount.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.chashaccountChangedSub = requireFormControl(this.configObject.idCashaccount)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((data: string) => {
         const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
           this.portfolios,
@@ -263,13 +264,13 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Sets up subscription for calculation field changes to update debit amount for withdrawal transactions.
    */
   valueChangedOnCalcFields(): void {
-    this.valueChangedOnValueCalcFieldsSub = this.configObject.calcGroup.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.valueChangedOnValueCalcFieldsSub = requireFormControl(this.configObject.calcGroup)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((data) => {
         if (!this.configObject.transactionCost.invisible) {
           const values: any = {};
           this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);
-          this.configObject.debitAmount.formControl.setValue(
+          requireFormControl(this.configObject.debitAmount).setValue(
             values.cashaccountAmount + (values.transactionCost ? values.transactionCost : 0)
           );
         }
@@ -363,8 +364,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.valueChangedOnCashaccount();
     this.valueChangedOnTransactionType();
     this.valueChangedOnCalcFields();
-    this.transactionTimeChangedSub = this.configObject.transactionTime.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    this.transactionTimeChangedSub = requireFormControl(this.configObject.transactionTime)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe(() => this.toggleAccountOptionsByTransactionTime());
   }
 
@@ -374,7 +375,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * visible but disabled.
    */
   private toggleAccountOptionsByTransactionTime(): void {
-    const transactionTime = this.configObject.transactionTime.formControl.value;
+    const transactionTime = requireFormControl(this.configObject.transactionTime).value;
     if (!transactionTime || !this.portfolios) {
       return;
     }
@@ -433,11 +434,13 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   private setExistingTransactionToView(): void {
     const transactionCallParam = this.transactionCallParam();
     if (transactionCallParam.transaction === null) {
-      this.configObject.idCashaccount.formControl.setValue(transactionCallParam.cashaccount.idSecuritycashAccount);
-      this.changeTransactionType(this.configObject.transactionType.formControl.value);
+      requireFormControl(this.configObject.idCashaccount).setValue(
+        transactionCallParam.cashaccount.idSecuritycashAccount
+      );
+      this.changeTransactionType(requireFormControl(this.configObject.transactionType).value);
     } else {
       this.form().transferBusinessObjectToForm(transactionCallParam.transaction);
-      this.configObject.cashaccountAmount.formControl.setValue(
+      requireFormControl(this.configObject.cashaccountAmount).setValue(
         BusinessHelper.getTotalAmountFromTransaction(transactionCallParam.transaction) -
           (transactionCallParam.transaction.transactionCost === null
             ? 0
@@ -458,7 +461,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       ? this.configObject.cashaccountAmount.max * -1
       : this.minAmount;
     this.configObject.cashaccountAmount.validation = [Validators.required, validator];
-    this.configObject.cashaccountAmount.formControl.setValidators(this.configObject.cashaccountAmount.validation);
+    requireFormControl(this.configObject.cashaccountAmount).setValidators(
+      this.configObject.cashaccountAmount.validation
+    );
     this.configObject.cashaccountAmount.errors = [
       this.errorRequired,
       {
@@ -469,7 +474,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       }
     ];
     TranslateHelper.translateMessageError(this.translateService, this.configObject.cashaccountAmount);
-    this.configObject.cashaccountAmount.formControl.updateValueAndValidity();
+    requireFormControl(this.configObject.cashaccountAmount).updateValueAndValidity();
     this.configObject.cashaccountAmount.baseInputComponent.reEvaluateRequired();
   }
 

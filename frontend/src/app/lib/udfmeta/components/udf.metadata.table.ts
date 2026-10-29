@@ -94,10 +94,12 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
   protected beforeEdit(entity: UDFMetadata, uDFMetadataParam: UDFMetadataParam): void {
     uDFMetadataParam.excludeUiOrders = this.entityList()
       .filter((m) => entity == null || entity.uiOrder !== m.uiOrder)
-      .map((m) => m.uiOrder);
+      .map((m) => m.uiOrder)
+      .filter((order) => order != null);
     uDFMetadataParam.excludeFieldNames = this.entityList()
       .filter((m) => entity == null || entity.description !== m.description)
-      .map((m) => m.description);
+      .map((m) => m.description)
+      .filter((name) => name != null);
   }
 
   /**

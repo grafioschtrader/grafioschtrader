@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {
   afterNextRender,
@@ -50,7 +51,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   private static readonly NAME_REGEX = 'nameRegex';
 
   // Access child components
-  readonly dynamicFormComponent = viewChild(DynamicFormComponent);
+  readonly dynamicFormComponent = viewChild.required(DynamicFormComponent);
   readonly supplementCriteriaInput = input<SupplementCriteria>(undefined, { alias: 'supplementCriteria' });
   readonly supplementCriteria = linkedSignal(() => this.supplementCriteriaInput());
 
@@ -237,19 +238,19 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
       )
       .find(
         (fieldConfig) =>
-          (fieldConfig.dataType === DataType.Boolean && fieldConfig.formControl.value) ||
+          (fieldConfig.dataType === DataType.Boolean && requireFormControl(fieldConfig).value) ||
           (fieldConfig.dataType !== DataType.Boolean &&
-            fieldConfig.formControl.value &&
-            fieldConfig.formControl.value !== '')
+            requireFormControl(fieldConfig).value &&
+            requireFormControl(fieldConfig).value !== '')
       );
     return !foundFieldConfig;
   }
 
   private isCurrency(): boolean {
-    return this.configObject.assetclassType.formControl.value === AssetclassType[AssetclassType.CURRENCY_PAIR];
+    return requireFormControl(this.configObject.assetclassType).value === AssetclassType[AssetclassType.CURRENCY_PAIR];
   }
 
   private isExactCurrency(): boolean {
-    return this.isCurrency() && !!this.configObject.currency.formControl.value;
+    return this.isCurrency() && !!requireFormControl(this.configObject.currency).value;
   }
 }

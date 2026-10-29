@@ -41,7 +41,7 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
   /**
    * Reference to the dynamic form component for accessing form controls and validation.
    */
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
 
   /** Lifetime of the component, for subscriptions created outside an injection context */
   protected readonly destroyRef = inject(DestroyRef);

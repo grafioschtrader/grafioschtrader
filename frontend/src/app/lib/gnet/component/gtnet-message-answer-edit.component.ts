@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import { GTNetMessageAnswer, GTNetMessageAnswerCallParam } from '../model/gtnet.message.answer';
@@ -154,8 +155,8 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     this.configObject.responseMsgCode.valueKeyHtmlOptions = [];
 
     // Subscribe to request code changes to update response code options
-    this.configObject.requestMsgCode.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.requestMsgCode)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((requestCode: string) => this.updateResponseCodeOptions(requestCode));
 
     // Load existing entity or set defaults
@@ -383,9 +384,9 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     if (textarea) {
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
-      const currentValue = this.configObject.responseMsgConditional.formControl.value || '';
+      const currentValue = requireFormControl(this.configObject.responseMsgConditional).value || '';
       const newValue = currentValue.substring(0, start) + varName + currentValue.substring(end);
-      this.configObject.responseMsgConditional.formControl.setValue(newValue);
+      requireFormControl(this.configObject.responseMsgConditional).setValue(newValue);
       // Restore cursor position after variable
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + varName.length;
@@ -403,9 +404,9 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     if (textarea) {
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
-      const currentValue = this.configObject.responseMsgConditional.formControl.value || '';
+      const currentValue = requireFormControl(this.configObject.responseMsgConditional).value || '';
       const newValue = currentValue.substring(0, start) + template + currentValue.substring(end);
-      this.configObject.responseMsgConditional.formControl.setValue(newValue);
+      requireFormControl(this.configObject.responseMsgConditional).setValue(newValue);
       setTimeout(() => {
         // Position cursor at first placeholder '?'
         const placeholderPos = newValue.indexOf('?', start);

@@ -12,7 +12,7 @@ export type LookupFeed = 'history' | 'intra' | 'dividend' | 'split';
  * @param alternative - The connector with the outcome of its probe
  * @returns True when the user may choose the connector
  */
-export function isUsableAlternative(feed: LookupFeed, alternative: ConnectorAlternative): boolean {
+export function isUsableAlternative(feed: LookupFeed, alternative: ConnectorAlternative | null | undefined): boolean {
   if (alternative?.probeStatus === 'OK') {
     return true;
   }
@@ -26,7 +26,10 @@ export function isUsableAlternative(feed: LookupFeed, alternative: ConnectorAlte
  * @param alternatives - All connectors offered for the feed
  * @returns The connector to preselect, or null when none or several are usable
  */
-export function preselectAlternative(feed: LookupFeed, alternatives: ConnectorAlternative[]): ConnectorAlternative {
+export function preselectAlternative(
+  feed: LookupFeed,
+  alternatives: ConnectorAlternative[] | null | undefined
+): ConnectorAlternative | null {
   const usable = (alternatives ?? []).filter((a) => isUsableAlternative(feed, a));
   return usable.length === 1 ? usable[0] : null;
 }
@@ -42,8 +45,8 @@ export function preselectAlternative(feed: LookupFeed, alternatives: ConnectorAl
  * @returns The frequency, or undefined when it stays open
  */
 export function chooseDistributionFrequency(
-  chosen: ConnectorAlternative,
-  alternatives: ConnectorAlternative[]
+  chosen: ConnectorAlternative | null | undefined,
+  alternatives: ConnectorAlternative[] | null | undefined
 ): string | undefined {
   if (chosen?.distributionFrequency) {
     return chosen.distributionFrequency;
@@ -62,7 +65,7 @@ export function chooseDistributionFrequency(
  * @param name - The name, may be null
  * @returns True when the name has letters and none of them is lower case
  */
-export function isAllUpperCase(name: string): boolean {
+export function isAllUpperCase(name: string | null | undefined): boolean {
   return !!name && name === name.toUpperCase() && name !== name.toLowerCase();
 }
 
@@ -75,7 +78,9 @@ export function isAllUpperCase(name: string): boolean {
  * @returns The first listing whose name is not written entirely in capitals, otherwise the first listing; null when
  *   there is none
  */
-export function preselectNameCandidate(candidates: SecurityLookupCandidate[]): SecurityLookupCandidate {
+export function preselectNameCandidate(
+  candidates: SecurityLookupCandidate[] | null | undefined
+): SecurityLookupCandidate | null {
   const list = candidates ?? [];
   return list.find((c) => c.name && !isAllUpperCase(c.name)) ?? list[0] ?? null;
 }

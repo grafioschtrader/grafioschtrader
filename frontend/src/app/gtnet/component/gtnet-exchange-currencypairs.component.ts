@@ -183,7 +183,7 @@ import { Helper } from '../../lib/helper/helper';
   providers: [DialogService]
 })
 export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseComponent<Currencypair> {
-  readonly configurableTable = viewChild(ConfigurableTableComponent);
+  readonly configurableTable = viewChild.required(ConfigurableTableComponent);
 
   /** Visibility flag for currency pair edit dialog */
   readonly visibleEditCurrencypairDialog = signal(false);
@@ -245,7 +245,7 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   /**
    * Override to build edit menu with currency pair edit option.
    */
-  protected override prepareEditMenu(entity: Currencypair): MenuItem[] {
+  protected override prepareEditMenu(entity: Currencypair): MenuItem[] | null {
     const menuItems: MenuItem[] = [];
 
     if (entity) {

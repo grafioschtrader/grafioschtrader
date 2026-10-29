@@ -1,3 +1,4 @@
+import { requireFieldName, requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { httpResource } from '@angular/common/http';
 import {
   afterNextRender,
@@ -124,7 +125,7 @@ export class SecurityaccountImportTransactionComponent
   private static readonly STORAGE_KEY_SELECTED_HEAD = 'selectedImportTransactionHead';
 
   // Access child component
-  readonly sitdc = viewChild(SecurityaccountImportTransactionTableComponent);
+  readonly sitdc = viewChild.required(SecurityaccountImportTransactionTableComponent);
 
   // Child Dialogs
   readonly visibleUploadFileDialog = signal(false);
@@ -258,12 +259,12 @@ export class SecurityaccountImportTransactionComponent
   private loadImportTransactionTemplates(
     account: Securityaccount = this.securityAccount
   ): Observable<ImportTransactionTemplate[]> {
-    const accountTemplates$ = account.tradingPlatformPlan.importTransactionPlatform
-      ? this.importTransactionTemplateService.getImportTransactionPlatformByTradingPlatformPlan(
-          account.tradingPlatformPlan.idTradingPlatformPlan,
-          true
-        )
-      : of<ImportTransactionTemplate[]>([]);
+    const platform = account.tradingPlatformPlan;
+    const planId = platform?.idTradingPlatformPlan;
+    const accountTemplates$ =
+      platform?.importTransactionPlatform && planId != null
+        ? this.importTransactionTemplateService.getImportTransactionPlatformByTradingPlatformPlan(planId, true)
+        : of<ImportTransactionTemplate[]>([]);
     const gtPlatformId = this.gpsGT.getTenantGtImportPlatformId();
     const gtTemplates$ =
       gtPlatformId != null
@@ -295,8 +296,8 @@ export class SecurityaccountImportTransactionComponent
     }
   }
 
-  setChildData(selectedEntity: ImportTransactionHead): void {
-    this.sitdc().parentSelectionChanged(this.selectedEntity, this, this.importTransactionTemplates);
+  setChildData(selectedEntity: ImportTransactionHead | null): void {
+    this.sitdc().parentSelectionChanged(selectedEntity, this, this.importTransactionTemplates);
   }
 
   prepareEditMenu(): MenuItem[] {
@@ -349,9 +350,14 @@ export class SecurityaccountImportTransactionComponent
 
   handleUploadCSVFile(): void {
     const head = this.selectedEntity;
-    const idPlatform = this.selectedEntity.useGtPlatform
+    if (!head) return;
+    const idPlatform = head.useGtPlatform
       ? this.gpsGT.getTenantGtImportPlatformId()
-      : this.securityAccount.tradingPlatformPlan.importTransactionPlatform.idTransactionImportPlatform;
+      : this.securityAccount?.tradingPlatformPlan?.importTransactionPlatform?.idTransactionImportPlatform;
+    if (idPlatform == null) {
+      this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'REQUIRED_FIELDS_MISSING');
+      return;
+    }
     this.importTransactionTemplateService
       .getCSVTemplateIdsAsValueKeyHtmlSelectOptions(idPlatform)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -401,7 +407,7 @@ export class SecurityaccountImportTransactionComponent
   }
 
   submitPrepareFN(value: { [name: string]: any }, formData: FormData, fieldConfig: FieldConfig[]): void {
-    formData.append(fieldConfig[0].field, fieldConfig[0].formControl.value);
+    formData.append(requireFieldName(fieldConfig[0]), requireFormControl(fieldConfig[0]).value);
   }
 
   handleCloseImportUploadDialog(processedActionData: ProcessedActionData): void {
@@ -415,12 +421,12 @@ export class SecurityaccountImportTransactionComponent
     super.destroy();
   }
 
-  protected override prepareShowMenu(): MenuItem[] {
+  protected override prepareShowMenu(): MenuItem[] | null {
     const menuItems = this.sitdc().prepareShowMenu();
     return menuItems;
   }
 
-  protected prepareCallParam(entity: ImportTransactionHead): void {
+  protected prepareCallParam(entity: ImportTransactionHead | null): void {
     this.callParam = new CallParam(this.securityAccount, entity);
   }
 
@@ -449,13 +455,15 @@ export class SecurityaccountImportTransactionComponent
    * whole import can be run again. The positions are reloaded afterwards.
    */
   handleRollbackImport(): void {
+    const id = this.selectedEntity?.idTransactionHead;
+    if (id == null) return;
     AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'MSG_CONFIRM_ROLLBACK_IMPORT', () =>
       this.importTransactionHeadService
-        .rollbackImportedTransactions(this.selectedEntity.idTransactionHead)
+        .rollbackImportedTransactions(id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((noRecord: number) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_ROLLBACK_IMPORT', { noRecord });
-          this.setChildData(this.selectedEntity);
+          if (this.selectedEntity?.idTransactionHead === id) this.setChildData(this.selectedEntity);
         })
     );
   }

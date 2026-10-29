@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { afterNextRender, Component, inject, Injector, OnInit, signal, viewChild, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Validators } from '@angular/forms';
@@ -60,7 +61,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   private stockexchangeService: StockexchangeService = inject(StockexchangeService);
   private httpClient: HttpClient = inject(HttpClient);
 
-  readonly yamlEditor = viewChild(YamlEditorComponent);
+  readonly yamlEditor = viewChild.required(YamlEditorComponent);
   readonly callParam = input<GenericConnectorDef>(undefined);
 
   readonly tokenConfigYamlValue = signal('');
@@ -125,18 +126,20 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     this.geoTreeNodes = [];
     // FormControl.disable() emits valueChanges as well. Ignoring it keeps applyFieldLocks() from clearing the rate
     // limit fields it has just locked, because disableAndClearField() would set them to null.
-    this.configObject.rateLimitType.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((value) => {
-      if (this.configObject.rateLimitType.formControl.enabled) {
-        this.updateRateLimitTypeDependencies(value);
-      }
-    });
+    requireFormControl(this.configObject.rateLimitType)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((value) => {
+        if (requireFormControl(this.configObject.rateLimitType).enabled) {
+          this.updateRateLimitTypeDependencies(value);
+        }
+      });
     const callParam = this.callParam();
     this.updateRateLimitTypeDependencies(
       callParam?.rateLimitType != null ? RateLimitType[callParam.rateLimitType as keyof typeof RateLimitType] : null
     );
 
-    this.configObject.geoInclusions.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.geoInclusions)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe(() => this.rebuildExclusionsTree());
     this.form().setDefaultValuesAndEnableSubmit();
     if (callParam) {
@@ -218,18 +221,18 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
 
   private enableField(fieldName: string, required: boolean): void {
     const fc = this.configObject[fieldName];
-    fc.formControl.enable();
+    requireFormControl(fc).enable();
     DynamicFieldHelper.resetValidator(fc, required ? [Validators.required] : []);
   }
 
   private disableAndClearField(fieldName: string): void {
     const fc = this.configObject[fieldName];
-    fc.formControl.setValue(null);
+    requireFormControl(fc).setValue(null);
     DynamicFieldHelper.resetValidator(fc, []);
-    fc.formControl.disable();
+    requireFormControl(fc).disable();
   }
 
-  private updateRateLimitTypeDependencies(rateLimitType: string | RateLimitType): void {
+  private updateRateLimitTypeDependencies(rateLimitType: string | RateLimitType | null | undefined): void {
     if (rateLimitType === 'TOKEN_BUCKET') {
       this.enableField('rateLimitRequests', true);
       this.enableField('rateLimitPeriodSec', true);
@@ -254,22 +257,24 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     const countryNames: { [cc: string]: string } = {};
     countries.forEach((c) => (countryNames[c.key as string] = c.value));
 
-    const countryMap: { [cc: string]: TreeNode } = {};
+    const countryMap: Record<string, TreeNode & { label: string; children: TreeNode[] }> = {};
     stockexchanges.forEach((se) => {
-      if (!countryMap[se.countryCode]) {
-        countryMap[se.countryCode] = {
-          key: se.countryCode,
-          label: countryNames[se.countryCode] || se.countryCode,
-          data: se.countryCode,
-          icon: 'fi fi-' + se.countryCode.toLowerCase(),
+      const { countryCode, mic } = se;
+      if (countryCode == null || mic == null) return;
+      if (!countryMap[countryCode]) {
+        countryMap[countryCode] = {
+          key: countryCode,
+          label: countryNames[countryCode] || countryCode,
+          data: countryCode,
+          icon: 'fi fi-' + countryCode.toLowerCase(),
           children: [],
           selectable: true
         };
       }
-      countryMap[se.countryCode].children.push({
-        key: se.mic,
-        label: se.name + ' (' + se.mic + ')',
-        data: se.mic,
+      countryMap[countryCode].children.push({
+        key: mic,
+        label: se.name + ' (' + mic + ')',
+        data: mic,
         selectable: true
       });
     });
@@ -283,7 +288,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     const callParam = this.callParam();
     if (callParam.supportedCategories) {
       const cats = callParam.supportedCategories.split(',').map((s) => s.trim());
-      this.configObject.supportedCategories.formControl.setValue(cats);
+      requireFormControl(this.configObject.supportedCategories).setValue(cats);
     }
   }
 
@@ -321,7 +326,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
         }
       });
     });
-    this.configObject.geoInclusions.formControl.setValue(inclusionNodes.length > 0 ? inclusionNodes : null);
+    requireFormControl(this.configObject.geoInclusions).setValue(inclusionNodes.length > 0 ? inclusionNodes : null);
     // Build exclusions tree from current inclusions, then set exclusion selections
     this.rebuildExclusionsTree();
     if (exclusionTokens.length > 0) {
@@ -347,7 +352,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
           exclNodes.push(geoNode);
         }
       });
-      this.configObject.geoExclusions.formControl.setValue(exclNodes.length > 0 ? exclNodes : null);
+      requireFormControl(this.configObject.geoExclusions).setValue(exclNodes.length > 0 ? exclNodes : null);
     }
   }
 
@@ -357,8 +362,8 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    * selections where possible.
    */
   private rebuildExclusionsTree(): void {
-    const inclusionVal: TreeNode[] = this.configObject.geoInclusions.formControl.value;
-    const oldExclVal: TreeNode[] = this.configObject.geoExclusions.formControl.value;
+    const inclusionVal: TreeNode[] = requireFormControl(this.configObject.geoInclusions).value;
+    const oldExclVal: TreeNode[] = requireFormControl(this.configObject.geoExclusions).value;
     const categoryNames = Object.keys(AssetclassCategory).filter((k) => isNaN(Number(k)));
 
     // Collect all checked geo codes from inclusions (TreeNode[])
@@ -411,9 +416,9 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
           preserved.push(newNode);
         }
       });
-      this.configObject.geoExclusions.formControl.setValue(preserved.length > 0 ? preserved : null);
+      requireFormControl(this.configObject.geoExclusions).setValue(preserved.length > 0 ? preserved : null);
     } else {
-      this.configObject.geoExclusions.formControl.setValue(null);
+      requireFormControl(this.configObject.geoExclusions).setValue(null);
     }
   }
 
@@ -422,7 +427,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    * geoRestrictions string.
    */
   private mergeGeoRestrictions(entity: GenericConnectorDef): void {
-    const inclusionVal: TreeNode[] = this.configObject.geoInclusions.formControl.value;
+    const inclusionVal: TreeNode[] = requireFormControl(this.configObject.geoInclusions).value;
     const tokens: string[] = [];
 
     if (inclusionVal) {
@@ -438,7 +443,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
         });
       });
     }
-    const exclVal: TreeNode[] = this.configObject.geoExclusions.formControl.value;
+    const exclVal: TreeNode[] = requireFormControl(this.configObject.geoExclusions).value;
     if (exclVal) {
       // Only serialize leaf nodes (geo:-CATEGORY), skip parent geo nodes
       const exclKeys = new Set<string>(exclVal.map((n) => n.key));
@@ -470,7 +475,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     entity.tokenConfigYaml = this.tokenConfigYamlValue().trim() || null;
 
     // supportedCategories: convert array back to comma-separated string
-    const catArray = this.configObject.supportedCategories.formControl.value;
+    const catArray = requireFormControl(this.configObject.supportedCategories).value;
     entity.supportedCategories = catArray && catArray.length > 0 ? catArray.join(',') : null;
 
     // geoRestrictions: merge tree selection + exclusions

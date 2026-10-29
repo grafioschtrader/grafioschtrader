@@ -65,7 +65,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
   private readSubscription?: Subscription;
 
   // Parent selected entity
-  selectImportTransactionPlatform: ImportTransactionPlatform;
+  selectImportTransactionPlatform: ImportTransactionPlatform | null;
 
   parentChildRowSelection: ParentChildRowSelection<ImportTransactionTemplate>;
   private languageAsKeyValue: { [key: string]: string } = {};
@@ -99,7 +99,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
   }
 
   parentSelectionChanged(
-    seclectImportTransactionPlatform: ImportTransactionPlatform,
+    seclectImportTransactionPlatform: ImportTransactionPlatform | null,
     parentChildRowSelection: ParentChildRowSelection<ImportTransactionTemplate>
   ) {
     if (
@@ -149,7 +149,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
     let menuItems: MenuItem[] = [];
     menuItems.push({ separator: true });
     if (this.selectImportTransactionPlatform) {
-      menuItems = menuItems.concat(super.prepareEditMenu(this.selectedEntity()));
+      menuItems = menuItems.concat(super.prepareEditMenu(this.selectedEntity()) ?? []);
     }
     return menuItems;
   }

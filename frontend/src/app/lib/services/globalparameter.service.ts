@@ -295,9 +295,9 @@ export class GlobalparameterService
    *
    * TODO If the user manual is split up, it can be stored in the session storage.
    */
-  public toExternalHelpWebpage(language: string, helpIds: string) {
+  public toExternalHelpWebpage(language: string, helpIds: string | null | undefined) {
     const helpUrlBase = localStorage.getItem(GlobalSessionNames.EXTERNAL_HELP_URL);
-    if (helpUrlBase) {
+    if (helpUrlBase && helpIds) {
       AppHelper.toExternalWebpage(helpUrlBase + '/' + language + '/' + helpIds, 'help');
     }
   }

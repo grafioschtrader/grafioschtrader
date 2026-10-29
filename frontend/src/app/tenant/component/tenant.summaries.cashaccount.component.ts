@@ -64,7 +64,7 @@ export class TenantSummariesCashaccountComponent
     return groups;
   });
   untilDate: Date;
-  readonly accountPositionGrandSummary = signal<AccountPositionGrandSummary>(null);
+  readonly accountPositionGrandSummary = signal<AccountPositionGrandSummary | null>(null);
   readonly accountPositionSummaryAll = computed(
     () =>
       this.accountPositionGrandSummary()?.accountPositionGroupSummaryList.flatMap(
@@ -238,7 +238,7 @@ export class TenantSummariesCashaccountComponent
   }
 
   override getMenuShowOptions(): MenuItem[] {
-    const otherMenuShowOptions: MenuItem[] = super.getMenuShowOptions();
+    const otherMenuShowOptions = super.getMenuShowOptions();
 
     const menuItems: MenuItem[] = [];
     if (otherMenuShowOptions) {
@@ -290,7 +290,7 @@ export class TenantSummariesCashaccountComponent
       : null;
   }
 
-  onComponentClick(event: PanelClickEvent): void {
+  onComponentClick(event: PanelClickEvent | null): void {
     this.menuRequest?.unsubscribe();
     this.menuRequest = TranslateHelper.translateMenuItems$(this.getMenuShowOptions(), this.translateService)
       .pipe(takeUntilDestroyed(this.reportDestroyRef))
@@ -402,8 +402,8 @@ export class TenantSummariesCashaccountComponent
         this.accountPositionGrandSummary.set(result);
         this.excludedDivTaxColumn.visible = result.accountPositionGroupSummaryList.some((g) => g.excludeDivTax);
         this.columnConfigs.forEach((columnConfig) => {
-          columnConfig.headerSuffix = this.accountPositionGrandSummary().mainCurrency;
-          columnConfig.fixedCurrency = this.accountPositionGrandSummary().mainCurrency;
+          columnConfig.headerSuffix = result.mainCurrency;
+          columnConfig.fixedCurrency = result.mainCurrency;
         });
         this.prepareTableAndTranslate();
         this.changeToOpenChart();
@@ -447,7 +447,8 @@ export class TenantSummariesCashaccountComponent
     );
     const data = [securityBar, cashBalance];
 
-    for (const accountPositionGroupSummary of this.accountPositionGrandSummary().accountPositionGroupSummaryList) {
+    for (const accountPositionGroupSummary of this.accountPositionGrandSummary()?.accountPositionGroupSummaryList ??
+      []) {
       if (
         Math.abs(accountPositionGroupSummary.groupValueSecuritiesMC) > 0.02 ||
         Math.abs(accountPositionGroupSummary.groupCashBalanceMC) > 0.02

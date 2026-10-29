@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { AfterViewInit, Component, OnInit, inject } from '@angular/core';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { Helper } from '../../lib/helper/helper';
@@ -82,24 +83,24 @@ export class SecurityTransferCreateDialogComponent
           const targetAccounts = accounts.filter((sa) => sa.idSecuritycashAccount !== this.idSecurityaccountSource);
           return targetAccounts.length > 0;
         });
-        this.configObject.idPortfolioTarget.valueKeyHtmlOptions = eligiblePortfolios.map(
-          (p) => new ValueKeyHtmlSelectOptions(p.idPortfolio, p.name)
+        this.configObject.idPortfolioTarget.valueKeyHtmlOptions = eligiblePortfolios.flatMap((p) =>
+          p.idPortfolio == null ? [] : [new ValueKeyHtmlSelectOptions(p.idPortfolio, p.name)]
         );
         this.setupPortfolioChangeListener();
         this.form().setDefaultValuesAndEnableSubmit();
         if (this.configObject.securityName) {
-          this.configObject.securityName.formControl.setValue(data.securityName || '');
+          requireFormControl(this.configObject.securityName).setValue(data.securityName || '');
         }
         if (this.configObject.sourceAccount) {
           const sourceAccountName = data.sourceAccountName || this.findAccountName(this.idSecurityaccountSource) || '';
-          this.configObject.sourceAccount.formControl.setValue(sourceAccountName);
+          requireFormControl(this.configObject.sourceAccount).setValue(sourceAccountName);
         }
       });
   }
 
   private setupPortfolioChangeListener(): void {
-    this.configObject.idPortfolioTarget.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.idPortfolioTarget)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((idPortfolio) => this.updateSecurityaccountOptions(idPortfolio));
   }
 
@@ -118,7 +119,7 @@ export class SecurityTransferCreateDialogComponent
   private updateSecurityaccountOptions(idPortfolio: number): void {
     if (!idPortfolio) {
       this.configObject.idSecurityaccountTarget.valueKeyHtmlOptions = [];
-      this.configObject.idSecurityaccountTarget.formControl.setValue(null);
+      requireFormControl(this.configObject.idSecurityaccountTarget).setValue(null);
       return;
     }
     const portfolio = this.portfolios.find((p) => p.idPortfolio === +idPortfolio);
@@ -129,9 +130,9 @@ export class SecurityTransferCreateDialogComponent
       (sa) => new ValueKeyHtmlSelectOptions(sa.idSecuritycashAccount, sa.name)
     );
     if (accounts.length === 1) {
-      this.configObject.idSecurityaccountTarget.formControl.setValue(accounts[0].idSecuritycashAccount);
+      requireFormControl(this.configObject.idSecurityaccountTarget).setValue(accounts[0].idSecuritycashAccount);
     } else {
-      this.configObject.idSecurityaccountTarget.formControl.setValue(null);
+      requireFormControl(this.configObject.idSecurityaccountTarget).setValue(null);
     }
   }
 

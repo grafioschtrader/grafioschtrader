@@ -10,7 +10,7 @@ export interface FxMarkupRequest {
 
 export interface FxMarkupPreviewRequest {
   idSecurityaccount?: number;
-  idTradingPlatformPlan?: number;
+  idTradingPlatformPlan?: number | null;
   yaml: string;
   request: FxMarkupRequest;
 }

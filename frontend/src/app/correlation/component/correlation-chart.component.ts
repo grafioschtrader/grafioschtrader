@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import {
   afterNextRender,
   AfterRenderRef,
@@ -95,8 +96,8 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   private gps: GlobalparameterService = inject(GlobalparameterService);
   public translateService: TranslateService = inject(TranslateService);
 
-  readonly form = viewChild(DynamicFormComponent);
-  readonly chartElement = viewChild<ElementRef>('chart');
+  readonly form = viewChild.required(DynamicFormComponent);
+  readonly chartElement = viewChild.required<ElementRef>('chart');
   readonly chartInput = this.chartService.input;
   private readonly chartType = signal(CorrelationChartType.Combined);
   private readonly figure = computed(() =>
@@ -158,9 +159,9 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
         const stored = this.usersettingsService.readSingleValue(this.storeKey());
         const type = Object.values(CorrelationChartType).includes(stored) ? stored : CorrelationChartType.Combined;
         this.chartType.set(type);
-        this.configObject.chartType.formControl.setValue(type);
-        this.configObject.chartType.formControl.valueChanges
-          .pipe(takeUntilDestroyed(this.destroyRef))
+        requireFormControl(this.configObject.chartType).setValue(type);
+        requireFormControl(this.configObject.chartType)
+          .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((type) => {
             this.chartType.set(type);
             this.usersettingsService.saveSingleValue(this.storeKey(), type);
@@ -181,7 +182,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   }
   hideContextMenu(): void {}
   callMeDeactivate(): void {}
-  getHelpContextId(): string {
+  getHelpContextId(): string | null {
     return null;
   }
 

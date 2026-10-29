@@ -1,3 +1,4 @@
+import { requireFieldName, requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { DynamicFieldHelper, VALIDATION_SPECIAL } from '../../helper/dynamic.field.helper';
 import { UDFDataType, UDFMetadata } from '../model/udf.metadata';
@@ -51,9 +52,9 @@ export class UDFMetadataHelper {
     };
     fdTypeSizeGroup.validation = [
       dataTypeFieldSizeGroup(
-        configDataTypeFields[0].field,
-        configDataTypeFields[1].field,
-        configDataTypeFields[1].field
+        requireFieldName(configDataTypeFields[0]),
+        requireFieldName(configDataTypeFields[1]),
+        requireFieldName(configDataTypeFields[1])
       )
     ];
     fdTypeSizeGroup.errors = [{ name: 'dataTypeFieldSizeGroup', keyi18n: 'dataTypeFieldSizeGroup', rules: ['dirty'] }];
@@ -130,7 +131,7 @@ export class UDFMetadataHelper {
       99,
       excludeUiOrders
     );
-    configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP].formControl
+    requireFormControl(configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP])
       .get([UDFMetadataHelper.UDF_DATA_TYPE])
       .valueChanges.pipe(lifetime)
       .subscribe((udt) =>
@@ -177,7 +178,7 @@ export class UDFMetadataHelper {
     configDataTypeFields: FieldConfig[],
     udt: string
   ): void {
-    const controlFieldSize = configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP].formControl.get([
+    const controlFieldSize = requireFormControl(configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP]).get([
       UDFMetadataHelper.FIELD_SIZE
     ]);
     if (

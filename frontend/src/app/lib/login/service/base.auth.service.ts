@@ -26,13 +26,13 @@ export abstract class BaseAuthService<T> extends BaseService {
   };
 
   /**
-   * Creates a create/put or update/post request depending on the id of the entity.
+   * Creates a POST request for a new entity or a PUT request for an existing entity.
    *
    * @param entity Entity to be saved or created
-   * @param id Id of existing entity or null
+   * @param id Id of an existing entity, or null/undefined for a new entity
    * @param pathApi Resource path.
    */
-  updateEntity(entity: T, id: number | string, pathApi: string): Observable<T> {
+  updateEntity(entity: T, id: number | string | null | undefined, pathApi: string): Observable<T> {
     if (id != null) {
       return this.httpClient
         .put<T>(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity, { headers: this.prepareHeaders() })

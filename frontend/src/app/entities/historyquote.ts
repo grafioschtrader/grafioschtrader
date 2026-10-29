@@ -8,7 +8,7 @@ export class Historyquote extends HistoryquoteBase {
   createModifyTime: string | Date;
 
   @Exclude()
-  override getId(): number {
+  override getId(): number | undefined {
     return this.idHistoryQuote;
   }
 }

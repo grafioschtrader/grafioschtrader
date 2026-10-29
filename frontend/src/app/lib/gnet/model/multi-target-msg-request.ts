@@ -10,15 +10,15 @@ export class MultiTargetMsgRequest {
   idGTNetTargetDomains: number[] = [];
 
   /** Optional free-text note to include with the message */
-  message: string = null;
+  message: string | null = null;
 
   /** Typed parameters for the message */
   gtNetMessageParamMap: { [key: string]: BaseParam } = {};
 
   /** Visibility level: ALL_USERS or ADMIN_ONLY */
-  visibility: string = null;
+  visibility: string | null = null;
 
-  constructor(targetIds: number[], message: string = null, visibility: string = null) {
+  constructor(targetIds: number[], message: string | null = null, visibility: string | null = null) {
     this.idGTNetTargetDomains = targetIds;
     this.message = message;
     this.visibility = visibility;

@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { afterNextRender, Component, DestroyRef, inject, Injector, OnInit, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBase } from '../../edit/form.base';
@@ -42,7 +43,7 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
   private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef);
   private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
 
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild.required(DynamicFormComponent);
 
   private readonly NEW_LINE = '\n';
   private readonly USER_TO_ANY_USER_PARAM = -1;
@@ -133,7 +134,7 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
       : [];
   }
 
-  private isPrivateReply(replyToRolePrivate: ReplyToRolePrivateType | string | number): boolean {
+  private isPrivateReply(replyToRolePrivate: ReplyToRolePrivateType | string | number | null | undefined): boolean {
     if (replyToRolePrivate) {
       return (
         (typeof replyToRolePrivate === 'number' && replyToRolePrivate === ReplyToRolePrivateType.REPLY_IS_PRIVATE) ||
@@ -146,8 +147,8 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
   private updateViewData(): void {
     if (this.mailSendParam.idUserTo) {
       if (this.mailSendParam.idUserTo !== this.USER_TO_ANY_USER_PARAM) {
-        this.configObject[this.ID_USER_TO].formControl.setValue(this.mailSendParam.idUserTo);
-        this.configObject[this.ID_USER_TO].formControl.disable();
+        requireFormControl(this.configObject[this.ID_USER_TO]).setValue(this.mailSendParam.idUserTo);
+        requireFormControl(this.configObject[this.ID_USER_TO]).disable();
       }
     } else {
       this.configObject[this.ROLE_NAME_TO].valueKeyHtmlOptions = SelectOptionsHelper.translateArrayKeyEqualValue(
@@ -159,24 +160,26 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
         )
       );
       if (this.mailSendParam.roleName) {
-        this.configObject[this.ROLE_NAME_TO].formControl.setValue(this.mailSendParam.roleName);
-        this.configObject[this.ROLE_NAME_TO].formControl.disable();
+        requireFormControl(this.configObject[this.ROLE_NAME_TO]).setValue(this.mailSendParam.roleName);
+        requireFormControl(this.configObject[this.ROLE_NAME_TO]).disable();
       }
     }
     if (this.mailSendParam.mailSendRecv) {
       this.sendResponseToMessage();
     } else if (this.mailSendParam.subject) {
-      this.configObject[this.SUBJECT].formControl.setValue(this.mailSendParam.subject);
+      requireFormControl(this.configObject[this.SUBJECT]).setValue(this.mailSendParam.subject);
     }
   }
 
   private sendResponseToMessage(): void {
+    const reply = this.mailSendParam.mailSendRecv;
+    if (!reply) return;
     const mailReplayLine = 'MAIL_REPLY_LINE';
     const idUserFrom = AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(this.ID_USER_FROM);
     const subject = AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(this.SUBJECT);
 
     this.translateService.get([mailReplayLine, idUserFrom, subject]).subscribe((replyLines) => {
-      this.configObject[this.SUBJECT].formControl.setValue(this.mailSendParam.mailSendRecv.subject);
+      requireFormControl(this.configObject[this.SUBJECT]).setValue(reply.subject);
       const replayText =
         this.NEW_LINE +
         replyLines[mailReplayLine] +
@@ -187,13 +190,14 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
         this.NEW_LINE +
         replyLines[subject] +
         ': ' +
-        this.mailSendParam.mailSendRecv.subject +
+        reply.subject +
         this.NEW_LINE +
-        this.mailSendParam.mailSendRecv.message;
-      this.configObject[this.MESSAGE].formControl.setValue(replayText);
-      this.configObject[this.MESSAGE].elementRef.nativeElement.focus();
-      this.configObject[this.MESSAGE].elementRef.nativeElement.selectionEnd = 0;
-      this.configObject[this.SUBJECT].elementRef.nativeElement.focus();
+        reply.message;
+      requireFormControl(this.configObject[this.MESSAGE]).setValue(replayText);
+      this.configObject[this.MESSAGE].elementRef?.nativeElement?.focus();
+      const message = this.configObject[this.MESSAGE].elementRef?.nativeElement;
+      if (message) message.selectionEnd = 0;
+      this.configObject[this.SUBJECT].elementRef?.nativeElement?.focus();
     });
   }
 }

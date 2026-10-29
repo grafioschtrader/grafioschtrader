@@ -69,7 +69,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
   /** Translated menu of the selection, shown as context menu and in the menu bar */
   readonly contextMenuItems = signal<MenuItem[]>([]);
   readonly mailSettingForwardList = signal<MailSettingForward[]>([]);
-  readonly selectedEntity = signal<MailSettingForward>(null);
+  readonly selectedEntity = signal<MailSettingForward | null>(null);
 
   private readonly destroyRef = inject(DestroyRef);
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
@@ -190,8 +190,9 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
   /** Updates available MESSAGE_COM_TYPE options (excludes already used types) */
   private refreshMessageComTypeOptions(): void {
     const usedTypes: (string | number)[] = this.mailSettingForwardList()
-      .filter((msf) => msf.messageComType != null)
-      .map((msf) => MessageComType[MessageComType[msf.messageComType] as keyof typeof MessageComType]);
+      .map((msf) => msf.messageComType)
+      .filter((type) => type != null)
+      .map((type) => MessageComType[MessageComType[type] as keyof typeof MessageComType]);
 
     const availableTypes = Object.keys(this.mailSendForwardDefault.mailSendForwardDefaultMapForUser).filter(
       (mct) => usedTypes.indexOf(MessageComType[MessageComType[mct as keyof typeof MessageComType]]) === -1
@@ -269,7 +270,9 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
     return [
       {
         label: 'DELETE_RECORD|' + this.MAIL_SETTING_FORWARD,
-        command: () => this.handleDeleteEntity(selected),
+        command: () => {
+          if (selected) this.handleDeleteEntity(selected);
+        },
         disabled: !selected?.idMailSettingForward
       }
     ];

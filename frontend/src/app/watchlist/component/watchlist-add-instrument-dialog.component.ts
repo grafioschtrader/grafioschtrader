@@ -48,14 +48,14 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
 })
 export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility of the add instrument dialog. */
-  readonly visibleAddInstrumentDialog = input<boolean>(undefined);
+  readonly visibleAddInstrumentDialog = input<boolean>();
   /** The ID of the watchlist to add instruments to. */
   readonly idWatchlist = input<number>(undefined);
   /** Tenant limits for securities and currencies in the watchlist. */
   readonly tenantLimits = input<TenantLimit[]>(undefined);
 
   /** Reference to the child table component that displays search results. */
-  readonly waitc = viewChild(WatchlistAddInstrumentTableComponent);
+  readonly waitc = viewChild.required(WatchlistAddInstrumentTableComponent);
 
   /** Event emitted when the dialog is closed, providing the result of the operation. */
   readonly closeDialog = output<ProcessedActionData>();

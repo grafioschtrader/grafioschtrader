@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 
 import { ProcessedActionData } from '../../types/processed.action.data';
@@ -6,7 +7,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { AppHelper } from '../../helper/app.helper';
-import { SimpleEditBase } from '../../edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../edit/simple.form.edit.base';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -31,7 +32,7 @@ import { BaseSettings } from '../../base.settings';
  * - FormData preparation and multipart upload
  * - Upload result feedback with success/error messaging
  *
- * This component extends SimpleEditBase to inherit standard dialog behavior including visibility
+ * This component extends SimpleFormEditBase to inherit standard dialog behavior including visibility
  * management, form configuration, and lifecycle handling.
  */
 @Component({
@@ -52,16 +53,16 @@ import { BaseSettings } from '../../base.settings';
   </p-dialog>`,
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class UploadFileDialogComponent extends SimpleEditBase implements OnInit {
+export class UploadFileDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
   private messageToastService: MessageToastService = inject(MessageToastService);
   private userSettingsService: UserSettingsService = inject(UserSettingsService);
 
   /** Configuration parameters passed from parent component defining dialog behavior and upload settings */
-  readonly fileUploadParam = input<FileUploadParam>(undefined);
+  readonly fileUploadParam = input.required<FileUploadParam>();
 
   /** Currently selected file for upload (used in single-file mode, kept for backward compatibility) */
-  fileToUpload: File = null;
+  fileToUpload: File | null = null;
 
   /**
    * Creates a new upload file dialog component.
@@ -122,11 +123,13 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    * @param value - Form values object containing all field values from the dynamic form
    */
   submit(value: { [name: string]: any }): void {
-    const files: FileList = this.configObject.fileToUpload.elementRef.nativeElement.files;
+    const files: FileList | undefined = this.configObject.fileToUpload.elementRef?.nativeElement?.files;
+    if (!files) return;
     const formData = new FormData();
 
     for (let i = 0; i < files.length; i++) {
-      formData.append('file', files.item(i), files.item(i).name);
+      const file = files.item(i);
+      if (file) formData.append('file', file, file.name);
     }
 
     const fileUploadParam = this.fileUploadParam();
@@ -134,9 +137,10 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
       const supportedCSVFormat = new SupportedCSVFormat();
       this.form().cleanMaskAndTransferValuesToBusinessObject(supportedCSVFormat);
       this.userSettingsService.saveObject(BaseSettings.CSV_EXPORT_FORMAT, supportedCSVFormat);
-      Object.keys(supportedCSVFormat).forEach((e) =>
-        formData.append(e, supportedCSVFormat[e as keyof SupportedCSVFormat])
-      );
+      Object.keys(supportedCSVFormat).forEach((key) => {
+        const value = supportedCSVFormat[key as keyof SupportedCSVFormat];
+        if (value != null) formData.append(key, value);
+      });
     }
 
     fileUploadParam.additionalFieldConfig &&
@@ -177,11 +181,13 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    * to exclude the chosen decimal separator.
    */
   valueChangedOnDecimalSeparator(): void {
-    this.configObject.decimalSeparator.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    const formats = this.fileUploadParam().supportedCSVFormats;
+    if (!formats) return;
+    requireFormControl(this.configObject.decimalSeparator)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((data: string) => {
-        const thousandSeparators: string[] = this.fileUploadParam().supportedCSVFormats.thousandSeparators.filter(
-          (separator) => separator !== this.configObject.decimalSeparator.formControl.value
+        const thousandSeparators: string[] = formats.thousandSeparators.filter(
+          (separator) => separator !== requireFormControl(this.configObject.decimalSeparator).value
         );
 
         this.configObject.thousandSeparator.valueKeyHtmlOptions =
@@ -215,9 +221,9 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
       this.configObject.dateFormat.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
         fileUploadParam.supportedCSVFormats.dateFormats
       );
-      const supportedCSVFormat: SupportedCSVFormat = this.userSettingsService.retrieveObject(
-        fileUploadParam.persistenceCSVKey
-      );
+      const supportedCSVFormat: SupportedCSVFormat | null = fileUploadParam.persistenceCSVKey
+        ? this.userSettingsService.retrieveObject(fileUploadParam.persistenceCSVKey)
+        : null;
       this.valueChangedOnDecimalSeparator();
       if (supportedCSVFormat) {
         this.form().transferBusinessObjectToForm(supportedCSVFormat);

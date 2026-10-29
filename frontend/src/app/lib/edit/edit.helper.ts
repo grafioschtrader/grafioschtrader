@@ -19,7 +19,11 @@ export abstract class EditHelper {
    * @param {DynamicFormComponent} form - The form component containing user input
    * @returns {T} The updated target entity with form data applied
    */
-  public static copyFormToPrivateBusinessObject<T>(targetEntity: T, existingEntity: T, form: DynamicFormComponent): T {
+  public static copyFormToPrivateBusinessObject<T>(
+    targetEntity: T,
+    existingEntity: T | null | undefined,
+    form: DynamicFormComponent
+  ): T {
     if (existingEntity) {
       Object.assign(targetEntity, existingEntity);
     }

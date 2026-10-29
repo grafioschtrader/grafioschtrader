@@ -74,7 +74,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
   readonly contextMenuItems = signal<MenuItem[]>([]);
   editMenu: MenuItem;
   readonly globalparametersList = signal<Globalparameters[]>([]);
-  readonly selectedEntity = signal<Globalparameters>(null);
+  readonly selectedEntity = signal<Globalparameters | null>(null);
   callParam: User;
   readonly visibleDialog = signal(false);
   private readonly destroyRef = inject(DestroyRef);
@@ -116,7 +116,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
     this.readData();
   }
 
-  getProperty(entity: Globalparameters, field: ColumnConfig): string {
+  getProperty(entity: Globalparameters, field: ColumnConfig): string | null {
     if (entity.propertyDateTime) {
       return entity.propertyDateTime;
     } else if (entity.propertyDate) {
@@ -143,7 +143,8 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
     this.resetMenu(this.selectedEntity());
   }
 
-  handleEditEntity(globalparameters: Globalparameters): void {
+  handleEditEntity(globalparameters: Globalparameters | null): void {
+    if (!globalparameters || globalparameters.propertyName == null) return;
     this.visibleDialog.set(true);
   }
 
@@ -183,7 +184,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
       });
   }
 
-  private resetMenu(gp: Globalparameters): void {
+  private resetMenu(gp: Globalparameters | null | undefined): void {
     this.selectedEntity.set(gp ?? null);
     this.activePanelService.activatePanel(this, {
       showMenu: this.getMenuShowOptions(),

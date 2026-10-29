@@ -125,7 +125,7 @@ export class CorrelationComponent
   private static readonly MAIN_FIELD = 'idCorrelationSet';
 
   /** Reference to the correlation table child component */
-  readonly correlationTableComponent = viewChild(CorrelationTableComponent);
+  readonly correlationTableComponent = viewChild.required(CorrelationTableComponent);
 
   /** Formatted time period string showing date range of overlapping price data */
   readonly timePeriod = computed(() => {
@@ -138,38 +138,36 @@ export class CorrelationComponent
   });
 
   /** Flag indicating whether instruments have non-overlapping date ranges */
-  readonly nonOverlappingDates = computed(
-    () => !!this.correlationResult() && !this.correlationResult().firstAvailableDate
-  );
+  readonly nonOverlappingDates = computed(() => {
+    const result = this.correlationResult();
+    return !!result && !result.firstAvailableDate;
+  });
 
   /**
    * Names of the distributing securities without dividend data in the period, when dividends are included. Their total
    * return equals their price return, which the user is told below the time period.
    */
-  readonly dividendMissingNames = computed(() =>
-    this.selectedEntity && this.correlationResult()
-      ? this.getDividendMissingNames(this.selectedEntity, this.correlationResult())
-      : null
-  );
+  readonly dividendMissingNames = computed(() => {
+    const result = this.correlationResult();
+    return this.selectedEntity && result ? this.getDividendMissingNames(this.selectedEntity, result) : null;
+  });
 
   /** Field name for ticker symbol property */
   private readonly tickerSymbol = 'tickerSymbol';
 
   /** Correlation limits and configuration settings */
-  readonly correlationLimit = signal<CorrelationLimit>(null);
+  readonly correlationLimit = signal<CorrelationLimit | null>(null);
 
   /**
    * Correlation set whose matrix is calculated, undefined when nothing is to be calculated. Each publication is a new
    * object, so saving or refreshing the same set calculates it again.
    */
-  private readonly calculationTarget = signal<{ correlationSet: CorrelationSet } | undefined>(undefined);
+  private readonly calculationTarget = signal<{ correlationSet: CorrelationSet; id: number } | undefined>(undefined);
 
   /** Matrix of the calculation target. A newer target cancels a request that is still pending. */
   readonly calculation = httpResource<CorrelationResult>(() => {
     const target = this.calculationTarget();
-    return (
-      target && this.correlationSetService.getCalculationByCorrelationSetRequest(target.correlationSet.idCorrelationSet)
-    );
+    return target && this.correlationSetService.getCalculationByCorrelationSetRequest(target.id);
   });
 
   /** Current correlation calculation results */
@@ -191,7 +189,7 @@ export class CorrelationComponent
       'CORRELATION_SET',
       inject(CorrelationSetService)
     );
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, undefined, true);
     this.config = this.correlationEditingSupport.getCorrelationFieldDefinition(
       CorrelationComponent.MAIN_FIELD,
       6,
@@ -200,16 +198,14 @@ export class CorrelationComponent
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.configObject.samplingPeriod.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
       this.translateService,
-      SamplingPeriodType,
-      null
+      SamplingPeriodType
     );
     reportResourceErrors(this.calculation, this.correlationSetService);
     effect(() => {
       const result = this.correlationResult();
-      if (result) {
-        untracked(() =>
-          this.correlationTableComponent().parentSelectionChanged(this.calculationTarget().correlationSet, result)
-        );
+      const target = this.calculationTarget();
+      if (result && target) {
+        untracked(() => this.correlationTableComponent().parentSelectionChanged(target.correlationSet, result));
       }
     });
   }
@@ -225,7 +221,7 @@ export class CorrelationComponent
         this.correlationLimit.set(correlationLimit);
         this.readData();
         this.valueChangedMainField();
-        this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit());
+        this.correlationEditingSupport.setUpValueChange(this.configObject, correlationLimit);
       });
   }
 
@@ -233,7 +229,7 @@ export class CorrelationComponent
    * Refreshes component data when correlation set is updated externally or when instruments are added/removed.
    * @param correlationSet - Updated correlation set or null to reload from service
    */
-  refreshData(correlationSet: CorrelationSet): void {
+  refreshData(correlationSet: CorrelationSet | null): void {
     if (correlationSet) {
       if (this.selectedEntity?.idCorrelationSet !== correlationSet.idCorrelationSet) return;
       this.selectedEntity = Object.assign(new CorrelationSet(), this.selectedEntity, {
@@ -263,10 +259,13 @@ export class CorrelationComponent
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((correlationSets: CorrelationSet[]) => {
         this.entityList = correlationSets;
-        this.correlationLimit.update((limit) => ({
-          ...limit,
-          tenantLimit: { ...limit.tenantLimit, actual: this.entityList.length }
-        }));
+        this.correlationLimit.update(
+          (limit) =>
+            limit && {
+              ...limit,
+              tenantLimit: { ...limit.tenantLimit, actual: this.entityList.length }
+            }
+        );
         this.configObject[CorrelationComponent.MAIN_FIELD].valueKeyHtmlOptions =
           SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
             CorrelationComponent.MAIN_FIELD,
@@ -274,10 +273,7 @@ export class CorrelationComponent
             correlationSets,
             false
           );
-        this.selectedEntity &&
-          (this.selectedEntity = this.entityList.find(
-            (entity) => entity[CorrelationComponent.MAIN_FIELD] === this.selectedEntity[CorrelationComponent.MAIN_FIELD]
-          ));
+
         afterNextRender(() => this.setFieldValues(), { injector: this.injector });
       });
   }
@@ -287,8 +283,10 @@ export class CorrelationComponent
    * @param event - Form submission event
    */
   saveAndCalculate(event: unknown): void {
+    const form = this.form();
+    if (!form) return;
     const edited = Object.assign(new CorrelationSet(), this.selectedEntity);
-    this.form().cleanMaskAndTransferValuesToBusinessObject(edited);
+    form.cleanMaskAndTransferValuesToBusinessObject(edited);
     this.correlationSetService
       .update(edited)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -321,7 +319,7 @@ export class CorrelationComponent
    * Updates child table component when parent correlation set selection changes.
    * @param selectedEntity - The newly selected correlation set
    */
-  override setChildData(selectedEntity: CorrelationSet): void {
+  override setChildData(selectedEntity: CorrelationSet | null): void {
     this.setChildDataAndCalculateWhenPossible(selectedEntity, true);
   }
 
@@ -339,11 +337,16 @@ export class CorrelationComponent
    * @param selectedEntity - The correlation set to display
    * @param calculate - Whether to perform correlation calculation
    */
-  setChildDataAndCalculateWhenPossible(selectedEntity: CorrelationSet, calculate: boolean): void {
+  setChildDataAndCalculateWhenPossible(selectedEntity: CorrelationSet | null, calculate: boolean): void {
     this.childEntityList = selectedEntity?.securitycurrencyList ?? [];
     this.correlationTableComponent().parentSelectionChanged(selectedEntity, null);
     this.calculationTarget.set(
-      selectedEntity?.securitycurrencyList.length >= 2 && calculate ? { correlationSet: selectedEntity } : undefined
+      selectedEntity &&
+        selectedEntity.idCorrelationSet != null &&
+        selectedEntity.securitycurrencyList.length >= 2 &&
+        calculate
+        ? { correlationSet: selectedEntity, id: selectedEntity.idCorrelationSet }
+        : undefined
     );
   }
 
@@ -353,10 +356,10 @@ export class CorrelationComponent
    * @param correlationResult - The result of the calculation
    * @returns The comma separated names, or null when nothing is missing
    */
-  private getDividendMissingNames(correlationSet: CorrelationSet, correlationResult: CorrelationResult): string {
+  private getDividendMissingNames(correlationSet: CorrelationSet, correlationResult: CorrelationResult): string | null {
     const ids = correlationResult.idsMissingDividends ?? [];
     const names = correlationSet.securitycurrencyList
-      .filter((sc) => ids.includes(sc.idSecuritycurrency))
+      .filter((sc) => sc.idSecuritycurrency != null && ids.includes(sc.idSecuritycurrency))
       .map((sc) => (<Security>sc).name);
     return names.length > 0 ? names.join(', ') : null;
   }
@@ -400,7 +403,7 @@ export class CorrelationComponent
    * Prepares call parameters for opening edit dialogs.
    * @param entity - The correlation set entity to edit or null for new creation
    */
-  protected prepareCallParam(entity: CorrelationSet): void {
+  protected prepareCallParam(entity: CorrelationSet | null): void {
     this.callParam = new CallParam(null, entity);
   }
 }

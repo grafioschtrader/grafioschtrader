@@ -1,5 +1,5 @@
 export class GenericConnectorHttpHeader {
-  idHttpHeader: number = null;
-  headerName: string = null;
-  headerValue: string = null;
+  idHttpHeader: number | null = null;
+  headerName: string | null = null;
+  headerValue: string | null = null;
 }

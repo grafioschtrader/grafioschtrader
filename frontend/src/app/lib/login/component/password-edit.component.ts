@@ -46,7 +46,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
   private messageToastService = inject(MessageToastService);
   private loginService = inject(LoginService);
 
-  readonly forcePasswordChange = input<boolean>(undefined);
+  readonly forcePasswordChange = input<boolean>();
   readonly visibleDialogInput = input<boolean>(undefined, { alias: 'visibleDialog' });
   readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
 

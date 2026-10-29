@@ -7,12 +7,12 @@ export class ImportTransactionTemplate extends Auditable implements BaseID {
 
   idTransactionImportTemplate: number;
   idTransactionImportPlatform: number;
-  templateFormatType: TemplateFormatType | string = null;
-  templatePurpose: string = null;
-  templateCategory?: TemplateCategory | string = null;
-  templateAsTxt: string = null;
-  validSince?: string | Date = null;
-  templateLanguage: string = null;
+  templateFormatType: TemplateFormatType | string | null = null;
+  templatePurpose: string | null = null;
+  templateCategory?: TemplateCategory | string | null = null;
+  templateAsTxt: string | null = null;
+  validSince?: string | Date | null = null;
+  templateLanguage: string | null = null;
 
   public override getId() {
     return this.idTransactionImportTemplate;

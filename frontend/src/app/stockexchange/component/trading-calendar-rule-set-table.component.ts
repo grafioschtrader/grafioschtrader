@@ -124,7 +124,7 @@ export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenu<T
    * @param mic the market identifier code of the rule set, may be null/undefined
    * @return the lower-cased ISO country code, or 'xx' as a placeholder
    */
-  getFlagCountryCode(mic: string): string {
+  getFlagCountryCode(mic: string | null | undefined): string {
     const cc = mic ? this.micToCountryCode[mic] : null;
     return cc ? cc.toLowerCase() : 'xx';
   }

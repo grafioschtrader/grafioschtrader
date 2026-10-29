@@ -17,14 +17,14 @@ export class MailSendRecv implements BaseID {
   idGtNet: number;
   subject: string;
   message: string;
-  idReplyToLocal: number;
+  idReplyToLocal?: number | null;
   idReplyToRemote: number;
   replyToRolePrivate: ReplyToRolePrivateType | string | number;
   sendRecvTime: Date;
   roleNameTo: string;
   hasBeenRead: boolean;
-  contextEntity: string;
-  idEntityContext: number;
+  contextEntity?: string | null;
+  idEntityContext?: number | null;
 
   @Exclude()
   getId(): number {
@@ -35,9 +35,9 @@ export class MailSendRecv implements BaseID {
 export class MailSettingForward implements BaseID {
   idMailSettingForward: number;
   idUser: number;
-  messageComType: MessageComType = null;
-  messageTargetType: MessageTargetType = null;
-  idUserRedirect: number = null;
+  messageComType: MessageComType | null = null;
+  messageTargetType: MessageTargetType | null = null;
+  idUserRedirect: number | null = null;
 
   @Exclude()
   getId(): number {

@@ -226,7 +226,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Builds the untranslated edit menu of the selected instrument; the base class translates and publishes it.
    * Derived classes add their entries.
    */
-  protected override prepareEditMenu(entity: T): MenuItem[] {
+  protected override prepareEditMenu(entity: T): MenuItem[] | null {
     return null;
   }
 

@@ -21,7 +21,7 @@ export class TaxDetailsTableComponent extends TableConfigBase {
   readonly rows = input<any[]>([]);
   readonly mode = input<'estimate' | 'matches' | 'warnings' | 'income'>('warnings');
   /** Currency inherited from the estimate for match rows, which do not repeat it on every diagnostic. */
-  readonly currency = input<string>(undefined);
+  readonly currency = input<string>();
 
   constructor() {
     super();

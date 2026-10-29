@@ -28,7 +28,7 @@ export class FileUploadParam {
    */
   public constructor(
     public helpId: string,
-    public additionalFieldConfig: AdditionalFieldConfig,
+    public additionalFieldConfig: AdditionalFieldConfig | null,
     public acceptFileType: string,
     public title: string,
     public multiple: boolean,
@@ -83,13 +83,13 @@ export class AdditionalFieldConfig {
  */
 export class SupportedCSVFormat {
   /** Character used to separate decimal places in numbers (e.g., "." for 1.23, "," for 1,23) */
-  decimalSeparator: string = null;
+  decimalSeparator: string | null = null;
 
   /** Character used to separate thousands in numbers (e.g., "," for 1,000, "." for 1.000, " " for 1 000) */
-  thousandSeparator: string = null;
+  thousandSeparator: string | null = null;
 
   /** Date format pattern string (e.g., "dd.MM.yyyy", "MM/dd/yyyy", "yyyy-MM-dd") */
-  dateFormat: string = null;
+  dateFormat: string | null = null;
 }
 
 /**

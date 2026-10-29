@@ -7,23 +7,23 @@ import { Security } from '../entities/security';
  */
 export class StandingOrder {
   dtype?: string;
-  idStandingOrder?: number = null;
-  idTenant?: number = null;
-  transactionType?: string = null;
-  cashaccount?: Cashaccount = null;
-  note?: string = null;
-  repeatUnit?: string = null;
-  repeatInterval?: number = null;
-  dayOfExecution?: number = null;
-  monthOfExecution?: number = null;
-  periodDayPosition?: string = null;
-  weekendAdjust?: string = null;
-  quoteToleranceDays?: number = null;
-  validFrom?: Date = null;
-  validTo?: Date = null;
-  lastExecutionDate?: Date = null;
-  nextExecutionDate?: Date = null;
-  transactionCost?: number = null;
+  idStandingOrder?: number | null = null;
+  idTenant?: number | null = null;
+  transactionType?: string | null = null;
+  cashaccount?: Cashaccount | null = null;
+  note?: string | null = null;
+  repeatUnit?: string | null = null;
+  repeatInterval?: number | null = null;
+  dayOfExecution?: number | null = null;
+  monthOfExecution?: number | null = null;
+  periodDayPosition?: string | null = null;
+  weekendAdjust?: string | null = null;
+  quoteToleranceDays?: number | null = null;
+  validFrom?: Date | null = null;
+  validTo?: Date | null = null;
+  lastExecutionDate?: Date | null = null;
+  nextExecutionDate?: Date | null = null;
+  transactionCost?: number | null = null;
   hasTransactions?: boolean;
   transactionCount?: number;
   failureCount?: number;
@@ -37,26 +37,26 @@ export class StandingOrder {
  * amountCurrency by the backend and is read-only for the client.
  */
 export class StandingOrderCashaccount extends StandingOrder {
-  cashaccountAmount?: number = null;
-  amountCurrency?: string = null;
-  idCurrencypair?: number = null;
-  cashaccountAmountFormula?: string = null;
+  cashaccountAmount?: number | null = null;
+  amountCurrency?: string | null = null;
+  idCurrencypair?: number | null = null;
+  cashaccountAmountFormula?: string | null = null;
 }
 
 /**
  * Standing order for security transactions (ACCUMULATE=4 or REDUCE=5).
  */
 export class StandingOrderSecurity extends StandingOrder {
-  security?: Security = null;
-  idSecurityaccount?: number = null;
-  idCurrencypair?: number = null;
-  units?: number = null;
-  investAmount?: number = null;
-  amountIncludesCosts?: boolean = null;
-  fractionalUnits?: boolean = null;
-  taxCostFormula?: string = null;
-  transactionCostFormula?: string = null;
-  taxCost?: number = null;
+  security?: Security | null = null;
+  idSecurityaccount?: number | null = null;
+  idCurrencypair?: number | null = null;
+  units?: number | null = null;
+  investAmount?: number | null = null;
+  amountIncludesCosts?: boolean | null = null;
+  fractionalUnits?: boolean | null = null;
+  taxCostFormula?: string | null = null;
+  transactionCostFormula?: string | null = null;
+  taxCost?: number | null = null;
 }
 
 /**

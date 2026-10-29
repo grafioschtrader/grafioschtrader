@@ -115,7 +115,7 @@ export class ImportTransactionTemplateComponent
   private static readonly MAIN_FIELD = 'idTransactionImportPlatform';
 
   // Access child components
-  readonly ittdc = viewChild(ImportTransactionTemplateTableComponent);
+  readonly ittdc = viewChild.required(ImportTransactionTemplateTableComponent);
 
   private readonly injector = inject(Injector);
   private readSubscription?: Subscription;
@@ -190,7 +190,7 @@ export class ImportTransactionTemplateComponent
       });
   }
 
-  setChildData(selectedEntity: ImportTransactionPlatform): void {
+  setChildData(selectedEntity: ImportTransactionPlatform | null): void {
     this.ittdc().parentSelectionChanged(selectedEntity, this);
   }
 
@@ -264,11 +264,12 @@ export class ImportTransactionTemplateComponent
       return Object.assign(importTransactionPlatform, entity);
     }
   */
-  protected prepareCallParam(entity: ImportTransactionPlatform): void {
+  protected prepareCallParam(entity: ImportTransactionPlatform | null): void {
     this.callParam = new CallParam(null, entity);
   }
 
-  private setAsGtImportPlatform(itp: ImportTransactionPlatform): void {
+  private setAsGtImportPlatform(itp: ImportTransactionPlatform | null): void {
+    if (!itp) return;
     this.importTransactionPlatformService
       .setGtImportPlatform(itp.idTransactionImportPlatform)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -282,9 +283,10 @@ export class ImportTransactionTemplateComponent
       });
   }
 
-  private async exportAllTemplates(itp: ImportTransactionPlatform): Promise<void> {
+  private async exportAllTemplates(itp: ImportTransactionPlatform | null): Promise<void> {
+    if (!itp) return;
     const blob = await this.importTransactionTemplateService
-      .getTemplatesByPlatformPlanAsZip(this.selectedEntity.idTransactionImportPlatform)
+      .getTemplatesByPlatformPlanAsZip(itp.idTransactionImportPlatform)
       .catch((error) => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'DOWNLOAD_TEMPLATE_DATA_FAILED'));
     if (blob) {
       saveAs(blob, itp.name + '.zip');
@@ -293,8 +295,10 @@ export class ImportTransactionTemplateComponent
   }
 
   private uploadTemplateFiles(formData: FormData): void {
+    const platform = this.selectedEntity;
+    if (!platform) return;
     this.importTransactionTemplateService
-      .uploadImportTemplateFiles(this.selectedEntity.idTransactionImportPlatform, formData)
+      .uploadImportTemplateFiles(platform.idTransactionImportPlatform, formData)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((sitt: SuccessFailedImportTransactionTemplate) => {
         this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'UPLOAD_TEMPLATES_SUCCESS', {
@@ -304,7 +308,9 @@ export class ImportTransactionTemplateComponent
           fileNameError: sitt.fileNameError,
           contentError: sitt.contentError
         });
-        this.setChildData(this.selectedEntity);
+        if (this.selectedEntity?.idTransactionImportPlatform === platform.idTransactionImportPlatform) {
+          this.setChildData(this.selectedEntity);
+        }
       });
   }
 }

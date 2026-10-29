@@ -86,7 +86,7 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
   readonly callBackSetSecurity = input<CallBackSetSecurity>(undefined);
   readonly supplementCriteria = input<SupplementCriteria>(undefined);
 
-  readonly selectedSecurity = signal<Security>(null);
+  readonly selectedSecurity = signal<Security | null>(null);
   /** A new columns reference re-renders the header and body templates of the OnPush p-table after translation. */
   readonly tableFields = computed(() => {
     this.fieldsRevision();
@@ -122,6 +122,7 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
   }
 
   chooseSecurity(): void {
-    this.callBackSetSecurity().setSecurity(this.selectedSecurity());
+    const selected = this.selectedSecurity();
+    if (selected) this.callBackSetSecurity().setSecurity(selected);
   }
 }

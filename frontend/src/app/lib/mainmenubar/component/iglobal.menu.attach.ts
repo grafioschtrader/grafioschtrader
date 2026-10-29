@@ -18,5 +18,5 @@ export interface IGlobalMenuAttach {
    * Returns the help context ID for this component.
    * The ID should correspond to a help page in the documentation.
    */
-  getHelpContextId(): string;
+  getHelpContextId(): string | null;
 }

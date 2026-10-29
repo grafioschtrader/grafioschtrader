@@ -1,5 +1,6 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
-import { finalize, Subscription, switchMap, take, tap } from 'rxjs';
+import { EMPTY, finalize, Subscription, switchMap, take, tap } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -96,7 +97,7 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
     if (callParam.bankruptSecurity) {
       this.form().transferBusinessObjectToForm(callParam.bankruptSecurity);
     }
-    this.configObject.securityName.formControl.setValue(callParam.securityName ?? '');
+    requireFormControl(this.configObject.securityName).setValue(callParam.securityName ?? '');
   }
 
   handleSecuritySearchClick(fieldConfig: FieldConfig): void {
@@ -114,6 +115,7 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
             closeOnEscape: true,
             data: { supplementCriteria: this.supplementCriteria }
           });
+          if (!ref) return EMPTY;
           // The nested dialog belongs to this edit session, including when navigation destroys its owner.
           let closed = false;
           return ref.onClose.pipe(
@@ -129,7 +131,7 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
       .subscribe((security: Security | CurrencypairWatchlist) => {
         if (security) {
           this.selectedSecurity = security as Security;
-          this.configObject.securityName.formControl.setValue(this.selectedSecurity.name);
+          requireFormControl(this.configObject.securityName).setValue(this.selectedSecurity.name);
         }
       });
   }

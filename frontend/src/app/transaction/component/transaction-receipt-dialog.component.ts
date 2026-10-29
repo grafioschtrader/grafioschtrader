@@ -49,16 +49,17 @@ export class TransactionReceiptDialogComponent implements OnInit {
   private transactionService = inject(TransactionService);
 
   private readonly destroyRef = inject(DestroyRef);
-  private readonly summary = signal<SecurityTransactionSummary>(null);
+  private readonly summary = signal<SecurityTransactionSummary | null>(null);
   readonly transactions = computed(
     () =>
       this.summary()
         ?.transactionPositionList.map((position) => position.transaction)
         .filter((transaction) => Transaction.isSecurityTransaction(transaction.transactionType)) ?? []
   );
-  readonly marginBased = computed(() =>
-    this.summary() ? BusinessHelper.isMarginProduct(this.summary().securityPositionSummary.security) : false
-  );
+  readonly marginBased = computed(() => {
+    const summary = this.summary();
+    return summary ? BusinessHelper.isMarginProduct(summary.securityPositionSummary.security) : false;
+  });
   readonly selected = signal<Transaction[]>([]);
   readonly downloading = signal(false);
 

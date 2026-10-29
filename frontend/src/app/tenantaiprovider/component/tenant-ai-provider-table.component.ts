@@ -80,9 +80,9 @@ import { TenantAIProviderEditComponent } from './tenant-ai-provider-edit.compone
 export class TenantAIProviderTableComponent extends TableCrudSupportMenu<TenantAIProvider> {
   private service: TenantAIProviderService = inject(TenantAIProviderService);
 
-  readonly options = signal<TenantAIProviderOptions>(null);
-  readonly formDefinition = signal<ClassDescriptorInputAndShow>(null);
-  readonly testResult = signal<AIKeyTestResult>(null);
+  readonly options = signal<TenantAIProviderOptions | null>(null);
+  readonly formDefinition = signal<ClassDescriptorInputAndShow | null>(null);
+  readonly testResult = signal<AIKeyTestResult | null>(null);
   readonly testing = signal(false);
   /** Set together with visibleDialog, which renders the dialog */
   editedEntity: TenantAIProvider;

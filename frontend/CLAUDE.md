@@ -22,6 +22,87 @@ Verify both host builds and `npx tsc -p tsconfig.spec.json --noEmit`; Vitest exe
 The remaining strict options are enabled in separate stages; `strictNullChecks` and `strictPropertyInitialization`
 are not yet enabled.
 
+During the null-check migration, run `npm run check:strict` after each package. It compiles the main application's
+TypeScript graph with `strictNullChecks` and compares every module under `src/app` with
+`scripts/strict-null-baseline.json`; root and external diagnostics are counted too. No module may increase, even
+when the total decreases. After fixing errors, `npm run check:strict -- --update` only lowers the limits.
+This separate compiler run does not check Angular templates or host-only sources; continue verifying both builds.
+`npm test` includes pure tests of the counting and baseline rules, without running the full compiler.
+Represent existing empty DTO values explicitly with `| null`, retaining their initializers and optional properties.
+Keep `null` and `undefined` distinct where JSON serialization depends on them; do not replace missing values with
+empty strings, zeroes, casts or non-null assertions merely to satisfy the compiler.
+`BaseAuthService.updateEntity` accepts a null or undefined id for creation (POST); an existing number/string id
+selects PUT. Requests that require a persisted id must first narrow it. Capture the checked id in a local constant
+before an asynchronous confirmation instead of reading a mutable entity property again inside its callback.
+Form dependency helpers accept empty selections explicitly when their existing branches already handle them.
+`BaseID.getId()` can return null/undefined for new entities; numeric model overrides retain that possibility until
+the entity is persisted. The CRUD table base checks and captures a number/string id before opening the delete
+confirmation. Form-copy helpers accept a missing existing entity when creating one. Filter nullable dropdown keys
+and translated labels before building options; filter projected scalar values before constructing typed sets.
+Asset-class translation returns null for missing/incomplete source data; option lists skip those entries and
+display callers handle the absent label. Report grouping contracts retain nullable keys rather than inventing a
+group identifier for incomplete DTOs. Optional request filters omit null values; calendar requests need a checked
+stock-exchange id.
+For resources with optional owner/account data, return undefined from `params` until every required id is present.
+Pass the narrowed ids to the stream so missing inputs leave the resource idle and changes cancel obsolete reads.
+Keep missing numerical values as null gaps in charts and table formatting. Clearable chart state and its publishing
+methods include null in their types; a missing calculation result must not become a zero value or a computed color.
+
+`FieldConfig.formControl` stays optional while definitions are created and for buttons without controls. For an
+unconditional access after `DynamicFormComponent` has built the form, use `requireFormControl(config)` from
+`lib/dynamic-form/models/form-control-access.ts`. It checks initialization and preserves the concrete control/group
+type. A missing control raises a lifecycle error naming the field; it does not create a replacement. Use optional
+access or an explicit guard where absence is expected, and keep control-dependent work after form initialization.
+
+Editors with an unconditional dynamic form extend `SimpleFormEditBase` (including `SimpleEntityEditBase`).
+`SimpleDynamicEditBase` also requires its form. Keep `SimpleEditBase` for dialogs whose form is rendered conditionally.
+Use `viewChild.required` only when every concrete descendant renders the target unconditionally, and read queries
+after view initialization. `src/required-query.ratchet.spec.ts` checks those template contracts across both hosts;
+conditional/lazy children and existing readiness guards retain optional queries.
+Enum option filters accept null/undefined for all members and an empty allow-list for no members. Optional form-help
+callbacks remain nullable and are invoked conditionally.
+
+Signals whose initial or cleared state is null declare that state explicitly (`signal<Result | null>(null)`).
+Capture a signal value once before narrowing it; repeated reads do not retain the type guard. Actions requiring
+a selection or loaded result return while it is absent. Keep absent results distinct from empty lists and zeroes.
+Master/detail selection getters include null, and their setters normalize an unsuccessful lookup to null. Child
+views accept a null parent to clear their rows. Capture the selected record and checked id before confirmations;
+completion handlers only replace selection-dependent state if the same record is still selected.
+`Menus` and `TranslateHelper.translateMenuItems$` accept absent menus: null/undefined disables a top-level section,
+whereas an empty array remains a present menu. The translation overloads retain a non-null result for array inputs.
+
+`ColumnConfig.field` is required, including synthetic column keys. Form field names remain optional/nullable for
+command buttons; data controls use `requireFieldName(config)` before control creation or transfer to an entity.
+`DynamicFormComponent` requires its `formConfig`; its group definition and translation service remain optional.
+Optional signal inputs use `input<T>()`, which includes undefined in the result, rather than `input<T>(undefined)`.
+Inline row creation needs a data key; tree row expansion ignores rows without an identifier.
+Validator/error arrays can be null or absent. `resetValidator` clears validation through Angular's null sentinel,
+retains the existing control/value and notifies the form. Successful validators return `ValidationErrors | null`.
+Group validators require their configured controls; error display treats absent conditions as no restrictions.
+Column-group labels and callbacks can omit a value path. Fraction-digit overrides are optional; absent overrides
+retain locale formatting, and absent data remains blank. Date formatting returns null for an empty control:
+required request dates are checked before submission, while optional request dates retain null in their types.
+
+Navigation nodes can have no entity id or serialized parent/entity. Initialize child arrays when rebuilding a tree;
+use `previousTreeNode` for navigation after deletion, handling a missing parent or a node no longer in its siblings.
+Drag handlers guard a missing `DataTransfer`. A panel's help id can be null; help links ignore absent contexts.
+Menu-building methods retain null for absent sections. Concatenation uses `?? []` only to append existing entries;
+activation still receives the absent section as null.
+`DynamicDialogHelper.openDynamicDialog` and the tree/mail dialog wrappers return a cold observable of the reference.
+Subscribe to open; chain `switchMap(ref => ref.onClose)` when the action needs the close result. Keep that subscription
+in the owner's lifetime. The helper waits for one translated title and emits no reference when opening is refused.
+Direct `DialogService.open` calls also check the nullable reference before registering close handlers.
+Upload dialogs require their parameter object. Optional upload fields and CSV preferences retain null; multipart
+parameters omit absent preferences while preserving an explicitly empty separator.
+
+Select-option keys can be null for an unassigned selection; grouped headings can omit their key/value and image.
+Preserve those rows when converting options and guard keys before numeric conversion, enum indexing or dictionary
+lookup. Use null checks so a zero key remains valid. Filter records without persisted ids from entity choices.
+GTNet message targets and reply ids stay nullable for broadcasts/new messages; capture multi-target ids before sending.
+UDF rule tests accept a null field id for unsaved drafts, while proposal and cell actions require a persisted field id.
+Audit proposal conversion preserves explicit null/zero field changes and returns undefined when there is no proposal.
+An absent custom ownership check grants no rights.
+
 ## Minimal Business Logic in Frontend
 
 **IMPORTANT**: Keep business logic in the frontend to an absolute minimum. Most business logic belongs in the backend.

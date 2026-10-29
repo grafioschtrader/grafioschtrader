@@ -99,12 +99,12 @@ import { FormNotifier } from '../../models/form.notifier';
   imports: [TranslateModule, DynamicFieldDirective, ErrorMessageComponent]
 })
 export class DynamicFormLayoutComponent {
-  readonly config = input<FieldConfig>(undefined);
-  readonly formConfig = input<FormConfig>(undefined);
-  readonly group = input<UntypedFormGroup>(undefined);
+  readonly config = input.required<FieldConfig>();
+  readonly formConfig = input.required<FormConfig>();
+  readonly group = input.required<UntypedFormGroup>();
 
   /** Change notification of the form this field belongs to; the template reads its revision. */
-  get notifier(): FormNotifier {
+  get notifier(): FormNotifier | undefined {
     return FormNotifier.of(this.config());
   }
 

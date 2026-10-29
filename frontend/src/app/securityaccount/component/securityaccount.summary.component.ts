@@ -168,6 +168,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
           units: securityPositionSummary.units
         }
       });
+      if (!ref) return;
       ref.onClose.subscribe((result) => {
         if (result) {
           this.readData();

@@ -209,8 +209,10 @@ export class MenubarComponent implements OnInit, OnDestroy {
   private backToMyClientItem(): MenuItem {
     return {
       label: 'BACK_TO_MY_CLIENT',
-      command: () =>
-        this.manageClientService.switchAndReload(+sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT), true)
+      command: () => {
+        const tenantId = sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT);
+        if (tenantId != null) this.manageClientService.switchAndReload(+tenantId, true);
+      }
     };
   }
 
@@ -330,7 +332,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
 
   private contextHelp() {
     if (this.activePanelService.activatedPanel) {
-      const helpIds: string = this.activePanelService.activatedPanel.getHelpContextId();
+      const helpIds = this.activePanelService.activatedPanel.getHelpContextId();
       if (helpIds) {
         this.gps.toExternalHelpWebpage(this.gps.getUserLang(), helpIds);
       } else {

@@ -109,17 +109,17 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase {
   readonly candidates = input<SecurityLookupCandidate[]>([]);
 
   /** Emits the chosen listing, or null when the selection is removed */
-  readonly candidateSelected = output<SecurityLookupCandidate>();
+  readonly candidateSelected = output<SecurityLookupCandidate | null>();
 
   /** The chosen listing; the dialog preselects it when only one exists */
-  readonly selectedCandidateInput = input<SecurityLookupCandidate>(undefined, { alias: 'selectedCandidate' });
+  readonly selectedCandidateInput = input<SecurityLookupCandidate | null>(undefined, { alias: 'selectedCandidate' });
   readonly selectedCandidate = linkedSignal(() => this.selectedCandidateInput());
 
   /**
    * The listing whose name is taken over. It may differ from the chosen listing, because the providers spell the name
    * of the same instrument differently and the listing with the better spelling may lack the wanted connectors.
    */
-  readonly nameCandidate = model<SecurityLookupCandidate>(undefined);
+  readonly nameCandidate = model<SecurityLookupCandidate | null>(null);
 
   /** Emits the listing whose name is taken over */
 

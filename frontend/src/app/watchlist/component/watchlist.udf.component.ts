@@ -293,21 +293,25 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    */
   private getFillCellMenuItems(security: Security): MenuItem[] {
     const id = security.idSecuritycurrency;
+    const assetClass = security.assetClass;
+    if (id == null || !assetClass) return [];
     return this.fillFields
       .filter(
         (f) =>
-          f.categoryTypeEnums.includes(<any>security.assetClass.categoryType) &&
-          f.specialInvestmentInstrumentEnums.includes(<any>security.assetClass.specialInvestmentInstrument)
+          f.categoryTypeEnums.includes(<any>assetClass.categoryType) &&
+          f.specialInvestmentInstrumentEnums.includes(<any>assetClass.specialInvestmentInstrument)
       )
       .flatMap((f) => {
+        const fieldId = f.idUDFMetadata;
+        if (fieldId == null) return [];
         const fieldKey = UDFMetadataHelper.UDF_FIELD_PREFIX + f.idUDFMetadata;
         const info = this.udfFillInfo[id]?.[fieldKey];
         const locked = info?.fillState === UDFFillState.LOCKED;
         const proposalItems: MenuItem[] =
           info?.fillState === UDFFillState.PROPOSED ? this.getProposalMenuItems(f, id, info) : [];
         const action = locked
-          ? () => this.uDFMetadataSecurityService.unlockCell(f.idUDFMetadata, id)
-          : () => this.uDFMetadataSecurityService.lockCell(f.idUDFMetadata, id);
+          ? () => this.uDFMetadataSecurityService.unlockCell(fieldId, id)
+          : () => this.uDFMetadataSecurityService.lockCell(fieldId, id);
         return [
           ...proposalItems,
           {
@@ -332,13 +336,15 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    * @returns The two menu items
    */
   private getProposalMenuItems(f: UDFMetadataSecurity, idSecuritycurrency: number, info: UDFFillInfo): MenuItem[] {
+    const fieldId = f.idUDFMetadata;
+    if (fieldId == null) return [];
     const decisions = [{ idSecuritycurrency, ruleVersion: info.ruleVersion, value: info.proposedValue }];
     return [
       {
         label: this.translateService.instant('UDF_FILL_ACCEPT_PROPOSAL', { field: f.description }),
         command: () =>
           this.uDFMetadataSecurityService
-            .acceptProposals(f.idUDFMetadata, decisions)
+            .acceptProposals(fieldId, decisions)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => this.getWatchlistWithoutUpdate())
       },
@@ -346,7 +352,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
         label: this.translateService.instant('UDF_FILL_REJECT_PROPOSAL', { field: f.description }),
         command: () =>
           this.uDFMetadataSecurityService
-            .rejectProposals(f.idUDFMetadata, decisions)
+            .rejectProposals(fieldId, decisions)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => this.getWatchlistWithoutUpdate())
       }

@@ -96,7 +96,7 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
   /** The edit menu is intentionally empty, see {@link resetMenu} */
   readonly contextMenuItems: MenuItem[] = [];
   readonly entityList = signal<RiskFreeRateMapping[]>([]);
-  readonly selectedEntity = signal<RiskFreeRateMapping>(null);
+  readonly selectedEntity = signal<RiskFreeRateMapping | null>(null);
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -204,8 +204,9 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
   private getCurrencyOptions(row: RiskFreeRateMapping): ValueKeyHtmlSelectOptions[] {
     const usedCurrencies = new Set<string>(
       this.entityList()
-        .filter((m) => m !== row && m.currency != null)
+        .filter((m) => m !== row)
         .map((m) => m.currency)
+        .filter((currency) => currency != null)
     );
     return this.allCurrencyOptions.filter((opt) => !usedCurrencies.has(String(opt.key)));
   }
@@ -216,8 +217,9 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
     }
     const usedIds = new Set<number>(
       this.entityList()
-        .filter((m) => m !== row && m.idSecuritycurrency != null)
+        .filter((m) => m !== row)
         .map((m) => m.idSecuritycurrency)
+        .filter((id) => id != null)
     );
     return this.allInstrumentOptions
       .filter((opt) => opt.currency === row.currency && !usedIds.has(opt.idSecuritycurrency))
@@ -303,7 +305,8 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
   }
 
   private handleDeleteEntity(entity: RiskFreeRateMapping): void {
-    if (!entity?.idRiskFreeRateMapping) {
+    const id = entity?.idRiskFreeRateMapping;
+    if (!id) {
       return;
     }
     AppHelper.confirmationDialog(
@@ -311,7 +314,7 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + RiskFreeRateMappingTableComponent.I18N_RECORD,
       () => {
-        this.riskFreeRateMappingService.deleteEntity(entity.idRiskFreeRateMapping).subscribe(() => {
+        this.riskFreeRateMappingService.deleteEntity(id).subscribe(() => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
             i18nRecord: RiskFreeRateMappingTableComponent.I18N_RECORD
           });

@@ -108,7 +108,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   // For row expansion, used when a transaction was changed
   expandedSecurityPositionSummary: SecurityPositionSummary[] = [];
   expandedIdSecuritycurrency: number[] = [];
-  contextMenuItems: MenuItem[] = [];
+  contextMenuItems: MenuItem[] | null = [];
   selectedSecurityPositionSummary: SecurityPositionSummary;
   portfolio: Portfolio;
   protected includeClosedPosition = false;
@@ -194,7 +194,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   getMenuShowOptionsParam(securitycurrencySelected: Securitycurrency): MenuItem[] {
-    const otherMenuShowOptions: MenuItem[] = super.getMenuShowOptions();
+    const otherMenuShowOptions = super.getMenuShowOptions();
 
     let menuItems: MenuItem[] = [];
     if (otherMenuShowOptions) {
@@ -624,8 +624,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     }
   }
 
-  private getEditMenu(securityPositionSummary: SecurityPositionSummary): MenuItem[] {
-    let menuItems: MenuItem[] = null;
+  private getEditMenu(securityPositionSummary: SecurityPositionSummary): MenuItem[] | null {
+    let menuItems: MenuItem[] | null = null;
 
     if (
       securityPositionSummary &&

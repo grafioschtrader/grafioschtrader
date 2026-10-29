@@ -45,7 +45,8 @@ export class DashboardMainTreeContributor extends MainTreeContributor {
         null
       )
     };
-    this.translateService.get(rootNode.label).subscribe((translated) => (rootNode.label = translated));
+    const label = rootNode.label;
+    if (label) this.translateService.get(label).subscribe((translated) => (rootNode.label = translated));
     return of([rootNode]);
   }
 

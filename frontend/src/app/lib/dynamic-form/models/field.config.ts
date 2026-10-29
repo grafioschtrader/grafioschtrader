@@ -39,7 +39,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   labelHelpText?: string;
 
   /** This help text is shown. It is copied from labelHelpText when help button is clicked  */
-  labelShowText?: string;
+  labelShowText?: string | null;
 
   /** To Uppercase */
   upperCase?: boolean;
@@ -81,7 +81,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   textareaRows?: number;
 
   /** Used for limit the maximal numbers of input character */
-  maxLength?: number;
+  maxLength?: number | null;
 
   /**
    * Can be used to make a different row layout. Normally only a label and the input field occupies a single row.
@@ -98,7 +98,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   calendarConfig?: CalendarConfig;
 
   /** Can only be used for input InputType.Input  */
-  min?: number;
+  min?: number | null;
   max?: number;
 
   /** Value connected to this definition */

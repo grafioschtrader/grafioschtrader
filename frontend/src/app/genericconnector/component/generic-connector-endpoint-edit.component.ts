@@ -1,7 +1,8 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { SimpleFormEditBase } from '../../lib/edit/simple.form.edit.base';
 import { GenericConnectorEndpoint } from '../../entities/generic.connector.endpoint';
 import { GenericConnectorDef } from '../../entities/generic.connector.def';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -52,7 +53,7 @@ const ALL_FEED_INSTRUMENT_COMBOS = [
   `,
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class GenericConnectorEndpointEditComponent extends SimpleEditBase implements OnInit {
+export class GenericConnectorEndpointEditComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
 
   readonly endpoint = input<GenericConnectorEndpoint>(undefined);
@@ -107,43 +108,47 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
       ? [`${endpoint.feedSupport}|${endpoint.instrumentType}`]
       : ALL_FEED_INSTRUMENT_COMBOS.filter((c) => !usedCombos.includes(c));
     if (isEdit) {
-      this.configObject.feedSupportInstrumentType.formControl.disable();
+      requireFormControl(this.configObject.feedSupportInstrumentType).disable();
     }
     this.configObject.httpMethod.valueKeyHtmlOptions = ['GET', 'POST'].map((v) => new ValueKeyHtmlSelectOptions(v, v));
-    this.configObject.feedSupportInstrumentType.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.feedSupportInstrumentType)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((combo) => {
         const feedSupport = combo ? combo.split('|')[0] : null;
         this.updateEndpointOptionsForFeed(feedSupport);
-        const current: string[] = this.configObject.endpointOptions.formControl.value || [];
+        const current: string[] = requireFormControl(this.configObject.endpointOptions).value || [];
         const validKeys = (ENDPOINT_OPTION_BY_FEED[feedSupport] || []).map((o) => o as string);
-        this.configObject.endpointOptions.formControl.setValue(current.filter((v) => validKeys.includes(v)));
+        requireFormControl(this.configObject.endpointOptions).setValue(current.filter((v) => validKeys.includes(v)));
       });
 
-    this.configObject.dateFormatType.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.dateFormatType)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((value) => this.updateDateFormatPatternRequired(value));
     this.updateDateFormatPatternRequired(endpoint?.dateFormatType);
 
-    this.configObject.responseFormat.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.responseFormat)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((value) => this.updateResponseFormatDependencies(value));
     this.updateResponseFormatDependencies(endpoint?.responseFormat);
 
-    this.configObject.htmlExtractMode.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((value) => {
-      if (this.configObject.responseFormat.formControl.value === ResponseFormatType.HTML) {
-        this.updateHtmlExtractModeDependencies(value);
-      }
-    });
+    requireFormControl(this.configObject.htmlExtractMode)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((value) => {
+        if (requireFormControl(this.configObject.responseFormat).value === ResponseFormatType.HTML) {
+          this.updateHtmlExtractModeDependencies(value);
+        }
+      });
 
-    this.configObject.jsonDataStructure.formControl.valueChanges.pipe(this.untilDialogClosed()).subscribe((value) => {
-      if (this.configObject.responseFormat.formControl.value === ResponseFormatType.JSON) {
-        this.updateJsonDataStructureDependencies(value);
-      }
-    });
+    requireFormControl(this.configObject.jsonDataStructure)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((value) => {
+        if (requireFormControl(this.configObject.responseFormat).value === ResponseFormatType.JSON) {
+          this.updateJsonDataStructureDependencies(value);
+        }
+      });
 
-    this.configObject.tickerBuildStrategy.formControl.valueChanges
-      .pipe(this.untilDialogClosed())
+    requireFormControl(this.configObject.tickerBuildStrategy)
+      .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((value) => this.updateTickerBuildStrategyDependencies(value));
     this.updateTickerBuildStrategyDependencies(endpoint?.tickerBuildStrategy);
 
@@ -151,7 +156,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
     if (endpoint) {
       this.form().transferBusinessObjectToForm(endpoint);
       if (endpoint.feedSupport && endpoint.instrumentType) {
-        this.configObject.feedSupportInstrumentType.formControl.setValue(
+        requireFormControl(this.configObject.feedSupportInstrumentType).setValue(
           `${endpoint.feedSupport}|${endpoint.instrumentType}`
         );
       }
@@ -181,7 +186,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
             field === 'jsonDataStructure' || field === 'htmlExtractMode'
           );
         });
-        const combo = this.configObject.feedSupportInstrumentType.formControl.value;
+        const combo = requireFormControl(this.configObject.feedSupportInstrumentType).value;
         this.updateEndpointOptionsForFeed(combo?.split('|')[0]);
       });
   }
@@ -193,37 +198,37 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
     return addEmpty ? [new ValueKeyHtmlSelectOptions('', ''), ...options] : options;
   }
 
-  private updateDateFormatPatternRequired(dateFormatType: string): void {
+  private updateDateFormatPatternRequired(dateFormatType: string | null | undefined): void {
     const fieldConfig = this.configObject.dateFormatPattern;
     if (dateFormatType === DateFormatType.PATTERN) {
-      fieldConfig.formControl.enable();
+      requireFormControl(fieldConfig).enable();
       DynamicFieldHelper.resetValidator(fieldConfig, [Validators.required]);
     } else {
-      fieldConfig.formControl.setValue(null);
+      requireFormControl(fieldConfig).setValue(null);
       DynamicFieldHelper.resetValidator(fieldConfig, []);
-      fieldConfig.formControl.disable();
+      requireFormControl(fieldConfig).disable();
     }
   }
 
-  private updateEndpointOptionsForFeed(feedSupport: string): void {
+  private updateEndpointOptionsForFeed(feedSupport: string | null | undefined): void {
     const options = feedSupport ? ENDPOINT_OPTION_BY_FEED[feedSupport] || [] : Object.values(EndpointOption);
     this.configObject.endpointOptions.valueKeyHtmlOptions = this.translatedOptions(options);
   }
 
   private enableField(fieldName: string, required: boolean): void {
     const fc = this.configObject[fieldName];
-    fc.formControl.enable();
+    requireFormControl(fc).enable();
     DynamicFieldHelper.resetValidator(fc, required ? [Validators.required] : []);
   }
 
   private disableAndClearField(fieldName: string): void {
     const fc = this.configObject[fieldName];
-    fc.formControl.setValue(null);
+    requireFormControl(fc).setValue(null);
     DynamicFieldHelper.resetValidator(fc, []);
-    fc.formControl.disable();
+    requireFormControl(fc).disable();
   }
 
-  private updateResponseFormatDependencies(responseFormat: string): void {
+  private updateResponseFormatDependencies(responseFormat: string | null | undefined): void {
     const jsonFields = [
       'jsonDataStructure',
       'jsonDataPath',
@@ -247,7 +252,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
       );
       csvFields.forEach((f) => this.disableAndClearField(f));
       htmlFields.forEach((f) => this.disableAndClearField(f));
-      this.updateJsonDataStructureDependencies(this.configObject.jsonDataStructure.formControl.value);
+      this.updateJsonDataStructureDependencies(requireFormControl(this.configObject.jsonDataStructure).value);
     } else if (responseFormat === ResponseFormatType.CSV) {
       jsonFields.forEach((f) => this.disableAndClearField(f));
       csvFields.forEach((f) => this.enableField(f, false));
@@ -260,7 +265,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
       this.enableField('htmlTextCleanup', false);
       this.enableField('htmlExtractRegex', false);
       this.enableField('htmlSplitDelimiter', false);
-      this.updateHtmlExtractModeDependencies(this.configObject.htmlExtractMode.formControl.value);
+      this.updateHtmlExtractModeDependencies(requireFormControl(this.configObject.htmlExtractMode).value);
     } else {
       jsonFields.forEach((f) => this.disableAndClearField(f));
       csvFields.forEach((f) => this.disableAndClearField(f));
@@ -268,7 +273,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
     }
   }
 
-  private updateHtmlExtractModeDependencies(htmlExtractMode: string): void {
+  private updateHtmlExtractModeDependencies(htmlExtractMode: string | null | undefined): void {
     if (htmlExtractMode === HtmlExtractMode.REGEX_GROUPS) {
       this.enableField('htmlCssSelector', true);
       this.enableField('htmlExtractRegex', true);
@@ -284,7 +289,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
     }
   }
 
-  private updateJsonDataStructureDependencies(jsonDataStructure: string): void {
+  private updateJsonDataStructureDependencies(jsonDataStructure: string | null | undefined): void {
     if (jsonDataStructure === JsonDataStructure.COLUMN_ROW_ARRAYS) {
       this.enableField('jsonColumnNamesPath', true);
     } else {
@@ -292,7 +297,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
     }
   }
 
-  private updateTickerBuildStrategyDependencies(tickerBuildStrategy: string): void {
+  private updateTickerBuildStrategyDependencies(tickerBuildStrategy: string | null | undefined): void {
     if (tickerBuildStrategy === TickerBuildStrategy.URL_EXTEND) {
       this.disableAndClearField('currencyPairSeparator');
       this.disableAndClearField('currencyPairSuffix');
@@ -304,7 +309,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
 
   submit(value: { [name: string]: any }): void {
     this.form().cleanMaskAndTransferValuesToBusinessObject(this.endpoint(), false);
-    const combo = this.configObject.feedSupportInstrumentType.formControl.value;
+    const combo = requireFormControl(this.configObject.feedSupportInstrumentType).value;
     if (combo) {
       const [feedSupport, instrumentType] = combo.split('|');
       const endpoint = this.endpoint();

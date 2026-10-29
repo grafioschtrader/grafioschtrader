@@ -1,3 +1,4 @@
+import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -99,11 +100,11 @@ export class CorrelationEditingSupport {
     },
     correlationLimit: CorrelationLimit
   ): void {
-    this.changeOnSamplingPeriodSub = configObject[this.samplingPeriod].formControl.valueChanges.subscribe(
+    this.changeOnSamplingPeriodSub = requireFormControl(configObject[this.samplingPeriod]).valueChanges.subscribe(
       (key: string) => {
         if (this.actualSamplingPeriod !== SamplingPeriodType[key as keyof typeof SamplingPeriodType]) {
           this.actualSamplingPeriod = SamplingPeriodType[key as keyof typeof SamplingPeriodType];
-          configObject[this.rolling].formControl.enable();
+          requireFormControl(configObject[this.rolling]).enable();
           switch (this.actualSamplingPeriod) {
             case SamplingPeriodType.DAILY_RETURNS:
               this.periodMoment = 'd';
@@ -132,8 +133,8 @@ export class CorrelationEditingSupport {
    */
   public getPeriodAndRollingWithParamPrefix(configObject: { [name: string]: FieldConfig }): string[] {
     return [
-      'p0@' + configObject[this.samplingPeriod].formControl.value,
-      'p1@' + configObject[this.rolling].formControl.value
+      'p0@' + requireFormControl(configObject[this.samplingPeriod]).value,
+      'p1@' + requireFormControl(configObject[this.rolling]).value
     ];
   }
 
@@ -144,7 +145,7 @@ export class CorrelationEditingSupport {
    * @param configObject - Map of field names to FieldConfig objects for accessing form controls
    */
   private valueChangedOnDateFrom(configObject: { [name: string]: FieldConfig }): void {
-    this.changeOnDateFromSub = configObject.dateFrom.formControl.valueChanges.subscribe((dateFrom) =>
+    this.changeOnDateFromSub = requireFormControl(configObject.dateFrom).valueChanges.subscribe((dateFrom) =>
       this.setDateToMin(configObject)
     );
   }
@@ -156,7 +157,7 @@ export class CorrelationEditingSupport {
    * @param configObject - Map of field names to FieldConfig objects for updating calendar constraints
    */
   private setDateToMin(configObject: { [name: string]: FieldConfig }): void {
-    configObject.dateTo.calendarConfig.minDate = moment(configObject.dateFrom.formControl.value)
+    configObject.dateTo.calendarConfig.minDate = moment(requireFormControl(configObject.dateFrom).value)
       .add(this.requiredMinPeriods, this.periodMoment)
       .toDate();
   }
@@ -170,17 +171,17 @@ export class CorrelationEditingSupport {
    */
   private createOptionsForRolling(configObject: { [name: string]: FieldConfig }, configuration: string): void {
     if (configuration) {
-      configObject[this.rolling].formControl.enable();
+      requireFormControl(configObject[this.rolling]).enable();
       const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
       const stepMinMax: number[] = configuration.split(',').map((x) => +x);
       for (let i = stepMinMax[1]; i <= stepMinMax[2]; i += stepMinMax[0]) {
         valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(i, '' + i));
       }
       configObject[this.rolling].valueKeyHtmlOptions = valueKeyHtmlSelectOptions;
-      configObject[this.rolling].formControl.setValue(valueKeyHtmlSelectOptions[0].value);
+      requireFormControl(configObject[this.rolling]).setValue(valueKeyHtmlSelectOptions[0].value);
     } else {
-      configObject[this.rolling].formControl.setValue('');
-      configObject[this.rolling].formControl.disable();
+      requireFormControl(configObject[this.rolling]).setValue('');
+      requireFormControl(configObject[this.rolling]).disable();
     }
   }
 

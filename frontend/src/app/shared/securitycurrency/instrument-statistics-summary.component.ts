@@ -34,7 +34,7 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
 })
 export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase implements OnInit {
   readonly statisticsSummary = input<StatisticsSummary>(undefined);
-  readonly mainCurrency = input<string>(undefined);
+  readonly mainCurrency = input<string>();
   rootNodes: TreeNode[];
   readonly negativeValue = (row: any, field: ColumnConfig) => this.isValueByPathMinus(row, field);
 

@@ -1,4 +1,4 @@
 export class ChangePasswordDTO {
-  public passwordOld: string = null;
-  public passwordNew: string = null;
+  public passwordOld: string | null = null;
+  public passwordNew: string | null = null;
 }
