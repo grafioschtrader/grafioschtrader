@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
@@ -66,8 +67,17 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
   @Autowired(required = false)
   private List<IExportMyDataAddon> exportMyDataAddons;
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Both deletion paths run under READ COMMITTED. Several delete statements filter shared tables by a column without an
+   * index and therefore take a locking read on every row they scan. Under REPEATABLE READ, MariaDB 11.6+ snapshot
+   * isolation rejects such a read with "Record has changed since last read" as soon as a background job (price or
+   * corporate-action loading) commits a change to any scanned row after this transaction's snapshot, so the account
+   * deletion would fail whenever such a job is running.
+   */
   @Override
-  @Transactional(rollbackFor = Exception.class)
+  @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
   public void deleteMyDataAndUserAccount() throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     assertHomeTenant(user);
@@ -122,8 +132,9 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
     return new AccountDeletionEligibility(DeletionEligibility.DELETABLE);
   }
 
+  /** Runs under READ COMMITTED for the reason given at {@link #deleteMyDataAndUserAccount()}. */
   @Override
-  @Transactional(rollbackFor = Exception.class)
+  @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
   public void deleteManagedClientData(User clientUser) throws Exception {
     RestHelper.isDemoAccount(demoAccountPatternDE, clientUser.getUsername());
     RestHelper.isDemoAccount(demoAccountPatternEN, clientUser.getUsername());

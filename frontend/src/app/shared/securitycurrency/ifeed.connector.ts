@@ -3,7 +3,7 @@ export interface IFeedConnector {
   domain: string;
   readableName: string;
   // securitycurrencyFeedSupport: Map<FeedSupport, FeedIdentifier[]>;
-  securitycurrencyFeedSupport: SecuritycurrencyFeedSupport[];
+  securitycurrencyFeedSupport: Record<string, string[]>;
   intraDescription: string;
   description: Description;
 }

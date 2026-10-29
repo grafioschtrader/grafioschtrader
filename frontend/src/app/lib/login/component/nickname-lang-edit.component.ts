@@ -77,7 +77,7 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
     });
   }
 
-  override onHide(event): void {
+  override onHide(event: unknown): void {
     this.mainDialogService.visibleDialog(false, UserSettingsDialogs.NicknameLocale);
   }
 

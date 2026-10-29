@@ -1,7 +1,7 @@
 # Angular 22: Modernisierung des Frontends
 
-**Code baseline:** backend 0.39.1, highest Flyway script `V0_39_2__typed_null_globalparameters.sql`; frontend
-0.39.1 mit `@angular/core` 22.2.3, TypeScript 6.0.3, `@openng/optimus-ui` 2.0.2; Arbeitsbaum vom 29.10.2026.
+**Code baseline:** backend 0.39.2, highest Flyway script `V0_39_2__typed_null_globalparameters.sql`; frontend
+0.39.2 mit `@angular/core` 22.2.3, TypeScript 6.0.3, `@openng/optimus-ui` 2.0.2; Arbeitsbaum vom 29.10.2026.
 
 ## 1. Ziel
 
@@ -31,20 +31,17 @@ Erhoben über `src/**/*.ts` und `src/**/*.html` (912 TypeScript-Dateien einschli
 | --- | --- | --- |
 | Verzögertes Rendern | 0 × `@defer` | `@defer` nach Messung |
 | Formulare | `dynamic-form` auf `UntypedFormGroup` (10 Dateien in `lib/dynamic-form` und `lib/validator`), 107 Verwender | Signal Forms nach Prototyp |
-| Typisierung | `strict: false`, `strictTemplates: true` | `strict: true` |
+| Typisierung | `strict: false`, `strictTemplates: true`; `noImplicitAny`, `strictBindCallApply`, `strictFunctionTypes`, `noImplicitThis`, `useUnknownInCatchVariables`, `alwaysStrict`, `strictBuiltinIteratorReturn` aktiv | `strict: true` |
 
 Fehlerzahlen von `npx tsc -p tsconfig.app.json --noEmit` mit zusätzlichen Compiler-Optionen (nur TypeScript-Code,
 Templates nicht mitgezählt):
 
 | Option | Fehler |
 | --- | --- |
-| `--noImplicitAny` | 424 |
-| `--strictBindCallApply` | 92 |
-| `--strictFunctionTypes` | 247 |
-| `--noImplicitThis`, `--useUnknownInCatchVariables`, `--alwaysStrict`, `--strictBuiltinIteratorReturn` | je 0 |
-| `--strictNullChecks` | 3195 (`lib` 802, `transaction` 294, `shared` 268, `entities` 258, `algo` 194, `watchlist` 148, `historyquote` 146, `tenant` 139, Rest < 125 je Modul) |
-| `--strictNullChecks --strictPropertyInitialization` | 4008 |
-| `--strict` | 4738 |
+| Ohne zusätzliche Option | 0 |
+| `--strictNullChecks` | 3216 (`lib` 795, `transaction` 288, `entities` 269, `shared` 267, `algo` 190, `tenant` 153, `watchlist` 150, `historyquote` 148, Rest < 125 je Modul) |
+| `--strictNullChecks --strictPropertyInitialization` | 4034 |
+| `--strict` | 4034 |
 
 ## 3. Querschnittsregeln
 
@@ -66,6 +63,7 @@ Konstruktorinjektion, nicht begründete `@Injectable()`-Deklarationen, `new Beha
 Parameter-Observables injizierter `ActivatedRoute`-Instanzen sowie `ngOnChanges` und `fieldsInitialized`.
 Template-Switches deklarieren einen Standardfall oder eine Vollständigkeitsprüfung. Ausnahmen stehen als Liste
 `Datei → Begründung` im Test selbst.
+Der Test sichert außerdem die aktiven strikten TypeScript-Optionen in beiden Hosts und der Testkonfiguration ab.
 
 Neue Muster erhalten jeweils Positiv- und Negativbeispiele. Das Frontend hat keine ESLint-Konfiguration; die Ratchets
 sind die Absicherung gegen abgelöste APIs.
@@ -81,11 +79,7 @@ Regeln, die beide Hosts betreffen, gelten ebenso für `src/grafiosch-host/README
 
 ### 4.5 Strikte Typisierung
 
-1. **Günstige Optionen einzeln einschalten**, jeweils mit Bereinigung in einem Commit: `noImplicitAny` (424),
-   `strictBindCallApply` (92), `strictFunctionTypes` (247). Die Optionen mit null Fehlern (`noImplicitThis`,
-   `useUnknownInCatchVariables`, `alwaysStrict`, `strictBuiltinIteratorReturn`) werden sofort gesetzt, damit sie
-   nicht mehr verletzt werden können.
-2. **`strictNullChecks` über einen Zählstand.** Das Skript `scripts/strict-null-count.mjs` führt
+1. **`strictNullChecks` über einen Zählstand.** Das Skript `scripts/strict-null-count.mjs` führt
    `tsc -p tsconfig.app.json --noEmit --strictNullChecks` aus, zählt die Fehler pro Verzeichnis unter `src/app` und
    vergleicht sie mit `scripts/strict-null-baseline.json`. Es scheitert, wenn ein Verzeichnis zunimmt, und schreibt
    mit `--update` den neuen, niedrigeren Stand. Aufruf über `npm run check:strict`, nicht in `npm test`, weil ein
@@ -93,9 +87,9 @@ Regeln, die beide Hosts betreffen, gelten ebenso für `src/grafiosch-host/README
    für alle Verbraucher sichtbar), `lib`, danach die Anwendungsmodule nach Fehlerzahl. Bei null Fehlern wird die
    Option in `tsconfig.json` gesetzt und das Skript gelöscht. Mit `strictNullChecks` prüft `strictTemplates` auch
    `null` in Template-Bindungen; diese Fehler kommen beim Einschalten hinzu und werden in derselben Stufe bereinigt.
-3. **`strictPropertyInitialization` zuletzt.** Eingaben, Queries und Abhängigkeiten sind
+2. **`strictPropertyInitialization` zuletzt.** Eingaben, Queries und Abhängigkeiten sind
    initialisierte Felder; die verbleibenden Fehler betreffen fachliche Felder.
-4. Am Ende steht `"strict": true` in `tsconfig.json`, die Einzeloptionen entfallen.
+3. Am Ende steht `"strict": true` in `tsconfig.json`, die Einzeloptionen entfallen.
 
 Strikte Null-Prüfung ist Voraussetzung dafür, dass `hasValue()` einer Ressource den Typ von `value()` tatsächlich
 einengt und dass Signal Forms typisierte Feldzugriffe liefern.
@@ -168,7 +162,7 @@ nach `frontend/CLAUDE.md`. Bis zu dieser Entscheidung gilt die bestehende Regel.
 | Absicherung | Ratchet-Tests in Vitest statt ESLint | Bewährtes Muster im Projekt, läuft mit `npm test`, keine zusätzliche Werkzeugkette |
 | Typisierte Reactive Forms (`FormGroup<T>`) | Keine Umstellung | Die Felder von `dynamic-form` sind erst zur Laufzeit bekannt; ein generischer Typ bringt dort keinen Gewinn. Typisierung kommt, falls überhaupt, mit Signal Forms |
 | Signal Forms | Prototyp in `dynamic-form`, kein Einzeldialog außerhalb | Nur dort zeigt sich, ob Deskriptoren, Layout und Optimus-Felder tragen |
-| `strictNullChecks` | Zählstand pro Verzeichnis statt Umstellung in einem Schritt | 3195 Fehler sind in einem Commit nicht prüfbar |
+| `strictNullChecks` | Zählstand pro Verzeichnis statt Umstellung in einem Schritt | 3216 Fehler sind in einem Commit nicht prüfbar |
 | `@defer` | Nur nach Messung | Routen, Dialoge und Plotly sind bereits verzögert geladen |
 | Angular Aria | Für neu gebaute eigene Bedienelemente; kein Umbau bestehender Optimus-Komponenten | GT hat heute kein selbst gebautes Bedienelement, das einem Aria-Muster (Listbox, Combobox, Menü, Tabs, Baum, Grid, Toolbar) entspricht |
 

@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   AfterViewInit,
   ChangeDetectorRef,
@@ -15,7 +16,7 @@ import {
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
+import { ConfirmationService, MenuItem, MenuItemCommandEvent, SelectItem } from '@openng/optimus-ui/api';
 import { ContextMenu } from '@openng/optimus-ui/contextmenu';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
 import { Select } from '@openng/optimus-ui/select';
@@ -389,8 +390,10 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  readonly compareHistoricalFN = (h, o) => (h.date === o ? Comparison.EQ : h.date > o ? Comparison.GT : Comparison.LT);
-  readonly compareXaxisFN = (x, b) => (x === b ? Comparison.EQ : x > b ? Comparison.GT : Comparison.LT);
+  readonly compareHistoricalFN = (h: { date: string | number | Date }, o: string | number | Date) =>
+    h.date === o ? Comparison.EQ : (h.date as string | number) > (o as string | number) ? Comparison.GT : Comparison.LT;
+  readonly compareXaxisFN = (x: string | number, b: string | number) =>
+    x === b ? Comparison.EQ : x > b ? Comparison.GT : Comparison.LT;
 
   ///////////////////////////////////////////////////////
   // Chart methods
@@ -510,7 +513,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     }
   }
 
-  onBlurFromDate(event): void {
+  onBlurFromDate(event: unknown): void {
     if (!this.fromDate || this.fromDate.getTime() < this.oldestDate.getTime()) {
       this.fromDate = this.oldestDate;
     } else if (this.fromDate.getTime() > new Date().getTime()) {
@@ -521,59 +524,59 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     this.prepareLoadedDataAndPlot(true);
   }
 
-  onResetOldestDate(event): void {
+  onResetOldestDate(event: unknown): void {
     this.fromDate = null;
     this.onBlurFromDate(event);
   }
 
-  fiveDays(event): void {
+  fiveDays(event: unknown): void {
     this.goNextWorkDay(moment().add(-7, 'days'), event);
   }
 
-  oneMonth(event): void {
+  oneMonth(event: unknown): void {
     this.goNextWorkDay(moment().add(-1, 'month'), event);
   }
 
-  threeMonth(event): void {
+  threeMonth(event: unknown): void {
     this.goNextWorkDay(moment().add(-3, 'month'), event);
   }
 
-  yearToDate(event): void {
+  yearToDate(event: unknown): void {
     this.goNextWorkDay(moment().startOf('year').add(1, 'days'), event);
   }
 
-  oneYear(event): void {
+  oneYear(event: unknown): void {
     this.goNextWorkDay(moment().add(-1, 'year'), event);
   }
 
-  threeYears(event): void {
+  threeYears(event: unknown): void {
     this.goNextWorkDay(moment().add(-3, 'year'), event);
   }
 
-  fiveYears(event): void {
+  fiveYears(event: unknown): void {
     this.goNextWorkDay(moment().add(-5, 'year'), event);
   }
 
-  tenYears(event): void {
+  tenYears(event: unknown): void {
     this.goNextWorkDay(moment().add(-10, 'year'), event);
   }
 
-  oldestTrade(event): void {
+  oldestTrade(event: unknown): void {
     this.fromDate = new Date(this.oldestTradeDate);
     this.onBlurFromDate(event);
   }
 
-  private goNextWorkDay(momentDate: Moment, event): void {
+  private goNextWorkDay(momentDate: Moment, event: unknown): void {
     momentDate = momentDate.day() % 6 === 0 ? momentDate.add(1, 'day').day(1) : momentDate;
     this.fromDate = momentDate.toDate();
     this.onBlurFromDate(event);
   }
 
-  toggleCheckbox(event): void {
+  toggleCheckbox(event: unknown): void {
     this.prepareLoadedDataAndPlot(true);
   }
 
-  handleChangeCurrency(event) {
+  handleChangeCurrency(event: { value: string }) {
     this.requestedCurrency = event.value;
     this.currencyNormalizer.normalizeAll(this.loadedData, this.requestedCurrency);
     this.prepareLoadedDataAndPlot(true);
@@ -583,7 +586,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
    * Handles chart type change from the dropdown.
    * Replots the chart with the selected chart type.
    */
-  handleChangeChartType(event): void {
+  handleChangeChartType(event: { value: ChartType }): void {
     this.selectedChartType = event.value;
     this.prepareLoadedDataAndPlot(true);
   }
@@ -902,7 +905,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     transactions
       .filter((transaction) => moment(transaction.transactionTime).isSameOrAfter(this.fromDate))
       .forEach((transaction) => {
-        const transactionType: TransactionType = TransactionType[transaction.transactionType];
+        const transactionType: TransactionType =
+          TransactionType[transaction.transactionType as keyof typeof TransactionType];
         const transactionTypeStr = this.getTransactionTypeStr(transaction, transactionType, reverse);
         const amount = Math.abs(transaction.cashaccountAmount);
         if (!traces[transactionTypeStr]) {
@@ -1045,7 +1049,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       .forEach((securityTransactionPosition) => {
         const transaction = securityTransactionPosition.transaction;
         const transactionTypeStr = transaction.transactionType;
-        const transactionType: TransactionType = TransactionType[transactionTypeStr];
+        const transactionType: TransactionType = TransactionType[transactionTypeStr as keyof typeof TransactionType];
         if (
           transactionType === TransactionType.ACCUMULATE ||
           transactionType === TransactionType.REDUCE ||
@@ -1101,9 +1105,9 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 
   private initializeBuySellTrace(transactionTypeStr: string, transactionType: TransactionType) {
     const trace = {
-      x: [],
-      y: [],
-      text: [],
+      x: [] as string[],
+      y: [] as number[],
+      text: [] as string[],
       mode: 'markers',
       type: 'scatter',
       opacity: 0.75,
@@ -1117,7 +1121,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     return trace;
   }
 
-  translateTraceName(trace) {
+  translateTraceName(trace: Data) {
     this.translateService.get(trace.name).subscribe((transText) => (trace.name = transText));
   }
 
@@ -1125,13 +1129,13 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.activePanelService.activatePanel(this, {
       showMenu: this.getShowMenu()
     });
   }
 
-  onRightClick(event): void {
+  onRightClick(event: unknown): void {
     this.resetMenu();
   }
 
@@ -1140,7 +1144,9 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       const taEditReturn: TaEditReturn = processedActionData.data;
       const taFormDefinition: TaFormDefinition = this.taFormDefinitions[taEditReturn.taIndicators];
-      const iDef: IndicatorDefinition = this.indicatorDefinitions.defMap.get(TaIndicators[taEditReturn.taIndicators]);
+      const iDef: IndicatorDefinition = this.indicatorDefinitions.defMap.get(
+        TaIndicators[taEditReturn.taIndicators as keyof typeof TaIndicators]
+      );
       this.deleteShownTaTraceWhenInputDataHasChanged(
         taEditReturn.taIndicators,
         iDef,
@@ -1229,7 +1235,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     );
   }
 
-  private onOffIndicatorEvent(event, taIndicators: string, iDef: IndicatorDefinition): void {
+  private onOffIndicatorEvent(event: MenuItemCommandEvent, taIndicators: string, iDef: IndicatorDefinition): void {
     this.onOffIndicator(event.item, taIndicators, iDef);
   }
 
@@ -1458,8 +1464,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 
       // Calculate Y-axis min/max from close values (for candlestick/OHLC, use high/low)
       if (ld.historicalLine.type === 'candlestick' || ld.historicalLine.type === 'ohlc') {
-        this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.low.filter((v) => v != null));
-        this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.high.filter((v) => v != null));
+        this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.low.filter((v: number) => v != null));
+        this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.high.filter((v: number) => v != null));
       } else {
         this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.y);
         this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.y);
@@ -1512,7 +1518,17 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     PlotlyHelper.attachTooltip(this.legendTooltipMap, this.chartElement());
   }
 
-  private getLayout(holdingLayout, shapes: any[] = []): any {
+  private getLayout(
+    holdingLayout: {
+      yaxis2: {
+        title: { text: string; font: { color: string } };
+        tickfont: { color: string };
+        overlaying: string;
+        side: string;
+      };
+    },
+    shapes: any[] = []
+  ): any {
     const dateNative = moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
     // Oscillators can only be displayed when showing a single security
     const hasOscillator = this.loadedData.length === 1 && this.indicatorDefinitions.hasShownOscillator();

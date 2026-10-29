@@ -19,7 +19,7 @@ export abstract class BaseAuthService<T> extends BaseService {
   protected httpClient: HttpClient = inject(HttpClient);
   protected messageToastService: MessageToastService = inject(MessageToastService);
 
-  private static readonly classNameClassMap = {
+  private static readonly classNameClassMap: Record<string, new () => GetTransformedError> = {
     LimitEntityTransactionError,
     SingleNativeMsgError,
     ValidationError
@@ -34,21 +34,18 @@ export abstract class BaseAuthService<T> extends BaseService {
    */
   updateEntity(entity: T, id: number | string, pathApi: string): Observable<T> {
     if (id != null) {
-      return <Observable<T>>(
-        this.httpClient
-          .put(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity, { headers: this.prepareHeaders() })
-          .pipe(catchError(this.handleError.bind(this)))
-      );
+      return this.httpClient
+        .put<T>(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity, { headers: this.prepareHeaders() })
+        .pipe(catchError(this.handleError.bind(this)));
     } else {
-      return <Observable<T>>(
-        this.httpClient
-          .post(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity, { headers: this.prepareHeaders() })
-          .pipe(catchError(this.handleError.bind(this)))
-      );
+      return this.httpClient
+        .post<T>(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity, { headers: this.prepareHeaders() })
+        .pipe(catchError(this.handleError.bind(this)));
     }
   }
 
-  protected handleError(error: HttpErrorResponse | any): Observable<TransformedError> {
+  /** Re-throws through the error channel without adding a value to a request's result type. */
+  protected handleError(error: HttpErrorResponse | any): Observable<never> {
     const transformedError = this.reportError(error);
     BaseAuthService.reportedErrors.add(transformedError);
     return throwError(() => transformedError);

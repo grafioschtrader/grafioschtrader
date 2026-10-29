@@ -132,7 +132,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     });
     const callParam = this.callParam();
     this.updateRateLimitTypeDependencies(
-      callParam?.rateLimitType != null ? RateLimitType[callParam.rateLimitType] : null
+      callParam?.rateLimitType != null ? RateLimitType[callParam.rateLimitType as keyof typeof RateLimitType] : null
     );
 
     this.configObject.geoInclusions.formControl.valueChanges
@@ -229,7 +229,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     fc.formControl.disable();
   }
 
-  private updateRateLimitTypeDependencies(rateLimitType: string): void {
+  private updateRateLimitTypeDependencies(rateLimitType: string | RateLimitType): void {
     if (rateLimitType === 'TOKEN_BUCKET') {
       this.enableField('rateLimitRequests', true);
       this.enableField('rateLimitPeriodSec', true);

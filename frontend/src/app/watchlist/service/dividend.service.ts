@@ -9,13 +9,11 @@ import { BaseSettings } from '../../lib/base.settings';
 @Service()
 export class DividendService extends AuthServiceWithLogout<Dividend> {
   getDividendsByIdSecuritycurrency(idSecuritycurrency: number): Observable<Dividend[]> {
-    return <Observable<Dividend[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_DIVIDEND_KEY}` + `/${idSecuritycurrency}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Dividend[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_DIVIDEND_KEY}` + `/${idSecuritycurrency}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

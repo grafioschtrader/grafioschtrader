@@ -36,7 +36,7 @@ export class SecurityaccountAssetclassCategortypeGroup extends SecurityaccountGr
     return security.assetClass.categoryType;
   }
 
-  protected getGroupFieldAsString(enumType: AssetclassType): string {
-    return AssetclassType[AssetclassType[enumType]];
+  protected getGroupFieldAsString(enumType: AssetclassType): string | number {
+    return AssetclassType[AssetclassType[enumType] as keyof typeof AssetclassType];
   }
 }

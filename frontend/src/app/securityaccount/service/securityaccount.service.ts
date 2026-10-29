@@ -72,18 +72,16 @@ export class SecurityaccountService
     includeClosedPosition: boolean,
     untilDate: Date
   ): Observable<SecurityPositionGrandSummary> {
-    return <Observable<SecurityPositionGrandSummary>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.SECURITYACCOUNT_KEY}/tenantsecurityaccountsummary/${group}`,
-          AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(
-            includeClosedPosition,
-            untilDate,
-            this.prepareHeaders()
-          )
+    return this.httpClient
+      .get<SecurityPositionGrandSummary>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.SECURITYACCOUNT_KEY}/tenantsecurityaccountsummary/${group}`,
+        AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(
+          includeClosedPosition,
+          untilDate,
+          this.prepareHeaders()
         )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -101,19 +99,17 @@ export class SecurityaccountService
     includeClosedPosition: boolean,
     untilDate: Date
   ): Observable<SecurityPositionGrandSummary> {
-    return <Observable<SecurityPositionGrandSummary>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/` +
-            `tenantsecurityaccountsummary/rebalancing/${idAlgoTop}`,
-          AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(
-            includeClosedPosition,
-            untilDate,
-            this.prepareHeaders()
-          )
+    return this.httpClient
+      .get<SecurityPositionGrandSummary>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/` +
+          `tenantsecurityaccountsummary/rebalancing/${idAlgoTop}`,
+        AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(
+          includeClosedPosition,
+          untilDate,
+          this.prepareHeaders()
         )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getSecurityPositionSummaryPortfolio(

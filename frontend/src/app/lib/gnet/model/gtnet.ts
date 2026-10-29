@@ -117,7 +117,7 @@ export class GTNet implements BaseID {
 }
 
 export class MsgRequest {
-  public gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
+  public gtNetMessageParamMap: Record<string, BaseParam>;
   public waitDaysApply: number = null;
   /**
    * ID of the original message being cancelled. Only used for cancellation messages

@@ -80,12 +80,17 @@ export class WatchlistIndicatorColumnEditComponent
   protected override initialize(): void {
     this.configObject.idWatchlist.valueKeyHtmlOptions = [
       { key: null, value: this.translateService.instant('WIC_ALL_WATCHLISTS') },
-      ...this.callParam().optParam.watchlists.map((w) => ({ key: w.idWatchlist, value: w.name }))
+      ...this.callParam().optParam.watchlists.map((w: { idWatchlist: number; name: string }) => ({
+        key: w.idWatchlist,
+        value: w.name
+      }))
     ];
-    this.configObject.markColors.valueKeyHtmlOptions = this.callParam().optParam.colors.map((c) => ({
-      key: c.key,
-      value: this.translateService.instant(c.value)
-    }));
+    this.configObject.markColors.valueKeyHtmlOptions = this.callParam().optParam.colors.map(
+      (c: { key: number; value: string }) => ({
+        key: c.key,
+        value: this.translateService.instant(c.value)
+      })
+    );
     this.configObject.expression.formControl.valueChanges
       .pipe(
         debounceTime(350),

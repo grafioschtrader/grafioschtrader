@@ -115,10 +115,10 @@ export class LoginComponent extends FormBase implements OnInit {
 
   submit(value: { [name: string]: any }): void {
     this.loginService.login(value.email, value.password).subscribe({
-      next: (response: Response) => {
+      next: (response) => {
         const passwordRegexOk: boolean = this.loginService.afterSuccessfulLogin(
           response.headers.get('x-auth-token'),
-          (response as any).body
+          response.body
         );
         if (this.gps.getIdTenant()) {
           this.navigateToMainView(passwordRegexOk);

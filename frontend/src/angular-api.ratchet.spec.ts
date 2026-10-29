@@ -100,7 +100,7 @@ const TABLE_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reaso
   },
   'app/shared/securitycurrency/split.period.table.base.ts': {
     parameters: [
-      'dataSortKey:string',
+      'dataSortKey:keyofT&string',
       'maxRowMessageKey:string',
       'classz:ClassConstructor<T>',
       'deleteCreateMultipleService:DeleteCreateMultiple<T>'
@@ -166,7 +166,7 @@ const FORM_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason
 /** The master-detail view chooses its identity fields, help page and deletion strategy. */
 const MASTER_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason: string }> = {
   'app/lib/masterdetail/component/single.record.master.view.base.ts': {
-    parameters: ['helpId:string', 'mainFieldId:string', 'entityName:string', 'deleteService:DeleteService'],
+    parameters: ['helpId:string', 'mainFieldId:keyofT&string', 'entityName:string', 'deleteService:DeleteService'],
     reason: 'The concrete view chooses its help, master field, entity label and entity-specific deletion strategy.'
   }
 };
@@ -447,6 +447,27 @@ function collectSources(dir: string, extensions = ['.ts'], out: string[] = []): 
 }
 
 describe('Angular API ratchet', () => {
+  it.each(['tsconfig.app.json', 'tsconfig.grafiosch-host.json', 'tsconfig.spec.json'])(
+    'keeps the strict typing baseline enabled in %s',
+    (project) => {
+      const filename = path.resolve(SRC, '..', project);
+      const config = ts.readConfigFile(filename, ts.sys.readFile);
+      expect(config.error).toBeUndefined();
+      const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, path.dirname(filename));
+      expect(parsed.errors).toEqual([]);
+      const flags = [
+        'noImplicitAny',
+        'strictBindCallApply',
+        'strictFunctionTypes',
+        'noImplicitThis',
+        'useUnknownInCatchVariables',
+        'alwaysStrict',
+        'strictBuiltinIteratorReturn'
+      ] as const;
+      for (const flag of flags) expect(parsed.options[flag] ?? parsed.options.strict, flag).toBe(true);
+    }
+  );
+
   it('finds constructor parameters through the table inheritance chain and ignores unrelated classes', () => {
     expect(
       hierarchyConstructorParameters({

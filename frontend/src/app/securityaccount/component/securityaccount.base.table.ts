@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
@@ -11,7 +12,7 @@ import { Subscription } from 'rxjs';
 import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
 import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
-import { MenuItem, SelectItem } from '@openng/optimus-ui/api';
+import { MenuItem, MenuItemCommandEvent, SelectItem } from '@openng/optimus-ui/api';
 import { Portfolio } from '../../entities/portfolio';
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { SecurityaccountService } from '../service/securityaccount.service';
@@ -230,7 +231,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     contextMenu && contextMenu.hide();
   }
 
-  public override filterDate(event) {
+  public override filterDate(event: unknown) {
     this.readData();
   }
 
@@ -252,7 +253,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     }
   }
 
-  handleOpenClosePosition(event) {
+  handleOpenClosePosition(event: MenuItemCommandEvent) {
     if (event.item.icon === BaseSettings.ICONNAME_SQUARE_EMTPY) {
       event.item.icon = BaseSettings.ICONNAME_SQUARE_CHECK;
       this.includeClosedPosition = true;
@@ -273,11 +274,11 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
   callMeDeactivate(): void {}
 
-  onRightClick(event): void {
+  onRightClick(event: unknown): void {
     this.isActivated() && this.resetMenu();
   }
 
-  onResetToDay(event): void {
+  onResetToDay(event: unknown): void {
     this.untilDate = new Date();
     this.readData();
   }
@@ -285,18 +286,18 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   ////////////////////////////////////////////////
   // For Chart
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     if (!event || !event[this.consumedGT]) {
       this.resetMenu();
     }
   }
 
   ///////////////////////////////////////////////
-  onRowExpand(event) {
+  onRowExpand(event: { data: { security: { idSecuritycurrency: number } } }) {
     this.expandedIdSecuritycurrency.push(event.data.security.idSecuritycurrency);
   }
 
-  onRowCollapse(event) {
+  onRowCollapse(event: { data: { security: { idSecuritycurrency: number } } }) {
     const index = this.expandedIdSecuritycurrency.indexOf(event.data.security.idSecuritycurrency);
     this.expandedIdSecuritycurrency.splice(index, 1);
   }
@@ -628,10 +629,15 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
     if (
       securityPositionSummary &&
-      (AssetclassType[securityPositionSummary.security.assetClass.categoryType] < AssetclassType.CURRENCY_PAIR ||
-        (AssetclassType[securityPositionSummary.security.assetClass.categoryType] === AssetclassType.CURRENCY_PAIR &&
+      (AssetclassType[securityPositionSummary.security.assetClass.categoryType as keyof typeof AssetclassType] <
+        AssetclassType.CURRENCY_PAIR ||
+        (AssetclassType[securityPositionSummary.security.assetClass.categoryType as keyof typeof AssetclassType] ===
+          AssetclassType.CURRENCY_PAIR &&
           [SpecialInvestmentInstruments.FOREX, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT].includes(
-            SpecialInvestmentInstruments[securityPositionSummary.security.assetClass.specialInvestmentInstrument]
+            SpecialInvestmentInstruments[
+              securityPositionSummary.security.assetClass
+                .specialInvestmentInstrument as keyof typeof SpecialInvestmentInstruments
+            ]
           )))
     ) {
       menuItems = [];

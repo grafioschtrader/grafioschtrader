@@ -257,25 +257,17 @@ async function revealSimulationNode(page: Page, name: string): Promise<Locator> 
 }
 
 /**
- * Waits until the client operates under the token of the environment. The switch writes the new JWT and tenant id to
- * sessionStorage only after the backend has authorized it and then reloads the application, so the wait has two parts:
- * the navigation has to settle before anything may be evaluated in the page, and the stored tenant id is what proves
- * the takeover. `page.evaluate` throws while the reload is in flight, which the poll swallows and retries.
+ * Switches into an environment through the tree menu and waits until the client operates under its token. The switch
+ * writes the new JWT and tenant id to sessionStorage first and reloads the application afterwards, so the stored tenant
+ * id alone does not prove that the reload is over: a `page.evaluate` right after it can still hit the reload and fail
+ * with "Execution context was destroyed". The wait therefore listens for the `load` event of the reloaded document,
+ * armed before the menu command, and only then reads the tenant id.
  */
-async function awaitSwitchInto(page: Page, idTenant: number): Promise<void> {
-  await page.waitForLoadState('domcontentloaded');
-  await expect
-    .poll(
-      async () => {
-        try {
-          return await page.evaluate(() => sessionStorage.getItem('idTenant'));
-        } catch {
-          return null;
-        }
-      },
-      { timeout: 30_000 }
-    )
-    .toBe(String(idTenant));
+async function switchInto(page: Page, node: Locator, idTenant: number): Promise<void> {
+  const reloaded = page.waitForEvent('load', { timeout: 30_000 });
+  await openTreeContextMenu(page, node, RX.switchToSimulation);
+  await reloaded;
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('idTenant'))).toBe(String(idTenant));
 }
 
 /**
@@ -385,8 +377,7 @@ test.describe('simulation opening', () => {
     // Entering the environment proves the ownership check of the switch and that the copy produced a real ledger.
     // The simulation listing is not checked in here: it is scoped to the user's home tenant (actualIdTenant) and names
     // the same environments from inside one. The copied watchlist below only exists in the environment.
-    await openTreeContextMenu(page, node, RX.switchToSimulation);
-    await awaitSwitchInto(page, simulation.idTenant);
+    await switchInto(page, node, simulation.idTenant);
     const copied = await getJson<ApiWatchlist[]>(page, '/api/watchlist/tenant');
     expect(copied.map((list) => list.name)).toEqual([PREFIX]);
     expect(await watchlistSecurities(page, copied[0].idWatchlist)).toHaveLength(1);
@@ -402,8 +393,7 @@ test.describe('simulation opening', () => {
     expect(simulation.simulationStartDate).toBe(openingDate);
     expect(simulation.simulationInitializationMode).toBe('MANUAL_CASH');
 
-    await openTreeContextMenu(page, await revealSimulationNode(page, `${PREFIX} manual`), RX.switchToSimulation);
-    await awaitSwitchInto(page, simulation.idTenant);
+    await switchInto(page, await revealSimulationNode(page, `${PREFIX} manual`), simulation.idTenant);
     const transactions = await getJson<ApiTransaction[]>(page, '/api/transaction');
     expect(transactions).toHaveLength(1);
     expect(transactions[0].transactionType).toBe('DEPOSIT');

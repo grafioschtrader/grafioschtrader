@@ -25,11 +25,12 @@ export class CorrelationSetService
   implements DeleteService, ServiceEntityUpdate<CorrelationSet>, AddSearchToListService<CorrelationSet>
 {
   getCorrelationSetByTenant(): Observable<CorrelationSet[]> {
-    return <Observable<CorrelationSet[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}` + `${AppSettings.CORRELATION_SET_KEY}/tenant`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<CorrelationSet[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.CORRELATION_SET_KEY}/tenant`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -86,20 +87,18 @@ export class CorrelationSetService
     idCorrelationSet: number,
     securitycurrencyLists: SecuritycurrencyLists
   ): Observable<CorrelationSet> {
-    return <Observable<CorrelationSet>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/` + `${idCorrelationSet}/addSecuritycurrency`,
-          securitycurrencyLists,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<CorrelationSet>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/` + `${idCorrelationSet}/addSecuritycurrency`,
+        securitycurrencyLists,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   removeInstrumentFromCorrelationSet(idCorrelationSet: number, idSecuritycurrency: number): Observable<CorrelationSet> {
     return this.httpClient
-      .delete(
+      .delete<CorrelationSet>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/` +
           `${idCorrelationSet}/removeinstrument/${idSecuritycurrency}`,
         this.getHeaders()
@@ -111,20 +110,21 @@ export class CorrelationSetService
     idCorrelationSet: number,
     securitycurrencySearch: SecuritycurrencySearch
   ): Observable<SecuritycurrencyLists> {
-    return <Observable<SecuritycurrencyLists>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}` + `/${idCorrelationSet}/search`, {
-        headers: this.prepareHeaders(),
-        params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
-      })
+    return this.httpClient
+      .get<SecuritycurrencyLists>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}` + `/${idCorrelationSet}/search`,
+        {
+          headers: this.prepareHeaders(),
+          params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   getCorrelationSetLimit(): Observable<CorrelationLimit> {
-    return <Observable<CorrelationLimit>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/limit`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<CorrelationLimit>(`${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/limit`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getRollingCorrelations(
@@ -133,22 +133,23 @@ export class CorrelationSetService
   ): Observable<CorrelationRollingResult[]> {
     let params = new HttpParams();
     params = params.append('securityIdsPairs', [].concat(...securityIdsPairs).join(','));
-    return <Observable<CorrelationRollingResult[]>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}` + `/corrrolling/${idCorrelationSet}`, {
-        headers: this.prepareHeaders(),
-        params
-      })
+    return this.httpClient
+      .get<CorrelationRollingResult[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}` + `/corrrolling/${idCorrelationSet}`,
+        {
+          headers: this.prepareHeaders(),
+          params
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   getCorrelationSetInstrumentLimit(idCorrelationSet: number): Observable<TenantLimit> {
-    return <Observable<TenantLimit>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/limit/${idCorrelationSet}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<TenantLimit>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/limit/${idCorrelationSet}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

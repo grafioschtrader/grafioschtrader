@@ -92,11 +92,11 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
     return this.securityaccountTree().getSelectedAccountIds().length === 0;
   }
 
-  public onShow(event): void {
+  public onShow(event: unknown): void {
     afterNextRender(() => this.prepareData(), { injector: this.renderInjector });
   }
 
-  submit(event) {
+  submit(event: unknown) {
     this.closeDialog.emit(
       new ProcessedActionData(
         ProcessedAction.CREATED,
@@ -108,7 +108,7 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
     );
   }
 
-  onHide(event) {
+  onHide(event: unknown) {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 

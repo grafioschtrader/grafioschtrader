@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { Component, OnDestroy, OnInit, signal, viewChild, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -109,11 +110,11 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     return this.mainTreeService.getContextMenuItems(treeNode);
   }
 
-  onNodeSelect(event) {
+  onNodeSelect(event: { node: TreeNode<TypeNodeData> }) {
     this.nodeSelect(event.node);
   }
 
-  onNodeContextMenuSelect(event) {
+  onNodeContextMenuSelect(event: { node: TreeNode<TypeNodeData> }) {
     const typeNodeData: TypeNodeData = event.node.data;
     this.contextMenuItems.set(this.getEditMenuItemsByTypeNode(event.node));
     if (!this.contextMenuItems()) {
@@ -134,7 +135,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.contextMenu().hide();
   }
 
-  onComponentClick(event) {
+  onComponentClick(event: PanelClickEvent) {
     this.activePanelService.activatePanel(this, {
       editMenu: this.selectedNode ? this.getEditMenuItemsByTypeNode(this.selectedNode) : null
     });
@@ -154,7 +155,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.subscription.unsubscribe();
   }
 
-  onKeydown(event) {
+  onKeydown(event: { key: string }) {
     // TODO Should show the content
     if (event.key === 'Enter') {
       console.log(event);

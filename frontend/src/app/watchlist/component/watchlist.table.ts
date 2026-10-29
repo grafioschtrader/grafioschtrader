@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   afterNextRender,
   AfterViewInit,
@@ -17,7 +18,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ConfirmationService, MenuItem, SortEvent, SortMeta } from '@openng/optimus-ui/api';
+import { ConfirmationService, MenuItem, MenuItemCommandEvent, SortEvent, SortMeta } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import moment from 'moment';
 import { forkJoin, Subscription } from 'rxjs';
@@ -665,7 +666,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    *
    * @param event - Click event that triggered the action (event details not used)
    */
-  addExistingSecurity(event) {
+  addExistingSecurity(event: MenuItemCommandEvent) {
     this.visibleAddInstrumentDialog.set(true);
   }
 
@@ -907,7 +908,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    *
    * @param event - Mouse click event with potential consumed flag
    */
-  onRightClick(event): void {
+  onRightClick(event: unknown): void {
     //  this.isActivated() ? this.contextMenu.show() : this.hideContextMenu();
   }
 
@@ -916,7 +917,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    *
    * @param event - Mouse click event with potential consumed flag
    */
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     if (!event[this.consumedGT]) {
       const contextMenu = this.contextMenu();
       contextMenu && contextMenu.hide();

@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { httpResource } from '@angular/common/http';
 import { Component, effect, inject, input, numberAttribute, OnDestroy, OnInit, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -297,7 +298,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.resetMenu();
   }
 

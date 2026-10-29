@@ -1,7 +1,7 @@
 import { Component, OnDestroy, inject } from '@angular/core';
 import { MessageToastService } from './message.toast.service';
 import { InfoLevelType } from './info.leve.type';
-import { TranslateService } from '@ngx-translate/core';
+import { InterpolationParameters, TranslateService } from '@ngx-translate/core';
 import { MessageContainer } from './message.container';
 import { combineLatest, Subscription } from 'rxjs';
 import { MessageService, ToastMessageOptions } from '@openng/optimus-ui/api';
@@ -89,7 +89,7 @@ export class MessageToastComponent implements OnDestroy {
 
   private translateInterpolateParams(messageConainer: MessageContainer) {
     if (messageConainer.interpolateParams) {
-      const paramsTranslated = {};
+      const paramsTranslated: InterpolationParameters = {};
 
       Object.keys(messageConainer.interpolateParams).forEach((key) => {
         if (key.indexOf('i18n') >= 0) {
@@ -106,7 +106,7 @@ export class MessageToastComponent implements OnDestroy {
     }
   }
 
-  private translateMessageAndTitle(messageConainer: MessageContainer, interpolateParams) {
+  private translateMessageAndTitle(messageConainer: MessageContainer, interpolateParams: InterpolationParameters) {
     combineLatest([
       this.translateService.get(messageConainer.key, interpolateParams),
       this.translateService.get(this.getHeaderKey(messageConainer))

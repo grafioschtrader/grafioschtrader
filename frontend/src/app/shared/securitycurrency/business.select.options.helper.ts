@@ -33,7 +33,10 @@ export class BusinessSelectOptionsHelper {
     const activeDate: string = moment(activeDateNol).format('YYYYMMDD');
     fieldConfig.valueKeyHtmlOptions.forEach((vkho) => {
       const security = securities.find((s) => s.idSecuritycurrency === vkho.key);
-      vkho.disabled = !(activeDate >= security.activeFromDate && activeDate <= security.activeToDate);
+      vkho.disabled = !(
+        (activeDate as string | number) >= (security.activeFromDate as string | number) &&
+        (activeDate as string | number) <= (security.activeToDate as string | number)
+      );
     });
     // A new array reference tells the form and the select that the options changed
     fieldConfig.valueKeyHtmlOptions = [...fieldConfig.valueKeyHtmlOptions];

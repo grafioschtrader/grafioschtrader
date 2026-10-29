@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   afterNextRender,
   computed,
@@ -234,7 +235,7 @@ export class TenantDividendsChartComponent
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.activePanelService.activatePanel(this);
   }
 

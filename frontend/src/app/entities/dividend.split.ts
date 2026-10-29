@@ -8,8 +8,8 @@ export class DividendSplit {
 
 export class Dividend extends DividendSplit {
   @Expose() idDividend?: number;
-  @Expose() exDate = null;
-  @Expose() payDate = null;
+  @Expose() exDate: string | Date = null;
+  @Expose() payDate: string | Date = null;
   @Expose() amount: number = null;
   @Expose() amountAdjusted: number = null;
   @Expose() currency: string = null;
@@ -17,7 +17,7 @@ export class Dividend extends DividendSplit {
 
 export class Securitysplit extends DividendSplit {
   @Expose() idSecuritysplit?: number;
-  @Expose() splitDate = null;
+  @Expose() splitDate: string | Date = null;
   @Expose() fromFactor: number = null;
   @Expose() toFactor: number = null;
 }

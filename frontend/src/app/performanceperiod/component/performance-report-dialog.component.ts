@@ -173,7 +173,7 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
     };
     for (const field of this.config) {
       if (field.field in initial) {
-        field.defaultValue = initial[field.field];
+        field.defaultValue = initial[field.field as keyof typeof initial];
       }
     }
     this.configObject.annualYears.invisible = !sections.includes('ANNUAL_RETURNS');

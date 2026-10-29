@@ -58,7 +58,7 @@ export class LogoutReleaseRequestDynamicDialogComponent extends FormBase impleme
     this.loginService
       .login(this.dynamicDialogConfig.data.email, this.dynamicDialogConfig.data.password, value[this.NOTE])
       .subscribe({
-        next: (response: Response) => {
+        next: (response) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_PROPOSE_SAVED');
           this.dynamicDialogRef.close();
         },

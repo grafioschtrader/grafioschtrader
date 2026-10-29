@@ -30,8 +30,8 @@ export interface ColumnConfig extends BaseFieldDefinition {
   /** Whether users can toggle the visibility of this column */
   changeVisibility: boolean;
 
-  /** Fixed width of the column in pixels */
-  width?: number;
+  /** Pixel width, or the CSS width reported by a table resize. */
+  width?: number | string;
 
   /**
    * Custom function to transform field values before display.
@@ -188,8 +188,8 @@ export interface ColumnConfig extends BaseFieldDefinition {
  * requiring all properties upfront.
  */
 export interface OptionalParams {
-  /** Fixed width of the column in pixels */
-  width?: number;
+  /** Pixel width, or the CSS width reported by a table resize. */
+  width?: number | string;
 
   /** Custom value transformation function */
   fieldValueFN?: (dataobject: any, field: ColumnConfig, valueField: any) => any;

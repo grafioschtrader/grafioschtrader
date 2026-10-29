@@ -10,18 +10,23 @@ import { BaseSettings } from '../../lib/base.settings';
 @Service()
 export class TradingDaysPlusService extends AuthServiceWithLogout<TradingDaysPlus> {
   getTradingDaysByYear(year: number): Observable<TradingDaysWithDateBoundaries> {
-    return <Observable<TradingDaysWithDateBoundaries>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRADING_DAYS_PLUS_KEY}/${year}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<TradingDaysWithDateBoundaries>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRADING_DAYS_PLUS_KEY}/${year}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   save(saveTradingDays: SaveTradingDays): Observable<TradingDaysWithDateBoundaries> {
-    return <Observable<TradingDaysWithDateBoundaries>>this.httpClient
-      .put(`${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRADING_DAYS_PLUS_KEY}`, saveTradingDays, {
-        headers: this.prepareHeaders()
-      })
+    return this.httpClient
+      .put<TradingDaysWithDateBoundaries>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRADING_DAYS_PLUS_KEY}`,
+        saveTradingDays,
+        {
+          headers: this.prepareHeaders()
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 }

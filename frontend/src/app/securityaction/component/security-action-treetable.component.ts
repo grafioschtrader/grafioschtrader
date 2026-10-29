@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, switchMap } from 'rxjs';
@@ -149,16 +150,16 @@ export class SecurityActionTreetableComponent
     return HelpIds.HELP_BASEDATA_SECURITY_ACTION;
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.resetMenu();
   }
 
-  onNodeSelect(event): void {
+  onNodeSelect(event: { node: TreeNode }): void {
     this.selectedNode = event.node;
     this.resetMenu();
   }
 
-  onNodeUnselect(event): void {
+  onNodeUnselect(event: unknown): void {
     this.selectedNode = null;
     this.resetMenu();
   }

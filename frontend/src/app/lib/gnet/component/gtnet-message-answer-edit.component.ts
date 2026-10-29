@@ -190,7 +190,7 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     return entity;
   }
 
-  override onHide(event): void {
+  override onHide(event: unknown): void {
     this.textareaEventsBound = false;
     this.currentTypeFilter = 'ANY';
     super.onHide(event);

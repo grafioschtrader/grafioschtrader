@@ -17,35 +17,32 @@ export class AlgoStrategyService
   implements DeleteService, ServiceEntityUpdate<AlgoStrategy>
 {
   getStrategiesForLevel(algoLevelType: AlgoLevelType): Observable<AlgoStrategyImplementationType[]> {
-    return <Observable<AlgoStrategyImplementationType[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/level/${algoLevelType}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<AlgoStrategyImplementationType[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/level/${algoLevelType}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getUnusedStrategiesForManualAdding(idAlgoAssetclassSecurity: number): Observable<AlgoStrategyImplementationType[]> {
-    return <Observable<AlgoStrategyImplementationType[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/unusedsrategies/${idAlgoAssetclassSecurity}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<AlgoStrategyImplementationType[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/unusedsrategies/${idAlgoAssetclassSecurity}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getFormDefinitionsByAlgoStrategy(
     algoStrategyImplementations: AlgoStrategyImplementationType
   ): Observable<InputAndShowDefinitionStrategy> {
-    return <Observable<InputAndShowDefinitionStrategy>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/form/${algoStrategyImplementations}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<InputAndShowDefinitionStrategy>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/form/${algoStrategyImplementations}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(algoStrategy: AlgoStrategy): Observable<AlgoStrategy> {

@@ -124,7 +124,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     this.addBaseColumns();
     this.fdSecurityList = JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY)).concat(
       JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)).filter(
-        (fd) => fd.entity === AppSettings.CURRENCYPAIR
+        (fd: { entity: string }) => fd.entity === AppSettings.CURRENCYPAIR
       )
     );
     this.createColumnsFromUDFMetaData();
@@ -187,7 +187,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    */
   private extendSecurityWithUDF(group: SecuritycurrencyUDFGroup): SecuritycurrencyUDFGroup {
     this.udfValuesMap.clear();
-    const extend = (position) => {
+    const extend = <T extends { securitycurrency: { idSecuritycurrency?: number } }>(position: T): T => {
       const json = this.udfEntityValues[position.securitycurrency.idSecuritycurrency];
       const values = json ? JSON.parse(json) : {};
       this.udfValuesMap.set(position.securitycurrency.idSecuritycurrency, values);
@@ -372,7 +372,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
   private createColumnsFromUDFMetaData(): void {
     for (const fd of this.fdSecurityList) {
       const optionalParam: OptionalParams = {};
-      switch (DataType[fd.dataType]) {
+      switch (DataType[fd.dataType as keyof typeof DataType]) {
         case DataType.Boolean:
           optionalParam.templateName = 'check';
           optionalParam.width = 54;
@@ -393,7 +393,9 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
           optionalParam.filterType = FilterType.likeDataType;
       }
       const cc: ColumnConfig = this.addColumn(
-        DataType[fd.dataType] === DataType.DateTimeNumeric ? DataType.DateTimeString : DataType[fd.dataType],
+        DataType[fd.dataType as keyof typeof DataType] === DataType.DateTimeNumeric
+          ? DataType.DateTimeString
+          : DataType[fd.dataType as keyof typeof DataType],
         WatchlistHelper.SECURITYCURRENCY + '.' + fd.fieldName,
         fd.description,
         true,

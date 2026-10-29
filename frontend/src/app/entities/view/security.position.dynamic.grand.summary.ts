@@ -4,7 +4,7 @@ import { HoldingsTreemap } from './holdings.treemap';
 
 export class SecurityPositionDynamicGrandSummary<
   S extends SecurityPositionGroupSummary
-> extends SecurityPositionGrandSummary {
+> extends SecurityPositionGrandSummary<S> {
   grandValueSecurityShort: number;
   grandSecurityRiskMC: number;
   /** Only set by the report "security asset classes with cash". */

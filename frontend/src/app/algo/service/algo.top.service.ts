@@ -29,19 +29,21 @@ export class AlgoTopService
   }
 
   getAlgoTopByIdTenantOrderByName(): Observable<AlgoTop[]> {
-    return <Observable<AlgoTop[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/${BaseSettings.TENANT_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<AlgoTop[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/${BaseSettings.TENANT_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getAlgoTopByIdAlgoAssetclassSecurity(idAlgoAssetclassSecurity: number): Observable<AlgoTop> {
-    return <Observable<AlgoTop>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/${idAlgoAssetclassSecurity}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<AlgoTop>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/${idAlgoAssetclassSecurity}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /** Loads the hierarchy together with its calculated totals and warning fields. */
@@ -51,8 +53,8 @@ export class AlgoTopService
   }
 
   public create(algoTopCreate: AlgoTopCreate): Observable<AlgoTop> {
-    return <Observable<AlgoTop>>this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/create`, algoTopCreate, {
+    return this.httpClient
+      .post<AlgoTop>(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/create`, algoTopCreate, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));
@@ -63,16 +65,16 @@ export class AlgoTopService
   }
 
   public createFromPortfolio(dto: AlgoTopCreateFromPortfolio): Observable<AlgoTop> {
-    return <Observable<AlgoTop>>this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/createfromportfolio`, dto, {
+    return this.httpClient
+      .post<AlgoTop>(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/createfromportfolio`, dto, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   public createFromWatchlist(dto: AlgoTopCreateFromWatchlist): Observable<AlgoTop> {
-    return <Observable<AlgoTop>>this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/createfromwatchlist`, dto, {
+    return this.httpClient
+      .post<AlgoTop>(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/createfromwatchlist`, dto, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));

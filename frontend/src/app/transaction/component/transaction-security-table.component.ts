@@ -111,7 +111,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
    *
    * @param event The row selection event containing the selected transaction data
    */
-  onRowSelect(event): void {
+  onRowSelect(event: { data: TransactionPosition }): void {
     const transactionPosition: TransactionPosition = event.data;
     this.selectedTransaction.set(transactionPosition.transaction);
     this.setMenuItemsToActivePanel();

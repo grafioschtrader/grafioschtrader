@@ -41,8 +41,8 @@ export class LogoutAdminSelfReleaseDynamicDialogComponent {
     this.loginService
       .login(this.dynamicDialogConfig.data.email, this.dynamicDialogConfig.data.password, 'ADMIN_SELF_RELEASE')
       .subscribe({
-        next: (response: Response) => {
-          this.loginService.afterSuccessfulLogin(response.headers.get('x-auth-token'), (response as any).body);
+        next: (response) => {
+          this.loginService.afterSuccessfulLogin(response.headers.get('x-auth-token'), response.body);
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'ADMIN_SELF_RELEASE_SUCCESS');
           this.dynamicDialogRef.close();
           if (this.gps.getIdTenant()) {

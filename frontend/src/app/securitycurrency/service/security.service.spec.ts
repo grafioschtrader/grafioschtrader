@@ -28,7 +28,7 @@ describe('SecurityService.getSeasonalReturnsRequest', () => {
     );
 
     expect(request.url).toBe('/api/security/42/seasonalreturns');
-    expect(request.method).toBeUndefined();
+    expect(request).not.toHaveProperty('method');
     expect(new HttpParams({ fromObject: request.params as Record<string, string | boolean> }).toString()).toBe(
       'periodType=QUARTERLY&includeDividends=true&inTenantCurrency=false'
     );

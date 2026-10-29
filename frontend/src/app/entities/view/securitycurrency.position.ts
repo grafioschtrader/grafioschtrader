@@ -2,6 +2,8 @@ import { Securitycurrency } from '../securitycurrency';
 import { LastpriceOrigin } from '../types/lastprice.origin';
 
 export class SecuritycurrencyPosition<T extends Securitycurrency> {
+  /** Values of the configured watchlist indicator columns, added to display rows. */
+  [indicatorField: `ind_${number}`]: number | boolean | null;
   public securitycurrency: T;
   public ytdChangePercentage: number;
   public timeFrameChangePercentage: number;

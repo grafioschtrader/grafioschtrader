@@ -6,7 +6,7 @@ export abstract class AlgoRuleStrategy extends TenantBaseId {
   idAlgoRuleStrategy: number;
   idAlgoAssetclassSecurity: number;
 
-  algoRuleStrategyParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
+  algoRuleStrategyParamMap: Record<string, BaseParam>;
 
   @Exclude()
   get idTree(): string {

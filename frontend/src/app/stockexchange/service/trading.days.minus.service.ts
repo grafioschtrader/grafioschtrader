@@ -14,40 +14,34 @@ export class TradingDaysMinusService extends AuthServiceWithLogout<TradingDaysMi
     idStockexchange: number,
     year: number
   ): Observable<TradingDaysWithDateBoundaries> {
-    return <Observable<TradingDaysWithDateBoundaries>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRADING_DAYS_MINUS_KEY}/${idStockexchange}/${year}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<TradingDaysWithDateBoundaries>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRADING_DAYS_MINUS_KEY}/${idStockexchange}/${year}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   save(idStockexchange: number, saveTradingDays: SaveTradingDays): Observable<TradingDaysWithDateBoundaries> {
-    return <Observable<TradingDaysWithDateBoundaries>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRADING_DAYS_MINUS_KEY}/${idStockexchange}`,
-          saveTradingDays,
-          { headers: this.prepareHeaders() }
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<TradingDaysWithDateBoundaries>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRADING_DAYS_MINUS_KEY}/${idStockexchange}`,
+        saveTradingDays,
+        { headers: this.prepareHeaders() }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   copyAllTradingDaysMinusToOtherStockexchange(
     copyTradingDaysFromSourceToTarget: CopyTradingDaysFromSourceToTarget
   ): Observable<TradingDaysWithDateBoundaries> {
-    return <Observable<TradingDaysWithDateBoundaries>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRADING_DAYS_MINUS_KEY}/copytradingdays`,
-          copyTradingDaysFromSourceToTarget,
-          { headers: this.prepareHeaders() }
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<TradingDaysWithDateBoundaries>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRADING_DAYS_MINUS_KEY}/copytradingdays`,
+        copyTradingDaysFromSourceToTarget,
+        { headers: this.prepareHeaders() }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }
 

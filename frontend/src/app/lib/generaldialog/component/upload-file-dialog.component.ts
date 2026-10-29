@@ -134,7 +134,9 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
       const supportedCSVFormat = new SupportedCSVFormat();
       this.form().cleanMaskAndTransferValuesToBusinessObject(supportedCSVFormat);
       this.userSettingsService.saveObject(BaseSettings.CSV_EXPORT_FORMAT, supportedCSVFormat);
-      Object.keys(supportedCSVFormat).forEach((e) => formData.append(e, supportedCSVFormat[e]));
+      Object.keys(supportedCSVFormat).forEach((e) =>
+        formData.append(e, supportedCSVFormat[e as keyof SupportedCSVFormat])
+      );
     }
 
     fileUploadParam.additionalFieldConfig &&

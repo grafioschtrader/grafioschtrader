@@ -60,11 +60,11 @@ export class AlgoAssetclassAddInstrumentDialogComponent extends Securitycurrency
   }
 
   /** Instruments may have been added, so the hierarchy is always reloaded. */
-  onHide(event): void {
+  onHide(event: unknown): void {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
   }
 
-  override closeSearchDialog(event): void {
+  override closeSearchDialog(event: unknown): void {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
   }
 

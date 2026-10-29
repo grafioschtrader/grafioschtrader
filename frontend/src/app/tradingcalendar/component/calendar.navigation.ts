@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { LocaleSettings } from '../../lib/fullyearcalendar/Interface/locale.settings';
 import { YearCalendarData } from '../../lib/fullyearcalendar/Interface/year.calendar.data';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -68,7 +69,7 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
     return this.possibleYears().some((selectItem) => selectItem.value === year);
   }
 
-  yearChanged(event): void {
+  yearChanged(event: { value: number }): void {
     this.yearCalendarData.update((data) => ({ ...data, year: event.value, dates: [], disabledDays: [] }));
     this.readData(true);
   }
@@ -86,7 +87,7 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     event[this.consumedGT] = true;
     this.resetMenu();
   }
@@ -95,7 +96,7 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
 
   callMeDeactivate(): void {}
 
-  onRightClick(event): void {
+  onRightClick(event: unknown): void {
     this.resetMenu();
   }
 

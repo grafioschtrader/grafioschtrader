@@ -18,14 +18,12 @@ export class AlgoAssetclassService
   implements DeleteService, ServiceEntityUpdate<AlgoAssetclass>, AddSearchToListService<AlgoAssetclass>
 {
   getAlgoAssetclassByIdTenantAndIdAlgoAssetclassParent(idAlgoAssetclassSecurity: number): Observable<AlgoAssetclass[]> {
-    return <Observable<AlgoAssetclass[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_ASSETCLASS_KEY}` + `/${idAlgoAssetclassSecurity}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<AlgoAssetclass[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_ASSETCLASS_KEY}` + `/${idAlgoAssetclassSecurity}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -40,11 +38,14 @@ export class AlgoAssetclassService
     idAlgoAssetclassSecurity: number,
     securitycurrencySearch: SecuritycurrencySearch
   ): Observable<SecuritycurrencyLists> {
-    return <Observable<SecuritycurrencyLists>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_ASSETCLASS_KEY}/${idAlgoAssetclassSecurity}/search`, {
-        headers: this.prepareHeaders(),
-        params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
-      })
+    return this.httpClient
+      .get<SecuritycurrencyLists>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_ASSETCLASS_KEY}/${idAlgoAssetclassSecurity}/search`,
+        {
+          headers: this.prepareHeaders(),
+          params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -60,15 +61,13 @@ export class AlgoAssetclassService
     idAlgoAssetclassSecurity: number,
     securitycurrencyLists: SecuritycurrencyLists
   ): Observable<AlgoAssetclass> {
-    return <Observable<AlgoAssetclass>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_ASSETCLASS_KEY}/${idAlgoAssetclassSecurity}/addSecurity`,
-          securitycurrencyLists,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<AlgoAssetclass>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_ASSETCLASS_KEY}/${idAlgoAssetclassSecurity}/addSecurity`,
+        securitycurrencyLists,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(algoAssetclass: AlgoAssetclass): Observable<AlgoAssetclass> {

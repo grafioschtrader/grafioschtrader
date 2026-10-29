@@ -139,7 +139,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   ////////////////////////////////////////////////
-  onHide(event): void {
+  onHide(event: unknown): void {
     this.debitChashaccountChangedSub && this.debitChashaccountChangedSub.unsubscribe();
     this.creditChashaccountChangedSub && this.creditChashaccountChangedSub.unsubscribe();
     this.transactionTimeChangeSub && this.transactionTimeChangeSub.unsubscribe();
@@ -382,7 +382,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       .subscribe((data) => {
         this.transactions = [];
         this.transactions.push(transaction1);
-        if (TransactionType[data.transactionType] === TransactionType.WITHDRAWAL) {
+        if (TransactionType[data.transactionType as keyof typeof TransactionType] === TransactionType.WITHDRAWAL) {
           this.transactions.unshift(data);
         } else {
           this.transactions.push(data);

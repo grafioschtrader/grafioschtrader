@@ -11,7 +11,7 @@ import { BusinessHelper } from '../../shared/helper/business.helper';
 /**
  * Allow dynamic grouping, but is general a base class of asset class grouping.
  */
-export abstract class SecurityaccountGroupBaseDynamic<S> extends SecurityaccountGroupBase<
+export abstract class SecurityaccountGroupBaseDynamic<S extends string | number> extends SecurityaccountGroupBase<
   SecurityPositionDynamicGroupSummary<S>,
   SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<S>>
 > {
@@ -75,10 +75,10 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
 
   public translateGroupValues(securityPositionGroupSummaries: SecurityPositionDynamicGroupSummary<S>[]) {
     securityPositionGroupSummaries.forEach((spgs) => {
-      const groupFieldValue: string = this.getGroupFieldAsString(spgs.groupField);
+      const groupFieldValue: string | number = this.getGroupFieldAsString(spgs.groupField);
       if (!this.translatedGroupValues[groupFieldValue]) {
         this.translateService
-          .get(groupFieldValue)
+          .get(groupFieldValue as string)
           .subscribe((groupValueTranslated) => (this.translatedGroupValues[groupFieldValue] = groupValueTranslated));
       }
     });
@@ -86,14 +86,14 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
 
   public override getChartDefinition(
     title: string,
-    spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<AssetclassType>>
+    spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<S>>
   ): any {
     const valuesNet: number[] = [];
     const valuesGross: number[] = [];
 
     const labels: string[] = [];
 
-    spdgs.securityPositionGroupSummaryList.forEach((spgs: SecurityPositionDynamicGroupSummary<AssetclassType>) => {
+    spdgs.securityPositionGroupSummaryList.forEach((spgs) => {
       labels.push(this.translatedGroupValues[spgs.groupField]);
       valuesGross.push(spgs.groupShareOfTotalPercentage);
       const enumGroup = (<any>AssetclassType)[spgs.groupField];
@@ -144,5 +144,5 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
     return { data, layout };
   }
 
-  protected abstract getGroupFieldAsString(enumType: S): string;
+  protected abstract getGroupFieldAsString(enumType: S): string | number;
 }

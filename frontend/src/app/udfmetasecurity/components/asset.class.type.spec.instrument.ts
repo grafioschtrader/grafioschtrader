@@ -64,10 +64,12 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
         if (this.configObject[this.fieldCategoryType].inputType === InputType.MultiSelect) {
           const vkh: ValueKeyHtmlSelectOptions[] = [];
           if (categoryType && categoryType.length > 0) {
-            categoryType.forEach((ct) => {
+            categoryType.forEach((ct: string | number) => {
               vkh.push(
                 ...this.valueKeyHtmlOptionsSpecInvest
-                  .filter((v) => this.assetclassSpezInstMap[ct].includes(v.key))
+                  .filter((v) =>
+                    this.assetclassSpezInstMap[ct as AssetclassType].includes(v.key as SpecialInvestmentInstruments)
+                  )
                   .filter((va) => vkh.indexOf(va) < 0)
               );
             });
@@ -78,7 +80,9 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
           if (this.canChangeValues() && categoryType && categoryType.length > 0) {
             this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions =
               this.valueKeyHtmlOptionsSpecInvest.filter((v) =>
-                this.assetclassSpezInstMap[categoryType].includes(v.key)
+                this.assetclassSpezInstMap[categoryType as AssetclassType].includes(
+                  v.key as SpecialInvestmentInstruments
+                )
               );
             this.configObject[this.fieldSpecialInvestmentInstrument].formControl.setValue(
               this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions[0].key

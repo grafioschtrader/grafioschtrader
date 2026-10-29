@@ -55,11 +55,12 @@ export class GlobalparameterService
   private formDefinitionCache: { [entityAndDialog: string]: Observable<ClassDescriptorInputAndShow> } = {};
 
   public getAllGlobalparameters(): Observable<Globalparameters[]> {
-    return <Observable<Globalparameters[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Globalparameters[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -364,39 +365,44 @@ export class GlobalparameterService
   }
 
   public getPasswordRegexProperties(): Observable<PasswordRegexProperties> {
-    return <Observable<PasswordRegexProperties>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/passwordrequirements`, {
-        ...this.getHeaders(),
-        context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
-      })
+    return this.httpClient
+      .get<PasswordRegexProperties>(
+        `${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/passwordrequirements`,
+        {
+          ...this.getHeaders(),
+          context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   public getCountriesForSelectBox(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/countries`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/countries`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public getTimezones(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/${BaseSettings.TIMESZONES_P_KEY}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/${BaseSettings.TIMESZONES_P_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public getUserFormDefinitions(): Observable<FieldDescriptorInputAndShow[]> {
-    return <Observable<FieldDescriptorInputAndShow[]>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/userformdefinition`, {
-        ...this.getHeaders(),
-        context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
-      })
+    return this.httpClient
+      .get<FieldDescriptorInputAndShow[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/userformdefinition`,
+        {
+          ...this.getHeaders(),
+          context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -423,19 +429,26 @@ export class GlobalparameterService
   }
 
   public getSupportedLocales(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/${BaseSettings.LOCALES_P_KEY}`, {
-        ...this.getHeaders(),
-        context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
-      })
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/${BaseSettings.LOCALES_P_KEY}`,
+        {
+          ...this.getHeaders(),
+          context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   update(globalparameters: Globalparameters): Observable<Globalparameters> {
-    return <Observable<Globalparameters>>this.httpClient
-      .put(`${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}`, globalparameters, {
-        headers: this.prepareHeaders()
-      })
+    return this.httpClient
+      .put<Globalparameters>(
+        `${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}`,
+        globalparameters,
+        {
+          headers: this.prepareHeaders()
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 

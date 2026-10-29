@@ -153,9 +153,18 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
 
       const watchlistNode = page.getByRole('treeitem', { name: WATCHLIST_NAME, exact: true }).first();
       await watchlistNode.waitFor({ state: 'visible', timeout: 10_000 });
+      // The skip-if-present check below is only meaningful once the table holds its rows. The quote request of the
+      // performance tab starts well over a second after the click, so a fixed pause can check an empty table.
+      const quoteResponse = page.waitForResponse(
+        (response) =>
+          /^\/api\/watchlist\/\d+\/quote$/.test(new URL(response.url()).pathname) &&
+          response.request().method() === 'GET',
+        { timeout: 20_000 }
+      );
       await watchlistNode.click();
+      await quoteResponse;
 
-      // Let the watchlist table render before the skip-if-present check.
+      // Let the watchlist table render the received rows before the skip-if-present check.
       await page.waitForTimeout(1500);
 
       // Skip if this security is already in the table (idempotent).

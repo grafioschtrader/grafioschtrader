@@ -4,7 +4,7 @@ import { AppSettings } from '../app.settings';
 import { BaseSettings } from '../../lib/base.settings';
 
 export class DividendSplitSvgCreator {
-  public static createTypeIconMap: { [key: number]: string } = {
+  public static createTypeIconMap: { [key: string]: string } = {
     [CreateType.CONNECTOR_CREATED]: 'connector',
     [CreateType.ADD_MODIFIED_USER]: 'edit'
   };

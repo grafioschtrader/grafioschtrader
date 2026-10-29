@@ -115,7 +115,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
 
   /** Only for the input suggestion */
   suggestions?: string[];
-  suggestionsFN?: (any) => void;
+  suggestionsFN?: (event: { query: string }) => void;
 
   /** TreeNode array for Optimus TreeSelect component */
   treeNodes?: TreeNode[];

@@ -23,19 +23,15 @@ export class SecurityActionService
   }
 
   getTree(): Observable<SecurityActionTreeData> {
-    return <Observable<SecurityActionTreeData>>(
-      this.httpClient
-        .get(`${SecurityActionService.BASE_URL}/tree`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<SecurityActionTreeData>(`${SecurityActionService.BASE_URL}/tree`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   createSecurityAction(action: SecurityAction): Observable<SecurityAction> {
-    return <Observable<SecurityAction>>(
-      this.httpClient
-        .post(`${SecurityActionService.BASE_URL}`, action, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<SecurityAction>(`${SecurityActionService.BASE_URL}`, action, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   deleteSecurityAction(id: number): Observable<any> {
@@ -45,11 +41,9 @@ export class SecurityActionService
   }
 
   applySecurityAction(id: number): Observable<SecurityActionApplication> {
-    return <Observable<SecurityActionApplication>>(
-      this.httpClient
-        .post(`${SecurityActionService.BASE_URL}/${id}/apply`, null, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<SecurityActionApplication>(`${SecurityActionService.BASE_URL}/${id}/apply`, null, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   reverseSecurityAction(id: number): Observable<any> {
@@ -59,11 +53,9 @@ export class SecurityActionService
   }
 
   createTransfer(transfer: SecurityTransfer): Observable<SecurityTransfer> {
-    return <Observable<SecurityTransfer>>(
-      this.httpClient
-        .post(`${SecurityActionService.BASE_URL}/transfer`, transfer, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<SecurityTransfer>(`${SecurityActionService.BASE_URL}/transfer`, transfer, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   reverseTransfer(id: number): Observable<any> {

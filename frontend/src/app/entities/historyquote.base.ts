@@ -9,7 +9,7 @@ import { ProposeTransientTransfer } from '../lib/entities/propose.transient.tran
  */
 export abstract class HistoryquoteBase extends ProposeTransientTransfer implements BaseID {
   idSecuritycurrency?: number;
-  date? = null;
+  date?: string | Date = null;
   close?: number = null;
   volume?: number = null;
   open?: number = null;

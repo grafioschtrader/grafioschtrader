@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BaseSettings } from '../lib/base.settings';
 import { AppHelper } from '../lib/helper/app.helper';
 import { DataType } from '../lib/dynamic-form/models/data.type';
+import { ColumnConfig } from '../lib/datashowbase/column.config';
 import { GlobalparameterService } from '../lib/services/globalparameter.service';
 import { AppSettings } from './app.settings';
 import { BusinessHelper } from './helper/business.helper';
@@ -30,7 +31,7 @@ describe('percentage output precision', () => {
       field: 'value',
       dataType: DataType.Numeric,
       maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION
-    };
+    } as ColumnConfig;
     const value = BusinessHelper.roundNumber(0.6751 * 100, AppSettings.FID_PERCENTAGE_FRACTION);
     expect(AppHelper.getValueByPathWithField(gps, null, { value }, field, 'value')).toBe(
       locale === 'de-DE' ? '67,51' : '67.51'

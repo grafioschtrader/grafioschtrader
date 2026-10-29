@@ -63,7 +63,7 @@ export class TaxYearCorrectionDialogComponent {
     }
   }
 
-  onHide(event): void {
+  onHide(event: unknown): void {
     this.emitClose();
   }
 

@@ -182,7 +182,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * @param transactionType The selected transaction type string
    */
   private changeTransactionType(transactionType: string): void {
-    switch (TransactionType[transactionType]) {
+    switch (TransactionType[transactionType as keyof typeof TransactionType]) {
       case TransactionType.FEE:
         AppHelper.enableAndVisibleInput(this.configObject.idSecurityaccount);
         if (this.configObject.idCashaccount.formControl.value) {
@@ -212,7 +212,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.configObject.cashaccountAmount.labelKey = this.configObject.transactionType.valueKeyHtmlOptions.find(
       (vkho) => vkho.key === transactionType
     ).value;
-    const invisibleWithdrawal = TransactionType[transactionType] !== TransactionType.WITHDRAWAL;
+    const invisibleWithdrawal =
+      TransactionType[transactionType as keyof typeof TransactionType] !== TransactionType.WITHDRAWAL;
     AppHelper.invisibleAndHide(this.configObject.debitAmount, invisibleWithdrawal);
     AppHelper.invisibleAndHide(this.configObject.transactionCost, invisibleWithdrawal);
   }
@@ -279,7 +280,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Handles dialog hide event and cleans up subscriptions.
    * @param event Dialog hide event
    */
-  onHide(event) {
+  onHide(event: unknown) {
     this.transactionTypeChangedSub && this.transactionTypeChangedSub.unsubscribe();
     this.chashaccountChangedSub && this.chashaccountChangedSub.unsubscribe();
     this.transactionTimeChangedSub && this.transactionTimeChangedSub.unsubscribe();
@@ -301,7 +302,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       this.portfolios,
       transaction.idCashaccount
     ).cashaccount;
-    if (TransactionType[transaction.transactionType] === TransactionType.WITHDRAWAL) {
+    if (TransactionType[transaction.transactionType as keyof typeof TransactionType] === TransactionType.WITHDRAWAL) {
       transaction.cashaccountAmount = transaction.cashaccountAmount + transaction.transactionCost;
     }
     this.transactionService

@@ -189,12 +189,12 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
 
   /** Updates available MESSAGE_COM_TYPE options (excludes already used types) */
   private refreshMessageComTypeOptions(): void {
-    const usedTypes = this.mailSettingForwardList()
+    const usedTypes: (string | number)[] = this.mailSettingForwardList()
       .filter((msf) => msf.messageComType != null)
-      .map((msf) => MessageComType[MessageComType[msf.messageComType]]);
+      .map((msf) => MessageComType[MessageComType[msf.messageComType] as keyof typeof MessageComType]);
 
     const availableTypes = Object.keys(this.mailSendForwardDefault.mailSendForwardDefaultMapForUser).filter(
-      (mct) => usedTypes.indexOf(MessageComType[MessageComType[mct]]) === -1
+      (mct) => usedTypes.indexOf(MessageComType[MessageComType[mct as keyof typeof MessageComType]]) === -1
     );
 
     this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE).cec.valueKeyHtmlOptions =

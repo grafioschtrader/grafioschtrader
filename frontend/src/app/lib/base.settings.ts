@@ -156,7 +156,7 @@ export class BaseSettings {
       keys.forEach((key) => {
         const value = standardPrecisionMap[key.toString()];
         if (BaseSettings.hasOwnProperty(key)) {
-          BaseSettings[key] = value;
+          Object.assign(BaseSettings, { [key]: value });
         } else {
           targetObject[key] = value;
         }

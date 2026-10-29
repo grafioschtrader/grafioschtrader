@@ -1,11 +1,4 @@
-import {
-  AbstractControl,
-  FormGroup,
-  UntypedFormGroup,
-  ValidationErrors,
-  ValidatorFn,
-  Validators
-} from '@angular/forms';
+import { AbstractControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { UDFDataType } from '../udfmeta/model/udf.metadata';
 import { GlobalSessionNames } from '../global.session.names';
 import { UDFConfig } from '../login/model/configuration-with-login';
@@ -15,7 +8,8 @@ export const isPresent = (obj: any): boolean => obj !== undefined && obj !== nul
 /**
  * At least one input value of a FormGroup must be filled in.
  */
-export const atLeastOneFieldValidator = (group: UntypedFormGroup): { [key: string]: any } => {
+export const atLeastOneFieldValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const group = control as UntypedFormGroup;
   let isAtLeastOne = false;
   if (group && group.controls) {
     for (const control in group.controls) {
@@ -113,7 +107,7 @@ export const gtDate =
 
 export const dateRange =
   (dateField1: string, dateField2: string, validatorField: string): ValidatorFn =>
-  (group: FormGroup): ValidationErrors | null => {
+  (group: AbstractControl): ValidationErrors | null => {
     const date1 = group.get(dateField1).value;
     const date2 = group.get(dateField2).value;
     return date1 !== null && date2 !== null && date1 > date2
@@ -123,12 +117,12 @@ export const dateRange =
 
 export const dataTypeFieldSizeGroup =
   (dataField1: string, dataField2: string, validatorField: string): ValidatorFn =>
-  (group: FormGroup): ValidationErrors | null => {
+  (group: AbstractControl): ValidationErrors | null => {
     const dataType: string = group.get(dataField1).value;
     const fieldSize: string = group.get(dataField2).value;
     let hasError = false;
     if (dataType && fieldSize) {
-      const udfType = UDFDataType[dataType];
+      const udfType = UDFDataType[dataType as keyof typeof UDFDataType];
       if (
         udfType == UDFDataType.UDF_Numeric ||
         udfType == UDFDataType.UDF_NumericInteger ||

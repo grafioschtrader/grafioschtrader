@@ -186,14 +186,15 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
         remember(node.children);
       });
     remember(this.treeNodes());
-    const clone = (entity) => {
+    const clone = <T extends AlgoTop>(entity: T) => {
       const copy = Object.assign(
         Object.create(Object.getPrototypeOf(entity)),
         entity,
         entity.idTree === row.idTree ? patch : {}
       );
-      for (const field of ['algoAssetclassList', 'algoSecurityList', 'algoStrategyList']) {
-        if (entity[field]) copy[field] = entity[field].map(clone);
+      for (const field of ['algoAssetclassList', 'algoSecurityList', 'algoStrategyList'] as const) {
+        if (entity[field as keyof T])
+          Object.assign(copy, { [field]: (entity[field as keyof T] as AlgoTop[]).map(clone) });
       }
       return copy;
     };
@@ -219,13 +220,16 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
   }
 
   /** Shows the parameters of a selected strategy below the tree and hides them for any other node. */
-  onNodeSelect(event): void {
+  onNodeSelect(event: unknown): void {
     const request = this.replaceAlgoRequest('detail');
     this.algoStrategyShowParamCall.set(new AlgoStrategyParamCall());
     const node = this.selectedNode();
     if (!(node instanceof TreeAlgoStrategy)) return;
     const strategy = node.data as AlgoStrategy;
-    const asi = AlgoStrategyImplementationType[strategy.algoStrategyImplementations];
+    const asi =
+      AlgoStrategyImplementationType[
+        strategy.algoStrategyImplementations as keyof typeof AlgoStrategyImplementationType
+      ];
     const cached = this.algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asi);
     request.add(
       (cached ? of(cached) : this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asi))
@@ -246,7 +250,7 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
     );
   }
 
-  onNodeUnselect(event): void {
+  onNodeUnselect(event: unknown): void {
     this.replaceAlgoRequest('detail');
     this.algoStrategyShowParamCall.set(new AlgoStrategyParamCall());
   }

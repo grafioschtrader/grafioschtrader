@@ -14,7 +14,7 @@ import { BusinessHelper } from '../../shared/helper/business.helper';
  */
 export class SecurityaccountCurrencyGroup extends SecurityaccountGroupBase<
   SecurityPositionCurrenyGroupSummary,
-  SecurityPositionGrandSummary
+  SecurityPositionGrandSummary<SecurityPositionCurrenyGroupSummary>
 > {
   constructor(translateService: TranslateService, datatableConfigBase: TableConfigBase) {
     super(translateService, datatableConfigBase, 'currency', 'security.currency', 'GROUP_BY_CURRENCY');
@@ -86,7 +86,10 @@ export class SecurityaccountCurrencyGroup extends SecurityaccountGroupBase<
 
   public translateGroupValues(securityPositionGroupSummary: SecurityPositionCurrenyGroupSummary[]): void {}
 
-  public override getChartDefinition(title: string, securityPositionGrandSummary: SecurityPositionGrandSummary): any {
+  public override getChartDefinition(
+    title: string,
+    securityPositionGrandSummary: SecurityPositionGrandSummary<SecurityPositionCurrenyGroupSummary>
+  ): any {
     const values: number[] = [];
     const labels: string[] = [];
 

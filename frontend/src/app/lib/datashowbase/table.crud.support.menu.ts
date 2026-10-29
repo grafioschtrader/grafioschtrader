@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../mainmenubar/component/iglobal.menu.attach';
 import { DestroyRef, Directive, inject, linkedSignal, OnInit, signal } from '@angular/core';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -77,7 +78,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
   entityNameUpper: string;
 
   /** Primary key field name for the entity type */
-  entityKeyName: string;
+  entityKeyName: keyof T;
 
   protected readonly destroyRef = inject(DestroyRef);
 
@@ -98,7 +99,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
   ) {
     super();
     this.entityNameUpper = AppHelper.toUpperCaseWithUnderscore(this.entityName);
-    this.entityKeyName = this.gps.getKeyNameByEntityName(entityName);
+    this.entityKeyName = this.gps.getKeyNameByEntityName(entityName) as keyof T;
     this.destroyRef.onDestroy(() => {
       this.menuSubscription?.unsubscribe();
       this.activePanelService.destroyPanel(this);
@@ -133,7 +134,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + this.entityNameUpper,
       () =>
-        this.deleteService.deleteEntity(this.beforeDelete(entity)[this.entityKeyName]).subscribe({
+        this.deleteService.deleteEntity(this.beforeDelete(entity)[this.entityKeyName] as number | string).subscribe({
           next: () => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: this.entityNameUpper
@@ -164,7 +165,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.resetMenu(this.selectedEntity());
   }
 
@@ -196,7 +197,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    */
   downloadCSvFile(data: any[]): void {
     const lineSeparator = navigator.appVersion.indexOf('Win') !== -1 ? '\r\n' : '\n';
-    const replacer = (key, value) => (value === null ? undefined : value);
+    const replacer = (key: string, value: unknown) => (value === null ? undefined : value);
     const header: string[] = Object.keys(data[0]).filter((name) => this.getColumnConfigByField(name)?.export);
     const csv = data.map((row) => header.map((fieldName) => JSON.stringify(row[fieldName], replacer)).join(';'));
     csv.unshift(header.join(';'));
@@ -214,7 +215,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    *
    * @param entity - Entity to edit or null for new entity creation
    */
-  protected abstract prepareCallParam(entity: T);
+  protected abstract prepareCallParam(entity: T): unknown;
 
   /** Loads entity data from the backend and sets entityList. */
   protected abstract readData(): void;
@@ -314,7 +315,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
   }
 
   protected getId(entity: T): number {
-    return entity[this.entityKeyName];
+    return entity[this.entityKeyName] as number;
   }
 
   /**

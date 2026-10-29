@@ -113,6 +113,6 @@ export class GTNetProtocolService extends AuthServiceWithLogout<any> {
    * @returns an observable that completes when the descriptors are in place
    */
   whenLoaded(): Observable<void> {
-    return this.byName.size > 0 ? of(undefined) : this.load().pipe(map(() => undefined));
+    return this.byName.size > 0 ? of(undefined) : this.load().pipe(map((): void => undefined));
   }
 }

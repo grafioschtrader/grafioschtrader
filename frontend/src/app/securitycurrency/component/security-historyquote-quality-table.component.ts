@@ -118,12 +118,12 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase {
     });
   }
 
-  onRowSelect(event): void {
-    const selected: IHistoryquoteQualityWithSecurityProp = event.data;
+  onRowSelect(event: { data?: IHistoryquoteQualityWithSecurityProp | IHistoryquoteQualityWithSecurityProp[] }): void {
+    const selected = Array.isArray(event.data) ? event.data[0] : event.data;
     this.changedIdSecurity.emit(new SecurityIdWithCurrency(selected.idSecurity, selected.currency));
   }
 
-  onRowUnselect(event): void {
+  onRowUnselect(event: unknown): void {
     this.changedIdSecurity.emit(null);
   }
 }

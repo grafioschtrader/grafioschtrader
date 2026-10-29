@@ -6,6 +6,10 @@ import { Auditable } from '../lib/entities/auditable';
 import { Exclude } from 'class-transformer';
 
 export class Assetclass extends Auditable implements BaseID {
+  /** Display translations added by the table translation helper. */
+  categoryType$?: string;
+  specialInvestmentInstrument$?: string;
+
   idAssetClass?: number = null;
   categoryType: AssetclassType | string = null;
   specialInvestmentInstrument: SpecialInvestmentInstruments | string = null;

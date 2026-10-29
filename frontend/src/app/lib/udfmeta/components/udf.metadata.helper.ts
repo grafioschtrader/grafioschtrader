@@ -96,7 +96,7 @@ export class UDFMetadataHelper {
    */
   public static getFieldDescriptorByEntity(entityName: string): FieldDescriptorInputAndShowExtended[] {
     return JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)).filter(
-      (fd) => fd.entity === entityName
+      (fd: { entity: string }) => fd.entity === entityName
     );
   }
 

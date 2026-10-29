@@ -1,0 +1,250 @@
+{
+  "spark": {
+    "result": [
+      {
+        "symbol": "EURCHF=X",
+        "response": [
+          {
+            "meta": {
+              "currency": "CHF",
+              "symbol": "EURCHF=X",
+              "exchangeName": "CCY",
+              "fullExchangeName": "CCY",
+              "instrumentType": "CURRENCY",
+              "firstTradeDate": 1043280000,
+              "regularMarketTime": 1793267323,
+              "hasPrePostMarketData": false,
+              "gmtoffset": 0,
+              "timezone": "GMT",
+              "exchangeTimezoneName": "Europe/London",
+              "regularMarketPrice": 0.9221,
+              "regularMarketChangePercent": -0.1213,
+              "fulldayPrice": 0.9221,
+              "fulldayChange": -0.0011,
+              "fulldayChangePercent": -0.1213,
+              "fiftyTwoWeekHigh": 0.9486,
+              "fiftyTwoWeekLow": 0.8981,
+              "regularMarketDayHigh": 0.9239,
+              "regularMarketDayLow": 0.9214,
+              "regularMarketVolume": 0,
+              "longName": "EUR/CHF",
+              "shortName": "EUR/CHF",
+              "chartPreviousClose": 0.9233,
+              "priceHint": 4,
+              "currentTradingPeriod": {
+                "pre": {
+                  "timezone": "GMT",
+                  "end": 1793232000,
+                  "start": 1793232000,
+                  "gmtoffset": 0
+                },
+                "regular": {
+                  "timezone": "GMT",
+                  "end": 1793318340,
+                  "start": 1793232000,
+                  "gmtoffset": 0
+                },
+                "post": {
+                  "timezone": "GMT",
+                  "end": 1793318340,
+                  "start": 1793318340,
+                  "gmtoffset": 0
+                }
+              },
+              "dataGranularity": "1d",
+              "range": "1d",
+              "validRanges": [
+                "1d",
+                "5d",
+                "1mo",
+                "3mo",
+                "6mo",
+                "1y",
+                "2y",
+                "5y",
+                "10y",
+                "ytd",
+                "max"
+              ]
+            },
+            "timestamp": [
+              1793267323
+            ],
+            "indicators": {
+              "quote": [
+                {
+                  "close": [
+                    0.9221
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "symbol": "VOD.L",
+        "response": [
+          {
+            "meta": {
+              "currency": "GBp",
+              "symbol": "VOD.L",
+              "exchangeName": "LSE",
+              "fullExchangeName": "LSE",
+              "instrumentType": "EQUITY",
+              "firstTradeDate": 593769600,
+              "regularMarketTime": 1793266294,
+              "hasPrePostMarketData": false,
+              "gmtoffset": 0,
+              "timezone": "GMT",
+              "exchangeTimezoneName": "Europe/London",
+              "regularMarketPrice": 117.95,
+              "regularMarketChangePercent": 0.426,
+              "fulldayPrice": 117.95,
+              "fulldayChange": 0.5,
+              "fulldayChangePercent": 0.426,
+              "fiftyTwoWeekHigh": 132.072,
+              "fiftyTwoWeekLow": 85.235,
+              "regularMarketDayHigh": 118.655,
+              "regularMarketDayLow": 117.5,
+              "regularMarketVolume": 1299848,
+              "longName": "Vodafone Group Public Limited Company",
+              "shortName": "VODAFONE GROUP PLC ORD USD0.20 ",
+              "chartPreviousClose": 117.45,
+              "priceHint": 2,
+              "currentTradingPeriod": {
+                "pre": {
+                  "timezone": "GMT",
+                  "end": 1793260800,
+                  "start": 1793258100,
+                  "gmtoffset": 0
+                },
+                "regular": {
+                  "timezone": "GMT",
+                  "end": 1793291400,
+                  "start": 1793260800,
+                  "gmtoffset": 0
+                },
+                "post": {
+                  "timezone": "GMT",
+                  "end": 1793294100,
+                  "start": 1793291400,
+                  "gmtoffset": 0
+                }
+              },
+              "dataGranularity": "1d",
+              "range": "1d",
+              "validRanges": [
+                "1d",
+                "5d",
+                "1mo",
+                "3mo",
+                "6mo",
+                "1y",
+                "2y",
+                "5y",
+                "10y",
+                "ytd",
+                "max"
+              ]
+            },
+            "timestamp": [
+              1793266294
+            ],
+            "indicators": {
+              "quote": [
+                {
+                  "close": [
+                    117.95
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "symbol": "AAPL",
+        "response": [
+          {
+            "meta": {
+              "currency": "USD",
+              "symbol": "AAPL",
+              "exchangeName": "NMS",
+              "fullExchangeName": "NasdaqGS",
+              "instrumentType": "EQUITY",
+              "firstTradeDate": 345479400,
+              "regularMarketTime": 1793217601,
+              "hasPrePostMarketData": true,
+              "gmtoffset": -14400,
+              "timezone": "EDT",
+              "exchangeTimezoneName": "America/New_York",
+              "regularMarketPrice": 343.83,
+              "regularMarketChangePercent": -0.942,
+              "fulldayPrice": 347.75,
+              "fulldayChange": 3.92,
+              "fulldayChangePercent": 1.14,
+              "fiftyTwoWeekHigh": 351.73,
+              "fiftyTwoWeekLow": 243.42,
+              "regularMarketDayHigh": 347.18,
+              "regularMarketDayLow": 343.53,
+              "regularMarketVolume": 34405006,
+              "longName": "Apple Inc.",
+              "shortName": "Apple Inc.",
+              "chartPreviousClose": 347.1,
+              "priceHint": 2,
+              "currentTradingPeriod": {
+                "pre": {
+                  "timezone": "EDT",
+                  "end": 1793280600,
+                  "start": 1793260800,
+                  "gmtoffset": -14400
+                },
+                "regular": {
+                  "timezone": "EDT",
+                  "end": 1793304000,
+                  "start": 1793280600,
+                  "gmtoffset": -14400
+                },
+                "post": {
+                  "timezone": "EDT",
+                  "end": 1793318400,
+                  "start": 1793304000,
+                  "gmtoffset": -14400
+                }
+              },
+              "dataGranularity": "1d",
+              "range": "1d",
+              "validRanges": [
+                "1d",
+                "5d",
+                "1mo",
+                "3mo",
+                "6mo",
+                "1y",
+                "2y",
+                "5y",
+                "10y",
+                "ytd",
+                "max"
+              ]
+            },
+            "timestamp": [
+              1793194200
+            ],
+            "indicators": {
+              "quote": [
+                {
+                  "close": [
+                    343.83
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "error": null
+  }
+}

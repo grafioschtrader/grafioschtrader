@@ -30,10 +30,10 @@
  */
 export class TwoKeyMap<T> {
   /** Internal nested object structure for storing the two-dimensional mapping */
-  private readonly map: object;
+  private readonly map: Record<string, Record<string, T>>;
 
   constructor() {
-    this.map = new Object();
+    this.map = {};
   }
 
   /**
@@ -69,7 +69,7 @@ export class TwoKeyMap<T> {
    */
   public set(key: string, nestedKey: string, value: T): void {
     if (!this.map[key]) {
-      this.map[key] = new Object();
+      this.map[key] = {};
     }
     Object.defineProperty(this.map[key], nestedKey, { value, configurable: true, enumerable: true });
   }
@@ -82,7 +82,7 @@ export class TwoKeyMap<T> {
    * @param key Primary key for the first level of mapping
    * @param nestedKey Secondary key for the second level of mapping
    */
-  public remove(key, nestedKey): void {
+  public remove(key: string | number, nestedKey: string | number): void {
     if (!this.map[key]) {
       return;
     }
@@ -107,7 +107,7 @@ export class TwoKeyMap<T> {
    * const totalItems = allQuantities.reduce((sum, qty) => sum + qty, 0); // 250
    */
   public getValues(): T[] {
-    return [].concat.apply(
+    return ([] as T[]).concat.apply(
       [],
       Object.getOwnPropertyNames(this.map).map((key) => Object.values(this.map[key]))
     );

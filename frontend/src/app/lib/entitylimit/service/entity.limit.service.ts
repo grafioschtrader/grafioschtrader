@@ -17,11 +17,9 @@ export class EntityLimitService
   implements DeleteService, ServiceEntityUpdate<EntityLimit>
 {
   public getAllEntityLimits(): Observable<EntityLimit[]> {
-    return <Observable<EntityLimit[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.ENTITY_LIMIT_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<EntityLimit[]>(`${BaseSettings.API_ENDPOINT}${BaseSettings.ENTITY_LIMIT_KEY}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -39,8 +37,8 @@ export class EntityLimitService
     if (idEntityLimit != null) {
       httpParams = httpParams.set('idEntityLimit', idEntityLimit.toString());
     }
-    return <Observable<LimitKeyDefinition[]>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.ENTITY_LIMIT_KEY}/keys`, {
+    return this.httpClient
+      .get<LimitKeyDefinition[]>(`${BaseSettings.API_ENDPOINT}${BaseSettings.ENTITY_LIMIT_KEY}/keys`, {
         headers: this.prepareHeaders(),
         params: httpParams
       })
@@ -52,11 +50,12 @@ export class EntityLimitService
    * posted directly against the REST API is validated against the same set.
    */
   public getRoles(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.ENTITY_LIMIT_KEY}/roles`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.ENTITY_LIMIT_KEY}/roles`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(entityLimit: EntityLimit): Observable<EntityLimit> {

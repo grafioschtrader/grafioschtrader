@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { httpResource } from '@angular/common/http';
 import {
   Component,
@@ -338,14 +339,14 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   }
 
   ////////////////////////////////////////////////
-  onRowExpand(event): void {
+  onRowExpand(event: { data: { cashaccount: { idSecuritycashAccount: number } } }): void {
     this.expandedIdCashaccount.push(event.data.cashaccount.idSecuritycashAccount);
   }
 
   ////////////////////////////////////////////////
   // Event handler
 
-  onRowCollapse(event): void {
+  onRowCollapse(event: { data: { cashaccount: { idSecuritycashAccount: number } } }): void {
     const index = this.expandedIdCashaccount.indexOf(event.data.cashaccount.idSecuritycashAccount);
     this.expandedIdCashaccount.splice(index, 1);
   }
@@ -385,11 +386,11 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     }
   }
 
-  public override filterDate(event) {
+  public override filterDate(event: unknown) {
     this.readData();
   }
 
-  onResetToDay(event): void {
+  onResetToDay(event: unknown): void {
     this.untilDate = new Date();
     this.readData();
   }
@@ -422,7 +423,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
 
   callMeDeactivate(): void {}
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     if (!event[this.consumedGT]) {
       this.resetMenu(this.selectedAccountPositionSummary);
     }
@@ -449,7 +450,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
       : null;
   }
 
-  onContextMenuClick(event) {
+  onContextMenuClick(event: unknown) {
     if (!this.isActivated()) {
       setTimeout(() => this.contextMenu().hide());
     }

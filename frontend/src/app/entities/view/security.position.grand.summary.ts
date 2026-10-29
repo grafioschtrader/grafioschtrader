@@ -1,6 +1,6 @@
 import { SecurityPositionGroupSummary } from './security.position.group.summary';
 
-export class SecurityPositionGrandSummary {
+export class SecurityPositionGrandSummary<S extends SecurityPositionGroupSummary = SecurityPositionGroupSummary> {
   /**
    * Figures of the rebalancing comparison describing the book as a whole. Net equity, the cash actually held and
    * gross exposure answer different questions and are deliberately not one total.
@@ -41,5 +41,5 @@ export class SecurityPositionGrandSummary {
   grandDisposalComplete?: boolean;
   grandTaxCostMC: number;
   grandTransactionCostMC: number;
-  securityPositionGroupSummaryList: SecurityPositionGroupSummary[];
+  securityPositionGroupSummaryList: S[];
 }

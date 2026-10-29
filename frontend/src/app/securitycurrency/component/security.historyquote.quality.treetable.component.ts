@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, Subscription, switchMap } from 'rxjs';
@@ -164,7 +165,7 @@ export class SecurityHistoryquoteQualityTreetableComponent
     this.groupRequests.next(historyquoteQualityGrouped);
   }
 
-  groupChanged(event): void {
+  groupChanged(event: { value: string }): void {
     this.readData(event.value);
   }
 
@@ -172,7 +173,7 @@ export class SecurityHistoryquoteQualityTreetableComponent
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.resetMenu();
   }
 
@@ -189,7 +190,9 @@ export class SecurityHistoryquoteQualityTreetableComponent
     return HelpIds.HELP_HISTORYQUOTE_QUALITY;
   }
 
-  nodeSelect(event): void {
+  nodeSelect(event: {
+    node: { data: HistoryquoteQualityGroup; parent: { parent: { data: { name: string } }; data: { name: string } } };
+  }): void {
     const hqg: HistoryquoteQualityGroup = event.node.data;
     if (hqg.categoryType !== null) {
       this.groupTitle.set(event.node.parent.parent.data.name + ' / ' + event.node.parent.data.name + ' / ' + hqg.name);

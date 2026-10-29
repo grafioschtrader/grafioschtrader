@@ -39,8 +39,8 @@ describe('DynamicFieldModelHelper SELECT_OPTIONS width', () => {
       descriptor(null),
       ''
     );
-    expect(config[0].inputType).toBe(InputType.Select);
-    expect(config[0].inputWidth).toBeUndefined();
+    expect((config[0] as FieldConfig).inputType).toBe(InputType.Select);
+    expect((config[0] as FieldConfig).inputWidth).toBeUndefined();
   });
 
   it('uses max as inputWidth when the descriptor has a max', () => {
@@ -49,8 +49,8 @@ describe('DynamicFieldModelHelper SELECT_OPTIONS width', () => {
       descriptor(5),
       ''
     );
-    expect(config[0].inputType).toBe(InputType.Select);
-    expect(config[0].inputWidth).toBe(5);
+    expect((config[0] as FieldConfig).inputType).toBe(InputType.Select);
+    expect((config[0] as FieldConfig).inputWidth).toBe(5);
   });
 });
 
@@ -150,7 +150,7 @@ describe('DynamicFieldModelHelper numeric bounds', () => {
     field.formControl = new FormControl(edited, field.validation);
     expect(field.formControl.valid).toBe(true);
     const settings = { [name]: initial };
-    Helper.copyFormSingleFormConfigToBusinessObject({}, field, settings);
+    Helper.copyFormSingleFormConfigToBusinessObject({ labelColumns: 0 }, field, settings);
     expect(JSON.parse(JSON.stringify(settings))).toEqual({ [name]: Number(edited) });
   });
 

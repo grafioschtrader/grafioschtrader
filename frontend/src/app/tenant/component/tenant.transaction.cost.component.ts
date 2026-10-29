@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { afterNextRender, computed, DestroyRef, inject, signal, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -72,7 +73,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
    */
   readonly refId = 'refId';
 
-  chartData: Partial<ChartTrace>[] = [];
+  chartData: (Partial<ChartTrace> & { refId?: number[] })[] & { refId?: number[] } = [];
 
   selectedRow: TransactionCostGroupSummary;
 
@@ -179,7 +180,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
 
   callMeDeactivate(): void {}
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     if (event == null || !event[this.consumedGT]) {
       this.menuRequest?.unsubscribe();
       this.menuRequest = TranslateHelper.translateMenuItems$(this.getMenuShowOptions(), this.translateService)
@@ -229,7 +230,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
     this.chartData[this.refId] = [];
     this.chartIdNumberToTransactionCostPosition = [];
     this.transactionCostGrandSummary().transactionCostGroupSummaries.forEach((tcgs) => {
-      const traceSecurityaccount: Partial<ChartTrace> = PlotlyHelper.initializeChartTrace(
+      const traceSecurityaccount: Partial<ChartTrace> & { refId?: number[] } = PlotlyHelper.initializeChartTrace(
         tcgs.securityaccount.name,
         'scatter',
         'markers'

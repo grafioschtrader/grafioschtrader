@@ -198,7 +198,7 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
 
 class FieldCreateType {
   constructor(
-    public fieldName: string,
+    public fieldName: keyof IHistoryquoteQuality,
     public hct: HistoryquoteCreateType
   ) {}
 }

@@ -156,7 +156,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
           s.assetClass,
           !s.distributionFrequency || s.distributionFrequency === ''
             ? null
-            : DistributionFrequency[s.distributionFrequency],
+            : DistributionFrequency[s.distributionFrequency as keyof typeof DistributionFrequency],
           !s.stockexchange.noMarketValue
         )
       ) {
@@ -234,8 +234,8 @@ class ContentExtendedInfo extends ContentBase {
   constructor(
     public intradayUrl: string,
     public historicalUrl: string,
-    public dividendUrl,
-    public splitUrl,
+    public dividendUrl: string,
+    public splitUrl: string,
     securitycurrency: Securitycurrency
   ) {
     super(securitycurrency);

@@ -82,7 +82,7 @@ export class LimitTransactionRequestDynamicDialogComponent extends FormBase impl
 
     proposeUserTask.noteRequest = value[this.NOTE_REQUEST];
     for (let i = 0; i < 3; i++) {
-      const fieldObject = {};
+      const fieldObject: Record<string, unknown> = {};
       Helper.copyFormSingleFormConfigToBusinessObject(this.formConfig, this.config[i], fieldObject, true);
       proposeUserTask.addProposeChangeField(
         new ProposeChangeField(this.config[i].field, fieldObject[this.config[i].field])

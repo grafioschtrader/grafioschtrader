@@ -395,7 +395,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     this.draft = moveDashboardWidget(this.draft, from, to);
   }
   /** The dragged payload tells the two areas apart: cards carry a widget, tray entries a descriptor. */
-  drop(event: CdkDragDrop<DashboardWidget[] | DashboardDescriptor[]>): void {
+  drop<T extends DashboardWidget[] | DashboardDescriptor[]>(event: CdkDragDrop<T>): void {
     const dragged = event.item.data as DashboardWidget | DashboardDescriptor;
     if (event.previousContainer === event.container) {
       if ('instanceId' in dragged) this.move(event.previousIndex, event.currentIndex);

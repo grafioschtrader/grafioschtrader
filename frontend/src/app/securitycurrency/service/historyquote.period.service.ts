@@ -13,15 +13,13 @@ export class HistoryquotePeriodService
   implements DeleteCreateMultiple<HistoryquotePeriod>
 {
   getHistoryquotePeriodByIdSecuritycurrency(idSecuritycurrency: number): Observable<HistoryquotePeriod[]> {
-    return <Observable<HistoryquotePeriod[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_PERIOD_KEY}` +
-            `/${idSecuritycurrency}/${AppSettings.SECURITY_KEY}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<HistoryquotePeriod[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_PERIOD_KEY}` +
+          `/${idSecuritycurrency}/${AppSettings.SECURITY_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   deleteAndCreateMultiple(
@@ -29,14 +27,12 @@ export class HistoryquotePeriodService
     historyquotePeriods: HistoryquotePeriod[],
     noteRequest: string
   ): Observable<HistoryquotePeriod[]> {
-    return <Observable<HistoryquotePeriod[]>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_PERIOD_KEY}`,
-          { idSecuritycurrency, historyquotePeriods, noteRequest },
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<HistoryquotePeriod[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_PERIOD_KEY}`,
+        { idSecuritycurrency, historyquotePeriods, noteRequest },
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

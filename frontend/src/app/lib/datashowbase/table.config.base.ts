@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { FilterService, MenuItem, SortEvent, SortMeta } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { TableColResizeEvent, TablePageEvent } from '@openng/optimus-ui/table';
 import { UserSettingsService } from '../services/user.settings.service';
 import { Helper } from '../helper/helper';
 import { ColumnConfig } from './column.config';
@@ -289,7 +290,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    *
    * @param event - Optimus pagination event containing page info
    */
-  onPage(event) {
+  onPage(event: TablePageEvent) {
     this.rowsPerPage = event.rows;
     this.firstRowIndexOnPage = event.first;
   }
@@ -300,7 +301,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    *
    * @param event - Optimus column resize event
    */
-  onColResize(event) {
+  onColResize(event: TableColResizeEvent) {
     const columnConfig = this.getColumnConfigByHeaderTranslated(event.element.innerText.trim());
     columnConfig.width = event.element.style.width;
     this.notifyViewChanged();
@@ -350,7 +351,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
       return;
     }
 
-    data.sort((data1, data2) => {
+    data.sort((data1: unknown, data2: unknown) => {
       let i = 0;
       let result = null;
       do {

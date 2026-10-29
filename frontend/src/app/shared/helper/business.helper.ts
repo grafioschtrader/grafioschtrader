@@ -63,7 +63,7 @@ export class BusinessHelper {
    */
   public static getTotalAmountFromTransaction(transaction: Transaction) {
     let cashaccountAmount: number;
-    switch (TransactionType[transaction.transactionType]) {
+    switch (TransactionType[transaction.transactionType as keyof typeof TransactionType]) {
       case TransactionType.FEE:
       case TransactionType.WITHDRAWAL:
         cashaccountAmount = transaction.cashaccountAmount * -1;
@@ -126,7 +126,7 @@ export class BusinessHelper {
    * @param dec The number of decimal places to round to
    * @returns The rounded number
    */
-  public static roundNumber(num, dec) {
+  public static roundNumber(num: number, dec: number) {
     return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
   }
 

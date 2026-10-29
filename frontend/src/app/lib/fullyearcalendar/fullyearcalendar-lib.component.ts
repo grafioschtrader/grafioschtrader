@@ -7,6 +7,7 @@ import { LocaleSettings } from './Interface/locale.settings';
 import { DisabledDate } from './Interface/disabled.date';
 import { DayOfWeek } from './model/day.of.week';
 import { MonthlyCalendarComponent } from './month-calendar/monthly-calendar.component';
+import { RangeSelectDays } from './Interface/range.select.days';
 
 @Component({
   selector: 'ng-fullyearcalendar-lib',
@@ -128,7 +129,7 @@ export class FullyearcalendarLibComponent {
                 range.backgroundColor = d.color ? d.color : 'gray';
                 range.foregroundColor = this.getForegroundColorByBackgroundColor(range.backgroundColor);
                 range.day = day.day;
-                range.select = (allRanges): void => {
+                range.select = (allRanges: RangeSelectDays[]): void => {
                   if (typeof d.select === 'function') {
                     d.select(range, allRanges);
                   }

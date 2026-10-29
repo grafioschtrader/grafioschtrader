@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { httpResource } from '@angular/common/http';
 import {
   Component,
@@ -412,7 +413,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(_event): void {
+  onComponentClick(_event: PanelClickEvent): void {
     this.publishMenus(true);
   }
 
@@ -720,7 +721,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
 
   /** Converts the raw ratio before locale formatting; the callback's third argument is already formatted text. */
   private percentageValue(data: SimulationRunResult, field: ColumnConfig): string {
-    const ratio = data[field.field];
+    const ratio = data[field.field as keyof SimulationRunResult] as number;
     return AppHelper.getValueByPathWithField(
       this.gps,
       this.translateService,

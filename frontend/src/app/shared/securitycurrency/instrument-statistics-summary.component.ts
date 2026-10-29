@@ -1,5 +1,5 @@
 import { Component, OnInit, input } from '@angular/core';
-import { StatisticsSummary } from '../../entities/view/instrument.statistics.result';
+import { StatisticsSummary, StatsProperty } from '../../entities/view/instrument.statistics.result';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -81,7 +81,7 @@ export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase im
 
   private getChildren(mainTree: TreeNode, spt: string): TreeNode[] {
     const treeNodes: TreeNode[] = [];
-    mainTree.data[spt].forEach((statsProperty) => {
+    mainTree.data[spt].forEach((statsProperty: StatsProperty) => {
       treeNodes.push({ data: statsProperty, leaf: true });
     });
     return treeNodes;

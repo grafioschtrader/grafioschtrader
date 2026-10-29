@@ -33,7 +33,7 @@ export interface PeriodWindow {
 
 export class PeriodWindowWithField {
   constructor(
-    public showField: string,
+    public showField: { [K in keyof PeriodStep]: PeriodStep[K] extends number ? K : never }[keyof PeriodStep],
     public periodWindow: PeriodWindow
   ) {}
 }

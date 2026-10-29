@@ -132,7 +132,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   // Form content variables
 
   private selectedSecurity: Security;
-  private isAccumaulteOrReduce;
+  private isAccumaulteOrReduce: boolean;
   private volumei18n: string = null;
   private currencyCashaccount: string;
   private maxTransactionDate = new Date();
@@ -166,7 +166,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   ngOnInit(): void {
     const transactionCallParam = this.transactionCallParam();
     if (transactionCallParam.transaction) {
-      transactionCallParam.transactionType = TransactionType[transactionCallParam.transaction.transactionType];
+      transactionCallParam.transactionType =
+        TransactionType[transactionCallParam.transaction.transactionType as keyof typeof TransactionType];
       transactionCallParam.idSecuritycurrency = transactionCallParam.security.idSecuritycurrency;
       transactionCallParam.transaction.security = transactionCallParam.security;
       this.historyquoteCheck.hasChanged(
@@ -492,12 +493,12 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     }
   }
 
-  public onShow(event) {
+  public onShow(event: unknown) {
     this.clearControlSubscriptions();
     this.initializeAfterRender(() => this.initialize());
   }
 
-  onHide(event) {
+  onHide(event: unknown) {
     this.endDialogSession();
     this.clearControlSubscriptions();
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
@@ -679,7 +680,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     }
   }
 
-  private calcPosTotal(data: any, calcSecurityRisk): number {
+  private calcPosTotal(data: any, calcSecurityRisk: boolean): number {
     const currencyExRate =
       !this.configObject.currencyExRate.formControl.disabled && Helper.hasValue(data.currencyExRate)
         ? data.currencyExRate
@@ -722,7 +723,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     );
   }
 
-  private setCurrencyPrefixOnFields(currencySecurity: string, currencyCashaccount): void {
+  private setCurrencyPrefixOnFields(currencySecurity: string, currencyCashaccount: string): void {
     currencySecurity &&
       Object.values(this.configObject)
         .filter((fieldConfig) => fieldConfig.userDefinedValue === 'S')
@@ -1138,10 +1139,13 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       .subscribe((strategies) => {
         this.configObject.idAlgoStrategy.valueKeyHtmlOptions = [
           new ValueKeyHtmlSelectOptions(null, this.translateService.instant('UNASSIGNED')),
-          ...strategies.map((strategy) => new ValueKeyHtmlSelectOptions(strategy.idAlgoRuleStrategy, strategy.name))
+          ...strategies.map(
+            (strategy: { idAlgoRuleStrategy: string | number; name: string }) =>
+              new ValueKeyHtmlSelectOptions(strategy.idAlgoRuleStrategy, strategy.name)
+          )
         ];
         const selected = this.configObject.idAlgoStrategy.formControl.value;
-        if (selected && !strategies.some((s) => s.idAlgoRuleStrategy === selected))
+        if (selected && !strategies.some((s: { idAlgoRuleStrategy: number }) => s.idAlgoRuleStrategy === selected))
           this.configObject.idAlgoStrategy.formControl.setValue(null);
       });
   }

@@ -21,17 +21,17 @@ export class ManageClientService extends AuthServiceWithLogout<any> {
 
   /** Lists the home tenant plus all tenants the user has been granted access to. */
   public getAccessibleTenants(): Observable<TenantAccessInfo[]> {
-    return <Observable<TenantAccessInfo[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/accessible`, { headers: this.prepareHeaders() })
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<TenantAccessInfo[]>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/accessible`, {
+        headers: this.prepareHeaders()
+      })
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /** Creates a managed client: a new tenant with a read-only client login; the client is e-mailed their credentials. */
   public createClient(request: { email: string; password: string }): Observable<void> {
-    return <Observable<void>>this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/createclient`, request, {
+    return this.httpClient
+      .post<void>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/createclient`, request, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));
@@ -39,8 +39,8 @@ export class ManageClientService extends AuthServiceWithLogout<any> {
 
   /** Deletes a managed client entirely (its tenant, all data and the read-only client user). */
   public deleteClient(idTenant: number): Observable<void> {
-    return <Observable<void>>this.httpClient
-      .delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/client/${idTenant}`, {
+    return this.httpClient
+      .delete<void>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/client/${idTenant}`, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));
@@ -52,8 +52,8 @@ export class ManageClientService extends AuthServiceWithLogout<any> {
    * an already-registered recipient.
    */
   public shareReadAccess(request: { email: string; password: string }): Observable<void> {
-    return <Observable<void>>this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/share`, request, {
+    return this.httpClient
+      .post<void>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/share`, request, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));
@@ -64,8 +64,8 @@ export class ManageClientService extends AuthServiceWithLogout<any> {
    * password needed) or 'NEW' (not registered, a password is required). Read-only lookup; does not change any data.
    */
   public checkRecipientStatus(email: string): Observable<{ status: string }> {
-    return <Observable<{ status: string }>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/share/recipient-status`, {
+    return this.httpClient
+      .get<{ status: string }>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/share/recipient-status`, {
         headers: this.prepareHeaders(),
         params: { email }
       })
@@ -74,17 +74,17 @@ export class ManageClientService extends AuthServiceWithLogout<any> {
 
   /** Lists everyone who can read the current owner's portfolio (read grants and read-only viewer logins). */
   public getSharedViewers(): Observable<SharedViewerInfo[]> {
-    return <Observable<SharedViewerInfo[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/shares`, { headers: this.prepareHeaders() })
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<SharedViewerInfo[]>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/shares`, {
+        headers: this.prepareHeaders()
+      })
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /** Revokes a person's read access to the current owner's portfolio (removes a grant or deletes a viewer login). */
   public revokeShare(idUser: number): Observable<void> {
-    return <Observable<void>>this.httpClient
-      .delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/share/${idUser}`, {
+    return this.httpClient
+      .delete<void>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/share/${idUser}`, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));
@@ -92,10 +92,14 @@ export class ManageClientService extends AuthServiceWithLogout<any> {
 
   /** Switches the session to another accessible tenant and returns the new token + read-only flag. */
   public switchTenant(idTargetTenant: number): Observable<{ token: string; readOnly: string }> {
-    return <Observable<{ token: string; readOnly: string }>>this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/switchto/${idTargetTenant}`, null, {
-        headers: this.prepareHeaders()
-      })
+    return this.httpClient
+      .post<{ token: string; readOnly: string }>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/switchto/${idTargetTenant}`,
+        null,
+        {
+          headers: this.prepareHeaders()
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 

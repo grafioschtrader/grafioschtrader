@@ -21,67 +21,60 @@ export class ImportTransactionTemplateService
     idTransactionImportPlatform: number,
     excludeTemplate: boolean
   ): Observable<ImportTransactionTemplate[]> {
-    return <Observable<ImportTransactionTemplate[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` +
-            `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/${AppSettings.IMP_TRANS_PLATFORM_KEY}/${idTransactionImportPlatform}`,
-          this.getOptionsWithExcludeTemplate(excludeTemplate)
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ImportTransactionTemplate[]>(
+        `${BaseSettings.API_ENDPOINT}` +
+          `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/${AppSettings.IMP_TRANS_PLATFORM_KEY}/${idTransactionImportPlatform}`,
+        this.getOptionsWithExcludeTemplate(excludeTemplate)
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getImportTransactionPlatformByTradingPlatformPlan(
     idTradingPlatformPlan: number,
     excludeTemplate: boolean
   ): Observable<ImportTransactionTemplate[]> {
-    return <Observable<ImportTransactionTemplate[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` +
-            `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/${AppSettings.IMP_TRANS_PLATFORM_KEY}/` +
-            `${AppSettings.TRADING_PLATFORM_PLAN_KEY}/${idTradingPlatformPlan}`,
-          this.getOptionsWithExcludeTemplate(excludeTemplate)
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ImportTransactionTemplate[]>(
+        `${BaseSettings.API_ENDPOINT}` +
+          `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/${AppSettings.IMP_TRANS_PLATFORM_KEY}/` +
+          `${AppSettings.TRADING_PLATFORM_PLAN_KEY}/${idTradingPlatformPlan}`,
+        this.getOptionsWithExcludeTemplate(excludeTemplate)
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getCSVTemplateIdsAsValueKeyHtmlSelectOptions(idTradingPlatformPlan: number): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` +
-            `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/${AppSettings.IMP_TRANS_PLATFORM_KEY}/` +
-            `${AppSettings.TRADING_PLATFORM_PLAN_KEY}/csv/${idTradingPlatformPlan}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}` +
+          `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/${AppSettings.IMP_TRANS_PLATFORM_KEY}/` +
+          `${AppSettings.TRADING_PLATFORM_PLAN_KEY}/csv/${idTradingPlatformPlan}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   setIdTransactionMayBe(
     idTransactionMayBe: number,
     idTransactionPosList: number[]
   ): Observable<ImportTransactionPos[]> {
-    return <Observable<ImportTransactionPos[]>>(
-      this.httpClient
-        .patch(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setidtransactionmaybe`,
-          { idTransactionMayBe, idTransactionPosList },
-          { headers: this.prepareHeaders() }
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .patch<ImportTransactionPos[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setidtransactionmaybe`,
+        { idTransactionMayBe, idTransactionPosList },
+        { headers: this.prepareHeaders() }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getPossibleLanguagesForTemplate(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/languages`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/languages`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteEntity(idTransactionImportTemplate: number): Observable<any> {
@@ -102,15 +95,13 @@ export class ImportTransactionTemplateService
   }
 
   checkFormAgainstTemplate(formTemplateCheck: FormTemplateCheck): Observable<FormTemplateCheck> {
-    return <Observable<FormTemplateCheck>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/checkformagainsttemplate`,
-          formTemplateCheck,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<FormTemplateCheck>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/checkformagainsttemplate`,
+        formTemplateCheck,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public async getTemplatesByPlatformPlanAsZip(idTradingPlatformPlan: number): Promise<Blob> {
@@ -126,7 +117,7 @@ export class ImportTransactionTemplateService
     formData: FormData
   ): Observable<SuccessFailedImportTransactionTemplate> {
     return this.httpClient
-      .post(
+      .post<SuccessFailedImportTransactionTemplate>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.IMP_TRANS_TEMPLATE_KEY}` +
           `/uploadtemplatefiles/${idTransactionImportPlatform}`,
         formData,

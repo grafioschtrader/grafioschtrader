@@ -199,7 +199,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    *
    * @param event The node selection event containing the selected node data
    */
-  onNodeSelect(event): void {
+  onNodeSelect(event: { node?: TreeNode<SecurityTransactionPosition> }): void {
     const securityTransactionPosition: SecurityTransactionPosition = event.node.data;
     this.selectedTransaction.set(securityTransactionPosition.transaction);
     this.setMenuItemsToActivePanel();
@@ -210,7 +210,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    *
    * @param event The node unselection event
    */
-  onNodeUnselect(event): void {
+  onNodeUnselect(event: unknown): void {
     super.onRowUnselect(event);
   }
 
@@ -291,7 +291,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @param transaction The transaction to check for deletion eligibility
    * @returns True if the transaction can be deleted, false otherwise
    */
-  protected override canDeleteTransaction(transaction): boolean {
+  protected override canDeleteTransaction(transaction: Transaction): boolean {
     return transaction.connectedIdTransaction !== null || !this.selectedNode().data[this.OPEN_HAS_CLOSE_POSITION];
   }
 

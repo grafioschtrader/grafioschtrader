@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { Component, DestroyRef, inject, OnInit, signal, output, viewChild, input } from '@angular/core';
 import { Subscription } from 'rxjs';
 
@@ -227,7 +228,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   readonly contextMenu = viewChild<any>('cm');
   readonly treeTable = viewChild<TreeTable>('tt');
 
-  public static consumedGT = 'consumedGT';
+  public static readonly consumedGT = 'consumedGT';
 
   /** Maps sendRecv values to icon names */
   public static sendRecvIconMap: { [key: string]: string } = {
@@ -419,7 +420,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     event[GTNetMessageTreeTableComponent.consumedGT] = true;
     const contextMenu = this.contextMenu();
     contextMenu && contextMenu.hide();
@@ -577,13 +578,15 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     // Check for maintenance message (fromDateTime)
     const fromDateTimeParam = params['fromDateTime'];
     if (fromDateTimeParam) {
-      const fromDateTime = new Date(fromDateTimeParam.paramValue || fromDateTimeParam);
+      const fromDateTime = new Date((fromDateTimeParam.paramValue || fromDateTimeParam) as string);
       return fromDateTime > now;
     }
     // Check for discontinued message (closeStartDate)
     const closeStartDateParam = params['closeStartDate'];
     if (closeStartDateParam) {
-      const closeStartDate = Helper.parseDateOnlyAsLocal(closeStartDateParam.paramValue || closeStartDateParam);
+      const closeStartDate = Helper.parseDateOnlyAsLocal(
+        (closeStartDateParam.paramValue || closeStartDateParam) as string
+      );
       return closeStartDate > now;
     }
     return false;

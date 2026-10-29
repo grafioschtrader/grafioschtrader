@@ -465,7 +465,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.dynamicPeriodPriceForm().transferBusinessObjectToForm(historyquotePeriod);
   }
 
-  override onHide(event) {
+  override onHide(event: unknown) {
     this.securityEditSupport.destroy();
     this.visibleGtnetLookupDialog.set(false);
     this.visibleSecurityLookupDialog.set(false);
@@ -932,7 +932,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       this.securityEditSupport.connectorDividendConfig,
       !Security.canHaveDividendConnector(
         assetClass,
-        !distributionFrequency || distributionFrequency === '' ? null : DistributionFrequency[distributionFrequency],
+        !distributionFrequency || distributionFrequency === ''
+          ? null
+          : DistributionFrequency[distributionFrequency as keyof typeof DistributionFrequency],
         this.securityEditSupport.hasMarketValue
       ),
       null

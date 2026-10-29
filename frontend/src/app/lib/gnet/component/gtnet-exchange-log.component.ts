@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { httpResource } from '@angular/common/http';
 import {
   Component,
@@ -210,7 +211,7 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
 
   callMeDeactivate(): void {}
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.activePanelService.activatePanel(this);
   }
 

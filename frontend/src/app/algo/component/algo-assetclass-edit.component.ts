@@ -129,7 +129,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     this.form().cleanMaskAndTransferValuesToBusinessObject(algoAssetclass);
     // Not an entity field: it only asks the hierarchy view to open the instrument search after the save.
     algoCallParam.addInstrumentsBySearch = !!this.configObject.addInstrumentsBySearch.formControl.value;
-    delete algoAssetclass['addInstrumentsBySearch'];
+    delete (algoAssetclass as AlgoAssetclass & { addInstrumentsBySearch?: boolean }).addInstrumentsBySearch;
     if (this.configObject.customCategory.formControl.value) {
       algoAssetclass.assetclass = null;
     } else {

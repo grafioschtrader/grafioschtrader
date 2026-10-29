@@ -22,7 +22,9 @@ export class SecurityaccountAssetclassSpecInvestGroup extends SecurityaccountGro
     return security.assetClass.specialInvestmentInstrument;
   }
 
-  protected getGroupFieldAsString(enumType: SpecialInvestmentInstruments): string {
-    return SpecialInvestmentInstruments[SpecialInvestmentInstruments[enumType]];
+  protected getGroupFieldAsString(enumType: SpecialInvestmentInstruments): string | number {
+    return SpecialInvestmentInstruments[
+      SpecialInvestmentInstruments[enumType] as keyof typeof SpecialInvestmentInstruments
+    ];
   }
 }

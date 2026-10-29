@@ -32,6 +32,9 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
 import { WatchlistIndicatorService } from '../service/watchlist-indicator.service';
 import { WatchlistIndicatorColumnsDialogComponent } from './watchlist-indicator-columns-dialog.component';
 import { SecuritycurrencyIndicatorGroup, WatchlistIndicatorColumn } from '../model/watchlist-indicator';
+import { Currencypair } from '../../entities/currencypair';
+import { Security } from '../../entities/security';
+import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 @Component({
   templateUrl: '../view/watchlist.indicator.html',
   styles: [
@@ -133,7 +136,7 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
             this.readTableDefinition(AppSettings.WATCHLIST_INDICATOR_TABLE_SETTINGS_STORE);
             [...group.securityPositionList, ...group.currencypairPositionList].forEach((row) =>
               group.columns.forEach((column) => {
-                row['ind_' + column.idWatchlistIndicatorColumn] =
+                row[`ind_${column.idWatchlistIndicatorColumn}`] =
                   group.cells[row.securitycurrency.idSecuritycurrency]?.[column.idWatchlistIndicatorColumn]?.value ??
                   null;
               })
@@ -161,16 +164,19 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
     });
     ref.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.getWatchlistWithoutUpdate());
   }
-  protected override getEditMenuItems(position): MenuItem[] {
+  protected override getEditMenuItems(position: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     return [...super.getEditMenuItems(position), { label: 'WIC_EDIT_COLUMNS', command: () => this.editColumns() }];
   }
-  private indicatorTooltip(row, column: WatchlistIndicatorColumn): string {
+  private indicatorTooltip(
+    row: SecuritycurrencyPosition<Security | Currencypair>,
+    column: WatchlistIndicatorColumn
+  ): string {
     const cell =
       this.indicatorGroup()?.cells[row.securitycurrency.idSecuritycurrency]?.[column.idWatchlistIndicatorColumn];
     if (!cell) return '';
     if (cell.status !== 'OK') return this.translateService.instant('WIC_STATUS_' + cell.status);
     const benchmark = this.indicatorGroup().benchmarks[column.idBenchmark];
-    const currency = row.securitycurrency.currency ?? row.securitycurrency.toCurrency;
+    const currency = (row.securitycurrency as Security).currency ?? (row.securitycurrency as Currencypair).toCurrency;
     return (
       (cell.lastCommonDate ?? '') +
       (benchmark && benchmark.currency !== currency ? ' ' + currency + ' / ' + benchmark.currency : '') +
@@ -200,7 +206,7 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
       })
       .join('');
   }
-  override cellMark(position, field: ColumnConfig): CellMark | null {
+  override cellMark(position: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig): CellMark | null {
     const column = this.definitions.get(field.field);
     if (!column) return null;
     const cell =
@@ -209,9 +215,12 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
       ? { iconClass: 'fa fa-info-circle', tooltip: this.indicatorTooltip(position, column) }
       : null;
   }
-  override priceCellStyle(position, field: ColumnConfig): { [key: string]: string } | null {
+  override priceCellStyle(
+    position: SecuritycurrencyPosition<Security | Currencypair>,
+    field: ColumnConfig
+  ): { [key: string]: string } | null {
     const column = this.definitions.get(field.field);
-    const value = position[field.field];
+    const value = position[field.field as keyof typeof position];
     if (!column || typeof value !== 'number') return super.priceCellStyle(position, field);
     const low = column.lowerMark != null && value <= column.lowerMark;
     const high = column.upperMark != null && value >= column.upperMark;

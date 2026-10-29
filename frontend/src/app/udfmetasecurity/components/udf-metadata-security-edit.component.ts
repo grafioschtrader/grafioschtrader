@@ -540,7 +540,7 @@ export class UDFMetadataSecurityEditComponent
    *
    * @param event - Dialog hide event
    */
-  override onHide(event): void {
+  override onHide(event: unknown): void {
     this.testResult.set(null);
     this.suggestTestRequest.set(null);
     this.visibleProposalDialog.set(false);

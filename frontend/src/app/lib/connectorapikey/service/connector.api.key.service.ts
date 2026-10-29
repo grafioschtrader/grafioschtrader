@@ -13,22 +13,18 @@ export class ConnectorApiKeyService
   implements ServiceEntityUpdate<ConnectorApiKey>, DeleteService
 {
   public getAllConnectorApiKeys(): Observable<ConnectorApiKey[]> {
-    return <Observable<ConnectorApiKey[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.CONNECTOR_API_KEY_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ConnectorApiKey[]>(`${BaseSettings.API_ENDPOINT}${BaseSettings.CONNECTOR_API_KEY_KEY}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public getFeedSubscriptionType(): Observable<{ [id: string]: SubscriptionTypeReadableName }> {
-    return <Observable<{ [id: string]: SubscriptionTypeReadableName }>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${BaseSettings.CONNECTOR_API_KEY_KEY}/subscriptiontypeconnector`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<{ [id: string]: SubscriptionTypeReadableName }>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.CONNECTOR_API_KEY_KEY}/subscriptiontypeconnector`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteEntity(idProvider: string): Observable<any> {

@@ -13,11 +13,12 @@ export class GTNetMessageService
   implements ServiceEntityUpdate<GTNetMessage>
 {
   getAllFormDefinitionsWithClass(): Observable<{ [type: string]: ClassDescriptorInputAndShow }> {
-    return <Observable<{ [type: string]: ClassDescriptorInputAndShow }>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_MESSAGE_KEY}` + `/msgformdefinition`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<{ [type: string]: ClassDescriptorInputAndShow }>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_MESSAGE_KEY}` + `/msgformdefinition`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   update(gtNetMessage: GTNetMessage): Observable<GTNetMessage> {
@@ -44,21 +45,20 @@ export class GTNetMessageService
    * Retrieves all admin-only messages. Requires ROLE_ADMIN.
    */
   getAdminMessages(): Observable<GTNetMessage[]> {
-    return <Observable<GTNetMessage[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_MESSAGE_KEY}/admin`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<GTNetMessage[]>(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_MESSAGE_KEY}/admin`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
    * Retrieves counts of admin-only messages grouped by idGtNet. Requires ROLE_ADMIN.
    */
   getAdminMessageCounts(): Observable<{ [idGtNet: number]: number }> {
-    return <Observable<{ [idGtNet: number]: number }>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_MESSAGE_KEY}/admin/count`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<{ [idGtNet: number]: number }>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_MESSAGE_KEY}/admin/count`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

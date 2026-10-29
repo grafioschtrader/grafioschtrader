@@ -16,7 +16,7 @@ export class SecurityTransactionPosition extends TransactionPosition {
     public transactionExchangeRate: number,
     public transactionGainLossMC: number,
     public quotationSplitCorrection: number,
-    public holdingsSplitAdjusted
+    public holdingsSplitAdjusted: number
   ) {
     super(transaction);
   }

@@ -55,6 +55,15 @@ selections use `linkedSignal` to bind the selected key to refreshed rows; menu a
 Template switches declare an intentional fallback or an exhaustive `@default never;` check. These rules and the
 Angular API ratchets apply to the library and both host entry points.
 
+Both hosts share the type-checking baseline in `tsconfig.json`: `noImplicitAny`, `strictBindCallApply`, `strictFunctionTypes`, `noImplicitThis`,
+`useUnknownInCatchVariables`, `alwaysStrict` and `strictBuiltinIteratorReturn`. The Angular API ratchet also verifies
+that the test configuration inherits these options. Use typed callbacks and JSON dictionaries, `keyof T` for entity
+keys and `PanelClickEvent` for native panel clicks. Keep the library independent of application models when adding
+types. `npx tsc -p tsconfig.spec.json --noEmit` checks the test sources in addition to both host builds.
+HTTP calls declare their response body types; an error handler that only rethrows returns `Observable<never>`.
+Login supplies `HttpResponse<ConfigurationWithLogin>` with the token header and configuration body.
+Validators accept `AbstractControl`; generic event handlers keep the concrete event type supplied by the host.
+
 This is the concrete answer to "what does an application built on `lib` have to bring along?". Everything else comes
 from the library.
 

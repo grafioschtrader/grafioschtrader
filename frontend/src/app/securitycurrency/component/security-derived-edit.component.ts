@@ -153,7 +153,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
 
   readonly chooseInstrument = (field: FieldConfig): void => this.handleSecurityClick(field);
 
-  override onShow(event): void {
+  override onShow(event: unknown): void {
     this.renewDialogSession();
     this.securityEditSupport.destroy();
     this.baseInstrument = null;
@@ -257,7 +257,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       });
   }
 
-  override onHide(event): void {
+  override onHide(event: unknown): void {
     this.securityEditSupport.destroy();
     this.pendingRender?.destroy();
     super.onHide(event);

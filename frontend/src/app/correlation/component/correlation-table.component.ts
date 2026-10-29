@@ -1,7 +1,7 @@
 import { Component, computed, DestroyRef, inject, input, linkedSignal, OnDestroy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { MenuItem } from '@openng/optimus-ui/api';
+import { MenuItem, MenuItemCommandEvent } from '@openng/optimus-ui/api';
 import { Subscription } from 'rxjs';
 import {
   CorrelationInstrument,
@@ -284,7 +284,8 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     const menuItems: MenuItem[] = [];
     if (
       this.correlationSet() &&
-      SamplingPeriodType[this.correlationSet().samplingPeriod] !== SamplingPeriodType.ANNUAL_RETURNS
+      SamplingPeriodType[this.correlationSet().samplingPeriod as keyof typeof SamplingPeriodType] !==
+        SamplingPeriodType.ANNUAL_RETURNS
     ) {
       if (
         this.selectedEntity() &&
@@ -355,7 +356,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * Opens the add existing security dialog.
    * @param event The triggering event
    */
-  addExistingSecurity(event) {
+  addExistingSecurity(event: MenuItemCommandEvent) {
     this.updateLimitCount();
     this.visibleAddInstrumentDialog.set(true);
   }
@@ -555,7 +556,8 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     });
     if (
       !this.correlationSet() ||
-      SamplingPeriodType[this.correlationSet().samplingPeriod] === SamplingPeriodType.ANNUAL_RETURNS
+      SamplingPeriodType[this.correlationSet().samplingPeriod as keyof typeof SamplingPeriodType] ===
+        SamplingPeriodType.ANNUAL_RETURNS
     ) {
       this.chartPairs = {};
     }

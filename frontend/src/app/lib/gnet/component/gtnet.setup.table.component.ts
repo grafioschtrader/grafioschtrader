@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { afterNextRender, Component, signal, viewChildren, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -386,7 +387,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     return this.openPanelsMap[idGtNet] ?? GTNetSetupTableComponent.NO_OPEN_PANELS;
   }
 
-  override onComponentClick(event): void {
+  override onComponentClick(event: PanelClickEvent): void {
     if (!event[GTNetMessageTreeTableComponent.consumedGT]) {
       this.resetMenu(this.selectedEntity());
     }
@@ -429,9 +430,11 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
         const kindName = this.exchangeKindTypes.find((k) => k.value === kindValue)?.name ?? String(kindValue);
         const acceptRequestName =
           typeof e.acceptRequest === 'number' ? AcceptRequestTypes[e.acceptRequest] : e.acceptRequest;
-        gtNet[`accept_${kindName}`] = acceptRequestName;
-        gtNet[`serverState_${kindName}`] = e.serverState;
-        gtNet[`maxLimit_${kindName}`] = e.maxLimit;
+        Object.assign(gtNet, {
+          [`accept_${kindName}`]: acceptRequestName,
+          [`serverState_${kindName}`]: e.serverState,
+          [`maxLimit_${kindName}`]: e.maxLimit
+        });
       })
     );
   }

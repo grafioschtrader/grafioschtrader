@@ -1,6 +1,6 @@
 export class WatchlistSecurityExists {
   constructor(
-    public idWatchlistSource,
+    public idWatchlistSource: number,
     public idSecuritycurrency: number
   ) {}
 }

@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
  */
 @Service()
 export class ViewSizeChangedService {
-  private splitTreeMain;
+  private splitTreeMain: import('split.js').Instance;
   /** Sizes restored by the collapse entry; the initial split also covers a tree collapsed by dragging the gutter */
   private lastSplitSize: number[] = [20, 80];
 
@@ -17,7 +17,7 @@ export class ViewSizeChangedService {
     this.viewSizeChanged.next(changedViewSizeType);
   }
 
-  setMainTreeSplit(splitTreeMain): void {
+  setMainTreeSplit(splitTreeMain: import('split.js').Instance): void {
     this.splitTreeMain = splitTreeMain;
   }
 

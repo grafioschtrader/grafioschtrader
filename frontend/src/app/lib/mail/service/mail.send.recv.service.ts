@@ -8,24 +8,26 @@ import { BaseSettings } from '../../base.settings';
 @Service()
 export class MailSendRecvService extends AuthServiceWithLogout<MailSendRecv> {
   public getMailsByUserOrRole(): Observable<MailInboxWithSend> {
-    return <Observable<MailInboxWithSend>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.MAIL_SEND_RECV_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<MailInboxWithSend>(`${BaseSettings.API_ENDPOINT}${BaseSettings.MAIL_SEND_RECV_KEY}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public markForRead(idMailSendRecv: number): Observable<MailSendRecv> {
     return this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${BaseSettings.MAIL_SEND_RECV_KEY}/${idMailSendRecv}/markforread`, null, {
-        headers: this.prepareHeaders()
-      })
+      .post<MailSendRecv>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.MAIL_SEND_RECV_KEY}/${idMailSendRecv}/markforread`,
+        null,
+        {
+          headers: this.prepareHeaders()
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   public sendMessage(mailSendRecv: MailSendRecv): Observable<MailSendRecv> {
-    return <Observable<MailSendRecv>>this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${BaseSettings.MAIL_SEND_RECV_KEY}`, mailSendRecv, {
+    return this.httpClient
+      .post<MailSendRecv>(`${BaseSettings.API_ENDPOINT}${BaseSettings.MAIL_SEND_RECV_KEY}`, mailSendRecv, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));

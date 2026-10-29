@@ -42,8 +42,12 @@ describe('performance report download', () => {
 
   it('limits reporting-date dialogs to server-declared date sections and compatible presets', () => {
     const options: PerformanceReportOptions = {
-      sections: ['COVER', 'HOLDINGS', 'ALLOCATION', 'PERFORMANCE_SUMMARY'].map((key) => ({ key, value: key })),
-      presets: ['CUSTOM', 'STATEMENT_OF_ASSETS', 'SHORT_REPORT'].map((key) => ({ key, value: key })),
+      sections: ['COVER', 'HOLDINGS', 'ALLOCATION', 'PERFORMANCE_SUMMARY'].map((key) => ({
+        key,
+        value: key,
+        disabled: false
+      })),
+      presets: ['CUSTOM', 'STATEMENT_OF_ASSETS', 'SHORT_REPORT'].map((key) => ({ key, value: key, disabled: false })),
       presetSections: {
         CUSTOM: [],
         STATEMENT_OF_ASSETS: ['COVER', 'HOLDINGS', 'ALLOCATION'],

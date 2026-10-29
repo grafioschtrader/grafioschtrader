@@ -6,7 +6,19 @@ import { FormConfig } from '../dynamic-form/models/form.config';
 import { BaseSettings } from '../base.settings';
 
 export abstract class Helper {
-  public static readonly CALENDAR_LANG = {
+  public static readonly CALENDAR_LANG: Record<
+    string,
+    {
+      firstDayOfWeek: number;
+      dayNames: string[];
+      dayNamesShort: string[];
+      dayNamesMin: string[];
+      monthNames: string[];
+      monthNamesShort: string[];
+      today: string;
+      clear: string;
+    }
+  > = {
     en: {
       firstDayOfWeek: 0,
       dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -171,7 +183,7 @@ export abstract class Helper {
     }
 
     return fieldConfig.referencedDataObject.filter(
-      (refObject) => refObject[keyProperty] === +fieldConfig.formControl.value
+      (refObject: { [x: string]: number }) => refObject[keyProperty] === +fieldConfig.formControl.value
     )[0];
   }
 
@@ -198,7 +210,10 @@ export abstract class Helper {
       : new Date(value);
   }
 
-  public static flattenObject(obj: { [name: string]: any }, res = {}): { [name: string]: any } {
+  public static flattenObject(
+    obj: { [name: string]: any },
+    res: Record<string, unknown> = {}
+  ): { [name: string]: any } {
     Object.keys(obj).forEach((key) => {
       res[key] = obj[key];
       if (typeof obj[key] === 'object' && obj[key] !== null) {
@@ -211,12 +226,13 @@ export abstract class Helper {
   public static findPropertyNamesInObjectTree(obj: object, propertyName: string, path: string = ''): string[] {
     let result: string[] = [];
     for (const key in obj) {
+      const value = (obj as Record<string, unknown>)[key];
       const currentPath = path.length === 0 ? path.concat(key) : path.concat('.' + key);
-      if (typeof obj[key] === 'object') {
+      if (typeof value === 'object') {
         if (key === propertyName) {
           result.push(currentPath);
         }
-        result = result.concat(Helper.findPropertyNamesInObjectTree(obj[key], propertyName, currentPath));
+        result = result.concat(Helper.findPropertyNamesInObjectTree(value, propertyName, currentPath));
       } else if (key === propertyName) {
         result.push(currentPath);
       }

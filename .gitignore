@@ -37,5 +37,8 @@ backend/grafioschtrader-server/src/test/resources/local-seed/
 # Playwright failure log; it was committed by accident in past releases
 /error.txt
 
+# Generated timing reports of the two-peer Playwright suites
+/frontend/e2e/**/test-results/
+
 # Installation-specific data of agent skills (hosts, remotes); see .agents/skills/release/SKILL.md
 /.agents/skills/*/site.local.md

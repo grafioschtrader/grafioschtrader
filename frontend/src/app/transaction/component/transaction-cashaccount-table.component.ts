@@ -152,7 +152,7 @@ export class TransactionCashaccountTableComponent
    * Handles row selection events in the table.
    * @param event The row selection event containing the selected data
    */
-  onRowSelect(event): void {
+  onRowSelect(event: { data: CashaccountTransactionPosition }): void {
     this.cashaccountTransactionPositionSelected = event.data;
     this.selectedTransaction.set(this.cashaccountTransactionPositionSelected.transaction);
   }

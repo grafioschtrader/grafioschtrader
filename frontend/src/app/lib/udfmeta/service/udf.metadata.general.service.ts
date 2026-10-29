@@ -25,11 +25,12 @@ export class UDFMetadataGeneralService
    * @returns Observable emitting array of UDF metadata general entries
    */
   public getAllByIdUser(): Observable<UDFMetadataGeneral[]> {
-    return <Observable<UDFMetadataGeneral[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_METADATA_GENERAL_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<UDFMetadataGeneral[]>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_METADATA_GENERAL_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -42,14 +43,12 @@ export class UDFMetadataGeneralService
   public getFieldDescriptorByIdUserAndEveryUserForEntity(
     entity: string
   ): Observable<FieldDescriptorInputAndShowExtended[]> {
-    return <Observable<FieldDescriptorInputAndShowExtended[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_METADATA_GENERAL_KEY}/fielddescriptor/${entity}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<FieldDescriptorInputAndShowExtended[]>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_METADATA_GENERAL_KEY}/fielddescriptor/${entity}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**

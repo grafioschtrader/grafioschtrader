@@ -10,19 +10,21 @@ import { BaseSettings } from '../../base.settings';
 @Service()
 export class ProposeChangeEntityService extends AuthServiceWithLogout<ProposeChangeEntity> implements DeleteService {
   getProposeChangeEntityListByCreatedBy(): Observable<ProposeChangeEntity[]> {
-    return <Observable<ProposeChangeEntity[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.PROPOSE_CHANGE_ENTITY_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ProposeChangeEntity[]>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.PROPOSE_CHANGE_ENTITY_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getProposeChangeEntityWithEntity(): Observable<ProposeChangeEntityWithEntity[]> {
-    return <Observable<ProposeChangeEntityWithEntity[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.PROPOSE_CHANGE_ENTITY_KEY}/withentity`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ProposeChangeEntityWithEntity[]>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.PROPOSE_CHANGE_ENTITY_KEY}/withentity`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(proposeChangeEntity: ProposeChangeEntity): Observable<ProposeChangeEntity> {

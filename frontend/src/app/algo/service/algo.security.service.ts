@@ -14,24 +14,20 @@ export class AlgoSecurityService
   implements DeleteService, ServiceEntityUpdate<AlgoSecurity>
 {
   getAllForTenant(): Observable<AlgoSecurity[]> {
-    return <Observable<AlgoSecurity[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/tenant`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<AlgoSecurity[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/tenant`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getAlgoSecurityStrategyImplTypeByIdSecuritycurrency(
     idSecuritycurrency: number
   ): Observable<AlgoSecurityStrategyImplType> {
-    return <Observable<AlgoSecurityStrategyImplType>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/security/${idSecuritycurrency}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<AlgoSecurityStrategyImplType>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/security/${idSecuritycurrency}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(algoSecurity: AlgoSecurity): Observable<AlgoSecurity> {

@@ -376,7 +376,7 @@ export class DynamicFieldModelHelper {
         ? fd.labelKey
         : labelPrefix + AppHelper.toUpperCaseWithUnderscore(fd.fieldName);
 
-    switch (DataType[fd.dataType]) {
+    switch (DataType[fd.dataType as keyof typeof DataType]) {
       case DataType.Boolean:
         fieldConfig = DynamicFieldHelper.createFieldCheckbox(targetField, labelKey);
         break;
@@ -399,14 +399,16 @@ export class DynamicFieldModelHelper {
       case DataType.DateTimeString:
       case DataType.DateStringShortUS:
         fieldConfig = DynamicFieldHelper.createFieldPcalendar(
-          DataType[fd.dataType],
+          DataType[fd.dataType as keyof typeof DataType] as
+            DataType.DateString | DataType.DateNumeric | DataType.DateTimeNumeric | DataType.DateStringShortUS,
           targetField,
           labelKey,
           fd.required
         );
         if (
           fd.dynamicFormPropertyHelps &&
-          DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0]] === DynamicFormPropertyHelps.DATE_FUTURE
+          DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0] as keyof typeof DynamicFormPropertyHelps] ===
+            DynamicFormPropertyHelps.DATE_FUTURE
         ) {
           fieldConfig.defaultValue = new Date();
           this.applyMinDate(fieldConfig, fieldConfig.defaultValue, fd.required);
@@ -474,7 +476,7 @@ export class DynamicFieldModelHelper {
       );
     }
     return DynamicFieldHelper.createFieldMinMaxNumber(
-      DataType[fd.dataType],
+      DataType[fd.dataType as keyof typeof DataType] as DataType.Numeric | DataType.NumericInteger,
       targetField,
       labelKey,
       fd.required,
@@ -521,7 +523,7 @@ export class DynamicFieldModelHelper {
     let fieldConfig: FieldConfig;
     const fieldOptions: FieldOptions = Object.assign({}, fieldOptionsCc, { minLength: fd.min });
     if (fd.dynamicFormPropertyHelps) {
-      switch (DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0]]) {
+      switch (DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0] as keyof typeof DynamicFormPropertyHelps]) {
         case DynamicFormPropertyHelps.EMAIL:
           fieldConfig = DynamicFieldHelper.createFieldDAInputStringVSHeqF(
             DataType.Email,
@@ -647,7 +649,7 @@ export class DynamicFieldModelHelper {
   public static createAndSetValuesInDynamicModel(
     e: any,
     targetSelectionField: string,
-    paramMap: Map<string, BaseParam> | { [key: string]: BaseParam },
+    paramMap: Record<string, BaseParam>,
     fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
     addStrategyImplField = false
   ): any {
@@ -674,13 +676,13 @@ export class DynamicFieldModelHelper {
    */
   public static setValuesOfMapModelToDynamicModel(
     fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-    paramMap: Map<string, BaseParam> | { [key: string]: BaseParam },
+    paramMap: Record<string, BaseParam>,
     dynamicModel: any = {}
   ): any {
     fieldDescriptorInputAndShows.forEach((fieldDescriptorInputAndShow) => {
       // An optional field left empty is not stored at all, so its parameter may be missing.
-      let value = paramMap[fieldDescriptorInputAndShow.fieldName]?.paramValue ?? null;
-      switch (DataType[fieldDescriptorInputAndShow.dataType]) {
+      let value: string | number | string[] = paramMap[fieldDescriptorInputAndShow.fieldName]?.paramValue ?? null;
+      switch (DataType[fieldDescriptorInputAndShow.dataType as keyof typeof DataType]) {
         case DataType.Numeric:
         case DataType.NumericInteger:
           // Number(null) would turn an empty optional bound into 0

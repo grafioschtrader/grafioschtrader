@@ -14,7 +14,7 @@ export function toClassString(...sources: (CssClasses | null | undefined)[]): st
       if (Array.isArray(source)) {
         return source;
       }
-      return Object.keys(source).filter((key) => source[key]);
+      return Object.keys(source).filter((key) => (source as Readonly<Record<string, boolean>>)[key]);
     })
     .join(' ');
 }

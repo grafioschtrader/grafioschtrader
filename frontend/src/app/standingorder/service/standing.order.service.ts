@@ -20,11 +20,9 @@ export class StandingOrderService
   implements DeleteService, ServiceEntityUpdate<StandingOrder>
 {
   getAllForTenant(): Observable<StandingOrder[]> {
-    return <Observable<StandingOrder[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/tenant`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<StandingOrder[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/tenant`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   update(standingOrder: StandingOrder): Observable<StandingOrder> {
@@ -32,25 +30,21 @@ export class StandingOrderService
   }
 
   getTransactions(idStandingOrder: number): Observable<Transaction[]> {
-    return <Observable<Transaction[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/${idStandingOrder}/transactions`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Transaction[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/${idStandingOrder}/transactions`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getFailures(idStandingOrder: number): Observable<StandingOrderFailure[]> {
-    return <Observable<StandingOrderFailure[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/${idStandingOrder}/failures`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<StandingOrderFailure[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/${idStandingOrder}/failures`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -58,19 +52,21 @@ export class StandingOrderService
    * narrow its input, the server enforces the same bounds on save.
    */
   getQuoteToleranceRange(): Observable<QuoteToleranceRange> {
-    return <Observable<QuoteToleranceRange>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/quotetolerancerange`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<QuoteToleranceRange>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/quotetolerancerange`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getCapabilities(): Observable<StandingOrderCapabilities> {
-    return <Observable<StandingOrderCapabilities>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/capabilities`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<StandingOrderCapabilities>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/capabilities`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   deleteEntity(idStandingOrder: number): Observable<any> {

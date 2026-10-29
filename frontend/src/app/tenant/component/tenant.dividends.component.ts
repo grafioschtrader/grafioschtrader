@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { Subscription } from 'rxjs';
 import { computed, DestroyRef, inject, signal, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -224,7 +225,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
 
   callMeDeactivate(): void {}
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     if (!event || !event[this.consumedGT]) {
       this.menuRequest?.unsubscribe();
       this.menuRequest = TranslateHelper.translateMenuItems$(this.getMenuShowOptions(), this.translateService)

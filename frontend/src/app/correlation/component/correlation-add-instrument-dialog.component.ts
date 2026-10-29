@@ -72,7 +72,7 @@ export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySea
    *
    * @param event The dialog hide event object
    */
-  onHide(event) {
+  onHide(event: unknown) {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 
@@ -82,7 +82,7 @@ export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySea
    *
    * @param event The search dialog close event object
    */
-  override closeSearchDialog(event): void {
+  override closeSearchDialog(event: unknown): void {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 

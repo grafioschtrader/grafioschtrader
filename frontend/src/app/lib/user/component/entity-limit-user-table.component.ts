@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { TableConfigBase } from '../../datashowbase/table.config.base';
 import { Component, DestroyRef, inject, signal, output, input, effect, untracked } from '@angular/core';
 import { Subscription } from 'rxjs';
@@ -155,17 +156,17 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
     return !entityLimit.idEntityLimit || this.proposeMap.has(entityLimit.idEntityLimit) ? 'user_limit_update' : null;
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     event[this.consumedGT] = true;
     this.setMenuItemsToActivePanel();
   }
 
-  onRowSelect(event) {
+  onRowSelect(event: { data: EntityLimit }) {
     this.selectedEntityLimit.set(event.data);
     this.setMenuItemsToActivePanel();
   }
 
-  onRowUnselect(event) {
+  onRowUnselect(event: unknown) {
     this.selectedEntityLimit.set(null);
   }
 
@@ -193,12 +194,14 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + EntityLimitUserTableComponent.ENTITY_LIMIT,
       () => {
-        this.entityLimitService.deleteEntity(selectedEntityLimit[this.entityKeyName]).subscribe((response) => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: EntityLimitUserTableComponent.ENTITY_LIMIT
+        this.entityLimitService
+          .deleteEntity(selectedEntityLimit[this.entityKeyName as keyof EntityLimit] as number)
+          .subscribe((response) => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: EntityLimitUserTableComponent.ENTITY_LIMIT
+            });
+            this.dateChanged.emit(new ProcessedActionData(ProcessedAction.DELETED, null));
           });
-          this.dateChanged.emit(new ProcessedActionData(ProcessedAction.DELETED, null));
-        });
       }
     );
   }

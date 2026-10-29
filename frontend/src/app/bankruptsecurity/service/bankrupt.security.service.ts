@@ -16,11 +16,9 @@ export class BankruptSecurityService
 {
   /** Every marker with the instrument behind it and the two newest closing dates. */
   public getAllWithSecurityName(): Observable<BankruptSecurityRow[]> {
-    return <Observable<BankruptSecurityRow[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.BANKRUPT_SECURITY_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<BankruptSecurityRow[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.BANKRUPT_SECURITY_KEY}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(bankruptSecurity: BankruptSecurity): Observable<BankruptSecurity> {

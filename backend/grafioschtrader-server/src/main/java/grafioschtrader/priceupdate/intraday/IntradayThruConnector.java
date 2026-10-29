@@ -99,17 +99,21 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
 
   /**
    * Updates the instruments of a list, asking a connector with {@link IFeedConnector#getIntradayBatchSize()} greater
-   * than 1 for several instruments per request. Without such a connector in the list this is exactly the behaviour of
-   * the base class. Otherwise the due instruments of each batch connector are claimed first and then grouped into
-   * requests of at most its batch size, while all others go through the single-instrument path. Requests run in
-   * parallel like the single updates do, and every instrument is still saved in its own transaction.
+   * than 1 for several instruments per request. Without such a connector in the list, or with a single instrument, this
+   * is exactly the behaviour of the base class. Otherwise the due instruments of each batch connector are claimed first
+   * and then grouped into requests of at most its batch size, while all others go through the single-instrument path.
+   * Requests run in parallel like the single updates do, and every instrument is still saved in its own transaction.
+   * <p>
+   * A single instrument must stay on the calling thread. A caller may already hold the lock on its row, and the claim
+   * of a worker thread runs on another connection, so it would wait for a lock its own caller never releases.
    *
    * @return the instruments in input order, updated where an update was due
    */
   @Override
   public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, final short maxIntraRetry,
       boolean singleThread) {
-    if (securtycurrencies.stream().noneMatch(sc -> isBatchConnector(getIntraConnector(sc)))) {
+    if (securtycurrencies.size() <= 1
+        || securtycurrencies.stream().noneMatch(sc -> isBatchConnector(getIntraConnector(sc)))) {
       return super.updateLastPriceOfSecuritycurrency(securtycurrencies, maxIntraRetry, singleThread);
     }
     final int scIntradayUpdateTimeout = globalparametersService.getSecurityCurrencyIntradayUpdateTimeout();

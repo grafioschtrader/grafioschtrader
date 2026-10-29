@@ -461,17 +461,17 @@ export class TranslateHelper {
         return translateService.get(labelWord[1]).pipe(
           switchMap((param) => translateService.get(labelWord[0], { i18nRecord: param })),
           tap((message) => write(message + dialogSuffix)),
-          map(() => undefined)
+          map((): void => undefined)
         );
       }
       return translateService.get(labelWord[0], { i18nRecord: labelWord[1] }).pipe(
         tap((message) => write(message)),
-        map(() => undefined)
+        map((): void => undefined)
       );
     }
     return translateService.get(menuItem[targetProperty]).pipe(
       tap((translated) => write(translated + dialogSuffix)),
-      map(() => undefined)
+      map((): void => undefined)
     );
   }
 

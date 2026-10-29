@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 import { ChangePasswordDTO } from '../model/change.password.dto';
 import { GlobalSessionNames } from '../../global.session.names';
 import { catchError } from 'rxjs/operators';
-import { HttpContext, HttpHeaders } from '@angular/common/http';
+import { HttpContext, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { SKIP_AUTH_HEADERS } from './auth.http.interceptor';
 import { BaseAuthService } from './base.auth.service';
 import { UserOwnProjection } from '../../entities/projection/user.own.projection';
@@ -37,13 +37,13 @@ export class LoginService extends BaseAuthService<User> {
     translateService.get('optimus').subscribe((res) => optimusConfig.setTranslation(res));
   }
 
-  login(email: string, password: string, note?: string): Observable<Response> {
+  login(email: string, password: string, note?: string): Observable<HttpResponse<ConfigurationWithLogin>> {
     const date = new Date();
     const loginRequest = { email, password, timezoneOffset: date.getTimezoneOffset(), note };
     const headers = new HttpHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' });
 
     return this.httpClient
-      .post('/api/login', loginRequest, {
+      .post<ConfigurationWithLogin>('/api/login', loginRequest, {
         headers,
         observe: 'response',
         context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
@@ -129,7 +129,7 @@ export class LoginService extends BaseAuthService<User> {
     return sessionStorage.getItem(GlobalSessionNames.JWT) !== null;
   }
 
-  parseToken(token): any {
+  parseToken(token: string): any {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace('-', '+').replace('_', '/');
     return JSON.parse(window.atob(base64));
@@ -148,41 +148,39 @@ export class LoginService extends BaseAuthService<User> {
   }
 
   getOwnUser(): Observable<UserOwnProjection> {
-    return <Observable<UserOwnProjection>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/own`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<UserOwnProjection>(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/own`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   updateNicknameLocale(userOwnProjection: UserOwnProjection): Observable<SuccessfullyChanged> {
-    return <Observable<SuccessfullyChanged>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/nicknamelocale`,
-          userOwnProjection,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<SuccessfullyChanged>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/nicknamelocale`,
+        userOwnProjection,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   updatePassword(changePasswordDTO: ChangePasswordDTO): Observable<SuccessfullyChanged> {
-    return <Observable<SuccessfullyChanged>>(
-      this.httpClient
-        .put(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/password`, changePasswordDTO, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<SuccessfullyChanged>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/password`,
+        changePasswordDTO,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTokenVerified(token: string): Observable<string> {
-    const options: any = this.getHeaders();
-    options.responseType = 'text';
-    options.context = new HttpContext().set(SKIP_AUTH_HEADERS, true);
-    return <Observable<string>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/tokenverify/${token}`, options)
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    const options = {
+      ...this.getHeaders(),
+      responseType: 'text' as const,
+      context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+    };
+    return this.httpClient
+      .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/tokenverify/${token}`, options)
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

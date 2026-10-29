@@ -190,8 +190,8 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
    *
    * @param event The row selection event containing the selected data
    */
-  onRowSelect(event): void {
-    this.selectedTransactionCostPosition = event.data;
+  onRowSelect(event: { data?: TransactionCostPosition | TransactionCostPosition[] }): void {
+    this.selectedTransactionCostPosition = Array.isArray(event.data) ? event.data[0] : event.data;
     this.selectedTransaction.set(this.selectedTransactionCostPosition.transaction);
     this.setMenuItemsToActivePanel();
   }

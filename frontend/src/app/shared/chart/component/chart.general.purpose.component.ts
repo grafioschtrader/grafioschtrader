@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -50,7 +51,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
 
   private subscriptionViewSizeChanged: Subscription;
   private subscriptionChartDataChanged: Subscription;
-  private chartData: ChartData;
+  private chartData: Partial<ChartData>;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
   private destroyed = false;
   constructor() {
@@ -65,7 +66,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
     const config = PlotlyLocales.setPlotyLocales(this.gps);
     config.displaylogo = false;
 
-    this.subscriptionChartDataChanged = this.chartDataService.chartDataChanged$.subscribe((chartData: ChartData) => {
+    this.subscriptionChartDataChanged = this.chartDataService.chartDataChanged$.subscribe((chartData) => {
       chartData.options = Object.assign({}, chartData.options, config);
       this.chartData = chartData;
       this.plotOrRePlot();
@@ -86,7 +87,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
 
   callMeDeactivate(): void {}
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.activePanelService.activatePanel(this);
   }
 

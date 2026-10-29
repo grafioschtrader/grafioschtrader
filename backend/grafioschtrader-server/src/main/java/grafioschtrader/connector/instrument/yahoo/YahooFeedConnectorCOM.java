@@ -9,11 +9,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +75,9 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_FOREX_REGEX = "^([A-Za-z]{6}=X)|([A-Za-z]{3}\\-[A-Za-z]{3})$";
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
   private static final String DOMAIN_NAME_WITH_8_VERSION_Q2 = "https://query2.finance.yahoo.com/v8/finance/chart/";
+  private static final String DOMAIN_NAME_SPARK_Q2 = "https://query2.finance.yahoo.com/v7/finance/spark";
+  /** The spark endpoint rejects a request with more than 20 symbols with HTTP 400. */
+  private static final int INTRADAY_BATCH_SIZE = 20;
 
   static {
     supportedFeed = new HashMap<>();
@@ -160,25 +168,118 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
           .forType(TopLevelChart.class).readValue(response.body());
       if (topLevelChart != null && topLevelChart.chart != null && topLevelChart.chart.result != null
           && !topLevelChart.chart.result.isEmpty()) {
-        ResultData resultData = topLevelChart.chart.result.get(0);
-        Meta m = resultData.meta;
-        // Yahoo quotes LSE securities in pence (GBp) and JSE securities in cents (ZAc); the same divider
-        // as in the history and dividend paths keeps intraday prices in the security's major currency.
-        final double divider = FeedConnectorHelper.getMinorUnitDivider(securitycurrency);
-        securitycurrency.setSLast(m.regularMarketPrice / divider);
-        securitycurrency.setSHigh(m.regularMarketDayHigh / divider);
-        securitycurrency.setSLow(m.regularMarketDayLow / divider);
-        if (securitycurrency instanceof Security security) {
-          security.setSVolume(m.regularMarketVolume);
-        }
-        securitycurrency.setSChangePercentage(
-            m.chartPreviousClose != 0 ? (m.regularMarketPrice - m.chartPreviousClose) / m.chartPreviousClose * 100 : 0);
-        securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
+        setLastPrice(topLevelChart.chart.result.get(0).meta, securitycurrency,
+            FeedConnectorHelper.getMinorUnitDivider(securitycurrency), getIntradayDelayedSeconds());
       }
 
     } else {
       throw new IOException("Failed to fetch historical data. Status code: " + response.statusCode());
     }
+  }
+
+  /**
+   * Copies the last price of a chart or spark meta block into the instrument. Yahoo quotes LSE securities in pence
+   * (GBp) and JSE securities in cents (ZAc); the same divider as in the history and dividend paths keeps intraday
+   * prices in the security's major currency.
+   */
+  private static <S extends Securitycurrency<S>> void setLastPrice(final Meta m, final S securitycurrency,
+      final double divider, final int delaySeconds) {
+    securitycurrency.setSLast(m.regularMarketPrice / divider);
+    securitycurrency.setSHigh(m.regularMarketDayHigh / divider);
+    securitycurrency.setSLow(m.regularMarketDayLow / divider);
+    if (securitycurrency instanceof Security security) {
+      security.setSVolume(m.regularMarketVolume);
+    }
+    securitycurrency.setSChangePercentage(
+        m.chartPreviousClose != 0 ? (m.regularMarketPrice - m.chartPreviousClose) / m.chartPreviousClose * 100 : 0);
+    securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(delaySeconds));
+  }
+
+  /**
+   * Batches through the spark endpoint, which answers several symbols at once with the same meta block as the chart
+   * endpoint of the single update. Unlike the quote endpoint it needs neither cookie nor crumb.
+   */
+  @Override
+  public int getIntradayBatchSize() {
+    return INTRADAY_BATCH_SIZE;
+  }
+
+  @Override
+  public List<Security> updateSecuritiesLastPrice(final List<Security> securities) throws Exception {
+    return updateLastPrices(securities, Security::getUrlIntraExtend);
+  }
+
+  @Override
+  public List<Currencypair> updateCurrencyPairsLastPrice(final List<Currencypair> currencypairs) throws Exception {
+    return updateLastPrices(currencypairs, this::getCurrencyPairSymbol);
+  }
+
+  /**
+   * Requests the last prices of all instruments with one call of the spark endpoint. Yahoo answers HTTP 404 when not a
+   * single symbol of the request is known; that fails these instruments, not the request.
+   *
+   * @return the instruments without symbol or without usable price in the answer
+   */
+  private <T extends Securitycurrency<T>> List<T> updateLastPrices(final List<T> instruments,
+      final Function<T, String> symbolOf) throws Exception {
+    final List<T> missing = new ArrayList<>();
+    final Map<String, List<T>> bySymbol = new LinkedHashMap<>();
+    for (final T instrument : instruments) {
+      final String symbol = symbolOf.apply(instrument);
+      if (symbol == null || symbol.isBlank()) {
+        missing.add(instrument);
+      } else {
+        bySymbol.computeIfAbsent(symbol.toUpperCase(Locale.ROOT), _ -> new ArrayList<>()).add(instrument);
+      }
+    }
+    if (!bySymbol.isEmpty()) {
+      final HttpResponse<String> response = FeedConnectorHelper
+          .getByHttpClient(getBatchIntradayDownloadLink(bySymbol.keySet()), 10, true);
+      if (response.statusCode() == 200) {
+        missing.addAll(applySpark(response.body(), bySymbol, FeedConnectorHelper::getMinorUnitDivider,
+            getIntradayDelayedSeconds()));
+      } else if (response.statusCode() == 404) {
+        bySymbol.values().forEach(missing::addAll);
+      } else {
+        throw new IOException("Failed to fetch last prices. Status code: " + response.statusCode());
+      }
+    }
+    return missing;
+  }
+
+  private String getBatchIntradayDownloadLink(final Collection<String> symbols) {
+    return DOMAIN_NAME_SPARK_Q2 + "?symbols="
+        + symbols.stream().map(s -> URLEncoder.encode(s, StandardCharsets.UTF_8)).collect(Collectors.joining(","))
+        + "&range=1d&interval=1d";
+  }
+
+  /**
+   * Applies a spark answer to the instruments. Results are matched by the outer {@code symbol}, which echoes the symbol
+   * as requested, not by position: Yahoo returns them in an order of its own and leaves out an unknown symbol without
+   * any error.
+   *
+   * @param body         the response body of the spark request
+   * @param bySymbol     the instruments by upper-case Yahoo symbol; several instruments may share one symbol
+   * @param divider      the divider of each instrument, e.g. 100 for a price quoted in pence
+   * @param delaySeconds the delay subtracted from the current time for the price timestamp
+   * @return the instruments the answer held no price for
+   */
+  static <T extends Securitycurrency<T>> List<T> applySpark(final String body, final Map<String, List<T>> bySymbol,
+      final ToDoubleFunction<T> divider, final int delaySeconds) {
+    final TopLevelSpark topLevelSpark = objectMapper.readValue(body, TopLevelSpark.class);
+    final Map<String, List<T>> open = new LinkedHashMap<>(bySymbol);
+    if (topLevelSpark != null && topLevelSpark.spark != null && topLevelSpark.spark.result != null) {
+      for (final SparkResult sparkResult : topLevelSpark.spark.result) {
+        final Meta meta = sparkResult.response == null || sparkResult.response.isEmpty() ? null
+            : sparkResult.response.getFirst().meta;
+        final List<T> matched = meta == null || sparkResult.symbol == null ? null
+            : open.remove(sparkResult.symbol.toUpperCase(Locale.ROOT));
+        if (matched != null) {
+          matched.forEach(sc -> setLastPrice(meta, sc, divider.applyAsDouble(sc), delaySeconds));
+        }
+      }
+    }
+    return open.values().stream().flatMap(List::stream).toList();
   }
 
   @Override
@@ -436,6 +537,19 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     public List<ResultData> result;
     @JsonView({ Views.EventsView.class, Views.TimestampIndicatorsView.class })
     public String error;
+  }
+
+  static class TopLevelSpark {
+    public SparkData spark;
+  }
+
+  static class SparkData {
+    public List<SparkResult> result;
+  }
+
+  static class SparkResult {
+    public String symbol;
+    public List<ResultData> response;
   }
 
   static class ResultData {

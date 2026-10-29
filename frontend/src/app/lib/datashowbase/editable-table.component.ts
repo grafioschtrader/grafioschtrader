@@ -831,7 +831,7 @@ export class EditableTableComponent<T = any> {
 
   /** Gets unique row key using dataKey property */
   private getRowKey(row: T): string {
-    const key = row[this.dataKey()];
+    const key = row[this.dataKey() as keyof T];
     return key != null ? String(key) : String(-this.newRowCounter);
   }
 
@@ -926,8 +926,8 @@ export class EditableTableComponent<T = any> {
     const tempKey = -++this.newRowCounter;
 
     // Assign temporary key if dataKey is null/undefined
-    if (newEntity[this.dataKey()] == null) {
-      newEntity[this.dataKey()] = tempKey;
+    if (newEntity[this.dataKey() as keyof T] == null) {
+      Object.assign(newEntity, { [this.dataKey()]: tempKey });
     }
 
     const rowKey = this.getRowKey(newEntity);
@@ -958,7 +958,7 @@ export class EditableTableComponent<T = any> {
   /** Handles field value changes during editing */
   onFieldChange(field: ColumnConfig, row: T, newValue: any): void {
     const rowKey = this.getRowKey(row);
-    const oldValue = this.clonedRows[rowKey]?.[field.field];
+    const oldValue = this.clonedRows[rowKey]?.[field.field as keyof T];
 
     // Call column-specific change handler if configured
     if (field.cec?.onChangeFn) {
@@ -982,7 +982,7 @@ export class EditableTableComponent<T = any> {
     for (const field of this.fields()) {
       if (field.cec?.dependsOnField === changedField.field) {
         // Clear the dependent field's value
-        row[field.field] = null;
+        row[field.field as keyof T] = null;
 
         // Update options cache
         if (this.rowOptions[rowKey]) {
@@ -1038,7 +1038,7 @@ export class EditableTableComponent<T = any> {
 
     // Priority 2: Declarative optionsMap with dependsOnField
     if (cec?.dependsOnField && cec?.optionsMap) {
-      const parentValue = row[cec.dependsOnField];
+      const parentValue = row[cec.dependsOnField as keyof T] as string | number;
       if (parentValue != null && cec.optionsMap[parentValue]) {
         return cec.optionsMap[parentValue];
       }
@@ -1056,7 +1056,7 @@ export class EditableTableComponent<T = any> {
   /** Validates a single field */
   private validateField(row: T, field: ColumnConfig): boolean {
     const rowKey = this.getRowKey(row);
-    const value = row[field.field];
+    const value = row[field.field as keyof T];
 
     if (!this.rowErrors[rowKey]) {
       this.rowErrors[rowKey] = {};

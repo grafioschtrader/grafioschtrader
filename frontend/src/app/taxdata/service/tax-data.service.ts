@@ -21,11 +21,9 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
   private static readonly BASE_URL = BaseSettings.API_ENDPOINT + 'taxdata';
 
   getCantons(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>(
-      this.httpClient
-        .get(`${TaxDataService.BASE_URL}/cantons`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(`${TaxDataService.BASE_URL}/cantons`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTaxModel(id: number): Observable<{ yaml: string }> {
@@ -68,19 +66,15 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
   }
 
   getTree(): Observable<TaxCountry[]> {
-    return <Observable<TaxCountry[]>>(
-      this.httpClient
-        .get(`${TaxDataService.BASE_URL}/tree`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<TaxCountry[]>(`${TaxDataService.BASE_URL}/tree`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   createCountry(taxCountry: TaxCountry): Observable<TaxCountry> {
-    return <Observable<TaxCountry>>(
-      this.httpClient
-        .post(`${TaxDataService.BASE_URL}/country`, taxCountry, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<TaxCountry>(`${TaxDataService.BASE_URL}/country`, taxCountry, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   deleteCountry(id: number): Observable<any> {
@@ -90,11 +84,9 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
   }
 
   createYear(taxYear: TaxYear): Observable<TaxYear> {
-    return <Observable<TaxYear>>(
-      this.httpClient
-        .post(`${TaxDataService.BASE_URL}/year`, taxYear, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<TaxYear>(`${TaxDataService.BASE_URL}/year`, taxYear, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   deleteYear(id: number): Observable<any> {
@@ -104,19 +96,15 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
   }
 
   uploadFiles(idTaxYear: number, formData: FormData): Observable<TaxUpload[]> {
-    return <Observable<TaxUpload[]>>(
-      this.httpClient
-        .post(`${TaxDataService.BASE_URL}/year/${idTaxYear}/upload`, formData, this.getMultipartHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<TaxUpload[]>(`${TaxDataService.BASE_URL}/year/${idTaxYear}/upload`, formData, this.getMultipartHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   reimport(idTaxUpload: number): Observable<TaxUpload> {
-    return <Observable<TaxUpload>>(
-      this.httpClient
-        .post(`${TaxDataService.BASE_URL}/upload/${idTaxUpload}/reimport`, null, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<TaxUpload>(`${TaxDataService.BASE_URL}/upload/${idTaxUpload}/reimport`, null, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   deleteUpload(id: number): Observable<any> {
@@ -131,11 +119,9 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
   }
 
   updateExchangeRate(exchangeRate: IctaxExchangeRate): Observable<IctaxExchangeRate> {
-    return <Observable<IctaxExchangeRate>>(
-      this.httpClient
-        .put(`${TaxDataService.BASE_URL}/exchangerate`, exchangeRate, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<IctaxExchangeRate>(`${TaxDataService.BASE_URL}/exchangerate`, exchangeRate, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   toggleSecurityExclusion(taxYear: number, idSecuritycurrency: number): Observable<{ excluded: boolean }> {
@@ -152,9 +138,9 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
     return this.httpClient
       .post(`${TaxDataService.BASE_URL}/export/ech0196`, request, {
         ...this.getHeaders(),
-        responseType: 'blob' as 'json'
+        responseType: 'blob'
       })
-      .pipe(catchError(this.handleError.bind(this))) as Observable<Blob>;
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }
 

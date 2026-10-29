@@ -78,7 +78,7 @@ export class TemplateFormCheckDialogComponent extends SimpleEditBase implements 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  checkFormAgainstTemplate(event) {
+  checkFormAgainstTemplate(event: unknown) {
     const ftc = new FormTemplateCheck(
       this.importTransactionPlatform().idTransactionImportPlatform,
       this.configObject.templateAsTxt.formControl.value

@@ -57,7 +57,7 @@ export abstract class SimpleEditBase extends FormBase {
     this.destroyRef.onDestroy(() => this.dialogSession.unsubscribe());
   }
 
-  public onShow(event) {
+  public onShow(event: unknown) {
     this.renewDialogSession();
     this.pendingInitialize = afterNextRender(
       () => {
@@ -72,7 +72,7 @@ export abstract class SimpleEditBase extends FormBase {
     this.gps.toExternalHelpWebpage(this.gps.getUserLang(), this.helpId);
   }
 
-  onHide(event): void {
+  onHide(event: unknown): void {
     this.renewDialogSession();
     // Only emit when visibleDialog is still true (user initiated close).
     // Prevents double emission when parent sets visibleDialog to false.

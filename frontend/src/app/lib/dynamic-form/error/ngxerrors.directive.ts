@@ -36,13 +36,13 @@ export class NgxErrorsDirective {
     return this.control()?.getError(name);
   }
 
-  private checkPropState(prop: string, field: string, conditions: ErrorOptions): boolean {
+  private checkPropState(prop: 'valid' | 'invalid', field: string, conditions: ErrorOptions): boolean {
     const control = this.control();
     if (!control) {
       return null;
     }
     const controlPropsState =
-      !conditions || toArray(conditions).every((condition: string) => this.control()[condition]);
+      !conditions || toArray(conditions).every((condition: string) => control[condition as keyof AbstractControl]);
     if (field.charAt(0) === '*') {
       return control[prop] && controlPropsState;
     }

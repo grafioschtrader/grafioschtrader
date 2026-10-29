@@ -6,7 +6,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 export class ReplacePipe implements PipeTransform {
   constructor() {}
 
-  transform(item: any, replace, replacement): any {
+  transform(item: any, replace: string | RegExp, replacement: string): any {
     if (item == null) {
       return '';
     }

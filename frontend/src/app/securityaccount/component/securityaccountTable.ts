@@ -61,7 +61,7 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
     this.createColumns();
   }
 
-  override handleChangeGroup(event) {
+  override handleChangeGroup(event: { value: string }) {
     this.selectedGroup = event.value;
     this.changeGroupToView(this.groupMapping.get(this.selectedGroup));
   }

@@ -67,7 +67,7 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
   readonly columnConfig = input<ColumnConfig[]>(undefined);
   readonly portfolios = input<Portfolio[]>(undefined);
   readonly idsAccount = input<number[]>(undefined);
-  readonly listAttributeName = input<string>(undefined);
+  readonly listAttributeName = input<'securityaccountList' | 'cashaccountList'>(undefined);
   readonly title = input<string>(undefined);
   readonly selectionRequired = input<boolean>(undefined);
 
@@ -99,7 +99,7 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
         };
         psa.push(portfolioTreeNode);
         let childSelectionCount = 0;
-        portfolio[this.listAttributeName()].forEach((account) => {
+        portfolio[this.listAttributeName()].forEach((account: { idSecuritycashAccount: number }) => {
           const accountTeeNode = { data: account, leaf: true };
           portfolioTreeNode.children.push(accountTeeNode);
           if (markAll || this.idsAccount().indexOf(account.idSecuritycashAccount) >= 0) {

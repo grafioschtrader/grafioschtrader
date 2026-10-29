@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import {
   Component,
   ComponentRef,
@@ -302,7 +303,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
    *
    * @param event - The click event
    */
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     const selected = this.selectedEntity();
     const menuItems: MenuItem[] = selected ? [{ label: 'EDIT', command: () => this.handleEditEntity(selected) }] : null;
     this.menuSubscription?.unsubscribe();

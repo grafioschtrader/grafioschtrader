@@ -216,7 +216,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   private markDays(tradingDaysMinus: Date[], createTypes: CreateType[]): void {
-    this.dateCreateTypes = tradingDaysMinus.reduce((result, date, index) => {
+    this.dateCreateTypes = tradingDaysMinus.reduce<Record<number, CreateType>>((result, date, index) => {
       result[this.getZeroTimeDate(date).getTime()] = createTypes[index];
       return result;
     }, {});

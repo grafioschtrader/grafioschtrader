@@ -39,11 +39,12 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting array of security UDF metadata entries
    */
   public getAllByIdUser(): Observable<UDFMetadataSecurity[]> {
-    return <Observable<UDFMetadataSecurity[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<UDFMetadataSecurity[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -54,11 +55,12 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting array of field descriptors for enabled security UDF fields, sorted by UI order
    */
   public getAllByIdUserInOrderByUiOrderExcludeDisabled(): Observable<FieldDescriptorInputAndShowExtendedSecurity[]> {
-    return <Observable<FieldDescriptorInputAndShowExtendedSecurity[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/fielddescriptor`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<FieldDescriptorInputAndShowExtendedSecurity[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/fielddescriptor`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -68,11 +70,12 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting the offer
    */
   public getFillSources(): Observable<UDFFillSourcesOffer> {
-    return <Observable<UDFFillSourcesOffer>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/fillsources`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<UDFFillSourcesOffer>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/fillsources`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -82,15 +85,13 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting the counters, mismatches and samples
    */
   public testFillRule(request: UDFFillTestRequest): Observable<UDFFillTestResult> {
-    return <Observable<UDFFillTestResult>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/testfillrule`,
-          request,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<UDFFillTestResult>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/testfillrule`,
+        request,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -100,15 +101,13 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting the securities in test order, those with a value first
    */
   public getSuggestTestCandidates(request: UDFFillTestRequest): Observable<UDFSuggestTestCandidate[]> {
-    return <Observable<UDFSuggestTestCandidate[]>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/testsuggest/candidates`,
-          request,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<UDFSuggestTestCandidate[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/testsuggest/candidates`,
+        request,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -119,15 +118,13 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting the answer of the model and the outcome of its check
    */
   public testSuggestion(request: UDFFillTestRequest, idSecuritycurrency: number): Observable<UDFSuggestTestResult> {
-    return <Observable<UDFSuggestTestResult>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/testsuggest/${idSecuritycurrency}`,
-          request,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<UDFSuggestTestResult>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/testsuggest/${idSecuritycurrency}`,
+        request,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -137,14 +134,12 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting provider, model and the examples
    */
   public previewRuleProposal(idUDFMetadata: number): Observable<RuleProposalPreview> {
-    return <Observable<RuleProposalPreview>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}/proposerule/preview`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<RuleProposalPreview>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}/proposerule/preview`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -155,15 +150,13 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting the rule with its parse error or its counters
    */
   public proposeRule(idUDFMetadata: number, idSecuritycurrencies: number[]): Observable<RuleProposalResult> {
-    return <Observable<RuleProposalResult>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}/proposerule`,
-          idSecuritycurrencies,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<RuleProposalResult>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}/proposerule`,
+        idSecuritycurrencies,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -173,11 +166,9 @@ export class UDFMetadataSecurityService
    * @returns Observable completing when the run is queued
    */
   public suggestValues(idUDFMetadata: number): Observable<void> {
-    return <Observable<void>>(
-      this.httpClient
-        .post(`${this.fieldUrl(idUDFMetadata)}/suggest`, null, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<void>(`${this.fieldUrl(idUDFMetadata)}/suggest`, null, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -187,11 +178,9 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting the proposals
    */
   public getProposals(idUDFMetadata: number): Observable<UDFFillProposal[]> {
-    return <Observable<UDFFillProposal[]>>(
-      this.httpClient
-        .get(`${this.fieldUrl(idUDFMetadata)}/proposals`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<UDFFillProposal[]>(`${this.fieldUrl(idUDFMetadata)}/proposals`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -205,11 +194,13 @@ export class UDFMetadataSecurityService
     idUDFMetadata: number,
     decisions: UDFFillProposalDecision[]
   ): Observable<UDFFillProposalDecisionResult[]> {
-    return <Observable<UDFFillProposalDecisionResult[]>>(
-      this.httpClient
-        .post(`${this.fieldUrl(idUDFMetadata)}/proposals/accept`, decisions, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<UDFFillProposalDecisionResult[]>(
+        `${this.fieldUrl(idUDFMetadata)}/proposals/accept`,
+        decisions,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -223,11 +214,13 @@ export class UDFMetadataSecurityService
     idUDFMetadata: number,
     decisions: UDFFillProposalDecision[]
   ): Observable<UDFFillProposalDecisionResult[]> {
-    return <Observable<UDFFillProposalDecisionResult[]>>(
-      this.httpClient
-        .post(`${this.fieldUrl(idUDFMetadata)}/proposals/reject`, decisions, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<UDFFillProposalDecisionResult[]>(
+        `${this.fieldUrl(idUDFMetadata)}/proposals/reject`,
+        decisions,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -237,11 +230,9 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting the number of cells that are asked again
    */
   public retryProposals(idUDFMetadata: number): Observable<number> {
-    return <Observable<number>>(
-      this.httpClient
-        .post(`${this.fieldUrl(idUDFMetadata)}/proposals/retry`, null, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<number>(`${this.fieldUrl(idUDFMetadata)}/proposals/retry`, null, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   private fieldUrl(idUDFMetadata: number): string {
@@ -255,14 +246,12 @@ export class UDFMetadataSecurityService
    * @returns Observable emitting the counts per fill state and whether a run is pending
    */
   public getFillStatus(idUDFMetadata: number): Observable<UDFFillStatus> {
-    return <Observable<UDFFillStatus>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}/fillstatus`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<UDFFillStatus>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}/fillstatus`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -273,15 +262,13 @@ export class UDFMetadataSecurityService
    * @returns Observable completing when the cell is locked
    */
   public lockCell(idUDFMetadata: number, idSecuritycurrency: number): Observable<void> {
-    return <Observable<void>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}/fill/${idSecuritycurrency}/lock`,
-          null,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<void>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}/fill/${idSecuritycurrency}/lock`,
+        null,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -292,14 +279,12 @@ export class UDFMetadataSecurityService
    * @returns Observable completing when the lock is removed
    */
   public unlockCell(idUDFMetadata: number, idSecuritycurrency: number): Observable<void> {
-    return <Observable<void>>(
-      this.httpClient
-        .delete(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}/fill/${idSecuritycurrency}/lock`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .delete<void>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}/fill/${idSecuritycurrency}/lock`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**

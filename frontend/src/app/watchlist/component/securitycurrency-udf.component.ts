@@ -46,16 +46,16 @@ export class SecuritycurrencyUdfComponent extends SecuritycurrencyBaseInfoFields
     const fdSecurityList: FieldDescriptorInputAndShowExtendedSecurity[] =
       this.securitycurrency() instanceof CurrencypairWatchlist
         ? JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)).filter(
-            (fd) => fd.entity === AppSettings.CURRENCYPAIR
+            (fd: { entity: string }) => fd.entity === AppSettings.CURRENCYPAIR
           )
         : SecurityUDFHelper.getFieldDescriptorInputAndShowExtendedSecurity(
             (<Security>this.securitycurrency()).assetClass,
             true
           );
     fdSecurityList.forEach((fds) => {
-      let dataType = DataType[fds.dataType];
+      let dataType = DataType[fds.dataType as keyof typeof DataType];
       const optionalParams: OptionalParams = { fieldsetName: 'UDF' };
-      switch (DataType[fds.dataType]) {
+      switch (DataType[fds.dataType as keyof typeof DataType]) {
         case DataType.Boolean:
           optionalParams.templateName = 'check';
           break;

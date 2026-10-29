@@ -1,9 +1,12 @@
 package grafioschtrader.connector.instrument.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.GlobalConstants;
@@ -11,6 +14,8 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHistoricalDate;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.connector.instrument.yahoo.YahooFeedConnectorCOM;
+import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.Security;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
@@ -27,6 +32,22 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
   @Test
   void updateSecurityLastPriceTest() {
     updateSecurityLastPriceByHistoricalData();
+  }
+
+  @Test
+  @DisplayName("Spark batch: all intraday securities and currency pairs with one request each")
+  void updateLastPriceBatchTest() throws Exception {
+    List<Security> securities = getHistoricalSecurities(HistoricalIntra.INTRADAY).stream().map(hd -> hd.security)
+        .toList();
+    securities.forEach(security -> security.setUrlIntraExtend(security.getUrlHistoryExtend()));
+    List<Currencypair> currencypairs = getHistoricalCurrencies().stream().map(hd -> hd.currencypair).toList();
+    assertThat(securities.size()).isLessThanOrEqualTo(yahooFeedConnector.getIntradayBatchSize());
+
+    assertThat(yahooFeedConnector.updateSecuritiesLastPrice(securities)).isEmpty();
+    assertThat(yahooFeedConnector.updateCurrencyPairsLastPrice(currencypairs)).isEmpty();
+
+    securities.forEach(s -> assertThat(s.getSLast()).as("Last price for " + s.getName()).isGreaterThan(0.0));
+    currencypairs.forEach(c -> assertThat(c.getSLast()).as("Last price for " + c.getName()).isGreaterThan(0.0));
   }
 
   @Override

@@ -275,7 +275,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
         filters.forEach((f) => this.customMatchModeOptions.push({ value: f.name, label: tr[f.name] }))
       );
     filters.forEach((f) => {
-      this.filterService.register(f.name, (value, filter): boolean => {
+      this.filterService.register(f.name, (value: moment.MomentInput, filter: moment.MomentInput): boolean => {
         if (filter === undefined || filter === null || f.fn === null) {
           return true;
         }
@@ -291,7 +291,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param filter - Filter date to compare against
    * @returns True if value date is same or before filter date
    */
-  protected sameOrBefore(value, filter): boolean {
+  protected sameOrBefore(value: moment.MomentInput, filter: moment.MomentInput): boolean {
     return moment(value).isSameOrBefore(filter, 'day');
   }
 
@@ -302,7 +302,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param filter - Filter date to compare against
    * @returns True if value date is same or after filter date
    */
-  protected sameOrAfter(value, filter): boolean {
+  protected sameOrAfter(value: moment.MomentInput, filter: moment.MomentInput): boolean {
     return moment(value).isSameOrAfter(filter, 'day');
   }
 
@@ -313,7 +313,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param filter - Filter date to compare against
    * @returns True if dates are the same day
    */
-  protected isEqual(value, filter): boolean {
+  protected isEqual(value: moment.MomentInput, filter: moment.MomentInput): boolean {
     return moment(value).isSame(filter, 'day');
   }
 
@@ -410,7 +410,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param table - Optimus table or tree table instance
    * @param calendar - Calendar component instance
    */
-  public dateInputFilter(event, columnConfig: ColumnConfig, table: FilterableTable, calendar: any): void {
+  public dateInputFilter(event: unknown, columnConfig: ColumnConfig, table: FilterableTable, calendar: any): void {
     if (calendar.value || !calendar.filled) {
       this.filterDate(calendar.value, columnConfig, table);
     }
@@ -424,7 +424,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param columnConfig - Column configuration containing data type info
    * @param table - Optimus table or tree table instance to apply filter to
    */
-  public filterDate(event, columnConfig: ColumnConfig, table: FilterableTable): void {
+  public filterDate(event: moment.MomentInput, columnConfig: ColumnConfig, table: FilterableTable): void {
     if (event) {
       if (columnConfig.dataType === DataType.DateNumeric) {
         const dateString = moment(event).format(this.gps.getDateFormat());
@@ -450,7 +450,11 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param columnConfig - Column configuration for the numeric field
    * @param table - Optimus table or tree table instance to apply filter to
    */
-  public filterDecimal(event, columnConfig: ColumnConfig, table: FilterableTable): void {
+  public filterDecimal(
+    event: { target: { value: string | string[] } },
+    columnConfig: ColumnConfig,
+    table: FilterableTable
+  ): void {
     table.filter(event.target.value, columnConfig.field, 'equals');
   }
 }
@@ -463,5 +467,5 @@ interface FilterFN {
   /** Unique name for the filter function */
   name: string;
   /** Filter function implementation or null for pass-through filters */
-  fn: (value, filter) => boolean;
+  fn: (value: moment.MomentInput, filter: moment.MomentInput) => boolean;
 }

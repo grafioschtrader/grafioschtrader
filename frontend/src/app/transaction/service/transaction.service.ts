@@ -17,56 +17,49 @@ import { BaseSettings } from '../../lib/base.settings';
 @Service()
 export class TransactionService extends AuthServiceWithLogout<Transaction> {
   getConnectedMarginPositionByIdTransaction(idTransaction: number): Observable<ClosedMarginPosition> {
-    return <Observable<ClosedMarginPosition>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}/` + `connectedmargin/${idTransaction}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ClosedMarginPosition>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}/` + `connectedmargin/${idTransaction}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionByTenant(): Observable<Transaction[]> {
-    return <Observable<Transaction[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Transaction[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionsByIdPortfolio(idPortfolio: number): Observable<Transaction[]> {
-    return <Observable<Transaction[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}/` + `${AppSettings.PORTFOLIO_KEY}/${idPortfolio}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Transaction[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}/` + `${AppSettings.PORTFOLIO_KEY}/${idPortfolio}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionByIdTransaction(idTransaction: number): Observable<Transaction> {
-    return <Observable<Transaction>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}/${idTransaction}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Transaction>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}/${idTransaction}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionsWithBalanceForCashaccount(
     idCashaccount: number,
     cashAccountTableInputFilter: CashAccountTableInputFilter
   ): Observable<CashaccountTransactionPosition[]> {
-    return <Observable<CashaccountTransactionPosition[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` +
-            `${AppSettings.TRANSACTION_KEY}/${idCashaccount}/${AppSettings.CASHACCOUNT_KEY}`,
-          this.getYearTransactionTypes(cashAccountTableInputFilter, this.prepareHeaders())
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<CashaccountTransactionPosition[]>(
+        `${BaseSettings.API_ENDPOINT}` +
+          `${AppSettings.TRANSACTION_KEY}/${idCashaccount}/${AppSettings.CASHACCOUNT_KEY}`,
+        this.getYearTransactionTypes(cashAccountTableInputFilter, this.prepareHeaders())
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   private getYearTransactionTypes(cashAccountTableInputFilter: CashAccountTableInputFilter, httpHeaders: HttpHeaders) {
@@ -80,14 +73,12 @@ export class TransactionService extends AuthServiceWithLogout<Transaction> {
   }
 
   getEstimatedMarginFinanceCost(idTransaction: number): Observable<ProposedMarginFinanceCost> {
-    return <Observable<ProposedMarginFinanceCost>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRANSACTION_KEY}/financecost/${idTransaction}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ProposedMarginFinanceCost>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRANSACTION_KEY}/financecost/${idTransaction}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   updateCreateSingle(transaction: Transaction): Observable<Transaction> {
@@ -103,15 +94,13 @@ export class TransactionService extends AuthServiceWithLogout<Transaction> {
   }
 
   updateCreateDoubleTransaction(cashAccountTransfer: CashAccountTransfer): Observable<CashAccountTransfer> {
-    return <Observable<CashAccountTransfer>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRANSACTION_KEY}/cashaccounttransfer`,
-          cashAccountTransfer,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<CashAccountTransfer>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRANSACTION_KEY}/cashaccounttransfer`,
+        cashAccountTransfer,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   deleteTransaction(idTransaction: number) {
@@ -173,11 +162,13 @@ export class TransactionService extends AuthServiceWithLogout<Transaction> {
    * @returns the counts of examined, linked, ambiguous and rejected candidates
    */
   connectCashTransfers(): Observable<CashTransferRelinkResult> {
-    return <Observable<CashTransferRelinkResult>>(
-      this.httpClient
-        .post(`${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}/connecttransfers`, null, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<CashTransferRelinkResult>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}/connecttransfers`,
+        null,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -188,16 +179,14 @@ export class TransactionService extends AuthServiceWithLogout<Transaction> {
    * @returns the updated transaction
    */
   updateTaxableInterest(idTransaction: number, taxableInterest: boolean): Observable<Transaction> {
-    return <Observable<Transaction>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}` +
-            `/${idTransaction}/taxableinterest/${taxableInterest}`,
-          null,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<Transaction>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}` +
+          `/${idTransaction}/taxableinterest/${taxableInterest}`,
+        null,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -208,15 +197,13 @@ export class TransactionService extends AuthServiceWithLogout<Transaction> {
    * @returns counts of examined, already-set, assigned and unmatched transactions
    */
   applyExDatesFromTaxData(year: number): Observable<ExDateFromTaxDataResult> {
-    return <Observable<ExDateFromTaxDataResult>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRANSACTION_KEY}/exdatefromtaxdata/${year}`,
-          null,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<ExDateFromTaxDataResult>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.TRANSACTION_KEY}/exdatefromtaxdata/${year}`,
+        null,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }
 

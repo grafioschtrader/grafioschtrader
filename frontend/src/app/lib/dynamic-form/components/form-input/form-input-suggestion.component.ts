@@ -30,7 +30,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
   imports: [ReactiveFormsModule, AutoCompleteModule, TooltipModule, TranslateModule, FilterOutPipe]
 })
 export class FormInputSuggestionComponent extends BaseInputComponent {
-  public callSuggestionsFN(event): void {
+  public callSuggestionsFN(event: { query: string }): void {
     this.config().suggestionsFN(event);
   }
 }

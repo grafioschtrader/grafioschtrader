@@ -119,7 +119,7 @@ export class AppHelper {
    * @returns Plain object with parsed parameter values
    */
   public static createParamObjectFromParamMap(paramMap: ParamMap): any {
-    const paramObject = {};
+    const paramObject: Record<string, unknown> = {};
     paramMap.keys.forEach((key) => (paramObject[key] = JSON.parse(paramMap.get(key))));
     return paramObject;
   }
@@ -350,7 +350,7 @@ export class AppHelper {
    * @param dataobject Date string to format
    * @returns Formatted date string
    */
-  public static getDateByFormat(gps: GlobalparameterService, dataobject: string): string {
+  public static getDateByFormat(gps: GlobalparameterService, dataobject: string | number | Date): string {
     return moment(dataobject).format(gps.getDateFormat());
   }
 
@@ -624,7 +624,7 @@ export class TranslateParam {
    * @param translate Whether this parameter value should be translated
    */
   constructor(
-    public paramName,
+    public paramName: string | number,
     public paramValue: string,
     public translate: boolean
   ) {}
@@ -636,7 +636,7 @@ export class TranslateParam {
    * @returns Object with parameter name as key and appropriate value for interpolation
    */
   getInterpolateParam(): { [key: string]: any } {
-    const interpolateParam = {};
+    const interpolateParam: Record<string, string> = {};
     interpolateParam[this.paramName] = this.translate ? this.translatedValue : this.paramValue;
     return interpolateParam;
   }

@@ -154,7 +154,7 @@ export abstract class TransactionBaseOperations {
    * Calculates and sets the inverse of the current exchange rate.
    * @param event Event object from user interaction
    */
-  oneOverX(event): void {
+  oneOverX(event: unknown): void {
     this.configObject.currencyExRate.formControl.setValue(1 / this.configObject.currencyExRate.formControl.value);
   }
 
@@ -162,7 +162,7 @@ export abstract class TransactionBaseOperations {
    * Retrieves and sets the appropriate exchange rate based on transaction timing.
    * @param event Event object from user interaction
    */
-  getTimeDependingExchangeRate(event): void {
+  getTimeDependingExchangeRate(event: unknown): void {
     const transactionTime: Date = this.configObject.transactionTime.formControl.value;
     if (this.currencypair.idSecuritycurrency) {
       this.replaceDialogRequest('exchangeRate', () =>

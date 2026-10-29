@@ -52,7 +52,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
     this.destroyRef.onDestroy(() => this.dialogSession.unsubscribe());
   }
 
-  public onShow(event): void {
+  public onShow(event: unknown): void {
     this.dialogSession.unsubscribe();
     this.dialogSession = new Subscription();
     const render = afterNextRender(() => this.loadHelperData(), { injector: this.injector });
@@ -79,7 +79,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
     FormHelper.hideVisibleFieldConfigs(hideConnector, connectorFieldConfig);
   }
 
-  onHide(event): void {
+  onHide(event: unknown): void {
     this.dialogSession.unsubscribe();
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }

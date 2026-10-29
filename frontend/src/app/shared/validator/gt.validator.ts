@@ -27,7 +27,7 @@ export const validISIN: ValidatorFn = (control: AbstractControl): { [key: string
  * @param code code an ISIN code with country code, but without check digit
  * @return number {Integer} The check digit for this code
  */
-const calcISINCheck = (code): number => {
+const calcISINCheck = (code: string): number => {
   let conv = '';
   let digits = '';
   let sd = 0;

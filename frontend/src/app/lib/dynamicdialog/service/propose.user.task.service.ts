@@ -16,26 +16,22 @@ export class ProposeUserTaskService
   implements DeleteService, ServiceEntityUpdate<ProposeUserTask>
 {
   public rejectUserTask(idProposeRequest: number, rejectNote: string): Observable<StringResponse> {
-    return <Observable<StringResponse>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${BaseSettings.PROPOSE_USER_TASK_KEY}/reject/${idProposeRequest}`,
-          rejectNote,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<StringResponse>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.PROPOSE_USER_TASK_KEY}/reject/${idProposeRequest}`,
+        rejectNote,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public getFormDefinitionsByUserTaskType(userTaskType: UserTaskType): Observable<FieldDescriptorInputAndShow[]> {
-    return <Observable<FieldDescriptorInputAndShow[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${BaseSettings.PROPOSE_USER_TASK_KEY}/form/${userTaskType}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<FieldDescriptorInputAndShow[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${BaseSettings.PROPOSE_USER_TASK_KEY}/form/${userTaskType}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(userTask: ProposeUserTask): Observable<ProposeUserTask> {

@@ -51,11 +51,9 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   }
 
   getTenantAndPortfolio(): Observable<Tenant> {
-    return <Observable<Tenant>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Tenant>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   update(tenant: Tenant): Observable<Tenant> {
@@ -75,15 +73,19 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
 
   public setWatchlistForPerformance(idWatchlist: number): Observable<Tenant> {
     return this.httpClient
-      .patch(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/watchlistforperformance/${idWatchlist}`, null, {
-        headers: this.prepareHeaders()
-      })
+      .patch<Tenant>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/watchlistforperformance/${idWatchlist}`,
+        null,
+        {
+          headers: this.prepareHeaders()
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   public changeCurrencyTenantAndPortfolios(currency: string): Observable<Tenant> {
     return this.httpClient
-      .patch(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/currency/${currency}`, null, {
+      .patch<Tenant>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/currency/${currency}`, null, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));
@@ -92,8 +94,8 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   public getMaxTenantLimitsByMsgKey(msgKeys: TenantLimitTypes[]): Observable<TenantLimit[]> {
     let httpParams = new HttpParams();
     httpParams = httpParams.append('msgKeys', msgKeys.join(','));
-    return <Observable<TenantLimit[]>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/tenantlimits`, {
+    return this.httpClient
+      .get<TenantLimit[]>(`${BaseSettings.API_ENDPOINT}` + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/tenantlimits`, {
         headers: this.prepareHeaders(),
         params: httpParams
       })
@@ -106,8 +108,8 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   }
 
   public createSimulationTenant(dto: SimulationTenantCreateDTO): Observable<Tenant> {
-    return <Observable<Tenant>>this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/simulation`, dto, {
+    return this.httpClient
+      .post<Tenant>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/simulation`, dto, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));
@@ -143,16 +145,14 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   }
 
   public deleteSimulationTenant(idTenant: number): Observable<void> {
-    return <Observable<void>>(
-      this.httpClient
-        .delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/simulation/${idTenant}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .delete<void>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/simulation/${idTenant}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public saveTaxExportSettings(settings: TaxStatementExportRequest): Observable<void> {
-    return <Observable<void>>this.httpClient
-      .patch(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/taxexportsettings`, settings, {
+    return this.httpClient
+      .patch<void>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/taxexportsettings`, settings, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));

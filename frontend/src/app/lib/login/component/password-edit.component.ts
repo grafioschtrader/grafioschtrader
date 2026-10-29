@@ -86,9 +86,9 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
     this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_INTRO_SETTINGS);
   }
 
-  public onShow(event) {}
+  public onShow(event: unknown) {}
 
-  public onHide(event) {
+  public onHide(event: unknown) {
     this.mainDialogService.visibleDialog(false, UserSettingsDialogs.Password);
   }
 

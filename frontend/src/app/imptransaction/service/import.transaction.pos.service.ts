@@ -17,15 +17,13 @@ export class ImportTransactionPosService
   getCombineTemplateAndImpTransPosListByTransactionHead(
     idTransactionHead: number
   ): Observable<CombineTemplateAndImpTransPos[]> {
-    return <Observable<CombineTemplateAndImpTransPos[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` +
-            `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/${idTransactionHead}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<CombineTemplateAndImpTransPos[]>(
+        `${BaseSettings.API_ENDPOINT}` +
+          `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/${idTransactionHead}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteEntity(idTransactionImportPos: number): Observable<any> {
@@ -96,41 +94,35 @@ export class ImportTransactionPosService
   }
 
   setSecurity(idSecuritycurrency: number, idTransactionPosList: number[]): Observable<ImportTransactionPos[]> {
-    return <Observable<ImportTransactionPos[]>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setsecurity`,
-          { idSecuritycurrency, idTransactionPosList },
-          { headers: this.prepareHeaders() }
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<ImportTransactionPos[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setsecurity`,
+        { idSecuritycurrency, idTransactionPosList },
+        { headers: this.prepareHeaders() }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   setCashAccount(idSecuritycashAccount: number, idTransactionPosList: number[]): Observable<ImportTransactionPos[]> {
-    return <Observable<ImportTransactionPos[]>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setcashaccount`,
-          { idSecuritycashAccount, idTransactionPosList },
-          { headers: this.prepareHeaders() }
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<ImportTransactionPos[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setcashaccount`,
+        { idSecuritycashAccount, idTransactionPosList },
+        { headers: this.prepareHeaders() }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   setIdTransactionMayBe(
     idTransactionMayBe: number,
     idTransactionPosList: number[]
   ): Observable<ImportTransactionPos[]> {
-    return <Observable<ImportTransactionPos[]>>(
-      this.httpClient
-        .patch(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setidtransactionmaybe`,
-          { idTransactionMayBe, idTransactionPosList },
-          { headers: this.prepareHeaders() }
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .patch<ImportTransactionPos[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setidtransactionmaybe`,
+        { idTransactionMayBe, idTransactionPosList },
+        { headers: this.prepareHeaders() }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

@@ -112,7 +112,7 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
     ])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (data: [T[], number[]]) => {
+        next: (data) => {
           const entities = plainToInstance(this.classz, data[0]);
           this.specialTypeDisabledArr.set(data[1]);
           this.createTranslatedValueStoreAndFilterField(entities);

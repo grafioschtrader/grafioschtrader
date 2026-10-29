@@ -21,11 +21,12 @@ export class UDFDataService extends AuthServiceWithLogout<UDFData> {
    * @returns Observable emitting UDF data containing field values, or null if no data exists
    */
   public getUDFDataByEntityAndIdEntity(entity: string, idEntity: number): Observable<UDFData> {
-    return <Observable<UDFData>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_DATA_KEY}` + `/${entity}/${idEntity}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<UDFData>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_DATA_KEY}` + `/${entity}/${idEntity}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**

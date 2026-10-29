@@ -47,7 +47,7 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
   /** Error names this component sets itself, they must be removed again before a new evaluation. */
   private static readonly OWN_ERRORS = ['calendarDateInvalid', 'calendarDateNotSelectable'];
 
-  public language;
+  public language: (typeof Helper.CALENDAR_LANG)[string];
 
   private readonly datePicker = viewChild(DatePicker);
 

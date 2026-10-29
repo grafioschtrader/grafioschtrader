@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { DestroyRef, Directive, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
@@ -130,7 +131,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
    */
   protected constructor(
     private helpId: string,
-    private mainFieldId: string,
+    private mainFieldId: keyof T & string,
     private entityName: string,
     protected deleteService: DeleteService
   ) {
@@ -207,7 +208,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
       () => {
         //    entity = this.beforeDelete(entity);
         this.deleteService
-          .deleteEntity(entity[this.mainFieldId])
+          .deleteEntity(entity[this.mainFieldId] as number | string)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((response) => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
@@ -230,7 +231,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
 
   hideContextMenu(): void {}
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.refreshMenus();
   }
 

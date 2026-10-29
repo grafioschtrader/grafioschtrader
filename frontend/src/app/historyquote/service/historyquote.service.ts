@@ -14,7 +14,10 @@ import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { SupportedCSVFormats, UploadServiceFunction } from '../../lib/generaldialog/model/file.upload.param';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { HistoryquoteDeleteBounds } from '../../securitycurrency/model/historyquote.quality.group';
+import {
+  DeleteHistoryquotesSuccess,
+  HistoryquoteDeleteBounds
+} from '../../securitycurrency/model/historyquote.quality.group';
 import { AppSettings } from '../../shared/app.settings';
 import { TaFormDefinition, TaTraceIndicatorData } from '../component/indicator.definitions';
 
@@ -27,23 +30,24 @@ export class HistoryquoteService
     idSecuritycurrency: number,
     isCurrency: boolean
   ): Observable<HistoryquotesWithMissings> {
-    return <Observable<HistoryquotesWithMissings>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}`, {
-        headers: this.prepareHeaders(),
-        params: new HttpParams().set('isCurrencypair', isCurrency.toString())
-      })
+    return this.httpClient
+      .get<HistoryquotesWithMissings>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}`,
+        {
+          headers: this.prepareHeaders(),
+          params: new HttpParams().set('isCurrencypair', isCurrency.toString())
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   getDateCloseByIdSecuritycurrency(idSecuritycurrency: number): Observable<HistoryquoteDateClose[]> {
-    return <Observable<HistoryquoteDateClose[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}/dateclose`,
-          { headers: this.prepareHeaders() }
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<HistoryquoteDateClose[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}/dateclose`,
+        { headers: this.prepareHeaders() }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -55,8 +59,8 @@ export class HistoryquoteService
    * @returns Observable of HistoryquoteChartResponse containing ohlcAvailable flag and data
    */
   getHistoryquoteForChart(idSecuritycurrency: number, includeDividends = false): Observable<HistoryquoteChartResponse> {
-    return <Observable<HistoryquoteChartResponse>>this.httpClient
-      .get(
+    return this.httpClient
+      .get<HistoryquoteChartResponse>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}/forchart`,
         {
           headers: this.prepareHeaders(),
@@ -71,23 +75,22 @@ export class HistoryquoteService
     dateString: string,
     asTraded: boolean
   ): Observable<ISecuritycurrencyIdDateClose> {
-    return <Observable<ISecuritycurrencyIdDateClose>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/` +
-            `${idSecuritycurrency}/${dateString}/${asTraded}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ISecuritycurrencyIdDateClose>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/` +
+          `${idSecuritycurrency}/${dateString}/${asTraded}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getAllTaForms(): Observable<{ [key: string]: TaFormDefinition }> {
-    return <Observable<{ [key: string]: TaFormDefinition }>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}` + `${AppSettings.HISTORYQUOTE_KEY}/alltaforms`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<{ [key: string]: TaFormDefinition }>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.HISTORYQUOTE_KEY}/alltaforms`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTaWithShortMediumLongInputPeriod(
@@ -96,8 +99,8 @@ export class HistoryquoteService
     dynamicDataModel: any,
     includeDividends = false
   ): Observable<TaTraceIndicatorData[]> {
-    return <Observable<TaTraceIndicatorData[]>>this.httpClient
-      .post(
+    return this.httpClient
+      .post<TaTraceIndicatorData[]>(
         `${BaseSettings.API_ENDPOINT}` +
           `${AppSettings.HISTORYQUOTE_KEY}/${idSecuritycurrency}/taindicator/${taIndicator}`,
         dynamicDataModel,
@@ -130,11 +133,12 @@ export class HistoryquoteService
   }
 
   public getPossibleCSVFormats(): Observable<SupportedCSVFormats> {
-    return <Observable<SupportedCSVFormats>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}` + `${AppSettings.HISTORYQUOTE_KEY}/supportedcsvformat`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<SupportedCSVFormats>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.HISTORYQUOTE_KEY}/supportedcsvformat`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -145,14 +149,12 @@ export class HistoryquoteService
    * @param idSecuritycurrency - Security or currency pair whose stored period is asked for
    */
   public getDeleteBounds(idSecuritycurrency: number): Observable<HistoryquoteDeleteBounds> {
-    return <Observable<HistoryquoteDeleteBounds>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.HISTORYQUOTE_KEY}/deletebounds/${idSecuritycurrency}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<HistoryquoteDeleteBounds>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.HISTORYQUOTE_KEY}/deletebounds/${idSecuritycurrency}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -169,9 +171,9 @@ export class HistoryquoteService
     hct: HistoryquoteCreateType[],
     dateFrom: string,
     dateTo: string
-  ) {
+  ): Observable<DeleteHistoryquotesSuccess> {
     return this.httpClient
-      .delete(
+      .delete<DeleteHistoryquotesSuccess>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/delete/${idSecuritycurrency}`,
         this.getOptionsCreateType(hct, dateFrom, dateTo)
       )

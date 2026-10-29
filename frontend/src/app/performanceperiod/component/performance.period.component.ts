@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   afterNextRender,
   computed,
@@ -225,7 +226,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.activePanelService.activatePanel(this, { showMenu: this.menuItems() });
   }
 
@@ -355,7 +356,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
         WeekYear,
         disabled
       );
-      if (disabled.indexOf(WeekYear[pWD.periodSplit]) >= 0) {
+      if (disabled.indexOf(WeekYear[pWD.periodSplit as keyof typeof WeekYear]) >= 0) {
         this.configObject.periodSplit.formControl.setValue('');
       }
     }
@@ -413,7 +414,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
             trace = this.chartData[tIndex];
           }
           trace.x.push(pcdd.date);
-          trace.y.push(pcdd[key]);
+          trace.y.push(pcdd[key as Exclude<keyof typeof pcdd, 'date'>]);
         });
     }
 

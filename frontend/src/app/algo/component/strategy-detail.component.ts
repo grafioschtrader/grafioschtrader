@@ -94,7 +94,7 @@ export class StrategyDetailComponent extends SingleRecordConfigBase {
     this.fields = [];
     fieldDescriptorInputAndShows.forEach((fDIAS) => {
       const optinalParams: OptionalParams = {};
-      if (DataType[fDIAS.dataType] === DataType.None) {
+      if (DataType[fDIAS.dataType as keyof typeof DataType] === DataType.None) {
         optinalParams.translateValues = TranslateValue.NORMAL;
       }
       if (
@@ -106,7 +106,7 @@ export class StrategyDetailComponent extends SingleRecordConfigBase {
         optinalParams.headerSuffix = '%';
       }
       this.addFieldProperty(
-        DataType[fDIAS.dataType],
+        DataType[fDIAS.dataType as keyof typeof DataType],
         fDIAS.fieldName,
         AppSettings.PREFIX_ALGO_FIELD + AppHelper.toUpperCaseWithUnderscore(fDIAS.fieldName),
         optinalParams

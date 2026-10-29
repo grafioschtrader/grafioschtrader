@@ -108,7 +108,7 @@ export class DynamicFormLayoutComponent {
     return FormNotifier.of(this.config());
   }
 
-  onHelpClick(event) {
+  onHelpClick(event: unknown) {
     this.config().labelShowText = this.config().labelShowText ? null : this.config().labelHelpText;
   }
 

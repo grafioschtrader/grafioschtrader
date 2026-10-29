@@ -46,6 +46,42 @@ A top-level directory that is not `backend`, `frontend`, `docker`, `util`, `scri
 `git add -A` without having looked. `*.bat` files (including `backend/nv.bat`) are gitignored by design because
 they hold credentials; `backend/*/pom.xml.versionsBackup` is ignored as well.
 
+### Flyway versions must fit the release version
+
+`Vx_y_z` reads as "shipped in version x.y.z". V0.39.0 shipped `V0_39_1__yahoo_fundamental_field_contract.sql`, so
+every V0.39.0 installation recorded a 0.39.1 migration before any release 0.39.1 existed. That cannot be repaired
+afterwards: a migration in a release tag must never be edited, renamed or merged, because each installation that
+applied it would fail Flyway's checksum validation on its next start. The next migration therefore had to become
+`V0_39_2`, which in turn rules out a release 0.39.1 with migrations. Check before Step 2, with `<version>` the release
+about to be cut and `<prev>` the previous tag without its `V`:
+
+```bash
+mig=backend/grafioschtrader-server/src/main/resources/db/migration
+rel=<version>; prev=<prev>
+for f in $(ls $mig); do
+  v=$(printf '%s' "$f" | sed -n 's/^V\([0-9_]*\)__.*/\1/p' | tr _ .); [ -n "$v" ] || continue
+  [ "$(printf '%s\n' "$v" "$rel" | sort -V | tail -1)" = "$rel" ] || echo "ABOVE RELEASE $rel: $f"
+  if ! git cat-file -e "V$prev:$mig/$f" 2>/dev/null; then
+    [ "$(printf '%s\n' "$prev" "$v" | sort -V | head -1)" = "$prev" ] && [ "$v" != "$prev" ] || echo "NOT ABOVE $prev: $f"
+    case $rel in *.*.*.*) echo "NEW MIGRATION IN REVISION RELEASE $rel: $f";; esac
+  fi
+done
+```
+
+No output means the versions fit. Each line is a contradiction that **blocks the release**. Do not run `nv.bat`, do
+not commit, do not tag; report the lines to the user and let them decide. Never resolve it on your own:
+
+- `ABOVE RELEASE` — a migration carries a higher version than the release. Either the release takes the version of
+  its highest migration, or the unreleased migration is folded into the highest unreleased one (one that is not in
+  `V<prev>`).
+- `NOT ABOVE` — a new migration sorts at or below the previous release. Installations have already applied a higher
+  version and Flyway refuses the out-of-order script.
+- `NEW MIGRATION IN REVISION RELEASE` — a fourth-digit release must not contain a migration (see Version numbers).
+  Bump the third digit instead.
+
+The script reads the working tree, so untracked migrations are included. With the test above, the V0.39.0 tree
+reports `ABOVE RELEASE 0.39.0: V0_39_1__yahoo_fundamental_field_contract.sql`, and V0.38.3 passes.
+
 ## Step 2 — Bump the version surface
 
 1. **`backend/nv.bat <version>`** — run by the user, or by you only if it exists in the working tree (it is
@@ -107,7 +143,8 @@ roundtrip on your own.
   classic hosts pull from that one, not from GitHub.
 - **Never use `push.bat`**: it runs `git push --force`, which a fast-forward release never needs and which
   endangers the other remote.
-- Tag `V<version>` on the release commit and push the tag to **both** remotes.
+- Tag `V<version>` on the release commit and push the tag to **both** remotes. Re-run the Flyway check of Step 1
+  against the release commit first; it must print nothing.
 - The second remote serves Git LFS over SSH; if an LFS push fails there, do not push with `--no-verify` (the
   clones would receive pointer files). Report it to the user.
 

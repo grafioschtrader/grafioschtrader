@@ -120,7 +120,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
    *
    * @param event The row selection event containing the selected transaction data
    */
-  onRowSelect(event): void {
+  onRowSelect(event: { data: Transaction }): void {
     this.selectedTransaction.set(event.data);
     this.setMenuItemsToActivePanel();
   }

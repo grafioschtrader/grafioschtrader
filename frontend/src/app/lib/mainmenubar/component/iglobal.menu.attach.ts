@@ -1,3 +1,6 @@
+/** Native panel click with the marker used to preserve a nested panel's activation. */
+export type PanelClickEvent = MouseEvent & { consumedGT?: boolean };
+
 /**
  * Interface for components that can be attached to the global menu system.
  * Components implementing this interface can provide context-sensitive help.
@@ -5,7 +8,7 @@
 export interface IGlobalMenuAttach {
   isActivated(): boolean;
 
-  onComponentClick(event): void;
+  onComponentClick(event: PanelClickEvent): void;
 
   hideContextMenu(): void;
 

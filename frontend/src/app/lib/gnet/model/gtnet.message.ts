@@ -9,7 +9,7 @@ export class GTNetMessage {
   sendRecv: SendReceivedType | string = null;
   replyTo: number = null;
   messageCode: GTNetMessageCodeType | string = null;
-  gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
+  gtNetMessageParamMap: Record<string, BaseParam>;
   message: string = null;
   visibility: MessageVisibility | string = MessageVisibility.ALL_USERS;
   hasBeenRead: boolean = false;

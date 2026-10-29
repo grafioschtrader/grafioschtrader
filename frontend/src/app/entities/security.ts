@@ -19,8 +19,8 @@ export class Security extends Securitycurrency implements BaseID {
   stockexchange?: Stockexchange = null;
   productLink?: string = null;
   idTenantPrivate?: number = null;
-  activeFromDate = null;
-  activeToDate = null;
+  activeFromDate: string | number | Date = null;
+  activeToDate: string | number | Date = null;
   distributionFrequency: string = null;
   issuerCountry?: string = null;
   simulationMetadata?: SecuritySimulationMetadata = null;
@@ -77,7 +77,7 @@ export class Security extends Securitycurrency implements BaseID {
             SpecialInvestmentInstruments[SpecialInvestmentInstruments.MUTUAL_FUND] ||
           assetClass.specialInvestmentInstrument ===
             SpecialInvestmentInstruments[SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT];
-        switch (AssetclassType[assetClass.categoryType]) {
+        switch (AssetclassType[assetClass.categoryType as keyof typeof AssetclassType]) {
           case AssetclassType.EQUITIES:
           case AssetclassType.REAL_ESTATE:
             canHaveDividend =

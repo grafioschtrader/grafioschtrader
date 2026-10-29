@@ -57,7 +57,7 @@ export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  async copyToClipboard(event) {
+  async copyToClipboard(event: unknown) {
     await navigator.clipboard.writeText(this.configObject.templateAsTxt.formControl.value);
   }
 

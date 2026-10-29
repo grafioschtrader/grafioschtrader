@@ -13,15 +13,13 @@ export class SecuritysplitService
   implements DeleteCreateMultiple<Securitysplit>
 {
   getSecuritysplitsByIdSecuritycurrency(idSecuritycurrency: number): Observable<Securitysplit[]> {
-    return <Observable<Securitysplit[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_SPLIT_KEY}` +
-            `/${idSecuritycurrency}/${AppSettings.SECURITY_KEY}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Securitysplit[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_SPLIT_KEY}` +
+          `/${idSecuritycurrency}/${AppSettings.SECURITY_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   deleteAndCreateMultiple(
@@ -29,14 +27,12 @@ export class SecuritysplitService
     securitysplits: Securitysplit[],
     noteRequest: string
   ): Observable<Securitysplit[]> {
-    return <Observable<Securitysplit[]>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_SPLIT_KEY}`,
-          { idSecuritycurrency, securitysplits, noteRequest },
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<Securitysplit[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_SPLIT_KEY}`,
+        { idSecuritycurrency, securitysplits, noteRequest },
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

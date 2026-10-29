@@ -48,5 +48,5 @@ export class PageFirstRowSelectedRow {
 }
 
 export interface ChildPreservePage {
-  preservePage(data: any);
+  preservePage(data: any): void;
 }

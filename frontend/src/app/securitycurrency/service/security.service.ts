@@ -39,45 +39,37 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
   }
 
   getTradableSecuritiesByTenantAndIdWatchlist(idWatchlist: number): Observable<Security[]> {
-    return <Observable<Security[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/` + `${AppSettings.WATCHLIST_KEY}/${idWatchlist}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Security[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/` + `${AppSettings.WATCHLIST_KEY}/${idWatchlist}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getUnusedSecurityForAlgo(idAlgoAssetclassSecurity: number): Observable<Security[]> {
-    return <Observable<Security[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/` + `algounused/${idAlgoAssetclassSecurity}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Security[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/` + `algounused/${idAlgoAssetclassSecurity}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getUnusedSecurityForAlgoCustom(idWatchlist: number, idAlgoAssetclassSecurity: number): Observable<Security[]> {
-    return <Observable<Security[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/` +
-            `algounusedcustom/${idWatchlist}/${idAlgoAssetclassSecurity}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Security[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/` +
+          `algounusedcustom/${idWatchlist}/${idAlgoAssetclassSecurity}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getSecurityByIdSecuritycurrency(idSecuritycurrency: number): Observable<Security> {
-    return <Observable<Security>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Security>(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getOpenPositionByIdSecuritycurrencyAndIdTenant(
@@ -87,8 +79,8 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     idTransaction: number,
     idOpenMarginTransaction: number
   ): Observable<SecurityOpenPositionPerSecurityaccount> {
-    return <Observable<SecurityOpenPositionPerSecurityaccount>>this.httpClient
-      .get(
+    return this.httpClient
+      .get<SecurityOpenPositionPerSecurityaccount>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/date/` +
           `${dateString}/${before}`,
         {
@@ -114,8 +106,8 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     if (specInvInstrument != null) {
       params = params.set('specInvInstrument', specInvInstrument);
     }
-    return <Observable<IFeedConnector[]>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/feedConnectors`, {
+    return this.httpClient
+      .get<IFeedConnector[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/feedConnectors`, {
         headers: this.prepareHeaders(),
         params
       })
@@ -132,14 +124,12 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
    * @returns true when the instrument may only move within its own kind
    */
   isStockexchangeCategoryLocked(idSecuritycurrency: number): Observable<boolean> {
-    return <Observable<boolean>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/stockexchangecategorylocked`,
-          { headers: this.prepareHeaders() }
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<boolean>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/stockexchangecategorylocked`,
+        { headers: this.prepareHeaders() }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -158,14 +148,12 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     if (untilDate) {
       options.params = options.params.append('untilDate', untilDate);
     }
-    return <Observable<SecurityTransactionSummary>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.SECURITY_KEY}/tenantsecurity/${idSecuritycurrency}`,
-          options
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<SecurityTransactionSummary>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.SECURITY_KEY}/tenantsecurity/${idSecuritycurrency}`,
+        options
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionsByIdPortfolioAndIdSecurity(
@@ -178,14 +166,12 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     if (untilDate) {
       options.params = options.params.append('untilDate', untilDate);
     }
-    return <Observable<SecurityTransactionSummary>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idPortfolio}/portfoliosecurity/${idSecuritycurrency}`,
-          options
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<SecurityTransactionSummary>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idPortfolio}/portfoliosecurity/${idSecuritycurrency}`,
+        options
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionsByIdSecurityaccountsAndIdSecurity(
@@ -199,19 +185,17 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
       options.params = options.params.append('untilDate', untilDate);
     }
     options.params = options.params.append('idsSecurityaccount', idsSecurityaccount.join(','));
-    return <Observable<SecurityTransactionSummary>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/securityaccountsecurity/${idSecuritycurrency}`,
-          options
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<SecurityTransactionSummary>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/securityaccountsecurity/${idSecuritycurrency}`,
+        options
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   searchByCriteria(securitycurrencySearch: SecuritycurrencySearch): Observable<Security[]> {
-    return <Observable<Security[]>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/search`, {
+    return this.httpClient
+      .get<Security[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/search`, {
         headers: this.prepareHeaders(),
         params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
       })
@@ -219,14 +203,12 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
   }
 
   getHistoryquoteQualityHead(groupedBy: string): Observable<HistoryquoteQualityHead> {
-    return <Observable<HistoryquoteQualityHead>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/historyquotequality`,
-          this.getOptionHistoryqouteQuality(groupedBy)
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<HistoryquoteQualityHead>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/historyquotequality`,
+        this.getOptionHistoryqouteQuality(groupedBy)
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getHistoryquoteQualityByIds(
@@ -242,26 +224,22 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     idSecuritycurreny: number,
     fillGapsParam: HistoryquoteFillGapsParam
   ): Observable<HisotryqouteLinearFilledSummary> {
-    return <Observable<HisotryqouteLinearFilledSummary>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurreny}/fillgapes`,
-          fillGapsParam,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<HisotryqouteLinearFilledSummary>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurreny}/fillgapes`,
+        fillGapsParam,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getFillGapsBounds(idSecuritycurreny: number): Observable<HistoryquoteFillGapsBounds> {
-    return <Observable<HistoryquoteFillGapsBounds>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurreny}/fillgapsbounds`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<HistoryquoteFillGapsBounds>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurreny}/fillgapsbounds`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getSecurityStatisticsReturnResult(
@@ -269,14 +247,12 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     dateFrom: Date | string,
     dateTo: Date | string
   ): Observable<InstrumentStatisticsResult> {
-    return <Observable<InstrumentStatisticsResult>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/securitystatistics`,
-          this.getDateFromAndTo(dateFrom, dateTo, this.prepareHeaders())
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<InstrumentStatisticsResult>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/securitystatistics`,
+        this.getDateFromAndTo(dateFrom, dateTo, this.prepareHeaders())
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -311,35 +287,31 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
   }
 
   getDerivedInstrumentsLinksForSecurity(idSecuritycurrency: number): Observable<SecurityCurrencypairDerivedLinks> {
-    return <Observable<SecurityCurrencypairDerivedLinks>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/` + `${idSecuritycurrency}/derivedlinks`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<SecurityCurrencypairDerivedLinks>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/` + `${idSecuritycurrency}/derivedlinks`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
    * Gets the data provider URLs for a security. Returns URLs for intraday, historical, dividend, and split data.
    */
   getDataProviderUrls(idSecuritycurrency: number): Observable<SecurityDataProviderUrls> {
-    return <Observable<SecurityDataProviderUrls>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/dataproviderurls`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<SecurityDataProviderUrls>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/dataproviderurls`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   private getHttpParams(idTransaction: number): HttpParams {
     return new HttpParams().set('idTransaction', idTransaction ? '' + idTransaction : '');
   }
 
-  private getHttpParamsTransactions(idTransaction: number, idOpenMarginTransaction): HttpParams {
+  private getHttpParamsTransactions(idTransaction: number, idOpenMarginTransaction: string | number): HttpParams {
     return new HttpParams()
       .set('idTransaction', idTransaction ? '' + idTransaction : '')
       .set('idOpenMarginTransaction', idOpenMarginTransaction ? '' + idOpenMarginTransaction : '');
@@ -355,11 +327,12 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
   }
 
   getAdditionalData(): Observable<{ [key: number]: string }> {
-    return <Observable<{ [key: number]: string }>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/tooltip`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<{ [key: number]: string }>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/tooltip`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getToolTipByPath(dataobject: any, field: ColumnConfig, additionalData: { [key: number]: string }): any {

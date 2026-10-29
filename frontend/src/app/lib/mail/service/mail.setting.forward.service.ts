@@ -12,16 +12,17 @@ export class MailSettingForwardService
   implements ServiceEntityUpdate<MailSettingForward>
 {
   public getMailSettingForwardByUser(): Observable<MailSettingForward[]> {
-    return <Observable<MailSettingForward[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.MAIL_SETTING_FORWARD_KEY}/user`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<MailSettingForward[]>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.MAIL_SETTING_FORWARD_KEY}/user`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public getSendForwardDefault(): Observable<MailSendForwardDefault> {
-    return <Observable<MailSendForwardDefault>>this.httpClient
-      .get(
+    return this.httpClient
+      .get<MailSendForwardDefault>(
         `
     ${BaseSettings.API_ENDPOINT}${BaseSettings.MAIL_SETTING_FORWARD_KEY}/defaultforward`,
         this.getHeaders()

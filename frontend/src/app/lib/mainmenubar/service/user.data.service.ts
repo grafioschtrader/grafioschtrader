@@ -48,10 +48,11 @@ export class UserDataService extends BaseAuthService<any> {
    * @returns Observable emitting the deletion eligibility status
    */
   public getAccountDeletionEligibility(): Observable<{ status: string }> {
-    return <Observable<{ status: string }>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/deletion-eligibility`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<{ status: string }>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/deletion-eligibility`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

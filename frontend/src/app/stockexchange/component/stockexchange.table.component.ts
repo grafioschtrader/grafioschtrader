@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule } from '@ngx-translate/core';
@@ -152,7 +153,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     return this.countriesAsKeyValue[dataobject['countryCode']];
   }
 
-  override onComponentClick(event): void {
+  override onComponentClick(event: PanelClickEvent): void {
     if (!event[this.consumedGT]) {
       this.resetMenu(this.selectedEntity());
     }

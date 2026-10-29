@@ -21,8 +21,8 @@ export class Transaction {
   note?: string = null;
   cashaccountAmount?: number = null;
   cashaccountRoundingDiff?: number = null;
-  transactionTime = null;
-  exDate = null;
+  transactionTime: string | number | Date = null;
+  exDate: string | Date = null;
 
   idSecurityaccount: number = null;
 
@@ -44,7 +44,7 @@ export class Transaction {
   securityRisk: number = null;
 
   public static isSecurityTransaction(transactionType: string): boolean {
-    switch (TransactionType[transactionType]) {
+    switch (TransactionType[transactionType as keyof typeof TransactionType]) {
       case TransactionType.ACCUMULATE:
       case TransactionType.REDUCE:
       case TransactionType.DIVIDEND:
@@ -56,7 +56,7 @@ export class Transaction {
   }
 
   public static isOnlyCashAccountTransaction(transactionType: string): boolean {
-    switch (TransactionType[transactionType]) {
+    switch (TransactionType[transactionType as keyof typeof TransactionType]) {
       case TransactionType.FEE:
       case TransactionType.INTEREST_CASHACCOUNT:
         return true;
@@ -66,7 +66,7 @@ export class Transaction {
   }
 
   public static isDividendOrInterest(transactionType: string): boolean {
-    switch (TransactionType[transactionType]) {
+    switch (TransactionType[transactionType as keyof typeof TransactionType]) {
       case TransactionType.DIVIDEND:
       case TransactionType.INTEREST_CASHACCOUNT:
         return true;
@@ -76,7 +76,7 @@ export class Transaction {
   }
 
   public static isWithdrawalOrDeposit(transactionType: string): boolean {
-    switch (TransactionType[transactionType]) {
+    switch (TransactionType[transactionType as keyof typeof TransactionType]) {
       case TransactionType.WITHDRAWAL:
       case TransactionType.DEPOSIT:
         return true;

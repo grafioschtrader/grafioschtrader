@@ -37,7 +37,7 @@ export class TransactionCallParam {
   public idWatchList: number;
 
   /** Default transaction time to be pre-filled in transaction forms */
-  public defaultTransactionTime;
+  public defaultTransactionTime: Date;
 
   /** Configuration for closing margin trades, contains position limits and constraints */
   public closeMarginPosition: CloseMarginPosition;

@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { AccountPositionSummary } from '../../entities/view/account.position.summary';
 import { computed, signal, DestroyRef, inject, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -227,11 +228,11 @@ export class TenantSummariesCashaccountComponent
     this.readData();
   }
 
-  public override filterDate(event): void {
+  public override filterDate(event: unknown): void {
     this.readData();
   }
 
-  onResetToDay(event): void {
+  onResetToDay(event: unknown): void {
     this.untilDate = new Date();
     this.readData();
   }
@@ -259,7 +260,7 @@ export class TenantSummariesCashaccountComponent
     return menuItems;
   }
 
-  handleChangeGroup(event) {
+  handleChangeGroup(event: { value: string }) {
     this.selectedGroup = event.value;
     this.readData();
   }
@@ -289,7 +290,7 @@ export class TenantSummariesCashaccountComponent
       : null;
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.menuRequest?.unsubscribe();
     this.menuRequest = TranslateHelper.translateMenuItems$(this.getMenuShowOptions(), this.translateService)
       .pipe(takeUntilDestroyed(this.reportDestroyRef))
@@ -392,7 +393,10 @@ export class TenantSummariesCashaccountComponent
   private readData(): void {
     this.readRequest?.unsubscribe();
     this.readRequest = this.portfolioService
-      .getGroupedAccountsSecuritiesTenantSummary(this.untilDate, TenantPortfolioSummary[this.selectedGroup])
+      .getGroupedAccountsSecuritiesTenantSummary(
+        this.untilDate,
+        TenantPortfolioSummary[this.selectedGroup as keyof typeof TenantPortfolioSummary]
+      )
       .pipe(takeUntilDestroyed(this.reportDestroyRef))
       .subscribe((result) => {
         this.accountPositionGrandSummary.set(result);

@@ -44,18 +44,21 @@ export class PlotlyHelper {
     nativeElement: any,
     callBackFN: (traceIndex: number, dataPointIndex: number) => void
   ) {
-    nativeElement.on('plotly_click', (data) => {
-      let point: string;
-      let traceIndex: number;
-      let dataPointIndex: number;
+    nativeElement.on(
+      'plotly_click',
+      (data: { points: { pointNumber: number; curveNumber: number; x: string | number; y: number }[] }) => {
+        let point: string;
+        let traceIndex: number;
+        let dataPointIndex: number;
 
-      for (let i = 0; i < 1; i++) {
-        point = `x=  + ${data.points[i].x}; y= ${data.points[i].y.toPrecision(4)}, pn=${data.points[i].curveNumber}`;
-        traceIndex = data.points[i].curveNumber;
-        dataPointIndex = data.points[i].pointNumber;
+        for (let i = 0; i < 1; i++) {
+          point = `x=  + ${data.points[i].x}; y= ${data.points[i].y.toPrecision(4)}, pn=${data.points[i].curveNumber}`;
+          traceIndex = data.points[i].curveNumber;
+          dataPointIndex = data.points[i].pointNumber;
+        }
+        callBackFN(traceIndex, dataPointIndex);
       }
-      callBackFN(traceIndex, dataPointIndex);
-    });
+    );
   }
 
   /**
@@ -65,12 +68,15 @@ export class PlotlyHelper {
   public static translateLayout(translateService: TranslateService, layout: any): void {
     PlotlyHelper.translateLayoutTitles(translateService, layout);
     const LABEL = 'label';
-    const founds: any = [];
+    const founds: Record<string, unknown>[][] = [];
     this.searchArrayInObjectTree(layout, founds);
 
     founds.forEach((elements) =>
       elements
-        .filter((e) => e && typeof e === 'object' && e.hasOwnProperty(LABEL) && typeof e[LABEL] === 'string')
+        .filter(
+          (e): e is Record<string, unknown> & { label: string } =>
+            e && typeof e === 'object' && e.hasOwnProperty(LABEL) && typeof e[LABEL] === 'string'
+        )
         .filter((f) => (f[LABEL] = f[LABEL].toUpperCase()))
         .map((match) =>
           translateService
@@ -108,7 +114,7 @@ export class PlotlyHelper {
         wordKey.push(entry[1]);
       }
 
-      const params = {};
+      const params: Record<string, string> = {};
       translateService.get(wordKey).subscribe((paramTrans) => {
         for (let i = 0; i < wordKey.length; i++) {
           params['p' + i] = paramTrans[wordKey[i]];

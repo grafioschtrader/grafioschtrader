@@ -11,7 +11,7 @@ export class SecuritycurrencySearch {
   subCategoryNLS: string = null;
   onlyTenantPrivate: boolean = null;
   leverageFactor: number = null;
-  activeDate = null;
+  activeDate: string = null;
   excludeDerivedSecurity: boolean = null;
   idConnectorHistory: string = null;
   idConnectorIntra: string = null;

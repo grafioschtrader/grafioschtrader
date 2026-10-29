@@ -63,7 +63,7 @@ export abstract class TenantEditComponent {
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  onHide(event) {
+  onHide(event: unknown) {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 

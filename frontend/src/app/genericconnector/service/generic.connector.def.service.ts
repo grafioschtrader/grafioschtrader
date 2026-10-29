@@ -15,11 +15,9 @@ export class GenericConnectorDefService
   implements ServiceEntityUpdate<GenericConnectorDef>, DeleteService
 {
   public getAllGenericConnectors(): Observable<GenericConnectorDef[]> {
-    return <Observable<GenericConnectorDef[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.GENERIC_CONNECTOR_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<GenericConnectorDef[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.GENERIC_CONNECTOR_KEY}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteEntity(id: number): Observable<any> {
@@ -33,42 +31,38 @@ export class GenericConnectorDefService
   }
 
   public activateConnector(id: number): Observable<GenericConnectorDef> {
-    return <Observable<GenericConnectorDef>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.GENERIC_CONNECTOR_KEY}/activate/${id}`,
-          null,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<GenericConnectorDef>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GENERIC_CONNECTOR_KEY}/activate/${id}`,
+        null,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public deactivateConnector(id: number): Observable<GenericConnectorDef> {
-    return <Observable<GenericConnectorDef>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.GENERIC_CONNECTOR_KEY}/deactivate/${id}`,
-          null,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<GenericConnectorDef>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GENERIC_CONNECTOR_KEY}/deactivate/${id}`,
+        null,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public reloadConnectors(): Observable<void> {
-    return <Observable<void>>(
-      this.httpClient
-        .post(`${BaseSettings.API_ENDPOINT}${AppSettings.GENERIC_CONNECTOR_KEY}/reload`, null, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<void>(`${BaseSettings.API_ENDPOINT}${AppSettings.GENERIC_CONNECTOR_KEY}/reload`, null, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public testEndpoint(request: GenericConnectorTestRequest): Observable<GenericConnectorTestResult> {
-    return <Observable<GenericConnectorTestResult>>(
-      this.httpClient
-        .post(`${BaseSettings.API_ENDPOINT}${AppSettings.GENERIC_CONNECTOR_KEY}/test`, request, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<GenericConnectorTestResult>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GENERIC_CONNECTOR_KEY}/test`,
+        request,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

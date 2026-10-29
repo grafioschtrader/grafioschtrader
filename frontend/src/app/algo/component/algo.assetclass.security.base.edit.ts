@@ -31,7 +31,7 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
     super(HelpIds.HELP_ALGO_TREE, i18nRecord, serviceEntityUpdate);
   }
 
-  override onHide(event): void {
+  override onHide(event: unknown): void {
     this.securityaccount1ChangedSub && this.securityaccount1ChangedSub.unsubscribe();
     super.onHide(event);
   }

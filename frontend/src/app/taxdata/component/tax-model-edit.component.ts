@@ -169,7 +169,7 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
     this.configObject.submit.disabled = false;
   }
 
-  override onHide(event): void {
+  override onHide(event: unknown): void {
     this.validationRevision++;
     super.onHide(event);
   }

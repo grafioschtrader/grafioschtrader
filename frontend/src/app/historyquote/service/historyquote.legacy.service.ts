@@ -38,26 +38,22 @@ export class HistoryquoteLegacyService
   }
 
   getLegacyForSecurity(idSecuritycurrency: number): Observable<HistoryquoteLegacy[]> {
-    return <Observable<HistoryquoteLegacy[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_LEGACY_KEY}/security/${idSecuritycurrency}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<HistoryquoteLegacy[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_LEGACY_KEY}/security/${idSecuritycurrency}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   applySplitToLegacy(idSecuritycurrency: number, body: LegacySplitRequest): Observable<number> {
-    return <Observable<number>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_LEGACY_KEY}/security/${idSecuritycurrency}/split`,
-          body,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post<number>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_LEGACY_KEY}/security/${idSecuritycurrency}/split`,
+        body,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   deleteAllLegacyForSecurity(idSecuritycurrency: number): Observable<any> {

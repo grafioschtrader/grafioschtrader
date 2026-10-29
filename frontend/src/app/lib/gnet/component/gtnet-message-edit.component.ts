@@ -114,7 +114,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
         this.translateService,
         GTNetMessageCodeType,
-        [GTNetMessageCodeType[msgCallParam.gtNetMessage.messageCode]],
+        [GTNetMessageCodeType[msgCallParam.gtNetMessage.messageCode as keyof typeof GTNetMessageCodeType]],
         false
       );
       this.configObject[this.MESSAGE_CODE].formControl.setValue(msgCallParam.gtNetMessage[this.MESSAGE_CODE]);
@@ -352,7 +352,8 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
           paramValue = paramValue.join(',');
         } else if (
           paramValue instanceof Date &&
-          (DataType[fDIAS.dataType] === DataType.DateString || DataType[fDIAS.dataType] === DataType.DateNumeric)
+          (DataType[fDIAS.dataType as keyof typeof DataType] === DataType.DateString ||
+            DataType[fDIAS.dataType as keyof typeof DataType] === DataType.DateNumeric)
         ) {
           paramValue = moment(paramValue).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
         }

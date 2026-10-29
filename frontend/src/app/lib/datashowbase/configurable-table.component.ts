@@ -1289,7 +1289,8 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
    */
   getSelectFilterValue(field: ColumnConfig): any {
     // Optimus removes the entry instead of blanking it, so a missing key means "not filtered".
-    return this.table()?.filters?.[getFilterKey(field)]?.['value'] ?? null;
+    const filter = this.table()?.filters?.[getFilterKey(field)];
+    return (Array.isArray(filter) ? undefined : filter?.value) ?? null;
   }
 
   /**

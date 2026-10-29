@@ -19,11 +19,12 @@ export class GTNetMessageAnswerService
    * Retrieves all GTNetMessageAnswer entities from the server.
    */
   getAllGTNetMessageAnswers(): Observable<GTNetMessageAnswer[]> {
-    return <Observable<GTNetMessageAnswer[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_MESSAGE_ANSWER_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<GTNetMessageAnswer[]>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_MESSAGE_ANSWER_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**

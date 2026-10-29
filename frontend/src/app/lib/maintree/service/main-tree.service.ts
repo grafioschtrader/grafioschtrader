@@ -166,7 +166,7 @@ export class MainTreeService {
       return of(void 0);
     }
 
-    return combineLatest(refreshObservables).pipe(map(() => void 0));
+    return combineLatest(refreshObservables).pipe(map((): void => void 0));
   }
 
   /**
@@ -194,7 +194,7 @@ export class MainTreeService {
       return of(void 0);
     }
 
-    return combineLatest(refreshObservables).pipe(map(() => void 0));
+    return combineLatest(refreshObservables).pipe(map((): void => void 0));
   }
 
   /**

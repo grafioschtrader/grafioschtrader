@@ -23,22 +23,21 @@ export class TaskDataChangeService
     if (idTasks && idTasks.length > 0) {
       params = params.set('idTasks', idTasks.join(','));
     }
-    return <Observable<TaskDataChange[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.TASK_DATA_CHANGE_KEY}`, { ...this.getHeaders(), params })
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<TaskDataChange[]>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TASK_DATA_CHANGE_KEY}`, {
+        ...this.getHeaders(),
+        params
+      })
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getFormConstraints(): Observable<TaskDataChangeFormConstraints> {
-    return <Observable<TaskDataChangeFormConstraints>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${BaseSettings.TASK_DATA_CHANGE_KEY}/taskdatachangeconstraints`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<TaskDataChangeFormConstraints>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.TASK_DATA_CHANGE_KEY}/taskdatachangeconstraints`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   update(taskDataChange: TaskDataChange): Observable<TaskDataChange> {
@@ -53,7 +52,7 @@ export class TaskDataChangeService
 
   interruptingRunningJob(idTaskDataChange: number): Observable<boolean> {
     return this.httpClient
-      .patch(
+      .patch<boolean>(
         `${BaseSettings.API_ENDPOINT}${BaseSettings.TASK_DATA_CHANGE_KEY}/interruptingrunningjob` +
           `/${idTaskDataChange}`,
         null,

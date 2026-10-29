@@ -38,39 +38,33 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
     if (cached) {
       return of(JSON.parse(cached));
     }
-    return <Observable<MaxInstrumentLimits>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/maxinstrumentlimits`,
-          this.getHeaders()
-        )
-        .pipe(
-          tap((value) => sessionStorage.setItem(GlobalGTSessionNames.MAX_INSTRUMENT_LIMITS, JSON.stringify(value))),
-          catchError(this.handleError.bind(this))
-        )
-    );
+    return this.httpClient
+      .get<MaxInstrumentLimits>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/maxinstrumentlimits`,
+        this.getHeaders()
+      )
+      .pipe(
+        tap((value) => sessionStorage.setItem(GlobalGTSessionNames.MAX_INSTRUMENT_LIMITS, JSON.stringify(value))),
+        catchError(this.handleError.bind(this))
+      );
   }
 
   public getCurrencies(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/${AppSettings.CURRENCIES_P_KEY}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/${AppSettings.CURRENCIES_P_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public getPossibleAssetclassInstrumentMap(): Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }> {
-    return <Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/possibleassetclassspezinstrument`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/possibleassetclassspezinstrument`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   private getGlobalparameterNumber<T extends string>(
@@ -81,12 +75,12 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
     if (sessionStorage.getItem(globalSessionNames)) {
       return of(+sessionStorage.getItem(globalSessionNames));
     } else {
-      return <Observable<number>>(
-        this.httpClient.get(`${BaseSettings.API_ENDPOINT}` + `${requestMapping}/${uriPart}`, this.getHeaders()).pipe(
+      return this.httpClient
+        .get<number>(`${BaseSettings.API_ENDPOINT}` + `${requestMapping}/${uriPart}`, this.getHeaders())
+        .pipe(
           tap((value) => sessionStorage.setItem(globalSessionNames, '' + value)),
           catchError(this.handleError.bind(this))
-        )
-      );
+        );
     }
   }
 

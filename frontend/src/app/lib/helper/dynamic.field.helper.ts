@@ -1662,7 +1662,7 @@ export interface FieldOptions {
   /** Minimum length for string inputs (used with rangeLength validation) */
   minLength?: number;
   /** Function to provide autocomplete suggestions */
-  suggestionsFN?: (any) => void;
+  suggestionsFN?: (event: { query: string }) => void;
   /** Whether the field should be hidden */
   invisible?: boolean;
   /** Options for select/dropdown fields */

@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { Transaction } from '../../entities/transaction';
 import { CloseMarginPosition, TransactionCallParam } from './transaction.call.parm';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -216,7 +217,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * Handles row unselection events by clearing the selected transaction.
    * @param event The unselection event from the table
    */
-  onRowUnselect(event): void {
+  onRowUnselect(event: unknown): void {
     this.selectedTransaction.set(null);
     this.setMenuItemsToActivePanel();
   }
@@ -251,7 +252,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * Handles component click events, manages event propagation and menu state.
    * @param event The click event from the component
    */
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     event[this.consumedGT] = true;
     const contextMenu = this.contextMenu();
     contextMenu && contextMenu.hide();
@@ -348,7 +349,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * Abstract method for preparing transaction call parameters before opening edit dialogs.
    * @param transactionCallParam The transaction call parameters to be prepared
    */
-  protected abstract prepareTransactionCallParam(transactionCallParam: TransactionCallParam);
+  protected abstract prepareTransactionCallParam(transactionCallParam: TransactionCallParam): void;
 
   /**
    * Navigates to the first row position in the table based on the provided ID.
@@ -411,7 +412,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param transaction The transaction to check for deletion eligibility
    * @returns True if the transaction can be deleted
    */
-  protected canDeleteTransaction(transaction): boolean {
+  protected canDeleteTransaction(transaction: Transaction): boolean {
     return true;
   }
 }

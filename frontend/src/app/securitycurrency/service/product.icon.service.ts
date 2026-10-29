@@ -44,7 +44,9 @@ export class ProductIconService {
       const assetclass = security.assetClass;
       if (
         security.idLinkSecuritycurrency &&
-        SpecialInvestmentInstruments[assetclass.specialInvestmentInstrument] !== SpecialInvestmentInstruments.FOREX
+        SpecialInvestmentInstruments[
+          assetclass.specialInvestmentInstrument as keyof typeof SpecialInvestmentInstruments
+        ] !== SpecialInvestmentInstruments.FOREX
       ) {
         icon = 'd';
       } else {
@@ -64,13 +66,16 @@ export class ProductIconService {
    */
   getDistributionIcon(security: Security): string {
     return security?.distributionFrequency &&
-      DistributionFrequency[security.distributionFrequency] !== DistributionFrequency.DF_NONE
+      DistributionFrequency[security.distributionFrequency as keyof typeof DistributionFrequency] !==
+        DistributionFrequency.DF_NONE
       ? 'dist'
       : null;
   }
 
   getIconForAssetclass(assetclass: Assetclass, icon: string) {
-    switch (SpecialInvestmentInstruments[assetclass.specialInvestmentInstrument]) {
+    switch (
+      SpecialInvestmentInstruments[assetclass.specialInvestmentInstrument as keyof typeof SpecialInvestmentInstruments]
+    ) {
       case SpecialInvestmentInstruments.DIRECT_INVESTMENT:
         icon = this.getDirectInvestmentIcon(assetclass.categoryType);
         break;
@@ -104,7 +109,7 @@ export class ProductIconService {
 
   private getDirectInvestmentIcon(assetclassType: AssetclassType | string): string {
     let icon: string;
-    switch (AssetclassType[assetclassType]) {
+    switch (AssetclassType[assetclassType as keyof typeof AssetclassType]) {
       case AssetclassType.EQUITIES:
         icon = 'eq';
         break;

@@ -14,4 +14,6 @@
 export interface EnumI {
   /** Maps numeric enum values to their string representations */
   [id: number]: string;
+  /** Maps enum names to numeric values; numeric keys retain the reverse mapping. */
+  [name: string]: number | string;
 }

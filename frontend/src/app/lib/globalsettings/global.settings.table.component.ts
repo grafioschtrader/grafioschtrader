@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../mainmenubar/component/iglobal.menu.attach';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -138,7 +139,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.resetMenu(this.selectedEntity());
   }
 

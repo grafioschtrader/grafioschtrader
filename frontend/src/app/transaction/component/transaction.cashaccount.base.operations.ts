@@ -75,7 +75,7 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    * Initialises the dialog once its form has rendered, ending the preceding session first.
    * @param event The dialog show event object
    */
-  public onShow(event) {
+  public onShow(event: unknown) {
     this.initializeAfterRender(() => this.preInitialize());
   }
 

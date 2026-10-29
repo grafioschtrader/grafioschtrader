@@ -6,7 +6,7 @@ import { MenubarComponent } from '../../mainmenubar/component/menubar.component'
 import { MainTreeComponent } from '../../maintree/component/main-tree.component';
 import { MainDialogComponent } from '../../mainmenubar/component/main-dialog.component';
 
-declare function Split(ids, options);
+declare const Split: typeof import('split.js');
 
 /**
  * This component defines the global split layout of GT. There is a division into navigation, main and additional area.
@@ -58,7 +58,7 @@ export class SplitLayoutComponent implements OnInit {
     this.viewSizeChangedService.setMainTreeSplit(splitTreeMain);
   }
 
-  onResize(event): void {
+  onResize(event: unknown): void {
     this.viewSizeChangedService.viewPanelChanged(ChangedViewSizeType.WINDOW);
   }
 }

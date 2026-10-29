@@ -100,23 +100,22 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
   }
 
   getPeriodPerformance(performanceWindowDef: PerformanceWindowDef): Observable<PerformancePeriod> {
-    return <Observable<PerformancePeriod>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/${performanceWindowDef.dateFrom}/${performanceWindowDef.dateTo}` +
-            `/${performanceWindowDef.periodSplit}`,
-          this.getOptionsWithIdPortfolio(performanceWindowDef.idPortfolio)
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<PerformancePeriod>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/${performanceWindowDef.dateFrom}/${performanceWindowDef.dateTo}` +
+          `/${performanceWindowDef.periodSplit}`,
+        this.getOptionsWithIdPortfolio(performanceWindowDef.idPortfolio)
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getMissingQuotesWithSecurities(year: number): Observable<MissingQuotesWithSecurities> {
-    return <Observable<MissingQuotesWithSecurities>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/missingquotes/${year}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<MissingQuotesWithSecurities>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/missingquotes/${year}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   private getOptionsWithIdPortfolio(idPortfolio: number) {

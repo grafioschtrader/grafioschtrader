@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
 import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../dynamic-form/models/data.type';
@@ -192,7 +193,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   private createParentNode(tn: TreeNode[], miws: MailInboxWithSend, mailSendRecv: MailSendRecv): void {
     const parentId = mailSendRecv.idReplyToLocal ? mailSendRecv.idReplyToLocal : mailSendRecv.idMailSendRecv;
     const numberOfAnswer = miws.countMsgMap[parentId];
-    const tnParent = {
+    const tnParent: TreeNode<MailSendRecv> = {
       data: Object.assign(mailSendRecv, { numberOfAnswer }),
       children: [],
       expanded: false,
@@ -203,7 +204,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     tn.push(tnParent);
   }
 
-  nodeSelect(event): void {
+  nodeSelect(event: { node: { data: MailSendRecv } }): void {
     const mailSendRecv: MailSendRecv = event.node.data;
     if (!this.hasBeenRead(mailSendRecv)) {
       this.sendRecvService.markForRead(mailSendRecv.idMailSendRecv).subscribe((mailSendRecvRc) => {
@@ -270,7 +271,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.setMenuItemsToActivePanel();
   }
 

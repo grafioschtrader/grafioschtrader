@@ -20,19 +20,21 @@ export class RiskFreeRateMappingService
   implements DeleteService, ServiceEntityUpdate<RiskFreeRateMapping>
 {
   getAll(): Observable<RiskFreeRateMapping[]> {
-    return <Observable<RiskFreeRateMapping[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.RISK_FREE_RATE_MAPPING_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<RiskFreeRateMapping[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.RISK_FREE_RATE_MAPPING_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getAllInstruments(): Observable<RiskFreeInstrumentOption[]> {
-    return <Observable<RiskFreeInstrumentOption[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.RISK_FREE_RATE_MAPPING_KEY}/instruments`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<RiskFreeInstrumentOption[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.RISK_FREE_RATE_MAPPING_KEY}/instruments`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   update(entity: RiskFreeRateMapping): Observable<RiskFreeRateMapping> {

@@ -11,11 +11,9 @@ import { BaseSettings } from '../../base.settings';
 @Service()
 export class UserAdminService extends AuthServiceWithLogout<User> implements DeleteService, ServiceEntityUpdate<User> {
   public getAllUsers(): Observable<User[]> {
-    return <Observable<User[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_ADMIN_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<User[]>(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_ADMIN_KEY}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   // public getUserByIdUser(idUser: number): Observable<User> {
@@ -24,11 +22,12 @@ export class UserAdminService extends AuthServiceWithLogout<User> implements Del
   // }
 
   public getIdUserAndNicknameExcludeMe(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_ADMIN_KEY}/idnicknameexcludeme`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.USER_ADMIN_KEY}/idnicknameexcludeme`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(user: User): Observable<User> {
@@ -43,9 +42,13 @@ export class UserAdminService extends AuthServiceWithLogout<User> implements Del
 
   public moveCreatedByUserToOtherUser(fromIdUser: number, toIdUser: number): Observable<number> {
     return this.httpClient
-      .patch(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_ADMIN_KEY}/` + `${fromIdUser}/${toIdUser}`, null, {
-        headers: this.prepareHeaders()
-      })
+      .patch<number>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.USER_ADMIN_KEY}/` + `${fromIdUser}/${toIdUser}`,
+        null,
+        {
+          headers: this.prepareHeaders()
+        }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 }

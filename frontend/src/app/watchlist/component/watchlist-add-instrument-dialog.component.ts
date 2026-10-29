@@ -72,12 +72,12 @@ export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearc
   }
 
   /** Handles dialog hide event and emits close dialog event with no change action. */
-  onHide(event) {
+  onHide(event: unknown) {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 
   /** Closes the search dialog and emits close dialog event with no change action. */
-  override closeSearchDialog(event): void {
+  override closeSearchDialog(event: unknown): void {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 

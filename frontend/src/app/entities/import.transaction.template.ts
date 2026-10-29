@@ -11,7 +11,7 @@ export class ImportTransactionTemplate extends Auditable implements BaseID {
   templatePurpose: string = null;
   templateCategory?: TemplateCategory | string = null;
   templateAsTxt: string = null;
-  validSince? = null;
+  validSince?: string | Date = null;
   templateLanguage: string = null;
 
   public override getId() {

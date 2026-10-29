@@ -80,8 +80,8 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
    * @param prop - Property name to group by
    * @returns Object with property values as keys and arrays of matching items as values
    */
-  group(list, prop) {
-    return list.reduce((grouped, item) => {
+  group(list: ColumnConfig[], prop: 'fieldsetName'): Record<string, ColumnConfig[]> {
+    return list.reduce<Record<string, ColumnConfig[]>>((grouped, item) => {
       const key = item[prop];
       grouped[key] = grouped[key] || [];
       grouped[key].push(item);

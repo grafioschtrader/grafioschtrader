@@ -15,22 +15,21 @@ export class ImportTransactionPlatformService
   implements DeleteService, ServiceEntityUpdate<ImportTransactionPlatform>
 {
   getAllImportTransactionPlatforms(): Observable<ImportTransactionPlatform[]> {
-    return <Observable<ImportTransactionPlatform[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMP_TRANS_PLATFORM_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<ImportTransactionPlatform[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMP_TRANS_PLATFORM_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getPlatformTransactionImport(): Observable<IPlatformTransactionImport[]> {
-    return <Observable<IPlatformTransactionImport[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMP_TRANS_PLATFORM_KEY}/platformImports`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<IPlatformTransactionImport[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMP_TRANS_PLATFORM_KEY}/platformImports`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -44,15 +43,13 @@ export class ImportTransactionPlatformService
   setGtImportPlatform(idTransactionImportPlatform: number | null): Observable<number | null> {
     const params =
       idTransactionImportPlatform == null ? '' : `?idTransactionImportPlatform=${idTransactionImportPlatform}`;
-    return <Observable<number | null>>(
-      this.httpClient
-        .put(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.IMP_TRANS_PLATFORM_KEY}/gtplatform${params}`,
-          null,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .put<number | null>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.IMP_TRANS_PLATFORM_KEY}/gtplatform${params}`,
+        null,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   update(importTransactionPlatform: ImportTransactionPlatform): Observable<ImportTransactionPlatform> {
@@ -75,13 +72,10 @@ export class ImportTransactionPlatformService
   uploadAndTransformPDFToTxt(pdfFileToUpload: File): Observable<string> {
     const formData: FormData = new FormData();
     formData.append('file', pdfFileToUpload, pdfFileToUpload.name);
-    const options: any = this.getMultipartHeaders();
-    options.responseType = 'text';
+    const options = { ...this.getMultipartHeaders(), responseType: 'text' as const };
 
-    return <Observable<string>>(
-      this.httpClient
-        .post(`${BaseSettings.API_ENDPOINT}${AppSettings.IMP_TRANS_PLATFORM_KEY}/transformpdftotxt`, formData, options)
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .post(`${BaseSettings.API_ENDPOINT}${AppSettings.IMP_TRANS_PLATFORM_KEY}/transformpdftotxt`, formData, options)
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

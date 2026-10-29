@@ -17,33 +17,27 @@ import { BaseSettings } from '../../lib/base.settings';
 @Service()
 export class PortfolioService extends AuthServiceWithLogout<Portfolio> implements ServiceEntityUpdate<Portfolio> {
   getPortfolioByIdSecuritycashaccount(idSecuritycashaccount: number): Observable<Portfolio> {
-    return <Observable<Portfolio>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/` + `account/${idSecuritycashaccount}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Portfolio>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/` + `account/${idSecuritycashaccount}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getPortfolioByIdPortfolio(idPortfolio: number): Observable<Portfolio> {
-    return <Observable<Portfolio>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/${idPortfolio}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Portfolio>(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/${idPortfolio}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getPortfoliosForTenantOrderByName(): Observable<Portfolio[]> {
-    return <Observable<Portfolio[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/` + `${BaseSettings.TENANT_KEY}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<Portfolio[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/` + `${BaseSettings.TENANT_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getGroupedAccountsSecuritiesTenantSummary(
@@ -54,14 +48,12 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
       tenantPortfolioSummary === TenantPortfolioSummary.GROUP_BY_CURRENCY
         ? AppSettings.CURRENCY_KEY
         : AppSettings.PORTFOLIO_KEY;
-    return <Observable<AccountPositionGrandSummary>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/securitycashaccountsummary/${urlPart}`,
-          AppHelper.getOptionsWithUntilDate(untilDate, this.prepareHeaders())
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<AccountPositionGrandSummary>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/securitycashaccountsummary/${urlPart}`,
+        AppHelper.getOptionsWithUntilDate(untilDate, this.prepareHeaders())
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -78,8 +70,8 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
     let httpParams = new HttpParams();
     httpParams = httpParams.append('idsSecurityaccount', idsSecurityaccount.join(','));
     httpParams = httpParams.append('idsCashaccount', idsCashaccount.join(','));
-    return <Observable<SecurityDividendsChart>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/dividendschart`, {
+    return this.httpClient
+      .get<SecurityDividendsChart>(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/dividendschart`, {
         headers: this.prepareHeaders(),
         params: httpParams
       })
@@ -93,8 +85,8 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
     let httpParams = new HttpParams();
     httpParams = httpParams.append('idsSecurityaccount', idsSecurityaccount.join(','));
     httpParams = httpParams.append('idsCashaccount', idsCashaccount.join(','));
-    return <Observable<SecurityDividendsGrandTotal>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/dividends`, {
+    return this.httpClient
+      .get<SecurityDividendsGrandTotal>(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/dividends`, {
         headers: this.prepareHeaders(),
         params: httpParams
       })
@@ -102,11 +94,12 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
   }
 
   getTransactionCostGrandSummaryByTenant(): Observable<TransactionCostGrandSummary> {
-    return <Observable<TransactionCostGrandSummary>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/transactioncost`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<TransactionCostGrandSummary>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/transactioncost`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**

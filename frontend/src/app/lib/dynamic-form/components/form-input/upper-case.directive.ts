@@ -9,9 +9,9 @@ export class UpperCaseDirective {
 
   readonly allowUpperCase = input<boolean>(undefined, { alias: 'upperCase' });
 
-  onInput(event) {
+  onInput(event: Event) {
     if (this.allowUpperCase()) {
-      this.ref.nativeElement.value = event.target.value.toUpperCase();
+      this.ref.nativeElement.value = (event.target as HTMLInputElement).value.toUpperCase();
     }
   }
 }

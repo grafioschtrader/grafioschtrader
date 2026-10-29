@@ -15,7 +15,7 @@ export abstract class DynamicFieldSimpleEditBase extends SimpleEditBase {
    * @param {any} event - The dialog show event
    * @returns {void}
    */
-  public override onShow(event): void {
+  public override onShow(event: unknown): void {
     this.renewDialogSession();
     this.initialize();
     this.viewChanged();

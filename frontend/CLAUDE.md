@@ -2,6 +2,26 @@
 
 This file provides frontend-specific guidance to Claude Code when working with the Angular frontend.
 
+## Type checking
+
+Both hosts and the Vitest sources inherit `noImplicitAny`, `strictBindCallApply`, `strictFunctionTypes`, `noImplicitThis`, `useUnknownInCatchVariables`,
+`alwaysStrict` and `strictBuiltinIteratorReturn` from `tsconfig.json`. The Angular API ratchet guards these options.
+Keep callback parameters, model fields and return types explicit where TypeScript cannot infer them. Use `unknown`
+for an unused event or an opaque value; do not add `any` to silence a diagnostic. Dynamic JSON dictionaries use
+`Record` types; entity keys use `keyof T`. Numeric enum names received from JSON are indexed through
+`keyof typeof EnumName`. A panel's native click uses `PanelClickEvent`, including the optional `consumedGT` marker.
+
+An HTTP error handler that only rethrows declares `Observable<never>`. Declare the response body type on each
+`HttpClient` call so `catchError(this.handleError.bind(this))` preserves its success type. Login returns
+`HttpResponse<ConfigurationWithLogin>`, giving consumers typed access to the token header and configuration body.
+Text and Blob requests use literal `responseType` options so the HTTP overload supplies the result type.
+Validator callbacks accept `AbstractControl` and return `ValidationErrors | null`. Preserve report row subtypes through
+generic model parameters. Handlers shared by several CDK drop lists retain the list's generic parameter.
+
+Verify both host builds and `npx tsc -p tsconfig.spec.json --noEmit`; Vitest executes tests without type checking them.
+The remaining strict options are enabled in separate stages; `strictNullChecks` and `strictPropertyInitialization`
+are not yet enabled.
+
 ## Minimal Business Logic in Frontend
 
 **IMPORTANT**: Keep business logic in the frontend to an absolute minimum. Most business logic belongs in the backend.

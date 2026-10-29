@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { TableCrudSupportMenu, CrudMenuOptions } from '../../datashowbase/table.crud.support.menu';
 import { Component, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -169,7 +170,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
     return HelpIds.HELP_USER;
   }
 
-  override onComponentClick(event): void {
+  override onComponentClick(event: PanelClickEvent): void {
     if (!event[this.consumedGT]) {
       this.resetMenu(this.selectedEntity());
     }
@@ -194,7 +195,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
     this.visibleChangeEntitiesOwnerDialog.set(false);
   }
 
-  handleChangesOnLimitTable(event) {
+  handleChangesOnLimitTable(event: unknown) {
     this.readData();
   }
 

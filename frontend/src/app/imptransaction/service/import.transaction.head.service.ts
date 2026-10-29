@@ -24,14 +24,12 @@ export class ImportTransactionHeadService
   }
 
   getPlatformTransactionImport(): Observable<IPlatformTransactionImport[]> {
-    return <Observable<IPlatformTransactionImport[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/platformImports`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<IPlatformTransactionImport[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/platformImports`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getImportTransactionHeadBySecurityaccount(idSecuritycashaccount: number): Observable<ImportTransactionHead[]> {
@@ -44,7 +42,7 @@ export class ImportTransactionHeadService
     formData: FormData
   ): Observable<SuccessFailedDirectImportTransaction> {
     return this.httpClient
-      .post(
+      .post<SuccessFailedDirectImportTransaction>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/${idSecuritycashaccount}/uploadpdftransactions`,
         formData,
         this.getMultipartHeaders()

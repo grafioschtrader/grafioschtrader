@@ -284,7 +284,12 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       SelectOptionsHelper.createHtmlOptionsFromEnum(
         this.translateService,
         AlgoStrategyImplementationType,
-        [AlgoStrategyImplementationType[(<AlgoStrategy>this.algoCallParam().thisObject).algoStrategyImplementations]],
+        [
+          AlgoStrategyImplementationType[
+            (<AlgoStrategy>this.algoCallParam().thisObject)
+              .algoStrategyImplementations as keyof typeof AlgoStrategyImplementationType
+          ]
+        ],
         false
       );
     const algoCallParam = this.algoCallParam();
@@ -309,7 +314,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   private createViewFromSelectedEnum(asi: string | AlgoStrategyImplementationType): void {
     const request = this.replaceAlgoRequest('strategy');
     this.formRender?.destroy();
-    const asiNo: number = AlgoStrategyImplementationType[asi];
+    const asiNo: number = AlgoStrategyImplementationType[asi as keyof typeof AlgoStrategyImplementationType];
     const inputAndShowDefinition = this.algoCallParam().algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asiNo);
     if (!inputAndShowDefinition) {
       request.add(
@@ -479,7 +484,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     return algoStrategy;
   }
 
-  override onHide(event): void {
+  override onHide(event: unknown): void {
     this.formRender?.destroy();
     this.algoStrategyImplementationsChangedSub && this.algoStrategyImplementationsChangedSub.unsubscribe();
     super.onHide(event);

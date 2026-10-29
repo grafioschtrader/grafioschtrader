@@ -101,7 +101,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
    * Destroys correlation editing support resources and calls parent cleanup logic.
    * @param event Dialog hide event data
    */
-  override onHide(event): void {
+  override onHide(event: unknown): void {
     this.correlationEditingSupport.destroy();
     super.onHide(event);
   }

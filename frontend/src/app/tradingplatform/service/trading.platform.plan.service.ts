@@ -21,11 +21,12 @@ export class TradingPlatformPlanService
   implements ServiceEntityUpdate<TradingPlatformPlan>, DeleteService
 {
   public getAllTradingPlatform(): Observable<TradingPlatformPlan[]> {
-    return <Observable<TradingPlatformPlan[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<TradingPlatformPlan[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getFxKinds(): Observable<ValueKeyHtmlSelectOptions[]> {
@@ -75,8 +76,8 @@ export class TradingPlatformPlanService
   }
 
   public validateYaml(yaml: string): Observable<string[]> {
-    return <Observable<string[]>>this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}/validateyaml`, yaml, {
+    return this.httpClient
+      .post<string[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}/validateyaml`, yaml, {
         headers: this.getHeaders().headers,
         responseType: 'json'
       })

@@ -205,7 +205,7 @@ export class DynamicFormComponent implements OnDestroy {
    * Buttons are not created here!
    */
   createGroupAndControl(): UntypedFormGroup {
-    const childGroups = {};
+    const childGroups: Record<string, UntypedFormGroup> = {};
 
     this.formGroups.forEach((formGroupDefinition) => {
       formGroupDefinition.formControl = this._formBuilder.group({});
@@ -359,7 +359,7 @@ export class DynamicFormComponent implements OnDestroy {
     return fieldsetConfigs;
   }
 
-  helpLink(event): void {
+  helpLink(event: unknown): void {
     this.formConfig().helpLinkFN();
   }
 }

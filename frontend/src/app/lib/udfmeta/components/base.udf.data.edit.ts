@@ -74,7 +74,7 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
       this.uDFDataService
         .getUDFDataByEntityAndIdEntity(
           uDFGeneralCallParam.entityName,
-          <number>uDFGeneralCallParam.selectedEntity[this.entityKeyName]
+          (uDFGeneralCallParam.selectedEntity as unknown as Record<string, number>)[this.entityKeyName]
         )
         .subscribe((udfData) => {
           this.prepareData(udfData?.jsonValues);
@@ -105,7 +105,7 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
       new UDFDataKey(
         null,
         this.uDFGeneralCallParam().entityName,
-        <number>this.uDFGeneralCallParam().selectedEntity[this.entityKeyName]
+        (this.uDFGeneralCallParam().selectedEntity as unknown as Record<string, number>)[this.entityKeyName]
       ),
       value
     );

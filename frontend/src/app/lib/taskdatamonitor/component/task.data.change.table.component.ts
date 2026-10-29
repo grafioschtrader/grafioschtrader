@@ -249,8 +249,8 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
   canExpandRow(taskDataChange: TaskDataChange): boolean {
     return (
-      ProgressStateType[taskDataChange.progressStateType] ===
-      ProgressStateType[ProgressStateType[ProgressStateType.PROG_FAILED]]
+      (ProgressStateType[taskDataChange.progressStateType] as string | number) ===
+      ProgressStateType[ProgressStateType[ProgressStateType.PROG_FAILED] as keyof typeof ProgressStateType]
     );
   }
 
@@ -385,8 +385,8 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
         disabled: !(
           typeof taskDataChange.idTask === 'string' &&
           this.tdcFormConstraints().canBeInterruptedList.includes(taskDataChange.idTask) &&
-          ProgressStateType[taskDataChange.progressStateType] ===
-            ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING]]
+          (ProgressStateType[taskDataChange.progressStateType] as string | number) ===
+            ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING] as keyof typeof ProgressStateType]
         )
       });
     }
@@ -434,8 +434,8 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
   protected override hasRightsForDeleteEntity(entity: TaskDataChange): boolean {
     return (
-      ProgressStateType[entity.progressStateType] !==
-      ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING]]
+      (ProgressStateType[entity.progressStateType] as string | number) !==
+      ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING] as keyof typeof ProgressStateType]
     );
   }
 }

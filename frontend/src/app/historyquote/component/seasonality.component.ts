@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   afterNextRender,
   Component,
@@ -172,7 +173,7 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
     return this.activePanelService.isActivated(this);
   }
 
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     this.activePanelService.activatePanel(this, { showMenu: this.menuItems });
   }
 

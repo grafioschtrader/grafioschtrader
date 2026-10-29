@@ -30,7 +30,7 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
   });
 
   protected constructor(
-    public dataSortKey: string,
+    public dataSortKey: keyof T & string,
     public maxRowMessageKey: string,
     private classz: ClassConstructor<T>,
     private deleteCreateMultipleService: DeleteCreateMultiple<T>
@@ -39,7 +39,7 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
     this.multiSortMeta.push({ field: dataSortKey, order: 1 });
   }
 
-  setDataList(securitysplitList: T[], dataChanged) {
+  setDataList(securitysplitList: T[], dataChanged: boolean) {
     this.dataChanged = dataChanged;
     this.selectedRow.set(null);
     this.dataList.set([...securitysplitList]);
@@ -47,12 +47,14 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
   }
 
   public addDataRow(rowData: T): void {
-    const dateStr = moment(rowData[this.dataSortKey]).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
+    const dateStr = moment(rowData[this.dataSortKey] as moment.MomentInput).format(
+      BaseSettings.FORMAT_DATE_SHORT_NATIVE
+    );
     const rows = this.dataList();
     const replacePos = rows.findIndex(
       (ss) =>
         ss[this.dataSortKey] === dateStr ||
-        moment(ss[this.dataSortKey]).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) === dateStr
+        moment(ss[this.dataSortKey] as moment.MomentInput).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) === dateStr
     );
 
     if (replacePos === -1) {

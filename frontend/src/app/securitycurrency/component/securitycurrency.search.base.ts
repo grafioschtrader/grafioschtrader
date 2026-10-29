@@ -131,7 +131,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  onShow(event) {
+  onShow(event: unknown) {
     // The form controls of a dialog that was just made visible exist after the next render.
     afterNextRender(() => this.initialize(), { injector: this.injector });
   }
@@ -143,7 +143,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
     this.configObject.submit.disabled = false;
   }
 
-  closeSearchDialog(event): void {}
+  closeSearchDialog(event: unknown): void {}
 
   helpLink(): void {
     this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_SEARCHDIALOG);

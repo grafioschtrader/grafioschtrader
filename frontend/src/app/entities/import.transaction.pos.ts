@@ -7,7 +7,7 @@ export class ImportTransactionPos implements BaseID {
   idTransactionPos: number;
   idTransactionHead: number;
   transactionType: string;
-  transactionTime;
+  transactionTime: string | Date;
   transactionTypeImp: string;
   cashaccount: Cashaccount;
   currencyAccount: string;

@@ -30,9 +30,9 @@ export abstract class SecurityaccountGroupBase<
    *
    * @param {ColumnConfig[]} internalColumnConfigs
    */
-  public abstract extendColumns(internalColumnConfigs: ColumnConfig[]);
+  public abstract extendColumns(internalColumnConfigs: ColumnConfig[]): void;
 
-  public abstract getGroupValue(security: Security);
+  public abstract getGroupValue(security: Security): string | number;
 
   public abstract translateGroupValues(securityPositionGroupSummary: T[]): void;
 

@@ -17,16 +17,17 @@ export class StockexchangeService
   implements ServiceEntityUpdate<Stockexchange>, DeleteService
 {
   public getAllStockexchangesBaseData(): Observable<StockexchangeBaseData> {
-    return <Observable<StockexchangeBaseData>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.STOCKEXCHANGE_KEY}/basedata`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<StockexchangeBaseData>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.STOCKEXCHANGE_KEY}/basedata`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public getAllStockexchanges(includeNameOfCalendarIndex: boolean): Observable<Stockexchange[]> {
-    return <Observable<Stockexchange[]>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.STOCKEXCHANGE_KEY}`, {
+    return this.httpClient
+      .get<Stockexchange[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.STOCKEXCHANGE_KEY}`, {
         headers: this.prepareHeaders(),
         params: new HttpParams().set('includeNameOfCalendarIndex', includeNameOfCalendarIndex.toString())
       })
@@ -34,22 +35,21 @@ export class StockexchangeService
   }
 
   public stockexchangeHasSecurity(idStockexchange: number): Observable<boolean> {
-    return <Observable<boolean>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.STOCKEXCHANGE_KEY}/${idStockexchange}/hassecurity`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<boolean>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.STOCKEXCHANGE_KEY}/${idStockexchange}/hassecurity`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public stockexchangesHasSecurity(): Observable<StockexchangeHasSecurity[]> {
-    return <Observable<StockexchangeHasSecurity[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}` + `${AppSettings.STOCKEXCHANGE_KEY}/hassecurity`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return this.httpClient
+      .get<StockexchangeHasSecurity[]>(
+        `${BaseSettings.API_ENDPOINT}` + `${AppSettings.STOCKEXCHANGE_KEY}/hassecurity`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   update(stockexchange: Stockexchange): Observable<Stockexchange> {

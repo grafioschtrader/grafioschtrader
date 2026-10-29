@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { afterNextRender, Component, computed, signal, viewChildren, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -245,7 +246,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     });
   }
 
-  override onComponentClick(event): void {
+  override onComponentClick(event: PanelClickEvent): void {
     if (!event[GTNetMessageTreeTableComponent.consumedGT]) {
       this.resetMenu(this.selectedEntities()[0] ?? null);
     }

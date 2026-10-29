@@ -1,3 +1,4 @@
+import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
@@ -163,7 +164,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
    *
    * @param event - the DOM click event
    */
-  onComponentClick(event): void {
+  onComponentClick(event: PanelClickEvent): void {
     if (!event[this.consumedGT]) {
       this.resetMenu();
     }
@@ -179,12 +180,12 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
     return node.nodeLevel === NodeLevel.YEAR && node.entity?.exchangeRateCount > 0;
   };
 
-  onNodeSelect(event): void {
+  onNodeSelect(event: { node: TreeNode }): void {
     this.selectedNode = event.node;
     this.resetMenu();
   }
 
-  onNodeUnselect(event): void {
+  onNodeUnselect(event: unknown): void {
     this.selectedNode = null;
     this.resetMenu();
   }

@@ -286,7 +286,7 @@ export class CorrelationComponent
    * Saves correlation set configuration and triggers calculation of correlation matrix.
    * @param event - Form submission event
    */
-  saveAndCalculate(event): void {
+  saveAndCalculate(event: unknown): void {
     const edited = Object.assign(new CorrelationSet(), this.selectedEntity);
     this.form().cleanMaskAndTransferValuesToBusinessObject(edited);
     this.correlationSetService

@@ -101,8 +101,8 @@ export class CorrelationEditingSupport {
   ): void {
     this.changeOnSamplingPeriodSub = configObject[this.samplingPeriod].formControl.valueChanges.subscribe(
       (key: string) => {
-        if (this.actualSamplingPeriod !== SamplingPeriodType[key]) {
-          this.actualSamplingPeriod = SamplingPeriodType[key];
+        if (this.actualSamplingPeriod !== SamplingPeriodType[key as keyof typeof SamplingPeriodType]) {
+          this.actualSamplingPeriod = SamplingPeriodType[key as keyof typeof SamplingPeriodType];
           configObject[this.rolling].formControl.enable();
           switch (this.actualSamplingPeriod) {
             case SamplingPeriodType.DAILY_RETURNS:
