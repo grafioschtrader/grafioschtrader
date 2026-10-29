@@ -1,11 +1,10 @@
-import { Injectable } from '@angular/core';
-import { inject } from '@angular/core';
+import { Injectable, inject, DestroyRef, signal } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslateHelper } from '../../helper/translate.helper';
-import { BehaviorSubject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { TabItem } from '../../types/tab.item';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * Service for managing tab menu navigation and state tracking.
@@ -16,11 +15,12 @@ export class TabMenuService {
   private router = inject(Router);
   private translateService = inject(TranslateService);
 
-  /** Subject for tracking the currently active route. */
-  private activeRouteSubject = new BehaviorSubject<string>('');
+  /** Signal for tracking the currently active route. */
+  private readonly activeRouteState = signal('');
+  private readonly destroyRef = inject(DestroyRef);
 
-  /** Observable stream of the currently active route for components to subscribe to. */
-  activeRoute$ = this.activeRouteSubject.asObservable();
+  /** The currently active route for components to read. */
+  readonly activeRoute = this.activeRouteState.asReadonly();
 
   /**
    * Initialize tabs with translation and router tracking.
@@ -35,11 +35,16 @@ export class TabMenuService {
     // Translate the tab labels
     TranslateHelper.translateMenuItems(tabs, this.translateService);
     // Set initial active route
-    this.activeRouteSubject.next(defaultRoute);
+    this.activeRouteState.set(defaultRoute);
     // Subscribe to router events to update active route
-    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
-      this.updateActiveRoute(tabs);
-    });
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.updateActiveRoute(tabs);
+      });
     // Navigate to default route
     this.navigateTo(defaultRoute, activatedRoute);
     return tabs;
@@ -52,7 +57,7 @@ export class TabMenuService {
    * @param activatedRoute The activated route for relative navigation
    */
   navigateTo(route: string, activatedRoute: ActivatedRoute): void {
-    this.activeRouteSubject.next(route);
+    this.activeRouteState.set(route);
     this.router.navigate([route], { relativeTo: activatedRoute });
   }
 
@@ -71,7 +76,7 @@ export class TabMenuService {
       .sort((a, b) => b.route.length - a.route.length)[0];
 
     if (matchingTab) {
-      this.activeRouteSubject.next(matchingTab.route);
+      this.activeRouteState.set(matchingTab.route);
     }
   }
 
@@ -81,6 +86,6 @@ export class TabMenuService {
    * @returns The currently active route string
    */
   getCurrentActiveRoute(): string {
-    return this.activeRouteSubject.value;
+    return this.activeRoute();
   }
 }

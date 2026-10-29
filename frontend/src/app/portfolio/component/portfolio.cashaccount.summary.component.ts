@@ -1,48 +1,57 @@
-import { DestroyRef, inject, viewChild } from '@angular/core';
-import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-
+import { httpResource } from '@angular/common/http';
+import {
+  Component,
+  DestroyRef,
+  OnDestroy,
+  effect,
+  inject,
+  input,
+  numberAttribute,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CashaccountService } from '../../cashaccount/service/cashaccount.service';
-import { ActivatedRoute, Params } from '@angular/router';
-import { Cashaccount } from '../../entities/cashaccount';
-import { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
-import { TransactionType } from '../../shared/types/transaction.type';
 import { TranslateModule } from '@ngx-translate/core';
-import { AccountPositionSummary } from '../../entities/view/account.position.summary';
-import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
-import { Portfolio } from '../../entities/portfolio';
-import { ProcessedAction } from '../../lib/types/processed.action';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { AppHelper } from '../../lib/helper/app.helper';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import { CallParam } from '../../shared/maintree/types/dialog.visible';
-import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { Subscription } from 'rxjs';
-import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
-import { TenantService } from '../../tenant/service/tenant.service';
-import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
-import { HelpIds } from '../../lib/help/help.ids';
-import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { BusinessHelper } from '../../shared/helper/business.helper';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
-import { AppSettings } from '../../shared/app.settings';
-import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
-import { BaseSettings } from '../../lib/base.settings';
-import { TableModule } from '@openng/optimus-ui/table';
-import { DatePickerModule } from '@openng/optimus-ui/datepicker';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { DatePickerModule } from '@openng/optimus-ui/datepicker';
+import { TableModule } from '@openng/optimus-ui/table';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { CashaccountEditComponent } from '../../cashaccount/component/cashaccount-edit.component';
-import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
+import { CashaccountService } from '../../cashaccount/service/cashaccount.service';
+import { Cashaccount } from '../../entities/cashaccount';
+import { Portfolio } from '../../entities/portfolio';
+import { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
+import { AccountPositionSummary } from '../../entities/view/account.position.summary';
+import { BaseSettings } from '../../lib/base.settings';
+import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
+import { AppSettings } from '../../shared/app.settings';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { CallParam } from '../../shared/maintree/types/dialog.visible';
+import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
+import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { TenantService } from '../../tenant/service/tenant.service';
 import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
+import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
 import { TransactionCashaccountTableComponent } from '../../transaction/component/transaction-cashaccount-table.component';
+import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 
 /**
  * Shows all cash accounts of a certain portfolio. Over this view the cash account can be edited.
@@ -62,16 +71,14 @@ import { TransactionCashaccountTableComponent } from '../../transaction/componen
     TransactionCashaccountTableComponent
   ]
 })
-export class PortfolioCashaccountSummaryComponent
-  extends TableConfigBase
-  implements OnInit, OnDestroy, IGlobalMenuAttach
-{
+export class PortfolioCashaccountSummaryComponent extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
+  readonly id = input.required({ transform: numberAttribute });
+
   private parentChildRegisterService: ParentChildRegisterService = inject(ParentChildRegisterService);
   private confirmationService: ConfirmationService = inject(ConfirmationService);
   private activePanelService: ActivePanelService = inject(ActivePanelService);
   private cashaccountService: CashaccountService = inject(CashaccountService);
   private messageToastService: MessageToastService = inject(MessageToastService);
-  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
   private dataChangedService: DataChangedService = inject(DataChangedService);
   private treeNavState: TreeNavigationStateService = inject(TreeNavigationStateService);
   private tenantService: TenantService = inject(TenantService);
@@ -98,7 +105,6 @@ export class PortfolioCashaccountSummaryComponent
   // For the component Edit-Menu, it shows the same menu items as the context menu
   selectedAccountPositionSummary: AccountPositionSummary;
   contextMenuItems: MenuItem[] = [];
-  private routeSubscribe: Subscription;
   private columnConfigs: ColumnConfig[] = [];
   private excludedDivTaxColumn: ColumnConfig;
   private tenantLimit: TenantLimit;
@@ -117,6 +123,10 @@ export class PortfolioCashaccountSummaryComponent
     ];
   }
 
+  private readonly summaryRequest = signal<
+    ReturnType<CashaccountService['getCashaccountPositionGroupSummaryRequest']> | undefined
+  >(undefined);
+  readonly positionResource = httpResource<AccountPositionGroupSummary>(() => this.summaryRequest());
   constructor() {
     super();
 
@@ -214,27 +224,21 @@ export class PortfolioCashaccountSummaryComponent
     );
     this.multiSortMeta.push({ field: 'cashaccount.name', order: 1 });
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
-  }
 
-  ngOnInit(): void {
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      const id = +params['id'];
-      this.portfolio = this.treeNavState.getEntity<any>(AppSettings.PORTFOLIO_SUMMARY_KEY, id);
-      this.parentChildRegisterService.initRegistry();
-      this.readData();
+    effect(() => {
+      const id = this.id();
+      untracked(() => {
+        this.portfolio = this.treeNavState.getEntity<any>(AppSettings.PORTFOLIO_SUMMARY_KEY, id);
+        this.parentChildRegisterService.initRegistry();
+        this.readData();
+      });
     });
-  }
 
-  ngOnDestroy(): void {
-    BusinessHelper.saveUntilDateInSessionStorage(this.untilDate);
-    this.activePanelService.destroyPanel(this);
-    this.routeSubscribe.unsubscribe();
-  }
-
-  readData(): void {
-    this.cashaccountService
-      .getCashaccountPositionGroupSummary(this.portfolio.idPortfolio, this.untilDate)
-      .subscribe((data: AccountPositionGroupSummary) => {
+    reportResourceErrors(this.positionResource, this.cashaccountService);
+    effect(() => {
+      if (this.positionResource.isLoading() || !this.positionResource.hasValue()) return;
+      const data = this.positionResource.value();
+      untracked(() => {
         this.accountPositionGroupSummary = data;
         this.excludedDivTaxColumn.visible = this.accountPositionGroupSummary.excludeDivTax;
         this.expandedAccountPositionSummary = this.accountPositionGroupSummary.accountPositionSummaryList.filter(
@@ -249,6 +253,23 @@ export class PortfolioCashaccountSummaryComponent
         this.isActivated() && this.resetMenu(null);
         this.notifyViewChanged();
       });
+    });
+  }
+
+  ngOnDestroy(): void {
+    BusinessHelper.saveUntilDateInSessionStorage(this.untilDate);
+    this.activePanelService.destroyPanel(this);
+  }
+
+  readData(): void {
+    const request = this.cashaccountService.getCashaccountPositionGroupSummaryRequest(
+      this.portfolio.idPortfolio,
+      this.untilDate
+    );
+    const current = this.summaryRequest();
+    if (current?.url === request.url && current.params.toString() === request.params.toString())
+      this.positionResource.reload();
+    else this.summaryRequest.set(request);
   }
 
   handleDeleteCashaccount(idSecuritycashAccount: number) {

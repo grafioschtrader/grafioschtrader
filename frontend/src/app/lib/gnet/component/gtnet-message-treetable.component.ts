@@ -131,6 +131,9 @@ import { FilterType } from '../../datashowbase/filter.type';
                           (onChange)="tt.filter($event.value?.length ? $event.value : null, field.field, 'in')"
                           (onClear)="tt.filter(null, field.field, 'in')" />
                       }
+
+                      <!-- Columns without a supported filter render no control. -->
+                      @default {}
                     }
                   </th>
                 }

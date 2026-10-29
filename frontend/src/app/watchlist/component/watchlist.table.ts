@@ -1,71 +1,75 @@
 import {
   afterNextRender,
-  computed,
-  DestroyRef,
-  inject,
-  signal,
   AfterViewInit,
   ChangeDetectorRef,
+  computed,
+  DestroyRef,
   Directive,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  numberAttribute,
   OnDestroy,
+  signal,
+  untracked,
   viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ConfirmationService, MenuItem, SortEvent, SortMeta } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import moment from 'moment';
+import { forkJoin, Subscription } from 'rxjs';
+import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
+import { Currencypair } from '../../entities/currencypair';
+import { WatchlistSecurityExists } from '../../entities/dnd/watchlist.security.exists';
 import { Security } from '../../entities/security';
-import { ActivatedRoute, Params, Router } from '@angular/router';
-import { WatchlistService } from '../service/watchlist.service';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { LastpriceOrigin } from '../../entities/types/lastprice.origin';
+import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
 import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { ConfirmationService, MenuItem, SortEvent, SortMeta } from '@openng/optimus-ui/api';
-import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { Watchlist } from '../../entities/watchlist';
-import { TransactionType } from '../../shared/types/transaction.type';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { ProcessedAction } from '../../lib/types/processed.action';
-import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
-import { AppHelper } from '../../lib/helper/app.helper';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import { Currencypair } from '../../entities/currencypair';
-import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
-import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { Securitycurrency } from '../../entities/securitycurrency';
-import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
-import { forkJoin, Subscription } from 'rxjs';
-import { HelpIds } from '../../lib/help/help.ids';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
-import { AuditHelper } from '../../lib/helper/audit.helper';
-import { TenantLimit } from '../../shared/types/tenant.limit';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { BusinessHelper } from '../../shared/helper/business.helper';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { BaseSettings } from '../../lib/base.settings';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
-import { CellMark } from '../../lib/datashowbase/configurable-table.component';
-import { WatchlistSecurityExists } from '../../entities/dnd/watchlist.security.exists';
-import { MailSendParam } from '../../lib/dynamicdialog/component/mail-send-dynamic-dialog.component';
+import { CellMark, ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { FilterType } from '../../lib/datashowbase/filter.type';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { AppSettings } from '../../shared/app.settings';
+import { DynamicDialogs } from '../../lib/dynamicdialog/component/dynamic.dialogs';
+import { MailSendParam } from '../../lib/dynamicdialog/component/mail-send-dynamic-dialog.component';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { UDFMetadataHelper } from '../../lib/udfmeta/components/udf.metadata.helper';
 import { UDFGeneralCallParam } from '../../lib/udfmeta/model/udf.metadata';
 import { SecurityUDFHelper } from '../../securitycurrency/component/security.udf.helper';
-import { UDFMetadataHelper } from '../../lib/udfmeta/components/udf.metadata.helper';
-import { WatchlistHelper } from './watchlist.helper';
-import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { DynamicDialogs } from '../../lib/dynamicdialog/component/dynamic.dialogs';
-import { BaseSettings } from '../../lib/base.settings';
-import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
-import { FilterType } from '../../lib/datashowbase/filter.type';
-import { LastpriceOrigin } from '../../entities/types/lastprice.origin';
-import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { AppSettings } from '../../shared/app.settings';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { TenantLimit } from '../../shared/types/tenant.limit';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 import { WatchlistFilterSortStateService } from '../service/watchlist.filter.sort.state.service';
+import { WatchlistService } from '../service/watchlist.service';
 import {
-  WatchlistFilterSortSettingsDialogComponent,
-  WatchlistFilterSortSettingsData
+  WatchlistFilterSortSettingsData,
+  WatchlistFilterSortSettingsDialogComponent
 } from './watchlist-filter-sort-settings-dialog.component';
+import { WatchlistHelper } from './watchlist.helper';
 
 /**
  * Abstract base class for watchlist table components that provides comprehensive functionality for displaying
@@ -74,6 +78,8 @@ import {
  */
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements AfterViewInit, OnDestroy, IGlobalMenuAttach {
+  readonly id = input.required({ transform: numberAttribute });
+
   protected dialogService: DialogService = inject(DialogService);
   protected alarmSetupService: AlarmSetupService = inject(AlarmSetupService);
   protected timeSeriesQuotesService: TimeSeriesQuotesService = inject(TimeSeriesQuotesService);
@@ -183,9 +189,19 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   readonly tenantLimits = signal<TenantLimit[]>(undefined);
 
   /** Single or multiple selection state. */
-  readonly singleMultiSelection = signal<
-    SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[]
-  >(undefined);
+  readonly singleMultiSelection = linkedSignal<
+    SecuritycurrencyPosition<Security | Currencypair>[],
+    SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[] | null
+  >({
+    source: this.securityPositionList,
+    computation: (rows, previous) => {
+      const find = (row: SecuritycurrencyPosition<Security | Currencypair>) =>
+        rows.find((p) => p.securitycurrency.idSecuritycurrency === row?.securitycurrency.idSecuritycurrency);
+      return Array.isArray(previous?.value)
+        ? previous.value.map(find).filter(Boolean)
+        : (find(previous?.value) ?? null);
+    }
+  });
 
   /** Currently selected security currency position. */
   readonly selectedSecuritycurrencyPosition = signal<SecuritycurrencyPosition<Security | Currencypair>>(undefined);
@@ -207,9 +223,6 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
 
   /** Map of UDF values by security currency ID. */
   protected udfValuesMap = new Map<number, any>();
-
-  /** Subscription to route parameter changes. */
-  private routeSubscribe: Subscription;
 
   /** Subscription to watchlist modification events. */
   private subscriptionWatchlistAdded: Subscription;
@@ -401,12 +414,6 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     this.prepareFilter(positions);
     // Publish complete rows together, then restore filters once their controls have rendered.
     this.securitycurrencyGroup.set({ ...data, securityPositionList: securities, currencypairPositionList: pairs });
-    const selection = this.singleMultiSelection();
-    const find = (row: SecuritycurrencyPosition<Security | Currencypair>) =>
-      this.securityPositionList().find(
-        (position) => position.securitycurrency.idSecuritycurrency === row?.securitycurrency.idSecuritycurrency
-      );
-    this.singleMultiSelection.set(Array.isArray(selection) ? selection.map(find).filter(Boolean) : find(selection));
     this.resetMenu(this.getSSP(this.singleMultiSelection()));
     afterNextRender(() => this.applyStoredFilters(), { injector: this.injector });
   }
@@ -649,7 +656,6 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     this.activePanelService.destroyPanel(this);
     this.subscriptionWatchlistAdded?.unsubscribe();
     this.subscriptionFilterSortChanged?.unsubscribe();
-    this.routeSubscribe?.unsubscribe();
     this.requests.forEach((request) => request.unsubscribe());
     this.menuTranslation?.unsubscribe();
   }
@@ -1095,7 +1101,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       });
   }
 
-  /** Initializes the component with route subscriptions and panel registration. */
+  /** Initializes the current route before subclasses load data, and tracks later watchlist changes. */
   protected init(): void {
     this.idTenant = this.gps.getIdTenant();
     this.filterSortState = this.injector.get(WatchlistFilterSortStateService);
@@ -1107,35 +1113,44 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       });
     this.activePanelService.registerPanel(this);
     this.loading.set(true);
-    this.routeSubscribe = this.activatedRoute.params
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params: Params) => {
-        const previousId = this.idWatchlist;
-        if (this.watchlist()) {
-          // not first time
-          this.writeTableDefinition(this.storeKey);
-        } else {
-          //  first time
-          this.gpsGT
-            .getIntraUpdateTimeout()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((updateTimeout: number) => (this.intraUpdateTimoutSeconds = updateTimeout));
-          this.readTableDefinition(this.storeKey);
-        }
-        this.idWatchlist = +params['id'];
-        this.applyStoredSorts();
-        const treeNavState = this.injector.get(TreeNavigationStateService);
-        const route = this.activatedRoute.snapshot.routeConfig?.path?.split('/')[0] ?? '';
-        this.watchlist.set(treeNavState.getEntity<Watchlist>(route, this.idWatchlist));
-        if (previousId && previousId !== this.idWatchlist) {
-          this.requests.forEach((request) => request.unsubscribe());
-          this.singleMultiSelection.set(this.selectMultiMode === WatchlistTable.MULTIPLE ? [] : null);
-          this.selectedSecuritycurrencyPosition.set(null);
-          this.loading.set(true);
-          this.getWatchlistWithoutUpdate();
-        }
-        this.resetMenu(this.selectedSecuritycurrencyPosition());
-      });
+    this.showWatchlist(this.id());
+    effect(
+      () => {
+        const id = this.id();
+        untracked(() => {
+          if (id !== this.idWatchlist) this.showWatchlist(id);
+        });
+      },
+      { injector: this.injector }
+    );
+  }
+
+  private showWatchlist(id: number): void {
+    const previousId = this.idWatchlist;
+    if (this.watchlist()) {
+      // not first time
+      this.writeTableDefinition(this.storeKey);
+    } else {
+      //  first time
+      this.gpsGT
+        .getIntraUpdateTimeout()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((updateTimeout: number) => (this.intraUpdateTimoutSeconds = updateTimeout));
+      this.readTableDefinition(this.storeKey);
+    }
+    this.idWatchlist = id;
+    this.applyStoredSorts();
+    const treeNavState = this.injector.get(TreeNavigationStateService);
+    const route = this.activatedRoute.snapshot.routeConfig?.path?.split('/')[0] ?? '';
+    this.watchlist.set(treeNavState.getEntity<Watchlist>(route, this.idWatchlist));
+    if (previousId && previousId !== this.idWatchlist) {
+      this.requests.forEach((request) => request.unsubscribe());
+      this.singleMultiSelection.set(this.selectMultiMode === WatchlistTable.MULTIPLE ? [] : null);
+      this.selectedSecuritycurrencyPosition.set(null);
+      this.loading.set(true);
+      this.getWatchlistWithoutUpdate();
+    }
+    this.resetMenu(this.selectedSecuritycurrencyPosition());
   }
 
   /**

@@ -1,24 +1,31 @@
 import { Service } from '@angular/core';
 import { FxObservationReport } from '../../entities/fx.observation';
 
-import { Tenant } from '../../entities/tenant';
+import { HttpParams, HttpResourceRequest } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { HttpParams } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
-import { BaseSettings } from '../../lib/base.settings';
-import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
 import {
-  SimulationTenantCreateDTO,
-  SimulationTenantInfo,
+  SimulationDateBounds,
   SimulationPreviewDto,
-  SimulationDateBounds
+  SimulationTenantCreateDTO,
+  SimulationTenantInfo
 } from '../../algo/model/simulation.tenant';
-import { TaxStatementExportRequest } from '../../taxdata/service/tax-data.service';
+import { Tenant } from '../../entities/tenant';
+import { BaseSettings } from '../../lib/base.settings';
+import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { PerformanceReportSettings } from '../../performanceperiod/model/performance-report';
+import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
+import { TaxStatementExportRequest } from '../../taxdata/service/tax-data.service';
 
 @Service()
 export class TenantService extends AuthServiceWithLogout<Tenant> {
+  getSimulationTenantsRequest() {
+    return {
+      url: `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/simulations`,
+      headers: this.prepareHeaders()
+    } satisfies HttpResourceRequest;
+  }
+
   getReportSettings(): Observable<PerformanceReportSettings | null> {
     return this.httpClient
       .get<PerformanceReportSettings | null>(
@@ -94,11 +101,8 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   }
 
   public getSimulationTenants(): Observable<SimulationTenantInfo[]> {
-    return <Observable<SimulationTenantInfo[]>>(
-      this.httpClient
-        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/simulations`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    const { url, ...options } = this.getSimulationTenantsRequest();
+    return this.httpClient.get<SimulationTenantInfo[]>(url, options).pipe(catchError(this.handleError.bind(this)));
   }
 
   public createSimulationTenant(dto: SimulationTenantCreateDTO): Observable<Tenant> {

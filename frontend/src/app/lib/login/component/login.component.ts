@@ -1,6 +1,6 @@
-import { Component, DestroyRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, viewChild, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { LoginService } from '../service/log-in.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
@@ -19,7 +19,6 @@ import { DynamicDialogs } from '../../dynamicdialog/component/dynamic.dialogs';
 import { ReleaseNote, ReleaseNoteService } from '../service/release.note.service';
 import { HelpIds } from '../../help/help.ids';
 import { BaseSettings } from '../../base.settings';
-
 import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { CardModule } from '@openng/optimus-ui/card';
 import { ApplicationInfoComponent } from './application-info.component';
@@ -74,9 +73,8 @@ import { PasswordEditComponent } from './password-edit.component';
   providers: [DialogService],
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, CardModule, ApplicationInfoComponent, PasswordEditComponent]
 })
-export class LoginComponent extends FormBase implements OnInit, OnDestroy {
+export class LoginComponent extends FormBase implements OnInit {
   private router: Router = inject(Router);
-  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
   private releaseNoteService: ReleaseNoteService = inject(ReleaseNoteService);
   private loginService: LoginService = inject(LoginService);
   private actuatorService: ActuatorService = inject(ActuatorService);
@@ -87,8 +85,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   readonly form = viewChild(DynamicFormComponent);
   readonly applicationInfo = signal<ApplicationInfo>(undefined);
   readonly releaseNotes = signal<ReleaseNote[]>([]);
-  queryParams: any;
-  readonly successLastRegistration = signal<string>(undefined);
+  readonly successLastRegistration = input<string>(undefined, { alias: 'success' });
   readonly visiblePasswordDialog = signal(false);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -172,10 +169,6 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    this.queryParams?.unsubscribe();
-  }
-
   helpLink(): void {
     this.gps.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO);
   }
@@ -200,9 +193,6 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
       );
     }
     this.config.push(DynamicFieldHelper.createSubmitButton('SIGN_IN'));
-    this.queryParams = this.activatedRoute.params.subscribe((params) =>
-      this.successLastRegistration.set(params['success'])
-    );
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 }

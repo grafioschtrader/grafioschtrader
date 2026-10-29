@@ -10,13 +10,13 @@ import {
   inject,
   OnDestroy,
   OnInit,
-  viewChild
+  viewChild,
+  effect,
+  untracked
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
@@ -177,6 +177,19 @@ export class TenantDividendsChartComponent
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
     const monthFormat = new Intl.DateTimeFormat(this.gps.getLocale(), { month: 'short' });
     this.monthNames = Array.from({ length: 12 }, (_, i) => monthFormat.format(new Date(2000, i, 1)));
+
+    effect(() => {
+      const accounts = this.tenantDividendsChartService.accounts();
+      if (accounts)
+        untracked(() => {
+          this.idsAccounts = accounts;
+          this.readData();
+        });
+    });
+    effect(() => {
+      const year = this.tenantDividendsChartService.yearSelected();
+      if (year != null) untracked(() => this.selectYear(year));
+    });
   }
 
   ngOnInit(): void {
@@ -185,20 +198,9 @@ export class TenantDividendsChartComponent
     this.plotlyConfig.responsive = true;
     this.createInputFormDefinition();
     this.subscriptions.push(
-      this.tenantDividendsChartService.accounts$
-        .pipe(filter((ids) => ids != null))
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((ids) => {
-          this.idsAccounts = ids;
-          this.readData();
-        }),
       this.tenantDividendsChartService.dataChanged$
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => this.readData()),
-      this.tenantDividendsChartService.yearSelected$
-        .pipe(filter((year) => year != null))
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((year) => this.selectYear(year)),
       this.viewSizeChangedService.viewSizeChanged$
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => this.resizeChart())

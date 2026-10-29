@@ -1,14 +1,20 @@
-import { Security } from '../../entities/security';
-import { Service } from '@angular/core';
-import { AppSettings } from '../../shared/app.settings';
-import { SecurityOpenPositionPerSecurityaccount } from '../../entities/view/security.open.position.per.securityaccount';
-import { Observable } from 'rxjs';
-import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
 import { HttpHeaders, HttpParams, HttpResourceRequest } from '@angular/common/http';
-import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
-import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
-import { AppHelper } from '../../lib/helper/app.helper';
+import { Service } from '@angular/core';
+import moment from 'moment';
+import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
+import { SeasonalPeriodType } from '../../entities/seasonal.returns.result';
+import { Security } from '../../entities/security';
+import { InstrumentStatisticsResult } from '../../entities/view/instrument.statistics.result';
+import { SecurityOpenPositionPerSecurityaccount } from '../../entities/view/security.open.position.per.securityaccount';
+import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
+import { BaseSettings } from '../../lib/base.settings';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { ITaskExtendService } from '../../lib/taskdatamonitor/component/itask.extend.service';
+import { AppSettings } from '../../shared/app.settings';
+import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
 import {
   HisotryqouteLinearFilledSummary,
   HistoryquoteFillGapsBounds,
@@ -20,15 +26,18 @@ import {
 import { SecurityCurrencypairDerivedLinks } from '../model/security.currencypair.derived.links';
 import { SecurityDataProviderUrls } from '../model/security.data.provider.urls';
 import { SecurityCurrencyService } from './security.currency.service';
-import { InstrumentStatisticsResult } from '../../entities/view/instrument.statistics.result';
-import { SeasonalPeriodType } from '../../entities/seasonal.returns.result';
-import moment from 'moment';
-import { ITaskExtendService } from '../../lib/taskdatamonitor/component/itask.extend.service';
-import { ColumnConfig } from '../../lib/datashowbase/column.config';
-import { BaseSettings } from '../../lib/base.settings';
 
 @Service()
 export class SecurityService extends SecurityCurrencyService<Security> implements ITaskExtendService {
+  /** Builds the cancellable read used by signal-driven views and observable callers. */
+  getHistoryquoteQualityByIdsRequest(historyquoteQualityIds: HistoryquoteQualityIds) {
+    return {
+      url: `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/historyquotequalityids`,
+      headers: this.prepareHeaders(),
+      params: AppHelper.getHttpParamsOfObject(historyquoteQualityIds)
+    } satisfies HttpResourceRequest;
+  }
+
   getTradableSecuritiesByTenantAndIdWatchlist(idWatchlist: number): Observable<Security[]> {
     return <Observable<Security[]>>(
       this.httpClient
@@ -223,11 +232,9 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
   getHistoryquoteQualityByIds(
     historyquoteQualityIds: HistoryquoteQualityIds
   ): Observable<IHistoryquoteQualityWithSecurityProp[]> {
-    return <Observable<IHistoryquoteQualityWithSecurityProp[]>>this.httpClient
-      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/historyquotequalityids`, {
-        headers: this.prepareHeaders(),
-        params: AppHelper.getHttpParamsOfObject(historyquoteQualityIds)
-      })
+    const { url, ...options } = this.getHistoryquoteQualityByIdsRequest(historyquoteQualityIds);
+    return this.httpClient
+      .get<IHistoryquoteQualityWithSecurityProp[]>(url, options)
       .pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -287,12 +294,12 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     periodType: SeasonalPeriodType,
     includeDividends: boolean,
     inTenantCurrency: boolean
-  ): HttpResourceRequest {
+  ) {
     return {
       url: `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/seasonalreturns`,
       headers: this.prepareHeaders(),
       params: { periodType, includeDividends, inTenantCurrency }
-    };
+    } satisfies HttpResourceRequest;
   }
 
   private getDateFromAndTo(dateFrom: Date | string, dateTo: Date | string, httpHeaders: HttpHeaders) {

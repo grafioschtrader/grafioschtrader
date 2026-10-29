@@ -1,8 +1,9 @@
+import { HttpResourceRequest } from '@angular/common/http';
 import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { BaseSettings } from '../../lib/base.settings';
+import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import {
   SimulationRunEquityPoint,
   SimulationRunEventWindow,
@@ -18,6 +19,14 @@ import {
  */
 @Service()
 export class AlgoSimulationRunService extends AuthServiceWithLogout<SimulationRunResult> {
+  /** Builds the cancellable read used by signal-driven views and observable callers. */
+  getSettingsRequest(idTenant: number) {
+    return {
+      url: `${this.endpoint}/${idTenant}/run/settings`,
+      headers: this.prepareHeaders()
+    } satisfies HttpResourceRequest;
+  }
+
   private endpoint = `${BaseSettings.API_ENDPOINT}tenant/simulation`;
 
   /** Starts a replay up to the given completed end date and returns the run in its running state. */
@@ -46,9 +55,8 @@ export class AlgoSimulationRunService extends AuthServiceWithLogout<SimulationRu
 
   /** What the latest run was based on, or an empty body when the environment has never been replayed. */
   settings(idTenant: number): Observable<SimulationRunSettings> {
-    return this.httpClient
-      .get<SimulationRunSettings>(`${this.endpoint}/${idTenant}/run/settings`, this.getHeaders())
-      .pipe(catchError(this.handleError.bind(this)));
+    const { url, ...options } = this.getSettingsRequest(idTenant);
+    return this.httpClient.get<SimulationRunSettings>(url, options).pipe(catchError(this.handleError.bind(this)));
   }
 
   /** The equity curve of the latest run; empty when the environment was never replayed or the run did not complete. */

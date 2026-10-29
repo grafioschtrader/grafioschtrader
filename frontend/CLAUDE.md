@@ -86,8 +86,8 @@ periodic `ApplicationRef.tick()`.
   When a component edits a local draft or derives state from an input, keep the input and a `linkedSignal`
   separately, for example `valueInput = input<T>(initial, { alias: 'value' })` and
   `value = linkedSignal(() => this.valueInput())`. Replace local state with `.set()` / `.update()`.
-  `ngOnChanges` uses the declared property name (`valueInput`), not the public alias (`value`). A pure input
-  normalization belongs in `transform`; optional values narrowed in a template use `@let value = source()`.
+  A pure input normalization belongs in `transform`; optional values narrowed in a template use
+  `@let value = source()`.
 - **Queries use `readonly child = viewChild(Child)` / `contentChild(Child)`**, read with `child()`.
   `viewChildren(Child)` and `contentChildren(Child)` return signals of readonly arrays; use `children()` directly
   instead of `QueryList.toArray()`. Query decorators are forbidden by the Angular API ratchet. Optional projected
@@ -97,6 +97,20 @@ periodic `ApplicationRef.tick()`.
   embedded view inserted for a row marks the query dirty, so a per-cell read collects all views again — the task
   monitor took 13 s instead of 2 s for 879 rows. Replace a query
   setter's side effects with an `effect`, using `untracked` for work that must not become another dependency.
+- **Routed components receive parameters through signal inputs.** Both hosts register `withComponentInputBinding()`.
+  Use `readonly id = input.required({ transform: numberAttribute })` for numeric path IDs; declare query and matrix
+  parameters with their public names or an input alias. Inputs of a reused route update automatically; a removed
+  parameter becomes `undefined`. JSON matrix parameters such as `allParam` are parsed in a `computed` or in the route
+  effect. Track the route inputs explicitly and run imperative navigation/form/request work inside `untracked`.
+  Preserve request cancellation and render cleanup when an input changes. A route effect needing view queries is
+  created after the view initializes, with an explicit injector. Watchlist tables initialize synchronously from `id()`
+  before their subclasses load data, then react to subsequent IDs. Do not subscribe to `ActivatedRoute.params`,
+  `paramMap`, `queryParams` or `queryParamMap`; the Angular API ratchet checks injected routes under any field name.
+- **Shared current state uses read-only signals.** Chart input/account/year services and `TabMenuService` expose
+  `signal(...).asReadonly()`, with state changes through their publishing methods. Consumers read the signal directly;
+  use `computed` for derived state and an `effect`/`untracked` for chart drawing or storage. Publish a new object when
+  object state changes. Event streams such as dividend transaction changes remain `Subject` observables. Do not add
+  `BehaviorSubject`; the Angular API ratchet forbids it. Tab navigation event subscriptions end with their scoped service.
 - **Signal APIs only in new and reworked code.** Use `input()`, `output()`, `model()`, `viewChild()` and
   `contentChild()`; the Angular API ratchet forbids the corresponding legacy decorators and `EventEmitter`.
   `dynamic-form` stays on
@@ -127,8 +141,8 @@ periodic `ApplicationRef.tick()`.
   it after the columns/configuration are defined, read the relevant inputs explicitly, and wrap the imperative work
   in `untracked` so its incidental signal reads do not trigger another preparation pass. Dynamic form fields are
   created and updated through `ComponentRef.setInput()` from their input effect. Do not add `fieldsInitialized` flags
-  or `ngOnChanges`; `src/angular-api.ratchet.spec.ts` permits only the seven request hooks awaiting the resource
-  migration. Computed display rows copy their input objects before adding keys or labels.
+  or `ngOnChanges`; `src/angular-api.ratchet.spec.ts` forbids both. Computed display rows copy their input objects
+  before adding keys or labels.
 - **`FieldConfig` display properties may be assigned freely** (`invisible`, `disabled`, `placeholder`,
   `valueKeyHtmlOptions`, `labelKey`, `errors`, …). `TranslateHelper.prepareFieldsAndErrors` and `DynamicFormComponent`
   instrument every field through `FormNotifier`, so an assignment notifies the form. Arrays are replaced, not mutated:
@@ -141,6 +155,15 @@ periodic `ApplicationRef.tick()`.
   `destroyRef`; do not declare your own.
 - **CRUD tables extend `TableCrudSupportMenu`** (`lib/datashowbase/table.crud.support.menu.ts`):
   `entityList`, `selectedEntity`, `visibleDialog` and `contextMenuItems` are signals. Reference: `TenantAIProviderTableComponent`.
+  Selection uses `linkedSignal` sourced from the rows: find the previous key in the new list, or return `null` when
+  it disappeared. Apply the same rule to transaction, correlation, standing-order, master/detail and watchlist
+  selection, and recursively to algo tree nodes. Keep menu rebuilding explicit: it translates labels and activates
+  the panel, so it must not run in a selection effect. Refresh an active panel's menu after publishing new rows.
+- **Template switches declare their fallback.** A finite union or enum with no meaningful default uses
+  `@default never;`; bind a signal with `@let state = stateSignal();` before switching so Angular can narrow it.
+  Runtime template/editor dispatch keeps its generic display or editor fallback. Optional table filters use an
+  explicit empty default when an unsupported or absent filter type should render no control. The Angular API ratchet
+  parses inline and external templates and rejects switches without a default.
 - **The table and record hierarchy resolves services with `inject()` fields.** `ShowRecordConfigBase` owns translation,
   locale settings and the injector; the table bases own filtering and user settings. Subclasses call `super()` with
   configuration only. CRUD tables pass `super(entityName, inject(EntityService), crudMenuOptions)` because the deletion
@@ -1076,24 +1099,47 @@ Public endpoints (login, registration, token verification, release notes, transl
 and user form definitions) set `context: new HttpContext().set(SKIP_AUTH_HEADERS, true)` even if a session token exists.
 Keep `withXhr()` for upload progress. Error toasts and logout mapping stay in `BaseAuthService`, outside the interceptor.
 
-### `httpResource` for signal-driven reads
+### Resources for signal-driven reads
 
 Use `httpResource` only for an idempotent GET whose URL or parameters derive from signals, whose view owns loading,
 error and empty state, and where a newer parameter value supersedes a pending request. CUD, uploads, downloads,
-WebSocket or application event streams, form `valueChanges` pipelines, caches shared by several screens and sequences
-combined with RxJS stay on the observable methods of the services.
+WebSocket or application event streams, form `valueChanges` pipelines and caches shared by several screens stay on
+the observable methods of the services. A view combining existing observable GET methods uses `rxResource` with
+signal-derived `params`; its stream returns the complete result for those parameters. A parameter change cancels
+the previous read, and destruction ends it.
 
-- The owning service keeps URL construction in a pure `get…Request()` method returning an `HttpResourceRequest`, with
-  `prepareHeaders()` for the media headers; public requests also set `SKIP_AUTH_HEADERS` in its `context`.
+- The owning service keeps URL construction in a pure `get…Request()` method, with `prepareHeaders()` for the media
+  headers; public requests also set `SKIP_AUTH_HEADERS` in its `context`. Use an inferred return type with
+  `satisfies HttpResourceRequest` when an observable method delegates to the descriptor too: widening its type to
+  `HttpResourceRequest` admits readonly header arrays that `HttpClient` does not accept.
 - The component calls `reportResourceErrors(resource, service)` (`lib/login/service/resource.error.report.ts`) in its
   constructor. It passes each failed request exactly once to `BaseAuthService.handleResourceError`, which shows the same
   toast and performs the same logout as `handleError`, so the template shows its error state without a toast of its own.
-  A request superseded by a parameter change is aborted and is no error.
+  Observable service methods already map and report their failures before an `rxResource` receives them.
+  `BaseAuthService` tracks those transformed errors in a shared `WeakSet` and skips a second report, including when
+  the resource combines several services. A request superseded by a parameter change is aborted and is no error.
 - Read the result through `hasValue()` before `value()`, because `value()` throws in the error state.
-- A signal does not notify for an equal reference: to request unchanged inputs again — after a save, or because the
-  user repeats a choice — publish them as a new object.
+- Call the resource's `reload()` after a save, import or data-changed event when its parameters have not changed.
+  Do not reload immediately before changing parameters. Bind loading indicators to `isLoading()`; effects that
+  apply a completed result to imperative chart/form/table APIs skip loading so they do not process a retained value
+  from an earlier request. Editable rows use a separate `linkedSignal` draft that copies the response rows.
 
-References: `SeasonalityComponent`, `CorrelationComponent`.
+References: `SeasonalityComponent` and `SecurityHistoryquoteQualityTableComponent` for HTTP descriptors;
+`PortfolioTransactionTableComponent`, `HistoryquoteTableComponent` and `TimeSeriesChartComponent` for combined reads;
+`TaskDataChangeTableComponent` for a gated request after metadata initialization. Task constraints and translations
+remain bootstrap work; an empty queue makes no unfiltered task request.
+
+The following view boundaries deliberately keep observable coordination:
+
+- `WatchlistTable` retains `replaceWatchlistRequest()` for its multiple reads and update/cache coordination;
+  transaction dialogs retain `replaceDialogRequest()` for dialog lifetimes.
+- `GTNetSecurityImportComponent` loads its all-instrument lookup through its dynamic-form/CUD refresh pipeline;
+  its route identifies an import head, not the lookup request. `ChartGeneralPurposeComponent` consumes chart events,
+  and `HistoryquoteHostComponent` delegates reads to its live/archive children.
+- `AlgoSimulationRunComponent` uses a resource for environment metadata; status polling, audit windows and equity
+  events retain their explicit coordination. Chart drawing, technical indicators and caches remain imperative.
+- UDF suggestion tests perform candidate/suggestion POSTs, including paid requests. Their input effect owns stream
+  cancellation through `onCleanup`; they are not resource GETs.
 
 ## Lazy Loading and Bundle Size
 

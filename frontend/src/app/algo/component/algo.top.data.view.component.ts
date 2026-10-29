@@ -1,55 +1,50 @@
-import { signal, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { httpResource } from '@angular/common/http';
+import { Component, effect, inject, input, numberAttribute, OnDestroy, OnInit, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AlgoTreeViewBase } from './algo.tree.view.base';
-import { SimulationContextService } from '../service/simulation.context.service';
-import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { TranslateModule } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 import { concat, Subscription } from 'rxjs';
 import { toArray } from 'rxjs/operators';
-import { ActivatedRoute, Params } from '@angular/router';
-import { AlgoTop, AlgoTopReadiness } from '../model/algo.top';
-import { AlgoAssetclassService } from '../service/algo.assetclass.service';
-import { AlgoAssetclass } from '../model/algo.assetclass';
-import { AppHelper } from '../../lib/helper/app.helper';
-import { ColumnConfig, EditInputType } from '../../lib/datashowbase/column.config';
-import { AlgoTopAssetSecurity } from '../model/algo.top.asset.security';
-import { AlgoStrategy } from '../model/algo.strategy';
-import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import { HelpIds } from '../../lib/help/help.ids';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { AlgoSecurity } from '../model/algo.security';
-
-import { AlgoCallParam, AlgoDialogVisible, AlgoStrategyDefinitionForm } from '../model/algo.dialog.visible';
-import { ProcessedAction } from '../../lib/types/processed.action';
-import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { DeleteService } from '../../lib/datashowbase/delete.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { BaseID } from '../../lib/entities/base.id';
-import { AlgoSecurityService } from '../service/algo.security.service';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { AlgoTopService } from '../service/algo.top.service';
-import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop } from '../model/tree.algo.base';
-import { AlgoSecurityEditComponent } from './algo-security-edit.component';
 import { Tenant } from '../../entities/tenant';
-import { AngularSvgIconModule } from 'angular-svg-icon';
-import { TooltipModule } from '@openng/optimus-ui/tooltip';
-
-/**
- * Shows algorithmic trading tree with its strategies.
- * Supports inline editing of the percentage column for AlgoTop, AlgoAssetclass, and AlgoSecurity nodes.
- */
-
-import { TranslateModule } from '@ngx-translate/core';
-import { StrategyDetailComponent } from './strategy-detail.component';
-import { AlgoAssetclassEditComponent } from './algo-assetclass-edit.component';
-import { AlgoAssetclassAddInstrumentDialogComponent } from './algo-assetclass-add-instrument-dialog.component';
-import { AlgoStrategyEditComponent } from './algo-strategy-edit.component';
+import { ColumnConfig, EditInputType } from '../../lib/datashowbase/column.config';
 import {
   ConfigurableTreeTableComponent,
   TreeTableCellEditEvent
 } from '../../lib/datashowbase/configurable-tree-table.component';
+import { DeleteService } from '../../lib/datashowbase/delete.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { BaseID } from '../../lib/entities/base.id';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { AlgoHierarchyDto } from '../model/algo-hierarchy-dto';
+import { AlgoAssetclass } from '../model/algo.assetclass';
+import { AlgoCallParam, AlgoDialogVisible, AlgoStrategyDefinitionForm } from '../model/algo.dialog.visible';
+import { AlgoSecurity } from '../model/algo.security';
+import { AlgoStrategy } from '../model/algo.strategy';
+import { AlgoTop, AlgoTopReadiness } from '../model/algo.top';
+import { AlgoTopAssetSecurity } from '../model/algo.top.asset.security';
+import { TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop } from '../model/tree.algo.base';
+import { AlgoAssetclassService } from '../service/algo.assetclass.service';
+import { AlgoSecurityService } from '../service/algo.security.service';
+import { AlgoTopService } from '../service/algo.top.service';
+import { SimulationContextService } from '../service/simulation.context.service';
+import { AlgoAssetclassAddInstrumentDialogComponent } from './algo-assetclass-add-instrument-dialog.component';
+import { AlgoAssetclassEditComponent } from './algo-assetclass-edit.component';
+import { AlgoSecurityEditComponent } from './algo-security-edit.component';
+import { AlgoStrategyEditComponent } from './algo-strategy-edit.component';
+import { AlgoTreeViewBase } from './algo.tree.view.base';
+import { StrategyDetailComponent } from './strategy-detail.component';
 
 @Component({
   template: `
@@ -171,7 +166,8 @@ import {
   ]
 })
 export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGlobalMenuAttach, OnInit, OnDestroy {
-  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  readonly id = input.required({ transform: numberAttribute });
+
   private activePanelService: ActivePanelService = inject(ActivePanelService);
   private algoTopService: AlgoTopService = inject(AlgoTopService);
   private algoAssetclassService: AlgoAssetclassService = inject(AlgoAssetclassService);
@@ -204,13 +200,14 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   readonly algoCallParam = signal<AlgoCallParam>(undefined);
 
   readonly contextMenuItems = signal<MenuItem[]>([]);
-  private routeSubscribe: Subscription;
   private monitoringSubscription: Subscription;
   private readonly alertEditable = signal(false);
   private readonly savingAlerts = signal(new Set<number>());
   /** True when no create, update or delete action on the hierarchy may be offered. */
   hierarchyReadOnly: boolean;
 
+  readonly hierarchyResource = httpResource<AlgoHierarchyDto>(() => this.algoTopService.getHierarchyRequest(this.id()));
+  private notifyNavigationAfterHierarchy = false;
   constructor() {
     super();
     // The strategy hierarchy belongs to the home tenant: inside a simulation environment it is shown but not
@@ -229,6 +226,43 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     this.addColumn(DataType.Boolean, 'alertEnabled', 'ALERT_ENABLED', true, false, {
       templateName: 'editableCheck'
     });
+
+    effect(() => {
+      const id = this.id();
+      untracked(() => {
+        if (this.algoTop()?.idAlgoAssetclassSecurity !== id) {
+          this.selectedNode.set(null);
+          this.onNodeUnselect(null);
+          this.algoTop.set(null);
+          this.contextMenuItems.set([]);
+        }
+        this.translateHeadersAndColumns();
+        this.notifyNavigationAfterHierarchy = false;
+      });
+    });
+
+    reportResourceErrors(this.hierarchyResource, this.algoTopService);
+    effect(() => {
+      if (this.hierarchyResource.isLoading() || !this.hierarchyResource.hasValue()) return;
+      const hierarchy = this.hierarchyResource.value();
+      untracked(() => {
+        const readinessChanged =
+          this.readiness() != null &&
+          this.algoTop()?.idAlgoAssetclassSecurity === hierarchy.algoTop.idAlgoAssetclassSecurity &&
+          JSON.stringify(this.readiness()) !== JSON.stringify(hierarchy.algoTop.readiness);
+        this.invalidFields.set(hierarchy.invalidFields);
+        this.warningFields.set(hierarchy.warningFields);
+        this.readiness.set(hierarchy.algoTop.readiness);
+        this.alertEditable.set(hierarchy.alertEditable);
+        this.buildTree(hierarchy.algoTop, hierarchy.algoAssetclassList);
+        this.refreshSelectedEntity();
+        if (this.isActivated()) this.resetMenu();
+        const notify = this.notifyNavigationAfterHierarchy || readinessChanged;
+        this.notifyNavigationAfterHierarchy = false;
+        if (notify)
+          this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new AlgoTop()));
+      });
+    });
   }
 
   ngOnInit(): void {
@@ -239,27 +273,14 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
           this.readDataWithoutTopLevel();
         }
       });
-    this.routeSubscribe = this.activatedRoute.params
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params: Params) => {
-        const id = +params['id'];
-        if (this.algoTop()?.idAlgoAssetclassSecurity !== id) {
-          this.selectedNode.set(null);
-          this.onNodeUnselect(null);
-          this.algoTop.set(null);
-          this.contextMenuItems.set([]);
-        }
-        this.translateHeadersAndColumns();
-        this.readHierarchy(id);
-      });
   }
 
   readDataWithTopLevel(): void {
-    this.readHierarchy(this.algoTop().idAlgoAssetclassSecurity, true);
+    this.readHierarchy(true);
   }
 
   readDataWithoutTopLevel(): void {
-    this.readHierarchy(this.algoTop().idAlgoAssetclassSecurity);
+    this.readHierarchy();
   }
 
   /**
@@ -267,28 +288,9 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
    * keeps a copy of each strategy including its readiness and refuses "create simulation" on that copy, so it is
    * refreshed as well whenever an edit below the top level changed the readiness of this strategy.
    */
-  private readHierarchy(idAlgoTop: number, notifyNavigation = false): void {
-    this.replaceAlgoRequest('hierarchy').add(
-      this.algoTopService
-        .getHierarchy(idAlgoTop)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((hierarchy) => {
-          const readinessChanged =
-            this.readiness() != null &&
-            this.algoTop()?.idAlgoAssetclassSecurity === hierarchy.algoTop.idAlgoAssetclassSecurity &&
-            JSON.stringify(this.readiness()) !== JSON.stringify(hierarchy.algoTop.readiness);
-          this.invalidFields.set(hierarchy.invalidFields);
-          this.warningFields.set(hierarchy.warningFields);
-          this.readiness.set(hierarchy.algoTop.readiness);
-          this.alertEditable.set(hierarchy.alertEditable);
-          this.buildTree(hierarchy.algoTop, hierarchy.algoAssetclassList);
-          this.refreshSelectedEntity();
-          if (this.isActivated()) this.resetMenu();
-          if (notifyNavigation || readinessChanged) {
-            this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new AlgoTop()));
-          }
-        })
-    );
+  private readHierarchy(notifyNavigation = false): void {
+    this.notifyNavigationAfterHierarchy ||= notifyNavigation;
+    this.hierarchyResource.reload();
   }
 
   isActivated(): boolean {
@@ -544,7 +546,6 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   }
 
   ngOnDestroy(): void {
-    this.routeSubscribe.unsubscribe();
     this.monitoringSubscription.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
@@ -735,9 +736,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   }
 
   private refreshSelectedEntity(): void {
-    if (this.selectedNode()) {
-      this.selectedNode.set(this.searchTree(this.treeNodes()[0], this.selectedNode().data.idTree));
-      this.onNodeSelect(null);
-    }
+    if (this.selectedNode()) this.onNodeSelect(null);
+    else this.onNodeUnselect(null);
   }
 }

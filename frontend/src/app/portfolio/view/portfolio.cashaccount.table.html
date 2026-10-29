@@ -11,6 +11,7 @@
     </div>
     }
     <p-table
+      [loading]="positionResource.isLoading()"
       (onRowCollapse)="onRowCollapse($event)"
       (onRowExpand)="onRowExpand($event)"
       [(selection)]="selectedAccountPositionSummary"

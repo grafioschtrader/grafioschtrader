@@ -1,14 +1,23 @@
+import { HttpResourceRequest } from '@angular/common/http';
 import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { BaseSettings } from '../../lib/base.settings';
-import { UploadServiceFunction } from '../../lib/generaldialog/model/file.upload.param';
-import { IctaxExchangeRate, TaxCountry, TaxUpload, TaxYear } from '../model/tax-data.model';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { UploadServiceFunction } from '../../lib/generaldialog/model/file.upload.param';
+import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
+import { IctaxExchangeRate, TaxCountry, TaxUpload, TaxYear } from '../model/tax-data.model';
 
 @Service()
 export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements UploadServiceFunction {
+  /** Builds the cancellable read used by signal-driven views and observable callers. */
+  getExchangeRatesRequest(idTaxYear: number) {
+    return {
+      url: `${TaxDataService.BASE_URL}/year/${idTaxYear}/exchangerate`,
+      headers: this.prepareHeaders()
+    } satisfies HttpResourceRequest;
+  }
+
   private static readonly BASE_URL = BaseSettings.API_ENDPOINT + 'taxdata';
 
   getCantons(): Observable<ValueKeyHtmlSelectOptions[]> {
@@ -117,11 +126,8 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
   }
 
   getExchangeRates(idTaxYear: number): Observable<IctaxExchangeRate[]> {
-    return <Observable<IctaxExchangeRate[]>>(
-      this.httpClient
-        .get(`${TaxDataService.BASE_URL}/year/${idTaxYear}/exchangerate`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    const { url, ...options } = this.getExchangeRatesRequest(idTaxYear);
+    return this.httpClient.get<IctaxExchangeRate[]>(url, options).pipe(catchError(this.handleError.bind(this)));
   }
 
   updateExchangeRate(exchangeRate: IctaxExchangeRate): Observable<IctaxExchangeRate> {

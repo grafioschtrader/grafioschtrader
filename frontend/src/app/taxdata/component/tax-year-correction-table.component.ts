@@ -1,23 +1,24 @@
-import { Component, DestroyRef, inject, OnChanges, signal, output, input } from '@angular/core';
+import { httpResource } from '@angular/common/http';
+import { Component, computed, DestroyRef, inject, input, linkedSignal, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subscription } from 'rxjs';
-import { ConfirmationService } from '@openng/optimus-ui/api';
 import { TranslateModule } from '@ngx-translate/core';
+import { ConfirmationService } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 
-import { TableEditConfigBase } from '../../lib/datashowbase/table.edit.config.base';
+import { TaxYearCorrection, TaxYearCorrectionSecurityInfo } from '../../entities/tax.year.correction';
+import { EditInputType } from '../../lib/datashowbase/column.config';
 import {
   EditableTableComponent,
   RowEditEvent,
   RowEditSaveEvent
 } from '../../lib/datashowbase/editable-table.component';
-import { EditInputType } from '../../lib/datashowbase/column.config';
+import { TableEditConfigBase } from '../../lib/datashowbase/table.edit.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { TaxYearCorrection } from '../../entities/tax.year.correction';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TaxYearCorrectionService } from '../service/tax-year-correction.service';
 
 /**
@@ -60,7 +61,7 @@ import { TaxYearCorrectionService } from '../service/tax-year-correction.service
   imports: [EditableTableComponent, TranslateModule, ButtonModule],
   providers: [TaxYearCorrectionService]
 })
-export class TaxYearCorrectionTableComponent extends TableEditConfigBase implements OnChanges {
+export class TaxYearCorrectionTableComponent extends TableEditConfigBase {
   private taxYearCorrectionService: TaxYearCorrectionService = inject(TaxYearCorrectionService);
   private messageToastService: MessageToastService = inject(MessageToastService);
   private confirmationService: ConfirmationService = inject(ConfirmationService);
@@ -75,16 +76,29 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
   readonly dataChanged = output<void>();
 
   private readonly destroyRef = inject(DestroyRef);
-  private readSubscription?: Subscription;
-  readonly corrections = signal<TaxYearCorrection[]>([]);
+  readonly correctionInfo = httpResource<TaxYearCorrectionSecurityInfo>(() => {
+    const id = this.idSecuritycurrency();
+    return id == null ? undefined : this.taxYearCorrectionService.getBySecurityRequest(id);
+  });
+  readonly corrections = linkedSignal(() =>
+    this.correctionInfo.hasValue() ? this.correctionInfo.value().corrections.map((row) => ({ ...row })) : []
+  );
+  private readonly ictaxYearSet = computed(
+    () => new Set(this.correctionInfo.hasValue() ? this.correctionInfo.value().ictaxTaxYears.map(Number) : [])
+  );
+  private readonly allYears = computed(() =>
+    Array.from(
+      new Set(
+        [
+          ...this.yearOptions(),
+          ...(this.correctionInfo.hasValue() ? this.correctionInfo.value().ictaxTaxYears : [])
+        ].map(Number)
+      )
+    ).sort((a, b) => b - a)
+  );
 
   /** User locale (e.g. 'de-CH') so the taxable income edit input formats numbers like the rest of GT. */
   numberLocale: string;
-
-  /** Tax years with ICTax data for the security's ISIN; only these years allow override values. */
-  private ictaxYearSet = new Set<number>();
-  /** All selectable tax years (input years plus ICTax years), descending. */
-  private readonly allYears = signal<number[]>([]);
 
   private readonly TAX_YEAR_CORRECTION = 'TAX_YEAR_CORRECTION';
 
@@ -114,27 +128,12 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
 
     this.multiSortMeta.push({ field: 'taxYear', order: -1 });
     this.prepareTableAndTranslate();
-  }
 
-  ngOnChanges(): void {
-    this.readData();
+    reportResourceErrors(this.correctionInfo, this.taxYearCorrectionService);
   }
 
   private readData(): void {
-    this.readSubscription?.unsubscribe();
-    this.readSubscription = this.taxYearCorrectionService
-      .getBySecurity(this.idSecuritycurrency())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((info) => {
-        this.ictaxYearSet = new Set(info.ictaxTaxYears.map((y) => Number(y)));
-        this.allYears.set(
-          Array.from(new Set([...this.yearOptions(), ...info.ictaxTaxYears].map((y) => Number(y)))).sort(
-            (a, b) => b - a
-          )
-        );
-        this.corrections.set(info.corrections);
-        this.notifyViewChanged();
-      });
+    this.correctionInfo.reload();
   }
 
   /** New rows carry no persisted id (null or the editable table's negative temporary key). */
@@ -144,7 +143,7 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase impleme
 
   /** True when ICTax data exists for the row's tax year, i.e. override values may be entered. */
   private hasIctaxYear(row: TaxYearCorrection): boolean {
-    return row.taxYear != null && this.ictaxYearSet.has(Number(row.taxYear));
+    return row.taxYear != null && this.ictaxYearSet().has(Number(row.taxYear));
   }
 
   /** Tax years not yet used by another correction record; the given row's own year stays selectable. */

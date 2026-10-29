@@ -1,45 +1,55 @@
-import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs/operators';
-
-import { ActivatedRoute, Params } from '@angular/router';
+import { httpResource } from '@angular/common/http';
+import {
+  afterNextRender,
+  Component,
+  effect,
+  inject,
+  Injector,
+  input,
+  numberAttribute,
+  OnDestroy,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
-import { forkJoin, Observable, of, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { plainToInstance } from 'class-transformer';
-
-import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
-import { HelpIds } from '../../lib/help/help.ids';
+import { forkJoin, Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ImportTransactionHead } from '../../entities/import.transaction.head';
+import { ImportTransactionTemplate } from '../../entities/import.transaction.template';
+import { Securityaccount } from '../../entities/securityaccount';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { ImportTransactionTemplateService } from '../../imptranstemplate/service/import.transaction.template.service';
+import { BaseSettings } from '../../lib/base.settings';
+import { ParentChildRowSelection } from '../../lib/datashowbase/parent.child.row.selection';
+import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { UploadFileDialogComponent } from '../../lib/generaldialog/component/upload-file-dialog.component';
+import { AdditionalFieldConfig, FileUploadParam } from '../../lib/generaldialog/model/file.upload.param';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
+import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
+import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
+import { AppSettings } from '../../shared/app.settings';
+import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import {
   ImportTransactionHeadService,
   SuccessFailedDirectImportTransaction
 } from '../service/import.transaction.head.service';
-import { Securityaccount } from '../../entities/securityaccount';
-import { SecurityaccountImportTransactionTableComponent } from './securityaccount-import-transaction-table.component';
-import { CallParam } from '../../shared/maintree/types/dialog.visible';
-import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
-import { ParentChildRowSelection } from '../../lib/datashowbase/parent.child.row.selection';
-import { ImportTransactionTemplateService } from '../../imptranstemplate/service/import.transaction.template.service';
-import { ImportTransactionTemplate } from '../../entities/import.transaction.template';
-import { ProcessedAction } from '../../lib/types/processed.action';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
-import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { AppHelper } from '../../lib/helper/app.helper';
-import { AppSettings } from '../../shared/app.settings';
-import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { AdditionalFieldConfig, FileUploadParam } from '../../lib/generaldialog/model/file.upload.param';
-import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
-import { BaseSettings } from '../../lib/base.settings';
-import { UploadFileDialogComponent } from '../../lib/generaldialog/component/upload-file-dialog.component';
-import { SecurityaccountImportTransactionEditHeadComponent } from './securityaccount-import-transaction-edit-head.component';
 import { GTNetImportHeadSelectDialogComponent } from './gtnet-import-head-select-dialog.component';
+import { SecurityaccountImportTransactionEditHeadComponent } from './securityaccount-import-transaction-edit-head.component';
+import { SecurityaccountImportTransactionTableComponent } from './securityaccount-import-transaction-table.component';
 
 /**
  * Main component for the transaction import
@@ -100,9 +110,11 @@ import { GTNetImportHeadSelectDialogComponent } from './gtnet-import-head-select
 })
 export class SecurityaccountImportTransactionComponent
   extends SingleRecordMasterViewBase<ImportTransactionHead, CombineTemplateAndImpTransPos, CallParam>
-  implements OnInit, OnDestroy, ParentChildRowSelection<CombineTemplateAndImpTransPos>
+  implements OnDestroy, ParentChildRowSelection<CombineTemplateAndImpTransPos>
 {
-  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  readonly id = input.required({ transform: numberAttribute });
+  readonly importResult = input<string>(undefined, { alias: 'successFailedDirectImpTran' });
+
   private importTransactionHeadService: ImportTransactionHeadService = inject(ImportTransactionHeadService);
   private importTransactionTemplateService: ImportTransactionTemplateService = inject(ImportTransactionTemplateService);
   private treeNavState: TreeNavigationStateService = inject(TreeNavigationStateService);
@@ -124,11 +136,24 @@ export class SecurityaccountImportTransactionComponent
   suggestedGtnetHeadName = '';
 
   securityAccount: Securityaccount;
-
-  private routeSubscribe: Subscription;
-  private readSubscription?: Subscription;
   private readonly injector = inject(Injector);
 
+  private readonly headAccountId = signal<number | undefined>(undefined);
+  readonly headsResource = httpResource<ImportTransactionHead[]>(() => {
+    const id = this.headAccountId();
+    return id == null
+      ? undefined
+      : this.importTransactionHeadService.getImportTransactionHeadBySecurityaccountRequest(id);
+  });
+  readonly templatesResource = rxResource({
+    params: () => ({ id: this.id(), importResult: this.importResult() }),
+    stream: ({ params }) => {
+      const account = this.treeNavState.getEntity<Securityaccount>(AppSettings.SECURITYACCOUNT_IMPORT_KEY, params.id);
+      return this.loadImportTransactionTemplates(account).pipe(
+        map((templates) => ({ templates, importResult: params.importResult }))
+      );
+    }
+  });
   constructor() {
     super(
       HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT,
@@ -152,37 +177,37 @@ export class SecurityaccountImportTransactionComponent
       })
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-  }
 
-  ngOnInit(): void {
-    this.routeSubscribe = this.activatedRoute.params
-      .pipe(
-        switchMap((params: Params) => {
-          const id = +params['id'];
-          this.securityAccount = this.treeNavState.getEntity<Securityaccount>(
-            AppSettings.SECURITYACCOUNT_IMPORT_KEY,
-            id
+    effect(() => {
+      const id = this.id();
+      this.importResult();
+      untracked(() => {
+        this.headAccountId.set(undefined);
+        this.securityAccount = this.treeNavState.getEntity<Securityaccount>(AppSettings.SECURITYACCOUNT_IMPORT_KEY, id);
+        this.selectedEntity = null;
+        this.childEntityList = [];
+        this.successFailedDirectImportTransaction = null;
+        this.callParam = new CallParam(this.securityAccount, null);
+      });
+    });
+
+    reportResourceErrors(this.templatesResource, this.importTransactionHeadService);
+    reportResourceErrors(this.headsResource, this.importTransactionHeadService);
+    effect((onCleanup) => {
+      if (this.templatesResource.isLoading() || !this.templatesResource.hasValue()) return;
+      const result = this.templatesResource.value();
+      const render = untracked(() => {
+        this.importTransactionTemplates = result.templates;
+        if (result.importResult) {
+          this.successFailedDirectImportTransaction = JSON.parse(result.importResult);
+          this.messageToastService.showMessageI18n(
+            this.successFailedDirectImportTransaction.possibleDuplicate ? InfoLevelType.WARNING : InfoLevelType.ERROR,
+            this.successFailedDirectImportTransaction.possibleDuplicate
+              ? 'POSSIBLE_DUPLICATE_TRANS_FROM_IMPORT'
+              : 'FAILED_TRANS_FROM_IMPORT'
           );
-          this.readSubscription?.unsubscribe();
-          this.selectedEntity = null;
-          this.childEntityList = [];
-          this.successFailedDirectImportTransaction = null;
-          this.callParam = new CallParam(this.securityAccount, null);
-          return this.loadImportTransactionTemplates().pipe(map((templates) => ({ params, templates })));
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(({ params, templates: importTransactionTemplates }) => {
-        this.importTransactionTemplates = importTransactionTemplates;
-        if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
-          this.successFailedDirectImportTransaction = JSON.parse(params[AppSettings.SUCCESS_FAILED_IMP_TRANS]);
-          if (this.successFailedDirectImportTransaction.possibleDuplicate) {
-            this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'POSSIBLE_DUPLICATE_TRANS_FROM_IMPORT');
-          } else {
-            this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'FAILED_TRANS_FROM_IMPORT');
-          }
         }
-        afterNextRender(
+        return afterNextRender(
           () => {
             this.valueChangedMainField();
             this.readData();
@@ -190,41 +215,12 @@ export class SecurityaccountImportTransactionComponent
           { injector: this.injector }
         );
       });
-  }
-
-  /**
-   * Loads the import templates used to label imported and failed positions: the securities account's platform
-   * templates (only when the account is mapped to an import platform) merged with the tenant's Grafioschtrader
-   * import platform templates (only when configured), deduplicated by template id. Loading the account templates
-   * conditionally avoids a backend error for accounts without an import platform.
-   */
-  private loadImportTransactionTemplates(): Observable<ImportTransactionTemplate[]> {
-    const accountTemplates$ = this.securityAccount.tradingPlatformPlan.importTransactionPlatform
-      ? this.importTransactionTemplateService.getImportTransactionPlatformByTradingPlatformPlan(
-          this.securityAccount.tradingPlatformPlan.idTradingPlatformPlan,
-          true
-        )
-      : of<ImportTransactionTemplate[]>([]);
-    const gtPlatformId = this.gpsGT.getTenantGtImportPlatformId();
-    const gtTemplates$ =
-      gtPlatformId != null
-        ? this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(gtPlatformId, true)
-        : of<ImportTransactionTemplate[]>([]);
-    return forkJoin([accountTemplates$, gtTemplates$]).pipe(
-      map(([accountTemplates, gtTemplates]) => {
-        const byId = new Map<number, ImportTransactionTemplate>();
-        [...accountTemplates, ...gtTemplates].forEach((t) => byId.set(t.idTransactionImportTemplate, t));
-        return [...byId.values()];
-      })
-    );
-  }
-
-  readData(): void {
-    this.readSubscription?.unsubscribe();
-    this.readSubscription = this.importTransactionHeadService
-      .getImportTransactionHeadBySecurityaccount(this.securityAccount.idSecuritycashAccount)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((importTransactionHeads: ImportTransactionHead[]) => {
+      onCleanup(() => render.destroy());
+    });
+    effect(() => {
+      if (this.headsResource.isLoading() || this.headAccountId() == null) return;
+      const importTransactionHeads = this.headsResource.hasValue() ? this.headsResource.value() : [];
+      untracked(() => {
         this.entityList = plainToInstance(ImportTransactionHead, importTransactionHeads);
         this.configObject.idTransactionHead.valueKeyHtmlOptions =
           SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
@@ -250,6 +246,42 @@ export class SecurityaccountImportTransactionComponent
         }
         this.setFieldValues();
       });
+    });
+  }
+
+  /**
+   * Loads the import templates used to label imported and failed positions: the securities account's platform
+   * templates (only when the account is mapped to an import platform) merged with the tenant's Grafioschtrader
+   * import platform templates (only when configured), deduplicated by template id. Loading the account templates
+   * conditionally avoids a backend error for accounts without an import platform.
+   */
+  private loadImportTransactionTemplates(
+    account: Securityaccount = this.securityAccount
+  ): Observable<ImportTransactionTemplate[]> {
+    const accountTemplates$ = account.tradingPlatformPlan.importTransactionPlatform
+      ? this.importTransactionTemplateService.getImportTransactionPlatformByTradingPlatformPlan(
+          account.tradingPlatformPlan.idTradingPlatformPlan,
+          true
+        )
+      : of<ImportTransactionTemplate[]>([]);
+    const gtPlatformId = this.gpsGT.getTenantGtImportPlatformId();
+    const gtTemplates$ =
+      gtPlatformId != null
+        ? this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(gtPlatformId, true)
+        : of<ImportTransactionTemplate[]>([]);
+    return forkJoin([accountTemplates$, gtTemplates$]).pipe(
+      map(([accountTemplates, gtTemplates]) => {
+        const byId = new Map<number, ImportTransactionTemplate>();
+        [...accountTemplates, ...gtTemplates].forEach((t) => byId.set(t.idTransactionImportTemplate, t));
+        return [...byId.values()];
+      })
+    );
+  }
+
+  readData(): void {
+    const id = this.securityAccount?.idSecuritycashAccount;
+    if (this.headAccountId() === id) this.headsResource.reload();
+    else this.headAccountId.set(id);
   }
 
   protected override setFieldValues(): void {
@@ -381,7 +413,6 @@ export class SecurityaccountImportTransactionComponent
 
   ngOnDestroy(): void {
     super.destroy();
-    this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 
   protected override prepareShowMenu(): MenuItem[] {

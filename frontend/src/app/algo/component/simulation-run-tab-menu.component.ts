@@ -1,8 +1,6 @@
-import { DestroyRef, inject, Component, OnDestroy, OnInit } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Params, RouterModule } from '@angular/router';
+import { Component, OnDestroy, OnInit, effect, input, numberAttribute, untracked } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
 import { Tab, TabList, Tabs } from '@openng/optimus-ui/tabs';
 import { BaseTabMenuComponent } from '../../lib/tabmenu/component/base.tab.menu.component';
 import { TabItem } from '../../lib/types/tab.item';
@@ -30,25 +28,20 @@ import { AppSettings } from '../../shared/app.settings';
   imports: [TranslateModule, RouterModule, Tabs, TabList, Tab]
 })
 export class SimulationRunTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
-  protected readonly destroyRef = inject(DestroyRef);
+  readonly id = input.required({ transform: numberAttribute });
+
   /** Tenant id of the simulation environment the tabs belong to. */
   private idTenant: number;
-  private routeSubscribe: Subscription;
-
-  override ngOnInit(): void {
-    super.ngOnInit();
-    this.routeSubscribe = this.activatedRoute.params
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params: Params) => {
-        this.idTenant = +params['id'];
+  constructor() {
+    super();
+    effect(() => {
+      const id = this.id();
+      untracked(() => {
+        this.idTenant = id;
         const routeFromUrl = this.tabs.find((tab) => this.router.url.split('/').includes(tab.route))?.route;
         this.navigateTo(routeFromUrl ?? this.activeRoute);
       });
-  }
-
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
-    this.routeSubscribe?.unsubscribe();
+    });
   }
 
   protected initializeTabs(): TabItem[] {

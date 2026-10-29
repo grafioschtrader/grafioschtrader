@@ -1,25 +1,25 @@
-import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
-import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
-import { FieldConfig } from '../../dynamic-form/models/field.config';
-import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
-import { FormConfig } from '../../dynamic-form/models/form.config';
-import { DestroyRef, Directive, inject, signal, viewChild } from '@angular/core';
-import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { forkJoin, Subscription } from 'rxjs';
+import { DestroyRef, Directive, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslateHelper } from '../../helper/translate.helper';
-import { InfoLevelType } from '../../message/info.leve.type';
-import { AppHelper } from '../../helper/app.helper';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
-import { MessageToastService } from '../../message/message.toast.service';
-import { DeleteService } from '../../datashowbase/delete.service';
-import { BaseID } from '../../entities/base.id';
-import { ProcessedActionData } from '../../types/processed.action.data';
-import { ProcessedAction } from '../../types/processed.action';
-import { AuditHelper } from '../../helper/audit.helper';
-import { GlobalparameterService } from '../../services/globalparameter.service';
+import { forkJoin, Subscription } from 'rxjs';
 import { BaseSettings } from '../../base.settings';
+import { DeleteService } from '../../datashowbase/delete.service';
+import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { FieldConfig } from '../../dynamic-form/models/field.config';
+import { FormConfig } from '../../dynamic-form/models/form.config';
+import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
+import { BaseID } from '../../entities/base.id';
+import { AppHelper } from '../../helper/app.helper';
+import { AuditHelper } from '../../helper/audit.helper';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { MessageToastService } from '../../message/message.toast.service';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { ProcessedAction } from '../../types/processed.action';
+import { ProcessedActionData } from '../../types/processed.action.data';
 
 /**
  * Abstract base class for components that display and edit a single record from a master list with associated
@@ -103,7 +103,11 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
     this.contextMenuItemsState.set(value);
   }
   /** The selected entity  */
-  private readonly selectedEntityState = signal<T>(null);
+  private readonly selectedEntityState = linkedSignal<T[], T | null>({
+    source: this.entityListState,
+    computation: (rows, previous) =>
+      rows.find((row) => row[this.mainFieldId] === previous?.value?.[this.mainFieldId]) ?? null
+  });
 
   get selectedEntity(): T {
     return this.selectedEntityState();

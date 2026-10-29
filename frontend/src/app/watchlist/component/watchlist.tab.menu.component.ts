@@ -1,9 +1,19 @@
-import { DestroyRef, inject, Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  DestroyRef,
+  inject,
+  Component,
+  OnDestroy,
+  OnInit,
+  effect,
+  input,
+  numberAttribute,
+  signal,
+  untracked
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Params, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { combineLatest, Observable, Subscription } from 'rxjs';
-
+import { combineLatest, Observable } from 'rxjs';
 import { Tab, TabList, Tabs } from '@openng/optimus-ui/tabs';
 import { Watchlist } from '../../entities/watchlist';
 import { UDFMetadataSecurityService } from '../../udfmetasecurity/service/udf.metadata.security.service';
@@ -64,6 +74,10 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
   providers: [InstrumentStatisticsCacheService, WatchlistExpandedPanelStateService]
 })
 export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
+  private readonly metadataReady = signal(false);
+
+  readonly id = input.required({ transform: numberAttribute });
+
   private treeNavState = inject(TreeNavigationStateService);
   private uDFMetadataSecurityService = inject(UDFMetadataSecurityService);
   private uDFMetadataGeneralService = inject(UDFMetadataGeneralService);
@@ -72,18 +86,43 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
   /** The current watchlist object containing ID and data. */
   private watchlist: Watchlist;
 
-  /** Subscription to route parameter changes for watchlist updates. */
-  private routeSubscribe: Subscription;
-
   /** The last active route to preserve tab state across watchlist changes. */
   private lastActiveRoute: string = AppSettings.WATCHLIST_PERFORMANCE_KEY;
 
   /** Flag to track if this is the initial component load. */
   private isFirstLoad: boolean = true;
+  constructor() {
+    super();
+    effect(() => {
+      const id = this.id();
+      if (!this.metadataReady()) return;
+      untracked(() => {
+        if (id) {
+          this.watchlist = this.treeNavState.getEntity<Watchlist>(
+            BaseSettings.MAINVIEW_KEY + '/' + AppSettings.WATCHLIST_TAB_MENU_KEY,
+            id
+          );
+
+          // Preserve the current active tab when switching watchlists
+          if (this.isFirstLoad) {
+            // On first load, check if there's already an active route in URL
+            const currentRouteFromUrl = this.getCurrentRouteFromUrl();
+            if (currentRouteFromUrl) {
+              this.lastActiveRoute = currentRouteFromUrl;
+              this.activeRoute = currentRouteFromUrl;
+            }
+            this.isFirstLoad = false;
+          }
+          // Navigate to the last active route (or default on first load)
+          this.navigateTo(this.lastActiveRoute);
+        }
+      });
+    });
+  }
 
   /**
-   * Initializes the component with UDF metadata loading and watchlist subscription setup.
-   * Loads required UDF metadata before setting up watchlist parameter tracking.
+   * Initializes the component with UDF metadata loading and route input handling.
+   * Loads required UDF metadata before handling the watchlist input.
    */
   override ngOnInit(): void {
     // Handle UDF metadata loading first
@@ -108,54 +147,13 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
           if (!sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)) {
             sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL, JSON.stringify(data[dataIndex]));
           }
-          this.subscribeWatchlistChange();
+          this.metadataReady.set(true);
         });
     } else {
-      this.subscribeWatchlistChange();
+      this.metadataReady.set(true);
     }
-    // Call parent initialization after setting up watchlist subscription
+    // Initialize tabs before the route input effect runs
     super.ngOnInit();
-  }
-
-  /**
-   * Cleans up component subscriptions to prevent memory leaks.
-   */
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
-    if (this.routeSubscribe) {
-      this.routeSubscribe.unsubscribe();
-    }
-  }
-
-  /**
-   * Sets up subscription to route parameter changes to track watchlist updates.
-   * Preserves the active tab when switching between different watchlists.
-   */
-  private subscribeWatchlistChange(): void {
-    this.routeSubscribe = this.activatedRoute.params
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params: Params) => {
-        const id = +params['id'];
-        if (id) {
-          this.watchlist = this.treeNavState.getEntity<Watchlist>(
-            BaseSettings.MAINVIEW_KEY + '/' + AppSettings.WATCHLIST_TAB_MENU_KEY,
-            id
-          );
-
-          // Preserve the current active tab when switching watchlists
-          if (this.isFirstLoad) {
-            // On first load, check if there's already an active route in URL
-            const currentRouteFromUrl = this.getCurrentRouteFromUrl();
-            if (currentRouteFromUrl) {
-              this.lastActiveRoute = currentRouteFromUrl;
-              this.activeRoute = currentRouteFromUrl;
-            }
-            this.isFirstLoad = false;
-          }
-          // Navigate to the last active route (or default on first load)
-          this.navigateTo(this.lastActiveRoute);
-        }
-      });
   }
 
   /**
@@ -233,6 +231,6 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
    */
   protected override navigateToDefault(): void {
     // Don't navigate immediately - wait for watchlist to be set
-    // Navigation will happen in subscribeWatchlistChange
+    // Navigation will happen in the route input effect
   }
 }

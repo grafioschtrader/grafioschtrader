@@ -1,8 +1,6 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { GlobalparameterService } from '../../services/globalparameter.service';
+import { Component, inject, effect, input, untracked } from '@angular/core';
+import { Router } from '@angular/router';
 import { LoginService } from '../service/log-in.service';
-import { Subscription } from 'rxjs';
 import { BaseSettings } from '../../base.settings';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -14,32 +12,29 @@ import { TranslateModule } from '@ngx-translate/core';
   `,
   imports: [TranslateModule]
 })
-export class RegistrationTokenVerifyComponent implements OnInit, OnDestroy {
-  private gps = inject(GlobalparameterService);
-  private activatedRoute = inject(ActivatedRoute);
+export class RegistrationTokenVerifyComponent {
   private router = inject(Router);
   private loginService = inject(LoginService);
 
-  token: string;
-  private routeSubscribe: Subscription;
+  readonly token = input.required<string>();
 
-  ngOnInit(): void {
-    this.routeSubscribe = this.activatedRoute.queryParams.subscribe((params) => {
-      this.loginService.getTokenVerified(params['token']).subscribe((redirect: string) => {
-        switch (redirect) {
-          case 'TOKEN_INVALID':
-          case 'TOKEN_EXPIRED':
-            this.router.navigate([BaseSettings.REGISTER_KEY, { failure: redirect }]);
-            break;
-          case 'TOKEN_SUCCESS':
-            this.router.navigate([BaseSettings.LOGIN_KEY, { success: redirect }]);
-            break;
-        }
-      });
+  constructor() {
+    effect((onCleanup) => {
+      const token = this.token();
+      const request = untracked(() =>
+        this.loginService.getTokenVerified(token).subscribe((redirect: string) => {
+          switch (redirect) {
+            case 'TOKEN_INVALID':
+            case 'TOKEN_EXPIRED':
+              this.router.navigate([BaseSettings.REGISTER_KEY, { failure: redirect }]);
+              break;
+            case 'TOKEN_SUCCESS':
+              this.router.navigate([BaseSettings.LOGIN_KEY, { success: redirect }]);
+              break;
+          }
+        })
+      );
+      onCleanup(() => request.unsubscribe());
     });
-  }
-
-  ngOnDestroy(): void {
-    this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 }

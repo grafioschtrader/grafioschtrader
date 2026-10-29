@@ -1,12 +1,12 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { MessageModule } from '@openng/optimus-ui/message';
-import { GlobalSessionNames } from '../../lib/global.session.names';
 import { BaseSettings } from '../../lib/base.settings';
+import { GlobalSessionNames } from '../../lib/global.session.names';
 import { McpOAuthService, OAuthAuthorizationRequest, OAuthValidationResponse } from '../service/mcp-oauth.service';
 
 type PageState = 'checking' | 'consent' | 'error' | 'redirecting';
@@ -28,7 +28,8 @@ type PageState = 'checking' | 'consent' | 'error' | 'redirecting';
   template: `
     <div style="max-width: 640px; margin: 2rem auto; padding: 0 16px">
       <h2>{{ 'MCP_OAUTH_TITLE' | translate }}</h2>
-      @switch (state()) {
+      @let pageState = state();
+      @switch (pageState) {
         @case ('checking') {
           <p>{{ 'MCP_OAUTH_CHECKING' | translate }}</p>
         }
@@ -63,6 +64,7 @@ type PageState = 'checking' | 'consent' | 'error' | 'redirecting';
               (onClick)="decide(false)" />
           </div>
         }
+        @default never;
       }
     </div>
   `

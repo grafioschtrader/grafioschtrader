@@ -1,9 +1,9 @@
-import { Component, OnChanges, OnDestroy, signal, SimpleChanges, input, inject } from '@angular/core';
+import { Component, OnDestroy, effect, inject, input, signal, untracked } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
 import { Subscription, concatMap, finalize, from, switchMap, tap } from 'rxjs';
-import { UDFMetadataSecurityService } from '../service/udf.metadata.security.service';
 import { UDFFillTestRequest, UDFSuggestTestCandidate, UDFSuggestTestResult } from '../model/udf.metadata.security';
+import { UDFMetadataSecurityService } from '../service/udf.metadata.security.service';
 
 /**
  * Tests the description for the language model of a draft field on up to 5 securities and shows, below the edit form,
@@ -104,7 +104,15 @@ import { UDFFillTestRequest, UDFSuggestTestCandidate, UDFSuggestTestResult } fro
   ],
   imports: [TranslateModule, ProgressSpinnerModule]
 })
-export class UDFFillSuggestTestResultComponent implements OnChanges, OnDestroy {
+export class UDFFillSuggestTestResultComponent implements OnDestroy {
+  constructor() {
+    effect((onCleanup) => {
+      const request = this.request();
+      if (request) untracked(() => this.start(request));
+      onCleanup(() => this.subscription?.unsubscribe());
+    });
+  }
+
   private uDFMetadataSecurityService = inject(UDFMetadataSecurityService);
 
   /** The draft of the edit form; every new object starts a new test */
@@ -120,13 +128,6 @@ export class UDFFillSuggestTestResultComponent implements OnChanges, OnDestroy {
   readonly running = signal(false);
 
   private subscription: Subscription;
-
-  ngOnChanges(changes: SimpleChanges): void {
-    const request = this.request();
-    if (changes['request'] && request) {
-      this.start(request);
-    }
-  }
 
   /**
    * Loads the securities and asks them one after the other; a failing request, such as an exhausted budget, ends the

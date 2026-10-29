@@ -1,4 +1,4 @@
-import { provideRouter, withNavigationErrorHandler, withPreloading } from '@angular/router';
+import { provideRouter, withNavigationErrorHandler, withPreloading, withComponentInputBinding } from '@angular/router';
 import { APP_ROUTES } from './app.routes';
 import { DialogComponentLoader } from './lib/maintree/handler/lazy-dialog';
 import { AuthenticatedPreloadingStrategy } from './lib/login/service/authenticated-preloading.strategy';
@@ -76,6 +76,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(
       APP_ROUTES,
+      withComponentInputBinding(),
       withPreloading(AuthenticatedPreloadingStrategy),
       withNavigationErrorHandler(handleLazyLoadNavigationError)
     ),

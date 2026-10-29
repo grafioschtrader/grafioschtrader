@@ -1,12 +1,13 @@
-import { Component, computed, DestroyRef, inject, OnChanges, signal, output, input } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { SecurityService } from '../service/security.service';
+import { httpResource } from '@angular/common/http';
+import { Component, computed, DestroyRef, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp } from '../model/historyquote.quality.group';
-import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
 import { TableModule } from '@openng/optimus-ui/table';
+import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
+import { HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp } from '../model/historyquote.quality.group';
+import { SecurityService } from '../service/security.service';
 
 /**
  * Shows the securities in a table.
@@ -62,7 +63,7 @@ import { TableModule } from '@openng/optimus-ui/table';
   `,
   imports: [TableModule, TranslatePipe]
 })
-export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase implements OnChanges {
+export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase {
   private timeSeriesQuotesService: TimeSeriesQuotesService = inject(TimeSeriesQuotesService);
   private securityService: SecurityService = inject(SecurityService);
 
@@ -71,15 +72,18 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
   readonly changedIdSecurity = output<SecurityIdWithCurrency>();
 
   readonly selectedSecurity = signal<IHistoryquoteQualityWithSecurityProp>(null);
-  readonly hqwspList = signal<IHistoryquoteQualityWithSecurityProp[]>([]);
+  readonly hqwspList = computed(() => (this.qualityResource.hasValue() ? this.qualityResource.value() : []));
   /** A new columns reference re-renders the header and body templates of the OnPush p-table after translation. */
   readonly tableFields = computed(() => {
     this.fieldsRevision();
     return [...this.fields];
   });
   private readonly destroyRef = inject(DestroyRef);
-  private loadSubscription: Subscription;
 
+  readonly qualityResource = httpResource<IHistoryquoteQualityWithSecurityProp[]>(() => {
+    const ids = this.historyquoteQualityIds();
+    return ids ? this.securityService.getHistoryquoteQualityByIdsRequest(ids) : undefined;
+  });
   constructor() {
     super();
 
@@ -106,21 +110,12 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
     this.addColumnFeqH(DataType.NumericInteger, 'quoteSunday');
     this.multiSortMeta.push({ field: 'name', order: 1 });
     this.prepareTableAndTranslate();
-    this.destroyRef.onDestroy(() => this.loadSubscription?.unsubscribe());
-  }
 
-  /** Loads the securities of the selected group; a newer group replaces the request of the previous one. */
-  ngOnChanges(): void {
-    const historyquoteQualityIds = this.historyquoteQualityIds();
-    if (historyquoteQualityIds) {
-      this.loadSubscription?.unsubscribe();
-      this.loadSubscription = this.securityService
-        .getHistoryquoteQualityByIds(historyquoteQualityIds)
-        .subscribe((historyquoteQualityWithSecurityPropList) => {
-          this.selectedSecurity.set(null);
-          this.hqwspList.set(historyquoteQualityWithSecurityPropList);
-        });
-    }
+    reportResourceErrors(this.qualityResource, this.securityService);
+    effect(() => {
+      this.qualityResource.status();
+      untracked(() => this.selectedSecurity.set(null));
+    });
   }
 
   onRowSelect(event): void {

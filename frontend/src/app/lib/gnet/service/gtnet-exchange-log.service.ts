@@ -1,9 +1,9 @@
+import { HttpParams, HttpResourceRequest } from '@angular/common/http';
 import { Service } from '@angular/core';
-import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
 import { BaseSettings } from '../../base.settings';
+import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
 import { GTNetExchangeLogTree } from '../model/gtnet-exchange-log';
 
 /**
@@ -11,6 +11,14 @@ import { GTNetExchangeLogTree } from '../model/gtnet-exchange-log';
  */
 @Service()
 export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchangeLogTree> {
+  getAllExchangeLogTreesRequest(entityKind: string) {
+    return {
+      url: `${BaseSettings.API_ENDPOINT}gtnetexchangelog/trees`,
+      headers: this.prepareHeaders(),
+      params: new HttpParams().set('entityKind', entityKind)
+    } satisfies HttpResourceRequest;
+  }
+
   /**
    * Gets the exchange log tree for a specific GTNet and entity kind.
    *
@@ -33,12 +41,7 @@ export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchange
    * @param entityKind the entity kind (LAST_PRICE, HISTORICAL_PRICES, or SECURITY_METADATA)
    */
   getAllExchangeLogTrees(entityKind: string): Observable<GTNetExchangeLogTree[]> {
-    const params = new HttpParams().set('entityKind', entityKind);
-    return this.httpClient
-      .get<GTNetExchangeLogTree[]>(`${BaseSettings.API_ENDPOINT}gtnetexchangelog/trees`, {
-        ...this.getHeaders(),
-        params
-      })
-      .pipe(catchError(this.handleError.bind(this)));
+    const { url, ...options } = this.getAllExchangeLogTreesRequest(entityKind);
+    return this.httpClient.get<GTNetExchangeLogTree[]>(url, options).pipe(catchError(this.handleError.bind(this)));
   }
 }

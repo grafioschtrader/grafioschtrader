@@ -1,9 +1,8 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, inject, effect, input, numberAttribute, untracked } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
-import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Portfolio } from '../../entities/portfolio';
-import { Subscription } from 'rxjs';
 import { TabItem } from '../../lib/types/tab.item';
 import { SessionStorageTabHelper } from '../../lib/tabmenu/component/session.storage.tab.helper';
 import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
@@ -27,7 +26,9 @@ import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.m
   `,
   imports: [SharedTabMenuComponent, RouterModule]
 })
-export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
+export class PortfolioTabMenuComponent {
+  readonly id = input.required({ transform: numberAttribute });
+
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
   private treeNavState = inject(TreeNavigationStateService);
@@ -54,7 +55,6 @@ export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
   defaultRoute: string = AppSettings.PORTFOLIO_SUMMARY_KEY;
   sessionStorageKey: string = GlobalGTSessionNames.TAB_MENU_PORTFOLIO;
 
-  private routeSubscribe: Subscription;
   private portfolio: Portfolio;
 
   navigateWithPortfolio = (route: string): void => {
@@ -68,26 +68,21 @@ export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
       relativeTo: this.activatedRoute
     });
   };
-
-  ngOnInit(): void {
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      const id = +params['id'];
-      if (id) {
-        this.portfolio = this.treeNavState.getEntity<Portfolio>(
-          BaseSettings.MAINVIEW_KEY + '/' + AppSettings.PORTFOLIO_TAB_MENU_KEY,
-          id
-        );
-        if (this.portfolio) {
-          this.navigateToInitialRoute();
+  constructor() {
+    effect(() => {
+      const id = this.id();
+      untracked(() => {
+        if (id) {
+          this.portfolio = this.treeNavState.getEntity<Portfolio>(
+            BaseSettings.MAINVIEW_KEY + '/' + AppSettings.PORTFOLIO_TAB_MENU_KEY,
+            id
+          );
+          if (this.portfolio) {
+            this.navigateToInitialRoute();
+          }
         }
-      }
+      });
     });
-  }
-
-  ngOnDestroy(): void {
-    if (this.routeSubscribe) {
-      this.routeSubscribe.unsubscribe();
-    }
   }
 
   /**

@@ -1,5 +1,5 @@
-import { Service } from '@angular/core';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { Service, signal } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
 import { IdsAccounts } from '../model/ids.accounts';
 
 /**
@@ -9,18 +9,18 @@ import { IdsAccounts } from '../model/ids.accounts';
  */
 @Service()
 export class TenantDividendsChartService {
-  private accounts = new BehaviorSubject<IdsAccounts>(null);
-  private yearSelected = new BehaviorSubject<number>(null);
+  private readonly accountsState = signal<IdsAccounts | null>(null);
+  private readonly yearSelectedState = signal<number | null>(null);
   private dataChanged = new Subject<void>();
 
   /** Latest account selection of the dividends table; null until the table has initialized. */
-  readonly accounts$: Observable<IdsAccounts> = this.accounts.asObservable();
+  readonly accounts = this.accountsState.asReadonly();
 
   /**
    * Year of the row the user last selected in the dividends table; null until a row was selected. Kept as the latest
    * value, so a chart opened after the selection still shows that year.
    */
-  readonly yearSelected$: Observable<number> = this.yearSelected.asObservable();
+  readonly yearSelected = this.yearSelectedState.asReadonly();
 
   /** Emitted when a transaction shown in the dividends table was changed. */
   readonly dataChanged$: Observable<void> = this.dataChanged.asObservable();
@@ -31,7 +31,7 @@ export class TenantDividendsChartService {
    * @param idsAccounts - The selected security and cash accounts
    */
   setAccounts(idsAccounts: IdsAccounts): void {
-    this.accounts.next(idsAccounts);
+    this.accountsState.set(idsAccounts);
   }
 
   /**
@@ -40,7 +40,7 @@ export class TenantDividendsChartService {
    * @param year - The selected year
    */
   selectYear(year: number): void {
-    this.yearSelected.next(year);
+    this.yearSelectedState.set(year);
   }
 
   /** Tells the charts that the data of the dividends table has changed. */

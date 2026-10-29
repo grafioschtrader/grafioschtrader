@@ -11,9 +11,10 @@ import {
   OnDestroy,
   OnInit,
   inject,
-  viewChild
+  viewChild,
+  effect,
+  untracked
 } from '@angular/core';
-
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBase } from '../../lib/edit/form.base';
@@ -31,7 +32,7 @@ import { ViewSizeChangedService } from '../../lib/layout/service/view.size.chang
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
 import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
-import { CorrelationChartInput, CorrelationChartService } from '../service/correlation-chart.service';
+import { CorrelationChartService } from '../service/correlation-chart.service';
 import { buildCorrelationFigure, CorrelationChartType } from './correlation-chart';
 
 /** Selectable rolling correlations with daily percentage price developments in a shared Plotly figure. */
@@ -96,7 +97,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
 
   readonly form = viewChild(DynamicFormComponent);
   readonly chartElement = viewChild<ElementRef>('chart');
-  readonly chartInput = signal<CorrelationChartInput>(null);
+  readonly chartInput = this.chartService.input;
   private readonly chartType = signal(CorrelationChartType.Combined);
   private readonly figure = computed(() =>
     this.chartInput() ? buildCorrelationFigure(this.chartInput(), this.chartType()) : null
@@ -117,6 +118,11 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
+
+    effect(() => {
+      this.chartInput();
+      untracked(() => this.drawChart());
+    });
   }
 
   ngOnInit(): void {
@@ -135,10 +141,6 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
         );
         this.drawChart();
       });
-    this.chartService.input$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((input) => {
-      this.chartInput.set(input);
-      this.drawChart();
-    });
     this.viewSizeChangedService.viewSizeChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       const chartElement = this.chartElement();
       if (!this.noData() && chartElement.nativeElement.data) {

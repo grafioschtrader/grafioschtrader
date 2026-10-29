@@ -1,16 +1,16 @@
-import { Directive } from '@angular/core';
+import { Directive, signal } from '@angular/core';
 import { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
-import { SecurityaccountGroupBase } from './securityaccount.group.base';
-import { SecurityaccountCurrencyGroup } from './securityaccount.currency.group';
-import { SecurityaccountAssetclassCategortypeGroup } from './securityaccount.assetclass.categortype.group';
 import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { SecurityAccountGroup } from '../model/security.account.group';
+import { SecurityaccountAssetclassCategortypeGroup } from './securityaccount.assetclass.categortype.group';
+import { SecurityaccountAssetclassGroup } from './securityaccount.assetclass.group';
 import { SecurityaccountAssetclassSpecInvestGroup } from './securityaccount.assetclass.spec.invest.group';
 import { SecurityaccountAssetclassSubCategoryGroup } from './securityaccount.assetclass.sub.category.group';
 import { SecurityaccountBaseTable } from './securityaccount.base.table';
-import { SecurityaccountAssetclassGroup } from './securityaccount.assetclass.group';
-import { SecurityAccountGroup } from '../model/security.account.group';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
-import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { SecurityaccountCurrencyGroup } from './securityaccount.currency.group';
+import { SecurityaccountGroupBase } from './securityaccount.group.base';
 
 /**
  * @whatItDoes It is the base class for components which shows a summary for each security account. Single row
@@ -30,7 +30,6 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
   SpecialInvestmentInstruments: typeof SpecialInvestmentInstruments = SpecialInvestmentInstruments;
 
   groupMapping: Map<string, any> = new Map();
-
   constructor() {
     super();
     this.groupMapping.set(

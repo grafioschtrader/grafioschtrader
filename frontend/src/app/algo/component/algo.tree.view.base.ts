@@ -1,28 +1,28 @@
-import { computed, DestroyRef, inject, signal, Directive } from '@angular/core';
-import { of, Subscription } from 'rxjs';
+import { computed, DestroyRef, Directive, inject, linkedSignal, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { plainToClass } from 'class-transformer';
+import { of, Subscription } from 'rxjs';
+import { Security } from '../../entities/security';
+import { AlgoTreeName } from '../../entities/view/algo.tree.name';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { AppHelper } from '../../lib/helper/app.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { AlgoTreeName } from '../../entities/view/algo.tree.name';
-import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 import { AppSettings } from '../../shared/app.settings';
-import { AlgoTop } from '../model/algo.top';
+import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';
 import { AlgoAssetclass } from '../model/algo.assetclass';
-import { AlgoStrategy } from '../model/algo.strategy';
-import { AlgoTopAssetSecurity } from '../model/algo.top.asset.security';
 import { AlgoStrategyDefinitionForm, AlgoStrategyParamCall } from '../model/algo.dialog.visible';
+import { AlgoSecurity } from '../model/algo.security';
+import { AlgoStrategy } from '../model/algo.strategy';
+import { AlgoTop } from '../model/algo.top';
+import { AlgoTopAssetSecurity } from '../model/algo.top.asset.security';
 import { TreeAlgoStrategy, TreeAlgoTop } from '../model/tree.algo.base';
 import { AlgoStrategyService } from '../service/algo.strategy.service';
 import { AlgoStrategyHelper } from './algo.strategy.helper';
-import { AlgoSecurity } from '../model/algo.security';
-import { Security } from '../../entities/security';
-import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
-import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
-import { AppHelper } from '../../lib/helper/app.helper';
 
 /**
  * Shared base of the views that show a strategy hierarchy as a tree: the editable live hierarchy and the frozen
@@ -55,7 +55,20 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
 
   readonly algoTop = signal<AlgoTop>(undefined);
   readonly treeNodes = computed<TreeNode[]>(() => (this.algoTop() ? [new TreeAlgoTop(this.algoTop())] : null));
-  readonly selectedNode = signal<TreeNode>(undefined);
+  readonly selectedNode = linkedSignal<TreeNode[], TreeNode | null>({
+    source: this.treeNodes,
+    computation: (nodes, previous) => {
+      const find = (rows: TreeNode[]): TreeNode | null => {
+        for (const node of rows ?? []) {
+          if (node.data.idTree === previous?.value?.data.idTree) return node;
+          const child = find(node.children);
+          if (child) return child;
+        }
+        return null;
+      };
+      return find(nodes);
+    }
+  });
 
   /** Form definitions of the strategy implementations, loaded once per implementation and shared by the dialogs. */
   algoStrategyDefinitionForm = new AlgoStrategyDefinitionForm();
@@ -173,7 +186,6 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
         remember(node.children);
       });
     remember(this.treeNodes());
-    const selectedId = this.selectedNode()?.data.idTree;
     const clone = (entity) => {
       const copy = Object.assign(
         Object.create(Object.getPrototypeOf(entity)),
@@ -190,7 +202,6 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
       nodes?.forEach((node) => {
         node.parent = parent;
         if (!(node instanceof TreeAlgoStrategy)) node.expanded = expanded.get(node.data.idTree) ?? true;
-        if (node.data.idTree === selectedId) this.selectedNode.set(node);
         restore(node.children, node);
       });
     restore(this.treeNodes());

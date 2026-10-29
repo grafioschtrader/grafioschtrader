@@ -9,13 +9,13 @@ import {
   inject,
   OnDestroy,
   OnInit,
-  viewChild
+  viewChild,
+  effect,
+  untracked
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
 import { FormBase } from '../../lib/edit/form.base';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
@@ -32,7 +32,7 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { AppSettings } from '../../shared/app.settings';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
 import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
-import { HoldingsChartInput, TenantHoldingsChartService } from '../service/tenant.holdings.chart.service';
+import { TenantHoldingsChartService } from '../service/tenant.holdings.chart.service';
 import { HoldingsTreemapChart } from './holdings.treemap.chart';
 
 /**
@@ -101,7 +101,7 @@ export class TenantHoldingsChartComponent
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderInjector = inject(Injector);
 
-  private chartInput: HoldingsChartInput;
+  private readonly chartInput = this.tenantHoldingsChartService.chartInput;
   private formReady = false;
   private plotlyConfig: any;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
@@ -115,6 +115,11 @@ export class TenantHoldingsChartComponent
   constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
+
+    effect(() => {
+      const input = this.chartInput();
+      if (input) untracked(() => this.drawChart());
+    });
   }
 
   ngOnInit(): void {
@@ -123,13 +128,6 @@ export class TenantHoldingsChartComponent
     this.plotlyConfig.responsive = true;
     this.createInputFormDefinition();
     this.subscriptions.push(
-      this.tenantHoldingsChartService.chartInput$
-        .pipe(filter((ci) => ci != null))
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((ci) => {
-          this.chartInput = ci;
-          this.drawChart();
-        }),
       this.viewSizeChangedService.viewSizeChanged$
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => this.resizeChart())
@@ -203,7 +201,7 @@ export class TenantHoldingsChartComponent
   }
 
   private drawChart(): void {
-    if (!this.formReady || !this.chartInput) {
+    if (!this.formReady || !this.chartInput()) {
       return;
     }
     const figure = this.buildFigure(this.configObject.chartType.formControl.value);
@@ -234,8 +232,8 @@ export class TenantHoldingsChartComponent
   private buildFigure(chartType: HoldingsChartType): { data: any[]; layout: any } {
     this.noDataTextKey.set(null);
     if (chartType === HoldingsChartType.HOLDINGS_CHART_TREEMAP) {
-      const treemap = this.chartInput.summary?.holdingsTreemap;
-      if (this.chartInput.rebalancing || !treemap) {
+      const treemap = this.chartInput().summary?.holdingsTreemap;
+      if (this.chartInput().rebalancing || !treemap) {
         this.noDataTextKey.set('HOLDINGS_TREEMAP_NO_STRATEGY');
         return null;
       }
@@ -246,10 +244,10 @@ export class TenantHoldingsChartComponent
       return new HoldingsTreemapChart(
         this.translateService,
         this.gps,
-        this.chartInput.summary.currency
-      ).getChartDefinition(this.chartInput.title, treemap);
+        this.chartInput().summary.currency
+      ).getChartDefinition(this.chartInput().title, treemap);
     }
-    return this.chartInput.assetclassChart;
+    return this.chartInput().assetclassChart;
   }
 
   private resizeChart(): void {

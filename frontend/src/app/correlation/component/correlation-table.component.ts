@@ -1,7 +1,8 @@
+import { Component, computed, DestroyRef, inject, input, linkedSignal, OnDestroy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, computed, DestroyRef, inject, OnDestroy, signal, input } from '@angular/core';
-import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { Router } from '@angular/router';
 import { MenuItem } from '@openng/optimus-ui/api';
+import { Subscription } from 'rxjs';
 import {
   CorrelationInstrument,
   CorrelationResult,
@@ -10,31 +11,30 @@ import {
   MinMaxDateHistoryquote,
   SamplingPeriodType
 } from '../../entities/correlation.set';
-import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { AppSettings } from '../../shared/app.settings';
-import { ColumnConfig } from '../../lib/datashowbase/column.config';
-import { Securitycurrency } from '../../entities/securitycurrency';
 import { Security } from '../../entities/security';
-import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { CorrelationSetService } from '../service/correlation.set.service';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { TenantLimit } from '../../shared/types/tenant.limit';
-import { ProcessedAction } from '../../lib/types/processed.action';
-import { Subscription } from 'rxjs';
-import { CorrelationChartService } from '../service/correlation-chart.service';
-import { Router } from '@angular/router';
-import { BusinessHelper } from '../../shared/helper/business.helper';
-import { AppHelper } from '../../lib/helper/app.helper';
+import { Securitycurrency } from '../../entities/securitycurrency';
 import { BaseSettings } from '../../lib/base.settings';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { AppSettings } from '../../shared/app.settings';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { TenantLimit } from '../../shared/types/tenant.limit';
+import { CorrelationChartService } from '../service/correlation-chart.service';
+import { CorrelationSetService } from '../service/correlation.set.service';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
-import { CorrelationAddInstrumentDialogComponent } from './correlation-add-instrument-dialog.component';
-import { InstrumentStatisticsResultComponent } from '../../shared/securitycurrency/instrument-statistics-result.component';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { InstrumentStatisticsResultComponent } from '../../shared/securitycurrency/instrument-statistics-result.component';
+import { CorrelationAddInstrumentDialogComponent } from './correlation-add-instrument-dialog.component';
 
 /**
  * This component serves as the main table view for correlation sets, displaying securities and currency pairs
@@ -174,7 +174,11 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   readonly securitycurrencyList = computed(() => this.correlationSet()?.securitycurrencyList ?? []);
 
   /** Currently selected entity in the table */
-  readonly selectedEntity = signal<Securitycurrency>(null);
+  readonly selectedEntity = linkedSignal<Securitycurrency[], Securitycurrency | null>({
+    source: this.securitycurrencyList,
+    computation: (rows, previous) =>
+      rows.find((row) => row.idSecuritycurrency === previous?.value?.idSecuritycurrency) ?? null
+  });
 
   /** Controls visibility of the add instrument dialog */
   readonly visibleAddInstrumentDialog = signal(false);
@@ -244,8 +248,6 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       this.securityCurrencyColumn = null;
     }
     this.createDynamicTableDefinition(correlationSet, correlationResult);
-    const selectedId = this.selectedEntity()?.idSecuritycurrency;
-    this.selectedEntity.set(this.securitycurrencyList().find((row) => row.idSecuritycurrency === selectedId) ?? null);
     this.readListLimitOnce(correlationSet);
     this.refreshChartWhenCorrelationSetChanges();
   }

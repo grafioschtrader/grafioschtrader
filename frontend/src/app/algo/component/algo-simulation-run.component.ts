@@ -1,12 +1,20 @@
-import { forkJoin, Subscription, Subject } from 'rxjs';
-import { DestroyRef, inject, computed, signal, Component, OnDestroy, OnInit } from '@angular/core';
+import { httpResource } from '@angular/common/http';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  numberAttribute,
+  OnDestroy,
+  OnInit,
+  signal,
+  untracked
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AppHelper } from '../../lib/helper/app.helper';
-import { BusinessHelper } from '../../shared/helper/business.helper';
-import { AppSettings } from '../../shared/app.settings';
-
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -14,23 +22,29 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { SliderModule } from '@openng/optimus-ui/slider';
 import moment from 'moment';
+import { forkJoin, Subject, Subscription } from 'rxjs';
 import { debounceTime, finalize } from 'rxjs/operators';
-import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
-import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
-import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
-import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { MainTreeDynamicDialogs } from '../../dynamic-dialog/component/main.tree.dynamic.dialogs';
 import { BaseSettings } from '../../lib/base.settings';
-import { SimulationContextService } from '../service/simulation.context.service';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
+import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { HelpIds } from '../../lib/help/help.ids';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { MainTreeDynamicDialogs } from '../../dynamic-dialog/component/main.tree.dynamic.dialogs';
+import { AppSettings } from '../../shared/app.settings';
+import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { ChartDataService } from '../../shared/chart/service/chart.data.service';
+import { BusinessHelper } from '../../shared/helper/business.helper';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
+import { TaxDetailsTableComponent } from '../../taxdata/component/tax-details-table.component';
 import { TenantService } from '../../tenant/service/tenant.service';
-import { AlgoSimulationRunService } from '../service/algo-simulation-run.service';
 import {
   SimulationRunEquityPoint,
   SimulationRunEvent,
@@ -40,11 +54,10 @@ import {
   splitSimulationFailureMessage
 } from '../model/simulation.run';
 import { SimulationTenantInfo } from '../model/simulation.tenant';
-import { AlgoSimulationRunTableComponent } from './algo-simulation-run-table.component';
+import { AlgoSimulationRunService } from '../service/algo-simulation-run.service';
+import { SimulationContextService } from '../service/simulation.context.service';
 import { AlgoSimulationRunStartDynamicDialogComponent } from './algo-simulation-run-start-dynamic-dialog.component';
-import { TaxDetailsTableComponent } from '../../taxdata/component/tax-details-table.component';
-import { ChartDataService } from '../../shared/chart/service/chart.data.service';
-import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { AlgoSimulationRunTableComponent } from './algo-simulation-run-table.component';
 
 /**
  * Watches and reports the historical replay of one simulation environment, and offers to start one.
@@ -223,9 +236,10 @@ import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
   ]
 })
 export class AlgoSimulationRunComponent extends SingleRecordConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
+  readonly id = input.required({ transform: numberAttribute });
+
   private router: Router = inject(Router);
   private chartDataService: ChartDataService = inject(ChartDataService);
-  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
   private tenantService: TenantService = inject(TenantService);
   private runService: AlgoSimulationRunService = inject(AlgoSimulationRunService);
   private activePanelService: ActivePanelService = inject(ActivePanelService);
@@ -285,7 +299,6 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   private pollStartedAt: number;
   /** Running state of the previously applied run, undefined before the first one, to detect a start or an end. */
   private wasRunning: boolean;
-  private routeSubscribe: Subscription;
   private dataChangedSubscribe: Subscription;
   private anchorSubscribe: Subscription;
   /** Answers the chart outlet when it asks for the equity curve, which happens each time it is opened. */
@@ -302,40 +315,44 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     'TOTAL'
   );
 
+  readonly environmentsResource = httpResource<SimulationTenantInfo[]>(() => {
+    this.id();
+    return this.tenantService.getSimulationTenantsRequest();
+  });
   constructor() {
     super();
-  }
 
-  ngOnInit(): void {
-    this.routeSubscribe = this.activatedRoute.params
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params: Params) => {
-        this.idTenant = +params['id'];
+    effect(() => {
+      const id = this.id();
+      untracked(() => {
+        this.idTenant = id;
         this.stopPolling();
         this.pendingReads.forEach((request) => request.unsubscribe());
         this.equityCurve = [];
         this.reset();
-        // A direct reload can activate this route before the navigation tree has populated its entity cache, so the
-        // environment is read from the server rather than from the node it was navigated from.
-        this.replaceAlgoRequest('environment').add(
-          this.tenantService
-            .getSimulationTenants()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((simulations) => {
-              this.simulation.set(simulations.find((simulation) => simulation.idTenant === this.idTenant));
-              if (!this.simulation()) {
-                // The environment was deleted, or the route was reloaded while switched into a simulation, where the listing
-                // is the one of the simulation itself rather than of the main tenant.
-                this.notFound.set(true);
-                this.updateMenu();
-                return;
-              }
-              this.initContextFields();
-              this.initRunFields();
-              this.refresh();
-            })
-        );
       });
+    });
+
+    reportResourceErrors(this.environmentsResource, this.tenantService);
+    effect(() => {
+      const id = this.id();
+      if (this.environmentsResource.isLoading() || !this.environmentsResource.hasValue()) return;
+      const simulation = this.environmentsResource.value().find((row) => row.idTenant === id);
+      untracked(() => {
+        this.simulation.set(simulation);
+        if (!simulation) {
+          this.notFound.set(true);
+          this.updateMenu();
+          return;
+        }
+        this.initContextFields();
+        this.initRunFields();
+        this.refresh();
+      });
+    });
+  }
+
+  ngOnInit(): void {
     // The start dialog announces an accepted run, whether it was opened from this panel or from the tree node.
     this.dataChangedSubscribe = this.dataChangedService.dateChanged$
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -352,7 +369,6 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
 
   ngOnDestroy(): void {
     this.stopPolling();
-    this.routeSubscribe?.unsubscribe();
     this.dataChangedSubscribe?.unsubscribe();
     this.anchorSubscribe?.unsubscribe();
     this.requestFromChartSubscribe?.unsubscribe();

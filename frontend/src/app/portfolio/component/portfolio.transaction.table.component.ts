@@ -1,19 +1,16 @@
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TransactionTable } from '../../transaction/component/transaction.table';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { PageFirstRowSelectedRow } from '../../shared/service/parent.child.register.service';
-import { Currencypair } from '../../entities/currencypair';
-import { combineLatest, Observable, Subscription } from 'rxjs';
-import { Transaction } from '../../entities/transaction';
-import { ActivatedRoute, Params } from '@angular/router';
-
+import { Component, effect, input, numberAttribute, OnDestroy, OnInit, untracked } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { combineLatest } from 'rxjs';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
-import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
-import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
-import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
-import { TransactionCashaccountConnectDebitCreditDialogComponent } from '../../transaction/component/transaction-cashaccount-connect-debit-credit-dialog.component';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
+import { PageFirstRowSelectedRow } from '../../shared/service/parent.child.register.service';
 import { StandingOrderCashaccountEditComponent } from '../../standingorder/component/standing-order-cashaccount-edit.component';
 import { StandingOrderSecurityEditComponent } from '../../standingorder/component/standing-order-security-edit.component';
+import { TransactionCashaccountConnectDebitCreditDialogComponent } from '../../transaction/component/transaction-cashaccount-connect-debit-credit-dialog.component';
+import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
+import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
+import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
+import { TransactionTable } from '../../transaction/component/transaction.table';
 
 /**
  * Component that displays all transactions belonging to a specific portfolio in a tabular format.
@@ -35,36 +32,50 @@ import { StandingOrderSecurityEditComponent } from '../../standingorder/componen
   ]
 })
 export class PortfolioTransactionTableComponent extends TransactionTable implements OnInit, OnDestroy {
-  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
-
-  /** Subscription for monitoring route parameter changes */
-  private routeSubscribe: Subscription;
+  readonly id = input.required({ transform: numberAttribute });
 
   /** Identifier of the currently selected portfolio */
   private idPortfolio: number;
 
-  /**
-   * Constructs the portfolio transaction table component with all required dependencies.
-   *
-   */
-
+  /** The current portfolio's transactions and the currency pairs needed to display them, cancelled together. */
+  readonly transactionResource = rxResource({
+    params: () => this.id(),
+    stream: ({ params: id }) =>
+      combineLatest([
+        this.transactionService.getTransactionsByIdPortfolio(id),
+        this.currencypairService.getCurrencypairInTransactionByTenant()
+      ])
+  });
   constructor() {
     super();
+
+    effect(() => {
+      const id = this.id();
+      untracked(() => {
+        this.idPortfolio = id;
+      });
+    });
+
+    reportResourceErrors(this.transactionResource, this.transactionService);
+    effect(() => {
+      if (this.transactionResource.isLoading()) return;
+      const result = this.transactionResource.hasValue() ? this.transactionResource.value() : undefined;
+      untracked(() => {
+        this.cashaccountTransactionPositions.set(result ? this.addCurrencypairToTransaction(result[0], result[1]) : []);
+        this.prepareFilter(this.cashaccountTransactionPositions());
+        this.pageFirstRowSelectedRow.set(
+          new PageFirstRowSelectedRow(this.firstRowIndexOnPage, this.selectedTransaction())
+        );
+      });
+    });
   }
 
   /**
-   * Initializes the component by setting up table configuration and subscribing to route parameter changes.
-   * Configures sorting behavior and establishes the route parameter subscription to monitor portfolio changes.
+   * Configures table sorting and translations before the route input effect loads transactions.
    */
   ngOnInit(): void {
     this.multiSortMeta.push({ field: 'transactionTime', order: -1 });
     this.prepareTableAndTranslate();
-    this.routeSubscribe = this.activatedRoute.params
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params: Params) => {
-        this.idPortfolio = +params['id'];
-        this.initialize();
-      });
   }
 
   /**
@@ -73,7 +84,6 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
    */
   ngOnDestroy(): void {
     super.destroy();
-    this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 
   /**
@@ -91,21 +101,6 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
    * Updates the table display and configures filtering options based on the loaded data.
    */
   protected override initialize(): void {
-    const transactionsObservable: Observable<Transaction[]> = this.transactionService.getTransactionsByIdPortfolio(
-      this.idPortfolio
-    );
-    const currencypairObservable: Observable<Currencypair[]> =
-      this.currencypairService.getCurrencypairInTransactionByTenant();
-    this.pageFirstRowSelectedRow.set(new PageFirstRowSelectedRow(0, this.selectedTransaction()));
-    this.dataSubscription?.unsubscribe();
-    this.dataSubscription = combineLatest([transactionsObservable, currencypairObservable])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((result: [Transaction[], Currencypair[]]) => {
-        this.cashaccountTransactionPositions.set(this.addCurrencypairToTransaction(result[0], result[1]));
-        this.prepareFilter(this.cashaccountTransactionPositions());
-        this.pageFirstRowSelectedRow.set(
-          new PageFirstRowSelectedRow(this.firstRowIndexOnPage, this.selectedTransaction())
-        );
-      });
+    this.transactionResource.reload();
   }
 }

@@ -105,3 +105,24 @@ test('live and archive views publish delayed rows, translated menus and their di
   await (await contextMenu(page, archive.locator('h4'))).getByText(RX.showLive).click();
   await expect(page.locator('historyquote-table tbody tr').first()).toBeVisible();
 });
+
+test('a failed combined quote read reports one error and reopening recovers', async ({ page }) => {
+  test.setTimeout(30_000);
+  await page.route(
+    /\/api\/historyquote\/securitycurrency\/\d+(\?|$)/,
+    (route) => route.fulfill({ status: 503, contentType: 'text/plain', body: 'E2E quote read failed' }),
+    { times: 1 }
+  );
+  const security = page.locator('td').filter({ hasText: SECURITY_RX }).first();
+  await (await contextMenu(page, security)).getByText(RX.eodTableItem).first().click();
+  const live = page.locator('historyquote-table');
+  await expect(live.locator('tbody tr')).toHaveCount(0);
+  await expect(live.locator('.p-datatable-loading-overlay')).toHaveCount(0);
+  await expect(page.locator('.p-toast-message', { hasText: 'E2E quote read failed' })).toHaveCount(1);
+  await expect(page.locator('.p-toast-message')).toHaveCount(1);
+
+  // The history table is an auxiliary route: selecting the same primary watchlist does not close it.
+  // Reopen the deep link so a new resource reads the now-successful endpoint.
+  await page.reload();
+  await expect(page.locator('historyquote-table tbody tr').first()).toBeVisible();
+});

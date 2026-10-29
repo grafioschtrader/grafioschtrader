@@ -1,10 +1,19 @@
-import { afterNextRender, Component, inject, Injector, OnDestroy, OnInit, viewChild } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild,
+  effect,
+  input,
+  numberAttribute,
+  untracked
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
-import { ActivatedRoute, Params } from '@angular/router';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
-
 import { AppSettings } from '../../app.settings';
 import { HelpIds } from '../../../lib/help/help.ids';
 import { SingleRecordMasterViewBase } from '../../../lib/masterdetail/component/single.record.master.view.base';
@@ -16,7 +25,6 @@ import { SelectOptionsHelper } from '../../../lib/helper/select.options.helper';
 import { ProcessedActionData } from '../../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../../lib/types/processed.action';
 import { BaseSettings } from '../../../lib/base.settings';
-
 import { GTNetSecurityImpHead } from '../model/gtnet-security-imp-head';
 import { GTNetSecurityImpPos } from '../model/gtnet-security-imp-pos';
 import { GTNetSecurityImpHeadService } from '../service/gtnet-security-imp-head.service';
@@ -68,7 +76,8 @@ export class GTNetSecurityImportComponent
   extends SingleRecordMasterViewBase<GTNetSecurityImpHead, GTNetSecurityImpPos, GTNetSecurityImpHead>
   implements OnInit, OnDestroy
 {
-  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  readonly transactionHeadInput = input(undefined, { alias: 'idTransactionHead', transform: numberAttribute });
+
   private gtNetSecurityImpHeadService: GTNetSecurityImpHeadService = inject(GTNetSecurityImpHeadService);
 
   private static readonly MAIN_FIELD = 'idGtNetSecurityImpHead';
@@ -103,17 +112,18 @@ export class GTNetSecurityImportComponent
       })
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+
+    effect(() => {
+      const id = this.transactionHeadInput();
+      if (id)
+        untracked(() => {
+          this.idTransactionHead = id;
+          this.reSetHelpId(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT_GTNET);
+        });
+    });
   }
 
   ngOnInit(): void {
-    // Subscribe to route params to read idTransactionHead (passed from transaction import context)
-    this.activatedRoute.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params: Params) => {
-      if (params[AppSettings.ID_TRANSACTION_HEAD]) {
-        this.idTransactionHead = Number(params[AppSettings.ID_TRANSACTION_HEAD]);
-        this.reSetHelpId(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT_GTNET);
-      }
-    });
-
     // Also check localStorage for idTransactionHead (set by import transaction component)
     const storedIdTransactionHead = localStorage.getItem(AppSettings.ID_TRANSACTION_HEAD);
     if (storedIdTransactionHead) {

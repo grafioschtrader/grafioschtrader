@@ -1,7 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, ParamMap } from '@angular/router';
-import { AppHelper } from '../../lib/helper/app.helper';
+import { Component, computed, input, linkedSignal } from '@angular/core';
 import { TimeSeriesParam } from '../model/time.series.param';
 import { HistoryquoteTableComponent } from './historyquote-table.component';
 import { HistoryquoteLegacyComponent } from './historyquote-legacy.component';
@@ -24,23 +21,12 @@ import { HistoryquoteLegacyComponent } from './historyquote-legacy.component';
   `,
   imports: [HistoryquoteTableComponent, HistoryquoteLegacyComponent]
 })
-export class HistoryquoteHostComponent implements OnInit {
-  private activatedRoute = inject(ActivatedRoute);
+export class HistoryquoteHostComponent {
+  readonly allParam = input<string>();
 
-  readonly viewMode = signal<'live' | 'legacy'>('live');
-  readonly timeSeriesParams = signal<TimeSeriesParam[]>([]);
-  readonly idSecuritycurrency = signal<number>(null);
-
-  private readonly destroyRef = inject(DestroyRef);
-
-  ngOnInit(): void {
-    this.activatedRoute.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((paramMap: ParamMap) => {
-      const timeSeriesParams: TimeSeriesParam[] = AppHelper.createParamObjectFromParamMap(paramMap).allParam;
-      this.timeSeriesParams.set(timeSeriesParams);
-      this.idSecuritycurrency.set(timeSeriesParams?.[0]?.idSecuritycurrency ?? null);
-      this.viewMode.set('live');
-    });
-  }
+  readonly viewMode = linkedSignal<string, 'live' | 'legacy'>({ source: this.allParam, computation: () => 'live' });
+  readonly timeSeriesParams = computed<TimeSeriesParam[]>(() => JSON.parse(this.allParam() ?? '[]'));
+  readonly idSecuritycurrency = computed(() => this.timeSeriesParams()?.[0]?.idSecuritycurrency ?? null);
 
   showLegacy(): void {
     if (this.idSecuritycurrency() != null) {

@@ -1,11 +1,80 @@
-import { describe, expect, it } from 'vitest';
+import { parseTemplate, TmplAstSwitchBlock } from '@angular/compiler';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
+import { describe, expect, it } from 'vitest';
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const SRC = path.dirname(THIS_FILE);
+
+/** Stateful RxJS subjects and route subscriptions are replaced by signals and router-bound inputs. */
+function legacyReactiveState(source: string): { behaviorSubject: boolean; routeStreams: string[] } {
+  const parsed = ts.createSourceFile('source.ts', source, ts.ScriptTarget.Latest, true);
+  const subjects = new Set(['BehaviorSubject']);
+  const routes = new Set(['ActivatedRoute']);
+  const rxjsNamespaces = new Set<string>();
+  for (const node of parsed.statements) {
+    if (!ts.isImportDeclaration(node) || !ts.isStringLiteral(node.moduleSpecifier)) continue;
+    const bindings = node.importClause?.namedBindings;
+    if (bindings && ts.isNamespaceImport(bindings) && node.moduleSpecifier.text === 'rxjs') {
+      rxjsNamespaces.add(bindings.name.text);
+    }
+    if (bindings && ts.isNamedImports(bindings)) {
+      for (const entry of bindings.elements) {
+        const imported = (entry.propertyName ?? entry.name).text;
+        if (node.moduleSpecifier.text === 'rxjs' && imported === 'BehaviorSubject') subjects.add(entry.name.text);
+        if (node.moduleSpecifier.text === '@angular/router' && imported === 'ActivatedRoute')
+          routes.add(entry.name.text);
+      }
+    }
+  }
+  // The standard field name also covers subscriptions inherited from a base defined in another file.
+  const routeFields = new Set<string>(['activatedRoute']);
+  function collect(node: ts.Node): void {
+    if (
+      (ts.isPropertyDeclaration(node) || ts.isVariableDeclaration(node) || ts.isParameter(node)) &&
+      ts.isIdentifier(node.name)
+    ) {
+      const initializer = 'initializer' in node ? node.initializer : undefined;
+      if (
+        (node.type && routes.has(node.type.getText(parsed))) ||
+        (initializer &&
+          ts.isCallExpression(initializer) &&
+          initializer.arguments.some((arg) => routes.has(arg.getText(parsed))))
+      )
+        routeFields.add(node.name.text);
+    }
+    ts.forEachChild(node, collect);
+  }
+  collect(parsed);
+  const result = { behaviorSubject: false, routeStreams: [] as string[] };
+  function visit(node: ts.Node): void {
+    if (ts.isNewExpression(node)) {
+      const expression = node.expression;
+      result.behaviorSubject ||= ts.isIdentifier(expression) && subjects.has(expression.text);
+      result.behaviorSubject ||=
+        ts.isPropertyAccessExpression(expression) &&
+        rxjsNamespaces.has(expression.expression.getText(parsed)) &&
+        expression.name.text === 'BehaviorSubject';
+    }
+    if (
+      ts.isPropertyAccessExpression(node) &&
+      ['params', 'paramMap', 'queryParams', 'queryParamMap'].includes(node.name.text)
+    ) {
+      const receiver = node.expression;
+      const name = ts.isIdentifier(receiver)
+        ? receiver.text
+        : ts.isPropertyAccessExpression(receiver) && receiver.expression.kind === ts.SyntaxKind.ThisKeyword
+          ? receiver.name.text
+          : '';
+      if (routeFields.has(name)) result.routeStreams.push(node.getText(parsed));
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(parsed);
+  return result;
+}
 
 /** Runtime configuration and screen-selected strategies remain explicit in the table hierarchy. */
 const TABLE_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason: string }> = {
@@ -193,21 +262,6 @@ function hierarchyConstructorParameters(
   return result;
 }
 
-/** Request coordination remains here until the resource migration in specification §4.4. */
-const ON_CHANGES_REQUESTS: Record<string, string> = {
-  'app/historyquote/component/historyquote-legacy.component.ts': 'Loads the selected instrument and legacy history.',
-  'app/historyquote/component/historyquote-table.component.ts': 'Loads history for the current time-series parameters.',
-  'app/securitycurrency/component/security-historyquote-quality-table.component.ts':
-    'Replaces the quality-data request.',
-  'app/standingorder/component/standing-order-transaction-table.component.ts':
-    'Loads the portfolio before its transactions.',
-  'app/taxdata/component/tax-exchange-rate-table.component.ts': 'Loads the selected tax year rates.',
-  'app/taxdata/component/tax-year-correction-table.component.ts':
-    'Loads corrections for the instrument and selected year.',
-  'app/udfmetasecurity/components/udf-fill-suggest-test-result.component.ts':
-    'Starts the current fill-suggestion request.'
-};
-
 function legacyChangeHandling(source: string): { hook: boolean; initializationFlag: boolean } {
   const parsed = ts.createSourceFile('source.ts', source, ts.ScriptTarget.Latest, true);
   const result = { hook: false, initializationFlag: false };
@@ -338,6 +392,45 @@ function hasRedundantStandaloneMetadata(source: string): boolean {
     return ts.forEachChild(node, visit);
   }
   return !!visit(parsed);
+}
+
+/** Static template parsing keeps deliberate runtime fallbacks distinct from exhaustive union switches. */
+function switchesWithoutDefault(template: string): string[] {
+  const result: string[] = [];
+  const seen = new WeakSet<object>();
+  function visit(value: unknown): void {
+    if (value === null || typeof value !== 'object' || seen.has(value)) return;
+    seen.add(value);
+    if (
+      value instanceof TmplAstSwitchBlock &&
+      !value.exhaustiveCheck &&
+      !value.groups.some((group) => group.cases.some((branch) => branch.expression === null))
+    ) {
+      result.push(template.slice(value.startSourceSpan.start.offset, value.startSourceSpan.end.offset));
+    }
+    for (const child of Object.values(value)) {
+      if (Array.isArray(child)) child.forEach(visit);
+      else visit(child);
+    }
+  }
+  parseTemplate(template, 'ratchet.html').nodes.forEach(visit);
+  return result;
+}
+
+function inlineTemplates(source: string): string[] {
+  const parsed = ts.createSourceFile('source.ts', source, ts.ScriptTarget.Latest, true);
+  const result: string[] = [];
+  function visit(node: ts.Node): void {
+    if (
+      ts.isPropertyAssignment(node) &&
+      node.name.getText(parsed) === 'template' &&
+      (ts.isStringLiteral(node.initializer) || ts.isNoSubstitutionTemplateLiteral(node.initializer))
+    )
+      result.push(node.initializer.text);
+    ts.forEachChild(node, visit);
+  }
+  visit(parsed);
+  return result;
 }
 
 /** Collects source files of both hosts and the shared library, excluding this guard's examples. */
@@ -515,6 +608,39 @@ describe('Angular API ratchet', () => {
     }
   });
 
+  it('matches state subjects and injected route streams, including import aliases', () => {
+    for (const source of [
+      'const state = new BehaviorSubject<number>(0);',
+      "import { BehaviorSubject as State } from 'rxjs'; const state = new State(null);",
+      "import * as rx from 'rxjs'; const state = new rx.BehaviorSubject(null);"
+    ])
+      expect(legacyReactiveState(source).behaviorSubject, source).toBe(true);
+    for (const access of ['params', 'paramMap', 'queryParams', 'queryParamMap']) {
+      const source = `import { ActivatedRoute as Route } from '@angular/router'; class View { private route = inject(Route); read() { return this.route.${access}; } }`;
+      expect(legacyReactiveState(source).routeStreams, source).toEqual([`this.route.${access}`]);
+    }
+    expect(
+      legacyReactiveState('class Child extends Base { read() { return this.activatedRoute.params; } }').routeStreams
+    ).toEqual(['this.activatedRoute.params']);
+    for (const source of [
+      'class View { readonly id = input.required({ transform: numberAttribute }); readonly state = signal(0); }',
+      'const data = { params: {} }; data.params;',
+      'class View { private route: ActivatedRoute; read() { return this.route.snapshot.paramMap; } }',
+      '// new BehaviorSubject(null); this.activatedRoute.params',
+      'const example = "new BehaviorSubject(null); this.route.paramMap";'
+    ])
+      expect(legacyReactiveState(source), source).toEqual({ behaviorSubject: false, routeStreams: [] });
+  });
+
+  it('uses signals for shared state and inputs for route parameters in both hosts', () => {
+    for (const file of collectSources(SRC)) {
+      expect(
+        legacyReactiveState(fs.readFileSync(file, 'utf8')),
+        path.relative(SRC, file) + ': use signals and withComponentInputBinding(). See frontend/CLAUDE.md.'
+      ).toEqual({ behaviorSubject: false, routeStreams: [] });
+    }
+  });
+
   it('matches change hooks and initialization flags without matching examples in comments or strings', () => {
     expect(legacyChangeHandling('class Example { ngOnChanges() {} }')).toEqual({
       hook: true,
@@ -534,7 +660,7 @@ describe('Angular API ratchet', () => {
     }
   });
 
-  it('keeps only the request hooks awaiting resource migration and no fieldsInitialized flags', () => {
+  it('uses signal reactions instead of change hooks and initialization flags', () => {
     const hooks: string[] = [];
     const initializationFlags: string[] = [];
     for (const file of collectSources(SRC)) {
@@ -544,10 +670,29 @@ describe('Angular API ratchet', () => {
       if (found.initializationFlag) initializationFlags.push(relative);
     }
     expect(initializationFlags, 'Define columns before the row effect. See frontend/CLAUDE.md.').toEqual([]);
-    expect(hooks.sort(), 'Use computed() for derived state and effect()/untracked() for input reactions.').toEqual(
-      Object.keys(ON_CHANGES_REQUESTS).sort()
-    );
-    expect(Object.values(ON_CHANGES_REQUESTS).every((reason) => reason.length > 0)).toBe(true);
+    expect(hooks.sort(), 'Use computed() for derived state and effect()/untracked() for input reactions.').toEqual([]);
+  });
+
+  it('distinguishes exhaustive switches, deliberate fallbacks and missing defaults in nested templates', () => {
+    expect(switchesWithoutDefault("@switch (state) { @case ('ready') { Ready } @default never; }")).toEqual([]);
+    expect(switchesWithoutDefault("@switch (field.kind) { @case ('link') {} @default {} }")).toEqual([]);
+    expect(switchesWithoutDefault("@if (visible) { @switch (state) { @case ('ready') {} } }")).toEqual([
+      '@switch (state) {'
+    ]);
+    expect(switchesWithoutDefault('<!-- @switch (state) {} -->')).toEqual([]);
+  });
+
+  it('requires a deliberate fallback or an exhaustive default in every template switch', () => {
+    for (const file of collectSources(SRC, ['.ts', '.html'])) {
+      const source = fs.readFileSync(file, 'utf8');
+      if (!source.includes('@switch')) continue;
+      const templates = file.endsWith('.html') ? [source] : inlineTemplates(source);
+      for (const template of templates)
+        expect(
+          switchesWithoutDefault(template),
+          path.relative(SRC, file) + ': use @default never for finite state, or preserve a deliberate fallback.'
+        ).toEqual([]);
+    }
   });
 
   it('matches input decorators, including aliases and namespace imports', () => {

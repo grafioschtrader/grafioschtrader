@@ -1,23 +1,23 @@
-import { computed, signal, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { httpResource } from '@angular/common/http';
+import { Component, OnInit, computed, effect, inject, input, numberAttribute, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Params } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
-import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
-import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
-import { AppSettings } from '../../shared/app.settings';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { AlgoTop } from '../model/algo.top';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
+import { AppSettings } from '../../shared/app.settings';
 import { AlgoAssetclass } from '../model/algo.assetclass';
 import { AlgoSecurity } from '../model/algo.security';
+import { AlgoTop } from '../model/algo.top';
 import { SimulationRunSettings } from '../model/simulation.run';
 import { AlgoSimulationRunService } from '../service/algo-simulation-run.service';
 import { AlgoTreeViewBase } from './algo.tree.view.base';
 import { StrategyDetailComponent } from './strategy-detail.component';
-import { AngularSvgIconModule } from 'angular-svg-icon';
-import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
 /**
  * Shows the strategy hierarchy the latest historical replay of a simulation environment was submitted with, laid out
@@ -88,19 +88,18 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
     `
   ]
 })
-export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase implements OnInit, OnDestroy {
-  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase implements OnInit {
+  readonly id = input.required({ transform: numberAttribute });
+
   private runService: AlgoSimulationRunService = inject(AlgoSimulationRunService);
 
   readonly getAlgoRowClassCallback = (rowNode: any, rowData: any) => this.getAlgoRowClass(rowNode, rowData);
   /** Undefined while loading, null when the environment has never been replayed. */
-  readonly settings = signal<SimulationRunSettings | null>(undefined);
+  readonly settings = computed(() => (this.settingsResource.hasValue() ? this.settingsResource.value() : undefined));
   submittedAtField: ColumnConfig;
   private readonly allocation = computed(() => this.settings()?.allocation);
-  private routeSubscribe: Subscription;
 
-  /**
-   */
+  readonly settingsResource = httpResource<SimulationRunSettings>(() => this.runService.getSettingsRequest(this.id()));
   constructor() {
     super();
     this.addNameAndPercentageColumns();
@@ -114,6 +113,22 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
       'submittedAt',
       'STARTED_AT'
     );
+
+    effect(() => {
+      this.id();
+      untracked(() => {
+        this.algoTop.set(null);
+        this.selectedNode.set(null);
+        this.onNodeUnselect(null);
+      });
+    });
+
+    reportResourceErrors(this.settingsResource, this.runService);
+    effect(() => {
+      const settings = this.settings();
+      if (settings?.hierarchy)
+        untracked(() => this.buildTree(settings.hierarchy.algoTop, settings.hierarchy.algoAssetclassList));
+    });
   }
 
   ngOnInit(): void {
@@ -125,31 +140,6 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
         this.submittedAtField.headerTranslated = text;
         this.notifyViewChanged();
       });
-    this.routeSubscribe = this.activatedRoute.params
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params: Params) => this.readSettings(+params['id']));
-  }
-
-  ngOnDestroy(): void {
-    this.routeSubscribe?.unsubscribe();
-  }
-
-  private readSettings(idTenant: number): void {
-    this.settings.set(undefined);
-    this.algoTop.set(null);
-    this.selectedNode.set(null);
-    this.onNodeUnselect(null);
-    this.replaceAlgoRequest('settings').add(
-      this.runService
-        .settings(idTenant)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((settings) => {
-          this.settings.set(settings ?? null);
-          if (settings?.hierarchy) {
-            this.buildTree(settings.hierarchy.algoTop, settings.hierarchy.algoAssetclassList);
-          }
-        })
-    );
   }
 
   /**

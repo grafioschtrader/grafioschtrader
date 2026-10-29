@@ -1,36 +1,35 @@
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { Component, computed, effect, inject, input, OnDestroy, signal, untracked } from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslateModule } from '@ngx-translate/core';
 import { MenuItem } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { forkJoin, of } from 'rxjs';
+import { BaseSettings } from '../../base.settings';
+import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
+import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
+import { FilterType } from '../../datashowbase/filter.type';
+import { CrudMenuOptions, TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { GlobalSessionNames } from '../../global.session.names';
+import { HelpIds } from '../../help/help.ids';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { reportResourceErrors } from '../../login/service/resource.error.report';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { TaskDataChangeService } from '../service/task.data.change.service';
+import { TASK_EXTENDED_SERVICE } from '../service/task.extend.service.token';
+import { TASK_TYPE_ENUM } from '../service/task.type.enum.token';
 import {
   MAIN_TASK_QUEUE,
   ProgressStateType,
   TaskDataChange,
   TaskDataChangeFormConstraints
 } from '../types/task.data.change';
-import { TranslateModule } from '@ngx-translate/core';
-import { GlobalparameterService } from '../../services/globalparameter.service';
-import { HelpIds } from '../../help/help.ids';
-import { DataType } from '../../dynamic-form/models/data.type';
-import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
-import { TaskDataChangeService } from '../service/task.data.change.service';
-import { CrudMenuOptions, TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { FilterType } from '../../datashowbase/filter.type';
-import { forkJoin, of, Subscription, switchMap } from 'rxjs';
-import { InfoLevelType } from '../../message/info.leve.type';
 import { ITaskExtendService } from './itask.extend.service';
-import { TASK_EXTENDED_SERVICE } from '../service/task.extend.service.token';
-import { TASK_TYPE_ENUM } from '../service/task.type.enum.token';
-import { BaseSettings } from '../../base.settings';
-
-import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
-import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TaskDataChangeEditComponent } from './task-data-change-edit.component';
-import { TaskFilterDialogComponent } from './task-filter-dialog.component';
 import { TaskDataChangeTabMenuComponent } from './task-data-change-tab-menu.component';
-import { TranslateHelper } from '../../helper/translate.helper';
-import { GlobalSessionNames } from '../../global.session.names';
+import { TaskFilterDialogComponent } from './task-filter-dialog.component';
 
 /**
  * Shows the batch jobs of one queue in a table. The queue comes from the child route of the tab menu; without one, the
@@ -40,6 +39,7 @@ import { GlobalSessionNames } from '../../global.session.names';
   template: `
     <configurable-table
       [data]="entityList()"
+      [loading]="tasksResource.isLoading()"
       [fields]="fields"
       [fieldsRevision]="fieldsRevision()"
       [dataKey]="'idTaskDataChange'"
@@ -137,6 +137,9 @@ import { GlobalSessionNames } from '../../global.session.names';
   ]
 })
 export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataChange> implements OnDestroy {
+  readonly queueInput = input<string>(undefined, { alias: 'queue' });
+  private readonly queueReady = signal(false);
+
   private taskDataChangeService: TaskDataChangeService = inject(TaskDataChangeService);
   private taskExtendService: ITaskExtendService = inject(TASK_EXTENDED_SERVICE);
 
@@ -163,12 +166,23 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     () => this.tdcFormConstraints()?.queues?.find((q) => q.name === this.queue())?.labelKey ?? 'TASK_DATA_MONITOR'
   );
   readonly canExpand = (task: TaskDataChange): boolean => this.canExpandRow(task);
-
-  private readonly activatedRoute = inject(ActivatedRoute);
-  private readDataSub?: Subscription;
   private queueInitialized = false;
   private readonly showMenu = signal<MenuItem[]>([]);
 
+  readonly tasksResource = rxResource({
+    params: () => {
+      if (!this.queueReady()) return undefined;
+      const queue = TaskDataChangeTabMenuComponent.queueOf(this.queueInput());
+      return { queue, idTasks: this.taskIdsOfQueue(queue) };
+    },
+    stream: ({ params }) =>
+      params.idTasks?.length === 0
+        ? of([[], []] as [TaskDataChange[], any])
+        : forkJoin([
+            this.taskDataChangeService.getAllTaskDataChange(params.idTasks),
+            this.hasAdditionalToolTipData() ? this.taskExtendService.getAdditionalData() : of([])
+          ])
+  });
   constructor() {
     super(
       BaseSettings.TASK_DATE_CHANGE,
@@ -212,6 +226,25 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     this.fields.filter((f) => f.dataType === DataType.DateTimeSecondString).map((f) => (f.width = 100));
     this.multiSortMeta.push({ field: 'creationTime', order: -1 });
     this.multiSortMeta.push({ field: 'taskAsId', order: 1 });
+
+    effect(() => {
+      const queue = TaskDataChangeTabMenuComponent.queueOf(this.queueInput());
+      if (this.queueReady()) untracked(() => this.showQueue(queue));
+    });
+
+    reportResourceErrors(this.tasksResource, this.taskDataChangeService);
+    effect(() => {
+      if (this.tasksResource.isLoading() || !this.queueReady()) return;
+      const [tasks, extra] = this.tasksResource.hasValue() ? this.tasksResource.value() : [[], []];
+      untracked(() => {
+        this.entityList.set(tasks);
+        this.additionalData.set(extra);
+        this.prepareTableAndTranslate();
+        this.createTranslatedValueStoreAndFilterField(tasks);
+        this.prepareFilter(tasks);
+        this.refreshSelectedEntity();
+      });
+    });
   }
 
   canExpandRow(taskDataChange: TaskDataChange): boolean {
@@ -253,15 +286,12 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       constraints: this.taskDataChangeService.getFormConstraints(),
       showMenu: TranslateHelper.translateMenuItems$(this.createShowMenu(), this.translateService)
     })
-      .pipe(
-        switchMap(({ constraints, showMenu }) => {
-          this.tdcFormConstraints.set(constraints);
-          this.showMenu.set(showMenu);
-          return this.activatedRoute.paramMap;
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe((params: ParamMap) => this.showQueue(TaskDataChangeTabMenuComponent.queueOf(params.get('queue'))));
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ constraints, showMenu }) => {
+        this.tdcFormConstraints.set(constraints);
+        this.showMenu.set(showMenu);
+        this.queueReady.set(true);
+      });
   }
 
   /**
@@ -288,44 +318,20 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
    * The task types to load: those of the shown queue, narrowed by the task filter. Null loads every task, which only
    * happens with a server that reports no queues.
    */
-  private taskIdsOfQueue(): number[] | null {
+  private taskIdsOfQueue(queue = this.queue()): number[] | null {
     const taskTypeQueue = this.tdcFormConstraints()?.taskTypeQueue;
     if (!taskTypeQueue) {
       return this.currentTaskFilter();
     }
     const ids = Object.keys(taskTypeQueue)
-      .filter((name) => taskTypeQueue[name] === this.queue())
+      .filter((name) => taskTypeQueue[name] === queue)
       .map((name) => this.taskTypeEnum[name])
       .filter((id) => typeof id === 'number');
     return this.currentTaskFilter() ? ids.filter((id) => this.currentTaskFilter().includes(id)) : ids;
   }
 
   protected override readData(): void {
-    this.readDataSub?.unsubscribe();
-    const idTasks = this.taskIdsOfQueue();
-    if (idTasks && idTasks.length === 0) {
-      // An empty list would load every task
-      this.entityList.set([]);
-      this.additionalData.set([]);
-      this.prepareTableAndTranslate();
-      this.createTranslatedValueStoreAndFilterField([]);
-      this.prepareFilter([]);
-      this.refreshSelectedEntity();
-      return;
-    }
-    this.readDataSub = forkJoin([
-      this.taskDataChangeService.getAllTaskDataChange(idTasks),
-      this.hasAdditionalToolTipData() ? this.taskExtendService.getAdditionalData() : of([])
-    ])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(([taskDataChanges, additionalData]: [TaskDataChange[], any]) => {
-        this.entityList.set(taskDataChanges);
-        this.additionalData.set(additionalData);
-        this.prepareTableAndTranslate();
-        this.createTranslatedValueStoreAndFilterField(taskDataChanges);
-        this.prepareFilter(taskDataChanges);
-        this.refreshSelectedEntity();
-      });
+    this.tasksResource.reload();
   }
 
   protected override prepareShowMenu(): MenuItem[] {

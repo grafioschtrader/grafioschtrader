@@ -1,22 +1,22 @@
 import { Service } from '@angular/core';
+import { HistoryquotesWithMissings } from '../model/historyquotes.with.missings';
 
 import { Historyquote, HistoryquoteCreateType } from '../../entities/historyquote';
 
-import { AppSettings } from '../../shared/app.settings';
-import { Observable } from 'rxjs';
-import { DeleteService } from '../../lib/datashowbase/delete.service';
-import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { HttpParams } from '@angular/common/http';
-import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
+import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { TaFormDefinition, TaTraceIndicatorData } from '../component/indicator.definitions';
 import { HistoryquoteChartResponse } from '../../entities/projection/historyquote.chart.response';
 import { HistoryquoteDateClose } from '../../entities/projection/historyquote.date.close';
-import { IHistoryquoteQuality } from '../../entities/view/ihistoryquote.quality';
-import { SupportedCSVFormats, UploadServiceFunction } from '../../lib/generaldialog/model/file.upload.param';
 import { ISecuritycurrencyIdDateClose } from '../../entities/projection/i.securitycurrency.id.date.close';
 import { BaseSettings } from '../../lib/base.settings';
+import { DeleteService } from '../../lib/datashowbase/delete.service';
+import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
+import { SupportedCSVFormats, UploadServiceFunction } from '../../lib/generaldialog/model/file.upload.param';
+import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { HistoryquoteDeleteBounds } from '../../securitycurrency/model/historyquote.quality.group';
+import { AppSettings } from '../../shared/app.settings';
+import { TaFormDefinition, TaTraceIndicatorData } from '../component/indicator.definitions';
 
 @Service()
 export class HistoryquoteService
@@ -26,8 +26,8 @@ export class HistoryquoteService
   getHistoryqoutesByIdSecuritycurrencyWithMissing(
     idSecuritycurrency: number,
     isCurrency: boolean
-  ): Observable<IHistoryquoteQuality> {
-    return <Observable<IHistoryquoteQuality>>this.httpClient
+  ): Observable<HistoryquotesWithMissings> {
+    return <Observable<HistoryquotesWithMissings>>this.httpClient
       .get(`${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}`, {
         headers: this.prepareHeaders(),
         params: new HttpParams().set('isCurrencypair', isCurrency.toString())

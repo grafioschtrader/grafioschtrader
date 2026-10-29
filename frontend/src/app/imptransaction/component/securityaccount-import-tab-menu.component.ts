@@ -1,10 +1,7 @@
-import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
-
-import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
+import { Component, OnInit, signal, inject, effect, input, numberAttribute, untracked } from '@angular/core';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
 import { TabsModule } from '@openng/optimus-ui/tabs';
-
 import { AppSettings } from '../../shared/app.settings';
 import { Securityaccount } from '../../entities/securityaccount';
 import { TabItem } from '../../lib/types/tab.item';
@@ -33,7 +30,11 @@ import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navi
   `,
   imports: [RouterModule, TabsModule, TranslateModule]
 })
-export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy {
+export class SecurityaccountImportTabMenuComponent implements OnInit {
+  readonly importResult = input<string>(undefined, { alias: 'successFailedDirectImpTran' });
+
+  readonly id = input.required({ transform: numberAttribute });
+
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
   private gps = inject(GlobalparameterService);
@@ -44,8 +45,33 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
 
   private securityaccount: Securityaccount;
   private successFailedImportTransParam: any = null;
-  private routeParamSubscribe: Subscription;
   private initialized = false;
+  constructor() {
+    effect(() => {
+      const id = this.id();
+      const importResult = this.importResult();
+      untracked(() => {
+        if (id) {
+          this.securityaccount = this.treeNavState.getEntity<Securityaccount>(
+            AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY,
+            id
+          );
+
+          if (this.securityaccount) {
+            if (importResult) {
+              this.successFailedImportTransParam = importResult;
+            }
+
+            // Only navigate to default on first initialization
+            if (!this.initialized) {
+              this.initialized = true;
+              this.navigateToTab(0);
+            }
+          }
+        }
+      });
+    });
+  }
 
   ngOnInit(): void {
     this.tabs = [
@@ -62,34 +88,6 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
         route: AppSettings.SECURITYACCOUNT_GTNET_IMPORT_KEY,
         icon: ''
       });
-    }
-
-    this.routeParamSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      const id = +params['id'];
-      if (id) {
-        this.securityaccount = this.treeNavState.getEntity<Securityaccount>(
-          AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY,
-          id
-        );
-
-        if (this.securityaccount) {
-          if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
-            this.successFailedImportTransParam = params[AppSettings.SUCCESS_FAILED_IMP_TRANS];
-          }
-
-          // Only navigate to default on first initialization
-          if (!this.initialized) {
-            this.initialized = true;
-            this.navigateToTab(0);
-          }
-        }
-      }
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.routeParamSubscribe) {
-      this.routeParamSubscribe.unsubscribe();
     }
   }
 

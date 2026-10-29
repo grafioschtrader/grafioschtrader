@@ -1,40 +1,42 @@
-import { Component, OnChanges, OnDestroy, signal, SimpleChanges, output, input, inject } from '@angular/core';
+import { Component, effect, inject, input, OnDestroy, output, signal, untracked } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 
+import { TranslateModule } from '@ngx-translate/core';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { TranslateModule } from '@ngx-translate/core';
 import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
-import { combineLatest, Subscription } from 'rxjs';
 import { plainToClass } from 'class-transformer';
-import { HistoryquoteTableBase } from './historyquote-table.base';
-import { HistoryquoteLegacy } from '../../entities/historyquote.legacy';
-import { Securitycurrency } from '../../entities/securitycurrency';
-import { Security } from '../../entities/security';
+import { combineLatest, map, switchMap } from 'rxjs';
 import { Currencypair } from '../../entities/currencypair';
+import { HistoryquoteLegacy } from '../../entities/historyquote.legacy';
+import { Security } from '../../entities/security';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { BaseSettings } from '../../lib/base.settings';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { CrudMenuOptions } from '../../lib/datashowbase/table.crud.support.menu';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { AppSettings } from '../../shared/app.settings';
-import { BaseSettings } from '../../lib/base.settings';
-import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { HelpIds } from '../../lib/help/help.ids';
-import { AppHelper } from '../../lib/helper/app.helper';
-import { AuditHelper } from '../../lib/helper/audit.helper';
-import { ProcessedAction } from '../../lib/types/processed.action';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { HistoryquoteService } from '../service/historyquote.service';
-import { HistoryquoteLegacyService } from '../service/historyquote.legacy.service';
-import { SecurityService } from '../../securitycurrency/service/security.service';
-import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
-import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { UploadFileDialogComponent } from '../../lib/generaldialog/component/upload-file-dialog.component';
 import {
   FileUploadParam,
   SupportedCSVFormats,
   UploadServiceFunction
 } from '../../lib/generaldialog/model/file.upload.param';
-import { UploadFileDialogComponent } from '../../lib/generaldialog/component/upload-file-dialog.component';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { AppSettings } from '../../shared/app.settings';
+import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy.security.currency';
+import { HistoryquoteLegacyService } from '../service/historyquote.legacy.service';
+import { HistoryquoteService } from '../service/historyquote.service';
 import { HistoryquoteLegacyApplySplitDialogComponent } from './historyquote-legacy-apply-split-dialog.component';
 import { HistoryquoteLegacyEditComponent } from './historyquote-legacy-edit.component';
-import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy.security.currency';
+import { HistoryquoteTableBase } from './historyquote-table.base';
 
 /**
  * Displays archived {@code historyquote_legacy} rows for one security. Hosted by
@@ -57,6 +59,7 @@ import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy
       <div class="datatable">
         <configurable-table
           [data]="entityList()"
+          [loading]="legacyResource.isLoading()"
           [fields]="fields"
           [fieldsRevision]="fieldsRevision()"
           [dataKey]="entityKeyName"
@@ -117,10 +120,7 @@ import { HistoryquoteLegacySecurityCurrency } from '../model/historyquote.legacy
     UploadFileDialogComponent
   ]
 })
-export class HistoryquoteLegacyComponent
-  extends HistoryquoteTableBase<HistoryquoteLegacy>
-  implements OnChanges, OnDestroy
-{
+export class HistoryquoteLegacyComponent extends HistoryquoteTableBase<HistoryquoteLegacy> implements OnDestroy {
   private historyquoteService: HistoryquoteService = inject(HistoryquoteService);
   private historyquoteLegacyService: HistoryquoteLegacyService = inject(HistoryquoteLegacyService);
   private securityService: SecurityService = inject(SecurityService);
@@ -137,13 +137,27 @@ export class HistoryquoteLegacyComponent
 
   private securitycurrency: Securitycurrency;
   private supportedCSVFormats: SupportedCSVFormats;
-  /** Requests of the shown instrument and of its rows; a newer one replaces a request that is still pending. */
-  private instrumentSubscription: Subscription;
-  private rowsSubscription: Subscription;
   private readonly legacyUploadAdapter: UploadServiceFunction = {
     uploadFiles: (id, fd) => this.historyquoteLegacyService.uploadFilesLegacy(id, fd)
   };
 
+  readonly legacyResource = rxResource({
+    params: () => this.idSecuritycurrency(),
+    stream: ({ params: id }) =>
+      combineLatest([
+        this.currencypairService.getCurrencypairByIdSecuritycurrency(id),
+        this.securityService.getSecurityByIdSecuritycurrency(id)
+      ]).pipe(
+        switchMap(([pair, security]) =>
+          this.historyquoteLegacyService.getLegacyForSecurity(id).pipe(
+            map((rows) => ({
+              instrument: pair ? Object.assign(new Currencypair(), pair) : Object.assign(new Security(), security),
+              rows
+            }))
+          )
+        )
+      )
+  });
   constructor() {
     super(AppSettings.HISTORYQUOTE_LEGACY, inject(HistoryquoteLegacyService), [
       CrudMenuOptions.Allow_Edit,
@@ -159,9 +173,16 @@ export class HistoryquoteLegacyComponent
     this.addOhlcvColumns();
     this.applyDefaultDateSort();
     this.prepareTableAndTranslate();
-    this.destroyRef.onDestroy(() => {
-      this.instrumentSubscription?.unsubscribe();
-      this.rowsSubscription?.unsubscribe();
+
+    reportResourceErrors(this.legacyResource, this.historyquoteLegacyService);
+    effect(() => {
+      if (this.legacyResource.isLoading()) return;
+      const result = this.legacyResource.hasValue() ? this.legacyResource.value() : undefined;
+      untracked(() => {
+        if (result) this.securitycurrency = result.instrument;
+        this.entityList.set(result?.rows ?? []);
+        this.refreshSelectedEntity();
+      });
     });
   }
 
@@ -169,27 +190,12 @@ export class HistoryquoteLegacyComponent
     return HelpIds.HELP_WATCHLIST_HISTORYQUOTES_LEGACY;
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['idSecuritycurrency'] && this.idSecuritycurrency() != null) {
-      this.loadSecuritycurrencyAndData();
-    }
-  }
-
   ngOnDestroy(): void {
     this.activePanelService.destroyPanel(this);
   }
 
   readData(): void {
-    if (this.idSecuritycurrency() == null) {
-      return;
-    }
-    this.rowsSubscription?.unsubscribe();
-    this.rowsSubscription = this.historyquoteLegacyService
-      .getLegacyForSecurity(this.idSecuritycurrency())
-      .subscribe((rows) => {
-        this.entityList.set(rows ?? []);
-        this.refreshSelectedEntity();
-      });
+    this.legacyResource.reload();
   }
 
   /** The legacy specific actions after the CRUD items, untranslated. */
@@ -288,18 +294,6 @@ export class HistoryquoteLegacyComponent
   // the edit dialog (configured by AuditHelper.configureFormFromAuditableRights). Only Delete is guarded.
   protected override hasRightsForDeleteEntity(entity: HistoryquoteLegacy): boolean {
     return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securitycurrency);
-  }
-
-  private loadSecuritycurrencyAndData(): void {
-    const cpObservable = this.currencypairService.getCurrencypairByIdSecuritycurrency(this.idSecuritycurrency());
-    const securityObservable = this.securityService.getSecurityByIdSecuritycurrency(this.idSecuritycurrency());
-    this.instrumentSubscription?.unsubscribe();
-    this.instrumentSubscription = combineLatest([cpObservable, securityObservable]).subscribe((data: any[]) => {
-      this.securitycurrency = data[0]
-        ? Object.assign(new Currencypair(), data[0])
-        : Object.assign(new Security(), data[1]);
-      this.readData();
-    });
   }
 
   private confirmDeleteAll(): void {

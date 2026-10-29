@@ -1,24 +1,24 @@
-import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
-import { Directive, signal, inject } from '@angular/core';
-import { TransactionContextMenu } from './transaction.context.menu';
-import { FilterType } from '../../lib/datashowbase/filter.type';
-import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { Transaction } from '../../entities/transaction';
-import { Currencypair } from '../../entities/currencypair';
-import { Security } from '../../entities/security';
-import { ProcessedAction } from '../../lib/types/processed.action';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { TransactionCallParam } from './transaction.call.parm';
+import { Directive, inject, linkedSignal, signal } from '@angular/core';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { HelpIds } from '../../lib/help/help.ids';
-import { TranslateValue } from '../../lib/datashowbase/column.config';
-import { AppSettings } from '../../shared/app.settings';
+import { Currencypair } from '../../entities/currencypair';
+import { Security } from '../../entities/security';
+import { Transaction } from '../../entities/transaction';
 import { BaseSettings } from '../../lib/base.settings';
+import { TranslateValue } from '../../lib/datashowbase/column.config';
+import { FilterType } from '../../lib/datashowbase/filter.type';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { HelpIds } from '../../lib/help/help.ids';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { AppSettings } from '../../shared/app.settings';
 import {
   TransactionExportCsvDialogComponent,
   TransactionExportCsvDialogData
 } from './transaction-export-csv-dialog.component';
+import { TransactionCallParam } from './transaction.call.parm';
+import { TransactionContextMenu } from './transaction.context.menu';
 
 /**
  * Abstract base class for displaying transactions in a tabular format with comprehensive filtering, sorting, and
@@ -37,6 +37,10 @@ export abstract class TransactionTable extends TransactionContextMenu {
    *
    */
 
+  override readonly selectedTransaction = linkedSignal<Transaction[], Transaction | null>({
+    source: this.cashaccountTransactionPositions,
+    computation: (rows, previous) => rows.find((row) => row.idTransaction === previous?.value?.idTransaction) ?? null
+  });
   constructor() {
     super();
 

@@ -1,6 +1,6 @@
-import { afterNextRender, Component, OnDestroy, OnInit, signal, inject } from '@angular/core';
+import { afterNextRender, Component, OnInit, signal, inject, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { LoginService } from '../service/log-in.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { MessageToastService } from '../../message/message.toast.service';
@@ -17,7 +17,6 @@ import { GlobalSessionNames } from '../../global.session.names';
 import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
 import { HelpIds } from '../../help/help.ids';
 import { BaseSettings } from '../../base.settings';
-
 import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { ApplicationInfoComponent } from './application-info.component';
@@ -64,16 +63,14 @@ import { ApplicationInfoComponent } from './application-info.component';
   `,
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, ProgressBarModule, ApplicationInfoComponent]
 })
-export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {
+export class RegisterComponent extends PasswordBaseComponent implements OnInit {
   private messageToastService = inject(MessageToastService);
   private actuatorService = inject(ActuatorService);
-  private activatedRoute = inject(ActivatedRoute);
   private router = inject(Router);
   private loginService = inject(LoginService);
 
   readonly progressValue = signal<number>(undefined);
-  readonly errorLastRegistration = signal<string>(undefined);
-  queryParams: any;
+  readonly errorLastRegistration = input<string>(undefined, { alias: 'failure' });
   readonly confirmEmail = signal(false);
   readonly applicationInfo = signal<ApplicationInfo>(null);
 
@@ -142,10 +139,6 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     this.destroyRef.onDestroy(() => clearInterval(interval));
   }
 
-  ngOnDestroy(): void {
-    this.queryParams && this.queryParams.unsubscribe();
-  }
-
   helpLink(): void {
     this.gps.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO_REGISTER);
   }
@@ -172,9 +165,6 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   }
 
   private prepareData() {
-    this.queryParams = this.activatedRoute.params.subscribe((params) => {
-      this.errorLastRegistration.set(params['failure']);
-    });
     this.gps
       .getSupportedLocales()
       .pipe(takeUntilDestroyed(this.destroyRef))

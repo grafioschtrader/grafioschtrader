@@ -1,15 +1,15 @@
 # Angular 22: Modernisierung des Frontends
 
 **Code baseline:** backend 0.39.1, highest Flyway script `V0_39_2__typed_null_globalparameters.sql`; frontend
-0.39.1 mit `@angular/core` 22.2.3, TypeScript 6.0.3, `@openng/optimus-ui` 2.0.2; Arbeitsbaum vom 28.10.2026.
+0.39.1 mit `@angular/core` 22.2.3, TypeScript 6.0.3, `@openng/optimus-ui` 2.0.2; Arbeitsbaum vom 29.10.2026.
 
 ## 1. Ziel
 
 Beide Hosts (`frontend` und `grafiosch-host`) laufen zoneless, jede Komponente nutzt den `OnPush`-Standard, alle
 Komponenten sind standalone und alle Templates verwenden die eingebaute Ablaufsteuerung (`@if`, `@for`, `@switch`).
-Die Programmierschnittstellen der Komponenten, die Dependency Injection, das Lesen von Serverdaten und die
-Typisierung stammen dagegen überwiegend aus älteren Angular-Generationen. Diese Spezifikation plant, wie das Frontend
-die Möglichkeiten von Angular 22 vollständig nutzt.
+Komponenten verwenden Signal-Eingaben und -Queries, Abhängigkeiten kommen aus `inject()`, Root-Services aus
+`@Service()`. Beide Router binden Parameter an Eingaben; gemeinsam genutzter Chart- und Tab-Zustand liegt in Signalen.
+Diese Spezifikation plant die strikte Typisierung sowie die Prüfung von `@defer` und Signal Forms.
 
 Leitlinien:
 
@@ -25,34 +25,26 @@ Leitlinien:
 
 ## 2. Bestandsaufnahme
 
-Erhoben über `src/**/*.ts` und `src/**/*.html` (912 TypeScript-Dateien einschließlich Tests, 315 Komponenten). Die Spalte „Schematic"
-nennt das Ergebnis eines Probelaufs mit `--dry-run`.
+Erhoben über `src/**/*.ts` und `src/**/*.html` (912 TypeScript-Dateien einschließlich Tests).
 
-| Bereich | Heute | Angular-22-Ziel | Schematic |
-| --- | --- | --- | --- |
-| Dependency Injection | 536 Konstruktoren | `inject()` | `inject-migration`: 379 Dateien |
-| Services | 114 × `@Injectable`, davon 15 `providedIn: 'root'`; rund 95 Services einzeln in `app.config.ts` registriert | `@Service()` | `service-migration` |
-| Eingabegesteuerte Requests | 7 × `ngOnChanges` | `httpResource`, `rxResource` | – |
-| Zustand in RxJS | 5 × `BehaviorSubject` als Zustandshalter in 4 Dateien | `signal()` | – |
-| Signal-basiertes Lesen | 2 × `httpResource`, 0 × `rxResource`, 0 × `toSignal` | `httpResource`, `rxResource` | – |
-| Abhängiger Zustand | 0 × `linkedSignal` | `linkedSignal()` | – |
-| Routenparameter | 23 Dateien lesen `ActivatedRoute.params` / `paramMap` per Subscription | `withComponentInputBinding()` + `input()` | – |
-| Verzögertes Rendern | 0 × `@defer` | `@defer` nach Messung | – |
-| Formulare | `dynamic-form` auf `UntypedFormGroup` (10 Dateien in `lib/dynamic-form` und `lib/validator`), 107 Verwender | Signal Forms nach Prototyp | – |
-| Typisierung | `strict: false`, `strictTemplates: true` | `strict: true` | – |
+| Bereich | Heute | Angular-22-Ziel |
+| --- | --- | --- |
+| Verzögertes Rendern | 0 × `@defer` | `@defer` nach Messung |
+| Formulare | `dynamic-form` auf `UntypedFormGroup` (10 Dateien in `lib/dynamic-form` und `lib/validator`), 107 Verwender | Signal Forms nach Prototyp |
+| Typisierung | `strict: false`, `strictTemplates: true` | `strict: true` |
 
 Fehlerzahlen von `npx tsc -p tsconfig.app.json --noEmit` mit zusätzlichen Compiler-Optionen (nur TypeScript-Code,
 Templates nicht mitgezählt):
 
 | Option | Fehler |
 | --- | --- |
-| `--noImplicitAny` | 423 |
-| `--strictBindCallApply` | 84 |
-| `--strictFunctionTypes` | 255 |
+| `--noImplicitAny` | 424 |
+| `--strictBindCallApply` | 92 |
+| `--strictFunctionTypes` | 247 |
 | `--noImplicitThis`, `--useUnknownInCatchVariables`, `--alwaysStrict`, `--strictBuiltinIteratorReturn` | je 0 |
-| `--strictNullChecks` | 2747 (`lib` 698, `transaction` 260, `entities` 258, `shared` 217, `algo` 174, `watchlist` 133, Rest < 125 je Modul) |
-| `--strictNullChecks --strictPropertyInitialization` | 3910 |
-| `--strict` | 4638 |
+| `--strictNullChecks` | 3195 (`lib` 802, `transaction` 294, `shared` 268, `entities` 258, `algo` 194, `watchlist` 148, `historyquote` 146, `tenant` 139, Rest < 125 je Modul) |
+| `--strictNullChecks --strictPropertyInitialization` | 4008 |
+| `--strict` | 4738 |
 
 ## 3. Querschnittsregeln
 
@@ -62,147 +54,35 @@ Templates nicht mitgezählt):
   `initial`-Budget in `angular.json` wird nicht angehoben.
 - `npm test` und `npm run format:check` grün. Die Schematics formatieren nicht nach GT-Stil; nach jedem Lauf folgt
   `npm run format`.
-- Betroffene Playwright-Specs einzeln gegen den laufenden Stack. Stufen, die mehr als hundert Dateien berühren
-  (§4.2, §4.3), gelten erst nach einem vollständigen E2E-Durchlauf als abgeschlossen; diesen stößt der Benutzer an.
+- Betroffene Playwright-Specs einzeln gegen den laufenden Stack. Stufen, die mehr als hundert Dateien berühren,
+  gelten erst nach einem vollständigen E2E-Durchlauf als abgeschlossen; diesen stößt der Benutzer an.
 - Manuelle Prüfung der Benutzerabläufe, die eine Stufe am ehesten bricht: rascher Wechsel der Auswahl im Hauptbaum,
   denselben Dialog zweimal öffnen, Sprachwechsel, Ladefehler und Serverfehler beim Speichern. Beide Hosts.
 
 ### 3.2 Ratchet-Test für abgelöste APIs
 
-`src/angular-api.ratchet.spec.ts` sammelt die `.ts`- und `.html`-Dateien unter `src` und prüft verbotene APIs.
-Jede Stufe erweitert den Test um ihre Muster, sobald der Bestand bereinigt ist:
+`src/angular-api.ratchet.spec.ts` sammelt die `.ts`- und `.html`-Dateien unter `src`. Der Test verbietet
+Konstruktorinjektion, nicht begründete `@Injectable()`-Deklarationen, `new BehaviorSubject` und den Zugriff auf die
+Parameter-Observables injizierter `ActivatedRoute`-Instanzen sowie `ngOnChanges` und `fieldsInitialized`.
+Template-Switches deklarieren einen Standardfall oder eine Vollständigkeitsprüfung. Ausnahmen stehen als Liste
+`Datei → Begründung` im Test selbst.
 
-| Stufe | Verbotenes Muster |
-| --- | --- |
-| §4.3 | Konstruktor mit Parametern in einer Klasse mit `@Component`, `@Directive`, `@Pipe` oder `@Service`; `@Injectable()` außerhalb der Ausnahmeliste von §4.3 |
-| §4.4 | `new BehaviorSubject`; `activatedRoute.params` und `activatedRoute.paramMap` |
-
-Ausnahmen stehen als Liste `Datei → Begründung` im Test selbst, nicht in einer separaten Datei. Eine Ausnahme ohne
-Begründung ist unzulässig. Die Muster werden wie im bestehenden Ratchet mit einem eigenen Testfall gegen Positiv- und
-Negativbeispiele geprüft. Das Frontend hat keine ESLint-Konfiguration; diese Tests sind die einzige
-Absicherung gegen abgelöste APIs.
+Neue Muster erhalten jeweils Positiv- und Negativbeispiele. Das Frontend hat keine ESLint-Konfiguration; die Ratchets
+sind die Absicherung gegen abgelöste APIs.
 
 ### 3.3 Dokumentation
 
-Jede Stufe aktualisiert `frontend/CLAUDE.md` im selben Commit: Codebeispiele (Dialog-Vorlagen, `SimpleEditBase`,
-Tabellenkomponenten) zeigen die neue API. Nach §4.3 entfällt dort und in
-`src/grafiosch-host/README.md` der Hinweis, dass die bestehenden Bibliotheks-Services in jedem Host registriert
-werden müssen.
+Jede Stufe aktualisiert `frontend/CLAUDE.md` im selben Commit: Codebeispiele und Regeln zeigen die neue API.
+Regeln, die beide Hosts betreffen, gelten ebenso für `src/grafiosch-host/README.md`.
 
 ## 4. Stufen
 
-Reihenfolge: §4.2 → §4.3 → §4.4. §4.5 kann nach §4.3 parallel zu §4.4 laufen, berührt aber dieselben Dateien
-und wird deshalb nicht gleichzeitig mit §4.2 oder §4.3 bearbeitet. §4.6 und §4.7 sind Prüfaufträge mit eigener
-Entscheidung.
-
-### 4.2 Verifikation der Signal-Schnittstellen
-
-Die Signal-Schnittstellen werden mit einem vollständigen E2E-Durchlauf beider Hosts nach §3.1 geprüft. Den Durchlauf
-stößt der Benutzer an.
-
-### 4.3 Dependency Injection mit `inject()` und `@Service()`
-
-**Basisklassen zuerst.** Die Hierarchien `ShowRecordConfigBase` → `TableConfigBase` → `TableEditConfigBase` /
-`TableCrudSupportMenu` / `TableTreetableTotalBase`, `FormBase` → `SimpleEditBase` → `SimpleEntityEditBase`,
-`SimpleDynamicEditBase`, `SingleRecordMasterViewBase`, `TransactionContextMenu`, `TransactionBaseOperations`,
-`WatchlistTable` und `AlgoTreeViewBase` beziehen ihre Abhängigkeiten über `inject()`. Ihre Konstruktoren behalten
-nur fachliche Parameter (Hilfe-ID, `i18nRecord`, Menüoptionen). Damit entfallen in jeder Unterklasse die
-durchgereichten Parameter wie `filterService`, `usersettingsService`, `translateService`, `gps`. Das Schematic stellt
-Klasse für Klasse um und ändert keine `super()`-Signaturen über eine Hierarchie hinweg; diese Umstellung erfolgt
-deshalb von Hand und pro Hierarchie in einem eigenen Commit.
-
-**Danach** `ng g @angular/core:inject-migration` für den Rest (379 Dateien im Probelauf). Felder, auf die ein
-Template zugreift, bleiben `public` beziehungsweise `protected`. Mit `inject()` sind die meisten
-Konstruktorparameter verschwunden; danach wird `strictInjectionParameters` in `tsconfig.json` auf `true` gesetzt.
-
-**Services auf `@Service()`.** `@Service()` ist die Angular-22-Kurzform für einen Root-Singleton und setzt `inject()`
-voraus. `ng g @angular/core:service-migration` stellt alle Services um, die die Bedingungen erfüllen. Das betrifft
-Anwendung und Bibliothek. Folgen:
-
-- Die rund 95 Einzeleinträge in `app.config.ts` und die entsprechenden Einträge in `src/grafiosch-host/main.ts`
-  entfallen. Übrig bleiben Token-Provider (`TASK_EXTENDED_SERVICE`, `TASK_TYPE_ENUM`, `DIALOG_HANDLER`,
-  `MAIN_TREE_CONTRIBUTOR`, `SETTINGS_MENU_EXTENSIONS`, `DASHBOARD_*`, `PERSONAL_DATA_ZIP_NAME`) und die Klassen, die
-  ein Host ersetzt.
-- Ein Service, der nur in einem Lazy-Chunk injiziert wird, wandert in diesen Chunk. Der Vergleich des
-  Start-Bundles vor und nach der Umstellung (`ng build --stats-json`) gehört in die Commit-Nachricht.
-- Die Falle aus `frontend/CLAUDE.md` („The library services are not `providedIn: 'root'`" → NG0201 beim Rendern von
-  `/mainview`) entfällt; der Abschnitt und `src/grafiosch-host/README.md` werden entsprechend umgeschrieben.
-
-**Ausnahmeliste – bleibt `@Injectable()`:**
-
-| Fall | Beispiel |
-| --- | --- |
-| Basisklasse, die ein Host durch eine Unterklasse ersetzt | `AfterLoginHandler` (GT: `GtAfterLoginHandler`) |
-| Service, der pro Komponente bereitgestellt wird | `DialogService` in `providers: [DialogService]` von Tabellenkomponenten (Optimus-Klasse, nicht migriert) |
-| Klasse, die nur über `useClass` an ein Token gebunden ist | `AppDialogHandler` für `DIALOG_HANDLER` |
-
-Die Ausnahmeliste wird in den Ratchet-Test übernommen (§3.2).
-
-### 4.4 Serverdaten und abhängiger Zustand als Signale
-
-**Routenparameter als Eingaben.** `provideRouter` beider Hosts erhält `withComponentInputBinding()`. Komponenten, die
-heute `activatedRoute.params.subscribe(…)` verwenden, deklarieren
-`readonly id = input.required({ transform: numberAttribute })`. Betroffen sind 23 Dateien in drei Gruppen:
-
-| Gruppe | Dateien | Umstellung |
-| --- | --- | --- |
-| Tab-Menüs | `portfolio.tab.menu`, `securityaccount.tab.menu`, `watchlist.tab.menu`, `simulation-run-tab-menu`, `securityaccount-import-tab-menu` | nur Eingabe statt Subscription |
-| Leseansichten | `securityaccount.summary`, `securityaccount.summaries`, `portfolio.cashaccount.summary`, `portfolio.transaction.table`, `securityaccount.import.transaction`, `algo.top.data.view`, `algo-simulation-run`, `algo-simulation-run-settings`, `time.series.chart`, `historyquote-host`, `seasonality`, `chart.general.purpose`, `gtnet-security-import`, `task.data.change.table`, `watchlist.table` | Eingabe, danach Prüfung auf Ressource (unten) |
-| Anmeldung | `login`, `register`, `registration.token.verify` | Query-Parameter als Eingabe |
-
-Die `routeSubscribe`-Felder und ihr `unsubscribe()` in `ngOnDestroy` entfallen. `withComponentInputBinding()` bindet
-nur die Parameter der eigenen Route. Die Kindrouten in `app.routes.ts` tragen `:id` selbst; trifft das zu Beginn der
-Stufe für jede betroffene Route zu, bleibt die Standard-`paramsInheritanceStrategy`, sonst wird die Route angepasst.
-
-**Leseansichten als Ressource.** Für jede Leseansicht aus der Tabelle gilt die bestehende Regel „`httpResource` for
-signal-driven reads" in `frontend/CLAUDE.md`. Erfüllt eine Ansicht sie, wird ihr `readData()` zu einer `httpResource`,
-deren Request aus der Routen-Eingabe abgeleitet ist; die Service-Methode liefert dazu einen `get…Request()` wie
-`SecurityService.getSeasonalReturnsRequest`. Ein Neuladen nach dem Schließen eines Dialogs, nach einem Import oder
-nach einem `DataChangedService`-Ereignis ruft `reload()` der Ressource auf. Eine Ansicht, die mehrere
-Service-Observables kombiniert, verwendet `rxResource` mit den bestehenden Service-Methoden. `watchlist.table` und die
-Transaktionsdialoge behalten ihre eigene Abbruchlogik (`replaceWatchlistRequest()`, `replaceDialogRequest()`), bis
-eine Ressource dieselben Fälle nachweislich abdeckt. Die Fehleranzeige läuft weiterhin über
-`reportResourceErrors(resource, service)`.
-
-Die sieben Eingabe-Hooks in `ON_CHANGES_REQUESTS` (`src/angular-api.ratchet.spec.ts`) werden ebenfalls auf Ressourcen
-geprüft: Instrument und Legacy-Kurse, Zeitreihenparameter, Kursqualität, Dauerauftrags-Transaktionen, Steuerwechselkurse,
-Steuerkorrekturen und UDF-Vorschläge. Die jeweilige Ratchet-Ausnahme entfällt mit der Umstellung.
-
-**Auswahl, die ein Neuladen überlebt, als `linkedSignal`.** Drei Stellen suchen nach dem Laden die vorher gewählte
-Zeile von Hand wieder heraus:
-
-- `TableCrudSupportMenu.refreshSelectedEntity()` (`lib/datashowbase/table.crud.support.menu.ts`)
-- `correlation-table.component.ts` (Wiederherstellung über `idSecuritycurrency`)
-- `standing-order-table-base.ts` (Wiederherstellung über `idStandingOrder`)
-
-Dort wird die Auswahl zu
-
-```typescript
-readonly selectedEntity = linkedSignal<T[], T | null>({
-  source: this.entityList,
-  computation: (list, previous) =>
-    list.find((e) => e[this.entityKeyName] === previous?.value?.[this.entityKeyName]) ?? null
-});
-```
-
-`linkedSignal` ist schreibbar; die bestehende API `selectedEntity.set(…)` bleibt gültig. Der Neuaufbau des Menüs
-bleibt ein expliziter Aufruf, weil er übersetzt und `ActivePanelService.activatePanel()` aufruft. Zu Beginn der Stufe
-werden `TransactionContextMenu`, `WatchlistTable`, `SingleRecordMasterViewBase` und `AlgoTreeViewBase` auf dasselbe
-Muster geprüft.
-
-**Zustand aus `BehaviorSubject` in Signale.** `correlation-chart.service.ts`, `tenant.dividends.chart.service.ts`,
-`tenant.holdings.chart.service.ts` und `tab.menu.service.ts` halten Zustand in `BehaviorSubject`. Sie werden zu
-`signal()`; Verbraucher lesen das Signal. Nur wo eine RxJS-Kette nachfolgt, bleibt ein `toObservable()`.
-
-**Vollständigkeitsprüfung bei `@switch`.** Ein `@switch` über einen Union- oder Enum-Typ ohne fachlichen
-Standardfall erhält `@default never;`. Die Prüfung greift nur auf Variablen, nicht auf Signal-Aufrufe; ein Signal wird
-dafür vorher mit `@let` gebunden. Die 31 bestehenden `@switch` in 23 Dateien werden einmal durchgesehen; die Regel
-kommt nach `frontend/CLAUDE.md`.
+§4.5 wird in prüfbaren Teilstufen bearbeitet. §4.6 und §4.7 sind Prüfaufträge mit eigener Entscheidung.
 
 ### 4.5 Strikte Typisierung
 
-1. **Günstige Optionen einzeln einschalten**, jeweils mit Bereinigung in einem Commit: `noImplicitAny` (423),
-   `strictBindCallApply` (84), `strictFunctionTypes` (255). Die Optionen mit null Fehlern (`noImplicitThis`,
+1. **Günstige Optionen einzeln einschalten**, jeweils mit Bereinigung in einem Commit: `noImplicitAny` (424),
+   `strictBindCallApply` (92), `strictFunctionTypes` (247). Die Optionen mit null Fehlern (`noImplicitThis`,
    `useUnknownInCatchVariables`, `alwaysStrict`, `strictBuiltinIteratorReturn`) werden sofort gesetzt, damit sie
    nicht mehr verletzt werden können.
 2. **`strictNullChecks` über einen Zählstand.** Das Skript `scripts/strict-null-count.mjs` führt
@@ -213,8 +93,8 @@ kommt nach `frontend/CLAUDE.md`.
    für alle Verbraucher sichtbar), `lib`, danach die Anwendungsmodule nach Fehlerzahl. Bei null Fehlern wird die
    Option in `tsconfig.json` gesetzt und das Skript gelöscht. Mit `strictNullChecks` prüft `strictTemplates` auch
    `null` in Template-Bindungen; diese Fehler kommen beim Einschalten hinzu und werden in derselben Stufe bereinigt.
-3. **`strictPropertyInitialization` zuletzt.** Nach §4.2 und §4.3 sind Eingaben, Queries und Abhängigkeiten
-   initialisierte Felder, sodass die verbleibenden Fehler fachliche Felder betreffen.
+3. **`strictPropertyInitialization` zuletzt.** Eingaben, Queries und Abhängigkeiten sind
+   initialisierte Felder; die verbleibenden Fehler betreffen fachliche Felder.
 4. Am Ende steht `"strict": true` in `tsconfig.json`, die Einzeloptionen entfallen.
 
 Strikte Null-Prüfung ist Voraussetzung dafür, dass `hasValue()` einer Ressource den Typ von `value()` tatsächlich
@@ -286,10 +166,9 @@ nach `frontend/CLAUDE.md`. Bis zu dieser Entscheidung gilt die bestehende Regel.
 | Thema | Entscheidung | Begründung |
 | --- | --- | --- |
 | Absicherung | Ratchet-Tests in Vitest statt ESLint | Bewährtes Muster im Projekt, läuft mit `npm test`, keine zusätzliche Werkzeugkette |
-| Services | `@Service()` für Anwendung und Bibliothek | Entfernt rund 95 Provider-Einträge und die NG0201-Falle; Services wandern in ihre Lazy-Chunks |
 | Typisierte Reactive Forms (`FormGroup<T>`) | Keine Umstellung | Die Felder von `dynamic-form` sind erst zur Laufzeit bekannt; ein generischer Typ bringt dort keinen Gewinn. Typisierung kommt, falls überhaupt, mit Signal Forms |
 | Signal Forms | Prototyp in `dynamic-form`, kein Einzeldialog außerhalb | Nur dort zeigt sich, ob Deskriptoren, Layout und Optimus-Felder tragen |
-| `strictNullChecks` | Zählstand pro Verzeichnis statt Umstellung in einem Schritt | 2747 Fehler sind in einem Commit nicht prüfbar |
+| `strictNullChecks` | Zählstand pro Verzeichnis statt Umstellung in einem Schritt | 3195 Fehler sind in einem Commit nicht prüfbar |
 | `@defer` | Nur nach Messung | Routen, Dialoge und Plotly sind bereits verzögert geladen |
 | Angular Aria | Für neu gebaute eigene Bedienelemente; kein Umbau bestehender Optimus-Komponenten | GT hat heute kein selbst gebautes Bedienelement, das einem Aria-Muster (Listbox, Combobox, Menü, Tabs, Baum, Grid, Toolbar) entspricht |
 

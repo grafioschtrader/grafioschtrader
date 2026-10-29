@@ -1,30 +1,30 @@
+import { httpResource } from '@angular/common/http';
 import {
   Component,
+  computed,
   DestroyRef,
+  effect,
   inject,
-  OnInit,
-  signal,
-  TemplateRef,
-  viewChild,
   input,
-  linkedSignal
+  OnInit,
+  TemplateRef,
+  untracked,
+  viewChild
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
-import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
-import { GTNetExchangeLogService } from '../service/gtnet-exchange-log.service';
-import { GTNetExchangeLogTree, GTNetExchangeLogNode } from '../model/gtnet-exchange-log';
-import { DataType } from '../../dynamic-form/models/data.type';
-import { ActivatedRoute, Params } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { ColumnConfig } from '../../datashowbase/column.config';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { ConfigurableTreeTableComponent } from '../../datashowbase/configurable-tree-table.component';
-import { ColumnConfig } from '../../datashowbase/column.config';
 import { ShowRecordConfigBase } from '../../datashowbase/show.record.config.base';
+import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
+import { DataType } from '../../dynamic-form/models/data.type';
 import { HelpIds } from '../../help/help.ids';
+import { reportResourceErrors } from '../../login/service/resource.error.report';
 import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { GTNetExchangeLogNode, GTNetExchangeLogTree } from '../model/gtnet-exchange-log';
+import { GTNetExchangeLogService } from '../service/gtnet-exchange-log.service';
 
 /**
  * Component for displaying GTNet exchange log statistics.
@@ -36,6 +36,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
   template: `
     <configurable-table
       [data]="exchangeLogTrees()"
+      [loading]="logsResource.isLoading()"
       [fields]="mainTableFields"
       [fieldsRevision]="fieldsRevision()"
       [dataKey]="'idGtNet'"
@@ -112,28 +113,40 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
 export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
   private gtNetExchangeLogService: GTNetExchangeLogService = inject(GTNetExchangeLogService);
   private activePanelService: ActivePanelService = inject(ActivePanelService);
-  private route: ActivatedRoute = inject(ActivatedRoute);
 
-  readonly entityKindInput = input('LAST_PRICE', { alias: 'entityKind' });
-  readonly entityKind = linkedSignal(() => this.entityKindInput());
+  readonly entityKindInput = input('LAST_PRICE', {
+    alias: 'entityKind',
+    transform: (value: string | undefined) => (value ? decodeURIComponent(value).toUpperCase() : 'LAST_PRICE')
+  });
+  readonly entityKind = this.entityKindInput;
   readonly expandedContent = viewChild<TemplateRef<any>>('expandedContent');
 
-  readonly exchangeLogTrees = signal<GTNetExchangeLogTree[]>([]);
+  readonly logsResource = httpResource<GTNetExchangeLogTree[]>(() =>
+    this.gtNetExchangeLogService.getAllExchangeLogTreesRequest(this.entityKind())
+  );
+  readonly exchangeLogTrees = computed(() => (this.logsResource.hasValue() ? this.logsResource.value() : []));
   mainTableFields: ColumnConfig[] = [];
-  readonly titleKey = signal('GT_NET_EXCHANGE_LOG');
+  readonly titleKey = computed(() => this.entityKind());
 
   /** Stable value getter of the outer table, which shows plain properties of the tree */
   readonly mainTableValueGetter = (row: GTNetExchangeLogTree, field: ColumnConfig) =>
     this.getMainTableValue(row, field);
 
   private readonly destroyRef = inject(DestroyRef);
-  /** Request of the current entity kind; a newer kind replaces one still outstanding */
-  private loadSubscription: Subscription;
   private supplierNodesCache: Map<number, TreeNode[]> = new Map();
   private consumerNodesCache: Map<number, TreeNode[]> = new Map();
 
   constructor() {
     super();
+    effect(() => {
+      this.exchangeLogTrees();
+      untracked(() => {
+        this.supplierNodesCache.clear();
+        this.consumerNodesCache.clear();
+      });
+    });
+
+    reportResourceErrors(this.logsResource, this.gtNetExchangeLogService);
   }
 
   ngOnInit(): void {
@@ -153,16 +166,6 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
     this.addColumnFeqH(DataType.NumericInteger, 'entitiesInResponse', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'requestCount', true, false);
     this.translateHeadersAndColumns();
-
-    // The three tabs of GTNetExchangeLogTabMenuComponent all resolve to the same ':entityKind' route,
-    // so Angular reuses this component instance and ngOnInit runs only once. The entity kind must
-    // therefore be re-derived on every parameter change, not read from the route snapshot.
-    this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params: Params) => {
-      const entityKindParam = params['entityKind'];
-      this.entityKind.set(entityKindParam ? decodeURIComponent(entityKindParam).toUpperCase() : 'LAST_PRICE');
-      this.titleKey.set(this.entityKind());
-      this.loadData();
-    });
   }
 
   getMainTableValue(row: GTNetExchangeLogTree, field: ColumnConfig): any {
@@ -185,17 +188,6 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
       this.consumerNodesCache.set(tree.idGtNet, this.buildTreeNodes(tree.consumerTotal));
     }
     return this.consumerNodesCache.get(tree.idGtNet)!;
-  }
-
-  private loadData(): void {
-    this.supplierNodesCache.clear();
-    this.consumerNodesCache.clear();
-
-    this.loadSubscription?.unsubscribe();
-    this.loadSubscription = this.gtNetExchangeLogService
-      .getAllExchangeLogTrees(this.entityKind())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((trees) => this.exchangeLogTrees.set(trees));
   }
 
   private buildTreeNodes(node: GTNetExchangeLogNode): TreeNode[] {

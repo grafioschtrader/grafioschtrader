@@ -1,39 +1,68 @@
 import {
+  AfterViewInit,
   ChangeDetectorRef,
   Component,
+  effect,
   ElementRef,
   inject,
+  Injector,
+  input,
   OnDestroy,
-  AfterViewInit,
   signal,
+  untracked,
   viewChild
 } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
+import { ContextMenu } from '@openng/optimus-ui/contextmenu';
+import { DatePicker } from '@openng/optimus-ui/datepicker';
+import { Select } from '@openng/optimus-ui/select';
+import moment, { Moment } from 'moment';
+import { combineLatest, forkJoin, map, Observable, of, Subscription } from 'rxjs';
+import { HistoryquoteChartResponse, TotalReturnFactor } from '../../entities/projection/historyquote.chart.response';
+import { HistoryquoteDateClose } from '../../entities/projection/historyquote.date.close';
+import { HistoryquoteOHLC } from '../../entities/projection/historyquote.ohlc';
+import { Transaction } from '../../entities/transaction';
+import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
+import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
+import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
+import { BaseSettings } from '../../lib/base.settings';
+import { GlobalSessionNames } from '../../lib/global.session.names';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AppHelper, Comparison } from '../../lib/helper/app.helper';
+import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { ViewSizeChangedService } from '../../lib/layout/service/view.size.changed.service';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import {
   CrossRateRequest,
   CrossRateResponse,
   CurrencypairService
 } from '../../securitycurrency/service/currencypair.service';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { HistoryquoteService } from '../service/historyquote.service';
-import { ActivatedRoute } from '@angular/router';
-import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { ViewSizeChangedService } from '../../lib/layout/service/view.size.changed.service';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { SecurityService } from '../../securitycurrency/service/security.service';
-import { HelpIds } from '../../lib/help/help.ids';
-import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
-import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
-import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
-import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
-import { combineLatest, forkJoin, Observable, Subscription } from 'rxjs';
-import { PlotlyHelper } from '../../shared/chart/plotly.helper';
-import { TransactionType } from '../../shared/types/transaction.type';
-import { AppHelper, Comparison } from '../../lib/helper/app.helper';
-import moment, { Moment } from 'moment';
 import { AppSettings } from '../../shared/app.settings';
-import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
-import { ConfirmationService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
+import { PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
+import { ChartType } from '../../shared/types/chart.type';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { TimeSeriesParam } from '../model/time.series.param';
+import { HistoryquoteService } from '../service/historyquote.service';
+import { UserChartShapeService } from '../service/user.chart.shape.service';
+import { ChartCurrencyNormalizer } from './chart.currency.normalizer';
+import { ChartShapeController } from './chart.shape.controller';
+import { IndicatorEditComponent } from './indicator-edit.component';
 import {
   IndicatorDefinition,
   IndicatorDefinitions,
@@ -43,31 +72,6 @@ import {
   TaIndicators,
   TaTraceIndicatorData
 } from './indicator.definitions';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { ProcessedAction } from '../../lib/types/processed.action';
-import { UserSettingsService } from '../../lib/services/user.settings.service';
-import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { MessageToastService } from '../../lib/message/message.toast.service';
-import { BusinessHelper } from '../../shared/helper/business.helper';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { HistoryquoteDateClose } from '../../entities/projection/historyquote.date.close';
-import { Transaction } from '../../entities/transaction';
-import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
-import { BaseSettings } from '../../lib/base.settings';
-import { ChartType } from '../../shared/types/chart.type';
-import { HistoryquoteOHLC } from '../../entities/projection/historyquote.ohlc';
-import { HistoryquoteChartResponse, TotalReturnFactor } from '../../entities/projection/historyquote.chart.response';
-
-import { FormsModule } from '@angular/forms';
-import { DatePicker } from '@openng/optimus-ui/datepicker';
-import { Select } from '@openng/optimus-ui/select';
-import { ContextMenu } from '@openng/optimus-ui/contextmenu';
-import { IndicatorEditComponent } from './indicator-edit.component';
-import { UserChartShapeService } from '../service/user.chart.shape.service';
-import { GlobalSessionNames } from '../../lib/global.session.names';
-import { ChartCurrencyNormalizer } from './chart.currency.normalizer';
-import { ChartShapeController } from './chart.shape.controller';
-import { TimeSeriesParam } from '../model/time.series.param';
 
 interface Traces {
   [key: string]: Data;
@@ -183,6 +187,9 @@ interface Data {
   imports: [FormsModule, DatePicker, Select, ContextMenu, TranslatePipe, IndicatorEditComponent]
 })
 export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlobalMenuAttach {
+  readonly allParam = input.required<string>();
+  private readonly routeInjector = inject(Injector);
+
   private messageToastService = inject(MessageToastService);
   private usersettingsService = inject(UserSettingsService);
   private viewSizeChangedService = inject(ViewSizeChangedService);
@@ -190,7 +197,6 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   private currencypairService = inject(CurrencypairService);
   private gps = inject(GlobalparameterService);
   private historyquoteService = inject(HistoryquoteService);
-  private activatedRoute = inject(ActivatedRoute);
   private translateService = inject(TranslateService);
   private activePanelService = inject(ActivePanelService);
 
@@ -217,7 +223,6 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   oldestMatchDate: string;
   youngestMatchDate: string;
   subscriptionViewSizeChanged: Subscription;
-  subscriptionLatest: Subscription;
   taEditParam: TaEditParam;
   /** Also opened from the menu bar, which is outside this view, therefore a signal. */
   readonly visibleTaDialog = signal(false);
@@ -251,6 +256,44 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   /** Raised by every plot, so a plot still waiting for the library is dropped when a newer one follows. */
   private plotVersion = 0;
 
+  private readonly chartRequest = signal<
+    { series: TimeSeriesParam[]; first: number; includeDividends: boolean } | undefined
+  >(undefined);
+  readonly chartResource = rxResource({
+    params: () => this.chartRequest(),
+    stream: ({ params }) => {
+      const reads = params.series.slice(params.first).map((param) => {
+        const summary = param.currencySecurity
+          ? BusinessHelper.getSecurityTransactionSummary(
+              this.securityService,
+              param.idSecuritycurrency,
+              param.idSecurityaccount ? [param.idSecurityaccount] : null,
+              param.idPortfolio,
+              true
+            )
+          : this.currencypairService.getTransactionForCurrencyPair(param.idSecuritycurrency, true);
+        const reads: Observable<any>[] = [
+          summary,
+          this.historyquoteService.getHistoryquoteForChart(param.idSecuritycurrency, params.includeDividends)
+        ];
+        this.addCurrencyCrossRateObservable(params.series, param.currencySecurity, reads);
+        return combineLatest(reads).pipe(map((data) => ({ param, data })));
+      });
+      return reads.length ? forkJoin(reads) : of([]);
+    }
+  });
+  private readonly dividendRequest = signal<{ securities: LoadedData[]; includeDividends: boolean } | undefined>(
+    undefined
+  );
+  readonly dividendResource = rxResource({
+    params: () => this.dividendRequest(),
+    stream: ({ params }) =>
+      forkJoin(
+        params.securities.map((security) =>
+          this.historyquoteService.getHistoryquoteForChart(security.idSecuritycurrency, params.includeDividends)
+        )
+      ).pipe(map((responses) => ({ responses, securities: params.securities })))
+  });
   constructor() {
     const gps = this.gps;
     const translateService = this.translateService;
@@ -262,6 +305,62 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     this.indicatorDefinitions = new IndicatorDefinitions();
     this.shapeController = new ChartShapeController(userChartShapeService, confirmationService, translateService);
     this.initChartTypeOptions();
+
+    reportResourceErrors(this.chartResource, this.historyquoteService);
+    reportResourceErrors(this.dividendResource, this.historyquoteService);
+    effect(() => {
+      if (this.chartResource.isLoading() || !this.chartResource.hasValue()) return;
+      const results = this.chartResource.value();
+      untracked(() => {
+        for (const { param, data } of results) {
+          const instrument = param.currencySecurity
+            ? new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary)
+            : new CurrencypairWithTransaction(data[0]);
+          const response: HistoryquoteChartResponse = data[1];
+          const { historyquotes, ohlcData } = this.extractChartData(response);
+          if (!historyquotes.length) {
+            this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'HISTORIC_NO_DATA', {
+              securityName: instrument.getName()
+            });
+            continue;
+          }
+          this.createTodayAsHistoryquote(
+            instrument.getSecuritycurrency().sTimestamp,
+            instrument.getSecuritycurrency().sLast,
+            historyquotes
+          );
+          const loaded = new LoadedData(
+            param.idSecuritycurrency,
+            instrument,
+            historyquotes,
+            param.currencySecurity,
+            ohlcData
+          );
+          loaded.setTotalReturn(response);
+          this.loadedData.push(loaded);
+          if (data.length === 3) {
+            this.addCrossRateResponse(data[2]);
+            this.currencyNormalizer.normalize(loaded, this.requestedCurrency);
+          }
+        }
+        if (this.loadedData.length) this.prepareLoadedDataAndPlot(false);
+      });
+    });
+    effect(() => {
+      if (this.dividendResource.isLoading() || !this.dividendResource.hasValue()) return;
+      const { responses, securities } = this.dividendResource.value();
+      untracked(() => {
+        responses.forEach((response, i) => {
+          const { historyquotes, ohlcData } = this.extractChartData(response);
+          const instrument = securities[i].nameSecuritycurrency.getSecuritycurrency();
+          this.createTodayAsHistoryquote(instrument.sTimestamp, instrument.sLast, historyquotes);
+          securities[i].replaceQuotes(historyquotes, ohlcData, response);
+        });
+        this.currencyNormalizer.normalizeAll(this.loadedData, this.requestedCurrency);
+        this.indicatorDefinitions.idSecuritycurrency = null;
+        this.prepareLoadedDataAndPlot(true);
+      });
+    });
   }
 
   /**
@@ -302,10 +401,13 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     // Ready the drawing support before the route parameters can trigger the first plot.
     this.shapeController.setChartElement(this.chartElement().nativeElement);
     this.shapeController.init();
-    this.activatedRoute.paramMap.subscribe((paramMap) => {
-      const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
-      this.prepareChart(paramObject.allParam);
-    });
+    effect(
+      () => {
+        const params: TimeSeriesParam[] = JSON.parse(this.allParam());
+        untracked(() => this.prepareChart(params));
+      },
+      { injector: this.routeInjector }
+    );
     this.historyquoteService.getAllTaForms().subscribe((formDefinition) => (this.taFormDefinitions = formDefinition));
     this.translateService
       .get('TOTAL_RETURN_DIVIDEND_MISSING')
@@ -314,79 +416,26 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 
   ngOnDestroy(): void {
     this.destroyed = true;
-    this.subscriptionLatest && this.subscriptionLatest.unsubscribe();
     this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
     this.shapeController.destroy();
     this.activePanelService.destroyPanel(this);
   }
 
   prepareChart(timeSeriesParams: TimeSeriesParam[]): void {
+    this.dividendRequest.set(undefined);
     if (timeSeriesParams.length === 1 || timeSeriesParams.length - 1 !== this.loadedData.length) {
       this.loadedData = [];
       this.requestedCurrency = '';
     }
     if (timeSeriesParams.length === 2) {
       this.usePercentage = true;
-      // Multiple instruments force line chart
       this.selectedChartType = ChartType.LINE;
     }
-
-    for (let i = this.loadedData.length; i < timeSeriesParams.length; i++) {
-      const stsObservable = timeSeriesParams[i].currencySecurity
-        ? BusinessHelper.getSecurityTransactionSummary(
-            this.securityService,
-            timeSeriesParams[i].idSecuritycurrency,
-            timeSeriesParams[i].idSecurityaccount ? [timeSeriesParams[i].idSecurityaccount] : null,
-            timeSeriesParams[i].idPortfolio,
-            true
-          )
-        : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParams[i].idSecuritycurrency, true);
-
-      const historyquoteObservable = this.historyquoteService.getHistoryquoteForChart(
-        timeSeriesParams[i].idSecuritycurrency,
-        this.includeDividends
-      );
-      const observable: Observable<any>[] = [stsObservable, historyquoteObservable];
-      this.addCurrencyCrossRateObservable(timeSeriesParams, timeSeriesParams[i].currencySecurity, observable);
-
-      this.subscriptionLatest = combineLatest(observable).subscribe((data: any[]) => {
-        const nameSecuritycurrency = timeSeriesParams[i].currencySecurity
-          ? new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary)
-          : new CurrencypairWithTransaction(data[0]);
-
-        const chartResponse: HistoryquoteChartResponse = data[1];
-        const { historyquotes, ohlcData } = this.extractChartData(chartResponse);
-
-        if (historyquotes.length > 0) {
-          this.createTodayAsHistoryquote(
-            nameSecuritycurrency.getSecuritycurrency().sTimestamp,
-            nameSecuritycurrency.getSecuritycurrency().sLast,
-            historyquotes
-          );
-          const loadedData = new LoadedData(
-            timeSeriesParams[i].idSecuritycurrency,
-            nameSecuritycurrency,
-            historyquotes,
-            timeSeriesParams[i].currencySecurity,
-            ohlcData
-          );
-          loadedData.setTotalReturn(chartResponse);
-          this.loadedData.push(loadedData);
-          if (observable.length === 3) {
-            this.addCrossRateResponse(data[2]);
-            this.currencyNormalizer.normalize(this.loadedData[this.loadedData.length - 1], this.requestedCurrency);
-          }
-
-          if (i === timeSeriesParams.length - 1) {
-            this.prepareLoadedDataAndPlot(false);
-          }
-        } else {
-          this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'HISTORIC_NO_DATA', {
-            securityName: nameSecuritycurrency.getName()
-          });
-        }
-      });
-    }
+    this.chartRequest.set({
+      series: timeSeriesParams,
+      first: this.loadedData.length,
+      includeDividends: this.includeDividends
+    });
   }
 
   /**
@@ -432,22 +481,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
    */
   toggleIncludeDividends(): void {
     const securities = this.loadedData.filter((ld) => !!ld.currencySecurity);
-    forkJoin(
-      securities.map((ld) =>
-        this.historyquoteService.getHistoryquoteForChart(ld.idSecuritycurrency, this.includeDividends)
-      )
-    ).subscribe((chartResponses: HistoryquoteChartResponse[]) => {
-      chartResponses.forEach((chartResponse, i) => {
-        const { historyquotes, ohlcData } = this.extractChartData(chartResponse);
-        const securitycurrency = securities[i].nameSecuritycurrency.getSecuritycurrency();
-        this.createTodayAsHistoryquote(securitycurrency.sTimestamp, securitycurrency.sLast, historyquotes);
-        securities[i].replaceQuotes(historyquotes, ohlcData, chartResponse);
-      });
-      this.currencyNormalizer.normalizeAll(this.loadedData, this.requestedCurrency);
-      // Forces the shown indicators to be loaded again on the new basis
-      this.indicatorDefinitions.idSecuritycurrency = null;
-      this.prepareLoadedDataAndPlot(true);
-    });
+    if (securities.length) this.dividendRequest.set({ securities, includeDividends: this.includeDividends });
   }
 
   /**

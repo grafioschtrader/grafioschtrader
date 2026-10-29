@@ -1,7 +1,17 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, OnDestroy, OnInit, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  viewChild,
+  effect,
+  input,
+  untracked
+} from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivePanelService } from '../../../lib/mainmenubar/service/active.panel.service';
-import { ActivatedRoute } from '@angular/router';
 import { IGlobalMenuAttach } from '../../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ViewSizeChangedService } from '../../../lib/layout/service/view.size.changed.service';
 import { Subscription } from 'rxjs';
@@ -28,21 +38,27 @@ import { GlobalparameterService } from '../../../lib/services/globalparameter.se
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
+  readonly id = input.required<string>();
+
   private gps = inject(GlobalparameterService);
   private translateService = inject(TranslateService);
   private chartDataService = inject(ChartDataService);
   private viewSizeChangedService = inject(ViewSizeChangedService);
   private activePanelService = inject(ActivePanelService);
-  private activatedRoute = inject(ActivatedRoute);
 
   readonly chartElement = viewChild<ElementRef>('chart');
 
   private subscriptionViewSizeChanged: Subscription;
   private subscriptionChartDataChanged: Subscription;
-  private routeSubscribe: Subscription;
   private chartData: ChartData;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
   private destroyed = false;
+  constructor() {
+    effect(() => {
+      const id = this.id();
+      untracked(() => this.chartDataService.requestDataForChart(id));
+    });
+  }
 
   ngOnInit(): void {
     this.activePanelService.registerPanel(this);
@@ -59,10 +75,6 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
           (changedViewSizeType) => this.plotOrRePlot()
         );
       }
-    });
-
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params) => {
-      this.chartDataService.requestDataForChart(params['id']);
     });
   }
 
@@ -85,7 +97,6 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
 
   ngOnDestroy(): void {
     this.destroyed = true;
-    this.routeSubscribe && this.routeSubscribe.unsubscribe();
     this.subscriptionChartDataChanged && this.subscriptionChartDataChanged.unsubscribe();
     this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
     this.chartDataService.clearShownChart();

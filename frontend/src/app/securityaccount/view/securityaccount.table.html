@@ -21,6 +21,7 @@
     </div>
     }
     <p-table
+      [loading]="dataLoading()"
       [(contextMenuSelection)]="selectedSecurityPositionSummary"
       [(selection)]="selectedSecurityPositionSummary"
       [columns]="fields"

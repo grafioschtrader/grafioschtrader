@@ -1,9 +1,8 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, effect, input, numberAttribute, untracked } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Params, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { AppSettings } from '../../shared/app.settings';
 import { Securityaccount } from '../../entities/securityaccount';
-import { Subscription } from 'rxjs';
 import { BaseTabMenuComponent } from '../../lib/tabmenu/component/base.tab.menu.component';
 import { TabItem } from '../../lib/types/tab.item';
 import { BaseSettings } from '../../lib/base.settings';
@@ -36,11 +35,13 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
   imports: [Tabs, TabList, Tab, RouterOutlet, TranslatePipe]
 })
 export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
+  readonly importResult = input<string>(undefined, { alias: 'successFailedDirectImpTran' });
+
+  readonly id = input.required({ transform: numberAttribute });
+
   private treeNavState = inject(TreeNavigationStateService);
   private gpsGT = inject(GlobalparameterGTService);
 
-  private routeParamSubscribe: Subscription;
-  private queryParamSubscribe: Subscription;
   private securityaccount: Securityaccount;
   private lastRouteKey: string = AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY;
   private successFailedImportTransParam: any = null;
@@ -51,47 +52,36 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
    * competing navigation that resets the child router-outlet (e.g. losing the failed-import param).
    */
   private lastHandledId: number;
+  constructor() {
+    super();
+    effect(() => {
+      const id = this.id();
+      const importResult = this.importResult();
+      untracked(() => {
+        if (id) {
+          const route =
+            this.activatedRoute.snapshot.routeConfig?.path?.split('/')[0] ?? AppSettings.SECURITYACCOUNT_TAB_MENU_KEY;
+          this.securityaccount = this.treeNavState.getEntity<Securityaccount>(
+            BaseSettings.MAINVIEW_KEY + '/' + route,
+            id
+          );
 
-  override ngOnInit(): void {
-    // Initialize tabs first
-    super.ngOnInit();
-
-    // Subscribe to route parameters - entity data comes from TreeNavigationStateService
-    this.routeParamSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      const id = +params['id'];
-      if (id) {
-        const route =
-          this.activatedRoute.snapshot.routeConfig?.path?.split('/')[0] ?? AppSettings.SECURITYACCOUNT_TAB_MENU_KEY;
-        this.securityaccount = this.treeNavState.getEntity<Securityaccount>(
-          BaseSettings.MAINVIEW_KEY + '/' + route,
-          id
-        );
-
-        if (this.securityaccount) {
-          // Handle special import transaction parameter
-          if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
-            this.lastHandledId = id;
-            this.successFailedImportTransParam = params[AppSettings.SUCCESS_FAILED_IMP_TRANS];
-            this.navigateTo(AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY);
-          } else if (id !== this.lastHandledId) {
-            // Genuine account entry/switch - pick the default/last tab. Skipped on the re-emission
-            // triggered by internal child navigation (same id, no param) to avoid a competing navigate.
-            this.lastHandledId = id;
-            this.handleNormalNavigation();
+          if (this.securityaccount) {
+            // Handle special import transaction parameter
+            if (importResult) {
+              this.lastHandledId = id;
+              this.successFailedImportTransParam = importResult;
+              this.navigateTo(AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY);
+            } else if (id !== this.lastHandledId) {
+              // Genuine account entry/switch - pick the default/last tab. Skipped on the re-emission
+              // triggered by internal child navigation (same id, no param) to avoid a competing navigate.
+              this.lastHandledId = id;
+              this.handleNormalNavigation();
+            }
           }
         }
-      }
+      });
     });
-  }
-
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
-    if (this.routeParamSubscribe) {
-      this.routeParamSubscribe.unsubscribe();
-    }
-    if (this.queryParamSubscribe) {
-      this.queryParamSubscribe.unsubscribe();
-    }
   }
 
   /**
@@ -185,6 +175,6 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
    */
   protected override navigateToDefault(): void {
     // Don't navigate immediately - wait for securityaccount to be set
-    // Navigation will happen in the params subscription
+    // Navigation will happen in the route input effect
   }
 }

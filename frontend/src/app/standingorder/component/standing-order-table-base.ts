@@ -1,25 +1,25 @@
-import { DestroyRef, Directive, inject, OnDestroy, signal } from '@angular/core';
+import { DestroyRef, Directive, inject, linkedSignal, OnDestroy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, Subscription } from 'rxjs';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
+import moment from 'moment';
+import { forkJoin, Subscription } from 'rxjs';
+import { StandingOrder, StandingOrderFailure } from '../../entities/standing.order';
+import { BaseSettings } from '../../lib/base.settings';
+import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
-import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { TranslateValue } from '../../lib/datashowbase/column.config';
-import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { AppHelper } from '../../lib/helper/app.helper';
-import { AppHelpIds } from '../../shared/help/help.ids';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
-import { StandingOrder, StandingOrderFailure } from '../../entities/standing.order';
-import { StandingOrderService } from '../service/standing.order.service';
-import { StandingOrderCallParam } from '../model/standing.order.call.param';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { AppHelpIds } from '../../shared/help/help.ids';
 import { TransactionType } from '../../shared/types/transaction.type';
-import moment from 'moment';
-import { BaseSettings } from '../../lib/base.settings';
+import { StandingOrderCallParam } from '../model/standing.order.call.param';
+import { StandingOrderService } from '../service/standing.order.service';
 
 /**
  * Abstract base class for standing order table components. Provides shared column definitions,
@@ -36,7 +36,11 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
 
   protected readonly destroyRef = inject(DestroyRef);
   readonly standingOrders = signal<StandingOrder[]>([]);
-  readonly selectedEntity = signal<StandingOrder | null>(null);
+  readonly selectedEntity = linkedSignal<StandingOrder[], StandingOrder | null>({
+    source: this.standingOrders,
+    computation: (rows, previous) =>
+      rows.find((row) => row.idStandingOrder === previous?.value?.idStandingOrder) ?? null
+  });
   readonly contextMenuItems = signal<MenuItem[]>([]);
   readonly visibleEditDialog = signal(false);
   callParam: StandingOrderCallParam;
@@ -146,8 +150,6 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
         this.prepareTableAndTranslate();
         this.createTranslatedValueStore(orders);
         this.standingOrders.set(orders);
-        const selectedId = this.selectedEntity()?.idStandingOrder;
-        this.selectedEntity.set(orders.find((so) => so.idStandingOrder === selectedId) ?? null);
         if (this.isActivated()) this.resetMenu();
         orders
           .filter((so) => previousFailureIds.has(so.idStandingOrder) && (so.failureCount ?? 0) > 0)

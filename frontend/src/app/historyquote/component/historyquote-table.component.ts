@@ -1,57 +1,48 @@
-import {
-  afterNextRender,
-  Component,
-  OnChanges,
-  OnDestroy,
-  signal,
-  SimpleChanges,
-  output,
-  input,
-  inject
-} from '@angular/core';
+import { afterNextRender, Component, effect, inject, input, OnDestroy, output, signal, untracked } from '@angular/core';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 
-import { Historyquote } from '../../entities/historyquote';
-import { HistoryquoteSecurityCurrency } from '../model/historyquote.security.currency';
-import { HistoryquoteService } from '../service/historyquote.service';
-import { AppSettings } from '../../shared/app.settings';
-import { combineLatest, Subscription } from 'rxjs';
-import { AppHelper } from '../../lib/helper/app.helper';
-import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
-import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
-import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule } from '@ngx-translate/core';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
+import { plainToClass } from 'class-transformer';
+import { combineLatest, map } from 'rxjs';
+import { Historyquote } from '../../entities/historyquote';
+import { Security } from '../../entities/security';
+import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
 import { INameSecuritycurrency } from '../../entities/view/iname.securitycurrency';
 import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
+import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
+import { BaseSettings } from '../../lib/base.settings';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { SecurityService } from '../../securitycurrency/service/security.service';
+import { UploadFileDialogComponent } from '../../lib/generaldialog/component/upload-file-dialog.component';
+import { FileUploadParam } from '../../lib/generaldialog/model/file.upload.param';
+import { GlobalSessionNames } from '../../lib/global.session.names';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import {
   HistoryquoteDeleteBounds,
   HistoryquoteFillGapsBounds
 } from '../../securitycurrency/model/historyquote.quality.group';
-import { HelpIds } from '../../lib/help/help.ids';
-import { TimeSeriesParam } from '../model/time.series.param';
-import { AuditHelper } from '../../lib/helper/audit.helper';
-import { HistoryquoteTableBase } from './historyquote-table.base';
-import { Security } from '../../entities/security';
-import { plainToClass } from 'class-transformer';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { AppSettings } from '../../shared/app.settings';
 import { BusinessHelper } from '../../shared/helper/business.helper';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { ProcessedAction } from '../../lib/types/processed.action';
+import { HistoryquoteSecurityCurrency } from '../model/historyquote.security.currency';
 import { HistoryquotesWithMissings } from '../model/historyquotes.with.missings';
-import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
-import { MenuItem } from '@openng/optimus-ui/api';
-import { FileUploadParam } from '../../lib/generaldialog/model/file.upload.param';
-import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BaseSettings } from '../../lib/base.settings';
-import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
-import { HistoryquoteQualityComponent } from './historyquote-quality.component';
-import { HistoryquoteEditComponent } from './historyquote-edit.component';
-import { UploadFileDialogComponent } from '../../lib/generaldialog/component/upload-file-dialog.component';
-import { HistoryquoteQualityFillGapsDialogComponent } from './historyquote-quality-fill-gaps-dialog.component';
+import { TimeSeriesParam } from '../model/time.series.param';
+import { HistoryquoteService } from '../service/historyquote.service';
 import { HistoryquoteDeleteDialogComponent } from './historyquote-delete-dialog.component';
-import { GlobalSessionNames } from '../../lib/global.session.names';
+import { HistoryquoteEditComponent } from './historyquote-edit.component';
+import { HistoryquoteQualityFillGapsDialogComponent } from './historyquote-quality-fill-gaps-dialog.component';
+import { HistoryquoteQualityComponent } from './historyquote-quality.component';
+import { HistoryquoteTableBase } from './historyquote-table.base';
 
 /**
  * Shows the history quotes in a table. Hosted by {@link HistoryquoteHostComponent}, which feeds
@@ -72,6 +63,7 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
       <div class="datatable">
         <configurable-table
           [data]="entityList()"
+          [loading]="quotesResource.isLoading()"
           [fields]="fields"
           [fieldsRevision]="fieldsRevision()"
           [dataKey]="entityKeyName"
@@ -164,7 +156,7 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
     HistoryquoteDeleteDialogComponent
   ]
 })
-export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquote> implements OnChanges, OnDestroy {
+export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquote> implements OnDestroy {
   private iconReg: SvgIconRegistryService = inject(SvgIconRegistryService);
   private securityService: SecurityService = inject(SecurityService);
   private currencypairService: CurrencypairService = inject(CurrencypairService);
@@ -198,9 +190,28 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   /** Oldest and most recent stored price, loaded before the delete dialog is shown. */
   deleteBounds: HistoryquoteDeleteBounds;
   protected transactionPositionList: SecurityTransactionPosition[] = [];
-  /** Request of the shown instrument; a newer instrument replaces a request that is still pending. */
-  private loadSubscription: Subscription;
 
+  readonly quotesResource = rxResource({
+    params: () => this.timeSeriesParams()?.[0],
+    stream: ({ params }) => {
+      const summary = params.currencySecurity
+        ? BusinessHelper.getSecurityTransactionSummary(
+            this.securityService,
+            params.idSecuritycurrency,
+            null,
+            null,
+            false
+          )
+        : this.currencypairService.getTransactionForCurrencyPair(params.idSecuritycurrency, false);
+      return combineLatest([
+        summary,
+        this.historyquoteService.getHistoryqoutesByIdSecuritycurrencyWithMissing(
+          params.idSecuritycurrency,
+          !params.currencySecurity
+        )
+      ]).pipe(map(([summary, quotes]) => ({ summary, quotes, params })));
+    }
+  });
   constructor() {
     super(AppSettings.HISTORYQUOTE, inject(HistoryquoteService));
 
@@ -211,11 +222,37 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
     this.addOhlcvColumns();
     this.applyDefaultDateSort();
     this.prepareTableAndTranslate();
-    this.destroyRef.onDestroy(() => this.loadSubscription?.unsubscribe());
+
+    reportResourceErrors(this.quotesResource, this.historyquoteService);
+    effect(() => {
+      if (this.quotesResource.isLoading()) return;
+      const result = this.quotesResource.hasValue() ? this.quotesResource.value() : undefined;
+      untracked(() => {
+        if (!result) {
+          this.entityList.set([]);
+          this.contextMenuItems.set([]);
+          return;
+        }
+        const summary = result.summary as SecurityTransactionSummary;
+        this.nameSecuritycurrency.set(
+          result.params.currencySecurity
+            ? new SecurityTransactionSummary(summary.transactionPositionList, summary.securityPositionSummary)
+            : new CurrencypairWithTransaction(result.summary as CurrencypairWithTransaction)
+        );
+        this.historyquotesWithMissings.set(result.quotes);
+        this.applyPriceFractionDigits(result.quotes.securitycurrency.priceFractionDigits);
+        this.security.set(result.params.currencySecurity ? (result.quotes.securitycurrency as Security) : null);
+        this.entityList.set(result.quotes.historyquoteList);
+        this.refreshSelectedEntity();
+        this.firstRow.set(0);
+        afterNextRender(() => this.firstRow.set(this.firstRowIndexOnPage), { injector: this.injector });
+        this.notifyViewChanged();
+      });
+    });
   }
 
   readData(): void {
-    this.readAndShowData(this.timeSeriesParams()[0]);
+    this.quotesResource.reload();
     // Changing history quotes an affect some others viewed parts
     this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new Historyquote()));
   }
@@ -227,13 +264,6 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   ngOnDestroy(): void {
     this.activePanelService.destroyPanel(this);
     this.usersettingsService.saveSingleValue(AppSettings.HISTORYQUOTE_TABLE_SETTINGS_STORE, this.rowsPerPage);
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    const timeSeriesParams = this.timeSeriesParams();
-    if (changes['timeSeriesParams'] && timeSeriesParams && timeSeriesParams.length > 0) {
-      this.readAndShowData(timeSeriesParams[0]);
-    }
   }
 
   uploadImportQuotes(): void {
@@ -322,10 +352,6 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
 
   protected override initialize(): void {
     this.rowsPerPage = this.usersettingsService.readSingleValue(AppSettings.HISTORYQUOTE_TABLE_SETTINGS_STORE) || 30;
-    const timeSeriesParams = this.timeSeriesParams();
-    if (timeSeriesParams && timeSeriesParams.length > 0) {
-      this.readAndShowData(timeSeriesParams[0]);
-    }
   }
 
   protected prepareCallParam(entity: Historyquote) {
@@ -398,43 +424,6 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
         command: () => this.downloadCSvFile(this.historyquotesWithMissings().historyquoteList)
       }
     ];
-  }
-
-  private readAndShowData(timeSeriesParam: TimeSeriesParam): void {
-    const stsObservable = timeSeriesParam.currencySecurity
-      ? BusinessHelper.getSecurityTransactionSummary(
-          this.securityService,
-          timeSeriesParam.idSecuritycurrency,
-          null,
-          null,
-          false
-        )
-      : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParam.idSecuritycurrency, false);
-    const historyquoteObservable = this.historyquoteService.getHistoryqoutesByIdSecuritycurrencyWithMissing(
-      timeSeriesParam.idSecuritycurrency,
-      !timeSeriesParam.currencySecurity
-    );
-
-    this.loadSubscription?.unsubscribe();
-    this.loadSubscription = combineLatest([stsObservable, historyquoteObservable]).subscribe((data: any[]) => {
-      const historyquotesWithMissings: HistoryquotesWithMissings = data[1];
-      this.nameSecuritycurrency.set(
-        timeSeriesParam.currencySecurity
-          ? new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary)
-          : new CurrencypairWithTransaction(data[0])
-      );
-      this.historyquotesWithMissings.set(historyquotesWithMissings);
-      this.applyPriceFractionDigits(historyquotesWithMissings.securitycurrency.priceFractionDigits);
-      this.notifyViewChanged();
-      this.security.set(
-        <Security>(timeSeriesParam.currencySecurity ? historyquotesWithMissings.securitycurrency : null)
-      );
-      this.entityList.set(historyquotesWithMissings.historyquoteList);
-      this.refreshSelectedEntity();
-      // New rows reset the paginator; the page the user was on is restored once they are rendered.
-      this.firstRow.set(0);
-      afterNextRender(() => this.firstRow.set(this.firstRowIndexOnPage), { injector: this.injector });
-    });
   }
 
   private readDataAndProposeDataChangedEvent(processedActionData: ProcessedActionData): void {

@@ -1,19 +1,21 @@
-import { inject } from '@angular/core';
-import { MessageToastService } from '../../message/message.toast.service';
-import { Observable, throwError } from 'rxjs';
-import { ValidationError } from './validation.error';
-import { SingleNativeMsgError } from './single.native.msg.error';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { InfoLevelType } from '../../message/info.leve.type';
+import { inject } from '@angular/core';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ErrorWrapper } from './error.wrapper';
-import { LimitEntityTransactionError } from './limit.entity.transaction.error';
-import { TransformedError } from './transformed.error';
-import { GetTransformedError } from './get.transformed.error';
-import { BaseService } from './base.service';
 import { BaseSettings } from '../../base.settings';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { MessageToastService } from '../../message/message.toast.service';
+import { BaseService } from './base.service';
+import { ErrorWrapper } from './error.wrapper';
+import { GetTransformedError } from './get.transformed.error';
+import { LimitEntityTransactionError } from './limit.entity.transaction.error';
+import { SingleNativeMsgError } from './single.native.msg.error';
+import { TransformedError } from './transformed.error';
+import { ValidationError } from './validation.error';
 
 export abstract class BaseAuthService<T> extends BaseService {
+  /** Observable reads already report their transformed errors before an rxResource receives them. */
+  private static readonly reportedErrors = new WeakSet<object>();
   protected httpClient: HttpClient = inject(HttpClient);
   protected messageToastService: MessageToastService = inject(MessageToastService);
 
@@ -48,6 +50,7 @@ export abstract class BaseAuthService<T> extends BaseService {
 
   protected handleError(error: HttpErrorResponse | any): Observable<TransformedError> {
     const transformedError = this.reportError(error);
+    BaseAuthService.reportedErrors.add(transformedError);
     return throwError(() => transformedError);
   }
 
@@ -59,6 +62,9 @@ export abstract class BaseAuthService<T> extends BaseService {
    * @param error the value of the resource's `error()` signal, typically an `HttpErrorResponse`
    */
   handleResourceError(error: HttpErrorResponse | any): void {
+    // Angular wraps non-Error stream failures and preserves the original TransformedError as its cause.
+    const original = error instanceof Error && error.cause instanceof TransformedError ? error.cause : error;
+    if (BaseAuthService.reportedErrors.has(original)) return;
     this.reportError(error);
   }
 

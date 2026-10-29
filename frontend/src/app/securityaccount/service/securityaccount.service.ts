@@ -1,29 +1,63 @@
+import { HttpParams, HttpResourceRequest } from '@angular/common/http';
 import { Service } from '@angular/core';
-import { FxObservationReport } from '../../entities/fx.observation';
-import { FxMarkupPreviewRequest, FxQuote } from '../../entities/fx.markup';
-import { AppSettings } from '../../shared/app.settings';
-import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import { Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { FeeModelComparisonResponse } from '../../entities/fee.model.comparison';
+import { FxMarkupPreviewRequest, FxQuote } from '../../entities/fx.markup';
+import { FxObservationReport } from '../../entities/fx.observation';
 import { Securityaccount } from '../../entities/securityaccount';
 import { TradingPeriodTransactionSummary } from '../../entities/trading.period.transaction.summary';
 import {
   TransactionCostEstimateRequest,
   TransactionCostEstimateResult
 } from '../../entities/transaction.cost.estimate';
-import { Observable } from 'rxjs';
-import { HttpParams } from '@angular/common/http';
-import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
-import { catchError } from 'rxjs/operators';
-import { AppHelper } from '../../lib/helper/app.helper';
+import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { BaseSettings } from '../../lib/base.settings';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
+import { AppSettings } from '../../shared/app.settings';
 
 @Service()
 export class SecurityaccountService
   extends AuthServiceWithLogout<Securityaccount>
   implements ServiceEntityUpdate<Securityaccount>
 {
+  /** Builds the cancellable read used by signal-driven views and observable callers. */
+  getPositionSummarySecurityaccountRequest(
+    idSecurityaccount: number,
+    group: string,
+    includeClosedPosition: boolean,
+    untilDate: Date
+  ) {
+    return {
+      url: `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/${idSecurityaccount}/securityaccountsummary/${group}`,
+      ...AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(
+        includeClosedPosition,
+        untilDate,
+        this.prepareHeaders()
+      )
+    } satisfies HttpResourceRequest;
+  }
+
+  /** Builds the cancellable read used by signal-driven views and observable callers. */
+  getSecurityPositionSummaryPortfolioRequest(
+    idPortfolio: number,
+    group: string,
+    includeClosedPosition: boolean,
+    untilDate: Date
+  ) {
+    return {
+      url: `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/${idPortfolio}/portfoliosecurityaccountsummary/${group}`,
+      ...AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(
+        includeClosedPosition,
+        untilDate,
+        this.prepareHeaders()
+      )
+    } satisfies HttpResourceRequest;
+  }
+
   getFxObservations(idAccount: number): Observable<FxObservationReport> {
     return this.httpClient
       .get<FxObservationReport>(
@@ -88,19 +122,15 @@ export class SecurityaccountService
     includeClosedPosition: boolean,
     untilDate: Date
   ): Observable<SecurityPositionGrandSummary> {
-    return <Observable<SecurityPositionGrandSummary>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/` +
-            `${idPortfolio}/portfoliosecurityaccountsummary/${group}`,
-          AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(
-            includeClosedPosition,
-            untilDate,
-            this.prepareHeaders()
-          )
-        )
-        .pipe(catchError(this.handleError.bind(this)))
+    const { url, ...options } = this.getSecurityPositionSummaryPortfolioRequest(
+      idPortfolio,
+      group,
+      includeClosedPosition,
+      untilDate
     );
+    return this.httpClient
+      .get<SecurityPositionGrandSummary>(url, options)
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getPositionSummarySecurityaccount(
@@ -109,19 +139,15 @@ export class SecurityaccountService
     includeClosedPosition: boolean,
     untilDate: Date
   ): Observable<SecurityPositionGrandSummary> {
-    return <Observable<SecurityPositionGrandSummary>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` +
-            `${AppSettings.SECURITYACCOUNT_KEY}/${idSecurityaccount}/securityaccountsummary/${group}`,
-          AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(
-            includeClosedPosition,
-            untilDate,
-            this.prepareHeaders()
-          )
-        )
-        .pipe(catchError(this.handleError.bind(this)))
+    const { url, ...options } = this.getPositionSummarySecurityaccountRequest(
+      idSecurityaccount,
+      group,
+      includeClosedPosition,
+      untilDate
     );
+    return this.httpClient
+      .get<SecurityPositionGrandSummary>(url, options)
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionSummaries(idSecuritycashAccount: number): Observable<TradingPeriodTransactionSummary[]> {

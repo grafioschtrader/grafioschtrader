@@ -1,26 +1,26 @@
-import { Component, OnDestroy, OnChanges, signal, input, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subscription, switchMap } from 'rxjs';
+import { Component, computed, effect, inject, input, linkedSignal, OnDestroy, untracked } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { map, switchMap } from 'rxjs';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 
 import { TranslateModule } from '@ngx-translate/core';
-import { TransactionContextMenu } from '../../transaction/component/transaction.context.menu';
-import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
-import { Transaction } from '../../entities/transaction';
 import { Security } from '../../entities/security';
-import { Portfolio } from '../../entities/portfolio';
 import { StandingOrder } from '../../entities/standing.order';
-import { StandingOrderService } from '../service/standing.order.service';
-import { PortfolioService } from '../../portfolio/service/portfolio.service';
-import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { ProcessedAction } from '../../lib/types/processed.action';
-import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { Transaction } from '../../entities/transaction';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
-import { AppSettings } from '../../shared/app.settings';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
-import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
-import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
-import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { AppSettings } from '../../shared/app.settings';
 import { TransactionCashaccountConnectDebitCreditDialogComponent } from '../../transaction/component/transaction-cashaccount-connect-debit-credit-dialog.component';
+import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
+import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
+import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
+import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
+import { TransactionContextMenu } from '../../transaction/component/transaction.context.menu';
+import { StandingOrderService } from '../service/standing.order.service';
 import { StandingOrderCashaccountEditComponent } from './standing-order-cashaccount-edit.component';
 import { StandingOrderSecurityEditComponent } from './standing-order-security-edit.component';
 
@@ -111,16 +111,33 @@ import { StandingOrderSecurityEditComponent } from './standing-order-security-ed
     StandingOrderSecurityEditComponent
   ]
 })
-export class StandingOrderTransactionTableComponent extends TransactionContextMenu implements OnChanges, OnDestroy {
+export class StandingOrderTransactionTableComponent extends TransactionContextMenu implements OnDestroy {
   private portfolioService: PortfolioService = inject(PortfolioService);
   private standingOrderService: StandingOrderService = inject(StandingOrderService);
 
   readonly standingOrder = input<StandingOrder>(undefined);
 
-  readonly transactions = signal<Transaction[]>([]);
-  private readSubscription?: Subscription;
-  private portfolio: Portfolio;
+  readonly transactionResource = rxResource({
+    params: () => this.standingOrder(),
+    stream: ({ params: order }) =>
+      this.portfolioService
+        .getPortfolioByIdSecuritycashaccount(order.cashaccount.idSecuritycashAccount)
+        .pipe(
+          switchMap((portfolio) =>
+            this.standingOrderService
+              .getTransactions(order.idStandingOrder)
+              .pipe(map((transactions) => ({ portfolio, transactions })))
+          )
+        )
+  });
+  readonly transactions = computed(() =>
+    this.transactionResource.hasValue() ? this.transactionResource.value().transactions : []
+  );
 
+  override readonly selectedTransaction = linkedSignal<Transaction[], Transaction | null>({
+    source: this.transactions,
+    computation: (rows, previous) => rows.find((row) => row.idTransaction === previous?.value?.idTransaction) ?? null
+  });
   constructor() {
     super();
     this.addColumn(DataType.DateString, 'transactionTime', 'DATE', true, false);
@@ -135,12 +152,14 @@ export class StandingOrderTransactionTableComponent extends TransactionContextMe
     this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false, {
       templateName: 'greenRed'
     });
-  }
 
-  ngOnChanges(): void {
     this.prepareTableAndTranslate();
     this.multiSortMeta = [{ field: 'transactionTime', order: -1 }];
-    this.initialize();
+    reportResourceErrors(this.transactionResource, this.standingOrderService);
+    effect(() => {
+      const rows = this.transactions();
+      untracked(() => this.createTranslatedValueStoreAndFilterField(rows));
+    });
   }
 
   ngOnDestroy(): void {
@@ -169,26 +188,13 @@ export class StandingOrderTransactionTableComponent extends TransactionContextMe
   }
 
   protected initialize(): void {
-    this.readSubscription?.unsubscribe();
-    this.readSubscription = this.portfolioService
-      .getPortfolioByIdSecuritycashaccount(this.standingOrder().cashaccount.idSecuritycashAccount)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        switchMap((portfolio) => {
-          this.portfolio = portfolio;
-          return this.standingOrderService.getTransactions(this.standingOrder().idStandingOrder);
-        })
-      )
-      .subscribe((transactions) => this.publishTransactions(transactions));
-  }
-
-  private publishTransactions(transactions: Transaction[]): void {
-    this.createTranslatedValueStoreAndFilterField(transactions);
-    this.transactions.set(transactions);
+    this.transactionResource.reload();
   }
 
   protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam): void {
-    transactionCallParam.portfolio = this.portfolio;
+    transactionCallParam.portfolio = this.transactionResource.hasValue()
+      ? this.transactionResource.value().portfolio
+      : undefined;
   }
 
   private loadTransactions(): void {

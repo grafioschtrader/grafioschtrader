@@ -383,6 +383,9 @@ export interface CellMark {
                           @case (DataType.String) {
                             <p-columnFilter type="text" appendTo="body" [field]="filterKey(field)" display="menu" />
                           }
+
+                          <!-- Columns without a supported filter render no control. -->
+                          @default {}
                         }
                       }
                       @case (FilterType.withOptions) {
@@ -401,6 +404,9 @@ export interface CellMark {
                           (onChange)="table.filter($event.value?.length ? $event.value : null, filterKey(field), 'in')"
                           (onClear)="table.filter(null, filterKey(field), 'in')" />
                       }
+
+                      <!-- Columns without a supported filter render no control. -->
+                      @default {}
                     }
                   </th>
                 }

@@ -1,20 +1,28 @@
+import { HttpResourceRequest } from '@angular/common/http';
 import { Service } from '@angular/core';
-import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
-import { ImportTransactionHead } from '../../entities/import.transaction.head';
 import { Observable } from 'rxjs';
-import { AppSettings } from '../../shared/app.settings';
-import { IPlatformTransactionImport } from '../../portfolio/component/iplatform.transaction.import';
-import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { catchError, map } from 'rxjs/operators';
-import { UploadServiceFunction } from '../../lib/generaldialog/model/file.upload.param';
+import { ImportTransactionHead } from '../../entities/import.transaction.head';
 import { BaseSettings } from '../../lib/base.settings';
+import { DeleteService } from '../../lib/datashowbase/delete.service';
+import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
+import { UploadServiceFunction } from '../../lib/generaldialog/model/file.upload.param';
+import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
+import { IPlatformTransactionImport } from '../../portfolio/component/iplatform.transaction.import';
+import { AppSettings } from '../../shared/app.settings';
 
 @Service()
 export class ImportTransactionHeadService
   extends AuthServiceWithLogout<ImportTransactionHead>
   implements DeleteService, ServiceEntityUpdate<ImportTransactionHead>, UploadServiceFunction
 {
+  getImportTransactionHeadBySecurityaccountRequest(idSecuritycashaccount: number) {
+    return {
+      url: `${BaseSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/${AppSettings.SECURITYACCOUNT_KEY}/${idSecuritycashaccount}`,
+      headers: this.prepareHeaders()
+    } satisfies HttpResourceRequest;
+  }
+
   getPlatformTransactionImport(): Observable<IPlatformTransactionImport[]> {
     return <Observable<IPlatformTransactionImport[]>>(
       this.httpClient
@@ -27,15 +35,8 @@ export class ImportTransactionHeadService
   }
 
   getImportTransactionHeadBySecurityaccount(idSecuritycashaccount: number): Observable<ImportTransactionHead[]> {
-    return <Observable<ImportTransactionHead[]>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}` +
-            `${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/${AppSettings.SECURITYACCOUNT_KEY}/${idSecuritycashaccount}`,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    const { url, ...options } = this.getImportTransactionHeadBySecurityaccountRequest(idSecuritycashaccount);
+    return this.httpClient.get<ImportTransactionHead[]>(url, options).pipe(catchError(this.handleError.bind(this)));
   }
 
   uploadPdfFileSecurityAccountTransactions(

@@ -47,6 +47,14 @@ the users from `testdata/users.json` (password `A123abcd`). The browser suite of
 
 ## What a host has to supply
 
+Both hosts use the resource rules in `frontend/CLAUDE.md`: signal-driven GETs use `httpResource`, combined observable
+GETs use `rxResource`, and refreshes call `reload()`. Library resources report errors through `reportResourceErrors`
+and `BaseAuthService`; observable errors already reported by a service produce no second toast. Task-monitor queue
+changes cancel pending list reads, and empty queue intersections make no unfiltered request. CRUD and master/detail
+selections use `linkedSignal` to bind the selected key to refreshed rows; menu activation remains explicit.
+Template switches declare an intentional fallback or an exhaustive `@default never;` check. These rules and the
+Angular API ratchets apply to the library and both host entry points.
+
 This is the concrete answer to "what does an application built on `lib` have to bring along?". Everything else comes
 from the library.
 

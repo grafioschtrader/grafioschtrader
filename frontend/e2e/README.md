@@ -175,6 +175,12 @@ so it exercises the real validation failure without importing or replacing any G
 Run each file separately with `--no-deps` against its `e2e` stack. For an isolated application stack, set both
 `E2E_BACKEND_URL` and `E2E_FRONTEND_URL` and configure that frontend's proxy to target the test backend.
 
+## Public route inputs (004-*)
+
+`004-route-inputs.spec.ts` and `lib/004-route-inputs.spec.ts` share `lib/route-input.scenarios.ts`. They check
+registration feedback from query and matrix parameters, clearing that feedback when returning through the registration
+page, and the invalid-token redirect from `/tokenverify?token=…`. They create no users, tokens or other records.
+
 ## Watchlist indicators (230-*)
 
 `230-watchlist-indicators.spec.ts` uses the `alledit` account, an owned `Indicator E2E` watchlist and the definitions in
@@ -1030,6 +1036,16 @@ only appears when its visibility notifies the chart.
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/170-time-series-chart.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Route-resource cancellation (252-*)
+
+`252-route-resources.spec.ts` reads the two retained `alledit` portfolios from `portfolios.json`. It holds the first
+cash-account summary, switches the portfolio through the tree, verifies that the first browser request was aborted and
+that only the newer portfolio's account rows appear. It creates and changes no records. Run the single spec with
+`--project=grafioschtrader-e2e --no-deps` against the verified application test stack.
+
+The second case in `063-historyquote-legacy-notification.spec.ts` rejects one combined live-quote read. It checks that
+the service and resource together show exactly one error toast, then reopens the live view and verifies recovery.
 
 ## Entity-limit spec (190-*)
 

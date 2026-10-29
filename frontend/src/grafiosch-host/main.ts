@@ -5,7 +5,13 @@ import { inject, provideAppInitializer, provideBrowserGlobalErrorListeners } fro
 import { bootstrapApplication } from '@angular/platform-browser';
 import { SETTINGS_MENU_EXTENSIONS } from '../app/lib/mainmenubar/service/settings-menu-extensions';
 import { accessTokenSettingsMenu } from './access-token-settings-menu';
-import { provideRouter, Routes, withNavigationErrorHandler, withPreloading } from '@angular/router';
+import {
+  provideRouter,
+  Routes,
+  withNavigationErrorHandler,
+  withPreloading,
+  withComponentInputBinding
+} from '@angular/router';
 import { AuthenticatedPreloadingStrategy } from '../app/lib/login/service/authenticated-preloading.strategy';
 import { handleLazyLoadNavigationError } from '../app/lib/login/service/lazy-load-failure';
 import { provideTranslateService, TranslateLoader, TranslateService } from '@ngx-translate/core';
@@ -13,7 +19,6 @@ import { provideAngularSvgIcon } from 'angular-svg-icon';
 import { ConfirmationService, FilterService, MessageService } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { firstValueFrom } from 'rxjs';
-
 import { BaseSettings } from '../app/lib/base.settings';
 import { GlobalSessionNames } from '../app/lib/global.session.names';
 import { AppHelper } from '../app/lib/helper/app.helper';
@@ -51,7 +56,6 @@ import { showNlsBootstrapFailure } from '../app/lib/translator/nls.bootstrap.fai
 import { UDFMetadataGeneralTableComponent } from '../app/lib/udfmeta/components/udf.metadata.general.table.component';
 import { UserTableComponent } from '../app/lib/user/component/user.table.component';
 import { EntityLimitTableComponent } from '../app/lib/entitylimit/component/entity.limit.table.component';
-
 import { GrafioschAppComponent } from './app.component';
 import { GrafioschAfterLoginHandler } from './grafiosch-after-login.handler';
 import { GrafioschDialogHandler } from './grafiosch-dialog.handler';
@@ -209,6 +213,7 @@ bootstrapApplication(GrafioschAppComponent, {
     provideDialogCloseKeepsFocus(),
     provideRouter(
       routes,
+      withComponentInputBinding(),
       withPreloading(AuthenticatedPreloadingStrategy),
       withNavigationErrorHandler(handleLazyLoadNavigationError)
     ),

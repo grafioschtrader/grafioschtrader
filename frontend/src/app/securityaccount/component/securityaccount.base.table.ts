@@ -4,7 +4,7 @@ import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
 import { SecurityPositionGroupSummary } from '../../entities/view/security.position.group.summary';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
-import { Directive, ElementRef, viewChild, inject } from '@angular/core';
+import { Directive, ElementRef, viewChild, inject, signal } from '@angular/core';
 import { SecurityaccountGroupBase } from './securityaccount.group.base';
 import { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
 import { Subscription } from 'rxjs';
@@ -114,6 +114,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   protected internalColumnConfigs: ColumnConfig[];
   private subscriptionRequestFromChart: Subscription;
 
+  readonly dataLoading = signal(false);
   constructor() {
     super();
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();

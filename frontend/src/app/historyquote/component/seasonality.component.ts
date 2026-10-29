@@ -8,12 +8,11 @@ import {
   OnInit,
   signal,
   untracked,
-  viewChild
+  viewChild,
+  input
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
 import { httpResource } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { MenuItem } from '@openng/optimus-ui/api';
@@ -32,6 +31,7 @@ import { SecurityService } from '../../securitycurrency/service/security.service
 import { SeasonalPeriodType, SeasonalReturnsResult } from '../../entities/seasonal.returns.result';
 import { AppHelpIds } from '../../shared/help/help.ids';
 import { SeasonalityTableComponent } from './seasonality-table.component';
+import { TimeSeriesParam } from '../model/time.series.param';
 
 /** Inputs of one seasonal return matrix: the instrument from the route and the three form controls. */
 interface SeasonalReturnsParams {
@@ -88,7 +88,8 @@ interface SeasonalReturnsParams {
   imports: [TranslateModule, ...DYNAMIC_FORM_IMPORTS, ProgressBarModule, SeasonalityTableComponent]
 })
 export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMenuAttach {
-  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
+  readonly allParam = input<string>();
+
   private activePanelService: ActivePanelService = inject(ActivePanelService);
   private securityService: SecurityService = inject(SecurityService);
   private gps: GlobalparameterService = inject(GlobalparameterService);
@@ -134,15 +135,18 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
         untracked(() => this.applyCapabilities(result));
       }
     });
+
+    effect(() => {
+      const params: TimeSeriesParam[] = JSON.parse(this.allParam() ?? '[]');
+      untracked(() => {
+        this.idSecuritycurrency = params?.[0]?.idSecuritycurrency;
+        this.maybeReload();
+      });
+    });
   }
 
   ngOnInit(): void {
     this.createInputFormDefinition();
-    this.activatedRoute.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((paramMap) => {
-      const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
-      this.idSecuritycurrency = paramObject.allParam?.[0]?.idSecuritycurrency;
-      this.maybeReload();
-    });
   }
 
   private initializeControls(): void {

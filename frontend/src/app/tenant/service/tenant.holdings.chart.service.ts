@@ -1,5 +1,4 @@
-import { Service } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Service, signal } from '@angular/core';
 import { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
 import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
 
@@ -24,10 +23,10 @@ export interface HoldingsChartInput {
  */
 @Service()
 export class TenantHoldingsChartService {
-  private chartInput = new BehaviorSubject<HoldingsChartInput>(null);
+  private readonly chartInputState = signal<HoldingsChartInput | null>(null);
 
   /** Latest loaded report; null until the table has loaded once. */
-  readonly chartInput$: Observable<HoldingsChartInput> = this.chartInput.asObservable();
+  readonly chartInput = this.chartInputState.asReadonly();
 
   /**
    * Publishes a newly loaded report.
@@ -35,6 +34,6 @@ export class TenantHoldingsChartService {
    * @param chartInput - The report and the chart definition derived from it
    */
   publish(chartInput: HoldingsChartInput): void {
-    this.chartInput.next(chartInput);
+    this.chartInputState.set(chartInput);
   }
 }

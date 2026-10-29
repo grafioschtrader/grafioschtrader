@@ -1,42 +1,40 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { Params } from '@angular/router';
-
-import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
-import { SecurityaccountTable } from './securityaccountTable';
-import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
+import { httpResource } from '@angular/common/http';
+import { Component, OnDestroy, effect, inject, input, numberAttribute, signal, untracked } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
-import { HelpIds } from '../../lib/help/help.ids';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { DatePicker } from '@openng/optimus-ui/datepicker';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { TableModule } from '@openng/optimus-ui/table';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { NgxFileDropEntry, NgxFileDropModule } from 'ngx-file-drop';
+import { Securityaccount } from '../../entities/securityaccount';
+import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { OptionalParameters } from '../../historyquote/service/time.series.quotes.service';
 import {
   ImportTransactionHeadService,
   SuccessFailedDirectImportTransaction
 } from '../../imptransaction/service/import.transaction.head.service';
-
-import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { AppSettings } from '../../shared/app.settings';
-import { NgxFileDropEntry, NgxFileDropModule } from 'ngx-file-drop';
-import { MenuItem } from '@openng/optimus-ui/api';
-import { AppHelper } from '../../lib/helper/app.helper';
 import { BaseSettings } from '../../lib/base.settings';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
-import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { Securityaccount } from '../../entities/securityaccount';
-import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
 import { SecurityTransferCreateDialogComponent } from '../../securityaction/component/security-transfer-create-dialog.component';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-
-import { TableModule } from '@openng/optimus-ui/table';
-import { DatePicker } from '@openng/optimus-ui/datepicker';
-import { FormsModule } from '@angular/forms';
-import { SelectModule } from '@openng/optimus-ui/select';
-import { TooltipModule } from '@openng/optimus-ui/tooltip';
-import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
-import { TransactionSecurityTableComponent } from '../../transaction/component/transaction-security-table.component';
-import { TransactionSecurityMarginTreetableComponent } from '../../transaction/component/transaction-security-margin-treetable.component';
+import { AppSettings } from '../../shared/app.settings';
 import { TransactionCashaccountTableComponent } from '../../transaction/component/transaction-cashaccount-table.component';
 import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
-import { AngularSvgIconModule } from 'angular-svg-icon';
+import { TransactionSecurityMarginTreetableComponent } from '../../transaction/component/transaction-security-margin-treetable.component';
+import { TransactionSecurityTableComponent } from '../../transaction/component/transaction-security-table.component';
+import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
+import { SecurityaccountTable } from './securityaccountTable';
 
 /**
  * It is the summary for a single security account with its securities.
@@ -59,42 +57,58 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
     TransactionSecurityEditComponent
   ]
 })
-export class SecurityaccountSummaryComponent extends SecurityaccountTable implements OnInit, OnDestroy {
+export class SecurityaccountSummaryComponent extends SecurityaccountTable implements OnDestroy {
+  readonly id = input.required({ transform: numberAttribute });
+
   protected importTransactionHeadService: ImportTransactionHeadService = inject(ImportTransactionHeadService);
 
-  private routeSubscribe: Subscription;
   private idSecurityaccount: number;
 
+  private readonly summaryRequest = signal<
+    ReturnType<SecurityaccountService['getPositionSummarySecurityaccountRequest']> | undefined
+  >(undefined);
+  readonly positionResource = httpResource<SecurityPositionGrandSummary>(() => this.summaryRequest());
   constructor() {
     super();
-  }
 
-  ngOnInit() {
-    const treeNavState = this.injector.get(TreeNavigationStateService);
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.idSecurityaccount = +params['id'];
-      this.securityAccount = treeNavState.getEntity<Securityaccount>(
-        AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY,
-        this.idSecurityaccount
-      );
-      this.readData();
+    effect(() => {
+      const id = this.id();
+      untracked(() => {
+        this.idSecurityaccount = id;
+        this.securityAccount = this.injector
+          .get(TreeNavigationStateService)
+          .getEntity<Securityaccount>(AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY, this.idSecurityaccount);
+        this.readData();
+      });
+    });
+
+    reportResourceErrors(this.positionResource, this.securityaccountService);
+    effect(() => {
+      const loading = this.positionResource.isLoading();
+      const data = this.positionResource.hasValue() ? this.positionResource.value() : undefined;
+      untracked(() => {
+        this.dataLoading.set(loading);
+        if (!loading && data) {
+          this.getDataToView(data);
+          this.initTableTextTranslation();
+          this.changeToOpenChart();
+        }
+      });
     });
   }
 
-  override readData() {
+  override readData(): void {
     this.selectedSecurityPositionSummary = null;
-    this.securityaccountService
-      .getPositionSummarySecurityaccount(
-        this.idSecurityaccount,
-        this.securityaccountGroupBase.defaultGroup,
-        this.includeClosedPosition,
-        this.untilDate
-      )
-      .subscribe((data: SecurityPositionGrandSummary) => {
-        this.getDataToView(data);
-        this.initTableTextTranslation();
-        this.changeToOpenChart();
-      });
+    const request = this.securityaccountService.getPositionSummarySecurityaccountRequest(
+      this.idSecurityaccount,
+      this.securityaccountGroupBase.defaultGroup,
+      this.includeClosedPosition,
+      this.untilDate
+    );
+    const current = this.summaryRequest();
+    if (current?.url === request.url && current.params.toString() === request.params.toString())
+      this.positionResource.reload();
+    else this.summaryRequest.set(request);
   }
 
   public override getHelpContextId(): string {
@@ -103,7 +117,6 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
 
   ngOnDestroy(): void {
     super.destroy();
-    this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 
   /** True when the securities account is mapped to its own import platform. */

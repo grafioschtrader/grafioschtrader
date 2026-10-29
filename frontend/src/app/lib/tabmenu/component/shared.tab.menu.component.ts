@@ -1,12 +1,10 @@
-import { Component, OnDestroy, OnInit, signal, input, linkedSignal, inject } from '@angular/core';
+import { Component, OnInit, signal, input, linkedSignal, inject, computed, effect, untracked } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { TabItem } from '../../types/tab.item';
-import { Subscription } from 'rxjs';
 import { TabMenuService } from '../service/tab.menu.service';
 import { SessionStorageTabHelper } from './session.storage.tab.helper';
-
 import { TabsModule } from '@openng/optimus-ui/tabs';
 
 /**
@@ -56,7 +54,7 @@ import { TabsModule } from '@openng/optimus-ui/tabs';
   imports: [TabsModule, TranslateModule],
   providers: [TabMenuService]
 })
-export class SharedTabMenuComponent implements OnInit, OnDestroy {
+export class SharedTabMenuComponent implements OnInit {
   private tabMenuService = inject(TabMenuService);
   private activatedRoute = inject(ActivatedRoute);
   private translateService = inject(TranslateService);
@@ -86,9 +84,18 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
   readonly customNavigationHandler = input<((route: string) => void) | null>(null);
 
   /** The currently active route. */
-  readonly activeRoute = signal('');
-
-  private subscription: Subscription;
+  private readonly customActiveRoute = signal('');
+  readonly activeRoute = computed(() =>
+    this.customNavigationHandler() ? this.customActiveRoute() : this.tabMenuService.activeRoute()
+  );
+  constructor() {
+    effect(() => {
+      if (!this.customNavigationHandler()) {
+        const route = this.tabMenuService.activeRoute();
+        if (route) untracked(() => this.saveActiveRoute(route));
+      }
+    });
+  }
 
   /**
    * Initializes the component, handles session storage restoration,
@@ -107,23 +114,10 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
     // Initialize tabs through service only if no custom navigation handler
     if (!this.customNavigationHandler()) {
       this.tabs.set(this.tabMenuService.initializeTabs(this.tabs(), this.defaultRoute(), this.activatedRoute));
-
-      // Subscribe to active route changes
-      this.subscription = this.tabMenuService.activeRoute$.subscribe((route) => {
-        this.activeRoute.set(route);
-        this.saveActiveRoute(route);
-      });
     } else {
       // For custom navigation, just translate tabs and set initial route
       TranslateHelper.translateMenuItems(this.tabs(), this.translateService);
-      this.activeRoute.set(this.defaultRoute());
-    }
-  }
-
-  /** Cleans up subscriptions to prevent memory leaks. */
-  ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
+      this.customActiveRoute.set(this.defaultRoute());
     }
   }
 
@@ -136,7 +130,7 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
     const customNavigationHandler = this.customNavigationHandler();
     if (customNavigationHandler) {
       customNavigationHandler(route);
-      this.activeRoute.set(route);
+      this.customActiveRoute.set(route);
       this.saveActiveRoute(route);
     } else {
       this.tabMenuService.navigateTo(route, this.activatedRoute);

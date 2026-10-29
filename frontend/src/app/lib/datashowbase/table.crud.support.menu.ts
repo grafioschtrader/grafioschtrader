@@ -1,23 +1,23 @@
-import { TableConfigBase } from './table.config.base';
-import { DestroyRef, Directive, inject, OnInit, signal } from '@angular/core';
+import { DestroyRef, Directive, inject, linkedSignal, OnInit, signal } from '@angular/core';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { Subscription } from 'rxjs';
-import { AppHelper } from '../helper/app.helper';
-import { MessageToastService } from '../message/message.toast.service';
-import { InfoLevelType } from '../message/info.leve.type';
+import { BaseSettings } from '../base.settings';
+import { DynamicDialogs } from '../dynamicdialog/component/dynamic.dialogs';
 import { BaseID } from '../entities/base.id';
-import { ProcessedAction } from '../types/processed.action';
-import { ProcessedActionData } from '../types/processed.action.data';
-import { ActivePanelService } from '../mainmenubar/service/active.panel.service';
-import { IGlobalMenuAttach } from '../mainmenubar/component/iglobal.menu.attach';
-import { DeleteService } from './delete.service';
+import saveAs from '../filesaver/filesaver';
+import { AppHelper } from '../helper/app.helper';
 import { AuditHelper } from '../helper/audit.helper';
 import { TranslateHelper } from '../helper/translate.helper';
 import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
-import { DynamicDialogs } from '../dynamicdialog/component/dynamic.dialogs';
-import { BaseSettings } from '../base.settings';
-import saveAs from '../filesaver/filesaver';
+import { IGlobalMenuAttach } from '../mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../mainmenubar/service/active.panel.service';
+import { InfoLevelType } from '../message/info.leve.type';
+import { MessageToastService } from '../message/message.toast.service';
+import { ProcessedAction } from '../types/processed.action';
+import { ProcessedActionData } from '../types/processed.action.data';
+import { DeleteService } from './delete.service';
+import { TableConfigBase } from './table.config.base';
 
 export enum CrudMenuOptions {
   Allow_Create,
@@ -64,7 +64,11 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
   readonly contextMenuItems = signal<MenuItem[]>(null);
 
   /** Currently selected entity in the table */
-  readonly selectedEntity = signal<T>(null);
+  readonly selectedEntity = linkedSignal<T[], T | null>({
+    source: this.entityList,
+    computation: (rows, previous) =>
+      rows.find((row) => row[this.entityKeyName] === previous?.value?.[this.entityKeyName]) ?? null
+  });
 
   /** Controls visibility of the edit/create dialog */
   readonly visibleDialog = signal(false);
@@ -323,12 +327,9 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
     return entity;
   }
 
-  /** Selects the reloaded version of the selected entity and rebuilds the menus. */
+  /** Rebuilds an active panel's menus after linked selection has followed the reloaded rows. */
   protected refreshSelectedEntity(): void {
-    const selected = this.selectedEntity();
-    if (selected) {
-      this.resetMenu(this.entityList().find((entity) => entity[this.entityKeyName] === selected[this.entityKeyName]));
-    }
+    if (this.isActivated()) this.resetMenu(this.selectedEntity());
   }
 
   /**

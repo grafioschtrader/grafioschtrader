@@ -1,13 +1,14 @@
-import { Component, DestroyRef, inject, OnChanges, SimpleChanges, signal, input } from '@angular/core';
+import { httpResource } from '@angular/common/http';
+import { Component, DestroyRef, effect, inject, input, linkedSignal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subscription } from 'rxjs';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { EditInputType } from '../../lib/datashowbase/column.config';
-import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { EditableTableComponent, RowEditSaveEvent } from '../../lib/datashowbase/editable-table.component';
 import { TableEditConfigBase } from '../../lib/datashowbase/table.edit.config.base';
-import { AuditHelper } from '../../lib/helper/audit.helper';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { HelpIds } from '../../lib/help/help.ids';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
@@ -54,7 +55,7 @@ import { TaxDataService } from '../service/tax-data.service';
   `,
   imports: [EditableTableComponent]
 })
-export class TaxExchangeRateTableComponent extends TableEditConfigBase implements OnChanges, IGlobalMenuAttach {
+export class TaxExchangeRateTableComponent extends TableEditConfigBase implements IGlobalMenuAttach {
   private activePanelService: ActivePanelService = inject(ActivePanelService);
   private taxDataService: TaxDataService = inject(TaxDataService);
   private messageToastService: MessageToastService = inject(MessageToastService);
@@ -63,8 +64,13 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
 
   contextMenuItems: MenuItem[] = [];
   private readonly destroyRef = inject(DestroyRef);
-  private readSubscription?: Subscription;
-  readonly exchangeRates = signal<IctaxExchangeRate[]>([]);
+  readonly ratesResource = httpResource<IctaxExchangeRate[]>(() => {
+    const year = this.taxYear();
+    return year ? this.taxDataService.getExchangeRatesRequest(year.idTaxYear) : undefined;
+  });
+  readonly exchangeRates = linkedSignal(() =>
+    this.ratesResource.hasValue() ? this.ratesResource.value().map((row) => ({ ...row })) : []
+  );
   selectedEntity: IctaxExchangeRate;
   isAdmin: boolean;
 
@@ -92,6 +98,12 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
     this.addRateOverrideColumn('yearEndRateOverride', 'YEAR_END_RATE_OVERRIDE');
     this.addRateOverrideColumn('annualMeanRateOverride', 'ANNUAL_MEAN_RATE_OVERRIDE');
     this.prepareTableAndTranslate();
+
+    reportResourceErrors(this.ratesResource, this.taxDataService);
+    effect(() => {
+      const rows = this.exchangeRates();
+      untracked(() => this.createTranslatedValueStore(rows));
+    });
   }
 
   /**
@@ -105,12 +117,6 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
     const cc = this.addEditColumn(DataType.NumericRaw, field, headerKey, false, { width: 190 });
     cc.cec.inputType = EditInputType.InputNumber;
     cc.cec.maxFractionDigits = TaxExchangeRateTableComponent.RATE_FRACTION_DIGITS;
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['taxYear'] && this.taxYear()) {
-      this.readData();
-    }
   }
 
   // ============================================================================
@@ -171,14 +177,7 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
   }
 
   private readData(): void {
-    this.readSubscription?.unsubscribe();
-    this.readSubscription = this.taxDataService
-      .getExchangeRates(this.taxYear().idTaxYear)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((rates: IctaxExchangeRate[]) => {
-        this.createTranslatedValueStore(rates);
-        this.exchangeRates.set(rates);
-      });
+    this.ratesResource.reload();
   }
 
   private resetMenu(): void {
