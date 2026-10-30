@@ -47,7 +47,7 @@ export enum SupplierConsumerLogTypes {
  */
 export interface GTNetEntity {
   idGtNetEntity?: number;
-  idGtNet: number;
+  idGtNet?: number;
   entityKind: number | string;
   serverState: GTNetServerStateTypes;
   acceptRequest: AcceptRequestTypes | string;
@@ -256,7 +256,7 @@ export interface GTSecuritiyCurrencyExchange {
 }
 
 export interface GTNetCallParam {
-  gtNet: GTNet;
+  gtNet: GTNet | null;
   isMyEntry: boolean;
   exchangeKindTypes: ExchangeKindTypeInfo[];
 }

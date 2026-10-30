@@ -62,8 +62,8 @@ export class Security extends Securitycurrency implements BaseID {
   }
 
   public static canHaveDividendConnector(
-    assetClass: Assetclass,
-    distributionFrequency: DistributionFrequency,
+    assetClass: Assetclass | null | undefined,
+    distributionFrequency: DistributionFrequency | null,
     hasMarketValue: boolean
   ): boolean {
     if (hasMarketValue && assetClass) {

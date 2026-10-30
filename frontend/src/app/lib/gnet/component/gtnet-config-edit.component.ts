@@ -40,7 +40,7 @@ import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form
 export class GTNetConfigEditComponent extends SimpleEntityEditBase<GTNetConfig> implements OnInit {
   private gtNetConfigService: GTNetConfigService = inject(GTNetConfigService);
 
-  readonly gtNetConfig = input<GTNetConfig>(undefined);
+  readonly gtNetConfig = input.required<GTNetConfig>();
 
   constructor() {
     super(HelpIds.HELP_GT_NET_SETUP, 'GT_NET_CONFIG_EDIT', inject(GTNetConfigService));

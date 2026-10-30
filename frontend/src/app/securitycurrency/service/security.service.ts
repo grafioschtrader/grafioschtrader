@@ -76,8 +76,8 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     idSecuritycurrency: number,
     dateString: string,
     before: boolean,
-    idTransaction: number,
-    idOpenMarginTransaction: number
+    idTransaction: number | null,
+    idOpenMarginTransaction: number | null
   ): Observable<SecurityOpenPositionPerSecurityaccount> {
     return this.httpClient
       .get<SecurityOpenPositionPerSecurityaccount>(
@@ -311,10 +311,13 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     return new HttpParams().set('idTransaction', idTransaction ? '' + idTransaction : '');
   }
 
-  private getHttpParamsTransactions(idTransaction: number, idOpenMarginTransaction: string | number): HttpParams {
+  private getHttpParamsTransactions(
+    idTransaction: number | null,
+    idOpenMarginTransaction: string | number | null
+  ): HttpParams {
     return new HttpParams()
-      .set('idTransaction', idTransaction ? '' + idTransaction : '')
-      .set('idOpenMarginTransaction', idOpenMarginTransaction ? '' + idOpenMarginTransaction : '');
+      .set('idTransaction', idTransaction != null ? '' + idTransaction : '')
+      .set('idOpenMarginTransaction', idOpenMarginTransaction != null ? '' + idOpenMarginTransaction : '');
   }
 
   private getOptionHistoryqouteQuality(groupedBy: string) {

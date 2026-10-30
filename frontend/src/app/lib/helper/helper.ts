@@ -5,6 +5,7 @@ import { FieldConfig } from '../dynamic-form/models/field.config';
 import moment from 'moment';
 import { FormConfig } from '../dynamic-form/models/form.config';
 import { BaseSettings } from '../base.settings';
+import { ValueFormatHelper } from './value.format.helper';
 
 export abstract class Helper {
   public static readonly CALENDAR_LANG: Record<
@@ -119,18 +120,9 @@ export abstract class Helper {
     schema[pList[len - 1]] = value;
   }
 
+  /** @see ValueFormatHelper.getValueByPath */
   public static getValueByPath(dataObject: any, path: string): any {
-    if (dataObject) {
-      const iPath = path.split('.');
-      const len = iPath.length;
-      for (let i = 0; i < len; i++) {
-        if (!dataObject) {
-          return null;
-        }
-        dataObject = dataObject[iPath[i]];
-      }
-    }
-    return dataObject;
+    return ValueFormatHelper.getValueByPath(dataObject, path);
   }
 
   public static hasValue(value: string | number) {

@@ -14,12 +14,13 @@ import {
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
+import { requireAlgoNodeId } from '../model/algo.top.asset.security';
 import { AlgoStrategy } from '../model/algo.strategy';
 import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AlgoStrategyService } from '../service/algo.strategy.service';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { AlgoCallParam } from '../model/algo.dialog.visible';
+import { AlgoCallParam, AlgoStrategyDefinitionForm } from '../model/algo.dialog.visible';
 import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';
 import {
   ClassDescriptorInputAndShow,
@@ -171,7 +172,13 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   private readonly http = inject(HttpClient);
   private formRender: ReturnType<typeof afterNextRender>;
   readonly yamlEditor = viewChild(YamlEditorComponent);
-  readonly algoCallParam = input<AlgoCallParam>(undefined);
+  readonly algoCallParam = input.required<AlgoCallParam>();
+
+  private getStrategyDefinitionForm(): AlgoStrategyDefinitionForm {
+    const definition = this.algoCallParam().algoStrategyDefinitionForm;
+    if (!definition) throw new Error('Algo strategy editing requires its strategy form definitions.');
+    return definition;
+  }
 
   dynamicModel: any = {};
   algoStrategyImplementationsChangedSub: Subscription;
@@ -223,9 +230,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       this.preparePossibleStrategies();
     } else {
       const possibleValues: AlgoStrategyImplementationType[] =
-        algoCallParam.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
-          algoCallParam.parentObject.idAlgoAssetclassSecurity
-        );
+        this.getStrategyDefinitionForm().unusedAlgoStrategyMap.get(requireAlgoNodeId(algoCallParam.parentObject)) ?? [];
       this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromEnum(
           this.translateService,
@@ -255,7 +260,8 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    * submit from again.
    */
   async submitComplexStrategy(): Promise<void> {
-    if (!(await this.yamlEditor().validateForSubmit())) return;
+    const editor = this.yamlEditor();
+    if (!editor || !(await editor.validateForSubmit())) return;
     if (this.destroyRef.destroyed || !this.visibleDialog()) return;
     if (this.yamlContent() && this.parseYaml(this.yamlContent()) === undefined) {
       return;
@@ -312,18 +318,30 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       });
   }
 
-  private createViewFromSelectedEnum(asi: string | AlgoStrategyImplementationType): void {
+  private createViewFromSelectedEnum(asi: string | AlgoStrategyImplementationType | null): void {
     const request = this.replaceAlgoRequest('strategy');
     this.formRender?.destroy();
+    if (asi == null) {
+      this.isComplexStrategy.set(false);
+      this.yamlContent.set('');
+      this.dialogWidth.set('700px');
+      const submitButton = this.config[this.config.length - 1];
+      submitButton.invisible = false;
+      this.config = [this.config[0], submitButton];
+      this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+      this.viewChanged();
+      return;
+    }
     const asiNo: number = AlgoStrategyImplementationType[asi as keyof typeof AlgoStrategyImplementationType];
-    const inputAndShowDefinition = this.algoCallParam().algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asiNo);
+    const definitions = this.getStrategyDefinitionForm();
+    const inputAndShowDefinition = definitions.inputAndShowDefinitionMap.get(asiNo);
     if (!inputAndShowDefinition) {
       request.add(
         this.algoStrategyService
           .getFormDefinitionsByAlgoStrategy(asiNo)
           .pipe(this.untilDialogClosed())
           .subscribe((iasd) => {
-            this.algoCallParam().algoStrategyDefinitionForm.inputAndShowDefinitionMap.set(asiNo, iasd);
+            definitions.inputAndShowDefinitionMap.set(asiNo, iasd);
             if (iasd.isComplexStrategy) {
               this.isComplexStrategy.set(true);
               this.createComplexStrategyInput();
@@ -464,7 +482,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       Object.assign(algoStrategy, algoCallParam.thisObject);
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(algoStrategy);
-    algoStrategy.idAlgoAssetclassSecurity = algoCallParam.parentObject.idAlgoAssetclassSecurity;
+    algoStrategy.idAlgoAssetclassSecurity = requireAlgoNodeId(algoCallParam.parentObject);
 
     if (this.isComplexStrategy()) {
       // submitComplexStrategy has already rejected unparseable content, so this parse cannot fail on the normal path.

@@ -374,7 +374,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     return this.getValueByPath(positionSummary, field);
   }
 
-  getInstrumentIcon(securityPositionSummary: SecurityPositionSummary): string {
+  getInstrumentIcon(securityPositionSummary: SecurityPositionSummary): string | null | undefined {
     return this.productIconService.getIconForInstrument(securityPositionSummary.security, null);
   }
 

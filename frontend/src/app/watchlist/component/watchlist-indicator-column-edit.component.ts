@@ -48,7 +48,7 @@ export class WatchlistIndicatorColumnEditComponent
   private dialogs: DialogService = inject(DialogService);
 
   readonly callParam = input<any>(undefined);
-  private benchmark: number;
+  private benchmark: number | null;
   constructor() {
     super(HelpIds.HELP_WATCHLIST_INDICATOR, 'WATCHLIST_INDICATOR_COLUMN', inject(WatchlistIndicatorService));
   }
@@ -63,7 +63,9 @@ export class WatchlistIndicatorColumnEditComponent
       )
     );
     // Persistence uses a byte, while the entity getter and REST contract use the enum name.
-    this.config.find((f) => f.field === 'markColors').dataType = DataType.String;
+    const markColors = this.config.find((f) => f.field === 'markColors');
+    if (!markColors) throw new Error('The indicator form requires its markColors field.');
+    markColors.dataType = DataType.String;
     const index = this.config.findIndex((f) => f.field === 'idBenchmark');
     this.config.splice(
       index,

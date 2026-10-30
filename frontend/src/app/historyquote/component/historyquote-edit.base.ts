@@ -32,7 +32,7 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
   extends SimpleEntityEditBase<T>
   implements OnInit
 {
-  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
 
   protected constructor(helpId: string, i18nRecord: string, serviceEntityUpdate: ServiceEntityUpdate<T>) {
     super(helpId, i18nRecord, serviceEntityUpdate);
@@ -53,10 +53,13 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
     this.configObject = this.config.reduce(
-      (acc, d) => ({
-        ...acc,
-        [d.field]: d
-      }),
+      (acc, d) =>
+        d.field == null
+          ? acc
+          : {
+              ...acc,
+              [d.field]: d
+            },
       {}
     );
     TranslateHelper.translateMessageErrors(this.translateService, this.config);
@@ -132,7 +135,7 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
   protected abstract getSecuritycurrency(): Securitycurrency;
 
   /** The entity currently being edited (may be null in the live create case). */
-  protected abstract getExistingEntity(): T;
+  protected abstract getExistingEntity(): T | null;
 
   /** Creates a fresh instance of the concrete entity type for the save payload. */
   protected abstract createEntityInstance(): T;

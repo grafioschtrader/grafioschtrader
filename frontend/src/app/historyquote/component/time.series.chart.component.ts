@@ -75,16 +75,16 @@ import {
 } from './indicator.definitions';
 
 interface Traces {
-  [key: string]: Data;
+  [key: string]: Data & { text: string[] };
 }
 
 interface Data {
-  x?: string[];
-  y?: number[];
+  x: string[];
+  y: (number | null)[];
   text?: string[];
   yaxis?: string;
   type?: string;
-  name?: string;
+  name: string;
   line?: any;
 }
 
@@ -208,7 +208,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
   );
   endDate = new Date();
-  fromDate: Date;
+  fromDate: Date | null = null;
   oldestTradeDate: number;
   hasTrades = false;
   showHolding: boolean = true;
@@ -221,8 +221,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   includeDividends = false;
   dateFormat: string;
   loadedData: LoadedData[] = [];
-  oldestMatchDate: string;
-  youngestMatchDate: string;
+  oldestMatchDate: string | null = null;
+  youngestMatchDate: string | null = null;
   subscriptionViewSizeChanged: Subscription;
   taEditParam: TaEditParam;
   /** Also opened from the menu bar, which is outside this view, therefore a signal. */
@@ -380,11 +380,11 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     });
   }
 
-  get oldestDate(): Date {
+  get oldestDate(): Date | null {
     return this.oldestMatchDate ? new Date(this.oldestMatchDate) : null;
   }
 
-  get youngestDate(): Date {
+  get youngestDate(): Date | null {
     return this.youngestMatchDate ? new Date(this.youngestMatchDate) : null;
   }
 
@@ -514,8 +514,10 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   }
 
   onBlurFromDate(event: unknown): void {
-    if (!this.fromDate || this.fromDate.getTime() < this.oldestDate.getTime()) {
-      this.fromDate = this.oldestDate;
+    const oldest = this.oldestDate;
+    if (!oldest) return;
+    if (!this.fromDate || this.fromDate.getTime() < oldest.getTime()) {
+      this.fromDate = oldest;
     } else if (this.fromDate.getTime() > new Date().getTime()) {
       this.fromDate = new Date();
     }
@@ -592,6 +594,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   }
 
   private prepareLoadedDataAndPlot(userUserInputDate: boolean) {
+    if (this.loadedData.length === 0) return;
     const element = this.chartElement().nativeElement;
     // Drawings belong to a single instrument, a comparison of several disables them.
     this.shapeController.setSecuritycurrency(
@@ -708,11 +711,15 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     );
     // const foundEndIndex = AppHelper.binarySearch(loadedData.historyquotes, this.youngestDate, this.compareHistoricalFN);
 
-    while (loadedData.historyquotesNorm[foundStartIndex].close === null) {
+    while (
+      foundStartIndex < loadedData.historyquotesNorm.length &&
+      loadedData.historyquotesNorm[foundStartIndex].close == null
+    ) {
       foundStartIndex++;
     }
 
-    loadedData.factor = 100 / loadedData.historyquotesNorm[foundStartIndex].close;
+    const close = loadedData.historyquotesNorm[foundStartIndex]?.close;
+    loadedData.factor = close != null && close !== 0 ? 100 / close : null;
     this.setLegendTooltip(loadedData);
     return {
       type: 'scatter',
@@ -725,9 +732,11 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       y: loadedData.historyquotesNorm
         .slice(foundStartIndex, loadedData.historyquotesNorm.length)
         .map((historyquote) =>
-          this.usePercentage && historyquote.close != null
-            ? historyquote.close * loadedData.factor - 100
-            : historyquote.close
+          this.usePercentage
+            ? historyquote.close != null && loadedData.factor != null
+              ? historyquote.close * loadedData.factor - 100
+              : null
+            : (historyquote.close ?? null)
         ),
       line: { width: 1 },
       connectgaps: this.connectGaps
@@ -758,7 +767,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       foundStartIndex++;
     }
 
-    loadedData.factor = 100 / (loadedData.ohlcData[foundStartIndex]?.close || 1);
+    const close = loadedData.ohlcData[foundStartIndex]?.close;
+    loadedData.factor = close != null && close !== 0 ? 100 / close : null;
     this.setLegendTooltip(loadedData);
 
     const slicedData = loadedData.ohlcData.slice(foundStartIndex, loadedData.ohlcData.length);
@@ -799,7 +809,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       foundStartIndex++;
     }
 
-    loadedData.factor = 100 / (loadedData.ohlcData[foundStartIndex]?.close || 1);
+    const close = loadedData.ohlcData[foundStartIndex]?.close;
+    loadedData.factor = close != null && close !== 0 ? 100 / close : null;
     this.setLegendTooltip(loadedData);
 
     const slicedData = loadedData.ohlcData.slice(foundStartIndex, loadedData.ohlcData.length);
@@ -848,7 +859,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       if (index === 0) {
         return 'rgba(128, 128, 128, 0.6)';
       }
-      const prevClose = slicedData[index - 1].close || ohlc.open;
+      const prevClose = slicedData[index - 1].close ?? ohlc.open;
+      if (ohlc.close == null || prevClose == null) return 'rgba(128, 128, 128, 0.6)';
       return ohlc.close >= prevClose
         ? 'rgba(0, 128, 0, 0.6)' // Green for up
         : 'rgba(255, 0, 0, 0.6)'; // Red for down
@@ -858,7 +870,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       type: 'bar',
       name: 'Volume',
       x: slicedData.map((ohlc) => ohlc.date),
-      y: slicedData.map((ohlc) => ohlc.volume || 0),
+      y: slicedData.map((ohlc) => ohlc.volume ?? null),
       yaxis: 'y4',
       marker: { color: colors },
       showlegend: true
@@ -908,6 +920,9 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
         const transactionType: TransactionType =
           TransactionType[transaction.transactionType as keyof typeof TransactionType];
         const transactionTypeStr = this.getTransactionTypeStr(transaction, transactionType, reverse);
+        if (transactionTypeStr == null || transaction.cashaccountAmount == null) return;
+        const exchangeRate = transaction.currencyExRate;
+        if (this.loadedData.length === 1 && !this.usePercentage && exchangeRate == null) return;
         const amount = Math.abs(transaction.cashaccountAmount);
         if (!traces[transactionTypeStr]) {
           traces[transactionTypeStr] = this.initializeBuySellTrace(transactionTypeStr, transactionType);
@@ -916,13 +931,13 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
         const transactionDateStr = moment(transaction.transactionTime).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
 
         traces[transactionTypeStr].x.push(transactionDateStr);
-        traces[transactionTypeStr].text.push(transaction.cashaccount.name + ':' + amount);
+        traces[transactionTypeStr].text.push((transaction.cashaccount?.name ?? '') + ':' + amount);
 
         if (this.loadedData.length > 1 || this.usePercentage) {
           const foundIndex = AppHelper.binarySearch(historicalLine.x, transactionDateStr, this.compareXaxisFN);
           traces[transactionTypeStr].y.push(historicalLine.y[Math.abs(foundIndex)]);
-        } else {
-          traces[transactionTypeStr].y.push(reverse ? 1 / transaction.currencyExRate : transaction.currencyExRate);
+        } else if (exchangeRate != null) {
+          traces[transactionTypeStr].y.push(reverse ? 1 / exchangeRate : exchangeRate);
           cptv.sizes[transactionTypeStr].size.push(amount);
           cptv.minAmount = Math.min(cptv.minAmount, amount);
           cptv.maxAmount = Math.max(cptv.maxAmount, amount);
@@ -930,7 +945,11 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       });
   }
 
-  private getTransactionTypeStr(transaction: Transaction, transactionType: TransactionType, reverse: boolean): string {
+  private getTransactionTypeStr(
+    transaction: Transaction,
+    transactionType: TransactionType,
+    reverse: boolean
+  ): string | null {
     if (reverse) {
       switch (transactionType) {
         case TransactionType.DEPOSIT:
@@ -1002,12 +1021,12 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 
   // Helper method to interpolate missing Y values
   // Supports both line traces (y array) and candlestick/OHLC traces (close array)
-  private getInterpolatedYValue(historicalLine: any, foundIndex: number): number {
+  private getInterpolatedYValue(historicalLine: any, foundIndex: number): number | null {
     const absoluteIndex = Math.abs(foundIndex);
     // Handle both line traces (y array) and candlestick/OHLC traces (close array)
     const yValues = historicalLine.y || historicalLine.close;
     if (!yValues) {
-      return 0;
+      return null;
     }
     // If value exists, return it directly
     if (yValues[absoluteIndex] != null) {
@@ -1035,8 +1054,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       // Only following value found
       return yValues[nextIndex];
     }
-    // Fallback: return 0 if no values were found
-    return 0;
+    // No price is a gap in the marker trace.
+    return null;
   }
 
   private getBuySellDivMarkForSecurity(
@@ -1049,12 +1068,17 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       .forEach((securityTransactionPosition) => {
         const transaction = securityTransactionPosition.transaction;
         const transactionTypeStr = transaction.transactionType;
+        if (transactionTypeStr == null) return;
+        const quotation = securityTransactionPosition.quotationSplitCorrection ?? transaction.quotation;
         const transactionType: TransactionType = TransactionType[transactionTypeStr as keyof typeof TransactionType];
         if (
           transactionType === TransactionType.ACCUMULATE ||
           transactionType === TransactionType.REDUCE ||
           transactionType === TransactionType.DIVIDEND
         ) {
+          const usesTradePrice =
+            transactionType !== TransactionType.DIVIDEND && this.loadedData.length === 1 && !this.usePercentage;
+          if (usesTradePrice && quotation == null) return;
           if (!traces[transactionTypeStr]) {
             traces[transactionTypeStr] = this.initializeBuySellTrace(transactionTypeStr, transactionType);
           }
@@ -1066,7 +1090,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
               this.compareXaxisFN
             );
             traces[transactionTypeStr].y.push(this.getInterpolatedYValue(loadedData.historicalLine, foundIndex));
-          } else {
+          } else if (quotation != null) {
             // Y represent the normalized sell or buy price
             let normalizeFactor = 1;
             if (!this.currencyNormalizer.isNormalizeNotNeeded(loadedData, this.requestedCurrency)) {
@@ -1077,19 +1101,21 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
                 ),
                 this.compareHistoricalFN
               );
-              normalizeFactor =
-                loadedData.historyquotesNorm[foundStartIndex].close / loadedData.historyquotes[foundStartIndex].close;
+              const normalizedClose = loadedData.historyquotesNorm[foundStartIndex]?.close;
+              const originalClose = loadedData.historyquotes[foundStartIndex]?.close;
+              if (normalizedClose == null || originalClose == null || originalClose === 0) {
+                traces[transactionTypeStr].y.push(null);
+                traces[transactionTypeStr].text.push(transaction.cashaccount?.name ?? '');
+                return;
+              }
+              normalizeFactor = normalizedClose / originalClose;
             }
             // In total return mode the real trade price is scaled like the line, so the marker stays on it
             traces[transactionTypeStr].y.push(
-              (securityTransactionPosition.quotationSplitCorrection
-                ? securityTransactionPosition.quotationSplitCorrection
-                : transaction.quotation) *
-                normalizeFactor *
-                loadedData.totalReturnFactorAt(transactionDateStr)
+              quotation * normalizeFactor * loadedData.totalReturnFactorAt(transactionDateStr)
             );
           }
-          traces[transactionTypeStr].text.push(transaction.cashaccount.name);
+          traces[transactionTypeStr].text.push(transaction.cashaccount?.name ?? '');
         }
       });
     return traces;
@@ -1106,7 +1132,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   private initializeBuySellTrace(transactionTypeStr: string, transactionType: TransactionType) {
     const trace = {
       x: [] as string[],
-      y: [] as number[],
+      y: [] as (number | null)[],
       text: [] as string[],
       mode: 'markers',
       type: 'scatter',
@@ -1144,9 +1170,10 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       const taEditReturn: TaEditReturn = processedActionData.data;
       const taFormDefinition: TaFormDefinition = this.taFormDefinitions[taEditReturn.taIndicators];
-      const iDef: IndicatorDefinition = this.indicatorDefinitions.defMap.get(
+      const iDef = this.indicatorDefinitions.defMap.get(
         TaIndicators[taEditReturn.taIndicators as keyof typeof TaIndicators]
       );
+      if (!iDef) return;
       this.deleteShownTaTraceWhenInputDataHasChanged(
         taEditReturn.taIndicators,
         iDef,
@@ -1171,13 +1198,13 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 
   private addCurrencyCrossRateObservable(
     timeSeriesParams: TimeSeriesParam[],
-    currencySecurity: string,
+    currencySecurity: string | null,
     observable: Observable<any>[]
   ): void {
-    if (timeSeriesParams[timeSeriesParams.length - 1].currencySecurity != null) {
+    if (timeSeriesParams[timeSeriesParams.length - 1].currencySecurity != null && currencySecurity != null) {
       const currencypairList: string[] = this.currencyNormalizer.getExistingCurrencypairKeys();
       const uniqueSecuritycurrency = new Set(
-        this.loadedData.filter((ld) => ld.currencySecurity).map((ld) => ld.currencySecurity)
+        this.loadedData.map((ld) => ld.currencySecurity).filter((currency) => currency != null)
       );
       uniqueSecuritycurrency.add(currencySecurity);
       observable.push(
@@ -1193,7 +1220,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       this.createTodayAsHistoryquote(crr.currencypair.sTimestamp, crr.currencypair.sLast, crr.closeAndDateList)
     );
     this.currencyNormalizer.setCrossRates(crossRateResponse);
-    const co = new Set(this.loadedData.filter((ld) => ld.currencySecurity).map((ld) => ld.currencySecurity));
+    const co = new Set(this.loadedData.map((ld) => ld.currencySecurity).filter((currency) => currency != null));
     this.currenciesOptions = [{ value: '', label: '' }];
     co.add(crossRateResponse.mainCurrency);
     co.forEach((currency) => this.currenciesOptions.push({ value: currency, label: currency }));
@@ -1236,7 +1263,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   }
 
   private onOffIndicatorEvent(event: MenuItemCommandEvent, taIndicators: string, iDef: IndicatorDefinition): void {
-    this.onOffIndicator(event.item, taIndicators, iDef);
+    if (event.item) this.onOffIndicator(event.item, taIndicators, iDef);
   }
 
   private onOffIndicator(menuItem: MenuItem, taIndicators: string, iDef: IndicatorDefinition): void {
@@ -1316,7 +1343,10 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     if (iDef.shown) {
       iDef.menuItem.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
       iDef.shown = false;
-      const traceIndices: number[] = iDef.taTraceIndicatorDataList.map((taT) => taT.traceIndex).reverse();
+      const traceIndices = iDef.taTraceIndicatorDataList
+        .map((taT) => taT.traceIndex)
+        .filter((index) => index != null)
+        .reverse();
       this.plotly?.deleteTraces(this.chartElement().nativeElement, traceIndices);
       iDef.taTraceIndicatorDataList.forEach((taT) => (taT.traceIndex = undefined));
       this.adjustTATraceIndices(traceIndices);
@@ -1327,9 +1357,9 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     for (const index of traceIndices) {
       this.indicatorDefinitions.defMap.forEach((iDefI: IndicatorDefinition, taIndicators: TaIndicators) => {
         if (iDefI.shown) {
-          iDefI.taTraceIndicatorDataList.forEach(
-            (ttid) => (ttid.traceIndex = ttid.traceIndex > index ? ttid.traceIndex - 1 : ttid.traceIndex)
-          );
+          iDefI.taTraceIndicatorDataList.forEach((ttid) => {
+            if (ttid.traceIndex != null && ttid.traceIndex > index) ttid.traceIndex--;
+          });
         }
       });
     }
@@ -1365,7 +1395,11 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
         trace.y = taTraceIndicatorData.taIndicatorData
           .slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
           .map((taIndicatorData) =>
-            this.usePercentage ? taIndicatorData.value * this.loadedData[0].factor - 100 : taIndicatorData.value
+            this.usePercentage
+              ? this.loadedData[0].factor != null
+                ? taIndicatorData.value * this.loadedData[0].factor - 100
+                : null
+              : taIndicatorData.value
           );
       }
 
@@ -1390,37 +1424,34 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   }
 
   private evaluateOldestYoungestMatchDate(): void {
-    this.oldestMatchDate = null;
-    this.youngestMatchDate = null;
-    for (const ld of this.loadedData) {
-      this.oldestMatchDate = !this.oldestMatchDate
-        ? ld.historyquotesNorm[0].date
-        : ld.historyquotesNorm[0].date > this.oldestMatchDate
-          ? ld.historyquotesNorm[0].date
-          : this.oldestMatchDate;
-      const maxIndex = ld.historyquotesNorm.length - 1;
-      this.youngestMatchDate = !this.youngestMatchDate
-        ? ld.historyquotesNorm[maxIndex].date
-        : ld.historyquotesNorm[maxIndex].date < this.youngestMatchDate
-          ? ld.historyquotesNorm[maxIndex].date
-          : this.youngestMatchDate;
-    }
+    const nonEmpty = this.loadedData.filter((ld) => ld.historyquotesNorm.length > 0);
+    const starts = nonEmpty.map((ld) => ld.historyquotesNorm[0].date);
+    const ends = nonEmpty.map((ld) => ld.historyquotesNorm[ld.historyquotesNorm.length - 1].date);
+    this.oldestMatchDate = starts.length ? starts.reduce((a, b) => (a > b ? a : b)) : null;
+    this.youngestMatchDate = ends.length ? ends.reduce((a, b) => (a < b ? a : b)) : null;
     this.matchEveryHistoryquotesYoungestDate();
-    if (!this.fromDate || this.loadedData.length === 1 || this.oldestDate.getTime() > this.fromDate.getTime()) {
-      this.fromDate = this.oldestDate;
+    const oldest = this.oldestDate;
+    const youngest = this.youngestDate;
+    if (!this.fromDate || this.loadedData.length === 1 || (oldest && oldest.getTime() > this.fromDate.getTime())) {
+      this.fromDate = oldest;
     }
-    this.startDate = this.oldestDate
-      ? new Date(this.oldestDate)
+    this.startDate = oldest
+      ? new Date(oldest)
       : new Date(
           sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
         );
-    this.endDate = this.youngestDate ? new Date(this.youngestDate) : new Date();
+    this.endDate = youngest ? new Date(youngest) : new Date();
   }
 
   private matchEveryHistoryquotesYoungestDate(): void {
+    if (!this.fromDate) return;
     const youngest = this.youngestMatchDate;
     let i = 0;
     while (i < this.loadedData.length) {
+      if (this.loadedData[i].historyquotesNorm.length === 0) {
+        i++;
+        continue;
+      }
       const fromStr = moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
       // Never advance past the youngest common quote date — no later date can ever match exactly,
       // which would spin this loop forever (e.g. fromDate set to today for an untraded security).
@@ -1501,8 +1532,12 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     }
   }
 
-  private createTodayAsHistoryquote(sTimestamp: string, sLast: number, historyquotes: HistoryquoteDateClose[]) {
-    if (sLast) {
+  private createTodayAsHistoryquote(
+    sTimestamp: string | null | undefined,
+    sLast: number | null | undefined,
+    historyquotes: HistoryquoteDateClose[]
+  ) {
+    if (sLast != null && sTimestamp != null) {
       const dateLastStr = moment(sTimestamp).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
       if (historyquotes.length === 0 || dateLastStr > historyquotes[historyquotes.length - 1].date) {
         const historyquoteToday: HistoryquoteDateClose = {
@@ -1652,7 +1687,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 }
 
 class LoadedData {
-  public factor: number;
+  public factor: number | null = null;
   public historicalLine: any;
   public historyquotesNorm: HistoryquoteDateClose[];
   /** Steps of the total return adjustment, empty when the prices are not adjusted */
@@ -1664,7 +1699,7 @@ class LoadedData {
     public idSecuritycurrency: number,
     public nameSecuritycurrency: CurrencypairWithTransaction | SecurityTransactionSummary,
     public historyquotes: HistoryquoteDateClose[],
-    public currencySecurity: string,
+    public currencySecurity: string | null,
     public ohlcData?: HistoryquoteOHLC[]
   ) {
     this.historyquotesNorm = historyquotes;

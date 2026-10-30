@@ -73,7 +73,7 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
     if (this.callParam.thisObject != null) {
       this.form().transferBusinessObjectToForm(this.callParam.thisObject);
     }
-    this.configObject.name.elementRef.nativeElement.focus();
+    this.configObject.name.elementRef?.nativeElement.focus();
   }
 
   /**

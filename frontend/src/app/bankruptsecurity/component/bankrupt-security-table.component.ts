@@ -105,7 +105,7 @@ export class BankruptSecurityTableComponent extends TableCrudSupportMenu<Bankrup
    * Fetches the form definition before the dialog is shown. It is memoised, so only the first open costs a request and
    * the dialog can build its form synchronously, which is what makes the edit values transfer at all.
    */
-  override handleEditEntity(entity: BankruptSecurity): void {
+  override handleEditEntity(entity: BankruptSecurity | null): void {
     this.openDialogSub?.unsubscribe();
     const row = entity ? plainToInstance(BankruptSecurityRow, entity) : null;
     this.openDialogSub = this.gps
@@ -122,7 +122,7 @@ export class BankruptSecurityTableComponent extends TableCrudSupportMenu<Bankrup
     return AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, entity);
   }
 
-  protected override prepareCallParam(entity: BankruptSecurity): void {
+  protected override prepareCallParam(entity: BankruptSecurity | null): void {
     // Not used: handleEditEntity is overridden because the form definition has to arrive before the dialog is shown.
   }
 

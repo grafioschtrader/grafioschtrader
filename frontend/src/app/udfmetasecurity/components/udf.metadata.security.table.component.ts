@@ -153,7 +153,7 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
     }
   }
 
-  override prepareCallParam(entity: UDFMetadataSecurity): void {
+  override prepareCallParam(entity: UDFMetadataSecurity | null): void {
     this.beforeEdit(entity, this.callParam);
     this.callParam.uDFMetadataSecurity = entity;
   }

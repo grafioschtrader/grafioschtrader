@@ -53,9 +53,9 @@ import { BaseSettings } from '../../base.settings';
 })
 export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> implements OnInit {
   /** When set the dialog is user-scoped: no role selection and the row is written for this user. */
-  readonly idUser = input<number>(undefined);
-  readonly existingEntityLimit = input<EntityLimit>(undefined);
-  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
+  readonly idUser = input<number>();
+  readonly existingEntityLimit = input<EntityLimit | null>();
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
   /**
    * Every configured limit, so that a key and role combination which already exists is not offered a second time.
    * Only the limit administration passes them; the user-scoped host leaves it empty, because there the backend
@@ -67,7 +67,7 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
    * The user the dialog is scoped to: the one of the user administration, or the owner of the edited row when the
    * limit administration opens a row of a single user.
    */
-  private get scopedIdUser(): number {
+  private get scopedIdUser(): number | null | undefined {
     return this.idUser() ?? this.existingEntityLimit()?.idUser;
   }
 

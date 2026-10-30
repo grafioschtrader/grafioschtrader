@@ -159,7 +159,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     this.prepareTableAndTranslate();
   }
 
-  override prepareCallParam(entity: GTNet): void {
+  override prepareCallParam(entity: GTNet | null): void {
     // No edit dialog for this read-only view
   }
 
@@ -253,7 +253,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     }
   }
 
-  protected override getEditMenuItems(entity: GTNet): MenuItem[] {
+  protected override getEditMenuItems(entity: GTNet | null): MenuItem[] {
     const menuItems: MenuItem[] = [];
     // Only admins can send admin messages
     if (this.isUserAdmin) {

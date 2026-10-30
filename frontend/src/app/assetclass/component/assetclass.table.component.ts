@@ -98,8 +98,9 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
     this.prepareTableAndTranslate();
   }
 
-  override prepareCallParam(entity: Assetclass): void {
-    this.callParam.hasSecurity = entity && this.hasSecurityObject[this.getId(entity)] !== 0;
+  override prepareCallParam(entity: Assetclass | null): void {
+    const id = entity == null ? null : this.getId(entity);
+    this.callParam.hasSecurity = typeof id === 'number' && this.hasSecurityObject[id] !== 0;
     this.callParam.assetclass = entity;
   }
 
@@ -120,7 +121,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
       });
   }
 
-  getAssetclassIcon(assetclass: Assetclass, field: ColumnConfig, valueField: any): string {
+  getAssetclassIcon(assetclass: Assetclass, field: ColumnConfig, valueField: any): string | null | undefined {
     return this.productIconService.getIconForAssetclass(assetclass, null);
   }
 

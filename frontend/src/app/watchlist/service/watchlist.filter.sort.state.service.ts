@@ -212,13 +212,15 @@ export class WatchlistFilterSortStateService {
    * @param fields the columns of the displaying table
    * @param sortMeta the sort metadata of the displaying table
    */
-  captureSorts(idWatchlist: number, fields: ColumnConfig[], sortMeta: SortMeta[]): void {
+  captureSorts(idWatchlist: number, fields: ColumnConfig[], sortMeta: SortMeta[] | undefined): void {
     const applicable = this.applicableSortFields(fields);
     const localEntries = this.entriesOf(idWatchlist);
     const current = (sortMeta ?? []).filter((sort) => applicable.has(sort.field));
     let changed = this.removeDroppedSorts(this.state.global.sorts, applicable, current);
     changed = this.removeDroppedSorts(localEntries.sorts, applicable, current) || changed;
     current.forEach((sort) => {
+      const label = applicable.get(sort.field);
+      if (label == null) return;
       const inGlobal = this.state.global.sorts.find((stored) => stored.field === sort.field);
       const inLocal = localEntries.sorts.find((stored) => stored.field === sort.field);
       if (inGlobal?.order !== sort.order && inLocal?.order !== sort.order) {
@@ -230,7 +232,7 @@ export class WatchlistFilterSortStateService {
           // Only the direction was toggled, keep the position because it is the sort priority.
           existing.order = sort.order;
         } else {
-          target.push({ label: applicable.get(sort.field), field: sort.field, order: sort.order });
+          target.push({ label, field: sort.field, order: sort.order });
         }
         changed = true;
       }

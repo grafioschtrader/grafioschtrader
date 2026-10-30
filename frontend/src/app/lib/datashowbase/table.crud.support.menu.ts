@@ -116,7 +116,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    *
    * @param entity - Entity to edit, or null for creating a new entity
    */
-  handleEditEntity(entity: T): void {
+  handleEditEntity(entity: T | null): void {
     this.prepareCallParam(JSON.parse(JSON.stringify(entity)));
     this.visibleDialog.set(true);
   }
@@ -217,7 +217,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    *
    * @param entity - Entity to edit or null for new entity creation
    */
-  protected abstract prepareCallParam(entity: T): unknown;
+  protected abstract prepareCallParam(entity: T | null): unknown;
 
   /** Loads entity data from the backend and sets entityList. */
   protected abstract readData(): void;
@@ -252,7 +252,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    * @param entity - Currently selected entity or null
    * @returns Array of menu items or null if no items are available
    */
-  protected prepareEditMenu(entity: T): MenuItem[] | null {
+  protected prepareEditMenu(entity: T | null): MenuItem[] | null {
     const menuItems = this.getEditMenuItems(entity);
     return menuItems.length > 0 ? menuItems : null;
   }
@@ -265,7 +265,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    * @param entity - Currently selected entity or null; edit and delete need one
    * @returns Array of menu items for CRUD operations, possibly empty
    */
-  protected getEditMenuItems(entity: T): MenuItem[] {
+  protected getEditMenuItems(entity: T | null): MenuItem[] {
     const menuItems: MenuItem[] = [];
     const readOnly = this.gps.isReadOnlyUser();
     const allows = (option: CrudMenuOptions) => !readOnly && this.crudMenuOptions.indexOf(option) >= 0;
@@ -304,7 +304,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    */
   protected addCustomMenusToSelectedEntity(entity: T, menuItems: MenuItem[]): void {}
 
-  protected hasRightsForCreateEntity(entity: T): boolean {
+  protected hasRightsForCreateEntity(entity: T | null): boolean {
     return true;
   }
 
@@ -316,8 +316,12 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
     return AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, entity);
   }
 
-  protected getId(entity: T): number {
-    return entity[this.entityKeyName] as number;
+  protected getId(entity: T): number | string | null | undefined {
+    const id: unknown = entity[this.entityKeyName];
+    if (id === null) return null;
+    if (id === undefined) return undefined;
+    if (typeof id === 'number' || typeof id === 'string') return id;
+    throw new Error(`Invalid entity id: ${String(this.entityKeyName)}`);
   }
 
   /**
@@ -340,7 +344,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    *
    * @param entity - New selected entity or null to clear selection
    */
-  protected resetMenu(entity: T): void {
+  protected resetMenu(entity: T | null): void {
     this.selectedEntity.set(entity ?? null);
     if (this.crudMenuOptions.indexOf(CrudMenuOptions.ParentControl) < 0) {
       const editMenu = this.prepareEditMenu(entity);

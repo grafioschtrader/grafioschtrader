@@ -57,7 +57,7 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
 export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<ConnectorApiKey> {
   private connectorApiKeyService: ConnectorApiKeyService = inject(ConnectorApiKeyService);
 
-  connectorApiKey: ConnectorApiKey;
+  connectorApiKey: ConnectorApiKey | null = null;
 
   readonly strn = signal<Record<string, SubscriptionTypeReadableName>>({});
   existingProviders: string[];
@@ -110,7 +110,7 @@ export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<Connecto
       });
   }
 
-  override prepareCallParam(entity: ConnectorApiKey) {
+  override prepareCallParam(entity: ConnectorApiKey | null) {
     this.existingProviders = this.entityList()
       .map((el) => el.idProvider)
       .filter((id) => id != null);

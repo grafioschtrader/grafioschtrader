@@ -56,7 +56,7 @@ export class TransactionSecurityEditDividendReduce implements ITransactionEditTy
     securitycashaccount: Securityaccount | Cashaccount,
     securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
     isSellBuyMarginInstrument: boolean,
-    closeMarginIdSecurityaccount: number
+    closeMarginIdSecurityaccount: number | null | undefined
   ): boolean {
     if (securitycashaccount.hasOwnProperty('currency')) {
       // it is a cash account
@@ -96,7 +96,7 @@ export class TransactionSecurityEditFinanceCost
     securitycashaccount: Securityaccount | Cashaccount,
     securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
     isSellBuyMarginInstrument: boolean,
-    closeMarginIdSecurityaccount: number
+    closeMarginIdSecurityaccount: number | null | undefined
   ): boolean {
     const idSecurityaccount = this.transactionCallParam.transaction?.idSecurityaccount;
     if (idSecurityaccount != null && !securitycashaccount.hasOwnProperty('currency')) {

@@ -8,11 +8,11 @@ import { AlgoTreeName } from '../../entities/view/algo.tree.name';
 export class AlgoAssetclass extends AlgoAssetclassSecurity implements AlgoTreeName {
   idAlgoAssetclassParent: number;
 
-  name: string = null;
-  securityDeviationPercentage: number = null;
-  maxTradedSecuritiesPerAssetclass: number = null;
+  name: string | null = null;
+  securityDeviationPercentage: number | null = null;
+  maxTradedSecuritiesPerAssetclass: number | null = null;
 
-  assetclass: Assetclass = null;
+  assetclass: Assetclass | null = null;
 
   @Type(() => AlgoSecurity)
   algoSecurityList: AlgoSecurity[];
@@ -25,17 +25,16 @@ export class AlgoAssetclass extends AlgoAssetclassSecurity implements AlgoTreeNa
   }
 
   @Exclude()
-  getNameByLanguage(language: string): string {
-    if (this.isCustomCategory()) {
+  getNameByLanguage(language: string): string | null {
+    if (this.name != null) {
       return this.name;
     }
-    return (
-      this.assetclass['categoryType$'] +
-      ', ' +
-      this.assetclass.subCategoryNLS.map[language] +
-      ', ' +
-      this.assetclass[`specialInvestmentInstrument$`]
-    );
+    if (!this.assetclass) return null;
+    const category = this.assetclass.categoryType$;
+    const subCategory = this.assetclass.subCategoryNLS.map[language];
+    const instrument = this.assetclass.specialInvestmentInstrument$;
+    if (category == null || subCategory == null || instrument == null) return null;
+    return category + ', ' + subCategory + ', ' + instrument;
   }
 
   @Exclude()

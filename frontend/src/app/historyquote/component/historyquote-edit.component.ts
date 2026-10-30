@@ -34,7 +34,7 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote> {
-  readonly callParam = input<HistoryquoteSecurityCurrency>(undefined);
+  readonly callParam = input.required<HistoryquoteSecurityCurrency>();
 
   constructor() {
     super(
@@ -48,7 +48,7 @@ export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote
     return this.callParam().securitycurrency;
   }
 
-  protected getExistingEntity(): Historyquote {
+  protected getExistingEntity(): Historyquote | null {
     return this.callParam().historyquote;
   }
 

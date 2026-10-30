@@ -1,9 +1,8 @@
 import { afterNextRender, inject, Injector, Component, OnInit } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
+import { SimpleDynamicFormBase } from '../../lib/edit/simple.dynamic.form.base';
 import { AlgoTopService } from '../service/algo.top.service';
 import { WatchlistService } from '../../watchlist/service/watchlist.service';
-import { AlgoTop } from '../model/algo.top';
 import { AlgoTopCreateFromWatchlist } from '../../entities/backend/algo.top.create';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -33,7 +32,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   `,
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class AlgoCreateFromWatchlistDynamicDialogComponent extends SimpleDynamicEditBase<AlgoTop> implements OnInit {
+export class AlgoCreateFromWatchlistDynamicDialogComponent extends SimpleDynamicFormBase implements OnInit {
   private algoTopService: AlgoTopService = inject(AlgoTopService);
   private watchlistService: WatchlistService = inject(WatchlistService);
 
@@ -43,7 +42,7 @@ export class AlgoCreateFromWatchlistDynamicDialogComponent extends SimpleDynamic
   private dto: AlgoTopCreateFromWatchlist;
 
   constructor() {
-    super(HelpIds.HELP_ALGO_TREE, inject(AlgoTopService));
+    super(HelpIds.HELP_ALGO_TREE);
   }
 
   ngOnInit(): void {
@@ -83,9 +82,5 @@ export class AlgoCreateFromWatchlistDynamicDialogComponent extends SimpleDynamic
         },
         error: () => (this.configObject.submit.disabled = false)
       });
-  }
-
-  protected getNewOrExistingInstanceBeforeSave(value: { [p: string]: any }): AlgoTop {
-    return undefined;
   }
 }

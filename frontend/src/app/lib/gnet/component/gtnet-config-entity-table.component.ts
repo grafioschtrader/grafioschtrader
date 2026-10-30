@@ -2,7 +2,7 @@ import { Component, DestroyRef, inject, OnInit, signal, output, input } from '@a
 import { Subscription } from 'rxjs';
 
 import { TableConfigBase } from '../../datashowbase/table.config.base';
-import { ExchangeKindTypeInfo, GTNetEntity, SupplierConsumerLogTypes } from '../model/gtnet';
+import { ExchangeKindTypeInfo, GTNetConfigEntity, GTNetEntity, SupplierConsumerLogTypes } from '../model/gtnet';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { TranslateValue } from '../../datashowbase/column.config';
 import { TranslateModule } from '@ngx-translate/core';
@@ -75,7 +75,7 @@ import { BaseSettings } from '../../base.settings';
   ]
 })
 export class GTNetConfigEntityTableComponent extends TableConfigBase implements OnInit {
-  readonly gtNetEntities = input<GTNetEntity[]>(undefined);
+  readonly gtNetEntities = input<GTNetEntity[]>([]);
   readonly exchangeKindTypes = input<ExchangeKindTypeInfo[]>([]);
   readonly dataChanged = output<ProcessedActionData>();
 
@@ -120,14 +120,12 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   }
 
   private prepareData(): GTNetConfigEntityDisplay[] {
-    return this.gtNetEntities()
-      .filter((entity) => entity.gtNetConfigEntity != null)
-      .map((entity) => this.createDisplayEntity(entity));
+    return this.gtNetEntities().flatMap((entity) =>
+      entity.gtNetConfigEntity == null ? [] : [this.createDisplayEntity(entity, entity.gtNetConfigEntity)]
+    );
   }
 
-  private createDisplayEntity(gtNetEntity: GTNetEntity): GTNetConfigEntityDisplay {
-    const configEntity = gtNetEntity.gtNetConfigEntity;
-
+  private createDisplayEntity(gtNetEntity: GTNetEntity, configEntity: GTNetConfigEntity): GTNetConfigEntityDisplay {
     // Convert numeric enum values to string names for translation
     const kindValue =
       typeof gtNetEntity.entityKind === 'number' ? gtNetEntity.entityKind : Number(gtNetEntity.entityKind);

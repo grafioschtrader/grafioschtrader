@@ -47,7 +47,7 @@ export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleFormE
   private watchlistService: WatchlistService = inject(WatchlistService);
 
   /** The unique identifier of the watchlist to add problem instruments to */
-  readonly idWatchlist = input<number>(undefined);
+  readonly idWatchlist = input.required<number>();
 
   /**
    * Creates a new instance of the watchlist add/edit price problem instrument dialog component.

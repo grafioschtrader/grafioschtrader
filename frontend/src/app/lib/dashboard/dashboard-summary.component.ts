@@ -25,7 +25,7 @@ import { DashboardTableComponent } from './dashboard-table.component';
   }`
 })
 export class DashboardSummaryComponent extends ShowRecordConfigBase {
-  readonly result = input<DashboardResult>(undefined);
+  readonly result = input.required<DashboardResult>();
   countField = ShowRecordConfigBase.createColumnConfig(DataType.NumericInteger, 'count', '');
   userCountField = ShowRecordConfigBase.createColumnConfig(DataType.NumericInteger, 'userCount', '');
   constructor() {

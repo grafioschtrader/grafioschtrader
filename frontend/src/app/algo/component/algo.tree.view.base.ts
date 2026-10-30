@@ -53,12 +53,15 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
    */
   static readonly DISTRIBUTION_FIELD = 'security.distribution';
 
-  readonly algoTop = signal<AlgoTop>(undefined);
-  readonly treeNodes = computed<TreeNode[]>(() => (this.algoTop() ? [new TreeAlgoTop(this.algoTop())] : null));
-  readonly selectedNode = linkedSignal<TreeNode[], TreeNode | null>({
+  readonly algoTop = signal<AlgoTop | null | undefined>(undefined);
+  readonly treeNodes = computed<TreeNode[] | null>(() => {
+    const top = this.algoTop();
+    return top ? [new TreeAlgoTop(top)] : null;
+  });
+  readonly selectedNode = linkedSignal<TreeNode[] | null, TreeNode | null>({
     source: this.treeNodes,
     computation: (nodes, previous) => {
-      const find = (rows: TreeNode[]): TreeNode | null => {
+      const find = (rows: TreeNode[] | null | undefined): TreeNode | null => {
         for (const node of rows ?? []) {
           if (node.data.idTree === previous?.value?.data.idTree) return node;
           const child = find(node.children);
@@ -80,7 +83,7 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
   private readonly couponRateField = ShowRecordConfigBase.createColumnConfig(
     DataType.Numeric,
     'security.simulationMetadata.bondTerms.couponRate',
-    null,
+    'COUPON_RATE',
     true,
     false,
     { maxFractionDigits: 4 }
@@ -160,7 +163,7 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
       : null;
   }
 
-  getReadableUniqueName(dataobject: AlgoTreeName, field: ColumnConfig, valueField: any): string {
+  getReadableUniqueName(dataobject: AlgoTreeName, field: ColumnConfig, valueField: any): string | null | undefined {
     return dataobject.getNameByLanguage(this.gps.getUserLang());
   }
 
@@ -178,11 +181,12 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
 
   /** Replaces an edited row and its ancestors while keeping expanded branches and the selected node. */
   protected patchHierarchyRow(row: AlgoTopAssetSecurity | AlgoStrategy, patch: Record<string, any>): void {
-    if (!this.algoTop()) return;
+    const top = this.algoTop();
+    if (!top) return;
     const expanded = new Map<string, boolean>();
-    const remember = (nodes: TreeNode[]) =>
+    const remember = (nodes: TreeNode[] | null | undefined) =>
       nodes?.forEach((node) => {
-        expanded.set(node.data.idTree, node.expanded);
+        if (node.expanded != null) expanded.set(node.data.idTree, node.expanded);
         remember(node.children);
       });
     remember(this.treeNodes());
@@ -198,8 +202,8 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
       }
       return copy;
     };
-    this.algoTop.set(clone(this.algoTop()));
-    const restore = (nodes: TreeNode[], parent?: TreeNode) =>
+    this.algoTop.set(clone(top));
+    const restore = (nodes: TreeNode[] | null | undefined, parent?: TreeNode) =>
       nodes?.forEach((node) => {
         node.parent = parent;
         if (!(node instanceof TreeAlgoStrategy)) node.expanded = expanded.get(node.data.idTree) ?? true;
@@ -226,6 +230,8 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
     const node = this.selectedNode();
     if (!(node instanceof TreeAlgoStrategy)) return;
     const strategy = node.data as AlgoStrategy;
+    const parent = (node as TreeNode).parent;
+    if (!parent) return;
     const asi =
       AlgoStrategyImplementationType[
         strategy.algoStrategyImplementations as keyof typeof AlgoStrategyImplementationType
@@ -240,10 +246,7 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
             Object.assign(new AlgoStrategyParamCall(), {
               algoStrategy: strategy,
               isComplexStrategy: definition.isComplexStrategy,
-              fieldDescriptorShow: AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(
-                (node as TreeNode).parent.data,
-                definition
-              )
+              fieldDescriptorShow: AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(parent.data, definition)
             })
           );
         })
@@ -270,7 +273,7 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
       { translateValues: TranslateValue.NORMAL }
     );
 
-    const nonCustomAssetclasses = this.algoTop().algoAssetclassList.filter((ac) => !ac.isCustomCategory());
+    const nonCustomAssetclasses = (this.algoTop()?.algoAssetclassList ?? []).filter((ac) => !ac.isCustomCategory());
     TranslateHelper.createTranslatedValueStore(this.translateService, fieldsAssetclass, nonCustomAssetclasses);
   }
 
@@ -280,7 +283,8 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
       translateValues: TranslateValue.NORMAL
     });
     const algoStrategyList: AlgoStrategy[] = [];
-    this.traverseObjectTreeForAlgoStrategy(algoStrategyList, this.algoTop());
+    const top = this.algoTop();
+    if (top) this.traverseObjectTreeForAlgoStrategy(algoStrategyList, top);
     TranslateHelper.createTranslatedValueStore(this.translateService, fieldAlgoStrategy, algoStrategyList);
   }
 

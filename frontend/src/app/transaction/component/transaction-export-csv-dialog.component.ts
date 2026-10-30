@@ -19,7 +19,7 @@ import { TransactionService } from '../service/transaction.service';
 /** Data passed to the transaction CSV export dialog via the DynamicDialog configuration. */
 export interface TransactionExportCsvDialogData {
   /** Restricts the export to one portfolio; omitted for the tenant-wide export. */
-  idPortfolio?: number;
+  idPortfolio?: number | null;
 }
 
 /**
@@ -74,6 +74,10 @@ export class TransactionExportCsvDialogComponent extends FormBase implements OnI
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: HttpResponse<Blob>) => {
+          if (response.body == null) {
+            this.configObject.submit.disabled = false;
+            return;
+          }
           saveAs(response.body, this.getFileName(response));
           this.dynamicDialogRef.close();
         },

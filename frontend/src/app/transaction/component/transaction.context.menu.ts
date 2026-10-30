@@ -103,6 +103,8 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param transaction The transaction to be deleted
    */
   handleDeleteTransaction(transaction: Transaction): void {
+    const id = transaction.idTransaction;
+    if (id == null) return;
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
@@ -111,7 +113,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
         : 'MSG_CONFIRM_DELETE_RECORD|TRANSACTION',
       () => {
         this.transactionService
-          .deleteTransaction(transaction.idTransaction)
+          .deleteTransaction(id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((response) => {
             this.messageToastService.showMessageI18n(
@@ -161,8 +163,10 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param transaction The dividend or interest transaction whose taxable flag is toggled
    */
   handleToggleTaxableInterest(transaction: Transaction): void {
+    const id = transaction.idTransaction;
+    if (id == null) return;
     this.transactionService
-      .updateTaxableInterest(transaction.idTransaction, !(transaction.taxableInterest === true))
+      .updateTaxableInterest(id, !(transaction.taxableInterest === true))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.dateChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED, transaction)));
   }
@@ -293,22 +297,21 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param transaction The transaction with a connected transaction to be edited
    */
   protected handleEditConnectedTransaction(transaction: Transaction): void {
+    const connectedId = transaction.connectedIdTransaction;
+    if (connectedId == null) return;
     this.editSubscription?.unsubscribe();
     this.editSubscription = this.transactionService
-      .getTransactionByIdTransaction(transaction.connectedIdTransaction)
+      .getTransactionByIdTransaction(connectedId)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((transactionConnected) =>
-        this.handleSecurityEditTransaction(
-          transaction,
-          new CloseMarginPosition(
-            transactionConnected.quotation,
-            transactionConnected.units,
-            transactionConnected.units,
-            transactionConnected.idSecurityaccount,
-            transactionConnected.idTransaction
-          )
-        )
-      );
+      .subscribe((transactionConnected) => {
+        // The counterpart of a cash transfer has no quotation, units or security account; its dialog still opens.
+        const { quotation, units, idSecurityaccount, idTransaction } = transactionConnected;
+        const closeMarginPosition =
+          quotation == null || units == null || idSecurityaccount == null || idTransaction == null
+            ? undefined
+            : new CloseMarginPosition(quotation, units, units, idSecurityaccount, idTransaction);
+        this.handleSecurityEditTransaction(transaction, closeMarginPosition);
+      });
   }
 
   /**
@@ -323,11 +326,13 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
     this.transactionCallParam.transaction = transaction;
     this.transactionCallParam.closeMarginPosition = closeMarginPosition;
     if (Transaction.isSecurityTransaction(transaction.transactionType)) {
-      this.transactionCallParam.security = this.getSecurity(transaction);
+      const security = this.getSecurity(transaction);
+      if (!security) return;
+      this.transactionCallParam.security = security;
       this.visibleSecurityTransactionDialog.set(true);
     } else if (Transaction.isOnlyCashAccountTransaction(transaction.transactionType)) {
       this.prepareTransactionCallParam(this.transactionCallParam);
-      if (transaction.connectedIdTransaction !== null) {
+      if (transaction.connectedIdTransaction != null) {
         this.visibleCashaccountTransactionDoubleDialog.set(true);
       } else {
         this.visibleCashaccountTransactionSingleDialog.set(true);
@@ -340,7 +345,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param transaction The transaction for which to get the security
    * @returns The security associated with the transaction
    */
-  protected abstract getSecurity(transaction: Transaction): Security;
+  protected abstract getSecurity(transaction: Transaction): Security | undefined;
 
   /** Abstract method for initializing component data and state */
   protected abstract initialize(): void;
@@ -355,7 +360,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * Navigates to the first row position in the table based on the provided ID.
    * @param id The identifier used to determine the row position
    */
-  protected goToFirsRowPosition(id: number): void {
+  protected goToFirsRowPosition(id: number | null | undefined): void {
     const saved = this.parentChildRegisterService.getRowPosition(id);
     this.firstRowIndexOnPage = saved.topPageRow;
     this.pageFirstRowSelectedRow.set(new PageFirstRowSelectedRow(saved.topPageRow, saved.selectedRow));
@@ -368,7 +373,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    */
   protected getMenuItemsOnTransaction(transaction: Transaction | null): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    if (transaction && transaction.idTransaction >= 0) {
+    if (transaction?.idTransaction != null && transaction.idTransaction >= 0) {
       const permissions = transactionMenuPermissions(transaction, this.canDeleteTransaction(transaction));
       menuItems.push({
         label: 'EDIT_RECORD|TRANSACTION',

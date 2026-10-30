@@ -1639,7 +1639,7 @@ export interface FieldOptions {
   /** Default value for the field */
   defaultValue?: number | string | boolean | Date;
   /** Text to display after the input field */
-  fieldSuffix?: string;
+  fieldSuffix?: string | null;
   /** Name of the fieldset group for visual organization */
   fieldsetName?: string;
   /** Number of rows for textarea fields */

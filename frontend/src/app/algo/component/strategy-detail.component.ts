@@ -48,11 +48,11 @@ import * as yaml from 'js-yaml';
   imports: []
 })
 export class StrategyDetailComponent extends SingleRecordConfigBase {
-  readonly algoStrategyParamCall = input<AlgoStrategyParamCall>(undefined);
+  readonly algoStrategyParamCall = input<AlgoStrategyParamCall>();
 
   readonly dynamicModel = computed(() => {
     const call = this.algoStrategyParamCall();
-    return !call || call.isComplexStrategy
+    return !call?.algoStrategy || call.isComplexStrategy
       ? {}
       : DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
           call.algoStrategy.algoStrategyImplementations,
@@ -63,7 +63,7 @@ export class StrategyDetailComponent extends SingleRecordConfigBase {
   });
   readonly isComplexStrategy = computed(() => !!this.algoStrategyParamCall()?.isComplexStrategy);
   readonly yamlDisplay = computed(() => {
-    const config = this.algoStrategyParamCall()?.algoStrategy.strategyConfig;
+    const config = this.algoStrategyParamCall()?.algoStrategy?.strategyConfig;
     if (!config) return '';
     try {
       return yaml.dump(JSON.parse(config), { lineWidth: 120, noRefs: true });
@@ -79,13 +79,14 @@ export class StrategyDetailComponent extends SingleRecordConfigBase {
       this.algoStrategyParamCall();
       untracked(() => {
         const call = this.algoStrategyParamCall();
-        if (call && !call.isComplexStrategy) this.displaySimpleStrategy();
+        if (call) this.displaySimpleStrategy(call);
       });
     });
   }
 
-  private displaySimpleStrategy(): void {
-    this.createDynamicOutputFields(this.algoStrategyParamCall().fieldDescriptorShow);
+  private displaySimpleStrategy(call: AlgoStrategyParamCall): void {
+    if (call.isComplexStrategy) return;
+    this.createDynamicOutputFields(call.algoStrategy ? call.fieldDescriptorShow : []);
     this.translateHeadersAndColumns();
     this.createTranslatedValueStore([this.dynamicModel()]);
   }

@@ -9,7 +9,7 @@ import { TransactionContextMenu } from './transaction.context.menu';
 import { Security } from '../../entities/security';
 import { Portfolio } from '../../entities/portfolio';
 import { TransactionCallParam } from './transaction.call.parm';
-import { combineLatest, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, EMPTY, Observable, of, switchMap } from 'rxjs';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ChildPreservePage, PageFirstRowSelectedRow } from '../../shared/service/parent.child.register.service';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
@@ -51,20 +51,20 @@ export class TransactionCashaccountTableComponent
   private portfolioService: PortfolioService = inject(PortfolioService);
 
   /** The unique identifier of the security cash account for which transactions are displayed */
-  readonly idSecuritycashAccount = input<number>(undefined);
+  readonly idSecuritycashAccount = input<number>();
 
   /** The portfolio containing the cash account */
   readonly portfolioInput = input<Portfolio>(undefined, { alias: 'portfolio' });
   readonly portfolio = linkedSignal(() => this.portfolioInput());
 
   /** Filter criteria for limiting the displayed transactions */
-  readonly cashAccountTableInputFilter = input<CashAccountTableInputFilter>(undefined);
+  readonly cashAccountTableInputFilter = input<CashAccountTableInputFilter>();
 
   /** Array of cash account transaction positions to be displayed in the table */
   readonly cashaccountTransactionPositions = signal<CashaccountTransactionPosition[]>([]);
 
   /** Currently selected cash account transaction position */
-  cashaccountTransactionPositionSelected: CashaccountTransactionPosition;
+  cashaccountTransactionPositionSelected: CashaccountTransactionPosition | undefined;
 
   /**
    * Creates an instance of TransactionCashaccountTableComponent.
@@ -116,13 +116,10 @@ export class TransactionCashaccountTableComponent
    * @param data Transaction data that may affect the current selection
    */
   preservePage(data: any) {
-    if (data && this.cashaccountTransactionPositionSelected) {
+    const selected = this.cashaccountTransactionPositionSelected;
+    if (data && selected) {
       const transactions: Transaction[] = Array.isArray(data) ? data : [data];
-      if (
-        !transactions.find(
-          (transaction) => transaction.idTransaction === this.cashaccountTransactionPositionSelected.idTransaction
-        )
-      ) {
+      if (!transactions.find((transaction) => transaction.idTransaction === selected.idTransaction)) {
         this.cashaccountTransactionPositionSelected = this.cashaccountTransactionPositions().find(
           (ctps) => ctps.idTransaction === transactions[0].idTransaction
         );
@@ -144,7 +141,7 @@ export class TransactionCashaccountTableComponent
    * @param transaction The transaction for which to get the security
    * @returns The security associated with the transaction
    */
-  getSecurity(transaction: Transaction): Security {
+  getSecurity(transaction: Transaction): Security | undefined {
     return transaction.security;
   }
 
@@ -166,9 +163,12 @@ export class TransactionCashaccountTableComponent
   /** Initializes component data by loading portfolio information if needed and fetching transaction data */
   protected initialize(): void {
     this.dataSubscription?.unsubscribe();
-    const portfolio = this.portfolio()
-      ? of(this.portfolio())
-      : this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount());
+    const accountId = this.idSecuritycashAccount();
+    if (accountId == null) return;
+    const currentPortfolio = this.portfolio();
+    const portfolio = currentPortfolio
+      ? of(currentPortfolio)
+      : this.portfolioService.getPortfolioByIdSecuritycashaccount(accountId);
     this.dataSubscription = portfolio
       .pipe(
         switchMap((portfolio) => {
@@ -195,13 +195,16 @@ export class TransactionCashaccountTableComponent
 
   /** Loads transaction and currency pair data simultaneously and processes the results */
   private loadData() {
+    const accountId = this.idSecuritycashAccount();
+    const portfolioId = this.portfolio()?.idPortfolio;
+    if (accountId == null || portfolioId == null) return EMPTY;
     const transactionsObservable: Observable<CashaccountTransactionPosition[]> =
       this.transactionService.getTransactionsWithBalanceForCashaccount(
-        this.idSecuritycashAccount(),
+        accountId,
         this.cashAccountTableInputFilter() ?? new CashAccountTableInputFilter()
       );
     const currencypairObservable: Observable<Currencypair[]> =
-      this.currencypairService.getTransactionCurrencypairsByPortfolioId(this.portfolio().idPortfolio);
+      this.currencypairService.getTransactionCurrencypairsByPortfolioId(portfolioId);
     return combineLatest([transactionsObservable, currencypairObservable]);
   }
 
@@ -216,9 +219,11 @@ export class TransactionCashaccountTableComponent
     currencypairs: Currencypair[]
   ): CashaccountTransactionPosition[] {
     const currencypairMap: Map<number, Currencypair> = new Map();
-    currencypairs.forEach((currencypair) => currencypairMap.set(currencypair.idSecuritycurrency, currencypair));
+    currencypairs.forEach((currencypair) => {
+      if (currencypair.idSecuritycurrency != null) currencypairMap.set(currencypair.idSecuritycurrency, currencypair);
+    });
     for (const cashaccountTransactionPosition of cashaccountTransactionPositions) {
-      cashaccountTransactionPosition['idTransaction'] = cashaccountTransactionPosition.transaction.idTransaction;
+      cashaccountTransactionPosition.idTransaction = cashaccountTransactionPosition.transaction.idTransaction;
       if (cashaccountTransactionPosition.transaction.idCurrencypair != null) {
         cashaccountTransactionPosition.transaction.currencypair = currencypairMap.get(
           cashaccountTransactionPosition.transaction.idCurrencypair

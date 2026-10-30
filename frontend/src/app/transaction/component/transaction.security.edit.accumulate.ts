@@ -59,12 +59,12 @@ export class TransactionSecurityEditAccumulate implements ITransactionEditType {
     securitycashaccount: Securityaccount | Cashaccount,
     securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
     isSellBuyMarginInstrument: boolean,
-    closeMarginIdSecurityaccount: number
+    closeMarginIdSecurityaccount: number | null | undefined
   ): boolean {
     if (securitycashaccount.hasOwnProperty('currency')) {
       // it is a Cashaccount
       return true;
-    } else if (closeMarginIdSecurityaccount) {
+    } else if (closeMarginIdSecurityaccount != null) {
       return securitycashaccount.idSecuritycashAccount === closeMarginIdSecurityaccount;
     } else {
       // it is a Securityaccount

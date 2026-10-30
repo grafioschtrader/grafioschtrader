@@ -438,11 +438,11 @@ export class TenantSummariesCashaccountComponent
 
   private getChartDefinition(): any {
     const securityBar = PlotlyHelper.initializeChartTrace(
-      this.getColumnConfigByField(this.VALUE_SECURITIES_MAIN_CURRENCY).headerTranslated,
+      this.requireColumnConfigByField(this.VALUE_SECURITIES_MAIN_CURRENCY).headerTranslated ?? '',
       'bar'
     );
     const cashBalance = PlotlyHelper.initializeChartTrace(
-      this.getColumnConfigByField(this.CASHBALANCE_MC).headerTranslated,
+      this.requireColumnConfigByField(this.CASHBALANCE_MC).headerTranslated ?? '',
       'bar'
     );
     const data = [securityBar, cashBalance];

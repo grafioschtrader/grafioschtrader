@@ -38,7 +38,7 @@ import { BaseSettings } from '../../base.settings';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class UserEditComponent extends SimpleEntityEditBase<User> implements OnInit {
-  readonly callParam = input<User>(undefined);
+  readonly callParam = input<User | null>();
 
   constructor() {
     super(HelpIds.HELP_USER, AppHelper.toUpperCaseWithUnderscore(BaseSettings.USER), inject(UserAdminService));
@@ -73,8 +73,11 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
 
   protected initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
-    const proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity =
-      AuditHelper.convertToProposeChangeEntityWithEntity(this.callParam(), this.callParam().userChangePropose);
+    const user = this.callParam();
+    const proposeChangeEntityWithEntity = AuditHelper.convertToProposeChangeEntityWithEntity(
+      user,
+      user?.userChangePropose
+    );
     this.configObject.mostPrivilegedRole.valueKeyHtmlOptions = SelectOptionsHelper.translateArrayKeyEqualValue(
       this.translateService,
       [BaseSettings.ROLE_LIMIT_EDIT, BaseSettings.ROLE_USER, BaseSettings.ROLE_ALL_EDIT, BaseSettings.ROLE_ADMIN]

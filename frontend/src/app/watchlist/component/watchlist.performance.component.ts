@@ -257,7 +257,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
    * @returns Array of translated menu items for the show menu
    */
   protected override getShowMenu(
-    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>
+    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair> | null | undefined
   ): MenuItem[] {
     const menuItems = [
       ...this.getShowContextMenuItems(securitycurrencyPosition),
@@ -294,6 +294,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
    */
   private setMainCurrencyHeaderSuffix(field: string, headerSuffix: string): void {
     const columnConfig = this.getColumnConfigByField(field);
+    if (!columnConfig) return;
     columnConfig.headerSuffix = headerSuffix;
     this.setFieldHeaderTranslation(columnConfig);
   }
@@ -355,7 +356,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
         .getWatchlistWithPeriodPerformance(this.idWatchlist, this.choosenTimeFrame.days, this.includeDividends())
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((data: SecuritycurrencyGroup) => {
-          if (this.watchlist().idWatchlist === data.idWatchlist) {
+          if (this.watchlist()?.idWatchlist === data.idWatchlist) {
             this.createSecurityPositionList(data);
           }
         })
@@ -439,7 +440,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
     field: ColumnConfig,
     valueField: any
-  ): string {
+  ): string | null {
     return this.includeDividends() && securitycurrencyPosition.dividendDataMissing ? '\u26A0' : null;
   }
 
@@ -448,7 +449,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
     field: ColumnConfig,
     valueField: any
-  ): string {
+  ): string | null {
     return this.includeDividends() && securitycurrencyPosition.dividendDataMissing ? this.dividendMissingHint() : null;
   }
 

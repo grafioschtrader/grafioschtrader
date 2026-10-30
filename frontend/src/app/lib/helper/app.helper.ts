@@ -1,8 +1,6 @@
 import moment from 'moment';
 import { combineLatest } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { DataType } from '../dynamic-form/models/data.type';
-import { Helper } from './helper';
 import { ColumnConfig } from '../datashowbase/column.config';
 import { ParamMap } from '@angular/router';
 import { FormConfig } from '../dynamic-form/models/form.config';
@@ -14,6 +12,7 @@ import { MessageToastService } from '../message/message.toast.service';
 import { FieldConfig } from '../dynamic-form/models/field.config';
 import { BaseSettings } from '../base.settings';
 import { GlobalparameterService } from '../services/globalparameter.service';
+import { ValueFormatHelper } from './value.format.helper';
 
 export const enum Comparison {
   GT,
@@ -106,7 +105,7 @@ export class AppHelper {
    * @param data Source data object to transform
    * @returns New instance of specified type with data properties
    */
-  static transformDataToRealClassDataList<T>(type: new () => T, data: T): T {
+  static transformDataToRealClassDataList<T extends object>(type: new () => T, data: T): T {
     const instance = new type();
     return Object.assign(instance, data);
   }
@@ -256,6 +255,7 @@ export class AppHelper {
    *                              rows whose object shape differs from detail rows; takes precedence over the
    *                              column's currencyPrecisionField.
    * @returns Formatted value string or undefined if no data
+   * @see ValueFormatHelper.getValueByPathWithField
    */
   public static getValueByPathWithField(
     gps: GlobalparameterService,
@@ -265,148 +265,27 @@ export class AppHelper {
     valueField: string,
     currencyFieldOverride?: string
   ) {
-    const rowObject = dataobject;
-    dataobject = Helper.getValueByPath(dataobject, valueField);
-    if (dataobject || (field.dataType === DataType.NumericShowZero && dataobject === 0)) {
-      switch (field.dataType) {
-        case DataType.NumericInteger:
-          return AppHelper.numberIntegerFormat(gps, dataobject);
-        case DataType.Numeric:
-        case DataType.NumericShowZero: {
-          const fractionDigits = AppHelper.resolveFractionDigits(rowObject, field);
-          if (fractionDigits != null) {
-            return gps.getNumberFormatForPrecision(fractionDigits).format(dataobject);
-          }
-          const currency = AppHelper.resolvePrecisionCurrency(rowObject, field, currencyFieldOverride);
-          if (currency) {
-            return gps.getNumberFormatForPrecision(gps.getCurrencyPrecision(currency)).format(dataobject);
-          }
-          return AppHelper.numberFormat(gps, dataobject, field.maxFractionDigits, field.minFractionDigits);
-        }
-        case DataType.NumericRaw:
-          return gps.getNumberFormatRaw().format(dataobject);
-        case DataType.DateNumeric:
-        case DataType.DateString:
-          return this.getDateByFormat(gps, dataobject);
-        case DataType.DateTimeNumeric:
-          return moment(+dataobject).format(gps.getTimeDateFormatForTable());
-        case DataType.DateTimeString:
-          return moment(dataobject).format(gps.getTimeDateFormatForTable());
-        case DataType.DateTimeSecondString:
-          return moment.utc(dataobject).local().format(gps.getTimeSecondDateFormatForTable());
-        default:
-          return dataobject;
-      }
-    }
+    return ValueFormatHelper.getValueByPathWithField(gps, dataobject, field, valueField, currencyFieldOverride);
   }
 
-  /**
-   * Resolves the exact number of fraction digits the backend decided on for a numeric column value, for example the
-   * currency precision of an index level. The row path of fractionDigitsField is tried first, then the column's
-   * fixedFractionDigits. Returns undefined when neither yields a number, which keeps the currency or standard path.
-   *
-   * @param rowObject The complete row data object
-   * @param field Column configuration possibly carrying fractionDigitsField/fixedFractionDigits
-   * @returns Number of fraction digits or undefined
-   */
-  private static resolveFractionDigits(rowObject: any, field: ColumnConfig): number | undefined {
-    if (field.fractionDigitsField && rowObject) {
-      const fractionDigits = Helper.getValueByPath(rowObject, field.fractionDigitsField);
-      if (fractionDigits != null) {
-        return fractionDigits;
-      }
-    }
-    return field.fixedFractionDigits;
-  }
-
-  /**
-   * Resolves the currency code that determines the display precision of a numeric column value. Detail rows resolve
-   * the currency through the column's currencyPrecisionField path, group/grand-total rows through the override path
-   * of their ColumnGroupConfig. When neither path resolves on the row object, the column's fixedCurrency applies
-   * (typically the tenant/portfolio main currency set after data load). Returns undefined for columns that did not
-   * opt in to currency-specific precision, which keeps the standard formatting path.
-   *
-   * @param rowObject The complete row data object (detail or group summary)
-   * @param field Column configuration possibly carrying currencyPrecisionField/fixedCurrency
-   * @param currencyFieldOverride Optional currency path of a group configuration
-   * @returns Resolved currency code or undefined
-   */
-  private static resolvePrecisionCurrency(
-    rowObject: any,
-    field: ColumnConfig,
-    currencyFieldOverride?: string
-  ): string | undefined {
-    const currencyPath = currencyFieldOverride || field.currencyPrecisionField;
-    if (currencyPath && rowObject) {
-      const currency = Helper.getValueByPath(rowObject, currencyPath);
-      if (currency) {
-        return currency;
-      }
-    }
-    return field.fixedCurrency;
-  }
-
-  /**
-   * Formats date string according to global parameter service format.
-   * Uses moment.js for reliable date parsing and formatting.
-   *
-   * @param gps Global parameter service for date format settings
-   * @param dataobject Date string to format
-   * @returns Formatted date string
-   */
+  /** @see ValueFormatHelper.getDateByFormat */
   public static getDateByFormat(gps: GlobalparameterService, dataobject: string | number | Date): string {
-    return moment(dataobject).format(gps.getDateFormat());
+    return ValueFormatHelper.getDateByFormat(gps, dataobject);
   }
 
-  /**
-   * Formats numeric value with locale-specific number formatting.
-   * Handles precision, fraction digits, and decimal symbol based on locale.
-   * Applies special formatting for very small numbers.
-   *
-   * @param gps Global parameter service for locale and formatting settings
-   * @param value Numeric value to format
-   * @param maxFractionDigits Maximum number of decimal places
-   * @param minFractionDigits Minimum number of decimal places
-   * @returns Formatted number string
-   */
+  /** @see ValueFormatHelper.numberFormat */
   public static numberFormat(
     gps: GlobalparameterService,
     value: number,
     maxFractionDigits?: number | null,
     minFractionDigits?: number | null
   ) {
-    if (maxFractionDigits != null) {
-      if (maxFractionDigits > 0) {
-        const n = Math.log(Math.abs(value)) / Math.LN10;
-        if (n < 1) {
-          // negative number means fractions or less than 0
-          return value
-            .toFixed(
-              Math.min(
-                maxFractionDigits,
-                Math.max(minFractionDigits || 2, Math.max(2, Math.ceil(Math.abs(n)) + (n < 0 ? 4 : 2)))
-              )
-            )
-            .split('.')
-            .join(gps.getDecimalSymbol());
-        }
-      } else {
-        return value.toFixed(0);
-      }
-    }
-    return gps.getNumberFormat().format(value);
+    return ValueFormatHelper.numberFormat(gps, value, maxFractionDigits, minFractionDigits);
   }
 
-  /**
-   * Formats integer value with locale-specific formatting.
-   * Uses browser's built-in locale formatting for integers.
-   *
-   * @param gps Global parameter service for locale settings
-   * @param value Integer value to format
-   * @returns Formatted integer string
-   */
+  /** @see ValueFormatHelper.numberIntegerFormat */
   public static numberIntegerFormat(gps: GlobalparameterService, value: number) {
-    return value.toLocaleString(gps.getLocale());
+    return ValueFormatHelper.numberIntegerFormat(gps, value);
   }
 
   /**

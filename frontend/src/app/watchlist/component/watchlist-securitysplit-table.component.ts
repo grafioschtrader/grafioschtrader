@@ -25,7 +25,7 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
   private static SPLIT_DATE = 'splitDate';
 
   /** The ID of the security/currency for which to display split data */
-  readonly idSecuritycurrency = input<number>(undefined);
+  readonly idSecuritycurrency = input.required<number>();
 
   /**
    * Creates a new watchlist security split table component with required services and column configuration.

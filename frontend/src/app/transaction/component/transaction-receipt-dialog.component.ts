@@ -16,8 +16,8 @@ import { SecurityTransactionSummary } from '../../entities/view/security.transac
 /** Data passed to the transaction receipt dialog via the DynamicDialog configuration. */
 export interface TransactionReceiptDialogData {
   idSecuritycurrency: number;
-  idPortfolio?: number;
-  idSecurityaccount?: number;
+  idPortfolio?: number | null;
+  idSecurityaccount?: number | null;
 }
 
 /**
@@ -77,12 +77,20 @@ export class TransactionReceiptDialogComponent implements OnInit {
   }
 
   download(): void {
+    const ids = this.selected()
+      .map((t) => t.idTransaction)
+      .filter((id) => id != null);
+    if (ids.length === 0) return;
     this.downloading.set(true);
     this.transactionService
-      .downloadReceipts(this.selected().map((t) => t.idTransaction))
+      .downloadReceipts(ids)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: HttpResponse<Blob>) => {
+          if (response.body == null) {
+            this.downloading.set(false);
+            return;
+          }
           saveAs(response.body, this.getFileName(response));
           this.downloading.set(false);
           this.dynamicDialogRef.close();

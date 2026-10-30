@@ -85,7 +85,7 @@ export class TenantAIProviderTableComponent extends TableCrudSupportMenu<TenantA
   readonly testResult = signal<AIKeyTestResult | null>(null);
   readonly testing = signal(false);
   /** Set together with visibleDialog, which renders the dialog */
-  editedEntity: TenantAIProvider;
+  editedEntity: TenantAIProvider | null = null;
   existingProviders: string[] = [];
 
   constructor() {
@@ -116,7 +116,7 @@ export class TenantAIProviderTableComponent extends TableCrudSupportMenu<TenantA
         this.readData();
       });
   }
-  protected override prepareCallParam(entity: TenantAIProvider): void {
+  protected override prepareCallParam(entity: TenantAIProvider | null): void {
     this.editedEntity = entity;
     this.existingProviders = this.entityList().map((e) => e.provider);
   }
@@ -135,7 +135,7 @@ export class TenantAIProviderTableComponent extends TableCrudSupportMenu<TenantA
   protected override hasRightsForDeleteEntity(_: TenantAIProvider): boolean {
     return true;
   }
-  protected override hasRightsForCreateEntity(_: TenantAIProvider): boolean {
+  protected override hasRightsForCreateEntity(_: TenantAIProvider | null): boolean {
     return !!this.options();
   }
   protected override addCustomMenusToSelectedEntity(entity: TenantAIProvider, items: MenuItem[]): void {

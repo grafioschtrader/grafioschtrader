@@ -141,7 +141,11 @@ export class TransactionService extends AuthServiceWithLogout<Transaction> {
    * @param dateTo optional inclusive upper bound on the transaction date (yyyy-MM-dd)
    * @returns the full HTTP response containing the binary document
    */
-  exportTransactionsCsv(idPortfolio: number, dateFrom: string, dateTo: string): Observable<HttpResponse<Blob>> {
+  exportTransactionsCsv(
+    idPortfolio: number | null,
+    dateFrom: string | null,
+    dateTo: string | null
+  ): Observable<HttpResponse<Blob>> {
     return <Observable<HttpResponse<Blob>>>(
       (<unknown>(
         this.httpClient

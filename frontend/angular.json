@@ -161,6 +161,87 @@
           }
         }
       }
+    },
+    "gt-mobile": {
+      "root": "",
+      "sourceRoot": "src/gt-mobile",
+      "projectType": "application",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "aot": true,
+            "outputPath": {
+              "base": "dist/browser/m",
+              "browser": ""
+            },
+            "index": "src/gt-mobile/index.html",
+            "browser": "src/gt-mobile/main.ts",
+            "tsConfig": "./tsconfig.gt-mobile.json",
+            "polyfills": [],
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "src/gt-mobile/assets",
+                "output": "/assets"
+              },
+              {
+                "glob": "manifest.webmanifest",
+                "input": "src/gt-mobile",
+                "output": "/"
+              }
+            ],
+            "styles": [
+              "node_modules/@ionic/angular/css/core.css",
+              "node_modules/@ionic/angular/css/normalize.css",
+              "node_modules/@ionic/angular/css/structure.css",
+              "node_modules/@ionic/angular/css/typography.css",
+              "node_modules/@ionic/angular/css/padding.css",
+              "node_modules/@ionic/angular/css/text-alignment.css",
+              "node_modules/@ionic/angular/css/palettes/dark.system.css",
+              "src/gt-mobile/styles.css"
+            ],
+            "allowedCommonJsDependencies": ["moment", "plotly.js"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "1mb",
+                  "maximumError": "1.5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "8kb",
+                  "maximumError": "16kb"
+                }
+              ],
+              "outputHashing": "all",
+              "serviceWorker": "src/gt-mobile/ngsw-config.json"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 4203,
+            "buildTarget": "gt-mobile:build"
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "gt-mobile:build:production"
+            }
+          }
+        }
+      }
     }
   },
   "cli": {

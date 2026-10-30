@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/gt-mobile",
+    "strictNullChecks": true
+  },
+  "files": ["src/gt-mobile/main.ts"],
+  "include": ["src/**/*.d.ts"]
+}

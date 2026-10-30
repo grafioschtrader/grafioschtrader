@@ -106,7 +106,7 @@ export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGe
    *
    * @param entity - UDF metadata entity to edit, or null for new entry
    */
-  override prepareCallParam(entity: UDFMetadataGeneral): void {
+  override prepareCallParam(entity: UDFMetadataGeneral | null): void {
     this.beforeEdit(entity, this.callParam);
     this.callParam.uDFMetadataGeneral = entity;
   }

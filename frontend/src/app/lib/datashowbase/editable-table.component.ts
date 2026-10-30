@@ -983,7 +983,7 @@ export class EditableTableComponent<T extends object = any> {
     for (const field of this.fields()) {
       if (field.cec?.dependsOnField === changedField.field) {
         // Clear the dependent field's value
-        row[field.field as keyof T] = null;
+        Object.assign(row, { [field.field]: null });
 
         // Update options cache
         if (this.rowOptions[rowKey]) {
@@ -1190,7 +1190,7 @@ export class EditableTableComponent<T extends object = any> {
   /** Checks if a field has dropdown options configured */
   private hasDropdownOptions(field: ColumnConfig): boolean {
     return !!(
-      field.cec?.valueKeyHtmlOptions?.length > 0 ||
+      (field.cec?.valueKeyHtmlOptions?.length ?? 0) > 0 ||
       field.cec?.optionsProviderFn ||
       (field.cec?.dependsOnField && field.cec?.optionsMap)
     );
@@ -1354,7 +1354,9 @@ export class EditableTableComponent<T extends object = any> {
         // Focus first editable cell after Angular change detection renders the edit inputs
         afterNextRender(
           () => {
-            const tableEl = this.table().el.nativeElement;
+            const renderedTable = this.table();
+            if (!renderedTable) return;
+            const tableEl = renderedTable.el.nativeElement;
             const rows = tableEl.querySelectorAll('tbody tr');
             if (rows[rowIndex]) {
               this.focusFirstEditableCell(rows[rowIndex]);

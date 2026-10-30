@@ -157,7 +157,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
           !s.distributionFrequency || s.distributionFrequency === ''
             ? null
             : DistributionFrequency[s.distributionFrequency as keyof typeof DistributionFrequency],
-          !s.stockexchange.noMarketValue
+          s.stockexchange?.noMarketValue === false
         )
       ) {
         this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'idConnectorDividend', {
@@ -185,7 +185,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
   private addSplitGroup(): void {
     if (!(this.securitycurrency() instanceof CurrencypairWatchlist)) {
       const s = <Security>this.securitycurrency();
-      if (Security.canHaveSplitConnector(s.assetClass, !s.stockexchange.noMarketValue)) {
+      if (Security.canHaveSplitConnector(s.assetClass, s.stockexchange?.noMarketValue === false)) {
         this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'idConnectorSplit', {
           fieldsetName: AppSettings.SPLIT_SETTINGS,
           fieldValueFN: this.getFeedConnectorReadableName.bind(this)
@@ -232,10 +232,10 @@ class ContentExtendedInfo extends ContentBase {
    * @param securitycurrency The base security or currency object
    */
   constructor(
-    public intradayUrl: string,
-    public historicalUrl: string,
-    public dividendUrl: string,
-    public splitUrl: string,
+    public intradayUrl: string | undefined,
+    public historicalUrl: string | undefined,
+    public dividendUrl: string | undefined,
+    public splitUrl: string | undefined,
     securitycurrency: Securitycurrency
   ) {
     super(securitycurrency);

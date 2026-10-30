@@ -36,7 +36,7 @@ import { TenantAIProviderService } from '../service/tenant-ai-provider.service';
   </p-dialog>`
 })
 export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAIProvider> implements OnInit {
-  readonly entity = input<TenantAIProvider>(undefined);
+  readonly entity = input<TenantAIProvider | null>();
   readonly options = input<TenantAIProviderOptions>(undefined);
   readonly formDefinition = input<ClassDescriptorInputAndShow>(undefined);
   readonly existingProviders = input<string[]>(undefined);
@@ -73,9 +73,9 @@ export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAI
       .subscribe((p) => this.updateKeyInput(p));
     this.updateKeyInput(entity?.provider);
   }
-  private updateKeyInput(provider: string): void {
+  private updateKeyInput(provider: string | null | undefined): void {
     const key = this.configObject.apiKey;
-    const needsKey = this.options().keyProviders.includes(provider);
+    const needsKey = provider != null && this.options().keyProviders.includes(provider);
     const required = !this.entity() && needsKey;
     key.invisible = !needsKey;
     if (!needsKey) {
@@ -89,7 +89,7 @@ export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAI
     if (required) {
       DynamicFieldHelper.addErrorRule(this.translateService, key, { ...DynamicFieldHelper.RULE_REQUIRED_TOUCHED });
     }
-    this.configObject.model.placeholder = this.options().defaultModels[provider] || '';
+    this.configObject.model.placeholder = provider == null ? '' : this.options().defaultModels[provider] || '';
   }
   protected override getNewOrExistingInstanceBeforeSave(_: { [name: string]: any }): TenantAIProvider {
     return this.copyFormToPrivateBusinessObject(new TenantAIProvider(), this.entity());

@@ -39,7 +39,7 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
   /** Fieldset name for derived data group */
   readonly DERIVED_DATA = 'DERIVED_DATA';
   /** Base instrument for derived securities */
-  protected readonly baseInstrument = signal<Security | CurrencypairWatchlist>(undefined);
+  protected readonly baseInstrument = signal<Security | CurrencypairWatchlist | null | undefined>(undefined);
   /** Additional instruments mapped by field name for derived securities */
   protected readonly additionalInstruments = signal<{ [fieldName: string]: Security | CurrencypairWatchlist }>({});
   /** Content object containing the security currency data for display */
@@ -108,7 +108,7 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
    */
   getDerivedValues(dataobject: any, field: ColumnConfig, valueField: any): any {
     if (field.field === this.BASE_PRODUCT_NAME) {
-      return this.baseInstrument() ? this.baseInstrument().name : '';
+      return this.baseInstrument()?.name ?? '';
     } else {
       return this.additionalInstruments()[field.field] ? this.additionalInstruments()[field.field].name : '';
     }
@@ -154,7 +154,10 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
       this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'isin', { fieldsetName: 'BASE_DATA' });
       this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'tickerSymbol', { fieldsetName: 'BASE_DATA' });
     }
-    if (BusinessHelper.hasSecurityDenomination(security.assetClass, !security.stockexchange.noMarketValue)) {
+    if (
+      security.stockexchange &&
+      BusinessHelper.hasSecurityDenomination(security.assetClass, security.stockexchange?.noMarketValue === false)
+    ) {
       this.addFieldPropertyFeqH(DataType.NumericInteger, this.SECURITYCURRENCY + 'denomination', {
         fieldsetName: 'BASE_DATA'
       });
@@ -190,7 +193,9 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
    * @param security The derived security to create fields for
    */
   private addDerivedFields(security: Security): void {
-    if (security.idLinkSecuritycurrency) {
+    const idLink = security.idLinkSecuritycurrency;
+    const id = security.idSecuritycurrency;
+    if (idLink != null && id != null) {
       this.addFieldPropertyFeqH(DataType.String, this.BASE_PRODUCT_NAME, {
         fieldValueFN: this.getDerivedValues.bind(this),
         fieldsetName: this.DERIVED_DATA
@@ -199,7 +204,8 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
         fieldsetName: this.DERIVED_DATA
       });
 
-      let match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(security.formulaPrices);
+      const formula = security.formulaPrices;
+      let match = formula == null ? null : SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formula);
       while (match != null) {
         if (match[1] !== SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES.charAt(0)) {
           const varName = match[1];
@@ -210,15 +216,13 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
             headerSuffix: `(${varName})`
           });
         }
-        match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(security.formulaPrices);
+        match = formula == null ? null : SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formula);
       }
       this.derivedLinks = this.securityService
-        .getDerivedInstrumentsLinksForSecurity(security.idSecuritycurrency)
+        .getDerivedInstrumentsLinksForSecurity(id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((scdl: SecurityCurrencypairDerivedLinks) => {
-          this.baseInstrument.set(
-            SecurityCurrencypairDerivedLinks.getBaseInstrument(scdl, security.idLinkSecuritycurrency)
-          );
+          this.baseInstrument.set(SecurityCurrencypairDerivedLinks.getBaseInstrument(scdl, idLink));
           this.additionalInstruments.set(
             SecurityCurrencypairDerivedLinks.getAdditionalInstrumentsForExistingSecurity(scdl)
           );

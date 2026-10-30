@@ -4,17 +4,17 @@ import { Exclude, Type } from 'class-transformer';
 import { AlgoTreeName } from '../../entities/view/algo.tree.name';
 
 export class AlgoTop extends AlgoTopAssetSecurity implements AlgoTreeName {
-  name: string = null;
+  name: string | null = null;
   @Type(() => AlgoAssetclass)
   algoAssetclassList: AlgoAssetclass[];
-  idWatchlist: number = null;
+  idWatchlist: number | null = null;
   referenceDate: Date;
   addedPercentage: number;
   /** Derived by the backend when the strategy is read; absent where the endpoint does not evaluate it. */
   readiness?: AlgoTopReadiness;
 
   @Exclude()
-  getNameByLanguage(language: string): string {
+  getNameByLanguage(language: string): string | null {
     return this.name;
   }
 

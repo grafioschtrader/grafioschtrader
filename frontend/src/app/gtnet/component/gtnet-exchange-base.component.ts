@@ -210,7 +210,8 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
     return field.dataType === DataType.Numeric || field.dataType === DataType.DateTimeNumeric ? 'text-end' : '';
   }
 
-  override prepareCallParam(entity: T): void {
+  override prepareCallParam(entity: T | null): void {
+    if (!entity) throw new Error('An exchange dialog requires a selected instrument.');
     this.callParam = entity;
   }
 
@@ -226,7 +227,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Builds the untranslated edit menu of the selected instrument; the base class translates and publishes it.
    * Derived classes add their entries.
    */
-  protected override prepareEditMenu(entity: T): MenuItem[] | null {
+  protected override prepareEditMenu(entity: T | null): MenuItem[] | null {
     return null;
   }
 

@@ -1,7 +1,7 @@
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import type { ValueFormatSettings } from '../../lib/helper/locale.format';
 
 export class PlotlyLocales {
-  public static setPlotyLocales(gps: GlobalparameterService): any {
+  public static setPlotyLocales(gps: Pick<ValueFormatSettings, 'getLocale'>): any {
     const config: any = {
       // Plotly 4 turns 'showSendToCloud' on by default and ships a default 'plotlyServerURL'. That
       // would put a "Share chart..." button in every mode bar which uploads the chart data to an

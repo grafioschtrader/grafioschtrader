@@ -228,7 +228,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
    * @returns Array of menu items for edit operations, or base menu items if user lacks privileges
    */
   protected override getEditMenuItems(
-    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>
+    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair> | null | undefined
   ): MenuItem[] {
     if (this.securityPositionList() && AuditHelper.hasHigherPrivileges(this.gps)) {
       const menuItems: MenuItem[] = [
@@ -281,7 +281,10 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
    * @param untilDate - The date to compare against active dates (null for history, current date for intraday)
    * @returns True if the repair menu should be disabled, false otherwise
    */
-  private disableUpToDateFeedDataMenu(propName: 'retryHistoryLoad' | 'retryIntraLoad', untilDate: Date): boolean {
+  private disableUpToDateFeedDataMenu(
+    propName: 'retryHistoryLoad' | 'retryIntraLoad',
+    untilDate: Date | null
+  ): boolean {
     return this.securityPositionList().every(
       (sp) =>
         sp.securitycurrency[propName] === 0 ||

@@ -63,10 +63,10 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleFormEditBa
   private securityService: SecurityService = inject(SecurityService);
   private messageToastService: MessageToastService = inject(MessageToastService);
 
-  readonly historyquoteQuality = input<IHistoryquoteQuality>(undefined);
-  readonly securitycurrency = input<Securitycurrency>(undefined);
+  readonly historyquoteQuality = input.required<IHistoryquoteQuality>();
+  readonly securitycurrency = input.required<Securitycurrency>();
   /** Date boundaries loaded by the opener before this dialog is created. */
-  readonly fillGapsBounds = input<HistoryquoteFillGapsBounds>(undefined);
+  readonly fillGapsBounds = input.required<HistoryquoteFillGapsBounds>();
 
   readonly moveWeekendToFriday = 'moveWeekendToFriday';
   readonly fillUpToDate = 'fillUpToDate';
@@ -95,10 +95,12 @@ export class HistoryquoteQualityFillGapsDialogComponent extends SimpleFormEditBa
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  submit(value: { [name: string]: any }): void {
+  submit(value: unknown): void {
+    const id = this.securitycurrency().idSecuritycurrency;
+    if (id == null) return;
     this.configObject.execute.disabled = true;
     this.securityService
-      .fillHistoryquoteGapsLinear(this.securitycurrency().idSecuritycurrency, {
+      .fillHistoryquoteGapsLinear(id, {
         moveWeekendToFriday: requireFormControl(this.configObject[this.moveWeekendToFriday]).value,
         fillUpToDate: moment(requireFormControl(this.configObject[this.fillUpToDate]).value).format(
           BaseSettings.FORMAT_DATE_SHORT_NATIVE

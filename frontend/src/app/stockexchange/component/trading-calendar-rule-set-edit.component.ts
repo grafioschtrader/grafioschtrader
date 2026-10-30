@@ -96,7 +96,7 @@ export class TradingCalendarRuleSetEditComponent
   private httpClient: HttpClient = inject(HttpClient);
 
   readonly yamlEditor = viewChild(YamlEditorComponent);
-  readonly callParam = input<TradingCalendarRuleSet>(undefined);
+  readonly callParam = input<TradingCalendarRuleSet | null>();
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
 
   readonly ruleYamlValue = signal('');

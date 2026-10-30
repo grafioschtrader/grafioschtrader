@@ -23,7 +23,7 @@ import { AppSettings } from '../../shared/app.settings';
 @Directive()
 export abstract class TransactionCashaccountBaseOperations extends TransactionBaseOperations {
   /** Input parameters containing transaction call configuration and context data */
-  readonly transactionCallParam = input<TransactionCallParam>(undefined);
+  readonly transactionCallParam = input.required<TransactionCallParam>();
 
   /** Event emitter for closing dialog and returning processed action data to parent component */
   readonly closeDialog = output<ProcessedActionData>();
@@ -60,7 +60,7 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
   prepareCashaccountOptions(portfolios: Portfolio[]): ValueKeyHtmlSelectOptions[] {
     const cashaccountsHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
     for (const portfolio of portfolios) {
-      portfolio.cashaccountList.forEach((cashaccount) =>
+      portfolio.cashaccountList?.forEach((cashaccount) =>
         cashaccountsHtmlOptions.push(
           new ValueKeyHtmlSelectOptions(
             cashaccount.idSecuritycashAccount,

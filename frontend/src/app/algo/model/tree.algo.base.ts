@@ -36,7 +36,7 @@ export abstract class TreeAlgoTopAssetSecurityBase<T extends AlgoTopAssetSecurit
     super();
   }
 
-  public getId(): number {
+  public getId(): number | null {
     return this.data.idAlgoAssetclassSecurity;
   }
 

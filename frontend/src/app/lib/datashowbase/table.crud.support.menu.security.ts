@@ -20,6 +20,7 @@ export abstract class TableCrudSupportMenuSecurity<T extends BaseID> extends Tab
   }
 
   protected override hasRightsForDeleteEntity(entity: T): boolean {
-    return this.hasSecurityObject[this.getId(entity)] === 0 && super.hasRightsForDeleteEntity(entity);
+    const id = this.getId(entity);
+    return typeof id === 'number' && this.hasSecurityObject[id] === 0 && super.hasRightsForDeleteEntity(entity);
   }
 }

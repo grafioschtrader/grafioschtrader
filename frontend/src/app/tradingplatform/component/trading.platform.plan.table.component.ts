@@ -65,7 +65,7 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
 export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<TradingPlatformPlan> {
   private tradingPlatformPlanService: TradingPlatformPlanService = inject(TradingPlatformPlanService);
 
-  callParam: TradingPlatformPlan;
+  callParam: TradingPlatformPlan | null = null;
   readonly visibleFeeModelDialog = signal(false);
   feeModelCallParam: TradingPlatformPlan;
   readonly ownerHighlight = (entity: TradingPlatformPlan, field: ColumnConfig): boolean =>
@@ -91,7 +91,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
     this.prepareTableAndTranslate();
   }
 
-  override prepareCallParam(entity: TradingPlatformPlan) {
+  override prepareCallParam(entity: TradingPlatformPlan | null) {
     this.callParam = entity;
   }
 

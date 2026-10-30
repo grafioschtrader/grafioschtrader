@@ -219,7 +219,7 @@ export class MailSendParam {
    */
   constructor(
     public idUserTo: number,
-    public mailSendRecv?: MailSendRecv,
+    public mailSendRecv?: MailSendRecv | null,
     public subject?: string,
     public roleName?: string,
     public contextEntity?: string,

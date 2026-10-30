@@ -141,7 +141,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
     }
   }
 
-  override prepareCallParam(entity: ImportTransactionTemplate) {
+  override prepareCallParam(entity: ImportTransactionTemplate | null) {
     this.callParam = new CallParam(this.selectImportTransactionPlatform, entity);
   }
 

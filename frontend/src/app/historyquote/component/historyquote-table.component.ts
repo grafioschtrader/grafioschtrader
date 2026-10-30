@@ -126,20 +126,22 @@ import { HistoryquoteTableBase } from './historyquote-table.base';
         (closeDialog)="handleCloseDialogAndRead($event)" />
     }
 
-    @if (visibleFillGapsDialog()) {
+    @let quotes = historyquotesWithMissings();
+    @if (visibleFillGapsDialog() && quotes) {
       <historyquote-quality-fill-gaps
         [visibleDialog]="visibleFillGapsDialog()"
-        [historyquoteQuality]="historyquotesWithMissings()?.historyquoteQuality"
-        [securitycurrency]="historyquotesWithMissings()?.securitycurrency"
+        [historyquoteQuality]="quotes.historyquoteQuality"
+        [securitycurrency]="quotes.securitycurrency"
         [fillGapsBounds]="fillGapsBounds"
         (closeDialog)="handleCloseDialogAndRead($event)" />
     }
 
-    @if (visibleDeleteHistoryquotes()) {
+    @let id = quotes?.securitycurrency?.idSecuritycurrency;
+    @if (visibleDeleteHistoryquotes() && quotes && id != null) {
       <historyquote-delete-dialog
         [visibleDialog]="visibleDeleteHistoryquotes()"
-        [idSecuritycurrency]="historyquotesWithMissings().securitycurrency.idSecuritycurrency"
-        [historyquoteQuality]="historyquotesWithMissings().historyquoteQuality"
+        [idSecuritycurrency]="id"
+        [historyquoteQuality]="quotes.historyquoteQuality"
         [deleteBounds]="deleteBounds"
         (closeDialog)="handleCloseDialogAndRead($event)" />
     }
@@ -163,7 +165,7 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   private historyquoteService: HistoryquoteService = inject(HistoryquoteService);
   private dataChangedService: DataChangedService = inject(DataChangedService);
 
-  readonly timeSeriesParams = input<TimeSeriesParam[]>(undefined);
+  readonly timeSeriesParams = input<TimeSeriesParam[]>();
   readonly showLegacyRequested = output<void>();
 
   minDate: Date = new Date(
@@ -180,7 +182,7 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   readonly nameSecuritycurrency = signal<INameSecuritycurrency | null>(null);
   readonly historyquotesWithMissings = signal<HistoryquotesWithMissings | null>(null);
   /** The instrument when it is a security, null for a currency pair and undefined until the first response. */
-  readonly security = signal<Security>(undefined);
+  readonly security = signal<Security | null | undefined>(undefined);
   readonly visibleUploadFileDialog = signal(false);
   fileUploadParam: FileUploadParam;
   readonly visibleFillGapsDialog = signal(false);
@@ -304,9 +306,10 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
    */
   deleteCreateTypeQuotes(): void {
     const quotes = this.historyquotesWithMissings();
-    if (!quotes) return;
+    const id = quotes?.securitycurrency.idSecuritycurrency;
+    if (id == null) return;
     this.historyquoteService
-      .getDeleteBounds(quotes.securitycurrency.idSecuritycurrency)
+      .getDeleteBounds(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((deleteBounds) => {
         this.deleteBounds = deleteBounds;
@@ -320,9 +323,10 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
    */
   fillLinearGap(): void {
     const quotes = this.historyquotesWithMissings();
-    if (!quotes) return;
+    const id = quotes?.securitycurrency.idSecuritycurrency;
+    if (id == null) return;
     this.securityService
-      .getFillGapsBounds(quotes.securitycurrency.idSecuritycurrency)
+      .getFillGapsBounds(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((fillGapsBounds) => {
         this.fillGapsBounds = fillGapsBounds;
@@ -330,7 +334,7 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
       });
   }
 
-  override resetMenu(historyquote: Historyquote): void {
+  override resetMenu(historyquote: Historyquote | null): void {
     const historyquotesWithMissings = this.historyquotesWithMissings();
     // security is null for a currency pair (see readAndShowData) and undefined until the first response arrives;
     // only a security whose quotes are derived from another instrument (idLinkSecuritycurrency) has no own menu.
@@ -363,14 +367,14 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
     this.rowsPerPage = this.usersettingsService.readSingleValue(AppSettings.HISTORYQUOTE_TABLE_SETTINGS_STORE) || 30;
   }
 
-  protected prepareCallParam(entity: Historyquote) {
+  protected prepareCallParam(entity: Historyquote | null) {
     // For a new history quote the idSecuritycurrency is needed
     const name = this.nameSecuritycurrency();
     if (!name) throw new Error('History quote editing requires a loaded security or currency pair.');
     this.callParam = new HistoryquoteSecurityCurrency(entity, name.getSecuritycurrency());
   }
 
-  protected override getId(entity: Historyquote): number {
+  protected override getId(entity: Historyquote): number | undefined {
     return entity.idHistoryQuote;
   }
 

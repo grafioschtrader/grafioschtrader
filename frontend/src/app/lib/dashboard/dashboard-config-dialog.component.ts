@@ -36,8 +36,8 @@ import { FieldConfig } from '../dynamic-form/models/field.config';
 export class DashboardConfigDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
 
-  readonly descriptor = input<DashboardDescriptor>(undefined);
-  readonly widget = input<DashboardWidget>(undefined);
+  readonly descriptor = input.required<DashboardDescriptor>();
+  readonly widget = input.required<DashboardWidget>();
   constructor() {
     super(HelpIds.HELP_DASHBOARD);
   }

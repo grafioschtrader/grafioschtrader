@@ -117,19 +117,19 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   private securityService: SecurityService = inject(SecurityService);
 
   /** Array of security account IDs to filter transactions */
-  readonly idsSecurityaccount = input<number[]>(undefined);
+  readonly idsSecurityaccount = input<number[]>();
 
   /** ID of the specific security currency to display transactions for */
-  readonly idSecuritycurrency = input<number>(undefined);
+  readonly idSecuritycurrency = input<number>();
 
   /** Portfolio ID for filtering transactions by portfolio */
-  readonly idPortfolio = input<number>(undefined);
+  readonly idPortfolio = input<number>();
 
   /** Tenant ID for filtering transactions by tenant */
-  readonly idTenant = input<number>(undefined);
+  readonly idTenant = input<number>();
 
   /** Optional parameters for configuring transaction security display options */
-  readonly transactionSecurityOptionalParam = input<TransactionSecurityOptionalParam[]>(undefined);
+  readonly transactionSecurityOptionalParam = input<TransactionSecurityOptionalParam[]>();
 
   /** Optional cutoff date (yyyy-MM-dd) to limit transactions */
   readonly untilDate = input<string>();
@@ -150,10 +150,10 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   currencyColumnConfigMC: ColumnConfig[] = [];
 
   /** Summary data containing security information and transaction positions */
-  readonly securityTransactionSummary = signal(new SecurityTransactionSummary(null, null));
+  readonly securityTransactionSummary = signal<SecurityTransactionSummary | null>(null);
 
   /** List of security transaction positions to be displayed in the tree */
-  readonly transactionPositionList = computed(() => this.securityTransactionSummary().transactionPositionList ?? []);
+  readonly transactionPositionList = computed(() => this.securityTransactionSummary()?.transactionPositionList ?? []);
 
   /** Current user language setting for display purposes */
   lang: string;
@@ -190,8 +190,8 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @param transaction The transaction to get the security for
    * @returns The security object from the transaction summary
    */
-  getSecurity(transaction: Transaction): Security {
-    return this.securityTransactionSummary().securityPositionSummary.security;
+  getSecurity(transaction: Transaction): Security | undefined {
+    return this.securityTransactionSummary()?.securityPositionSummary.security;
   }
 
   /**
@@ -200,7 +200,8 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @param event The node selection event containing the selected node data
    */
   onNodeSelect(event: { node?: TreeNode<SecurityTransactionPosition> }): void {
-    const securityTransactionPosition: SecurityTransactionPosition = event.node.data;
+    const securityTransactionPosition = event.node?.data;
+    if (!securityTransactionPosition) return;
     this.selectedTransaction.set(securityTransactionPosition.transaction);
     this.setMenuItemsToActivePanel();
   }
@@ -230,9 +231,11 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    */
   protected initialize(): void {
     this.dataSubscription?.unsubscribe();
+    const id = this.idSecuritycurrency();
+    if (id == null) return;
     this.dataSubscription = BusinessHelper.getSecurityTransactionSummary(
       this.securityService,
-      this.idSecuritycurrency(),
+      id,
       this.idsSecurityaccount(),
       this.idPortfolio(),
       false,
@@ -241,15 +244,15 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         this.securityTransactionSummary.set(result);
-        this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary().transactionPositionList);
+        this.createTranslatedValueStoreAndFilterField(result.transactionPositionList);
         this.currencyColumnConfigMC.forEach((cc) => {
-          cc.headerSuffix = this.securityTransactionSummary().securityPositionSummary.mainCurrency;
-          cc.fixedCurrency = this.securityTransactionSummary().securityPositionSummary.mainCurrency;
+          cc.headerSuffix = result.securityPositionSummary.mainCurrency;
+          cc.fixedCurrency = result.securityPositionSummary.mainCurrency;
           this.setFieldHeaderTranslation(cc);
         });
         TransactionSecurityFieldDefinition.applySecurityCurrency(
           this.fields,
-          this.securityTransactionSummary().securityPositionSummary.security.currency
+          result.securityPositionSummary.security.currency
         );
         // Build the tree locally, then set firstRowIndexOnPage BEFORE transactionNodes so
         // Optimus's TreeTable.updateSerializedValue (triggered by [value]) reads the
@@ -373,12 +376,12 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    */
   private buildTreeNodes(): TreeNode[] {
     const rootNodes: TreeNode[] = [];
-    let parentNode: TreeNode;
+    let parentNode: TreeNode | undefined;
     this.transactionPositionList().forEach((stp: SecurityTransactionPosition) => {
       const leaf = stp.transaction.connectedIdTransaction !== null;
       const treeNode: TreeNode = {
         data: { ...stp },
-        children: leaf ? null : [],
+        children: leaf ? undefined : [],
         expanded: !leaf,
         leaf,
         parent: parentNode
@@ -389,7 +392,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
         parentNode.data.transaction.idTransaction === stp.transaction.connectedIdTransaction
       ) {
         // Close position or hypothetical sell/buy
-        parentNode.children.push(treeNode);
+        (parentNode.children ??= []).push(treeNode);
         if (
           stp.transaction.transactionType === TransactionType[TransactionType.HYPOTHETICAL_BUY] ||
           stp.transaction.transactionType === TransactionType[TransactionType.HYPOTHETICAL_SELL]
@@ -415,6 +418,10 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @param hypoTransaction The hypothetical transaction containing closing details
    */
   private handleClosePosition(openTransaction: Transaction, hypoTransaction: Transaction): void {
+    const { quotation, units, idSecurityaccount, idTransaction } = openTransaction;
+    const closeUnits = hypoTransaction.units;
+    if (quotation == null || units == null || idSecurityaccount == null || idTransaction == null || closeUnits == null)
+      return;
     const closeTransaction = this.getNewTransaction(openTransaction);
     closeTransaction.units = hypoTransaction.units;
     closeTransaction.assetInvestmentValue2 = hypoTransaction.assetInvestmentValue2;
@@ -425,13 +432,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     closeTransaction.quotation = hypoTransaction.quotation;
     super.handleEditTransaction(
       closeTransaction,
-      new CloseMarginPosition(
-        openTransaction.quotation,
-        openTransaction.units,
-        hypoTransaction.units,
-        openTransaction.idSecurityaccount,
-        openTransaction.idTransaction
-      )
+      new CloseMarginPosition(quotation, units, closeUnits, idSecurityaccount, idTransaction)
     );
   }
 
@@ -441,8 +442,10 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @param openTransaction The open margin transaction to calculate finance costs for
    */
   private handleFinanceCost(openTransaction: Transaction): void {
+    const id = openTransaction.idTransaction;
+    if (id == null) return;
     this.transactionService
-      .getEstimatedMarginFinanceCost(openTransaction.idTransaction)
+      .getEstimatedMarginFinanceCost(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((pMFC: ProposedMarginFinanceCost) => {
         const fcTransaction = this.getNewTransaction(openTransaction);
@@ -466,7 +469,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     const newTransaction = new Transaction();
     newTransaction.connectedIdTransaction = openTransaction.idTransaction;
     newTransaction.idSecurityaccount = openTransaction.idSecurityaccount;
-    newTransaction.idCashaccount = openTransaction.cashaccount.idSecuritycashAccount;
+    newTransaction.idCashaccount = openTransaction.cashaccount?.idSecuritycashAccount ?? openTransaction.idCashaccount;
     newTransaction.cashaccount = openTransaction.cashaccount;
     newTransaction.transactionTime = new Date();
     return newTransaction;

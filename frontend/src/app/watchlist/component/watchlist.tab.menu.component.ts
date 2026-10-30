@@ -84,7 +84,7 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
 
   protected readonly destroyRef = inject(DestroyRef);
   /** The current watchlist object containing ID and data. */
-  private watchlist: Watchlist;
+  private watchlist: Watchlist | null;
 
   /** The last active route to preserve tab state across watchlist changes. */
   private lastActiveRoute: string = AppSettings.WATCHLIST_PERFORMANCE_KEY;
@@ -210,7 +210,7 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
    * @param route The route to navigate to
    */
   override navigateTo(route: string): void {
-    if (!this.watchlist) {
+    if (!this.watchlist || this.watchlist.idWatchlist == null) {
       console.warn('No watchlist available for navigation');
       return;
     }

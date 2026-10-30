@@ -367,10 +367,14 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
 
   private setBaseInstrumentForExistingSecurity(scdl: SecurityCurrencypairDerivedLinks): void {
     this.configObject[this.BASE_PRODUCT_NAME].disabled = true;
-    this.baseInstrument = SecurityCurrencypairDerivedLinks.getBaseInstrument(
-      scdl,
-      this.securityCallParam().idLinkSecuritycurrency
-    );
+    const idLink = this.securityCallParam().idLinkSecuritycurrency;
+    if (idLink == null) return;
+    const baseInstrument = SecurityCurrencypairDerivedLinks.getBaseInstrument(scdl, idLink);
+    if (!baseInstrument) {
+      requireFormControl(this.configObject[this.BASE_PRODUCT_NAME]).setValue(null);
+      return;
+    }
+    this.baseInstrument = baseInstrument;
     this.reduceExpandChoosableAssetclass();
     requireFormControl(this.configObject[this.BASE_PRODUCT_NAME]).setValue(this.baseInstrument.name);
   }

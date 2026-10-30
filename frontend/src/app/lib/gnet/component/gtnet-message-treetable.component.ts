@@ -1,3 +1,4 @@
+import { buildGTNetMessageTree } from '../model/gtnet-message-tree';
 import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { Component, DestroyRef, inject, OnInit, signal, output, viewChild, input } from '@angular/core';
 import { Subscription } from 'rxjs';
@@ -216,12 +217,12 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   private gtNetProtocolService: GTNetProtocolService = inject(GTNetProtocolService);
   private iconReg: SvgIconRegistryService = inject(SvgIconRegistryService);
 
-  readonly gtNetMessages = input<GTNetMessage[]>(undefined);
-  readonly incomingPendingIds = input<Set<number>>(undefined);
-  readonly outgoingPendingIds = input<Set<number>>(undefined);
-  readonly formDefinitions = input<{
+  readonly gtNetMessages = input<GTNetMessage[]>([]);
+  readonly incomingPendingIds = input<Set<number>>();
+  readonly outgoingPendingIds = input<Set<number>>();
+  readonly formDefinitions = input.required<{
     [type: string]: ClassDescriptorInputAndShow;
-  }>(undefined);
+  }>();
   /** Controls whether the filter row is displayed. Default is true. */
   readonly showFilter = input<boolean>(true);
   readonly dataChanged = output<ProcessedActionData>();
@@ -240,7 +241,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   private static iconLoadDone = false;
 
-  rootNode: TreeNode = { children: [] };
+  rootNode: TreeNode & { children: TreeNode[] } = { children: [] };
   selectedNode: TreeNode;
   /** Translated menu of the selection, shown as context menu and in the menu bar */
   readonly contextMenuItems = signal<MenuItem[]>([]);
@@ -334,33 +335,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   }
 
   private prepareData(): void {
-    const nodeMap = new Map<number, TreeNode>();
-
-    // First pass: create all nodes and populate the nodeMap
-    // This ensures all nodes exist before we establish parent-child relationships,
-    // regardless of the order messages arrive from the backend (timestamp DESC).
-    this.gtNetMessages().forEach((gtMessage) => {
-      const node: TreeNode = { data: gtMessage, leaf: true };
-      nodeMap.set(gtMessage.idGtNetMessage, node);
-    });
-
-    // Second pass: establish parent-child relationships
-    this.gtNetMessages().forEach((gtMessage) => {
-      const node = nodeMap.get(gtMessage.idGtNetMessage);
-      if (gtMessage.replyTo) {
-        const parentNode = nodeMap.get(gtMessage.replyTo);
-        if (parentNode) {
-          if (parentNode.leaf) {
-            parentNode.leaf = false;
-            parentNode.children = [];
-          }
-          parentNode.children.push(node);
-          return;
-        }
-      }
-      // No parent found or no replyTo - add to root
-      this.rootNode.children.push(node);
-    });
+    const { roots, nodeMap } = buildGTNetMessageTree(this.gtNetMessages());
+    this.rootNode.children = roots;
 
     // Auto-expand nodes that have unread received messages
     this.expandNodesWithUnreadMessages(this.rootNode.children, nodeMap);
@@ -683,7 +659,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
         }
       });
     };
-    traverse(filteredNodes);
+    traverse(filteredNodes ?? []);
     return deletable;
   }
 

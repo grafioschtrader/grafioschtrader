@@ -37,7 +37,7 @@ export abstract class TransactionBaseOperations {
   configObject: { [name: string]: FieldConfig };
 
   /** Current currency pair used for exchange rate calculations */
-  protected currencypair?: Currencypair;
+  protected currencypair?: Currencypair | null;
 
   /** Indicates if the transaction is locked due to being within a closed period */
   readonly transactionLocked = signal(false);
@@ -91,15 +91,14 @@ export abstract class TransactionBaseOperations {
    */
   getCashaccountByIdCashaccountFormPortfolios(
     portfolios: Portfolio[],
-    idSecuritycashaccount: number
+    idSecuritycashaccount: number | null | undefined
   ): {
     cashaccount: Cashaccount;
     portfolio: Portfolio;
-  } {
+  } | null {
     if (idSecuritycashaccount != null) {
       for (const portfolio of portfolios) {
-        const found: { cashaccount: Cashaccount; portfolio: Portfolio } =
-          this.getCashaccountByIdCashaccountFromPortfolio(portfolio, idSecuritycashaccount);
+        const found = this.getCashaccountByIdCashaccountFromPortfolio(portfolio, idSecuritycashaccount);
         if (found) {
           return found;
         }
@@ -116,11 +115,12 @@ export abstract class TransactionBaseOperations {
    */
   getCashaccountByIdCashaccountFromPortfolios(
     portfolios: Portfolio[],
-    idSecuritycashaccount: number
+    idSecuritycashaccount: number | null | undefined
   ): {
     cashaccount: Cashaccount;
     portfolio: Portfolio;
-  } {
+  } | null {
+    if (idSecuritycashaccount == null) return null;
     for (const portfolio of portfolios) {
       const found = this.getCashaccountByIdCashaccountFromPortfolio(portfolio, idSecuritycashaccount);
       if (found) {
@@ -142,8 +142,8 @@ export abstract class TransactionBaseOperations {
   ): {
     cashaccount: Cashaccount;
     portfolio: Portfolio;
-  } {
-    for (const cashaccount of portfolio.cashaccountList) {
+  } | null {
+    for (const cashaccount of portfolio.cashaccountList ?? []) {
       if (cashaccount.idSecuritycashAccount === idSecuritycashaccount) {
         return { cashaccount, portfolio };
       }
@@ -167,25 +167,28 @@ export abstract class TransactionBaseOperations {
    */
   getTimeDependingExchangeRate(event: unknown): void {
     const transactionTime: Date = requireFormControl(this.configObject.transactionTime).value;
-    if (this.currencypair.idSecuritycurrency) {
+    const currencypair = this.currencypair;
+    if (!currencypair || transactionTime == null) return;
+    const id = currencypair.idSecuritycurrency;
+    if (id != null) {
       this.replaceDialogRequest('exchangeRate', () =>
         BusinessHelper.setHistoryquoteCloseToFormControl(
           this.messageToastService,
           this.historyquoteService,
           this.gps,
           transactionTime,
-          this.currencypair.idSecuritycurrency,
+          id,
           false,
-          this.configObject.currencyExRate.formControl
+          requireFormControl(this.configObject.currencyExRate)
         )
       );
     } else {
       this.replaceDialogRequest('exchangeRate', () =>
         BusinessHelper.getAndSetQuotationCurrencypair(
           this.currencypairService,
-          this.currencypair,
+          currencypair,
           transactionTime,
-          this.configObject.currencyExRate.formControl
+          requireFormControl(this.configObject.currencyExRate)
         )
       );
     }
@@ -239,7 +242,10 @@ export abstract class TransactionBaseOperations {
    * @param effectiveClosedUntil The effective closedUntil date from portfolio or tenant
    * @param transactionTime The transaction time to check (from existing transaction)
    */
-  protected checkTransactionLocked(effectiveClosedUntil: Date | null, transactionTime: Date | string | number): void {
+  protected checkTransactionLocked(
+    effectiveClosedUntil: Date | null,
+    transactionTime: Date | string | number | null
+  ): void {
     if (effectiveClosedUntil && transactionTime) {
       const transactionDate = new Date(transactionTime);
       // Compare dates only (ignore time component)

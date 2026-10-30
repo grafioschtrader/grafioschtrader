@@ -22,7 +22,7 @@ export class TransactionReceiptService {
    * @param idPortfolio optional portfolio scope of the transaction list
    * @param idSecurityaccount optional security account scope of the transaction list
    */
-  openDialog(idSecuritycurrency: number, idPortfolio: number, idSecurityaccount: number): void {
+  openDialog(idSecuritycurrency: number, idPortfolio?: number | null, idSecurityaccount?: number | null): void {
     const data: TransactionReceiptDialogData = { idSecuritycurrency, idPortfolio, idSecurityaccount };
     import('../component/transaction-receipt-dialog.component').then((m) =>
       this.dialogService.open(m.TransactionReceiptDialogComponent, {

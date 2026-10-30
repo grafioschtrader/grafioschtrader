@@ -3,8 +3,8 @@ import { AlgoStrategy } from './algo.strategy';
 import { Exclude, Type } from 'class-transformer';
 
 export abstract class AlgoTopAssetSecurity extends TenantBaseId {
-  public idAlgoAssetclassSecurity: number = null;
-  public percentage: number = null;
+  public idAlgoAssetclassSecurity: number | null = null;
+  public percentage: number | null = null;
 
   @Type(() => AlgoStrategy)
   public algoStrategyList: AlgoStrategy[];
@@ -15,9 +15,16 @@ export abstract class AlgoTopAssetSecurity extends TenantBaseId {
   }
 
   @Exclude()
-  public getId(): number {
+  public getId(): number | null {
     return this.idAlgoAssetclassSecurity;
   }
 
-  public abstract getChildList(): AlgoTopAssetSecurity[];
+  public abstract getChildList(): AlgoTopAssetSecurity[] | null;
+}
+
+/** Requires the persisted parent of an editor or simulation dialog. */
+export function requireAlgoNodeId(node: AlgoTopAssetSecurity): number {
+  const id = node.idAlgoAssetclassSecurity;
+  if (id == null) throw new Error('This Algo operation requires a persisted hierarchy node.');
+  return id;
 }

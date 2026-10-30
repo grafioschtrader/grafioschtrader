@@ -7,17 +7,17 @@ import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy
 
 export class AlgoSecurity extends AlgoAssetclassSecurity implements AlgoTreeName {
   idAlgoSecurityParent: number;
-  security: Security = null;
+  security: Security | null = null;
   /** Units the tenant holds today; only delivered for the assigned monitoring hierarchy, null without a position. */
-  holdings: number = null;
+  holdings: number | null = null;
 
   @Exclude()
-  getNameByLanguage(language: string): string {
-    return this.security.name + ', ' + this.security.currency;
+  getNameByLanguage(language: string): string | null {
+    return this.security ? this.security.name + ', ' + this.security.currency : null;
   }
 
   @Exclude()
-  getChildList(): AlgoTopAssetSecurity[] {
+  getChildList(): AlgoTopAssetSecurity[] | null {
     return null;
   }
 }

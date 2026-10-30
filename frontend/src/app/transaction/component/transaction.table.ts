@@ -111,7 +111,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
    * @param transaction The transaction from which to extract the security information
    * @returns The security object associated with the transaction
    */
-  getSecurity(transaction: Transaction): Security {
+  getSecurity(transaction: Transaction): Security | undefined {
     return transaction.security;
   }
 
@@ -135,10 +135,11 @@ export abstract class TransactionTable extends TransactionContextMenu {
     super.handleCloseTransactionDialog(processedActionData);
     if (processedActionData.action === ProcessedAction.UPDATED) {
       if (processedActionData.data instanceof Array) {
+        const selected = this.selectedTransaction();
         this.selectedTransaction.set(
           (<Transaction[]>processedActionData.data).find(
-            (newTrans) => newTrans.idTransaction === this.selectedTransaction().idTransaction
-          )
+            (newTrans) => newTrans.idTransaction === selected?.idTransaction
+          ) ?? null
         );
       } else {
         this.selectedTransaction.set(processedActionData.data);
@@ -172,7 +173,9 @@ export abstract class TransactionTable extends TransactionContextMenu {
    */
   protected addCurrencypairToTransaction(transactions: Transaction[], currencypairs: Currencypair[]): Transaction[] {
     const currencypairMap: Map<number, Currencypair> = new Map();
-    currencypairs.forEach((currencypair) => currencypairMap.set(currencypair.idSecuritycurrency, currencypair));
+    currencypairs.forEach((currencypair) => {
+      if (currencypair.idSecuritycurrency != null) currencypairMap.set(currencypair.idSecuritycurrency, currencypair);
+    });
     for (const transaction of transactions) {
       if (transaction.idCurrencypair != null) {
         transaction.currencypair = currencypairMap.get(transaction.idCurrencypair);
@@ -214,7 +217,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
    *
    * @returns The portfolio ID restricting the export, or null for the tenant-wide export
    */
-  protected getExportIdPortfolio(): number {
+  protected getExportIdPortfolio(): number | null | undefined {
     return null;
   }
 

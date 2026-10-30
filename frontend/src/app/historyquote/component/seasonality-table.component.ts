@@ -73,7 +73,7 @@ import {
   imports: [FormsModule, TranslateModule, TableModule]
 })
 export class SeasonalityTableComponent extends TableConfigBase {
-  readonly result = input<SeasonalReturnsResult>(undefined);
+  readonly result = input<SeasonalReturnsResult | null>();
 
   /** A new columns reference re-renders the header and body templates of the OnPush p-table after a rebuild. */
   readonly tableFields = computed(() => {
@@ -132,10 +132,10 @@ export class SeasonalityTableComponent extends TableConfigBase {
     super();
 
     effect(() => {
-      this.result();
+      const result = this.result();
       untracked(() => {
-        if (this.result()) {
-          this.buildColumns();
+        if (result) {
+          this.buildColumns(result);
         }
       });
     });
@@ -147,7 +147,7 @@ export class SeasonalityTableComponent extends TableConfigBase {
   }
 
   /** Diverging background color for a return cell; null for the non-numeric year column. */
-  getBackgroundColor(row: SeasonalYearRow, field: ColumnConfig): string {
+  getBackgroundColor(row: SeasonalYearRow, field: ColumnConfig): string | null {
     const value = this.cellValue(row, field);
     return value == null ? null : this.colorForValue(value, field.field === 'annualReturn');
   }
@@ -164,11 +164,10 @@ export class SeasonalityTableComponent extends TableConfigBase {
     return typeof field.userValue === 'number' ? row.periodReturns[field.userValue] : null;
   }
 
-  private buildColumns(): void {
+  private buildColumns(result: SeasonalReturnsResult): void {
     this.removeAllColumns();
     this.addColumn(DataType.String, 'year', 'YEAR', true, false, { width: 60 });
-    const labels =
-      this.result().periodType === SeasonalPeriodType.MONTHLY ? moment.monthsShort() : ['Q1', 'Q2', 'Q3', 'Q4'];
+    const labels = result.periodType === SeasonalPeriodType.MONTHLY ? moment.monthsShort() : ['Q1', 'Q2', 'Q3', 'Q4'];
     labels.forEach((label, index) => {
       const cc = this.addColumn(DataType.Numeric, 'p' + index, label, true, false, {
         width: 64,

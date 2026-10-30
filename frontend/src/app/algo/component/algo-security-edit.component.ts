@@ -4,6 +4,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { AlgoSecurity } from '../model/algo.security';
 import { TranslateModule } from '@ngx-translate/core';
 import { AlgoSecurityService } from '../service/algo.security.service';
+import { requireAlgoNodeId } from '../model/algo.top.asset.security';
 import { AlgoAssetclass } from '../model/algo.assetclass';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { AlgoAssetclassSecurityBaseEdit } from './algo.assetclass.security.base.edit';
@@ -65,10 +66,10 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
     if (parentAssetclass.name != null && algoCallParam.idWatchlist != null) {
       securitiesObservable = this.securityService.getUnusedSecurityForAlgoCustom(
         algoCallParam.idWatchlist,
-        parentAssetclass.idAlgoAssetclassSecurity
+        requireAlgoNodeId(parentAssetclass)
       );
     } else {
-      securitiesObservable = this.securityService.getUnusedSecurityForAlgo(parentAssetclass.idAlgoAssetclassSecurity);
+      securitiesObservable = this.securityService.getUnusedSecurityForAlgo(requireAlgoNodeId(parentAssetclass));
     }
     const existing = <AlgoSecurity>algoCallParam.thisObject;
     const accountOptionsObservable: Observable<ValueKeyHtmlSelectOptions[]> = this.getAccountOptions(
@@ -87,7 +88,10 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
     ])
       .pipe(this.untilDialogClosed())
       .subscribe((data) => {
-        this.configObject.security.referencedDataObject = [...data[0], ...(existing ? [existing.security] : [])];
+        this.configObject.security.referencedDataObject = [
+          ...data[0],
+          ...(existing?.security ? [existing.security] : [])
+        ];
         const dateFields = {
           activeFromDate: ShowRecordConfigBase.createColumnConfig(
             DataType.DateString,
@@ -132,7 +136,7 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
       Object.assign(algoSecurity, algoCallParam.thisObject);
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(algoSecurity);
-    algoSecurity.idAlgoSecurityParent = (<AlgoAssetclass>algoCallParam.parentObject).idAlgoAssetclassSecurity;
+    algoSecurity.idAlgoSecurityParent = requireAlgoNodeId(algoCallParam.parentObject);
     return algoSecurity;
   }
 }

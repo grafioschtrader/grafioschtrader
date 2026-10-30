@@ -38,14 +38,14 @@ import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.h
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<ConnectorApiKey> implements OnInit {
-  readonly connectorApiKey = input<ConnectorApiKey>(undefined);
-  readonly strn = input<{
+  readonly connectorApiKey = input<ConnectorApiKey | null>();
+  readonly strn = input.required<{
     [id: string]: SubscriptionTypeReadableName;
-  }>(undefined);
-  readonly existingProviders = input<string[]>(undefined);
-  readonly subscriptionTypeOptionsMap = input<{
+  }>();
+  readonly existingProviders = input.required<string[]>();
+  readonly subscriptionTypeOptionsMap = input.required<{
     [providerId: string]: ValueKeyHtmlSelectOptions[];
-  }>(undefined);
+  }>();
 
   constructor() {
     super(

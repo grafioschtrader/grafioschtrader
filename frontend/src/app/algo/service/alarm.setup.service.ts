@@ -51,19 +51,20 @@ export class AlarmSetupService {
   }
 
   showStrategyEdit(securitycurrency: Securitycurrency): void {
+    const id = securitycurrency.idSecuritycurrency;
+    if (id == null) return;
     const algoSecurity: AlgoSecurity = new AlgoSecurity();
     algoSecurity.security = <Security>securitycurrency;
 
     this.algoSecurityService
-      .getAlgoSecurityStrategyImplTypeByIdSecuritycurrency(securitycurrency.idSecuritycurrency)
+      .getAlgoSecurityStrategyImplTypeByIdSecuritycurrency(id)
       .subscribe((assit: AlgoSecurityStrategyImplType) => {
+        const id = assit.algoSecurity.idAlgoAssetclassSecurity;
+        if (id == null) return;
         this.assit = assit;
         const algoStrategyDefinitionForm = new AlgoStrategyDefinitionForm();
         algoStrategyDefinitionForm.unusedAlgoStrategyMap = new Map();
-        algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(
-          assit.algoSecurity.idAlgoAssetclassSecurity,
-          assit.possibleStrategyImplSet
-        );
+        algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(id, assit.possibleStrategyImplSet);
         this.algoCallParam = new AlgoCallParam(assit.algoSecurity, null, algoStrategyDefinitionForm);
         this.visibleDialog = true;
       });
@@ -71,9 +72,10 @@ export class AlarmSetupService {
 
   handleCloseDialog(processedActionData: ProcessedActionData): void {
     this.visibleDialog = false;
-    if (this.assit.wasCreated && processedActionData.action !== ProcessedAction.CREATED) {
+    const id = this.assit.algoSecurity.idAlgoAssetclassSecurity;
+    if (id != null && this.assit.wasCreated && processedActionData.action !== ProcessedAction.CREATED) {
       // An AlgoSecurity was specially created on the backend. As this is not used, it can be deleted again.
-      this.algoSecurityService.deleteEntity(this.assit.algoSecurity.idAlgoAssetclassSecurity).subscribe();
+      this.algoSecurityService.deleteEntity(id).subscribe();
     }
   }
 }

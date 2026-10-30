@@ -22,10 +22,10 @@ export interface ColumnConfig extends BaseFieldDefinition {
   headerKey: string;
 
   /** Actual translated header text populated by translation service */
-  headerTranslated: string;
+  headerTranslated?: string;
 
   /** Translated tooltip text for the column header */
-  headerTooltipTranslated: string;
+  headerTooltipTranslated?: string;
 
   /** Whether this column is currently visible in the display */
   visible: boolean;
@@ -57,7 +57,7 @@ export interface ColumnConfig extends BaseFieldDefinition {
    * @param valueField - The displayed value, as returned by the table's value getter
    * @returns The tooltip text
    */
-  cellTooltipFN?: (dataobject: any, field: ColumnConfig, valueField: any) => string;
+  cellTooltipFN?: (dataobject: any, field: ColumnConfig, valueField: any) => string | null | undefined;
 
   /** Text to append after the header text */
   headerSuffix?: string;
@@ -91,7 +91,7 @@ export interface ColumnConfig extends BaseFieldDefinition {
    * converted to uppercase first, or processed as arrays before translation. For example, enums must be translated
    * into the corresponding language of the user.
    */
-  translateValues: TranslateValue;
+  translateValues?: TranslateValue;
 
   /**
    * Cached mapping of original field values to their translated equivalents.
@@ -169,7 +169,7 @@ export interface ColumnConfig extends BaseFieldDefinition {
    * Visual grouping identifier for organizing related fields.
    * Fields with the same fieldsetName are displayed together with visual separators.
    */
-  fieldsetName: string;
+  fieldsetName?: string;
 
   /** If true this field will be exported when export functionality is available  */
   export?: boolean;
@@ -181,7 +181,14 @@ export interface ColumnConfig extends BaseFieldDefinition {
   userValue: any;
 
   /** Configuration for making this column editable in table editing scenarios */
-  cec: ColumnEditConfig;
+  cec?: ColumnEditConfig;
+}
+
+/** An inline-edit column always has its edit configuration after creation. */
+export type EditableColumnConfig = ColumnConfig & { cec: ColumnEditConfig };
+
+export function isEditableColumn(column: ColumnConfig | undefined): column is EditableColumnConfig {
+  return column?.cec != null;
 }
 
 /**
@@ -198,7 +205,7 @@ export interface OptionalParams {
   fieldValueFN?: (dataobject: any, field: ColumnConfig, valueField: any) => any;
 
   /** Custom function producing the cell's hover text; defaults to the displayed value */
-  cellTooltipFN?: (dataobject: any, field: ColumnConfig, valueField: any) => string;
+  cellTooltipFN?: (dataobject: any, field: ColumnConfig, valueField: any) => string | null | undefined;
 
   /** Text to append after the header text */
   headerSuffix?: string;

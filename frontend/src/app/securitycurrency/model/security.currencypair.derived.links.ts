@@ -24,13 +24,15 @@ export class SecurityCurrencypairDerivedLinks {
   public static getBaseInstrument(
     scdl: SecurityCurrencypairDerivedLinks,
     idLinkSecuritycurrency: number
-  ): Security | CurrencypairWatchlist {
-    let baseInstrument: Security | CurrencypairWatchlist = scdl.securities.find(
+  ): Security | CurrencypairWatchlist | undefined {
+    let baseInstrument: Security | CurrencypairWatchlist | undefined = scdl.securities.find(
       (s) => s.idSecuritycurrency === idLinkSecuritycurrency
     );
     if (!baseInstrument) {
       const currencypair = scdl.currencypairs.find((c) => c.idSecuritycurrency === idLinkSecuritycurrency);
-      baseInstrument = SecurityCurrencypairDerivedLinks.createCurrencypairWatchlist(currencypair);
+      baseInstrument = currencypair
+        ? SecurityCurrencypairDerivedLinks.createCurrencypairWatchlist(currencypair)
+        : undefined;
     }
     return baseInstrument;
   }
@@ -54,7 +56,8 @@ export class SecurityCurrencypairDerivedLinks {
         const currencypair = scdl.currencypairs.find(
           (c) => c.idSecuritycurrency === securityDerivedLink.idLinkSecuritycurrency
         );
-        additionalInstruments[fieldName] = SecurityCurrencypairDerivedLinks.createCurrencypairWatchlist(currencypair);
+        if (currencypair)
+          additionalInstruments[fieldName] = SecurityCurrencypairDerivedLinks.createCurrencypairWatchlist(currencypair);
       }
     });
     return additionalInstruments;

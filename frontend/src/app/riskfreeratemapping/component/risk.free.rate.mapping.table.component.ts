@@ -121,7 +121,7 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
 
     // Column 1: currency dropdown — already-used filter applied per row.
     this.addEditColumnFeqH(DataType.String, 'currency', true, { width: 90 });
-    const currencyCol = this.getColumnConfigByField('currency');
+    const currencyCol = this.requireEditColumnByField('currency');
     currencyCol.cec.optionsProviderFn = (row: RiskFreeRateMapping) => this.getCurrencyOptions(row);
     currencyCol.cec.canEditFn = (row: RiskFreeRateMapping) => !row.idRiskFreeRateMapping;
 
@@ -137,7 +137,7 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
       true,
       { fieldValueFN: this.getInstrumentNameForRow.bind(this) }
     );
-    const instrumentCol = this.getColumnConfigByField('idSecuritycurrency');
+    const instrumentCol = this.requireEditColumnByField('idSecuritycurrency');
     instrumentCol.cec.optionsProviderFn = (row: RiskFreeRateMapping) => this.getInstrumentOptions(row);
     // EditableTableComponent.updateDependentFields clears row.idSecuritycurrency and evicts the cached dropdown
     // options for the row when row.currency changes, so the instrument list re-resolves through optionsProviderFn.

@@ -127,7 +127,7 @@ export class HistoryquoteLegacyComponent extends HistoryquoteTableBase<Historyqu
   private currencypairService: CurrencypairService = inject(CurrencypairService);
   private iconReg: SvgIconRegistryService = inject(SvgIconRegistryService);
 
-  readonly idSecuritycurrency = input<number>(undefined);
+  readonly idSecuritycurrency = input.required<number>();
   readonly showLiveRequested = output<void>();
 
   callParam: HistoryquoteLegacySecurityCurrency;
@@ -225,7 +225,7 @@ export class HistoryquoteLegacyComponent extends HistoryquoteTableBase<Historyqu
     ];
   }
 
-  override resetMenu(entity: HistoryquoteLegacy): void {
+  override resetMenu(entity: HistoryquoteLegacy | null): void {
     const editMenuItems = this.prepareEditMenu(entity) ?? [];
     const specItems = this.createLegacyMenuItems();
     this.publishTableMenu(
@@ -274,14 +274,14 @@ export class HistoryquoteLegacyComponent extends HistoryquoteTableBase<Historyqu
     this.visibleUploadFileDialog.set(true);
   }
 
-  protected prepareCallParam(entity: HistoryquoteLegacy): void {
+  protected prepareCallParam(entity: HistoryquoteLegacy | null): void {
     this.callParam = new HistoryquoteLegacySecurityCurrency(
       plainToClass(HistoryquoteLegacy, entity),
       this.securitycurrency
     );
   }
 
-  protected override getId(entity: HistoryquoteLegacy): number {
+  protected override getId(entity: HistoryquoteLegacy): number | undefined {
     return entity.idHistoryquoteLegacy;
   }
 

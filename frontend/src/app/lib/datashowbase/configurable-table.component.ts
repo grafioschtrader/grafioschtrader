@@ -1098,7 +1098,7 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
   /** Set when the frozen slots changed and the header cells have to be observed anew once rendered */
   private frozenObserveRequired = false;
 
-  private frozenResizeObserver: ResizeObserver = null;
+  private frozenResizeObserver: ResizeObserver | null = null;
 
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
 
@@ -1235,8 +1235,8 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
     }
     this.measureFrozenColumns();
     this.ngZone.runOutsideAngular(() => {
-      this.frozenResizeObserver ??= new ResizeObserver(() => this.measureFrozenColumns());
-      cells.forEach((cell) => this.frozenResizeObserver.observe(cell));
+      const observer = (this.frozenResizeObserver ??= new ResizeObserver(() => this.measureFrozenColumns()));
+      cells.forEach((cell) => observer.observe(cell));
     });
     return true;
   }

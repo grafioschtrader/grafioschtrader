@@ -16,7 +16,7 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
  * selections change, ensuring only valid instrument combinations are available.
  */
 @Directive()
-export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBase<T> {
+export abstract class AssetClassTypeSpecInstrument<T extends object> extends SimpleEntityEditBase<T> {
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
   /** Map of asset class types to their valid special investment instruments */

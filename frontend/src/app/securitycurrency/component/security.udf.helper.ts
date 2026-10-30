@@ -12,10 +12,11 @@ export class SecurityUDFHelper {
    * @param includeEveryUser The definition with user ID 0 can be applied to all users. If true, these are also returned.
    */
   public static getFieldDescriptorInputAndShowExtendedSecurity(
-    assetclass: Assetclass,
+    assetclass: Assetclass | null | undefined,
     includeEveryUser: boolean
   ): FieldDescriptorInputAndShowExtendedSecurity[] {
-    return JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY)).filter(
+    if (!assetclass) return [];
+    return JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY) ?? '[]').filter(
       (fd: FieldDescriptorInputAndShowExtendedSecurity) =>
         (includeEveryUser || (!includeEveryUser && fd.idUser !== 0)) &&
         fd.specialInvestmentInstrumentEnums.indexOf(

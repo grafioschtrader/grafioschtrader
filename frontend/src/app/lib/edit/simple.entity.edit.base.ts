@@ -22,7 +22,7 @@ import { EditHelper } from './edit.helper';
  * @template T - The type of entity being edited
  */
 @Directive()
-export abstract class SimpleEntityEditBase<T> extends SimpleFormEditBase {
+export abstract class SimpleEntityEditBase<T extends object> extends SimpleFormEditBase {
   public translateService: TranslateService = inject(TranslateService);
   public messageToastService: MessageToastService = inject(MessageToastService);
 
@@ -98,8 +98,8 @@ export abstract class SimpleEntityEditBase<T> extends SimpleFormEditBase {
    */
   public copyFormToPublicBusinessObject(
     targetEntity: ProposeTransientTransfer,
-    existingEntity: T,
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
+    existingEntity: T | null | undefined,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined
   ): void {
     EditHelper.copyFormToPublicBusinessObject(
       targetEntity,

@@ -19,7 +19,7 @@ function response(mainCurrency: string, ...currenciesAndClosePrice: CurrenciesAn
   return { mainCurrency, currenciesAndClosePrice };
 }
 
-function series(currencySecurity: string, historyquotes: HistoryquoteDateClose[]): NormalizableQuoteSeries {
+function series(currencySecurity: string | null, historyquotes: HistoryquoteDateClose[]): NormalizableQuoteSeries {
   return { currencySecurity, historyquotes, historyquotesNorm: historyquotes };
 }
 
@@ -115,6 +115,67 @@ describe('ChartCurrencyNormalizer', () => {
   });
 
   describe('date alignment', () => {
+    it('uses only dates with both legs of a cross-currency conversion', () => {
+      const normalizer = new ChartCurrencyNormalizer();
+      normalizer.setCrossRates(
+        response(
+          'CHF',
+          crossRate('USD', 'CHF', rates(0.8)),
+          crossRate('EUR', 'CHF', [
+            { date: THREE_DAYS[0], close: 2 },
+            { date: THREE_DAYS[2], close: 4 }
+          ])
+        )
+      );
+      const usdSeries = series('USD', quotes());
+      normalizer.normalize(usdSeries, 'EUR');
+      expect(usdSeries.historyquotesNorm).toEqual([
+        { date: THREE_DAYS[0], close: 40 },
+        { date: THREE_DAYS[2], close: 80 }
+      ]);
+    });
+
+    it('stops safely when rate history ends before the quote history', () => {
+      const normalizer = new ChartCurrencyNormalizer();
+      normalizer.setCrossRates(response('CHF', crossRate('USD', 'CHF', [{ date: THREE_DAYS[0], close: 0.8 }])));
+      const usdSeries = series('USD', quotes());
+      normalizer.normalize(usdSeries, 'CHF');
+      expect(usdSeries.historyquotesNorm).toEqual([{ date: THREE_DAYS[0], close: 80 }]);
+    });
+
+    it('omits missing rates and zero divisors while retaining a zero quote', () => {
+      const normalizer = new ChartCurrencyNormalizer();
+      normalizer.setCrossRates(
+        response(
+          'CHF',
+          crossRate('CHF', 'USD', [
+            { date: THREE_DAYS[0], close: null },
+            { date: THREE_DAYS[1], close: 0 },
+            { date: THREE_DAYS[2], close: 2 }
+          ])
+        )
+      );
+      const usdSeries = series('USD', [...quotes().slice(0, 2), { date: THREE_DAYS[2], close: 0 }]);
+      normalizer.normalize(usdSeries, 'CHF');
+      expect(usdSeries.historyquotesNorm).toEqual([{ date: THREE_DAYS[2], close: 0 }]);
+    });
+
+    it('returns no converted values for empty or unavailable histories', () => {
+      const normalizer = new ChartCurrencyNormalizer();
+      const usdSeries = series('USD', quotes());
+      normalizer.normalize(usdSeries, 'CHF');
+      expect(usdSeries.historyquotesNorm).toEqual([]);
+      normalizer.setCrossRates(response('CHF', crossRate('USD', 'CHF', [])));
+      normalizer.normalize(usdSeries, 'CHF');
+      expect(usdSeries.historyquotesNorm).toEqual([]);
+      normalizer.setCrossRates(response('CHF', crossRate('USD', 'CHF', rates(0.8))));
+      normalizer.normalize(usdSeries, 'EUR');
+      expect(usdSeries.historyquotesNorm).toEqual([]);
+      const emptySeries = series('USD', []);
+      normalizer.normalize(emptySeries, 'CHF');
+      expect(emptySeries.historyquotesNorm).toEqual([]);
+    });
+
     it('drops quote days that have no exchange rate', () => {
       const normalizer = new ChartCurrencyNormalizer();
       // The rate list is missing 2026-01-06.

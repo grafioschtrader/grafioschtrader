@@ -67,7 +67,7 @@ export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
     if (root === null) {
       return;
     }
-    const q: TreeNode[] = [].concat(root);
+    const q: TreeNode[] = [...root];
     while (q.length !== 0) {
       let n = q.length;
       while (n > 0) {

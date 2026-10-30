@@ -6,7 +6,7 @@ import moment from 'moment';
 import { finalize } from 'rxjs/operators';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
-import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
+import { SimpleDynamicFormBase } from '../../lib/edit/simple.dynamic.form.base';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
@@ -16,7 +16,6 @@ import { DataChangedService } from '../../lib/maintree/service/data.changed.serv
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
-import { SimulationRunResult } from '../model/simulation.run';
 import { SimulationTenantInfo } from '../model/simulation.tenant';
 import { AlgoSimulationRunService } from '../service/algo-simulation-run.service';
 
@@ -54,10 +53,7 @@ import { AlgoSimulationRunService } from '../service/algo-simulation-run.service
   styles: [':host { display: block; max-height: calc(100vh - 140px); overflow-y: auto; }'],
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, YamlEditorComponent]
 })
-export class AlgoSimulationRunStartDynamicDialogComponent
-  extends SimpleDynamicEditBase<SimulationRunResult>
-  implements OnInit
-{
+export class AlgoSimulationRunStartDynamicDialogComponent extends SimpleDynamicFormBase implements OnInit {
   private http: HttpClient = inject(HttpClient);
   private runService: AlgoSimulationRunService = inject(AlgoSimulationRunService);
   private dataChangedService: DataChangedService = inject(DataChangedService);
@@ -66,13 +62,12 @@ export class AlgoSimulationRunStartDynamicDialogComponent
   static readonly DIALOG_WIDTH = 800;
   readonly yamlEditor = viewChild.required(YamlEditorComponent);
   readonly custodyYaml = signal('');
-  readonly custodySchema = signal<object>(undefined);
+  readonly custodySchema = signal<object | undefined>(undefined);
 
   private simulation: SimulationTenantInfo;
 
   constructor() {
-    // No entity service: submit is overridden, because a run is started rather than saved.
-    super(HelpIds.HELP_ALGO_HISTORICAL_RUN, null);
+    super(HelpIds.HELP_ALGO_HISTORICAL_RUN);
   }
 
   ngOnInit(): void {
@@ -107,23 +102,17 @@ export class AlgoSimulationRunStartDynamicDialogComponent
       return;
     }
     if (this.destroyRef.destroyed) return;
-    const request = {
-      endDate: null as string,
+    const request: { endDate: string | null; applyTaxModels: boolean; generateBondCoupons: boolean } = {
+      endDate: null,
       applyTaxModels: false,
-      generateBondCoupons: false,
-      custodyOpeningYaml: null as string
+      generateBondCoupons: false
     };
     this.form().cleanMaskAndTransferValuesToBusinessObject(request);
-    request.custodyOpeningYaml = this.custodyYaml();
+    const endDate = request.endDate;
+    if (endDate == null) return;
     this.configObject.submit.disabled = true;
     this.runService
-      .start(
-        this.simulation.idTenant,
-        request.endDate,
-        request.applyTaxModels,
-        request.generateBondCoupons,
-        request.custodyOpeningYaml
-      )
+      .start(this.simulation.idTenant, endDate, request.applyTaxModels, request.generateBondCoupons, this.custodyYaml())
       .pipe(finalize(() => (this.configObject.submit.disabled = false)))
       .pipe(this.untilDialogClosed())
       .subscribe((run) => {
@@ -131,10 +120,6 @@ export class AlgoSimulationRunStartDynamicDialogComponent
         this.dataChangedService.dataHasChanged(processedActionData);
         this.dynamicDialogRef.close(processedActionData);
       });
-  }
-
-  protected getNewOrExistingInstanceBeforeSave(_value: { [name: string]: any }): SimulationRunResult {
-    return undefined;
   }
 
   /**

@@ -133,7 +133,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
 
   ngOnInit(): void {
     const callParam = this.callParam();
-    const isUpdate = callParam.gtNet && !!callParam?.gtNet.idGtNet;
+    const isUpdate = callParam.gtNet?.idGtNet != null;
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('domainRemoteName', 128, false, {
@@ -455,7 +455,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
   private convertEntityForSave(entity: GTNetEntity): GTNetEntity {
     return {
       idGtNetEntity: entity.idGtNetEntity,
-      idGtNet: entity.idGtNet || this.callParam().gtNet?.idGtNet,
+      idGtNet: entity.idGtNet ?? this.callParam().gtNet?.idGtNet,
       entityKind: typeof entity.entityKind === 'string' ? this.kindNameToValue(entity.entityKind) : entity.entityKind,
       serverState:
         typeof entity.serverState === 'string'

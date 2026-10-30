@@ -73,11 +73,11 @@ export class WatchlistPriceFeedExpandedComponent implements OnInit {
   private panelStateService = inject(WatchlistExpandedPanelStateService);
 
   /** The instrument of the expanded row together with its feed URLs. */
-  readonly position = input<SecuritycurrencyPosition<Security | Currencypair>>(undefined);
+  readonly position = input.required<SecuritycurrencyPosition<Security | Currencypair>>();
   /** Key-value mapping of feed connector IDs to human-readable names. */
   readonly feedConnectorsKV = input<{
     [id: string]: string;
-  }>(undefined);
+  }>({});
 
   /** Value of the panel with the extended instrument and price feed information. */
   readonly PANEL_INFO = 'info';
@@ -91,7 +91,8 @@ export class WatchlistPriceFeedExpandedComponent implements OnInit {
    * Restores the panels the user had open for this instrument. Without an earlier choice both panels stay closed.
    */
   ngOnInit(): void {
-    this.openPanels = this.panelStateService.getOpenPanels(this.position().securitycurrency.idSecuritycurrency);
+    const id = this.position().securitycurrency.idSecuritycurrency;
+    if (id != null) this.openPanels = this.panelStateService.getOpenPanels(id);
   }
 
   /**
@@ -111,6 +112,7 @@ export class WatchlistPriceFeedExpandedComponent implements OnInit {
    */
   onPanelsChange(panels: string | number | string[] | number[]): void {
     this.openPanels = (Array.isArray(panels) ? panels : [panels]).map(String);
-    this.panelStateService.setOpenPanels(this.position().securitycurrency.idSecuritycurrency, this.openPanels);
+    const id = this.position().securitycurrency.idSecuritycurrency;
+    if (id != null) this.panelStateService.setOpenPanels(id, this.openPanels);
   }
 }

@@ -1,7 +1,7 @@
 # Angular 22: Modernisierung des Frontends
 
 **Code baseline:** backend 0.39.2, highest Flyway script `V0_39_2__typed_null_globalparameters.sql`; frontend
-0.39.2 mit `@angular/core` 22.2.3, TypeScript 6.0.3, `@openng/optimus-ui` 2.0.2; Arbeitsbaum vom 29.10.2026.
+0.39.2 mit `@angular/core` 22.2.3, TypeScript 6.0.3, `@openng/optimus-ui` 2.0.2; Arbeitsbaum vom 30.10.2026.
 
 ## 1. Ziel
 
@@ -25,7 +25,7 @@ Leitlinien:
 
 ## 2. Bestandsaufnahme
 
-Erhoben über `src/**/*.ts` und `src/**/*.html` (925 TypeScript-Dateien einschließlich Tests).
+Erhoben über `src/**/*.ts` und `src/**/*.html` (929 TypeScript-Dateien einschließlich Tests).
 
 | Bereich | Heute | Angular-22-Ziel |
 | --- | --- | --- |
@@ -39,9 +39,9 @@ Templates nicht mitgezählt):
 | Option | Fehler |
 | --- | --- |
 | Ohne zusätzliche Option | 0 |
-| `--strictNullChecks` | 1272 (`lib` 213, `transaction` 160, `algo` 111, `shared` 106, `watchlist` 98, Rest < 110 je Modul) |
-| `--strictNullChecks --strictPropertyInitialization` | 2077 |
-| `--strict` | 2077 |
+| `--strictNullChecks` | 667 (`lib` 110, `shared` 101, `tenant` 86, Rest < 100 je Modul) |
+| `--strictNullChecks --strictPropertyInitialization` | 1443 |
+| `--strict` | 1443 |
 
 ## 3. Querschnittsregeln
 
@@ -82,7 +82,7 @@ Regeln, die beide Hosts betreffen, gelten ebenso für `src/grafiosch-host/README
 1. **`strictNullChecks` über einen Zählstand.** Abbau in größeren Paketen mit gemeinsamer Ursache: Verträge in
    Formular- und Tabellenbasisklassen zusammen mit ihren Verbrauchern, DTOs mit den betroffenen Anwendungsmodulen,
    danach die verbleibenden Bereiche nach Fehlerzahl. Wiederkehrende Fehler werden über den zuständigen Basisvertrag
-   behoben; Paketgrenzen folgen diesem Zusammenhang. Bestehende `null`-Initialwerte
+   behoben; Paketgrenzen folgen diesem Zusammenhang; ein Paket soll etwa 100 Diagnosen beseitigen. Bestehende `null`-Initialwerte
    und optionale Eigenschaften bleiben erhalten; ihre Typen und die Verbraucher bilden fehlende Werte ausdrücklich ab.
    Jedes Paket wird mit `npm run check:strict` geprüft; `npm run check:strict -- --update` senkt anschließend die
    Grenzen in `scripts/strict-null-baseline.json`. Die Zählung erfasst den TypeScript-Abhängigkeitsgraphen von
@@ -166,7 +166,7 @@ nach `frontend/CLAUDE.md`. Bis zu dieser Entscheidung gilt die bestehende Regel.
 | Absicherung | Ratchet-Tests in Vitest statt ESLint | Bewährtes Muster im Projekt, läuft mit `npm test`, keine zusätzliche Werkzeugkette |
 | Typisierte Reactive Forms (`FormGroup<T>`) | Keine Umstellung | Die Felder von `dynamic-form` sind erst zur Laufzeit bekannt; ein generischer Typ bringt dort keinen Gewinn. Typisierung kommt, falls überhaupt, mit Signal Forms |
 | Signal Forms | Prototyp in `dynamic-form`, kein Einzeldialog außerhalb | Nur dort zeigt sich, ob Deskriptoren, Layout und Optimus-Felder tragen |
-| `strictNullChecks` | Zählstand pro Verzeichnis statt Umstellung in einem Schritt | 1272 Fehler sind in einem Commit nicht prüfbar |
+| `strictNullChecks` | Zählstand pro Verzeichnis statt Umstellung in einem Schritt | Der Gesamtbestand ist in einem Commit nicht prüfbar |
 | `@defer` | Nur nach Messung | Routen, Dialoge und Plotly sind bereits verzögert geladen |
 | Angular Aria | Für neu gebaute eigene Bedienelemente; kein Umbau bestehender Optimus-Komponenten | GT hat heute kein selbst gebautes Bedienelement, das einem Aria-Muster (Listbox, Combobox, Menü, Tabs, Baum, Grid, Toolbar) entspricht |
 

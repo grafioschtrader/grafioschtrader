@@ -88,7 +88,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
       translateValues: TranslateValue.NORMAL,
       width: 450
     });
-    const comTypeCol = this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE);
+    const comTypeCol = this.requireEditColumnByField(MailSettingForwardVar.MESSAGE_COM_TYPE);
     comTypeCol.cec.canEditFn = (row: MailSettingForward) => !row.idMailSettingForward;
 
     // Configure MESSAGE_TARGET_TYPE column with dependent dropdown
@@ -96,7 +96,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
       translateValues: TranslateValue.NORMAL,
       width: 450
     });
-    const targetTypeCol = this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_TARGET_TYPE);
+    const targetTypeCol = this.requireEditColumnByField(MailSettingForwardVar.MESSAGE_TARGET_TYPE);
     targetTypeCol.cec.dependsOnField = MailSettingForwardVar.MESSAGE_COM_TYPE;
     targetTypeCol.cec.optionsProviderFn = (row: MailSettingForward) => this.getTargetTypeOptions(row);
 
@@ -104,7 +104,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
     this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.ID_USER_DIRECT, false, {
       fieldValueFN: this.getRedirectNickname.bind(this)
     });
-    const redirectCol = this.getColumnConfigByField(MailSettingForwardVar.ID_USER_DIRECT);
+    const redirectCol = this.requireEditColumnByField(MailSettingForwardVar.ID_USER_DIRECT);
     redirectCol.cec.dependsOnField = MailSettingForwardVar.MESSAGE_COM_TYPE;
     redirectCol.cec.optionsProviderFn = (row: MailSettingForward) => this.getRedirectUserOptions(row);
     redirectCol.cec.canEditFn = (row: MailSettingForward) => this.canRedirect(row);
@@ -198,7 +198,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
       (mct) => usedTypes.indexOf(MessageComType[MessageComType[mct as keyof typeof MessageComType]]) === -1
     );
 
-    this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE).cec.valueKeyHtmlOptions =
+    this.requireEditColumnByField(MailSettingForwardVar.MESSAGE_COM_TYPE).cec.valueKeyHtmlOptions =
       SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, MessageComType, availableTypes, false);
   }
 

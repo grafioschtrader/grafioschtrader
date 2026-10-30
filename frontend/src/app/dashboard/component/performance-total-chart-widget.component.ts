@@ -31,10 +31,7 @@ import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
 import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { PerformanceTotalChart, PerformanceTotalChartPoint } from '../model/performance.total.chart';
-
-/** Line colors in a fixed order, the same first two slots the other charts of GT use. */
-const TOTAL_COLOR = '#2a78d6';
-const INVESTED_COLOR = '#eb6834';
+import { performanceTotalChartLayout, performanceTotalChartTraces } from '../model/performance.total.chart.plot';
 
 /**
  * Dashboard card drawing the total value of the client, or of one of its portfolios, next to the invested capital.
@@ -279,76 +276,30 @@ export class PerformanceTotalChartWidgetComponent
     }
   }
 
-  /**
-   * The total value carries the tooltip for both lines, so a reader sees the day, both values and their difference in
-   * one place. Every figure of it is formatted by GT's data types rather than by Plotly, so it reads like the tables.
-   */
+  /** Every figure of the tooltip is formatted by GT's data types rather than by Plotly, so it reads like the tables. */
   private traces(points: PerformanceTotalChartPoint[]): any[] {
-    const x = points.map((p) => p.date);
-    const customdata = points.map((p) => [
-      this.getValueByPath(p, this.dateField),
-      this.formatAmount(p.totalBalanceMC),
-      this.formatAmount(p.investedCapitalMC),
-      this.formatAmount(p.totalBalanceMC - p.investedCapitalMC)
-    ]);
-    return [
+    return performanceTotalChartTraces(
+      points,
       {
-        type: 'scatter',
-        mode: 'lines',
-        name: this.texts['TOTAL_BALANCE'],
-        x,
-        y: points.map((p) => p.totalBalanceMC),
-        line: { color: TOTAL_COLOR, width: 2 },
-        customdata,
-        hovertemplate:
-          '%{customdata[0]}<br>' +
-          `${this.texts['TOTAL_BALANCE']}: %{customdata[1]}<br>` +
-          `${this.texts['INVESTED_CAPITAL']}: %{customdata[2]}<br>` +
-          `${this.texts['DIFFERENCE']}: %{customdata[3]}<extra></extra>`
+        totalBalance: this.texts['TOTAL_BALANCE'],
+        investedCapital: this.texts['INVESTED_CAPITAL'],
+        difference: this.texts['DIFFERENCE']
       },
-      {
-        type: 'scatter',
-        mode: 'lines',
-        name: this.texts['INVESTED_CAPITAL'],
-        x,
-        y: points.map((p) => p.investedCapitalMC),
-        line: { color: INVESTED_COLOR, width: 2, shape: 'hv' },
-        hoverinfo: 'skip'
-      }
-    ];
+      { date: (point) => this.getValueByPath(point, this.dateField), amount: (value) => this.formatAmount(value) }
+    );
   }
 
   private formatAmount(value: number): string {
     return this.getValueByPath({ value }, this.amountField) + ' ' + this.chart().currency;
   }
 
-  /**
-   * Transparent surfaces and the text and border colors of the active theme, read from its CSS variables, so the chart
-   * follows the light as well as the dark theme.
-   */
+  /** The text and border colors of the active theme, read from its CSS variables. */
   private layout(): any {
     const style = getComputedStyle(this.elementRef.nativeElement);
-    const text = style.getPropertyValue('--p-text-color').trim() || '#52514e';
-    const grid = style.getPropertyValue('--p-content-border-color').trim() || '#e1e0d9';
-    return {
-      autosize: true,
-      margin: { l: 8, r: 16, t: 30, b: 8 },
-      paper_bgcolor: 'rgba(0,0,0,0)',
-      plot_bgcolor: 'rgba(0,0,0,0)',
-      font: { color: text },
-      separators: this.gps.getDecimalSymbol() + this.gps.getThousandsSeparatorSymbol(),
-      hovermode: 'x',
-      showlegend: true,
-      legend: { orientation: 'h', x: 0, y: 1.02, yanchor: 'bottom' },
-      xaxis: { type: 'date', gridcolor: grid, linecolor: grid, automargin: true },
-      // Plotly's own tick format, as in the period performance chart: large values are shortened, 200'000 to 200k.
-      // The currency is the axis title, so the ticks stay short.
-      yaxis: {
-        title: { text: this.chart().currency, standoff: 8 },
-        gridcolor: grid,
-        linecolor: grid,
-        automargin: true
-      }
-    };
+    return performanceTotalChartLayout(this.chart(), {
+      textColor: style.getPropertyValue('--p-text-color').trim() || '#52514e',
+      gridColor: style.getPropertyValue('--p-content-border-color').trim() || '#e1e0d9',
+      separators: this.gps.getDecimalSymbol() + this.gps.getThousandsSeparatorSymbol()
+    });
   }
 }

@@ -231,7 +231,7 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
   }
 
   private toggleControl(name: string, enabled: boolean): void {
-    const fc = this.configObject[name].formControl;
+    const fc = requireFormControl(this.configObject[name]);
     if (enabled) {
       fc.enable({ emitEvent: false });
     } else {

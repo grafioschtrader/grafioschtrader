@@ -33,7 +33,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   icon?: string;
 
   /** Output that follows after the input field */
-  fieldSuffix?: string;
+  fieldSuffix?: string | null;
 
   /** Help text to be shown */
   labelHelpText?: string;

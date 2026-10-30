@@ -50,9 +50,9 @@ export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearc
   /** Controls the visibility of the add instrument dialog. */
   readonly visibleAddInstrumentDialog = input<boolean>();
   /** The ID of the watchlist to add instruments to. */
-  readonly idWatchlist = input<number>(undefined);
+  readonly idWatchlist = input.required<number>();
   /** Tenant limits for securities and currencies in the watchlist. */
-  readonly tenantLimits = input<TenantLimit[]>(undefined);
+  readonly tenantLimits = input<TenantLimit[]>();
 
   /** Reference to the child table component that displays search results. */
   readonly waitc = viewChild.required(WatchlistAddInstrumentTableComponent);

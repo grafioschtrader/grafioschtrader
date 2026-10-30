@@ -246,7 +246,7 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   /**
    * Override to build edit menu with security edit option.
    */
-  protected override prepareEditMenu(entity: Security): MenuItem[] | null {
+  protected override prepareEditMenu(entity: Security | null): MenuItem[] | null {
     const menuItems: MenuItem[] = [];
 
     if (entity) {

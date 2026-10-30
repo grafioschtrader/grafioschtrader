@@ -77,7 +77,7 @@ export class UDFMetadataParam {
  */
 export class UDFMetadataGeneralParam extends UDFMetadataParam {
   /** The UDF metadata entity being edited, or null when creating a new entry */
-  uDFMetadataGeneral: UDFMetadataGeneral;
+  uDFMetadataGeneral: UDFMetadataGeneral | null;
 }
 
 /**

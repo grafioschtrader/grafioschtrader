@@ -8,7 +8,7 @@ import { MenuItem } from '@openng/optimus-ui/api';
  */
 export class IndicatorDefinitions {
   defMap = new Map<TaIndicators, IndicatorDefinition>();
-  idSecuritycurrency: number;
+  idSecuritycurrency: number | null = null;
 
   constructor() {
     this.defMap.set(TaIndicators.SMA, new IndicatorDefinition(false));
@@ -81,7 +81,7 @@ export interface TaTraceIndicatorData {
   traceName: string;
   period: number;
   taIndicatorData: TaIndicatorData[];
-  traceIndex: number;
+  traceIndex?: number;
 }
 
 export interface TaFormDefinition {

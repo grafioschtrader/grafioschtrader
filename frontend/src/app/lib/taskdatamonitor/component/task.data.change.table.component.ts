@@ -150,7 +150,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   );
   maxDate: Date = new Date('2099-12-31');
   private readonly additionalData = signal<any>([]);
-  callParam: TaskDataChange;
+  callParam: TaskDataChange | null = null;
   ProgressStateType: typeof ProgressStateType = ProgressStateType;
   readonly visibleFilterDialog = signal(false);
   /** Current task ID filter. Null means no filter (load all). */
@@ -258,7 +258,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     return Math.min((text.match(/\n/g) || '').length + 1, 15);
   }
 
-  override prepareCallParam(entity: TaskDataChange): void {
+  override prepareCallParam(entity: TaskDataChange | null): void {
     this.callParam = entity;
   }
 

@@ -117,7 +117,7 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
 
   readonly visibleDiagnostics = signal(false);
   readonly visibleStrategyDialog = signal(false);
-  readonly algoCallParam = signal<AlgoCallParam>(undefined);
+  readonly algoCallParam = signal<AlgoCallParam | undefined>(undefined);
   algoStrategyDefinitionForm = new AlgoStrategyDefinitionForm();
 
   private algoSecurities: AlgoSecurity[] = [];
@@ -197,7 +197,7 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
     );
     this.selectedNode.set(
       this.treeNodes()
-        .flatMap((node) => [node, ...node.children])
+        .flatMap((node) => [node, ...(node.children ?? [])])
         .find((node) => node.data.nodeKey === selectedKey) ?? null
     );
     if (this.isActivated()) this.resetMenu();
@@ -299,10 +299,11 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
 
   private getEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    if (!this.selectedNode() || !this.canWrite()) {
+    const selected = this.selectedNode();
+    if (!selected || !this.canWrite()) {
       return menuItems;
     }
-    const rowData = this.selectedNode().data;
+    const rowData = selected.data;
     if (rowData.security) {
       this.addStrategyCreateMenu(menuItems, rowData as AlgoSecurity);
       menuItems.push({
@@ -323,25 +324,26 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
   }
 
   private addStrategyCreateMenu(menuItems: MenuItem[], algoSecurity: AlgoSecurity): void {
+    const id = algoSecurity.idAlgoAssetclassSecurity;
+    if (id == null) return;
     const createItem: MenuItem = {
       label: 'CREATE|ALGO_STRATEGY',
       command: () => this.handleAddStrategy(algoSecurity)
     };
     menuItems.push(createItem);
 
-    if (this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.has(algoSecurity.idAlgoAssetclassSecurity)) {
-      createItem.disabled =
-        this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(algoSecurity.idAlgoAssetclassSecurity).length === 0;
+    const unused = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(id);
+    if (unused) {
+      createItem.disabled = unused.length === 0;
     } else {
       createItem.disabled = true;
-      this.replaceAlgoRequest('unused-' + algoSecurity.idAlgoAssetclassSecurity).add(
+      this.replaceAlgoRequest('unused-' + id).add(
         this.algoStrategyService
-          .getUnusedStrategiesForManualAdding(algoSecurity.idAlgoAssetclassSecurity)
+          .getUnusedStrategiesForManualAdding(id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((unused) => {
-            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(algoSecurity.idAlgoAssetclassSecurity, unused);
-            if (this.selectedNode()?.data.idAlgoAssetclassSecurity === algoSecurity.idAlgoAssetclassSecurity)
-              this.resetMenu();
+            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(id, unused);
+            if (this.selectedNode()?.data.idAlgoAssetclassSecurity === id) this.resetMenu();
           })
       );
     }
@@ -385,13 +387,15 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
   }
 
   private handleDeleteSecurity(algoSecurity: AlgoSecurity): void {
+    const id = algoSecurity.idAlgoAssetclassSecurity;
+    if (id == null) return;
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|ALGO_SECURITY',
       () => {
         this.algoSecurityService
-          .deleteEntity(algoSecurity.idAlgoAssetclassSecurity)
+          .deleteEntity(id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(() => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {

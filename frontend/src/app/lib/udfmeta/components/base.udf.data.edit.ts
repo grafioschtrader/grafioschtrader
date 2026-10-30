@@ -29,7 +29,7 @@ export abstract class BaseUDFDataEdit extends SimpleFormEditBase {
   public translateService: TranslateService = inject(TranslateService);
 
   /** Call parameters containing entity information, existing UDF data, and dialog configuration */
-  readonly uDFGeneralCallParam = input<UDFGeneralCallParam>(undefined);
+  readonly uDFGeneralCallParam = input.required<UDFGeneralCallParam>();
 
   /** Name of the primary key field for the entity being edited (e.g., 'idPortfolio', 'idWatchlist') */
   entityKeyName: string;

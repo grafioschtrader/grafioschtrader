@@ -84,7 +84,7 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
 
   public static readonly ENTITY_LIMIT = 'ENTITY_LIMIT';
 
-  readonly user = input<User>(undefined);
+  readonly user = input.required<User>();
   // Master table must be informed about changes thru editing
   readonly dateChanged = output<ProcessedActionData>();
 

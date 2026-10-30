@@ -107,7 +107,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
   };
   private static iconLoadDone = false;
 
-  callParam: User;
+  callParam: User | null = null;
   readonly visibleEditLimitDialog = signal(false);
   readonly visibleChangeEntitiesOwnerDialog = signal(false);
 
@@ -243,7 +243,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
       });
   }
 
-  protected prepareCallParam(entity: User) {
+  protected prepareCallParam(entity: User | null) {
     this.callParam = entity;
   }
 }

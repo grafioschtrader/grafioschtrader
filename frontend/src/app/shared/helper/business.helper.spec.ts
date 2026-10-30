@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { BusinessHelper } from './business.helper';
 import { Currencypair } from '../../entities/currencypair';
 import { TransactionType } from '../types/transaction.type';
+import { Transaction } from '../../entities/transaction';
 
 describe('BusinessHelper.roundNumber', () => {
   it('rounds to 2 decimal places', () => {
@@ -63,6 +64,15 @@ describe('BusinessHelper.getCurrencypairWithSetOfFromAndTo', () => {
 });
 
 describe('BusinessHelper.getTotalAmountFromTransaction', () => {
+  it('keeps an absent amount distinct from a booked zero amount', () => {
+    const transaction = new Transaction();
+    transaction.transactionType = TransactionType[TransactionType.WITHDRAWAL];
+    expect(BusinessHelper.getTotalAmountFromTransaction(transaction)).toBeNull();
+    transaction.cashaccountAmount = undefined;
+    expect(BusinessHelper.getTotalAmountFromTransaction(transaction)).toBeNull();
+    transaction.cashaccountAmount = 0;
+    expect(BusinessHelper.getTotalAmountFromTransaction(transaction)).toBe(-0);
+  });
   it('negates FEE transaction', () => {
     const tx = { cashaccountAmount: 50, transactionType: TransactionType[TransactionType.FEE] } as any;
     expect(BusinessHelper.getTotalAmountFromTransaction(tx)).toBe(-50);

@@ -99,7 +99,9 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
   submittedAtField: ColumnConfig;
   private readonly allocation = computed(() => this.settings()?.allocation);
 
-  readonly settingsResource = httpResource<SimulationRunSettings>(() => this.runService.getSettingsRequest(this.id()));
+  readonly settingsResource = httpResource<SimulationRunSettings | null>(() =>
+    this.runService.getSettingsRequest(this.id())
+  );
   constructor() {
     super();
     this.addNameAndPercentageColumns();
@@ -125,9 +127,8 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
 
     reportResourceErrors(this.settingsResource, this.runService);
     effect(() => {
-      const settings = this.settings();
-      if (settings?.hierarchy)
-        untracked(() => this.buildTree(settings.hierarchy.algoTop, settings.hierarchy.algoAssetclassList));
+      const hierarchy = this.settings()?.hierarchy;
+      if (hierarchy) untracked(() => this.buildTree(hierarchy.algoTop, hierarchy.algoAssetclassList));
     });
   }
 
@@ -146,7 +147,7 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
    * Formats the weight the replay allocated a node with. The column has no property of its own, so the looked-up weight
    * goes through the same formatting as any numeric column.
    */
-  private getUsedPercentage(dataobject: any, field: ColumnConfig, valueField: any): string {
+  private getUsedPercentage(dataobject: any, field: ColumnConfig, valueField: any): string | null {
     const usedPercentage = this.lookupUsedPercentage(dataobject);
     return usedPercentage == null
       ? null
@@ -157,7 +158,7 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
    * Looks up the weight the replay allocated a node with. An excluded instrument, or a class left without a permitted
    * instrument, was recorded with its original weight but received none, so it shows zero.
    */
-  private lookupUsedPercentage(dataobject: any): number {
+  private lookupUsedPercentage(dataobject: any): number | null {
     const a = this.allocation();
     if (!a) {
       return null;

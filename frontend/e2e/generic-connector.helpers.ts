@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { expandTreeNode } from './portfolio.helpers';
 
 /**
  * Shared helpers and typings for 095-create-generic-connector.spec.ts.
@@ -217,10 +218,11 @@ export function enumLabelWithQualifiersRx(labelKeys: string[], qualifierKeys: st
 
 /** Navigates to the Generic Connector base-data view after login and waits for the master view. */
 export async function openGenericConnectorView(page: Page): Promise<void> {
-  // The node lives under the collapsed 'Base Data - ...' root — expand it first (fresh login ⇒ collapsed).
+  // The node lives under the collapsed 'Base Data - ...' root — expand it first (fresh login ⇒ collapsed). Use the
+  // toggle button, not a double click: selecting the root routes to its propose-change tab menu, whose redirect to the
+  // default tab can arrive after the click below and cancel the navigation to the connector view.
   const baseDataNode = page.locator('.p-tree-node-content', { hasText: /(Base Data|Basisdaten)/i }).first();
-  await baseDataNode.waitFor({ state: 'visible', timeout: 15_000 });
-  await baseDataNode.dblclick();
+  await expandTreeNode(baseDataNode.locator('..'));
 
   const treeNode = page
     .locator('.p-tree-node-content', {

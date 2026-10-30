@@ -4,10 +4,10 @@ import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.he
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
+import { SimpleDynamicFormBase } from '../../lib/edit/simple.dynamic.form.base';
 import { TenantService } from '../../tenant/service/tenant.service';
+import { requireAlgoNodeId } from '../model/algo.top.asset.security';
 import { AlgoTop } from '../model/algo.top';
-import { Tenant } from '../../entities/tenant';
 import { Cashaccount } from '../../entities/cashaccount';
 import moment from 'moment';
 import {
@@ -95,7 +95,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   `,
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule, FormsModule]
 })
-export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEditBase<Tenant> implements OnInit {
+export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicFormBase implements OnInit {
   private tenantService: TenantService = inject(TenantService);
 
   private readonly pendingReads = new Map<string, Subscription>();
@@ -116,15 +116,15 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEdi
   callParam: CallParam;
   private algoTop: AlgoTop;
   cashAccounts: Cashaccount[] = [];
-  readonly preview = signal<SimulationPreviewDto>(undefined);
+  readonly preview = signal<SimulationPreviewDto | undefined>(undefined);
   assignments: { [key: string]: number } = {};
   /** What the price data of the instruments allows, shown above the form. It never prevents a save. */
   readonly dataNotes = signal<string[]>([]);
   /** Localized first creation day when the fixed opening date is not yet a completed day. */
-  readonly creationAvailableFrom = signal<string>(undefined);
+  readonly creationAvailableFrom = signal<string | undefined>(undefined);
   /** True while manual cash is chosen; only then are the balance fields and their explanation shown. */
   readonly manualCash = signal(false);
-  private previewSignature: string;
+  private previewSignature?: string;
   /** Currency-aware formatting of the previewed opening balances, as required for every displayed value. */
   private readonly balanceField = ShowRecordConfigBase.createColumnConfig(
     DataType.Numeric,
@@ -136,7 +136,7 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEdi
   );
 
   constructor() {
-    super(HelpIds.HELP_ALGO_TREE, inject(TenantService));
+    super(HelpIds.HELP_ALGO_TREE);
   }
 
   ngOnInit(): void {
@@ -237,7 +237,7 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEdi
     const openingDate = date instanceof Date ? moment(date).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) : undefined;
     this.replaceAlgoRequest('bounds').add(
       this.tenantService
-        .getSimulationDateBounds(this.algoTop.idAlgoAssetclassSecurity, openingDate)
+        .getSimulationDateBounds(requireAlgoNodeId(this.algoTop), openingDate)
         .pipe(this.untilDialogClosed())
         .subscribe({
           next: (bounds) => {
@@ -274,17 +274,24 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEdi
     if (this.creationAvailableFrom()) {
       return;
     }
-    const dto: SimulationTenantCreateDTO = {
-      idAlgoTop: this.algoTop.idAlgoAssetclassSecurity,
+    const draft: Omit<SimulationTenantCreateDTO, 'simulationStartDate' | 'initializationMode'> & {
+      simulationStartDate: string | null;
+      initializationMode: SimulationInitializationMode | null;
+    } = {
+      idAlgoTop: requireAlgoNodeId(this.algoTop),
       tenantName: '',
       simulationStartDate: null,
       initializationMode: null
     };
     // Reads individual controls, including the disabled portfolio-derived opening date.
-    this.form().cleanMaskAndTransferValuesToBusinessObject(dto);
-    dto.idAlgoTop = this.algoTop.idAlgoAssetclassSecurity;
-    dto.tenantName = value.tenantName;
-    dto.initializationMode = value.initializationMode;
+    this.form().cleanMaskAndTransferValuesToBusinessObject(draft);
+    draft.idAlgoTop = requireAlgoNodeId(this.algoTop);
+    draft.tenantName = value.tenantName;
+    draft.initializationMode = value.initializationMode;
+    const simulationStartDate = draft.simulationStartDate;
+    const initializationMode = draft.initializationMode;
+    if (simulationStartDate == null || initializationMode == null) return;
+    const dto: SimulationTenantCreateDTO = { ...draft, simulationStartDate, initializationMode };
     if (dto.initializationMode === SimulationInitializationMode.MANUAL_CASH) {
       // A blank field leaves the account out of the environment, while 0 takes it over without money.
       dto.cashBalances = {};
@@ -348,10 +355,6 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicEdi
       this.balanceField,
       this.balanceField.field
     );
-  }
-
-  protected getNewOrExistingInstanceBeforeSave(value: { [p: string]: any }): Tenant {
-    return undefined;
   }
 
   private toggleCashBalanceFields(enabled: boolean): void {

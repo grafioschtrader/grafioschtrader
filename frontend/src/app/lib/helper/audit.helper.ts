@@ -318,7 +318,7 @@ export class AuditHelper {
   public static copyProposeChangeEntityToEntityAfterEdit(
     formBase: FormBase,
     targetEntity: ProposeTransientTransfer,
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined
   ): void {
     if (proposeChangeEntityWithEntity) {
       targetEntity.idProposeRequest = proposeChangeEntityWithEntity.proposeChangeEntity.idProposeRequest;

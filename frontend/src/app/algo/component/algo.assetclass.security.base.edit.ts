@@ -19,10 +19,10 @@ import { SecurityaccountService } from '../../securityaccount/service/securityac
  * except the one chosen as first priority.
  */
 @Directive()
-export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEditBase<T> {
+export abstract class AlgoAssetclassSecurityBaseEdit<T extends object> extends SimpleEntityEditBase<T> {
   protected securityaccountService: SecurityaccountService = inject(SecurityaccountService);
 
-  readonly algoCallParam = input<AlgoCallParam>(undefined);
+  readonly algoCallParam = input.required<AlgoCallParam>();
 
   protected securityaccount1ChangedSub: Subscription;
   /** The security accounts allowed for the instrument type currently selected in the dialog. */
@@ -103,7 +103,7 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
   private clearIfNotOffered(fieldName: string): void {
     const fc = this.configObject[fieldName];
     const value = requireFormControl(fc).value;
-    if (value != null && value !== '' && !fc.valueKeyHtmlOptions.some((o) => o.key === +value)) {
+    if (value != null && value !== '' && !(fc.valueKeyHtmlOptions ?? []).some((o) => o.key === +value)) {
       requireFormControl(fc).setValue(null);
     }
   }

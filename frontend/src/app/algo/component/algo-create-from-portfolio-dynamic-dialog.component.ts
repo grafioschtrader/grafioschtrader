@@ -1,8 +1,7 @@
 import { afterNextRender, inject, Injector, Component, OnInit } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
+import { SimpleDynamicFormBase } from '../../lib/edit/simple.dynamic.form.base';
 import { AlgoTopService } from '../service/algo.top.service';
-import { AlgoTop } from '../model/algo.top';
 import { AlgoTopCreateFromPortfolio } from '../../entities/backend/algo.top.create';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -31,7 +30,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   `,
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class AlgoCreateFromPortfolioDynamicDialogComponent extends SimpleDynamicEditBase<AlgoTop> implements OnInit {
+export class AlgoCreateFromPortfolioDynamicDialogComponent extends SimpleDynamicFormBase implements OnInit {
   private algoTopService: AlgoTopService = inject(AlgoTopService);
 
   static readonly DIALOG_WIDTH = 500;
@@ -40,7 +39,7 @@ export class AlgoCreateFromPortfolioDynamicDialogComponent extends SimpleDynamic
   private dto: AlgoTopCreateFromPortfolio;
 
   constructor() {
-    super(HelpIds.HELP_ALGO_TREE, inject(AlgoTopService));
+    super(HelpIds.HELP_ALGO_TREE);
   }
 
   ngOnInit(): void {
@@ -79,9 +78,5 @@ export class AlgoCreateFromPortfolioDynamicDialogComponent extends SimpleDynamic
         },
         error: () => (this.configObject.submit.disabled = false)
       });
-  }
-
-  protected getNewOrExistingInstanceBeforeSave(value: { [p: string]: any }): AlgoTop {
-    return undefined;
   }
 }

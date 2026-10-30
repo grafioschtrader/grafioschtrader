@@ -96,9 +96,9 @@ export class UDFMetadataHelper {
    * @static
    */
   public static getFieldDescriptorByEntity(entityName: string): FieldDescriptorInputAndShowExtended[] {
-    return JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)).filter(
-      (fd: { entity: string }) => fd.entity === entityName
-    );
+    const stored = sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL);
+    if (stored == null) throw new Error('UDF field descriptors have not been loaded for this session.');
+    return JSON.parse(stored).filter((fd: { entity: string }) => fd.entity === entityName);
   }
 
   /**
@@ -122,7 +122,7 @@ export class UDFMetadataHelper {
       [name: string]: FieldConfig;
     },
     excludeUiOrders: number[],
-    businessObject: UDFMetadata,
+    businessObject: UDFMetadata | null,
     configDataTypeFields: FieldConfig[],
     lifetime: MonoTypeOperatorFunction<any>
   ): void {
@@ -131,8 +131,7 @@ export class UDFMetadataHelper {
       99,
       excludeUiOrders
     );
-    requireFormControl(configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP])
-      .get([UDFMetadataHelper.UDF_DATA_TYPE])
+    requireFormControl(configObject[UDFMetadataHelper.UDF_DATA_TYPE])
       .valueChanges.pipe(lifetime)
       .subscribe((udt) =>
         UDFMetadataHelper.enableDisableFileSize(translateService, configObject, configDataTypeFields, udt)
@@ -178,9 +177,7 @@ export class UDFMetadataHelper {
     configDataTypeFields: FieldConfig[],
     udt: string
   ): void {
-    const controlFieldSize = requireFormControl(configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP]).get([
-      UDFMetadataHelper.FIELD_SIZE
-    ]);
+    const controlFieldSize = requireFormControl(configObject[UDFMetadataHelper.FIELD_SIZE]);
     if (
       udt === UDFDataType[UDFDataType.UDF_DateTimeNumeric] ||
       udt === UDFDataType[UDFDataType.UDF_DateString] ||

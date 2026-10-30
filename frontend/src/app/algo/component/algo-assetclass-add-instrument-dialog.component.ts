@@ -41,7 +41,7 @@ export class AlgoAssetclassAddInstrumentDialogComponent extends Securitycurrency
   readonly visibleDialog = input<boolean>();
 
   /** The custom category the selected instruments are added to. */
-  readonly idAlgoAssetclassSecurity = input<number>(undefined);
+  readonly idAlgoAssetclassSecurity = input.required<number>();
 
   readonly aaaitc = viewChild.required(AlgoAssetclassAddInstrumentTableComponent);
 

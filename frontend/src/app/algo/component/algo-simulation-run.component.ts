@@ -23,7 +23,7 @@ import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { SliderModule } from '@openng/optimus-ui/slider';
 import moment from 'moment';
-import { forkJoin, Subject, Subscription, switchMap } from 'rxjs';
+import { EMPTY, forkJoin, Subject, Subscription, switchMap } from 'rxjs';
 import { debounceTime, finalize } from 'rxjs/operators';
 import { MainTreeDynamicDialogs } from '../../dynamic-dialog/component/main.tree.dynamic.dialogs';
 import { BaseSettings } from '../../lib/base.settings';
@@ -275,31 +275,32 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
 
   /** The environment the run belongs to. Its own record, so it is not part of the grouped fields of the run. */
   contextFields: ColumnConfig[] = [];
-  readonly simulation = signal<SimulationTenantInfo>(undefined);
-  readonly run = signal<SimulationRunResult>(undefined);
+  readonly simulation = signal<SimulationTenantInfo | undefined>(undefined);
+  readonly run = signal<SimulationRunResult | null | undefined>(undefined);
   readonly failureMessage = computed(() => splitSimulationFailureMessage(this.run()?.failureMessage));
   readonly events = signal<SimulationRunEvent[]>([]);
   /** Entries the run wrote in total; more than the loaded window holds when the trail is long. */
   readonly eventTotal = signal(0);
   /** Position of the slider in days after the opening date of the run. */
-  readonly anchorOffset = signal<number>(undefined);
+  readonly anchorOffset = signal<number | undefined>(undefined);
   /** Interpolation values of the text that names the loaded period and its share of the trail. */
   readonly windowParams = signal<{ [key: string]: string }>({});
   /** Fires on each release or key stroke of the slider; debounced, because the keyboard has no end of a slide. */
   readonly anchorMoved$ = new Subject<void>();
   readonly conventions = computed(() => this.run()?.conventions?.split(' ').filter(Boolean) ?? []);
-  readonly incomeSummary = computed(() =>
-    this.run()?.taxIncomeSummaryJson ? JSON.parse(this.run().taxIncomeSummaryJson) : null
-  );
+  readonly incomeSummary = computed(() => {
+    const summary = this.run()?.taxIncomeSummaryJson;
+    return summary ? JSON.parse(summary) : null;
+  });
   readonly contextMenuItems = signal<MenuItem[]>([]);
   readonly busy = signal(false);
   readonly notFound = signal(false);
   private idTenant: number;
-  private poll: ReturnType<typeof setTimeout>;
+  private poll?: ReturnType<typeof setTimeout>;
   /** When the current polling began; decides between the fast and the slow interval. */
-  private pollStartedAt: number;
+  private pollStartedAt?: number;
   /** Running state of the previously applied run, undefined before the first one, to detect a start or an end. */
-  private wasRunning: boolean;
+  private wasRunning?: boolean;
   private dataChangedSubscribe: Subscription;
   private anchorSubscribe: Subscription;
   /** Answers the chart outlet when it asks for the equity curve, which happens each time it is opened. */
@@ -307,7 +308,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   /** The equity curve last loaded for the chart, kept so that a reopened chart can be served without a request. */
   private equityCurve: SimulationRunEquityPoint[] = [];
   /** Day in 'YYYY-MM-DD' the loaded window is centred on; undefined for the end of the run. */
-  private anchorDate: string;
+  private anchorDate?: string;
   /** Formats the dates and counts of the window text the same way the table formats its values. */
   private readonly windowDateField = ShowRecordConfigBase.createColumnConfig(DataType.DateString, 'value', 'DATE');
   private readonly windowCountField = ShowRecordConfigBase.createColumnConfig(
@@ -346,7 +347,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
           this.updateMenu();
           return;
         }
-        this.initContextFields();
+        this.initContextFields(simulation);
         this.initRunFields();
         this.refresh();
       });
@@ -387,7 +388,8 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
 
   /** Length of the run in calendar days, the range of the slider. */
   get runDays(): number {
-    return this.run() ? moment(this.run().endDate).diff(moment(this.run().openingDate), 'days') : 0;
+    const run = this.run();
+    return run ? moment(run.endDate).diff(moment(run.openingDate), 'days') : 0;
   }
 
   /** The day the slider points at, formatted as it would be in the table, while it is still being dragged. */
@@ -492,19 +494,24 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    * to be at hand before the dialog renders, because the dialog builds its form synchronously.
    */
   private openStartDialog(): void {
+    const simulation = this.simulation();
+    if (!simulation) return;
     AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'SIMULATION_RUN_CONFIRM', () => {
+      if (this.simulation()?.idTenant !== simulation.idTenant) return;
       this.replaceAlgoRequest('start-dialog').add(
         this.gps
           .getEntityFormDefinition('SimulationRunRequestDTO')
           .pipe(
             switchMap((formDefinition) =>
-              MainTreeDynamicDialogs.getEditDialogComponent(
-                AlgoSimulationRunStartDynamicDialogComponent,
-                this.translateService,
-                this.dialogService,
-                new CallParam({ formDefinition } as any, this.simulation() as any),
-                'SIMULATION_RUN'
-              )
+              this.simulation()?.idTenant !== simulation.idTenant
+                ? EMPTY
+                : MainTreeDynamicDialogs.getEditDialogComponent(
+                    AlgoSimulationRunStartDynamicDialogComponent,
+                    this.translateService,
+                    this.dialogService,
+                    new CallParam({ formDefinition } as any, simulation as any),
+                    'SIMULATION_RUN'
+                  )
             ),
             takeUntilDestroyed(this.destroyRef)
           )
@@ -592,12 +599,13 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
 
   private getEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    if (this.simulation() && this.mayStart) {
+    const simulation = this.simulation();
+    if (simulation && this.mayStart) {
       menuItems.push({
         label: 'SIMULATION_RUN_START' + BaseSettings.DIALOG_MENU_SUFFIX,
         // The strategy is shared with the main tenant; a replay it cannot run is refused, so it is not offered.
-        disabled: this.running || this.recreateRequired || !!this.simulation().replayBlockedReason,
-        title: this.simulation().replayBlockedReason ?? undefined,
+        disabled: this.running || this.recreateRequired || !!simulation.replayBlockedReason,
+        title: simulation.replayBlockedReason ?? undefined,
         command: () => this.openStartDialog()
       });
     }
@@ -618,10 +626,10 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    * Takes over a freshly read run. The audit trail grows with every replayed day but is only read when asked for or
    * when the run starts or ends; reading it on every poll would double the requests against the request limit.
    *
-   * @param run - the run as reported by the server, undefined when the environment was never replayed
+   * @param run - the run as reported by the server, null when the environment was never replayed
    * @param loadEvents - whether the audit trail is reloaded even though the running state did not change
    */
-  private apply(run: SimulationRunResult, loadEvents: boolean): void {
+  private apply(run: SimulationRunResult | null, loadEvents: boolean): void {
     this.run.set(run);
     const runningChanged = this.wasRunning !== this.running;
     this.wasRunning = this.running;
@@ -648,8 +656,10 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    * carry, so the server returns a bounded window and the total, and the slider in the table header moves the window.
    */
   private loadEventWindow(): void {
+    const run = this.run();
+    if (!run) return;
     this.anchorOffset.set(
-      this.anchorDate ? moment(this.anchorDate).diff(moment(this.run().openingDate), 'days') : this.runDays
+      this.anchorDate ? moment(this.anchorDate).diff(moment(run.openingDate), 'days') : this.runDays
     );
     this.replaceAlgoRequest('events').add(
       this.runService
@@ -670,18 +680,20 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
 
   /** Loads the window of the day the slider was released on, unless it is the one already shown. */
   private onAnchorMoved(): void {
+    const run = this.run();
     const anchorDate = this.offsetToDate(this.anchorOffset());
-    if (this.run() && anchorDate !== (this.anchorDate ?? this.run().endDate)) {
+    if (run && anchorDate != null && anchorDate !== (this.anchorDate ?? run.endDate)) {
       this.anchorDate = anchorDate;
       this.loadEventWindow();
     }
   }
 
-  private offsetToDate(offset: number): string {
-    return this.run() ? moment(this.run().openingDate).add(offset, 'days').format('YYYY-MM-DD') : null;
+  private offsetToDate(offset: number | undefined): string | null {
+    const run = this.run();
+    return run && offset != null ? moment(run.openingDate).add(offset, 'days').format('YYYY-MM-DD') : null;
   }
 
-  private formatWindowValue(field: ColumnConfig, value: string | number): string {
+  private formatWindowValue(field: ColumnConfig, value: string | number | null | undefined): string {
     return value == null ? '' : this.getValueByPath({ value }, field);
   }
 
@@ -702,7 +714,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    * The environment the replay runs against, read only: a run may choose its end date alone, so the opening date it
    * starts from and the opening policy it was established under have to be visible rather than remembered.
    */
-  private initContextFields(): void {
+  private initContextFields(simulation: SimulationTenantInfo): void {
     this.contextFields = [];
     this.addColumnToFields(this.contextFields, DataType.String, 'tenantName', 'NAME');
     this.addColumnToFields(this.contextFields, DataType.DateString, 'simulationStartDate', 'SIMULATION_START_DATE');
@@ -719,7 +731,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
       this.contextFields.map((field) => field.headerKey),
       this.contextFields
     );
-    TranslateHelper.createTranslatedValueStore(this.translateService, this.contextFields, [this.simulation()]);
+    TranslateHelper.createTranslatedValueStore(this.translateService, this.contextFields, [simulation]);
   }
 
   /** Converts the raw ratio before locale formatting; the callback's third argument is already formatted text. */

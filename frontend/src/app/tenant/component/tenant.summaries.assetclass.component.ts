@@ -262,7 +262,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     const readiness = algoTop.readiness;
     const blocked = !!readiness && !readiness.readyForRebalancing;
     return {
-      label: algoTop.name,
+      label: algoTop.name ?? undefined,
       value: algoTop.idAlgoAssetclassSecurity,
       disabled: blocked,
       title: blocked ? readiness.issues[0]?.message : undefined

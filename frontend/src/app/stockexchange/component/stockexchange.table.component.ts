@@ -205,7 +205,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     this.countriesAsKeyValue = StockexchangeHelper.transform(vkhso);
   }
 
-  protected override getEditMenuItems(entity: Stockexchange): MenuItem[] {
+  protected override getEditMenuItems(entity: Stockexchange | null): MenuItem[] {
     const menuItems = super.getEditMenuItems(entity);
     menuItems.push({ separator: true });
     menuItems.push({
@@ -218,8 +218,9 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     return menuItems;
   }
 
-  protected override prepareCallParam(entity: Stockexchange) {
-    this.callParam.hasSecurity = entity && this.hasSecurityObject[this.getId(entity)] !== 0;
+  protected override prepareCallParam(entity: Stockexchange | null) {
+    const id = entity == null ? null : this.getId(entity);
+    this.callParam.hasSecurity = typeof id === 'number' && this.hasSecurityObject[id] !== 0;
     this.callParam.stockexchange = entity;
     this.callParam.stockexchangeMics = this.stockexchangeMics;
     this.callParam.existingMic = new Set(

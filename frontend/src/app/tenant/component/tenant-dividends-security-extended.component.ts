@@ -480,7 +480,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
    * @param valueField the raw value resolved from the field path (unused)
    * @returns the registered SVG icon name for the security's product type
    */
-  getInstrumentIcon(sdp: SecurityDividendsPosition, field: ColumnConfig, valueField: any): string {
+  getInstrumentIcon(sdp: SecurityDividendsPosition, field: ColumnConfig, valueField: any): string | null | undefined {
     return this.productIconService.getIconForInstrument(sdp.security, null);
   }
 

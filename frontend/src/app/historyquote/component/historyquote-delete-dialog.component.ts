@@ -61,10 +61,10 @@ export class HistoryquoteDeleteDialogComponent extends SimpleFormEditBase implem
   private historyquoteService: HistoryquoteService = inject(HistoryquoteService);
   private messageToastService: MessageToastService = inject(MessageToastService);
 
-  readonly idSecuritycurrency = input<number>(undefined);
-  readonly historyquoteQuality = input<IHistoryquoteQuality>(undefined);
+  readonly idSecuritycurrency = input.required<number>();
+  readonly historyquoteQuality = input.required<IHistoryquoteQuality>();
   /** Oldest and most recent stored price, loaded by the opener before this dialog is created. */
-  readonly deleteBounds = input<HistoryquoteDeleteBounds>(undefined);
+  readonly deleteBounds = input.required<HistoryquoteDeleteBounds>();
 
   readonly dateFrom = 'dateFrom';
   readonly dateTo = 'dateTo';
@@ -107,7 +107,7 @@ export class HistoryquoteDeleteDialogComponent extends SimpleFormEditBase implem
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  submit(value: { [name: string]: any }): void {
+  submit(value: unknown): void {
     this.configObject.execute.disabled = true;
     const hct: HistoryquoteCreateType[] = [];
     this.fieldCreatTypes.forEach((fct) => {
@@ -155,8 +155,11 @@ export class HistoryquoteDeleteDialogComponent extends SimpleFormEditBase implem
     requireFormControl(this.configObject[this.dateFrom])
       .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((dateFrom) => {
-        this.configObject[this.dateTo].calendarConfig.minDate = dateFrom;
-        const dateToControl = this.configObject[this.dateTo].formControl;
+        this.configObject[this.dateTo].calendarConfig = {
+          ...this.configObject[this.dateTo].calendarConfig,
+          minDate: dateFrom
+        };
+        const dateToControl = requireFormControl(this.configObject[this.dateTo]);
         if (dateFrom && dateToControl.value && dateToControl.value < dateFrom) {
           dateToControl.setValue(dateFrom);
         }
@@ -164,8 +167,11 @@ export class HistoryquoteDeleteDialogComponent extends SimpleFormEditBase implem
     requireFormControl(this.configObject[this.dateTo])
       .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((dateTo) => {
-        this.configObject[this.dateFrom].calendarConfig.maxDate = dateTo;
-        const dateFromControl = this.configObject[this.dateFrom].formControl;
+        this.configObject[this.dateFrom].calendarConfig = {
+          ...this.configObject[this.dateFrom].calendarConfig,
+          maxDate: dateTo
+        };
+        const dateFromControl = requireFormControl(this.configObject[this.dateFrom]);
         if (dateTo && dateFromControl.value && dateFromControl.value > dateTo) {
           dateFromControl.setValue(dateTo);
         }

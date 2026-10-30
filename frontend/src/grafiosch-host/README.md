@@ -60,6 +60,8 @@ Both hosts share the type-checking baseline in `tsconfig.json`: `noImplicitAny`,
 that the test configuration inherits these options. Use typed callbacks and JSON dictionaries, `keyof T` for entity
 keys and `PanelClickEvent` for native panel clicks. Keep the library independent of application models when adding
 types. `npx tsc -p tsconfig.spec.json --noEmit` checks the test sources in addition to both host builds.
+Column header tooltips are optional, and cell-tooltip callbacks can return null/undefined for no tooltip.
+`SingleRecordConfigBase` accepts null when a derived view invalidates its field-group cache and rebuilds it on demand.
 HTTP calls declare their response body types; an error handler that only rethrows returns `Observable<never>`.
 Login supplies `HttpResponse<ConfigurationWithLogin>` with the token header and configuration body.
 Validators accept `AbstractControl`; generic event handlers keep the concrete event type supplied by the host.
@@ -79,7 +81,9 @@ Field definitions keep optional controls until the dynamic form is built. Both h
 for required accesses after initialization; it checks the lifecycle precondition and retains the control/group type.
 Optional fields keep guarded accesses, and buttons receive no automatically created control.
 Editors with an unconditional form use `SimpleFormEditBase`; `SimpleEntityEditBase` inherits that contract, and
-`SimpleDynamicEditBase` requires its form too. Conditional form dialogs retain `SimpleEditBase` and optional queries.
+`SimpleDynamicFormBase` requires its form too. Dynamic actions implement its `submit` with no entity service or unused
+save hook; `SimpleDynamicEditBase<T>` adds the entity-save flow with its required service and entity construction.
+Both share the injected dialog context and session. Conditional form dialogs retain `SimpleEditBase` and optional queries.
 The required-query ratchet checks unconditional targets in every concrete descendant, including this host.
 Signals with a null initial/cleared state include null in their types. Guard a captured value before using a selected
 record or loaded result; master/detail child views accept a null parent to clear their rows. Confirmation callbacks
@@ -100,6 +104,18 @@ Guard keys before enum indexing or numeric conversion; zero is a valid key. Enti
 GTNet broadcast targets and new-message reply ids remain nullable; multi-target requests retain their checked targets.
 Audit proposal projection applies explicit null/zero changes; an absent proposal returns undefined and an absent
 custom ownership check grants no rights.
+CRUD creation and cleared-selection menus accept null; existing entity data stays nullable through dialog parameters
+and form copying. Copy helpers require object targets. General columns keep `cec` and display metadata optional;
+inline column creation returns `EditableColumnConfig` with its edit configuration. Lookups may return undefined, while
+`requireColumnConfigByField`/`requireEditColumnByField` check columns that must already have been configured.
+Required dialog configurations use required inputs; a new entity still has no existing DTO. UDF fields access their
+flattened controls after initialization, and missing session configuration or unsupported descriptors raise named
+initialization/configuration errors. Optional percentage suffixes stay nullable. GTNet reply trees use
+`buildGTNetMessageTree`, preserving orphaned/self-referencing messages at root level and ignoring unsaved messages.
+The shared CRUD table's `getId` returns a number/string key or null/undefined for unsaved rows. Numeric reference-count
+tables narrow that key before indexing; `TwoKeyMap.get` declares null for a missing key.
+`initializeChartTrace` guarantees initialized coordinate arrays; its optional Plotly properties stay optional.
+Single-record field-group caches can be unset and are rebuilt by their accessor.
 
 This is the concrete answer to "what does an application built on `lib` have to bring along?". Everything else comes
 from the library.

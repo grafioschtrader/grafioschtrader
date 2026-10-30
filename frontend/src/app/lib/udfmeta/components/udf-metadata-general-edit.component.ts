@@ -46,7 +46,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 })
 export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMetadataGeneral> implements OnInit {
   /** Parameters containing UDF metadata to edit and validation exclusion lists */
-  readonly callParam = input<UDFMetadataGeneralParam>(undefined);
+  readonly callParam = input.required<UDFMetadataGeneralParam>();
 
   /** Field configurations for data type and field size inputs */
   private configDataTypeFields: FieldConfig[];
@@ -73,7 +73,9 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
     this.configDataTypeFields = UDFMetadataHelper.createDataTypeFields();
-    this.udfConfig = JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_CONFIG));
+    const stored = sessionStorage.getItem(GlobalSessionNames.UDF_CONFIG);
+    if (stored == null) throw new Error('UDF configuration has not been loaded for this session.');
+    this.udfConfig = JSON.parse(stored);
 
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('entity', true),
@@ -118,9 +120,9 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
    * @private
    */
   private initializeInformationEntity(): void {
-    if (this.configObject.entity.valueKeyHtmlOptions.length == 1 || this.callParam().uDFMetadataGeneral) {
-      this.configObject.entity.valueKeyHtmlOptions.length == 1 &&
-        requireFormControl(this.configObject.entity).setValue(this.configObject.entity.valueKeyHtmlOptions[0].key);
+    const options = this.configObject.entity.valueKeyHtmlOptions;
+    if (options?.length === 1 || this.callParam().uDFMetadataGeneral) {
+      options?.length === 1 && requireFormControl(this.configObject.entity).setValue(options[0].key);
       requireFormControl(this.configObject.entity).disable();
     }
   }

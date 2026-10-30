@@ -122,8 +122,10 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     super(WatchListType.UDF, AppSettings.WATCHLIST_UDF_TABLE_SETTINGS_STORE, WatchlistTable.SINGLE);
     WatchlistUdfComponent.registerIcons(this.iconReg);
     this.addBaseColumns();
-    this.fdSecurityList = JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY)).concat(
-      JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)).filter(
+    this.fdSecurityList = JSON.parse(
+      sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY) ?? '[]'
+    ).concat(
+      JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL) ?? '[]').filter(
         (fd: { entity: string }) => fd.entity === AppSettings.CURRENCYPAIR
       )
     );
@@ -188,9 +190,11 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
   private extendSecurityWithUDF(group: SecuritycurrencyUDFGroup): SecuritycurrencyUDFGroup {
     this.udfValuesMap.clear();
     const extend = <T extends { securitycurrency: { idSecuritycurrency?: number } }>(position: T): T => {
-      const json = this.udfEntityValues[position.securitycurrency.idSecuritycurrency];
+      const id = position.securitycurrency.idSecuritycurrency;
+      if (id == null) return position;
+      const json = this.udfEntityValues[id];
       const values = json ? JSON.parse(json) : {};
-      this.udfValuesMap.set(position.securitycurrency.idSecuritycurrency, values);
+      this.udfValuesMap.set(id, values);
       return {
         ...position,
         securitycurrency: Object.assign(
@@ -268,7 +272,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    * @returns The edit menu items
    */
   protected override getEditMenuItems(
-    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>
+    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair> | null | undefined
   ): MenuItem[] {
     const menuItems = super.getEditMenuItems(securitycurrencyPosition);
     if (
@@ -337,7 +341,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    */
   private getProposalMenuItems(f: UDFMetadataSecurity, idSecuritycurrency: number, info: UDFFillInfo): MenuItem[] {
     const fieldId = f.idUDFMetadata;
-    if (fieldId == null) return [];
+    if (fieldId == null || info.ruleVersion == null || info.proposedValue == null) return [];
     const decisions = [{ idSecuritycurrency, ruleVersion: info.ruleVersion, value: info.proposedValue }];
     return [
       {

@@ -69,7 +69,7 @@ export class TaskDataChangeTabMenuComponent implements OnInit {
   }
 
   /** The queue of a child route parameter; the main queue when it names none. */
-  static queueOf(routeParam: string): string {
+  static queueOf(routeParam: string | undefined): string {
     return routeParam?.startsWith(TaskDataChangeTabMenuComponent.QUEUE_ROUTE_PREFIX)
       ? routeParam.substring(TaskDataChangeTabMenuComponent.QUEUE_ROUTE_PREFIX.length)
       : MAIN_TASK_QUEUE;
@@ -110,7 +110,7 @@ export class TaskDataChangeTabMenuComponent implements OnInit {
     this.router.navigate([route], { relativeTo: this.activatedRoute });
   }
 
-  private routeFromUrl(): string {
+  private routeFromUrl(): string | undefined {
     return this.tabs().find((tab) => this.router.url.split('/').includes(tab.route))?.route;
   }
 }

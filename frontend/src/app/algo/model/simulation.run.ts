@@ -11,36 +11,36 @@ import { AlgoAssetclass } from './algo.assetclass';
 export interface SimulationRunResult {
   applyTaxModels?: boolean;
   generateBondCoupons?: boolean;
-  taxIncomeSummaryJson?: string;
-  inputAssumptionsJson?: string;
+  taxIncomeSummaryJson?: string | null;
+  inputAssumptionsJson?: string | null;
   idSimulationResult: number;
   idAlgoTop: number;
   openingDate: string;
   endDate: string;
   status: SimulationRunStatus;
   startedAt: string;
-  finishedAt?: string;
+  finishedAt?: string | null;
   tradingDaysTotal: number;
   tradingDaysDone: number;
   /** Space separated message keys of the assumptions the figures were calculated under. */
   conventions: string;
-  totalReturn?: number;
-  annualizedReturn?: number;
-  maxDrawdown?: number;
+  totalReturn?: number | null;
+  annualizedReturn?: number | null;
+  maxDrawdown?: number | null;
   /** Calendar days of the longest phase below a previous equity high, including one still open on the end date. */
-  maxDrawdownDurationDays?: number;
-  sharpeRatio?: number;
-  totalTrades?: number;
-  winningTrades?: number;
-  losingTrades?: number;
-  failureMessage?: string;
-  dividendPaymentDelayDays?: number;
+  maxDrawdownDurationDays?: number | null;
+  sharpeRatio?: number | null;
+  totalTrades?: number | null;
+  winningTrades?: number | null;
+  losingTrades?: number | null;
+  failureMessage?: string | null;
+  dividendPaymentDelayDays?: number | null;
   /** Gross payments in tenant currency, using payment-date FX. */
-  paidDividends?: number;
-  fxMarkupPaid?: number;
-  fxUncoveredConversions?: number;
+  paidDividends?: number | null;
+  fxMarkupPaid?: number | null;
+  fxUncoveredConversions?: number | null;
   /** Unpaid entitlements in tenant currency at the end date. */
-  dividendReceivables?: number;
+  dividendReceivables?: number | null;
 }
 
 /**
@@ -64,9 +64,9 @@ export interface SimulationRunEquityPoint {
  */
 export interface SimulationRunSettings {
   /** The hierarchy at submit time in the shape of the hierarchy view; empty for a run submitted before it was kept. */
-  hierarchy?: { algoTop: AlgoTop; algoAssetclassList: AlgoAssetclass[] };
+  hierarchy?: { algoTop: AlgoTop; algoAssetclassList: AlgoAssetclass[] } | null;
   /** Weights the replay allocated with, keyed by hierarchy node id. */
-  allocation?: SimulationRunAllocation;
+  allocation?: SimulationRunAllocation | null;
   submittedAt: string;
 }
 
@@ -89,7 +89,7 @@ export interface SimulationFailureMessage {
 }
 
 /** Separates a translatable replay error key from its optional diagnostic, including legacy persisted failures. */
-export function splitSimulationFailureMessage(failureMessage?: string): SimulationFailureMessage | undefined {
+export function splitSimulationFailureMessage(failureMessage?: string | null): SimulationFailureMessage | undefined {
   if (!failureMessage) {
     return undefined;
   }

@@ -145,7 +145,7 @@ export class DynamicFieldModelHelper {
    * @returns the definition, or null for a constraint type this client does not know
    * @private
    */
-  private static createConstraintDefinition(type: ConstraintValidatorType, value: any): ConstraintDefinition {
+  private static createConstraintDefinition(type: ConstraintValidatorType, value: any): ConstraintDefinition | null {
     switch (type) {
       case ConstraintValidatorType.DateRange:
         return {
@@ -359,22 +359,23 @@ export class DynamicFieldModelHelper {
    * @param labelPrefix Prefix for label translation key generation
    * @param labelKey Custom label key (overrides auto-generated prefix + field name)
    * @param fieldOptionsCc Additional field options and overrides (target field, styling, etc.)
-   * @returns FieldConfig object with appropriate input type, validation, and calendar config, or null if unsupported type
+   * @returns FieldConfig object with appropriate input type, validation, and calendar config
+   * @throws Error naming the field and data type when the descriptor is unsupported
    */
   private static createConfigFieldFromDescriptor(
     translateService: TranslateService,
     fd: FieldDescriptorInputAndShow,
-    labelPrefix: string,
-    labelKey: string,
+    labelPrefix: string | null,
+    labelKey: string | null,
     fieldOptionsCc?: FieldOptionsCc
   ): FieldConfig {
-    let fieldConfig: FieldConfig;
+    let fieldConfig: FieldConfig | undefined;
     const targetField = fieldOptionsCc && fieldOptionsCc.targetField ? fieldOptionsCc.targetField : fd.fieldName;
     labelKey = labelKey
       ? labelKey
       : fd.labelKey
         ? fd.labelKey
-        : labelPrefix + AppHelper.toUpperCaseWithUnderscore(fd.fieldName);
+        : (labelPrefix ?? '') + AppHelper.toUpperCaseWithUnderscore(fd.fieldName);
 
     switch (DataType[fd.dataType as keyof typeof DataType]) {
       case DataType.Boolean:
@@ -423,6 +424,7 @@ export class DynamicFieldModelHelper {
         }
         break;
     }
+    if (!fieldConfig) throw new Error(`Unsupported data type "${fd.dataType}" for field "${fd.fieldName}".`);
     return fieldConfig;
   }
 
@@ -520,7 +522,7 @@ export class DynamicFieldModelHelper {
     targetField: string,
     fieldOptionsCc?: FieldOptionsCc
   ): FieldConfig {
-    let fieldConfig: FieldConfig;
+    let fieldConfig: FieldConfig | undefined;
     const fieldOptions: FieldOptions = Object.assign({}, fieldOptionsCc, { minLength: fd.min });
     if (fd.dynamicFormPropertyHelps) {
       switch (DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0] as keyof typeof DynamicFormPropertyHelps]) {
@@ -582,6 +584,7 @@ export class DynamicFieldModelHelper {
         this.applyPattern(fieldConfig, fd.pattern);
       }
     }
+    if (!fieldConfig) throw new Error(`Unsupported string field help for "${fd.fieldName}".`);
     return fieldConfig;
   }
 
@@ -681,7 +684,8 @@ export class DynamicFieldModelHelper {
   ): any {
     fieldDescriptorInputAndShows.forEach((fieldDescriptorInputAndShow) => {
       // An optional field left empty is not stored at all, so its parameter may be missing.
-      let value: string | number | string[] = paramMap[fieldDescriptorInputAndShow.fieldName]?.paramValue ?? null;
+      let value: string | number | string[] | null =
+        paramMap[fieldDescriptorInputAndShow.fieldName]?.paramValue ?? null;
       switch (DataType[fieldDescriptorInputAndShow.dataType as keyof typeof DataType]) {
         case DataType.Numeric:
         case DataType.NumericInteger:
@@ -708,7 +712,7 @@ export class DynamicFieldModelHelper {
    * @param fDIAS Field descriptor to check for percentage property in dynamicFormPropertyHelps
    * @returns Percentage symbol (%) if field has PERCENTAGE property, null otherwise
    */
-  public static getFieldPercentageSuffix(fDIAS: FieldDescriptorInputAndShow): string {
+  public static getFieldPercentageSuffix(fDIAS: FieldDescriptorInputAndShow): string | null {
     return fDIAS.dynamicFormPropertyHelps &&
       (<string[]>fDIAS.dynamicFormPropertyHelps).indexOf(
         DynamicFormPropertyHelps[DynamicFormPropertyHelps.PERCENTAGE]

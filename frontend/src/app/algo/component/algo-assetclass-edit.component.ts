@@ -10,7 +10,7 @@ import { AssetclassService } from '../../assetclass/service/assetclass.service';
 import { Assetclass } from '../../entities/assetclass';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { distinctUntilChanged } from 'rxjs/operators';
-import { AlgoTop } from '../model/algo.top';
+import { requireAlgoNodeId } from '../model/algo.top.asset.security';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { AlgoAssetclassSecurityBaseEdit } from './algo.assetclass.security.base.edit';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
@@ -47,6 +47,8 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
   }
 
   ngOnInit(): void {
+    const definition = this.algoCallParam().formDefinition;
+    if (!definition) throw new Error('Algo asset-class editing requires its form definition.');
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
 
     this.config = [
@@ -58,7 +60,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       }),
       ...DynamicFieldModelHelper.createConfigFieldsFromDescriptor(
         this.translateService,
-        this.algoCallParam().formDefinition.fieldDescriptorInputAndShows,
+        definition.fieldDescriptorInputAndShows,
         '',
         false
       ).map((field) => ({ ...field, labelHelpText: 'REBALANCE_OVERRIDE_HELP' })),
@@ -136,7 +138,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     } else {
       algoAssetclass.name = null;
     }
-    algoAssetclass.idAlgoAssetclassParent = (<AlgoTop>algoCallParam.parentObject).idAlgoAssetclassSecurity;
+    algoAssetclass.idAlgoAssetclassParent = requireAlgoNodeId(algoCallParam.parentObject);
     return algoAssetclass;
   }
 
@@ -176,18 +178,16 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       const id = (<AlgoAssetclass>algoCallParam.thisObject).assetclass?.idAssetClass;
       return id == null ? of<Assetclass[]>([]) : this.assetclassService.getAssetclass(id);
     } else {
-      return this.assetclassService.getUnusedAssetclassForAlgo(
-        (<AlgoTop>algoCallParam.parentObject).idAlgoAssetclassSecurity
-      );
+      return this.assetclassService.getUnusedAssetclassForAlgo(requireAlgoNodeId(algoCallParam.parentObject));
     }
   }
 
   private disableEnableInputForExisting(disable: boolean): void {
     FormHelper.disableEnableFieldConfigs(disable, [this.configObject.assetclass]);
     if (!disable) {
-      this.configObject.assetclass.elementRef.nativeElement.focus();
+      this.configObject.assetclass.elementRef?.nativeElement.focus();
     } else {
-      this.configObject.idSecurityaccount1.elementRef.nativeElement.focus();
+      this.configObject.idSecurityaccount1.elementRef?.nativeElement.focus();
     }
   }
 }

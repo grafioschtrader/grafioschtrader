@@ -40,7 +40,7 @@ import { GTNetConfigEntityDisplay } from './gtnet-config-entity-table.component'
   providers: [GTNetConfigEntityService]
 })
 export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetConfigEntity> implements OnInit {
-  readonly gtNetConfigEntity = input<GTNetConfigEntityDisplay>(undefined);
+  readonly gtNetConfigEntity = input.required<GTNetConfigEntityDisplay>();
 
   constructor() {
     super(HelpIds.HELP_GT_NET_SETUP, 'GT_NET_CONFIG_ENTITY_EDIT', inject(GTNetConfigEntityService));

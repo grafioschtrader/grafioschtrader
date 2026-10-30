@@ -29,7 +29,7 @@ export class EntityLimitService
    * @param idUser the user the row belongs to, or undefined for a row that is not user-scoped
    * @param idEntityLimit the row currently being edited, whose own key must stay in the list
    */
-  public getLimitKeyDefinitions(idUser?: number, idEntityLimit?: number): Observable<LimitKeyDefinition[]> {
+  public getLimitKeyDefinitions(idUser?: number | null, idEntityLimit?: number): Observable<LimitKeyDefinition[]> {
     let httpParams = new HttpParams();
     if (idUser != null) {
       httpParams = httpParams.set('idUser', idUser.toString());

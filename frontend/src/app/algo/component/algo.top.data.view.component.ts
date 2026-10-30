@@ -188,7 +188,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   /** Backend-selected property paths to display on a yellow background. */
   private readonly warningFields = signal<Record<number, string[]>>({});
   /** Whether the strategy can be replayed and compared as it stands, refreshed with every hierarchy load. */
-  readonly readiness = signal<AlgoTopReadiness>(undefined);
+  readonly readiness = signal<AlgoTopReadiness | undefined>(undefined);
 
   // Otherwise enum DialogVisible can't be used in a html template
   AlgoDialogVisible: typeof AlgoDialogVisible = AlgoDialogVisible;
@@ -198,7 +198,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   /** The custom category the instrument search dialog adds to. */
   idAlgoAssetclassAddInstrument: number;
 
-  readonly algoCallParam = signal<AlgoCallParam>(undefined);
+  readonly algoCallParam = signal<AlgoCallParam | undefined>(undefined);
 
   readonly contextMenuItems = signal<MenuItem[]>([]);
   private monitoringSubscription: Subscription;
@@ -361,7 +361,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
    * @returns CSS class string or null
    */
   getAlgoCellClass(rowData: any, field: ColumnConfig): string | null {
-    if (!(rowData instanceof AlgoTopAssetSecurity)) {
+    if (!(rowData instanceof AlgoTopAssetSecurity) || rowData.idAlgoAssetclassSecurity == null) {
       return null;
     }
     const classes: string[] = [];
@@ -431,8 +431,10 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   extendMenuWithAlgoStrategy(
     menuItems: MenuItem[],
     selectedNode: AlgoTop | AlgoAssetclass | AlgoSecurity,
-    algoStrategy: AlgoStrategy
+    algoStrategy: AlgoStrategy | null
   ): void {
+    const id = selectedNode.idAlgoAssetclassSecurity;
+    if (id == null) return;
     menuItems.push({ separator: true });
     const algoStrategyMenuItem: MenuItem = {
       label: 'CREATE|ALGO_STRATEGY',
@@ -440,25 +442,19 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
         this.addEdit(AlgoDialogVisible.ALGO_STRATEGY, selectedNode, algoStrategy, this.algoStrategyDefinitionForm)
     };
     menuItems.push(algoStrategyMenuItem);
-    if (this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.has(selectedNode.idAlgoAssetclassSecurity)) {
-      algoStrategyMenuItem.disabled =
-        this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(selectedNode.idAlgoAssetclassSecurity).length === 0;
+    const unused = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(id);
+    if (unused) {
+      algoStrategyMenuItem.disabled = unused.length === 0;
     } else {
       algoStrategyMenuItem.disabled = true;
-      this.replaceAlgoRequest('unused-' + selectedNode.idAlgoAssetclassSecurity).add(
+      this.replaceAlgoRequest('unused-' + id).add(
         this.algoStrategyService
-          .getUnusedStrategiesForManualAdding(selectedNode.idAlgoAssetclassSecurity)
+          .getUnusedStrategiesForManualAdding(id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((algoStrategyImplementations) => {
-            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(
-              selectedNode.idAlgoAssetclassSecurity,
-              algoStrategyImplementations
-            );
-            algoStrategyMenuItem.disabled =
-              this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(selectedNode.idAlgoAssetclassSecurity)
-                .length === 0;
-            if (this.selectedNode()?.data.idAlgoAssetclassSecurity === selectedNode.idAlgoAssetclassSecurity)
-              this.resetMenu();
+            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(id, algoStrategyImplementations);
+            algoStrategyMenuItem.disabled = algoStrategyImplementations.length === 0;
+            if (this.selectedNode()?.data.idAlgoAssetclassSecurity === id) this.resetMenu();
           })
       );
     }
@@ -490,10 +486,15 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   handleCloseAlgoAssetclassDialog(processedActionData: ProcessedActionData) {
     this.visibleDialogs.set(new Array(this.visibleDialogs().length).fill(false));
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
-      if (processedActionData.data instanceof AlgoTopAssetSecurity) {
+      if (
+        processedActionData.data instanceof AlgoTopAssetSecurity &&
+        processedActionData.data.idAlgoAssetclassSecurity != null
+      ) {
         this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.delete(processedActionData.data.idAlgoAssetclassSecurity);
       }
-      if (this.algoCallParam().parentObject.getId() === this.algoTop().idAlgoAssetclassSecurity) {
+      const param = this.algoCallParam();
+      const top = this.algoTop();
+      if (top && param?.parentObject.getId() === top.idAlgoAssetclassSecurity) {
         this.readDataWithTopLevel();
       } else {
         this.readDataWithoutTopLevel();
@@ -508,8 +509,9 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
    */
   private openAddInstrumentDialogWhenRequested(processedActionData: ProcessedActionData): void {
     const saved = processedActionData.data;
-    if (this.algoCallParam().addInstrumentsBySearch && saved?.name != null && saved.idAlgoAssetclassSecurity) {
-      this.algoCallParam.update((param) => ({ ...param, addInstrumentsBySearch: false }));
+    const param = this.algoCallParam();
+    if (param?.addInstrumentsBySearch && saved?.name != null && saved.idAlgoAssetclassSecurity) {
+      this.algoCallParam.set({ ...param, addInstrumentsBySearch: false });
       this.idAlgoAssetclassAddInstrument = saved.idAlgoAssetclassSecurity;
       this.visibleDialogs.update((dialogs) =>
         Object.assign([...dialogs], { [AlgoDialogVisible.ALGO_ADD_INSTRUMENT]: true })
@@ -523,11 +525,11 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     this.readDataWithoutTopLevel();
   }
 
-  searchTree(treeNode: TreeNode, idTree: string): TreeNode {
+  searchTree(treeNode: TreeNode, idTree: string): TreeNode | null {
     if (treeNode.data.idTree === idTree) {
       return treeNode;
     } else if (treeNode.children != null) {
-      let result = null;
+      let result: TreeNode | null = null;
       for (let i = 0; result == null && i < treeNode.children.length; i++) {
         result = this.searchTree(treeNode.children[i], idTree);
       }
@@ -555,8 +557,9 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
 
   private getCheckedSecurities(): AlgoSecurity[] {
     const result: AlgoSecurity[] = [];
-    if (this.algoTop()?.algoAssetclassList) {
-      for (const ac of this.algoTop().algoAssetclassList) {
+    const assetclasses = this.algoTop()?.algoAssetclassList;
+    if (assetclasses) {
+      for (const ac of assetclasses) {
         if (ac.algoSecurityList) {
           for (const sec of ac.algoSecurityList) {
             if ((sec as any)._selected) {
@@ -570,8 +573,10 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   }
 
   private handleDeleteSelectedSecurities(): void {
-    const checked = this.getCheckedSecurities();
-    if (checked.length === 0) {
+    const ids = this.getCheckedSecurities()
+      .map((sec) => sec.idAlgoAssetclassSecurity)
+      .filter((id) => id != null);
+    if (ids.length === 0) {
       return;
     }
     AppHelper.confirmationDialog(
@@ -579,7 +584,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|SECURITY',
       () => {
-        const deleteObs = checked.map((sec) => this.algoSecurityService.deleteEntity(sec.idAlgoAssetclassSecurity));
+        const deleteObs = ids.map((id) => this.algoSecurityService.deleteEntity(id));
         concat(...deleteObs)
           .pipe(toArray())
           .pipe(takeUntilDestroyed(this.destroyRef))
@@ -624,8 +629,10 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     );
   }
 
-  private getEditMenu(selectedNode: TreeNode): MenuItem[] {
-    if (this.hierarchyReadOnly) {
+  private getEditMenu(selectedNode: TreeNode | null): MenuItem[] {
+    const top = this.algoTop();
+    const topId = top?.idAlgoAssetclassSecurity;
+    if (this.hierarchyReadOnly || !top || topId == null) {
       return [];
     }
     const menuItems: MenuItem[] = [];
@@ -640,28 +647,30 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     if (selectedNode instanceof TreeAlgoTop) {
       menuItems.push({
         label: 'ADD_RECORD|ASSETCLASS',
-        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, this.algoTop(), null)
+        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, top, null)
       });
       menuItems.push({
         label: 'NORMALIZE_PERCENTAGES',
-        command: () => this.handleNormalizePercentages(this.algoTop().idAlgoAssetclassSecurity),
-        disabled: !this.algoTop().algoAssetclassList || this.algoTop().algoAssetclassList.length === 0
+        command: () => this.handleNormalizePercentages(topId),
+        disabled: !top.algoAssetclassList || top.algoAssetclassList.length === 0
       });
       menuItems.push({
         label: 'NORMALIZE_ALL_PERCENTAGES',
-        command: () => this.handleNormalizeAllPercentages(this.algoTop().idAlgoAssetclassSecurity),
-        disabled: !this.algoTop().algoAssetclassList || this.algoTop().algoAssetclassList.length === 0
+        command: () => this.handleNormalizeAllPercentages(topId),
+        disabled: !top.algoAssetclassList || top.algoAssetclassList.length === 0
       });
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoAssetclass) {
+      const id = selectedNode.data.idAlgoAssetclassSecurity;
+      if (id == null) return menuItems;
       menuItems.push({
         label: 'EDIT_RECORD|ASSETCLASS',
-        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, this.algoTop(), selectedNode.data)
+        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, top, selectedNode.data)
       });
       menuItems.push({
         label: 'DELETE_RECORD|ASSETCLASS',
         command: (e) => this.handleDeleteEntity(selectedNode.data, this.algoAssetclassService),
-        disabled: selectedNode.children.length > 0
+        disabled: (selectedNode.children?.length ?? 0) > 0
       });
       menuItems.push({ separator: true });
       menuItems.push({
@@ -670,7 +679,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       });
       menuItems.push({
         label: 'NORMALIZE_PERCENTAGES',
-        command: () => this.handleNormalizePercentages(selectedNode.data.idAlgoAssetclassSecurity),
+        command: () => this.handleNormalizePercentages(id),
         disabled: !selectedNode.data.algoSecurityList || selectedNode.data.algoSecurityList.length === 0
       });
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
@@ -678,10 +687,8 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       menuItems.push({
         label: 'EDIT_RECORD|SECURITY',
         command: (e) =>
-          this.addEdit(
-            AlgoDialogVisible.ALGO_SECURITY,
-            (<TreeNode>selectedNode).parent.data,
-            <AlgoSecurity>selectedNode.data
+          this.withParent(selectedNode, (parent) =>
+            this.addEdit(AlgoDialogVisible.ALGO_SECURITY, parent.data, <AlgoSecurity>selectedNode.data)
           )
       });
       menuItems.push({
@@ -693,11 +700,13 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       menuItems.push({
         label: 'EDIT',
         command: (e) =>
-          this.addEdit(
-            AlgoDialogVisible.ALGO_STRATEGY,
-            (<TreeNode>selectedNode).parent.data,
-            selectedNode.data,
-            this.algoStrategyDefinitionForm
+          this.withParent(selectedNode, (parent) =>
+            this.addEdit(
+              AlgoDialogVisible.ALGO_STRATEGY,
+              parent.data,
+              selectedNode.data,
+              this.algoStrategyDefinitionForm
+            )
           )
       });
       menuItems.push({
@@ -708,28 +717,47 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     return menuItems;
   }
 
+  /**
+   * Runs a menu command with the parent of the selected node. The parent is read when the command runs, not when the
+   * menu is built: a reloaded hierarchy rebuilds the menu with new nodes before the tree table has rendered them and
+   * assigned their parent.
+   *
+   * @param node - The selected security or strategy node
+   * @param action - The command receiving the parent node
+   */
+  private withParent(node: TreeNode, action: (parent: TreeNode) => void): void {
+    const parent = node.parent;
+    if (parent) action(parent);
+  }
+
   private addEdit(
     algoDialogVisible: AlgoDialogVisible,
     parent: AlgoTop | AlgoAssetclass | AlgoSecurity,
-    thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,
+    thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy | null,
     algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm
   ): void {
+    const top = this.algoTop();
+    if (!top) return;
     const idWatchlist =
       algoDialogVisible === AlgoDialogVisible.ALGO_SECURITY &&
       parent instanceof AlgoAssetclass &&
       parent.isCustomCategory()
-        ? this.algoTop().idWatchlist
+        ? (top.idWatchlist ?? undefined)
         : undefined;
-    this.algoCallParam.set(
-      new AlgoCallParam(parent, thisObject, algoStrategyDefinitionForm, idWatchlist, this.algoTop().referenceDate)
-    );
+    const callParam = new AlgoCallParam(parent, thisObject, algoStrategyDefinitionForm, idWatchlist, top.referenceDate);
+    this.algoCallParam.set(callParam);
     if (algoDialogVisible === AlgoDialogVisible.ALGO_ASSETCLASS) {
       this.replaceAlgoRequest('edit-dialog').add(
         this.gps
           .getEntityFormDefinition('AlgoAssetclass')
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((definition) => {
-            this.algoCallParam.update((param) => ({ ...param, formDefinition: definition }));
+            if (
+              this.algoCallParam() !== callParam ||
+              this.algoTop()?.idAlgoAssetclassSecurity !== top.idAlgoAssetclassSecurity
+            )
+              return;
+            this.algoCallParam.set({ ...callParam, formDefinition: definition });
             this.visibleDialogs.update((dialogs) => Object.assign([...dialogs], { [algoDialogVisible]: true }));
           })
       );

@@ -171,13 +171,13 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
 
     // Configure columns
     this.addEditColumnFeqH(DataType.String, 'isin', false, { width: 120 });
-    const isinCol = this.getColumnConfigByField('isin');
+    const isinCol = this.requireEditColumnByField('isin');
     isinCol.cec.maxLength = 12;
 
     this.addEditColumnFeqH(DataType.String, 'tickerSymbol', false, {
       width: 80
     });
-    const tickerCol = this.getColumnConfigByField('tickerSymbol');
+    const tickerCol = this.requireEditColumnByField('tickerSymbol');
     tickerCol.cec.maxLength = this.gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Security_Ticker_Symbol);
 
     this.addEditColumnFeqH(DataType.String, 'currency', true, { width: 100 });
@@ -231,7 +231,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     // Load currency options
     this.globalparameterGTService.getCurrencies().subscribe((currencies: ValueKeyHtmlSelectOptions[]) => {
       this.currencyOptions = currencies;
-      const currencyCol = this.getColumnConfigByField('currency');
+      const currencyCol = this.requireEditColumnByField('currency');
       currencyCol.cec.valueKeyHtmlOptions = this.currencyOptions;
       this.prepareTableAndTranslate();
     });

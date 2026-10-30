@@ -43,6 +43,6 @@ export interface ITransactionEditType {
     securitycashaccount: Securityaccount | Cashaccount,
     securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
     isSellBuyMarginInstrument: boolean,
-    closeMarginIdSecurityaccount: number
+    closeMarginIdSecurityaccount: number | null | undefined
   ): boolean;
 }

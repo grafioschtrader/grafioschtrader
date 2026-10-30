@@ -245,7 +245,7 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   /**
    * Override to build edit menu with currency pair edit option.
    */
-  protected override prepareEditMenu(entity: Currencypair): MenuItem[] | null {
+  protected override prepareEditMenu(entity: Currencypair | null): MenuItem[] | null {
     const menuItems: MenuItem[] = [];
 
     if (entity) {

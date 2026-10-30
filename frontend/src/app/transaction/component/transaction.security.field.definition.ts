@@ -31,9 +31,9 @@ export class TransactionSecurityFieldDefinition {
    */
   static getFieldDefinition(
     tcm: TransactionContextMenu,
-    idTenant: number,
+    idTenant: number | undefined,
     isMarginInstrument: boolean,
-    tsop: TransactionSecurityOptionalParam[],
+    tsop: TransactionSecurityOptionalParam[] | undefined,
     gps: GlobalparameterService
   ): ColumnConfig[] {
     const currencyColumnConfigMC: ColumnConfig[] = [];
@@ -95,7 +95,7 @@ export class TransactionSecurityFieldDefinition {
    * @param fields The column definitions created by {@link getFieldDefinition}
    * @param securityCurrency The currency of the security whose transactions are shown
    */
-  static applySecurityCurrency(fields: ColumnConfig[], securityCurrency: string): void {
+  static applySecurityCurrency(fields: ColumnConfig[], securityCurrency: string | undefined): void {
     fields
       .filter((cc) => cc.currencyPrecisionField === TransactionSecurityFieldDefinition.SECURITY_CURRENCY_PATH)
       .forEach((cc) => (cc.fixedCurrency = securityCurrency));

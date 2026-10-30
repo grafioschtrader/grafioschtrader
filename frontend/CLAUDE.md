@@ -55,7 +55,7 @@ type. A missing control raises a lifecycle error naming the field; it does not c
 access or an explicit guard where absence is expected, and keep control-dependent work after form initialization.
 
 Editors with an unconditional dynamic form extend `SimpleFormEditBase` (including `SimpleEntityEditBase`).
-`SimpleDynamicEditBase` also requires its form. Keep `SimpleEditBase` for dialogs whose form is rendered conditionally.
+`SimpleDynamicFormBase` also requires its form, inherited by `SimpleDynamicEditBase`. Keep `SimpleEditBase` for dialogs whose form is rendered conditionally.
 Use `viewChild.required` only when every concrete descendant renders the target unconditionally, and read queries
 after view initialization. `src/required-query.ratchet.spec.ts` checks those template contracts across both hosts;
 conditional/lazy children and existing readiness guards retain optional queries.
@@ -102,6 +102,65 @@ GTNet message targets and reply ids stay nullable for broadcasts/new messages; c
 UDF rule tests accept a null field id for unsaved drafts, while proposal and cell actions require a persisted field id.
 Audit proposal conversion preserves explicit null/zero field changes and returns undefined when there is no proposal.
 An absent custom ownership check grants no rights.
+
+Transaction DTO amounts, dates and identifiers retain their existing null defaults. Cash-account lookups return null
+when no matching account is loaded; selection handlers and submit paths check the result before using it. Clearing
+a transfer account clears its selected account/portfolio, cancels obsolete exchange-rate reads and clears the computed
+debit amount. A conversion between different currencies needs its pair and rate. Missing amounts remain null through
+sign conversion, and a missing margin value per point prevents calculation. Transaction dialogs require their call
+parameters; new transactions still have no existing transaction or margin-close context.
+Transaction tables keep unloaded summaries nullable. Requests needing an account/security/portfolio id check it first;
+CSV export keeps nullable tenant-wide filters. Downloads check the response body before saving, and receipt selection
+skips unsaved transactions. Persisted transaction actions capture a checked id before confirmation. Saved child table
+positions ignore missing parent ids while retaining a numeric zero key.
+
+CRUD creation and menu-reset contracts accept `T | null`; nullable existing entities stay nullable through the dialog
+parameter objects and form-copy helpers. Selection-only actions still require an entity. Entity copy helpers constrain
+their generic targets to objects and merge existing data only when present.
+General columns can omit translated headers, fieldsets, translation modes and `cec`. `addEditColumn`/`addEditColumnFeqH`
+return `EditableColumnConfig` with a configured `cec`. Column lookups return undefined; use `requireColumnConfigByField`
+or `requireEditColumnByField` where the view must already have created that column. These helpers raise a named
+configuration error instead of fabricating a column or edit configuration. Resize/sort handlers ignore missing targets.
+Required dialog configuration inputs use `input.required`; the entity being edited remains nullable for creation.
+UDF controls use their flattened field configurations with `requireFormControl` after form initialization. Missing UDF
+session configuration raises a clear initialization error. Unsupported dynamic-field descriptors report the field/type
+before control creation. Optional percentage suffixes remain nullable.
+`buildGTNetMessageTree` constructs reply branches in two passes, retaining orphaned/self-referencing messages at the
+root and skipping unsaved messages. Capture optional child arrays and checked configuration objects before callbacks.
+The CRUD table's `getId` retains null/undefined for unsaved rows and number/string keys for persisted rows. Tables
+with numeric security-reference counts narrow that key before indexing. `TwoKeyMap.get` returns null for a missing key.
+History-quote dialogs require their call parameters and date bounds; bulk actions check a persisted instrument id
+before loading bounds or submitting. Quote projections retain nullable OHLCV values, and transaction-receipt scopes
+retain absent portfolio/account ids. Chart traces own initialized coordinate arrays; an unavailable price or percentage
+base stays a gap. Currency conversion uses only dates with a valid rate for every required leg, omitting missing rates
+and zero divisors; empty histories remain safe and raw quotes are preserved.
+Algo trees retain an absent hierarchy and selected node in their types. Capture the hierarchy, selection and parent
+before constructing menu callbacks; optional child lists and expansion flags stay guarded. Algo edit dialogs require
+their call parameter, while `AlgoCallParam.thisObject` is null for creation. Asset-class and strategy editors check
+their required descriptor/cache at initialization; a missing cached availability list offers no strategy choices.
+An asynchronously loaded asset-class descriptor opens its dialog only while the original parameter and hierarchy
+are still current.
+Algo hierarchy models retain null identifiers, weights, holdings and instruments. Their names can be absent;
+display adapters preserve that absence. Editors and simulation dialogs use `requireAlgoNodeId` for a required persisted
+parent; menus and optional actions guard its id before requesting data. Capture ids before confirmations and cache
+responses. A cleared strategy selection cancels its pending schema read and removes the previous strategy form.
+An empty `AlgoStrategyParamCall` has no selected strategy and clears the detail fields. Search tables may omit their
+event entity instance and publish the returned entity instead. YAML submit checks that its conditional editor exists.
+Dynamic action dialogs extend `SimpleDynamicFormBase` and implement `submit`; they need no entity service or unused
+entity-construction hook. `SimpleDynamicEditBase<T>` adds the standard entity-save flow and requires both contracts.
+Simulation status/settings responses include null for HTTP 204, separately from undefined while loading. Replay
+metrics and optional opening metadata preserve null. Creation/start dialogs build a nullable draft, check the required
+dates and mode, then submit a complete request. Capture the environment before confirmation and descriptor loading.
+Polling timers, event anchors and cached field groups retain their unset state. `initializeChartTrace` guarantees its
+initialized coordinate arrays while keeping optional Plotly properties optional.
+
+Watchlist tables retain missing groups, watchlists, limits and selections explicitly. Reconcile selection against the
+current rows and remove unresolved entries; menu overrides accept an empty selection. Capture persisted instrument
+and column ids before requests, drag operations and confirmations. Required watchlist/expanded-row inputs use
+`input.required`; absent limits and metadata remain optional. Indicator drafts keep nullable scope, benchmark, marks,
+label and expression; reports and cell actions guard ids and proposal versions/values before indexing or submitting.
+Derived-instrument lookup can return undefined; missing links clear their displayed value. Icons and cell/header
+tooltips can be absent. `SingleRecordConfigBase` retains null as an explicit invalidation of its field-group cache.
 
 ## Minimal Business Logic in Frontend
 
@@ -284,7 +343,8 @@ periodic `ApplicationRef.tick()`.
   their constructors have no parameters and call `super()` when present. The Angular API ratchet covers this hierarchy.
 - **The `FormBase` hierarchy resolves dependencies with `inject()` fields.** `FormBase` holds form configuration;
   `SimpleEditBase` owns the global settings, and `SimpleEntityEditBase` owns translation and toast services.
-  `SimpleDynamicEditBase` also resolves `DynamicDialogConfig` and `DynamicDialogRef` from the dynamic dialog's injector.
+  `SimpleDynamicFormBase` resolves `DynamicDialogConfig`, `DynamicDialogRef`, settings, translation and toast services
+  from the dynamic dialog's injector; `SimpleDynamicEditBase<T>` adds entity persistence.
   Constructors keep help IDs, record translation keys, field names and the screen-selected `ServiceEntityUpdate<T>`
   strategy. Pass `super(helpId)`, `super(helpId, i18nRecord, inject(EntityService))`, or
   `super(helpId, inject(EntityService))` for dynamic entity dialogs. A dialog available both embedded and dynamically
@@ -678,20 +738,23 @@ The frontend uses a hierarchical inheritance structure for dialog components:
 ```
 FormBase (abstract)
 ├── SimpleEditBase (abstract directive)
-│   └── SimpleEntityEditBase<T> (abstract directive)
-└── SimpleDynamicEditBase<T> (abstract directive)
+│   └── SimpleFormEditBase (abstract directive, required form)
+│       └── SimpleEntityEditBase<T> (abstract directive)
+└── SimpleDynamicFormBase (abstract directive, required form)
+    └── SimpleDynamicEditBase<T> (abstract directive)
 ```
 
 **Location**: `src/app/lib/edit/`
 
 ### Base Class Selection Guide
 
-| Scenario                                                    | Base Class                   | Examples                                                         |
-| ----------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------- |
-| Modal dialog with custom submit logic, no entity service    | **SimpleEditBase**           | `UploadFileDialogComponent`, `HistoryquoteDeleteDialogComponent` |
-| Modal dialog with entity CRUD via service                   | **SimpleEntityEditBase<T>**  | `HistoryquoteEditComponent`, `CashaccountEditComponent`          |
-| Programmatically opened dialog (via `DialogService.open()`) | **SimpleDynamicEditBase<T>** | `PortfolioEditDynamicComponent`                                  |
-| Dialog displaying a table (read-only)                       | **ShowRecordConfigBase**     | Table display dialogs                                            |
+| Scenario                                                 | Base Class                   | Examples                                                         |
+| -------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------- |
+| Modal dialog with custom submit logic, no entity service | **SimpleEditBase**           | `UploadFileDialogComponent`, `HistoryquoteDeleteDialogComponent` |
+| Modal dialog with entity CRUD via service                | **SimpleEntityEditBase<T>**  | `HistoryquoteEditComponent`, `CashaccountEditComponent`          |
+| Programmatically opened entity editor                    | **SimpleDynamicEditBase<T>** | `PortfolioEditDynamicComponent`                                  |
+| Programmatically opened action dialog with custom submit | **SimpleDynamicFormBase**    | `AlgoSimulationRunStartDynamicDialogComponent`                   |
+| Dialog displaying a table (read-only)                    | **ShowRecordConfigBase**     | Table display dialogs                                            |
 
 ### SimpleEditBase - Standard Modal Dialog
 
@@ -708,7 +771,7 @@ FormBase (abstract)
 - `destroyRef` / `viewChanged()` - Component lifetime and the mark-for-check fallback for own template fields
 - `helpLink()` - Context-sensitive help
 
-`SimpleDynamicEditBase` provides the same `destroyRef`, `untilDialogClosed()` and `viewChanged()`; its session lasts
+`SimpleDynamicFormBase` provides the same `destroyRef`, `untilDialogClosed()` and `viewChanged()`; its session lasts
 until the dialog is destroyed, because a dynamic dialog is created for every opening.
 
 **Required Implementation**:
@@ -824,7 +887,9 @@ PascalCase constant.
 
 ### SimpleDynamicEditBase<T> - Programmatic Dialog
 
-**Use when**: Dialog is opened programmatically via `DialogService.open()`, not template-bound.
+**Use when**: An entity editor is opened programmatically via `DialogService.open()`.
+Dynamic dialogs with their own action instead extend `SimpleDynamicFormBase`, call `super(helpId)` and implement
+`submit(value): void | Promise<void>`. They inherit the same injected dialog context, required form, session and help.
 
 **Key Differences**:
 
@@ -1100,12 +1165,13 @@ this.config = [
 
 ### 1. Choose the Correct Base Class
 
-| If the dialog...                                      | Extend                     |
-| ----------------------------------------------------- | -------------------------- |
-| Has custom submit logic, no entity service            | `SimpleEditBase`           |
-| Creates/updates an entity via service                 | `SimpleEntityEditBase<T>`  |
-| Is opened programmatically via `DialogService.open()` | `SimpleDynamicEditBase<T>` |
-| Displays a read-only table                            | `ShowRecordConfigBase`     |
+| If the dialog...                                       | Extend                     |
+| ------------------------------------------------------ | -------------------------- |
+| Has custom submit logic, no entity service             | `SimpleEditBase`           |
+| Creates/updates an entity via service                  | `SimpleEntityEditBase<T>`  |
+| Is a programmatically opened entity editor             | `SimpleDynamicEditBase<T>` |
+| Is a programmatically opened action with custom submit | `SimpleDynamicFormBase`    |
+| Displays a read-only table                             | `ShowRecordConfigBase`     |
 
 ### 2. Reference an Existing Similar Dialog
 
@@ -1304,6 +1370,34 @@ Two traps worth knowing:
 
 Texts used from `src/grafiosch-host/**` count as library layer for `node scripts/nls-tool.mjs check`, exactly like
 `src/app/lib/**`: this host is served by a backend that ships the `grafiosch-base` bundle alone.
+
+## The mobile application (`src/gt-mobile`)
+
+Angular project `gt-mobile` is a progressive web app showing the dashboard widgets on a phone. It is read only: it
+renders the server-computed results of `/api/dashboard` and never saves a layout or writes data.
+
+- **Ionic, never Optimus UI.** Components come from `@ionic/angular` (standalone). `src/gt-mobile.boundary.spec.ts`
+  follows every value import from `src/gt-mobile/main.ts` and fails `npm test` when one reaches `@openng/optimus-ui`.
+  A shared file the app needs must therefore stay free of it: `AppHelper`, `LoginService`, `GlobalparameterService`
+  and the table bases are out of reach. Formatting goes through `lib/helper/value.format.helper.ts` with a
+  `LocaleFormat` (`lib/helper/locale.format.ts`) — the same code `AppHelper` and `GlobalparameterService` delegate to,
+  so desktop and phone format identically. Chart traces of a widget belong in a pure function under
+  `src/app/dashboard/model/` (see `performance.total.chart.plot.ts`) that both renderers call.
+- **Build location.** The app builds into `dist/browser/m` with base href `/grafioschtrader/m/`, inside the desktop
+  output, so Caddy, nginx, Apache, the installer and the Docker image serve it without change. `npm run buildprod`
+  builds the desktop first, because that build empties `dist/`. Routing uses `withHashLocation()`, so no deep link ever
+  reaches the web server's fallback to the desktop `index.html`. Classic hosts and the installer do not run
+  `buildprod`: `util/shellscripts/gtupfrontend.sh` calls `ng build` for both projects itself, so a change to how
+  the app is built has to be made there as well.
+- **Service worker** (`src/gt-mobile/ngsw-config.json`) caches only the application shell and chunks, never `/api/`.
+- **Session.** Sign-in stores the token and locale keys under the same `GlobalSessionNames` as the desktop, in
+  `sessionStorage`, so the shared `authInterceptor` works unchanged.
+- **Texts** are application texts: new keys go to `grafioschtrader-common` (`MOBILE_*`); the cards reuse the
+  `DASHBOARD_*` keys of the desktop.
+- `tsconfig.gt-mobile.json` enables `strictNullChecks`, so a shared file the app imports must compile under it.
+- A new widget type needs a renderer in `src/gt-mobile/app/widget/` and a `@case` in `widget-body.component.ts`;
+  without one the card says the widget is only available in the desktop view.
+- Dev server: `npm run start:mobile` (port 4203, same proxy as `npm start`).
 
 ## File Organization
 

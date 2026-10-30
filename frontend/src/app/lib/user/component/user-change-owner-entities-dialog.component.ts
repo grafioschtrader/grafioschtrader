@@ -43,8 +43,8 @@ export class UserChangeOwnerEntitiesDialogComponent extends SimpleFormEditBase i
   private userAdminService: UserAdminService = inject(UserAdminService);
   private messageToastService: MessageToastService = inject(MessageToastService);
 
-  readonly fromUser = input<User>(undefined);
-  readonly allUsers = input<User[]>(undefined);
+  readonly fromUser = input.required<User>();
+  readonly allUsers = input.required<User[]>();
 
   constructor() {
     super(HelpIds.HELP_USER);

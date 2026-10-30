@@ -98,11 +98,11 @@ export class ColumnVisibilityDialogComponent {
   readonly maxFrozenColumns = ColumnVisibilityDialogComponent.MAX_FROZEN_COLUMNS;
 
   /** Table whose frozen column count the slider changes, null when the table does not offer it */
-  frozenColumns: FrozenColumnHolder = null;
+  frozenColumns: FrozenColumnHolder | null = null;
 
   private fields: ColumnConfig[] = [];
 
-  private owner: ColumnVisibilityOwner = null;
+  private owner: ColumnVisibilityOwner | null = null;
 
   constructor() {
     this.fields = this.dynamicDialogConfig.data.fields;

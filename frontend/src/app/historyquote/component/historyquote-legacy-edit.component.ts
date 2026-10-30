@@ -37,7 +37,7 @@ import { HistoryquoteEditBase } from './historyquote-edit.base';
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class HistoryquoteLegacyEditComponent extends HistoryquoteEditBase<HistoryquoteLegacy> {
-  readonly callParam = input<HistoryquoteLegacySecurityCurrency>(undefined);
+  readonly callParam = input.required<HistoryquoteLegacySecurityCurrency>();
 
   constructor() {
     super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES_LEGACY, 'HISTORYQUOTE_LEGACY', inject(HistoryquoteLegacyService));

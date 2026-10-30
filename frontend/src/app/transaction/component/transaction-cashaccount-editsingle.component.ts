@@ -164,8 +164,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * @param force Whether to force selection even with multiple options
    */
   selectSingleOptions(fieldConfig: FieldConfig, force: boolean) {
-    if (fieldConfig.valueKeyHtmlOptions.length === 1 || (force && fieldConfig.valueKeyHtmlOptions.length > 0)) {
-      requireFormControl(fieldConfig).setValue(fieldConfig.valueKeyHtmlOptions[0].key);
+    const options = fieldConfig.valueKeyHtmlOptions;
+    if (options && (options.length === 1 || (force && options.length > 0))) {
+      requireFormControl(fieldConfig).setValue(options[0].key);
     }
   }
 
@@ -187,13 +188,11 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       case TransactionType.FEE:
         AppHelper.enableAndVisibleInput(this.configObject.idSecurityaccount);
         if (requireFormControl(this.configObject.idCashaccount).value) {
-          const cp: {
-            cashaccount: Cashaccount;
-            portfolio: Portfolio;
-          } = this.getCashaccountByIdCashaccountFromPortfolios(
+          const cp = this.getCashaccountByIdCashaccountFromPortfolios(
             this.portfolios,
             +requireFormControl(this.configObject.idCashaccount).value
           );
+          if (!cp) return;
           this.prepareSecurityaccount(cp.portfolio);
         }
         this.setAmountValidator(true, gteWithMaskIncludeNegative(this.minAmount), 'gteWithMaskIncludeNegative');
@@ -210,9 +209,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         AppHelper.disableAndHideInput(this.configObject.taxCost);
         this.setAmountValidator(false, gteWithMask(this.minAmount), 'gte');
     }
-    this.configObject.cashaccountAmount.labelKey = this.configObject.transactionType.valueKeyHtmlOptions.find(
+    this.configObject.cashaccountAmount.labelKey = this.configObject.transactionType.valueKeyHtmlOptions?.find(
       (vkho) => vkho.key === transactionType
-    ).value;
+    )?.value;
     const invisibleWithdrawal =
       TransactionType[transactionType as keyof typeof TransactionType] !== TransactionType.WITHDRAWAL;
     AppHelper.invisibleAndHide(this.configObject.debitAmount, invisibleWithdrawal);
@@ -226,10 +225,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.chashaccountChangedSub = requireFormControl(this.configObject.idCashaccount)
       .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((data: string) => {
-        const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
-          this.portfolios,
-          +data
-        );
+        const cp = this.getCashaccountByIdCashaccountFromPortfolios(this.portfolios, +data);
+        if (!cp) return;
         this.prepareSecurityaccount(cp.portfolio);
         this.cashaccountCurrency = cp.cashaccount.currency;
 
@@ -299,12 +296,11 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       Object.assign(transaction, transactionCallParam.transaction);
     }
     this.form().cleanMaskAndTransferValuesToBusinessObject(transaction);
-    transaction.cashaccount = this.getCashaccountByIdCashaccountFromPortfolios(
-      this.portfolios,
-      transaction.idCashaccount
-    ).cashaccount;
+    const account = this.getCashaccountByIdCashaccountFromPortfolios(this.portfolios, transaction.idCashaccount);
+    if (!account || transaction.cashaccountAmount == null) return;
+    transaction.cashaccount = account.cashaccount;
     if (TransactionType[transaction.transactionType as keyof typeof TransactionType] === TransactionType.WITHDRAWAL) {
-      transaction.cashaccountAmount = transaction.cashaccountAmount + transaction.transactionCost;
+      transaction.cashaccountAmount = transaction.cashaccountAmount + (transaction.transactionCost ?? 0);
     }
     this.transactionService
       .updateCreateSingleCashTrans(transaction)
@@ -398,9 +394,11 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Loads portfolio data for a single portfolio and initializes form options.
    */
   private getSinglePortfolioByIdPortfolio(): void {
+    const id = this.transactionCallParam().portfolio?.idPortfolio;
+    if (id == null) return;
     // Portfolio maybe out of date
     this.portfolioService
-      .getPortfolioByIdPortfolio(this.transactionCallParam().portfolio.idPortfolio)
+      .getPortfolioByIdPortfolio(id)
       .pipe(this.untilDialogClosed())
       .subscribe((portfolio: Portfolio) => {
         // this.transactionCallParam.portfolio = portfolio;
@@ -440,11 +438,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       this.changeTransactionType(requireFormControl(this.configObject.transactionType).value);
     } else {
       this.form().transferBusinessObjectToForm(transactionCallParam.transaction);
+      const amount = BusinessHelper.getTotalAmountFromTransaction(transactionCallParam.transaction);
       requireFormControl(this.configObject.cashaccountAmount).setValue(
-        BusinessHelper.getTotalAmountFromTransaction(transactionCallParam.transaction) -
-          (transactionCallParam.transaction.transactionCost === null
-            ? 0
-            : transactionCallParam.transaction.transactionCost)
+        amount == null ? null : amount - (transactionCallParam.transaction.transactionCost ?? 0)
       );
     }
   }
@@ -456,9 +452,11 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * @param validatorKey Validation error key for error messages
    */
   private setAmountValidator(allowNegative: boolean, validator: ValidatorFn, validatorKey: string) {
-    this.configObject.cashaccountAmount.inputNumberSettings.allowNegative = allowNegative;
+    const settings = this.configObject.cashaccountAmount.inputNumberSettings;
+    if (!settings) throw new Error('The cash account amount requires number input settings.');
+    settings.allowNegative = allowNegative;
     this.configObject.cashaccountAmount.min = allowNegative
-      ? this.configObject.cashaccountAmount.max * -1
+      ? -(this.configObject.cashaccountAmount.max ?? AppSettings.FID_MAX_INT_REAL_DOUBLE)
       : this.minAmount;
     this.configObject.cashaccountAmount.validation = [Validators.required, validator];
     requireFormControl(this.configObject.cashaccountAmount).setValidators(
@@ -475,7 +473,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     ];
     TranslateHelper.translateMessageError(this.translateService, this.configObject.cashaccountAmount);
     requireFormControl(this.configObject.cashaccountAmount).updateValueAndValidity();
-    this.configObject.cashaccountAmount.baseInputComponent.reEvaluateRequired();
+    this.configObject.cashaccountAmount.baseInputComponent?.reEvaluateRequired();
   }
 
   /**
@@ -488,7 +486,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
           'idSecuritycashAccount',
           'name',
-          portfolio.securityaccountList,
+          portfolio.securityaccountList ?? [],
           true
         );
       this.toggleAccountOptionsByTransactionTime();
@@ -502,7 +500,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * the formatted date for proper error display.
    */
   private updateTransactionTimeValidator(effectiveClosedUntil: Date | null): void {
-    const formControl = this.configObject.transactionTime.formControl;
+    const formControl = requireFormControl(this.configObject.transactionTime);
     const fieldConfig = this.configObject.transactionTime;
 
     // Remove existing gtDate error rule if present

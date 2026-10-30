@@ -13,10 +13,11 @@ import { HistoryquoteLegacyComponent } from './historyquote-legacy.component';
  */
 @Component({
   template: `
+    @let id = idSecuritycurrency();
     @if (viewMode() === 'live') {
       <historyquote-table [timeSeriesParams]="timeSeriesParams()" (showLegacyRequested)="showLegacy()" />
-    } @else if (idSecuritycurrency() != null) {
-      <historyquote-legacy [idSecuritycurrency]="idSecuritycurrency()" (showLiveRequested)="viewMode.set('live')" />
+    } @else if (id != null) {
+      <historyquote-legacy [idSecuritycurrency]="id" (showLiveRequested)="viewMode.set('live')" />
     }
   `,
   imports: [HistoryquoteTableComponent, HistoryquoteLegacyComponent]
@@ -24,7 +25,10 @@ import { HistoryquoteLegacyComponent } from './historyquote-legacy.component';
 export class HistoryquoteHostComponent {
   readonly allParam = input<string>();
 
-  readonly viewMode = linkedSignal<string, 'live' | 'legacy'>({ source: this.allParam, computation: () => 'live' });
+  readonly viewMode = linkedSignal<string | undefined, 'live' | 'legacy'>({
+    source: this.allParam,
+    computation: () => 'live'
+  });
   readonly timeSeriesParams = computed<TimeSeriesParam[]>(() => JSON.parse(this.allParam() ?? '[]'));
   readonly idSecuritycurrency = computed(() => this.timeSeriesParams()?.[0]?.idSecuritycurrency ?? null);
 

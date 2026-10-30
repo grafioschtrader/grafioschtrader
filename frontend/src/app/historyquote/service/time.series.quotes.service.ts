@@ -15,13 +15,13 @@ export class TimeSeriesQuotesService {
   private transactionReceiptService = inject(TransactionReceiptService);
 
   private idSecuritycurrency: number;
-  private currencySecurity: string;
+  private currencySecurity: string | null;
   private optionalParameters: OptionalParameters = { idPortfolio: null, idSecurityaccount: null, noMarketValue: false };
   private timeSeriesParams: TimeSeriesParam[] = [];
 
   getMenuItems(
     idSecuritycurrency: number,
-    currencySecurity: string,
+    currencySecurity: string | null,
     addTopSeparator: boolean,
     optionalParameters?: OptionalParameters
   ): MenuItem[] {
@@ -73,8 +73,8 @@ export class TimeSeriesQuotesService {
   }
 
   protected isTimeSeriesShown(): boolean {
-    const routeUrlComponents: string[] = /.*mainbottom:(\w*)/.exec(this.router.url);
-    return routeUrlComponents && routeUrlComponents[1] === AppSettings.TIME_SERIE_QUOTES;
+    const routeUrlComponents = /.*mainbottom:(\w*)/.exec(this.router.url);
+    return routeUrlComponents?.[1] === AppSettings.TIME_SERIE_QUOTES;
   }
 
   private showEodChartTable(routeKey: string, initializeTimeSeriesParam: boolean): void {
@@ -106,7 +106,7 @@ export class TimeSeriesQuotesService {
 }
 
 export interface OptionalParameters {
-  idPortfolio?: number;
-  idSecurityaccount?: number;
+  idPortfolio?: number | null;
+  idSecurityaccount?: number | null;
   noMarketValue?: boolean | null;
 }

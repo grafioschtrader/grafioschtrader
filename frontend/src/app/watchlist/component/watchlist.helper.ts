@@ -31,12 +31,10 @@ export class WatchlistHelper {
     watchlistService: WatchlistService
   ): void {
     if (url === 'lazy') {
+      const id = securitycurrency.idSecuritycurrency;
+      if (id == null) return;
       watchlistService
-        .getDataProviderLinkForUser(
-          securitycurrency.idSecuritycurrency,
-          isIntra,
-          !(securitycurrency instanceof Currencypair)
-        )
+        .getDataProviderLinkForUser(id, isIntra, !(securitycurrency instanceof Currencypair))
         .subscribe((urlWebpage) => AppHelper.toExternalWebpage(urlWebpage, targetPage));
     } else {
       AppHelper.toExternalWebpage(url, targetPage);

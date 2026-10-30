@@ -75,7 +75,7 @@ export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenu<T
   private tradingCalendarRuleSetService: TradingCalendarRuleSetService = inject(TradingCalendarRuleSetService);
   private stockexchangeService: StockexchangeService = inject(StockexchangeService);
 
-  callParam: TradingCalendarRuleSet;
+  callParam: TradingCalendarRuleSet | null = null;
   readonly ownerHighlight = (entity: TradingCalendarRuleSet, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);
   private readDataSubscription?: Subscription;
@@ -103,12 +103,12 @@ export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenu<T
     this.prepareTableAndTranslate();
   }
 
-  override prepareCallParam(entity: TradingCalendarRuleSet): void {
+  override prepareCallParam(entity: TradingCalendarRuleSet | null): void {
     this.callParam = entity;
   }
 
   /** An existing rule set offers row actions; create a different set with no row selected. */
-  protected override getEditMenuItems(entity: TradingCalendarRuleSet): MenuItem[] {
+  protected override getEditMenuItems(entity: TradingCalendarRuleSet | null): MenuItem[] {
     const items = super.getEditMenuItems(entity);
     return entity ? items.filter((item) => !item.label?.startsWith('CREATE|')) : items;
   }

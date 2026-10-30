@@ -13,10 +13,10 @@ import { Cashaccount } from '../../entities/cashaccount';
  */
 export class TransactionCallParam {
   /** When not null, restricts the transaction to this specific portfolio and prevents portfolio changes */
-  public portfolio: Portfolio = null;
+  public portfolio: Portfolio | null | undefined = null;
 
   /** Existing transaction to be edited, null for new transaction creation */
-  public transaction: Transaction = null;
+  public transaction: Transaction | null = null;
 
   /** Type of transaction being performed (buy, sell, dividend, etc.) */
   public transactionType: TransactionType;
@@ -25,10 +25,10 @@ export class TransactionCallParam {
   public idSecuritycurrency: number;
 
   /** Security entity associated with the transaction */
-  public security: Security = null;
+  public security: Security | null | undefined = null;
 
   /** Security account where the transaction will be recorded */
-  public securityaccount: Securityaccount = null;
+  public securityaccount: Securityaccount | null = null;
 
   /** Cash account for cash-based transactions */
   public cashaccount: Cashaccount;
@@ -40,7 +40,7 @@ export class TransactionCallParam {
   public defaultTransactionTime: Date;
 
   /** Configuration for closing margin trades, contains position limits and constraints */
-  public closeMarginPosition: CloseMarginPosition;
+  public closeMarginPosition?: CloseMarginPosition;
 }
 
 /**

@@ -18,7 +18,7 @@ export class TaskDataChangeService
    * @param idTasks Optional array of task IDs to filter by. If null/undefined, all tasks are returned.
    * @returns Observable of TaskDataChange array
    */
-  getAllTaskDataChange(idTasks?: number[]): Observable<TaskDataChange[]> {
+  getAllTaskDataChange(idTasks?: number[] | null): Observable<TaskDataChange[]> {
     let params = new HttpParams();
     if (idTasks && idTasks.length > 0) {
       params = params.set('idTasks', idTasks.join(','));

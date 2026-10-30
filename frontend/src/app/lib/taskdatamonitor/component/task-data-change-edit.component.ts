@@ -50,8 +50,8 @@ import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataChange> implements OnInit {
   private taskDataChangeService: TaskDataChangeService = inject(TaskDataChangeService);
 
-  readonly callParam = input<TaskDataChange>(undefined);
-  readonly tdcFormConstraints = input<TaskDataChangeFormConstraints>(undefined);
+  readonly callParam = input<TaskDataChange | null>();
+  readonly tdcFormConstraints = input.required<TaskDataChangeFormConstraints>();
   readonly taskTypeEnum = input<any>(TaskTypeBase); // Application can provide extended enum
   /** The queue of the monitor tab; only its task types can be created there */
   readonly queue = input<string>(MAIN_TASK_QUEUE);

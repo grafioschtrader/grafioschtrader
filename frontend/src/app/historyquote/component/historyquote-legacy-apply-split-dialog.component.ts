@@ -47,7 +47,7 @@ export class HistoryquoteLegacyApplySplitDialogComponent extends SimpleFormEditB
   private historyquoteLegacyService: HistoryquoteLegacyService = inject(HistoryquoteLegacyService);
   private messageToastService: MessageToastService = inject(MessageToastService);
 
-  readonly idSecuritycurrency = input<number>(undefined);
+  readonly idSecuritycurrency = input.required<number>();
 
   constructor() {
     super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES);

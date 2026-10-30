@@ -1,0 +1,57 @@
+/* Ionic follows the system setting for light and dark mode. */
+:root {
+  --ion-color-primary: #2a78d6;
+  --ion-color-primary-rgb: 42, 120, 214;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #256abc;
+  --ion-color-primary-tint: #3f86da;
+  --gt-gain-color: #1e8e3e;
+  --gt-loss-color: #c5221f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gt-gain-color: #5bb974;
+    --gt-loss-color: #ee675c;
+  }
+}
+
+/* The header of a card holds its title and the button opening the full-screen view. */
+.card-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Figures align on their right edge and keep their digits apart from the label. */
+.figure {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.gain {
+  color: var(--gt-gain-color);
+}
+
+.loss {
+  color: var(--gt-loss-color);
+}
+
+.widget-note {
+  font-size: 0.85em;
+  color: var(--ion-color-medium);
+}
+
+.widget-loading {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+ion-segment {
+  margin-bottom: 8px;
+}

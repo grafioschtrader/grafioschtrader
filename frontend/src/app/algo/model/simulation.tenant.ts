@@ -7,13 +7,13 @@ export interface SimulationTenantInfo {
   idAlgoTop: number;
   algoTopName: string;
   hasTransactions: boolean;
-  simulationStartDate?: string;
-  initializationMode?: SimulationInitializationMode;
+  simulationStartDate?: string | null;
+  initializationMode?: SimulationInitializationMode | null;
   requiresRecreation: boolean;
   /** True while a replay is queued or executing; the environment can then neither be entered nor deleted. */
   active: boolean;
   /** Why a replay would be refused, already translated; null when the strategy of the environment is ready. */
-  replayBlockedReason?: string;
+  replayBlockedReason?: string | null;
 }
 
 /**

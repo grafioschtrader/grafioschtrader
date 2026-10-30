@@ -1,5 +1,5 @@
 export class IntraHistoricalWatchlistProblem {
-  addIntraday: boolean = null;
-  addHistorical: boolean = null;
-  daysSinceLastWork: number = null;
+  addIntraday: boolean | null = null;
+  addHistorical: boolean | null = null;
+  daysSinceLastWork: number | null = null;
 }

@@ -54,6 +54,16 @@ describe('DynamicFieldModelHelper SELECT_OPTIONS width', () => {
   });
 });
 
+describe('unsupported dynamic field descriptors', () => {
+  it('reports the unsupported data type before an incomplete field reaches the form', () => {
+    const config = descriptor(null);
+    config.fieldDescriptorInputAndShows[0].dataType = 'UnsupportedType';
+    expect(() =>
+      DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow({} as TranslateService, config, '')
+    ).toThrow('Unsupported data type "UnsupportedType" for field "initializationMode".');
+  });
+});
+
 describe('DynamicFieldModelHelper enum-backed string field', () => {
   const translateService = { get: (key: string) => of('T_' + key) } as unknown as TranslateService;
   const enumDescriptor = (required: boolean): FieldDescriptorInputAndShow => ({

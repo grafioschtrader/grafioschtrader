@@ -2,15 +2,15 @@ import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.grou
 
 /** Stored definition, with the result type inferred by the server. */
 export class WatchlistIndicatorColumn {
-  idWatchlistIndicatorColumn: number = null;
-  idWatchlist: number = null;
-  label: string = null;
-  expression: string = null;
+  idWatchlistIndicatorColumn: number | null = null;
+  idWatchlist: number | null = null;
+  label: string | null = null;
+  expression: string | null = null;
   resultType: 'NUMBER' | 'BOOLEAN' = 'NUMBER';
-  idBenchmark: number = null;
+  idBenchmark: number | null = null;
   decimals = 2;
-  lowerMark: number = null;
-  upperMark: number = null;
+  lowerMark: number | null = null;
+  upperMark: number | null = null;
   markColors = 'LOW_NEGATIVE_HIGH_POSITIVE';
   uiOrder = 0;
 }

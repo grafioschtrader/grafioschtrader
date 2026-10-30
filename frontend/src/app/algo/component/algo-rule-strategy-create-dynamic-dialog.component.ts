@@ -20,8 +20,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { AppSettings } from '../../shared/app.settings';
 import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
-import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
-import { AlgoTop } from '../model/algo.top';
+import { SimpleDynamicFormBase } from '../../lib/edit/simple.dynamic.form.base';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 
@@ -39,10 +38,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   `,
   imports: [...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
-export class AlgoRuleStrategyCreateDynamicDialogComponent
-  extends SimpleDynamicEditBase<AlgoTop>
-  implements OnInit, OnDestroy
-{
+export class AlgoRuleStrategyCreateDynamicDialogComponent extends SimpleDynamicFormBase implements OnInit, OnDestroy {
   private assetclassService: AssetclassService = inject(AssetclassService);
   private watchlistService: WatchlistService = inject(WatchlistService);
   private algoTopService: AlgoTopService = inject(AlgoTopService);
@@ -59,13 +55,13 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
   valueKeyHtmlOptionsAssetclasses: ValueKeyHtmlSelectOptions[] = [];
   algoTopCreate: AlgoTopCreate;
   protected watchlistChangedSub: Subscription;
-  protected assetclassChangeSubList: Subscription[] = new Array(
+  protected assetclassChangeSubList: (Subscription | null | undefined)[] = new Array(
     AlgoRuleStrategyCreateDynamicDialogComponent.maxAssetclassRows
   );
   private assetsclasses: Assetclass[] = [];
 
   constructor() {
-    super(HelpIds.HELP_WATCHLIST, inject(AlgoTopService));
+    super(HelpIds.HELP_WATCHLIST);
   }
 
   ngOnInit(): void {
@@ -108,8 +104,7 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
   }
 
   removeAssetclassPercentageRow(): void {
-    this.assetclassChangeSubList[this.assetclassCounter] &&
-      this.assetclassChangeSubList[this.assetclassCounter].unsubscribe();
+    this.assetclassChangeSubList[this.assetclassCounter]?.unsubscribe();
     this.assetclassChangeSubList[this.assetclassCounter] = null;
     this.assetclassCounter--;
     this.config = [
@@ -244,9 +239,5 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent
         ...this.valueKeyHtmlOptionsAssetclasses
       ];
     }
-  }
-
-  protected getNewOrExistingInstanceBeforeSave(value: { [p: string]: any }): AlgoTop {
-    return undefined;
   }
 }

@@ -69,9 +69,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
 
   readonly editorContainer = viewChild.required<ElementRef<HTMLDivElement>>('editorContainer');
 
-  readonly format = input<'FEES' | 'FEES_ACCOUNT' | 'TOKENS' | 'CALENDAR' | 'TAXES' | 'STRATEGY' | 'CUSTODY'>(
-    undefined
-  );
+  readonly format = input<'FEES' | 'FEES_ACCOUNT' | 'TOKENS' | 'CALENDAR' | 'TAXES' | 'STRATEGY' | 'CUSTODY'>();
   readonly activatable = input(true);
   readonly syntaxValidChange = output<boolean>();
   readonly validationPendingChange = output<boolean>();
@@ -198,7 +196,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
    */
   readonly fieldCompletions = input<{
     [fieldName: string]: YamlFieldCompletion[];
-  }>(undefined);
+  }>();
 
   private readonly renderInjector = inject(Injector);
   private _value = '';

@@ -38,10 +38,11 @@ export class ProductIconService {
     this.icons.forEach((icon) => this.iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + icon + '.svg', icon));
   }
 
-  getIconForInstrument(security: Security, isCryptocurrency: boolean): string {
-    let icon = isCryptocurrency ? 'cc' : 'c';
+  getIconForInstrument(security: Security | null, isCryptocurrency?: boolean | null): string | null | undefined {
+    let icon: string | null | undefined = isCryptocurrency ? 'cc' : 'c';
     if (security) {
       const assetclass = security.assetClass;
+      if (!assetclass) return undefined;
       if (
         security.idLinkSecuritycurrency &&
         SpecialInvestmentInstruments[
@@ -64,7 +65,7 @@ export class ProductIconService {
    * @param security The security to evaluate, may be null or a currency pair without a distribution frequency
    * @returns The name of the registered distribution icon or null when nothing is paid out
    */
-  getDistributionIcon(security: Security): string {
+  getDistributionIcon(security: Security | null | undefined): string | null {
     return security?.distributionFrequency &&
       DistributionFrequency[security.distributionFrequency as keyof typeof DistributionFrequency] !==
         DistributionFrequency.DF_NONE
@@ -72,7 +73,7 @@ export class ProductIconService {
       : null;
   }
 
-  getIconForAssetclass(assetclass: Assetclass, icon: string) {
+  getIconForAssetclass(assetclass: Assetclass, icon: string | null | undefined) {
     switch (
       SpecialInvestmentInstruments[assetclass.specialInvestmentInstrument as keyof typeof SpecialInvestmentInstruments]
     ) {
@@ -107,8 +108,8 @@ export class ProductIconService {
     return icon;
   }
 
-  private getDirectInvestmentIcon(assetclassType: AssetclassType | string | null): string {
-    let icon: string;
+  private getDirectInvestmentIcon(assetclassType: AssetclassType | string | null): string | undefined {
+    let icon: string | undefined;
     switch (AssetclassType[assetclassType as keyof typeof AssetclassType]) {
       case AssetclassType.EQUITIES:
         icon = 'eq';

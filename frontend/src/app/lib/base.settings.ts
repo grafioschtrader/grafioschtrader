@@ -150,7 +150,9 @@ export class BaseSettings {
    * @param sessionStorageKey SessionStorage key where the standardPrecision map is stored
    */
   public static resetInterFractionLimit(targetObject: any, sessionStorageKey: string): void {
-    const standardPrecisionMap: { [typename: string]: number } = JSON.parse(sessionStorage.getItem(sessionStorageKey));
+    const standardPrecisionMap: { [typename: string]: number } = JSON.parse(
+      sessionStorage.getItem(sessionStorageKey) ?? 'null'
+    );
     if (standardPrecisionMap) {
       const keys = Object.keys(standardPrecisionMap);
       keys.forEach((key) => {

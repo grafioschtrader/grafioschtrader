@@ -50,7 +50,10 @@ export abstract class FormDefinitionHelper {
    * @param gpsGT GlobalparameterGTService to get tenant-level closedUntil
    * @returns The effective closedUntil date, or null if no restriction applies
    */
-  public static getEffectiveClosedUntil(portfolio: Portfolio, gpsGT: GlobalparameterGTService): Date | null {
+  public static getEffectiveClosedUntil(
+    portfolio: Portfolio | null | undefined,
+    gpsGT: GlobalparameterGTService
+  ): Date | null {
     if (portfolio?.closedUntil) {
       return new Date(portfolio.closedUntil);
     }

@@ -1,3 +1,3 @@
 export interface AlgoTreeName {
-  getNameByLanguage(language: string): string;
+  getNameByLanguage(language: string): string | null | undefined;
 }

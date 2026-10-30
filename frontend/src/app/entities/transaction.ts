@@ -9,41 +9,42 @@ export class Transaction {
   idTransaction?: number;
   /** Server-owned marker protecting the simulation's opening ledger. */
   readonly simulationOpening?: boolean;
-  idAlgoStrategy: number = null;
-  units?: number = null;
-  quotation?: number = null;
-  transactionType: string = null;
+  idAlgoStrategy: number | null = null;
+  units?: number | null = null;
+  quotation?: number | null = null;
+  transactionType: string | null = null;
   connectedIdTransaction?: number;
-  taxableInterest?: boolean = null;
-  taxCost?: number = null;
-  transactionCost?: number = null;
-  currencyExRate?: number = null;
-  note?: string = null;
-  cashaccountAmount?: number = null;
-  cashaccountRoundingDiff?: number = null;
-  transactionTime: string | number | Date = null;
-  exDate: string | Date = null;
+  taxableInterest?: boolean | null = null;
+  taxCost?: number | null = null;
+  transactionCost?: number | null = null;
+  currencyExRate?: number | null = null;
+  note?: string | null = null;
+  cashaccountAmount?: number | null = null;
+  cashaccountRoundingDiff?: number | null = null;
+  transactionTime: string | number | Date | null = null;
+  exDate: string | Date | null = null;
 
-  idSecurityaccount: number = null;
+  idSecurityaccount: number | null = null;
 
-  idSecuritycurrency?: number = null;
+  idSecuritycurrency?: number | null = null;
   // Like server model
   security?: Security;
 
-  idCashaccount?: number = null;
+  idCashaccount?: number | null = null;
   // Like server model
   cashaccount?: Cashaccount;
 
-  assetInvestmentValue1?: number = null;
-  assetInvestmentValue2?: number = null;
+  assetInvestmentValue1?: number | null = null;
+  assetInvestmentValue2?: number | null = null;
   // Like server model
-  idCurrencypair?: number = null;
+  idCurrencypair?: number | null = null;
   currencypair?: Currencypair;
 
   // Transient
-  securityRisk: number = null;
+  securityRisk: number | null = null;
 
-  public static isSecurityTransaction(transactionType: string): boolean {
+  public static isSecurityTransaction(transactionType: string | null | undefined): boolean {
+    if (transactionType == null) return false;
     switch (TransactionType[transactionType as keyof typeof TransactionType]) {
       case TransactionType.ACCUMULATE:
       case TransactionType.REDUCE:
@@ -55,7 +56,8 @@ export class Transaction {
     }
   }
 
-  public static isOnlyCashAccountTransaction(transactionType: string): boolean {
+  public static isOnlyCashAccountTransaction(transactionType: string | null | undefined): boolean {
+    if (transactionType == null) return false;
     switch (TransactionType[transactionType as keyof typeof TransactionType]) {
       case TransactionType.FEE:
       case TransactionType.INTEREST_CASHACCOUNT:
@@ -65,7 +67,8 @@ export class Transaction {
     }
   }
 
-  public static isDividendOrInterest(transactionType: string): boolean {
+  public static isDividendOrInterest(transactionType: string | null | undefined): boolean {
+    if (transactionType == null) return false;
     switch (TransactionType[transactionType as keyof typeof TransactionType]) {
       case TransactionType.DIVIDEND:
       case TransactionType.INTEREST_CASHACCOUNT:
@@ -75,7 +78,8 @@ export class Transaction {
     }
   }
 
-  public static isWithdrawalOrDeposit(transactionType: string): boolean {
+  public static isWithdrawalOrDeposit(transactionType: string | null | undefined): boolean {
+    if (transactionType == null) return false;
     switch (TransactionType[transactionType as keyof typeof TransactionType]) {
       case TransactionType.WITHDRAWAL:
       case TransactionType.DEPOSIT:

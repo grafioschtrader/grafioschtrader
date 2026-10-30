@@ -88,6 +88,10 @@ else
   node scripts/sync-yaml-schemas.mjs
   ng build frontend --configuration production --base-href "/$basehref" --output-path "$stage/dist"
   output="$stage/dist/browser"
+  # The mobile application is served from the subdirectory m/ of the desktop application. An explicit output path
+  # always adds a browser/ directory, so it is built apart and moved into place.
+  ng build gt-mobile --configuration production --base-href "/${basehref%/}/m/" --output-path "$stage/mobile"
+  mv -- "$stage/mobile/browser" "$output/m"
 fi
 if [[ ! -s "$output/index.html" ]]; then
   echo "ERROR: Frontend output has no non-empty index.html." >&2

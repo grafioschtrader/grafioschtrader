@@ -31,7 +31,7 @@ export class AlgoCallParam {
   addInstrumentsBySearch?: boolean;
   constructor(
     public parentObject: AlgoTop | AlgoAssetclass | AlgoSecurity,
-    public thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,
+    public thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy | null,
     public algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm,
     public idWatchlist?: number,
     public referenceDate?: Date | string
@@ -39,7 +39,7 @@ export class AlgoCallParam {
 }
 
 export class AlgoStrategyParamCall {
-  algoStrategy: AlgoStrategy;
-  fieldDescriptorShow: FieldDescriptorInputAndShow[];
-  isComplexStrategy: boolean;
+  algoStrategy: AlgoStrategy | null = null;
+  fieldDescriptorShow: FieldDescriptorInputAndShow[] = [];
+  isComplexStrategy = false;
 }

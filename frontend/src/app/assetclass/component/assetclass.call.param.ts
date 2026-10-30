@@ -1,7 +1,7 @@
 import { Assetclass } from '../../entities/assetclass';
 
 export class AssetclassCallParam {
-  assetclass: Assetclass;
+  assetclass: Assetclass | null;
   hasSecurity: boolean;
   subCategorySuggestionsDE: string[];
   subCategorySuggestionsEN: string[];

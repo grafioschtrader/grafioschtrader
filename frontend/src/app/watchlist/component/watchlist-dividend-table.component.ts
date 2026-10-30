@@ -26,7 +26,7 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
   private static EX_DATE = 'exDate';
 
   /** The unique identifier of the security/currency to display dividends for */
-  readonly idSecuritycurrency = input<number>(undefined);
+  readonly idSecuritycurrency = input.required<number>();
 
   /**
    * Creates a new watchlist dividend table component and configures the table columns.

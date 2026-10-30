@@ -24,5 +24,5 @@ export class GTNetMessageAnswer implements BaseID {
  * Call parameter for GTNetMessageAnswer edit dialog.
  */
 export class GTNetMessageAnswerCallParam {
-  constructor(public gtNetMessageAnswer: GTNetMessageAnswer) {}
+  constructor(public gtNetMessageAnswer: GTNetMessageAnswer | null) {}
 }

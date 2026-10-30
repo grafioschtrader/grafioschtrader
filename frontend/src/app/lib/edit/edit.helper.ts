@@ -19,7 +19,7 @@ export abstract class EditHelper {
    * @param {DynamicFormComponent} form - The form component containing user input
    * @returns {T} The updated target entity with form data applied
    */
-  public static copyFormToPrivateBusinessObject<T>(
+  public static copyFormToPrivateBusinessObject<T extends object>(
     targetEntity: T,
     existingEntity: T | null | undefined,
     form: DynamicFormComponent
@@ -45,8 +45,8 @@ export abstract class EditHelper {
    */
   public static copyFormToPublicBusinessObject<T>(
     targetEntity: ProposeTransientTransfer,
-    existingEntity: T,
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity,
+    existingEntity: T | null | undefined,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined,
     form: DynamicFormComponent,
     formBase: FormBase
   ): void {

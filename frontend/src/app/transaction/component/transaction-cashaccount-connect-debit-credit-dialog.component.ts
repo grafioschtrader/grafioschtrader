@@ -31,7 +31,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
 export class TransactionCashaccountConnectDebitCreditDialogComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
 
-  readonly transactionCallParam = input<TransactionCallParam>(undefined);
+  readonly transactionCallParam = input.required<TransactionCallParam>();
 
   constructor() {
     super(HelpIds.HELP_TRANSACTION_ACCOUNT);

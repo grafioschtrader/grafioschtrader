@@ -81,7 +81,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
   private entityLimitService: EntityLimitService = inject(EntityLimitService);
 
   /** The row the edit dialog works on, null when a new one is created. */
-  callParam: EntityLimit;
+  callParam: EntityLimit | null = null;
 
   private readonly configurableTable = viewChild(ConfigurableTableComponent);
 
@@ -205,7 +205,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
     );
   }
 
-  protected prepareCallParam(entity: EntityLimit): void {
+  protected prepareCallParam(entity: EntityLimit | null): void {
     this.callParam = entity;
   }
 

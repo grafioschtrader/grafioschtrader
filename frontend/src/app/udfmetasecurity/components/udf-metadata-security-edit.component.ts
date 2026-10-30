@@ -329,7 +329,7 @@ export class UDFMetadataSecurityEditComponent
   /**
    * Splits the stored rule of a resolver field into resolver and argument.
    */
-  private transferResolverRule(existing: UDFMetadataSecurity): void {
+  private transferResolverRule(existing: UDFMetadataSecurity | null): void {
     if (existing?.fillSource === UDFFillSource.RESOLVER && existing.fillRule) {
       const rule = existing.fillRule.trim();
       const space = rule.indexOf(' ');
@@ -428,7 +428,7 @@ export class UDFMetadataSecurityEditComponent
   /**
    * Loads the one-line fill status of an existing field with a fill source other than manual.
    */
-  private loadFillStatus(existing: UDFMetadataSecurity): void {
+  private loadFillStatus(existing: UDFMetadataSecurity | null): void {
     this.fillStatusText.set(null);
     if (existing?.idUDFMetadata && existing.fillSource && existing.fillSource !== UDFFillSource.MANUAL) {
       this.uDFMetadataSecurityService
@@ -552,6 +552,6 @@ export class UDFMetadataSecurityEditComponent
 /**
  * Tells whether a stored field gets its values proposed by a language model.
  */
-function existingIsLLM(field: UDFMetadataSecurity): boolean {
+function existingIsLLM(field: UDFMetadataSecurity | null): boolean {
   return field?.fillSource === UDFFillSource.LLM;
 }

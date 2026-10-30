@@ -37,7 +37,7 @@ export class ChartShapeController {
   /** The loaded Plotly library, handed over by the chart before it builds the mode bar. */
   private plotly: PlotlyInstance;
   /** Instrument the shapes belong to, null while more than one instrument is charted. */
-  private idSecuritycurrency: number = null;
+  private idSecuritycurrency: number | null = null;
 
   /**
    * @param userChartShapeService REST access to the stored shapes of the logged in user
@@ -86,7 +86,7 @@ export class ChartShapeController {
    *
    * @param idSecuritycurrency id of the single charted security or currency pair, or null
    */
-  public setSecuritycurrency(idSecuritycurrency: number): void {
+  public setSecuritycurrency(idSecuritycurrency: number | null): void {
     this.idSecuritycurrency = idSecuritycurrency;
   }
 

@@ -75,7 +75,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * them under it as soon as it closes; otherwise a choice made there would only be saved when the component is
    * destroyed, which a page reload never does.
    */
-  private tableDefinitionKey: string = null;
+  private tableDefinitionKey: string | null = null;
 
   /**
    * Stable sort callback for the customSortFn input of the table hosts. It calls customSort, so overrides in
@@ -84,7 +84,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   readonly customSorter = (event: SortEvent) => this.customSort(event);
 
   /** Group fields with their colspan, computed once per column layout instead of while the template renders */
-  private groupFieldsCache: { fields: ColumnConfig[]; length: number; groupFields: ColumnConfig[] } = null;
+  private groupFieldsCache: { fields: ColumnConfig[]; length: number; groupFields: ColumnConfig[] } | null = null;
 
   /**
    * Creates a new table configuration base.
@@ -111,15 +111,15 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @returns Array of column configurations with properly calculated colspan values
    */
   get groupFields(): ColumnConfig[] {
-    const cache = this.groupFieldsCache;
+    let cache = this.groupFieldsCache;
     if (!cache || cache.fields !== this.fields || cache.length !== this.fields.length) {
-      this.groupFieldsCache = {
+      this.groupFieldsCache = cache = {
         fields: this.fields,
         length: this.fields.length,
         groupFields: this.computeGroupFields()
       };
     }
-    return this.groupFieldsCache.groupFields;
+    return cache.groupFields;
   }
 
   /** Collects the group fields and adjusts their colspan to the position of the next grouped column. */
@@ -214,7 +214,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   private hasSameChecksum(key: string): boolean {
     const keyChecksum = key + '.checksum';
-    const existingChecksum: string = localStorage.getItem(keyChecksum);
+    const existingChecksum = localStorage.getItem(keyChecksum);
     const newChecksum: string = this.calculateHashAllOverFieldNames();
     localStorage.setItem(keyChecksum, newChecksum);
     return existingChecksum === newChecksum;
@@ -304,6 +304,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   onColResize(event: TableColResizeEvent) {
     const columnConfig = this.getColumnConfigByHeaderTranslated(event.element.innerText.trim());
+    if (!columnConfig) return;
     columnConfig.width = event.element.style.width;
     this.notifyViewChanged();
   }
@@ -326,9 +327,10 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   customSort(event: SortEvent): void {
     if (event.mode === 'single') {
+      if (event.field == null || event.order == null) return;
       this.customSortMultiple(event.data, [{ field: event.field, order: event.order }]);
     } else {
-      this.customSortMultiple(event.data, event.multiSortMeta);
+      this.customSortMultiple(event.data, event.multiSortMeta ?? []);
     }
   }
 
@@ -449,7 +451,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
             owner: this satisfies ColumnVisibilityOwner
           }
         })
-        .onClose.subscribe(() => this.tableDefinitionKey && this.writeTableDefinition(this.tableDefinitionKey));
+        ?.onClose.subscribe(() => this.tableDefinitionKey && this.writeTableDefinition(this.tableDefinitionKey));
     });
   }
 

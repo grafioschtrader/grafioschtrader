@@ -318,7 +318,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     this.prepareTableAndTranslate();
   }
 
-  override prepareCallParam(entity: GTNet): void {
+  override prepareCallParam(entity: GTNet | null): void {
     this.callParam = {
       gtNet: entity,
       isMyEntry: this.entityList().length === 0 || (!!entity && this.isMyEntry(entity, null)),
@@ -443,7 +443,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     return this.isAuthorizedRemoteEntry(dataobject);
   }
 
-  protected override getEditMenuItems(entity: GTNet): MenuItem[] {
+  protected override getEditMenuItems(entity: GTNet | null): MenuItem[] {
     if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
       return [];
     }

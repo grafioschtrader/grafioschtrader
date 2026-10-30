@@ -13,7 +13,7 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
   Object = Object;
 
   /** Private cache for grouped field configurations */
-  _fieldSetGroups: { [fieldSetName: string]: ColumnConfig[] };
+  _fieldSetGroups?: { [fieldSetName: string]: ColumnConfig[] } | null;
 
   /**
    * Gets field configurations organized by their fieldset names.
@@ -82,7 +82,7 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
    */
   group(list: ColumnConfig[], prop: 'fieldsetName'): Record<string, ColumnConfig[]> {
     return list.reduce<Record<string, ColumnConfig[]>>((grouped, item) => {
-      const key = item[prop];
+      const key = String(item[prop]);
       grouped[key] = grouped[key] || [];
       grouped[key].push(item);
       return grouped;

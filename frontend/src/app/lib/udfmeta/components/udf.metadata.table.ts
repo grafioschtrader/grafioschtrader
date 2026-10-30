@@ -91,7 +91,7 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @param uDFMetadataParam - Parameter object to populate with exclusion lists
    * @protected
    */
-  protected beforeEdit(entity: UDFMetadata, uDFMetadataParam: UDFMetadataParam): void {
+  protected beforeEdit(entity: UDFMetadata | null, uDFMetadataParam: UDFMetadataParam): void {
     uDFMetadataParam.excludeUiOrders = this.entityList()
       .filter((m) => entity == null || entity.uiOrder !== m.uiOrder)
       .map((m) => m.uiOrder)

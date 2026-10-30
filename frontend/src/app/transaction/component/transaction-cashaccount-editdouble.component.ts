@@ -14,7 +14,6 @@ import { Cashaccount } from '../../entities/cashaccount';
 import { Transaction } from '../../entities/transaction';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { Helper } from '../../lib/helper/helper';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { HelpIds } from '../../lib/help/help.ids';
@@ -82,12 +81,12 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   readonly WithIndex: number = 0;
   readonly DepIndex: number = 1;
 
-  debitCashaccount: Cashaccount;
-  creditCashaccount: Cashaccount;
+  debitCashaccount: Cashaccount | null = null;
+  creditCashaccount: Cashaccount | null = null;
 
   // Portfolio references for closedUntil calculation
-  private debitPortfolio: Portfolio;
-  private creditPortfolio: Portfolio;
+  private debitPortfolio: Portfolio | null = null;
+  private creditPortfolio: Portfolio | null = null;
 
   // Observer subscribe
   private transactionTimeChangeSub: Subscription;
@@ -158,6 +157,14 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   setCalculatedDebitAmount(): number {
     const values: any = {};
     this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);
+    if (!this.debitCashaccount || !this.creditCashaccount || values.creditAmount == null) {
+      requireFormControl(this.configObject.debitAmount).setValue(null);
+      return values.currencyExRate;
+    }
+    if (!this.currencypair && this.debitCashaccount.currency !== this.creditCashaccount.currency) {
+      requireFormControl(this.configObject.debitAmount).setValue(null);
+      return values.currencyExRate;
+    }
 
     if (this.currencypair) {
       const debitAmount = this.calcDebitAmount(values);
@@ -170,7 +177,10 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     return values.currencyExRate;
   }
 
-  calcDebitAmount(values: any): number {
+  calcDebitAmount(values: any): number | null {
+    if (!this.debitCashaccount || !this.creditCashaccount || values.creditAmount == null) return null;
+    if (!this.currencypair && this.debitCashaccount.currency !== this.creditCashaccount.currency) return null;
+    if (this.currencypair && values.currencyExRate == null) return null;
     return (
       BusinessHelper.divideMultiplyExchangeRate(
         values.creditAmount,
@@ -209,21 +219,21 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   valueChangedOnDebitCashaccount(): void {
     this.debitChashaccountChangedSub = requireFormControl(this.configObject.idDebitCashaccount)
       .valueChanges.pipe(this.untilDialogClosed())
-      .subscribe((data: string) => {
-        if (Helper.hasValue(data)) {
-          const cp: { cashaccount: Cashaccount; portfolio: Portfolio } =
-            this.getCashaccountByIdCashaccountFromPortfolios(this.portfolios, +data);
-          this.debitCashaccount = cp.cashaccount;
-          this.debitPortfolio = cp.portfolio;
-          this.updateTransactionTimeMinDateFromBothPortfolios();
-          this.filterCreditHtmlOptions(
-            this.configObject.idDebitCashaccount.valueKeyHtmlOptions,
-            cp.cashaccount.idSecuritycashAccount
-          );
-          this.configObject.debitAmount.inputNumberSettings.currency = this.debitCashaccount.currency;
-          this.configObject.transactionCost.inputNumberSettings.currency = this.debitCashaccount.currency;
-          this.changeCurrencyExRateState();
+      .subscribe((data: string | number | null) => {
+        const cp =
+          data == null || data === '' ? null : this.getCashaccountByIdCashaccountFromPortfolios(this.portfolios, +data);
+        this.debitCashaccount = cp?.cashaccount ?? null;
+        this.debitPortfolio = cp?.portfolio ?? null;
+        this.updateTransactionTimeMinDateFromBothPortfolios();
+        this.filterCreditHtmlOptions(
+          this.configObject.idDebitCashaccount.valueKeyHtmlOptions ?? [],
+          cp?.cashaccount.idSecuritycashAccount
+        );
+        if (cp) {
+          DynamicFieldHelper.setCurrency(this.configObject.debitAmount, cp.cashaccount.currency);
+          DynamicFieldHelper.setCurrency(this.configObject.transactionCost, cp.cashaccount.currency);
         }
+        this.changeCurrencyExRateState();
       });
   }
 
@@ -233,17 +243,14 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   valueChangedOnCreditCashaccount(): void {
     this.creditChashaccountChangedSub = requireFormControl(this.configObject.idCreditCashaccount)
       .valueChanges.pipe(this.untilDialogClosed())
-      .subscribe((data: string) => {
-        if (data) {
-          const cp: { cashaccount: Cashaccount; portfolio: Portfolio } =
-            this.getCashaccountByIdCashaccountFromPortfolios(this.portfolios, +data);
-          this.creditCashaccount = cp.cashaccount;
-          this.creditPortfolio = cp.portfolio;
-          this.updateTransactionTimeMinDateFromBothPortfolios();
-          // this.configObject.creditAmount.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.creditCashaccount.currency);
-          this.configObject.creditAmount.inputNumberSettings.currency = this.creditCashaccount.currency;
-          this.changeCurrencyExRateState();
-        }
+      .subscribe((data: string | number | null) => {
+        const cp =
+          data == null || data === '' ? null : this.getCashaccountByIdCashaccountFromPortfolios(this.portfolios, +data);
+        this.creditCashaccount = cp?.cashaccount ?? null;
+        this.creditPortfolio = cp?.portfolio ?? null;
+        this.updateTransactionTimeMinDateFromBothPortfolios();
+        if (cp) DynamicFieldHelper.setCurrency(this.configObject.creditAmount, cp.cashaccount.currency);
+        this.changeCurrencyExRateState();
       });
   }
 
@@ -252,8 +259,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   submit(value: { [name: string]: any }) {
-    let cashAccountTransfer: CashAccountTransfer = this.createOrCopyExistingTransaction();
-    cashAccountTransfer = this.viewToBusinessModel(cashAccountTransfer);
+    const cashAccountTransfer = this.viewToBusinessModel(this.createOrCopyExistingTransaction());
+    if (!cashAccountTransfer) return;
     this.saveTransaction(cashAccountTransfer);
   }
 
@@ -295,12 +302,13 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         if (transactionCallParam.transaction) {
           this.setupModifyExistingTransaction(transactionCallParam.transaction);
         } else {
-          this.setupCashaccountSelect(transactionCallParam.cashaccount.idSecuritycashAccount, null);
+          this.setupCashaccountSelect(transactionCallParam.cashaccount?.idSecuritycashAccount, null);
         }
       });
   }
 
   private adjustNumberInputFractions(): void {
+    if (!this.creditCashaccount || !this.debitCashaccount) return;
     const fromCurrencyFraction = this.gps.getCurrencyPrecision(
       this.currencypair ? this.currencypair.fromCurrency : this.creditCashaccount.currency
     );
@@ -325,9 +333,11 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   private getCurrencypair() {
+    const pair = this.currencypair;
+    if (!pair) return;
     this.replaceDialogRequest('currencypair', () =>
       this.currencypairService
-        .findOrCreateCurrencypairByFromAndToCurrency(this.currencypair.fromCurrency, this.currencypair.toCurrency)
+        .findOrCreateCurrencypairByFromAndToCurrency(pair.fromCurrency, pair.toCurrency)
         .pipe(this.untilDialogClosed())
         .subscribe((currencypair) => {
           this.currencypair = currencypair;
@@ -335,9 +345,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
             this.replaceDialogRequest('exchangeRate', () =>
               BusinessHelper.getAndSetQuotationCurrencypair(
                 this.currencypairService,
-                this.currencypair,
+                currencypair,
                 requireFormControl(this.configObject.transactionTime).value,
-                this.configObject.currencyExRate.formControl
+                requireFormControl(this.configObject.currencyExRate)
               )
             );
           }
@@ -345,7 +355,10 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     );
   }
 
-  private setupCashaccountSelect(debitIdCashaccount: number, creditIdCashaccount: number) {
+  private setupCashaccountSelect(
+    debitIdCashaccount: number | null | undefined,
+    creditIdCashaccount: number | null | undefined
+  ) {
     this.configObject.idDebitCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
     this.toggleDebitCashaccountOptionsByTransactionTime();
     this.filterCreditHtmlOptions(this.configObject.idDebitCashaccount.valueKeyHtmlOptions, creditIdCashaccount);
@@ -353,7 +366,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     this.valueChangedOnCreditCashaccount();
     // Debit account is always set
     requireFormControl(this.configObject.idDebitCashaccount).setValue(debitIdCashaccount);
-    if (creditIdCashaccount) {
+    if (creditIdCashaccount != null) {
       requireFormControl(this.configObject.idCreditCashaccount).setValue(creditIdCashaccount);
     }
     this.valueChangedOnCalcFields();
@@ -370,6 +383,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
    * @param transaction1 the transfer side the user opened
    */
   private setupModifyExistingTransaction(transaction1: Transaction) {
+    const connectedId = transaction1.connectedIdTransaction;
+    if (connectedId == null) return;
     if (transaction1.connectedIdTransaction === transaction1.idTransaction) {
       this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'GT_TRANSFER_SELF_CONNECTED', {
         idTransaction: transaction1.idTransaction
@@ -378,7 +393,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       return;
     }
     this.transactionService
-      .getTransactionByIdTransaction(transaction1.connectedIdTransaction)
+      .getTransactionByIdTransaction(connectedId)
       .pipe(this.untilDialogClosed())
       .subscribe((data) => {
         this.transactions = [];
@@ -393,8 +408,10 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   private setFormValues(): void {
+    const withdrawal = this.transactions[this.WithIndex];
+    const deposit = this.transactions[this.DepIndex];
     requireFormControl(this.configObject.transactionTime).setValue(
-      new Date(this.transactions[this.WithIndex].transactionTime)
+      withdrawal.transactionTime == null ? null : new Date(withdrawal.transactionTime)
     );
     requireFormControl(this.configObject.currencyExRate).setValue(this.transactions[this.WithIndex].currencyExRate);
     requireFormControl(this.configObject.transactionCost).setValue(this.transactions[this.WithIndex].transactionCost);
@@ -402,8 +419,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     requireFormControl(this.configObject.note).setValue(this.transactions[this.WithIndex].note);
 
     this.setupCashaccountSelect(
-      this.transactions[this.WithIndex].cashaccount.idSecuritycashAccount,
-      this.transactions[this.DepIndex].cashaccount.idSecuritycashAccount
+      withdrawal.cashaccount?.idSecuritycashAccount ?? withdrawal.idCashaccount,
+      deposit.cashaccount?.idSecuritycashAccount ?? deposit.idCashaccount
     );
     this.setCalculatedDebitAmount();
   }
@@ -421,21 +438,29 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         this.disableCurrencyExRateState();
       } else {
         // this.configObject.currencyExRate.labelSuffix = this.currencypair.toStringFN();
-        this.configObject.currencyExRate.labelSuffix = this.currencypair.name;
+        this.configObject.currencyExRate.labelSuffix = this.currencypair?.name;
         requireFormControl(this.configObject.currencyExRate).enable();
         this.getCurrencypair();
       }
       this.adjustNumberInputFractions();
+    } else {
+      this.currencypair = null;
+      this.disableCurrencyExRateState();
+      requireFormControl(this.configObject.debitAmount).setValue(null);
     }
     this.disableEnableExchangeRateButtons();
   }
 
   private setCurrencypair(): void {
+    if (!this.debitCashaccount || !this.creditCashaccount) {
+      this.currencypair = null;
+      return;
+    }
     const transactionCallParam = this.transactionCallParam();
     if (
       transactionCallParam.transaction &&
-      this.transactions[this.DepIndex].cashaccount.currency === this.debitCashaccount.currency &&
-      this.transactions[this.WithIndex].cashaccount.currency === this.creditCashaccount.currency
+      this.transactions[this.DepIndex].cashaccount?.currency === this.debitCashaccount.currency &&
+      this.transactions[this.WithIndex].cashaccount?.currency === this.creditCashaccount.currency
     ) {
       this.currencypair = transactionCallParam.transaction.currencypair;
     } else {
@@ -455,10 +480,10 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       t === null ||
       (t !== null &&
         ((requireFormControl(this.configObject.idCreditCashaccount).value &&
-          this.transactions[this.DepIndex].cashaccount.idSecuritycashAccount !==
+          this.transactions[this.DepIndex].cashaccount?.idSecuritycashAccount !==
             requireFormControl(this.configObject.idCreditCashaccount).value) ||
-          (this.transactions[this.WithIndex].cashaccount.idSecuritycashAccount &&
-            this.transactions[this.WithIndex].cashaccount.idSecuritycashAccount !==
+          (this.transactions[this.WithIndex].cashaccount?.idSecuritycashAccount != null &&
+            this.transactions[this.WithIndex].cashaccount?.idSecuritycashAccount !==
               requireFormControl(this.configObject.idDebitCashaccount).value)))
     );
   }
@@ -468,7 +493,10 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     requireFormControl(this.configObject.currencyExRate).disable();
   }
 
-  private filterCreditHtmlOptions(debitHtmlOptions: ValueKeyHtmlSelectOptions[], idCashaccountCredit: number): void {
+  private filterCreditHtmlOptions(
+    debitHtmlOptions: ValueKeyHtmlSelectOptions[],
+    idCashaccountCredit: number | null | undefined
+  ): void {
     const valueKeyHtmlOptions = debitHtmlOptions.filter(
       (debitHtmlOption) => debitHtmlOption.key !== idCashaccountCredit
     );
@@ -507,24 +535,23 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     return new CashAccountTransfer(newTransactions[0], newTransactions[1]);
   }
 
-  private viewToBusinessModel(cashAccountTransfer: CashAccountTransfer): CashAccountTransfer {
+  private viewToBusinessModel(cashAccountTransfer: CashAccountTransfer): CashAccountTransfer | null {
     const values: any = {};
     this.form().cleanMaskAndTransferValuesToBusinessObject(values, true);
-    cashAccountTransfer.withdrawalTransaction.cashaccount = this.getCashaccountByIdCashaccountFormPortfolios(
-      this.portfolios,
-      values.idDebitCashaccount
-    ).cashaccount;
+    const debit = this.getCashaccountByIdCashaccountFormPortfolios(this.portfolios, values.idDebitCashaccount);
+    const credit = this.getCashaccountByIdCashaccountFormPortfolios(this.portfolios, values.idCreditCashaccount);
+    if (!debit || !credit) return null;
+    cashAccountTransfer.withdrawalTransaction.cashaccount = debit.cashaccount;
     cashAccountTransfer.withdrawalTransaction.transactionCost = values.transactionCost;
-    cashAccountTransfer.depositTransaction.cashaccount = this.getCashaccountByIdCashaccountFormPortfolios(
-      this.portfolios,
-      values.idCreditCashaccount
-    ).cashaccount;
+    cashAccountTransfer.depositTransaction.cashaccount = credit.cashaccount;
     cashAccountTransfer.depositTransaction.cashaccountAmount = values.creditAmount;
     if (this.currencypair != null) {
       cashAccountTransfer.withdrawalTransaction.idCurrencypair = this.currencypair.idSecuritycurrency;
       cashAccountTransfer.depositTransaction.idCurrencypair = this.currencypair.idSecuritycurrency;
     }
-    cashAccountTransfer.withdrawalTransaction.cashaccountAmount = this.calcDebitAmount(values);
+    const debitAmount = this.calcDebitAmount(values);
+    if (debitAmount == null) return null;
+    cashAccountTransfer.withdrawalTransaction.cashaccountAmount = debitAmount;
     return cashAccountTransfer;
   }
 
@@ -563,7 +590,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
    * the formatted date for proper error display.
    */
   private updateTransactionTimeValidator(effectiveClosedUntil: Date | null): void {
-    const formControl = this.configObject.transactionTime.formControl;
+    const formControl = requireFormControl(this.configObject.transactionTime);
     const fieldConfig = this.configObject.transactionTime;
 
     // Remove existing gtDate error rule if present

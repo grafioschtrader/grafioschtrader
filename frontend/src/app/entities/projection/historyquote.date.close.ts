@@ -1,4 +1,4 @@
 export interface HistoryquoteDateClose {
   date: string;
-  close?: number;
+  close?: number | null;
 }

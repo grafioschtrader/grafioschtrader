@@ -262,7 +262,8 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * Sets up date-specific filters and translates filter option labels.
    */
   protected registerFilter(): void {
-    if (!this.filterService) {
+    const filterService = this.filterService;
+    if (!filterService) {
       return;
     }
     const filters: FilterFN[] = [
@@ -278,7 +279,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
         filters.forEach((f) => this.customMatchModeOptions.push({ value: f.name, label: tr[f.name] }))
       );
     filters.forEach((f) => {
-      this.filterService.register(f.name, (value: moment.MomentInput, filter: moment.MomentInput): boolean => {
+      filterService.register(f.name, (value: moment.MomentInput, filter: moment.MomentInput): boolean => {
         if (filter === undefined || filter === null || f.fn === null) {
           return true;
         }
@@ -399,8 +400,9 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
       (columnConfig) => columnConfig.filterType && columnConfig.fieldValueFN && !columnConfig.translateValues
     );
     columnConfigs.forEach((cc) => {
-      cc.filterField = cc.field.replace(/\./g, '_') + BaseSettings.FIELD_SUFFIX;
-      data.forEach((item) => (item[cc.filterField] = this.getValueByPath(item, cc)));
+      const filterField = cc.field.replace(/\./g, '_') + BaseSettings.FIELD_SUFFIX;
+      cc.filterField = filterField;
+      data.forEach((item) => (item[filterField] = this.getValueByPath(item, cc)));
     });
   }
 
@@ -470,5 +472,5 @@ interface FilterFN {
   /** Unique name for the filter function */
   name: string;
   /** Filter function implementation or null for pass-through filters */
-  fn: (value: moment.MomentInput, filter: moment.MomentInput) => boolean;
+  fn: ((value: moment.MomentInput, filter: moment.MomentInput) => boolean) | null;
 }

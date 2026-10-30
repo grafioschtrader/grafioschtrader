@@ -5,9 +5,9 @@
 export class TimeSeriesParam {
   constructor(
     public idSecuritycurrency: number,
-    public currencySecurity: string,
-    public idPortfolio: number,
-    public idSecurityaccount: number,
+    public currencySecurity: string | null,
+    public idPortfolio: number | null | undefined,
+    public idSecurityaccount: number | null | undefined,
     fileGaps = true
   ) {}
 }

@@ -3,7 +3,7 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
 import { StockexchangeMic } from '../model/stockexchange.base.data';
 
 export class StockexchangeCallParam {
-  public stockexchange: Stockexchange;
+  public stockexchange: Stockexchange | null;
   public hasSecurity: boolean;
   public countriesAsHtmlOptions: ValueKeyHtmlSelectOptions[];
   public stockexchangeMics: StockexchangeMic[];

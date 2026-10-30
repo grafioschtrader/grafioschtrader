@@ -346,7 +346,12 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
   private createStrategyNode(algoTop: AlgoTop): TreeNode {
     const monitoring = algoTop.idAlgoAssetclassSecurity === this.monitoringId;
     return {
-      label: monitoring ? `${algoTop.name} — ${this.translateService.instant('PORTFOLIO_MONITORING')}` : algoTop.name,
+      label:
+        algoTop.name == null
+          ? undefined
+          : monitoring
+            ? `${algoTop.name} — ${this.translateService.instant('PORTFOLIO_MONITORING')}`
+            : algoTop.name,
       icon: 'pi ' + (monitoring ? 'pi-eye' : 'pi-sitemap'),
       data: new TypeNodeData(
         TreeNodeType.Strategy,

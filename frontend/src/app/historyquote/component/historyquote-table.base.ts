@@ -72,7 +72,11 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
    * @param menuItems - Untranslated menu, or null for no menu
    * @param adjustTranslated - Optional change of the translated copy before it is published
    */
-  protected publishTableMenu(entity: T, menuItems: MenuItem[], adjustTranslated?: (menu: MenuItem[]) => void): void {
+  protected publishTableMenu(
+    entity: T | null,
+    menuItems: MenuItem[] | null,
+    adjustTranslated?: (menu: MenuItem[]) => void
+  ): void {
     this.selectedEntity.set(entity ?? null);
     if (!this.tableMenuSubscription) {
       this.destroyRef.onDestroy(() => this.tableMenuSubscription.unsubscribe());
@@ -155,7 +159,7 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
    *
    * @param priceFractionDigits - Fraction digits delivered with the instrument, or undefined
    */
-  protected applyPriceFractionDigits(priceFractionDigits: number): void {
+  protected applyPriceFractionDigits(priceFractionDigits: number | null | undefined): void {
     this.fields
       .filter((field) => ['open', 'high', 'low', 'close'].includes(field.field))
       .forEach((field) => (field.fixedFractionDigits = priceFractionDigits ?? undefined));

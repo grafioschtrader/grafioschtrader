@@ -31,7 +31,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
 export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
 
-  readonly taEditParam = input<TaEditParam>(undefined);
+  readonly taEditParam = input.required<TaEditParam>();
   private readonly injector = inject(Injector);
 
   constructor() {

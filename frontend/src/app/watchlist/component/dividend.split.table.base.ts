@@ -16,7 +16,7 @@ export abstract class DividendSplitTableBase<S extends DividendSplit> extends Ta
   protected readonly destroyRef = inject(DestroyRef);
 
   /** Array of dividend or split entities to display in the table */
-  readonly data = signal<S[]>(undefined);
+  readonly data = signal<S[] | undefined>(undefined);
 
   /**
    * Creates a new dividend/split table base with sorting and icon configuration.
@@ -42,7 +42,7 @@ export abstract class DividendSplitTableBase<S extends DividendSplit> extends Ta
    * @param field Column configuration object (unused but required for interface compatibility)
    * @returns SVG icon name corresponding to the entity's create type
    */
-  getCreateTypeIcon(entity: S, field: ColumnConfig): string {
-    return DividendSplitSvgCreator.createTypeIconMap[entity.createType];
+  getCreateTypeIcon(entity: S, field: ColumnConfig): string | undefined {
+    return entity.createType == null ? undefined : DividendSplitSvgCreator.createTypeIconMap[entity.createType];
   }
 }

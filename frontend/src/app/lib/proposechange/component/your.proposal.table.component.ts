@@ -65,5 +65,5 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
       });
   }
 
-  prepareCallParam(entity: ProposeChangeEntity): void {}
+  prepareCallParam(entity: ProposeChangeEntity | null): void {}
 }

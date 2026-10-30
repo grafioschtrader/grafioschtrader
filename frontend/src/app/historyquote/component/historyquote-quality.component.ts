@@ -35,8 +35,8 @@ export class HistoryquoteQualityComponent extends SingleRecordConfigBase impleme
   private securityService: SecurityService = inject(SecurityService);
   private currencypairService: CurrencypairService = inject(CurrencypairService);
 
-  readonly historyquoteQuality = input<IHistoryquoteQuality>(undefined);
-  readonly securitycurrency = input<Securitycurrency>(undefined);
+  readonly historyquoteQuality = input<IHistoryquoteQuality>();
+  readonly securitycurrency = input<Securitycurrency>();
   private feedConnectorsKV: { [id: string]: string } = {};
 
   constructor() {
@@ -77,10 +77,10 @@ export class HistoryquoteQualityComponent extends SingleRecordConfigBase impleme
     );
   }
 
-  getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
-    const securitycurrency = this.securitycurrency();
-    return Object.entries(this.feedConnectorsKV).length !== 0 && securitycurrency
-      ? this.feedConnectorsKV[securitycurrency.idConnectorHistory]
+  getFeedConnectorReadableName(dataobject: unknown, field: ColumnConfig, valueField: unknown): string | null {
+    const connector = this.securitycurrency()?.idConnectorHistory;
+    return Object.entries(this.feedConnectorsKV).length !== 0 && connector != null
+      ? (this.feedConnectorsKV[connector] ?? null)
       : null;
   }
 }

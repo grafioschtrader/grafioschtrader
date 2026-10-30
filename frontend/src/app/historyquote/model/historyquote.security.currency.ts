@@ -9,7 +9,7 @@ import { Currencypair } from '../../entities/currencypair';
  */
 export class HistoryquoteSecurityCurrency {
   constructor(
-    public historyquote: Historyquote,
+    public historyquote: Historyquote | null,
     public securitycurrency: Securitycurrency
   ) {}
 

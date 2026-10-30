@@ -6,13 +6,13 @@ export interface HistoryquoteOHLC {
   /** Trading date in YYYY-MM-DD format */
   date: string;
   /** Opening price of the day */
-  open?: number;
+  open?: number | null;
   /** Highest price of the day */
-  high?: number;
+  high?: number | null;
   /** Lowest price of the day */
-  low?: number;
+  low?: number | null;
   /** Closing price of the day */
-  close?: number;
+  close?: number | null;
   /** Trading volume for the day */
-  volume?: number;
+  volume?: number | null;
 }

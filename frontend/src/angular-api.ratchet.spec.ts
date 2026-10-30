@@ -108,7 +108,7 @@ const TABLE_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reaso
     reason: 'The concrete period view supplies its keys, DTO class and creation/deletion strategy.'
   },
   'app/watchlist/component/add-instrument-table.component.ts': {
-    parameters: ['instance:T', 'addSearchToListService:AddSearchToListService<T>'],
+    parameters: ['instance:T|null', 'addSearchToListService:AddSearchToListService<T>'],
     reason: 'The caller chooses the target list and the strategy that adds instruments to it.'
   },
   'app/watchlist/component/dividend.split.table.base.ts': {
@@ -123,6 +123,10 @@ const TABLE_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reaso
 
 /** Only dialog configuration and the screen-selected persistence strategy remain explicit. */
 const FORM_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason: string }> = {
+  'app/lib/edit/simple.dynamic.form.base.ts': {
+    parameters: ['helpId:string'],
+    reason: 'A dynamic form chooses its help page; dialog context and session dependencies are injected.'
+  },
   'app/algo/component/algo.assetclass.security.base.edit.ts': {
     parameters: ['i18nRecord:string', 'serviceEntityUpdate:ServiceEntityUpdate<T>'],
     reason: 'The concrete algo editor chooses its record label and persistence strategy.'

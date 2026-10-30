@@ -98,7 +98,7 @@ export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenu<GTNet
     return HelpIds.HELP_GT_NET_AUTOANSWER;
   }
 
-  override prepareCallParam(entity: GTNetMessageAnswer): void {
+  override prepareCallParam(entity: GTNetMessageAnswer | null): void {
     this.callParam = new GTNetMessageAnswerCallParam(entity);
   }
 

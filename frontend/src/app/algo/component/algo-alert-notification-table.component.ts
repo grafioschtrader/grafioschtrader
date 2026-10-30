@@ -111,7 +111,9 @@ export class AlgoAlertNotificationTableComponent extends TableConfigBase {
       {
         label: this.translateService.instant('ALERT_RETRY_SELECTED'),
         disabled: !single || !AlgoAlertNotificationTableComponent.RETRYABLE_STATES.includes(single.deliveryStatus),
-        command: () => this.retry.emit(single.id)
+        command: () => {
+          if (single) this.retry.emit(single.id);
+        }
       },
       {
         label: this.translateService.instant('DELETE_SELECTED'),

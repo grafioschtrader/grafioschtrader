@@ -4,11 +4,20 @@ import { TreeNode } from '@openng/optimus-ui/api';
 import { Transaction } from '../../entities/transaction';
 import { buildTransactionReceiptTree, getSelectedTransactions } from './transaction-receipt-tree';
 
-function transaction(idTransaction: number, connectedIdTransaction: number = null): Transaction {
-  return { idTransaction, connectedIdTransaction } as Transaction;
+function transaction(idTransaction: number, connectedIdTransaction?: number): Transaction {
+  return Object.assign(new Transaction(), { idTransaction, connectedIdTransaction });
 }
 
 describe('transaction receipt tree', () => {
+  it('excludes unsaved transactions while retaining a persisted transaction whose parent is missing', () => {
+    const unsaved = new Transaction();
+    const persisted = transaction(2, 99);
+    const roots = buildTransactionReceiptTree([unsaved, persisted]);
+    expect(roots.map((node) => node.data)).toEqual([persisted]);
+    expect(getSelectedTransactions([unsaved, persisted], [{ data: unsaved }, { data: persisted }])).toEqual([
+      persisted
+    ]);
+  });
   it('groups connected transactions below their opening transaction', () => {
     const transactions = [transaction(1), transaction(2, 1), transaction(3, 1), transaction(4)];
 

@@ -136,7 +136,11 @@ export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase im
   reorder(): void {
     this.rows.set([...this.rows()]);
     this.service
-      .order(this.rows().map((r) => r.idWatchlistIndicatorColumn))
+      .order(
+        this.rows()
+          .map((r) => r.idWatchlistIndicatorColumn)
+          .filter((id) => id != null)
+      )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ next: () => this.load(), error: () => this.load() });
   }
@@ -145,11 +149,13 @@ export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase im
     this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_INDICATOR);
   }
   remove(row: WatchlistIndicatorColumn): void {
+    const id = row.idWatchlistIndicatorColumn;
+    if (id == null) return;
     this.confirmation.confirm({
       message: this.translateService.instant('WIC_DELETE_CONFIRM', { label: row.label }),
       accept: () =>
         this.service
-          .deleteEntity(row.idWatchlistIndicatorColumn)
+          .deleteEntity(id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(() => this.load())
     });

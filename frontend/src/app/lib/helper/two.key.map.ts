@@ -53,7 +53,7 @@ export class TwoKeyMap<T> {
    * const missingScore = map.get('scores', 'history'); // null
    * const invalidCategory = map.get('grades', 'math'); // null
    */
-  public get(key: string, nestedKey: string): T {
+  public get(key: string, nestedKey: string): T | null {
     return !this.map[key] || (this.map[key] && !this.map[key][nestedKey]) ? null : this.map[key][nestedKey];
   }
 

@@ -20,23 +20,25 @@ export function buildTransactionReceiptTree(transactions: Transaction[]): TreeNo
 
   const roots: TreeNode[] = [];
   transactions.forEach((transaction) => {
-    const node = nodeById.get(transaction.idTransaction);
+    const id = transaction.idTransaction;
+    if (id == null) return;
+    const node = nodeById.get(id);
     if (!node) {
       return;
     }
     const parent = transaction.connectedIdTransaction == null ? null : nodeById.get(transaction.connectedIdTransaction);
     if (parent && parent !== node) {
-      parent.children.push(node);
+      (parent.children ??= []).push(node);
     } else {
       roots.push(node);
     }
   });
 
   nodeById.forEach((node) => {
-    node.leaf = node.children.length === 0;
+    node.leaf = !node.children?.length;
     node.expanded = !node.leaf;
     if (node.leaf) {
-      node.children = null;
+      node.children = undefined;
     }
   });
   return roots;

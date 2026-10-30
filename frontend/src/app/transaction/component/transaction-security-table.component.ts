@@ -34,19 +34,19 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   private securityService: SecurityService = inject(SecurityService);
 
   /** Array of security account identifiers to filter transactions */
-  readonly idsSecurityaccount = input<number[]>(undefined);
+  readonly idsSecurityaccount = input<number[]>();
 
   /** Unique identifier of the security currency for transaction filtering */
-  readonly idSecuritycurrency = input<number>(undefined);
+  readonly idSecuritycurrency = input<number>();
 
   /** Portfolio identifier for scoping transaction data */
-  readonly idPortfolio = input<number>(undefined);
+  readonly idPortfolio = input<number>();
 
   /** Tenant identifier for multi-tenant data isolation */
-  readonly idTenant = input<number>(undefined);
+  readonly idTenant = input<number>();
 
   /** Optional parameters for customizing transaction security display features */
-  readonly transactionSecurityOptionalParam = input<TransactionSecurityOptionalParam[]>(undefined);
+  readonly transactionSecurityOptionalParam = input<TransactionSecurityOptionalParam[]>();
 
   /** Optional cutoff date (yyyy-MM-dd) to limit transactions */
   readonly untilDate = input<string>();
@@ -55,10 +55,10 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   currencyColumnConfigMC: ColumnConfig[] = [];
 
   /** Complete security transaction summary containing position and transaction data */
-  readonly securityTransactionSummary = signal(new SecurityTransactionSummary(null, null));
+  readonly securityTransactionSummary = signal<SecurityTransactionSummary | null>(null);
 
   /** List of transaction positions to be displayed in the table */
-  readonly transactionPositionList = computed(() => this.securityTransactionSummary().transactionPositionList ?? []);
+  readonly transactionPositionList = computed(() => this.securityTransactionSummary()?.transactionPositionList ?? []);
   readonly cellStyle = (position: SecurityTransactionPosition, field: ColumnConfig) =>
     this.getCellStyle(position, field);
 
@@ -102,8 +102,8 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
    * @param transaction The transaction object to get security information from
    * @returns The security object associated with the transaction
    */
-  getSecurity(transaction: Transaction): Security {
-    return this.securityTransactionSummary().securityPositionSummary.security;
+  getSecurity(transaction: Transaction): Security | undefined {
+    return this.securityTransactionSummary()?.securityPositionSummary.security;
   }
 
   /**
@@ -147,9 +147,11 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   /** Initializes the component data by loading security transaction summary and configuring display columns. */
   protected initialize(): void {
     this.dataSubscription?.unsubscribe();
+    const id = this.idSecuritycurrency();
+    if (id == null) return;
     this.dataSubscription = BusinessHelper.getSecurityTransactionSummary(
       this.securityService,
-      this.idSecuritycurrency(),
+      id,
       this.idsSecurityaccount(),
       this.idPortfolio(),
       false,
@@ -158,16 +160,16 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         this.securityTransactionSummary.set(result);
-        this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary().transactionPositionList);
+        this.createTranslatedValueStoreAndFilterField(result.transactionPositionList);
         this.goToFirsRowPosition(this.idSecuritycurrency());
         this.currencyColumnConfigMC.forEach((cc) => {
-          cc.headerSuffix = this.securityTransactionSummary().securityPositionSummary.mainCurrency;
-          cc.fixedCurrency = this.securityTransactionSummary().securityPositionSummary.mainCurrency;
+          cc.headerSuffix = result.securityPositionSummary.mainCurrency;
+          cc.fixedCurrency = result.securityPositionSummary.mainCurrency;
           this.setFieldHeaderTranslation(cc);
         });
         TransactionSecurityFieldDefinition.applySecurityCurrency(
           this.fields,
-          this.securityTransactionSummary().securityPositionSummary.security.currency
+          result.securityPositionSummary.security.currency
         );
       });
   }

@@ -47,16 +47,18 @@ export class AlgoSimulationRunService extends AuthServiceWithLogout<SimulationRu
   }
 
   /** The run of an environment, or an empty body when it has never been replayed. */
-  status(idTenant: number): Observable<SimulationRunResult> {
+  status(idTenant: number): Observable<SimulationRunResult | null> {
     return this.httpClient
-      .get<SimulationRunResult>(`${this.endpoint}/${idTenant}/run`, this.getHeaders())
+      .get<SimulationRunResult | null>(`${this.endpoint}/${idTenant}/run`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   /** What the latest run was based on, or an empty body when the environment has never been replayed. */
-  settings(idTenant: number): Observable<SimulationRunSettings> {
+  settings(idTenant: number): Observable<SimulationRunSettings | null> {
     const { url, ...options } = this.getSettingsRequest(idTenant);
-    return this.httpClient.get<SimulationRunSettings>(url, options).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .get<SimulationRunSettings | null>(url, options)
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /** The equity curve of the latest run; empty when the environment was never replayed or the run did not complete. */

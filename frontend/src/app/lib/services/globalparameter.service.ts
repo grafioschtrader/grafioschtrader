@@ -16,12 +16,7 @@ import { AppHelper } from '../helper/app.helper';
 import { Auditable } from '../entities/auditable';
 import { FeatureType } from '../login/model/configuration-with-login';
 import { BaseAuthService } from '../login/service/base.auth.service';
-import moment from 'moment';
-import 'moment/locale/de-ch.js';
-import 'moment/locale/de.js';
-import 'moment/locale/en-gb.js';
-import 'moment/locale/en-au.js';
-import 'moment/locale/en-nz.js';
+import { LocaleFormat } from '../helper/locale.format';
 import NumberFormat = Intl.NumberFormat;
 
 @Service()
@@ -29,29 +24,17 @@ export class GlobalparameterService
   extends BaseAuthService<Globalparameters>
   implements ServiceEntityUpdate<Globalparameters>
 {
-  // Cached values
-  private _numberFormat: NumberFormat;
-  private _numberFormatRaw: NumberFormat;
-
-  private thousandsSeparatorSymbol: string;
-  private decimalSymbol: string;
-  private timeDateFormat: string;
-  private timeSecondDateFormat: string;
-  private dateFormat: string;
-  private dateFormatCalendar: string;
-  private dateFormatCalendarTowNumber: string;
+  /** Number and date formats of the session; replaced on every login by {@link clearValues}. */
+  private localeFormat = new LocaleFormat();
   private entityKeyMapping: { [entityName: string]: string };
 
   private fieldSizeMap: { [fieldNameOrKey: string]: number };
-  private dateFormatWithoutYear: string;
   private featureCache = new Map<FeatureType, boolean>();
 
   useDashboard(): boolean {
     const features: string[] = JSON.parse(sessionStorage.getItem(GlobalSessionNames.USE_FEATURES) || '[]');
     return features.includes('DASHBOARD');
   }
-  private currencyPrecisionMap: { [currency: string]: number };
-  private numberFormatPrecisionCache = new Map<number, NumberFormat>();
   private formDefinitionCache: { [entityAndDialog: string]: Observable<ClassDescriptorInputAndShow> } = {};
 
   public getAllGlobalparameters(): Observable<Globalparameters[]> {
@@ -71,59 +54,21 @@ export class GlobalparameterService
    * follow global parameters that an administrator changes at runtime.
    */
   public clearValues(): void {
-    this._numberFormat = null;
-    this._numberFormatRaw = null;
-    this.thousandsSeparatorSymbol = null;
-    this.decimalSymbol = null;
-    this.timeDateFormat = null;
-    this.timeSecondDateFormat = null;
-    this.dateFormat = null;
-    this.dateFormatCalendar = null;
-    this.dateFormatCalendarTowNumber = null;
-    this.dateFormatWithoutYear = null;
+    this.localeFormat = new LocaleFormat();
     this.entityKeyMapping = null;
     this.fieldSizeMap = null;
     this.featureCache.clear();
-    this.currencyPrecisionMap = null;
-    this.numberFormatPrecisionCache.clear();
     this.formDefinitionCache = {};
   }
 
-  /**
-   * Returns the number of decimal places for amounts in the given currency (e.g. BTC=8, JPY=0). The map is provided
-   * by the backend at login and cached from sessionStorage. Currencies not contained in the map fall back to the
-   * standard fraction digits, mirroring the backend's GlobalparametersService.getPrecisionForCurrency().
-   *
-   * @param currency ISO 4217 or crypto currency code
-   * @returns Number of decimal places for amounts in this currency
-   */
+  /** @see LocaleFormat.getCurrencyPrecision */
   public getCurrencyPrecision(currency: string): number {
-    if (!this.currencyPrecisionMap) {
-      this.currencyPrecisionMap = JSON.parse(sessionStorage.getItem(GlobalSessionNames.CURRENCY_PRECISION)) || {};
-    }
-    return this.currencyPrecisionMap[currency] != null
-      ? this.currencyPrecisionMap[currency]
-      : BaseSettings.FID_STANDARD_FRACTION_DIGITS;
+    return this.localeFormat.getCurrencyPrecision(currency);
   }
 
-  /**
-   * Returns a locale-aware number format with a fixed number of fraction digits (minimum = maximum = precision).
-   * Instances are cached per precision. Used for displaying currency amounts with their currency-specific precision,
-   * including precision 0 (e.g. JPY).
-   *
-   * @param precision Fixed number of fraction digits
-   * @returns Cached Intl.NumberFormat for the user's locale and the given precision
-   */
+  /** @see LocaleFormat.getNumberFormatForPrecision */
   public getNumberFormatForPrecision(precision: number): NumberFormat {
-    let numberFormat = this.numberFormatPrecisionCache.get(precision);
-    if (!numberFormat) {
-      numberFormat = new Intl.NumberFormat(this.getLocale(), {
-        minimumFractionDigits: precision,
-        maximumFractionDigits: precision
-      });
-      this.numberFormatPrecisionCache.set(precision, numberFormat);
-    }
-    return numberFormat;
+    return this.localeFormat.getNumberFormatForPrecision(precision);
   }
 
   public getMaxFractionDigits(): number {
@@ -147,15 +92,8 @@ export class GlobalparameterService
     return sessionStorage.getItem(GlobalSessionNames.LANGUAGE) || 'en';
   }
 
-  private getTimeLocale(): string {
-    if (['de', 'en-gb', 'en-au', 'en-nz'].indexOf(this.getLocale().toLowerCase()) != -1) {
-      return this.getLocale().toLowerCase();
-    }
-    return this.getLocale().startsWith('de') ? 'de' : 'en';
-  }
-
   public getLocale(): string {
-    return sessionStorage.getItem(GlobalSessionNames.LOCALE) || 'de-CH';
+    return this.localeFormat.getLocale();
   }
 
   public getStandardTimeZone(): string {
@@ -189,56 +127,30 @@ export class GlobalparameterService
   }
 
   public getTimeDateFormatForTable(): string {
-    if (!this.timeDateFormat) {
-      moment.locale(this.getTimeLocale());
-      const formatYear = moment.localeData().longDateFormat('L');
-      const formatTime = moment.localeData().longDateFormat('LT');
-      this.timeDateFormat = formatTime + ' ' + formatYear.replace(/YYYY/g, 'YY');
-    }
-    return this.timeDateFormat;
+    return this.localeFormat.getTimeDateFormatForTable();
   }
 
   public getTimeSecondDateFormatForTable(): string {
-    if (!this.timeSecondDateFormat) {
-      moment.locale(this.getTimeLocale());
-      const formatYear = moment.localeData().longDateFormat('L');
-      const formatTime = moment.localeData().longDateFormat('LTS');
-      this.timeSecondDateFormat = formatTime + ' ' + formatYear.replace(/YYYY/g, 'YY');
-    }
-    return this.timeSecondDateFormat;
+    return this.localeFormat.getTimeSecondDateFormatForTable();
   }
 
   public getDateFormatWithoutYear(): string {
-    if (!this.dateFormatWithoutYear) {
-      this.dateFormatWithoutYear = this.getDateFormatYearCalendar('YYYY');
-      if (this.dateFormatWithoutYear.match(/.YYYY/g)) {
-        this.dateFormatWithoutYear = this.dateFormatWithoutYear.replace(/.YYYY/, '');
-      }
-      if (this.dateFormatWithoutYear.match(/YYYY./g)) {
-        this.dateFormatWithoutYear = this.dateFormatWithoutYear.replace(/YYYY./, '');
-      }
-    }
-    return this.dateFormatWithoutYear;
+    return this.localeFormat.getDateFormatWithoutYear();
   }
 
   /**
    * Short Date format depending on locale. Year from 00-99, like MM-DD-YY or MM.DD.YY.
    */
   public getDateFormat(): string {
-    return this.dateFormat || (this.dateFormat = this.getDateFormatYearCalendar('YY'));
+    return this.localeFormat.getDateFormat();
   }
 
   public getDateFormatForCalendar(): string {
-    return this.dateFormatCalendar || (this.dateFormatCalendar = this.getDateFormatYearCalendar('Y'));
+    return this.localeFormat.getDateFormatForCalendar();
   }
 
   public getCalendarTwoNumberDateFormat(): string {
-    if (!this.dateFormatCalendarTowNumber) {
-      moment.locale(this.getTimeLocale());
-      const formatYear = moment.localeData().longDateFormat('L');
-      this.dateFormatCalendarTowNumber = formatYear.replace(/YYYY/g, 'Y');
-    }
-    return this.dateFormatCalendarTowNumber;
+    return this.localeFormat.getCalendarTwoNumberDateFormat();
   }
 
   /**
@@ -261,24 +173,15 @@ export class GlobalparameterService
   }
 
   public getThousandsSeparatorSymbol(): string {
-    if (!this.thousandsSeparatorSymbol) {
-      this.thousandsSeparatorSymbol = sessionStorage.getItem(GlobalSessionNames.THOUSANDS_SEPARATOR);
-    }
-    return this.thousandsSeparatorSymbol;
+    return this.localeFormat.getThousandsSeparatorSymbol();
   }
 
   public getDecimalSymbol(): string {
-    if (!this.decimalSymbol) {
-      this.decimalSymbol = sessionStorage.getItem(GlobalSessionNames.DECIMAL_SEPARATOR);
-    }
-    return this.decimalSymbol;
+    return this.localeFormat.getDecimalSymbol();
   }
 
   public getNumberFormatRaw(): NumberFormat {
-    if (!this._numberFormatRaw) {
-      this._numberFormatRaw = new Intl.NumberFormat(this.getLocale(), { maximumFractionDigits: 10 });
-    }
-    return this._numberFormatRaw;
+    return this.localeFormat.getNumberFormatRaw();
   }
 
   public useWebsocket(): boolean {
@@ -355,13 +258,7 @@ export class GlobalparameterService
   }
 
   public getNumberFormat(): NumberFormat {
-    if (!this._numberFormat) {
-      this._numberFormat = new Intl.NumberFormat(this.getLocale(), {
-        minimumFractionDigits: BaseSettings.FID_STANDARD_FRACTION_DIGITS,
-        maximumFractionDigits: BaseSettings.FID_MAX_FRACTION_DIGITS
-      });
-    }
-    return this._numberFormat;
+    return this.localeFormat.getNumberFormat();
   }
 
   public getPasswordRegexProperties(): Observable<PasswordRegexProperties> {
@@ -450,12 +347,6 @@ export class GlobalparameterService
         }
       )
       .pipe(catchError(this.handleError.bind(this)));
-  }
-
-  private getDateFormatYearCalendar(yearReplace: string): string {
-    moment.locale(this.getTimeLocale());
-    const formatYear = moment.localeData().longDateFormat('L');
-    return formatYear.replace(/YYYY/g, yearReplace);
   }
 }
 

@@ -30,12 +30,12 @@ export class ParentChildRegisterService {
    * @param id ID of the parent
    * @param pageFirstRowSelectedRow Position of the child record
    */
-  public saveRowPosition(id: number, pageFirstRowSelectedRow: PageFirstRowSelectedRow) {
-    this.pageServerMap.set(id, pageFirstRowSelectedRow);
+  public saveRowPosition(id: number | null | undefined, pageFirstRowSelectedRow: PageFirstRowSelectedRow) {
+    if (id != null) this.pageServerMap.set(id, pageFirstRowSelectedRow);
   }
 
-  public getRowPosition(id: number): PageFirstRowSelectedRow {
-    const pageFirstRowSelectedRow = id ? this.pageServerMap.get(id) : null;
+  public getRowPosition(id: number | null | undefined): PageFirstRowSelectedRow {
+    const pageFirstRowSelectedRow = id == null ? undefined : this.pageServerMap.get(id);
     return pageFirstRowSelectedRow ? pageFirstRowSelectedRow : new PageFirstRowSelectedRow(0, null);
   }
 }

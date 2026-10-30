@@ -1,4 +1,3 @@
-import { AppHelper, Comparison } from '../../lib/helper/app.helper';
 import { TwoKeyMap } from '../../lib/helper/two.key.map';
 import { CrossRateResponse, CurrenciesAndClosePrice } from '../../securitycurrency/service/currencypair.service';
 import { HistoryquoteDateClose } from '../../entities/projection/historyquote.date.close';
@@ -9,7 +8,7 @@ import { HistoryquoteDateClose } from '../../entities/projection/historyquote.da
  */
 export interface NormalizableQuoteSeries {
   /** Currency the raw quotes of this series are denominated in, null for a currency pair. */
-  currencySecurity: string;
+  currencySecurity: string | null;
   /** Quotes as delivered by the backend, never modified by the normalizer. */
   historyquotes: HistoryquoteDateClose[];
   /** Quotes converted into the requested currency, the same array as historyquotes when no conversion applies. */
@@ -35,12 +34,9 @@ export interface NormalizableQuoteSeries {
  * This class is deliberately free of Angular and Plotly, so the conversion arithmetic can be unit tested.
  */
 export class ChartCurrencyNormalizer {
-  private readonly compareHistoricalFN = (h: HistoryquoteDateClose, o: string) =>
-    h.date === o ? Comparison.EQ : h.date > o ? Comparison.GT : Comparison.LT;
-
   /** Exchange rate histories keyed by from-currency and to-currency. */
   private crossRateMap = new TwoKeyMap<CurrenciesAndClosePrice>();
-  private mainCurrency: string;
+  private mainCurrency?: string;
 
   /**
    * Returns the currency pairs already held, each encoded as fromCurrency, a vertical bar and toCurrency.
@@ -71,7 +67,7 @@ export class ChartCurrencyNormalizer {
   /**
    * @returns the main currency of the tenant, undefined before the first cross rate response
    */
-  public getMainCurrency(): string {
+  public getMainCurrency(): string | undefined {
     return this.mainCurrency;
   }
 
@@ -98,10 +94,14 @@ export class ChartCurrencyNormalizer {
   public normalize(series: NormalizableQuoteSeries, requestedCurrency: string): void {
     if (this.isNormalizeNotNeeded(series, requestedCurrency)) {
       series.historyquotesNorm = series.historyquotes;
-    } else {
+    } else if (this.mainCurrency != null && series.currencySecurity != null) {
       const mainToSecurityCurrency = this.getCurrencypairOrReverse(this.mainCurrency, series.currencySecurity);
       const requestToSecurityCurrency = this.getCurrencypairOrReverse(requestedCurrency, series.currencySecurity);
       if (requestedCurrency === this.mainCurrency) {
+        if (!mainToSecurityCurrency) {
+          series.historyquotesNorm = [];
+          return;
+        }
         this.calculateHistoryquotes(
           series,
           [mainToSecurityCurrency],
@@ -121,6 +121,10 @@ export class ChartCurrencyNormalizer {
         // Main currency is in the middle like EUR -> CHF -> USD (requested currency: EUR, main currency: CHF,
         // security currency: USD
         const mainToRequestCurrency = this.getCurrencypairOrReverse(this.mainCurrency, requestedCurrency);
+        if (!mainToSecurityCurrency || !mainToRequestCurrency) {
+          series.historyquotesNorm = [];
+          return;
+        }
         this.calculateHistoryquotes(
           series,
           [mainToSecurityCurrency, mainToRequestCurrency],
@@ -130,6 +134,8 @@ export class ChartCurrencyNormalizer {
           ]
         );
       }
+    } else {
+      series.historyquotesNorm = [];
     }
   }
 
@@ -156,11 +162,11 @@ export class ChartCurrencyNormalizer {
    * @param currencySecurity currency of the series
    * @returns the matching rate history, or null when neither direction is held
    */
-  private getCurrencypairOrReverse(reqesteOrMainCurrency: string, currencySecurity: string): CurrenciesAndClosePrice {
-    let mainToSecurityCurrency: CurrenciesAndClosePrice = this.crossRateMap.get(
-      reqesteOrMainCurrency,
-      currencySecurity
-    );
+  private getCurrencypairOrReverse(
+    reqesteOrMainCurrency: string,
+    currencySecurity: string
+  ): CurrenciesAndClosePrice | null {
+    let mainToSecurityCurrency = this.crossRateMap.get(reqesteOrMainCurrency, currencySecurity);
     if (mainToSecurityCurrency == null) {
       mainToSecurityCurrency = this.crossRateMap.get(currencySecurity, reqesteOrMainCurrency);
     }
@@ -183,53 +189,31 @@ export class ChartCurrencyNormalizer {
     currenciesAndClosePrice: CurrenciesAndClosePrice[],
     multiple: boolean[]
   ): void {
-    const map2Loop: { [date: string]: HistoryquoteDateClose } = {};
-    series.historyquotesNorm = [];
-
+    let quotes = series.historyquotes;
     for (let i = 0; i < currenciesAndClosePrice.length; i++) {
-      let cIndex = Math.abs(
-        AppHelper.binarySearch(
-          currenciesAndClosePrice[i].closeAndDateList,
-          series.historyquotes[0].date,
-          this.compareHistoricalFN
-        )
-      );
-      for (let hIndex = 0; hIndex < series.historyquotes.length; hIndex++) {
-        do {
-          if (series.historyquotes[hIndex].date > currenciesAndClosePrice[i].closeAndDateList[cIndex].date) {
-            cIndex++;
-          } else if (series.historyquotes[hIndex].date < currenciesAndClosePrice[i].closeAndDateList[cIndex].date) {
-            hIndex++;
+      const rates = currenciesAndClosePrice[i].closeAndDateList;
+      const converted: HistoryquoteDateClose[] = [];
+      let qIndex = 0;
+      let rIndex = 0;
+      while (qIndex < quotes.length && rIndex < rates.length) {
+        const quote = quotes[qIndex];
+        const rate = rates[rIndex];
+        if (quote.date < rate.date) {
+          qIndex++;
+        } else if (quote.date > rate.date) {
+          rIndex++;
+        } else {
+          const close = quote.close;
+          const rateClose = rate.close;
+          if (close != null && rateClose != null && (multiple[i] || rateClose !== 0)) {
+            converted.push({ date: quote.date, close: close * (multiple[i] ? rateClose : 1 / rateClose) });
           }
-        } while (
-          hIndex < series.historyquotes.length &&
-          cIndex < currenciesAndClosePrice[i].closeAndDateList.length &&
-          series.historyquotes[hIndex].date !== currenciesAndClosePrice[i].closeAndDateList[cIndex].date
-        );
-        if (hIndex < series.historyquotes.length && cIndex < currenciesAndClosePrice[i].closeAndDateList.length) {
-          if (series.historyquotes[hIndex].close != null) {
-            if (i === 0) {
-              const historyquoteDateClose = {
-                date: series.historyquotes[hIndex].date,
-                close:
-                  series.historyquotes[hIndex].close *
-                  (multiple[i]
-                    ? currenciesAndClosePrice[i].closeAndDateList[cIndex].close
-                    : 1 / currenciesAndClosePrice[i].closeAndDateList[cIndex].close)
-              };
-              series.historyquotesNorm.push(historyquoteDateClose);
-              currenciesAndClosePrice.length > 1 && (map2Loop[historyquoteDateClose.date] = historyquoteDateClose);
-            } else {
-              const historyquoteDateClose = map2Loop[series.historyquotes[hIndex].date];
-              if (historyquoteDateClose) {
-                historyquoteDateClose.close *= multiple[i]
-                  ? currenciesAndClosePrice[i].closeAndDateList[cIndex].close
-                  : 1 / currenciesAndClosePrice[i].closeAndDateList[cIndex].close;
-              }
-            }
-          }
+          qIndex++;
+          rIndex++;
         }
       }
+      quotes = converted;
     }
+    series.historyquotesNorm = quotes;
   }
 }

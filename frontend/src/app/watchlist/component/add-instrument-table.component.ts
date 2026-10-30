@@ -22,7 +22,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
   private dataChangedService: DataChangedService = inject(DataChangedService);
 
   /** Tenant limits for controlling maximum number of instruments that can be added */
-  readonly tenantLimits = input<TenantLimit[]>(undefined);
+  readonly tenantLimits = input<TenantLimit[]>();
 
   /** Columns as a new reference after every change, so the header and body templates of the OnPush p-table follow. */
   readonly tableFields = computed(() => {
@@ -47,7 +47,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
    * @param addSearchToListService - Service for searching and adding instruments to lists
    */
   protected constructor(
-    private instance: T,
+    private instance: T | null,
     private addSearchToListService: AddSearchToListService<T>
   ) {
     super();
@@ -95,7 +95,9 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
     const securitycurrencyLists = new SecuritycurrencyLists();
     this.selectedSecuritycurrencies.forEach((securitycurrency) => {
       if (securitycurrency instanceof CurrencypairWatchlist) {
-        securitycurrencyLists.currencypairList.push(Object.assign(new Currencypair(null, null), securitycurrency));
+        securitycurrencyLists.currencypairList.push(
+          Object.assign(new Currencypair(securitycurrency.fromCurrency, securitycurrency.toCurrency), securitycurrency)
+        );
       } else {
         securitycurrencyLists.securityList.push(Object.assign(new Security(), securitycurrency));
       }
@@ -117,7 +119,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
    * @returns True if tenant limits would be exceeded, false otherwise
    */
   reachedListLimits(): boolean {
-    for (const tenantLimit of this.tenantLimits()) {
+    for (const tenantLimit of this.tenantLimits() ?? []) {
       if (tenantLimit.actual + this.selectedSecuritycurrencies.length > tenantLimit.limit) {
         return true;
       }

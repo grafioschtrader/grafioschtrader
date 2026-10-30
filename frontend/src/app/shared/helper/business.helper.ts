@@ -62,6 +62,7 @@ export class BusinessHelper {
    * @returns The calculated total amount (negative for fees and withdrawals)
    */
   public static getTotalAmountFromTransaction(transaction: Transaction) {
+    if (transaction.cashaccountAmount == null) return null;
     let cashaccountAmount: number;
     switch (TransactionType[transaction.transactionType as keyof typeof TransactionType]) {
       case TransactionType.FEE:
@@ -106,7 +107,7 @@ export class BusinessHelper {
     value: number,
     currencyExRate: number,
     sourceCurrency: string,
-    currencypair: Currencypair
+    currencypair: Currencypair | null | undefined
   ): number {
     if (sourceCurrency && currencypair) {
       if (sourceCurrency === currencypair.fromCurrency) {
@@ -180,8 +181,8 @@ export class BusinessHelper {
   public static getSecurityTransactionSummary(
     securityService: SecurityService,
     idSecuritycurrency: number,
-    idSecuritycashAccounts: number[],
-    idPortfolio: number,
+    idSecuritycashAccounts: number[] | null | undefined,
+    idPortfolio: number | null | undefined,
     forChart: boolean,
     untilDate?: string
   ): Observable<SecurityTransactionSummary> {
@@ -315,7 +316,7 @@ export class BusinessHelper {
    * @param hasMarkedPrice Boolean indicating if the security has current market pricing
    * @returns True if security should show denomination, false otherwise
    */
-  public static hasSecurityDenomination(assetclass: Assetclass, hasMarkedPrice: boolean): boolean {
+  public static hasSecurityDenomination(assetclass: Assetclass | null | undefined, hasMarkedPrice: boolean): boolean {
     if (hasMarkedPrice) {
       return (
         !!assetclass &&
@@ -356,9 +357,9 @@ export class BusinessHelper {
    */
   public static isMarginProduct(security: Security): boolean {
     return (
-      security.assetClass.specialInvestmentInstrument ===
+      security.assetClass?.specialInvestmentInstrument ===
         SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD] ||
-      security.assetClass.specialInvestmentInstrument ===
+      security.assetClass?.specialInvestmentInstrument ===
         SpecialInvestmentInstruments[SpecialInvestmentInstruments.FOREX]
     );
   }

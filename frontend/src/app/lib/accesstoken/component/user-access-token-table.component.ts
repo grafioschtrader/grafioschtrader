@@ -100,10 +100,10 @@ export class UserAccessTokenTableComponent extends TableCrudSupportMenu<UserAcce
       });
   }
 
-  protected override prepareCallParam(_: UserAccessToken): void {}
+  protected override prepareCallParam(_: UserAccessToken | null): void {}
 
   /** Creating and revoking only, and also for a read-only home tenant (see the class comment). */
-  protected override getEditMenuItems(entity: UserAccessToken): MenuItem[] {
+  protected override getEditMenuItems(entity: UserAccessToken | null): MenuItem[] {
     const menuItems: MenuItem[] = [
       {
         label: 'ACCESS_TOKEN_CREATE' + BaseSettings.DIALOG_MENU_SUFFIX,

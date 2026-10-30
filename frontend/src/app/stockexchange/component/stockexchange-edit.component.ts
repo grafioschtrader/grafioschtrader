@@ -292,7 +292,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
           (this.canAssignMic() &&
             ((onlyMainStockexchange && sm.timeZone) || !onlyMainStockexchange) &&
             !callParam.existingMic.has(sm.mic)) ||
-          ((!this.canAssignMic() || callParam.proposeChange) && callParam.stockexchange.mic === sm.mic)
+          ((!this.canAssignMic() || callParam.proposeChange) && callParam.stockexchange?.mic === sm.mic)
         );
       })
       .forEach((sm) => {

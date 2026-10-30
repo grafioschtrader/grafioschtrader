@@ -348,8 +348,15 @@ export abstract class ShowRecordConfigBase {
    * @param field - The field name to search for
    * @returns The matching ColumnConfig or undefined if not found
    */
-  getColumnConfigByField(field: string): ColumnConfig {
+  getColumnConfigByField(field: string): ColumnConfig | undefined {
     return this.fields.find((columnConfig) => columnConfig.field === field);
+  }
+
+  /** Accesses a column that the concrete view must have configured before using it. */
+  requireColumnConfigByField(field: string): ColumnConfig {
+    const column = this.getColumnConfigByField(field);
+    if (!column) throw new Error(`Column "${field}" has not been configured.`);
+    return column;
   }
 
   /**
@@ -358,7 +365,7 @@ export abstract class ShowRecordConfigBase {
    * @param header - The header key to search for
    * @returns The matching ColumnConfig or undefined if not found
    */
-  getColumnConfigByHeader(header: string): ColumnConfig {
+  getColumnConfigByHeader(header: string): ColumnConfig | undefined {
     return this.fields.find((columnConfig) => columnConfig.headerKey === header);
   }
 
@@ -369,7 +376,7 @@ export abstract class ShowRecordConfigBase {
    * @param header - The header key to match
    * @returns The matching ColumnConfig or undefined if not found
    */
-  getColumnConfigByFieldAndHeader(field: string, header: string): ColumnConfig {
+  getColumnConfigByFieldAndHeader(field: string, header: string): ColumnConfig | undefined {
     return this.fields.find((columnConfig) => columnConfig.field === field && columnConfig.headerKey === header);
   }
 
@@ -379,7 +386,7 @@ export abstract class ShowRecordConfigBase {
    * @param headerTranslated - The translated header text to search for
    * @returns The matching ColumnConfig or undefined if not found
    */
-  getColumnConfigByHeaderTranslated(headerTranslated: string): ColumnConfig {
+  getColumnConfigByHeaderTranslated(headerTranslated: string): ColumnConfig | undefined {
     return this.fields.find((columnConfig) => columnConfig.headerTranslated === headerTranslated);
   }
 
@@ -452,7 +459,7 @@ export abstract class ShowRecordConfigBase {
    * @protected
    */
   protected translateHeaders(translateHeaderKeys: string[], columConfig: ColumnConfig[]): void {
-    const groupKeys = columConfig.map((f) => f.headerGroupKey).filter((k) => !!k);
+    const groupKeys = columConfig.map((f) => f.headerGroupKey).filter((k) => k != null && k !== '');
     const allKeys = [...new Set([...translateHeaderKeys.filter((thk) => !!thk), ...groupKeys])];
     this.translateService.get(allKeys).subscribe((allTranslatedTexts: any) => {
       columConfig.forEach((field) => {

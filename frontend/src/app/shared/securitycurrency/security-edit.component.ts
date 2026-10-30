@@ -516,7 +516,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
    */
   getSelectedStockexchangeMic(): string {
     const idStockexchange: number = requireFormControl(this.configObject.stockexchange).value;
-    const stockexchanges = this.configObject.stockexchange.referencedDataObject as Stockexchange[];    return stockexchanges?.find((se) => se.idStockexchange === idStockexchange)?.mic ?? null;
+    const stockexchanges = this.configObject.stockexchange.referencedDataObject as Stockexchange[];
+    return stockexchanges?.find((se) => se.idStockexchange === idStockexchange)?.mic ?? null;
   }
 
   /**
