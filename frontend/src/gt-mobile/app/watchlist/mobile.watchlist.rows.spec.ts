@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { MobileWatchlistGroup, mobileWatchlistRows } from './mobile.watchlist.rows';
+import {
+  MobileWatchlistGroup,
+  mobileWatchlistRows,
+  nextMobileWatchlistSort,
+  sortMobileWatchlistRows
+} from './mobile.watchlist.rows';
 
 const group: MobileWatchlistGroup = {
   securityPositionList: [
@@ -51,5 +56,38 @@ describe('mobileWatchlistRows', () => {
     expect(pair.kindKeys).toEqual(['CURRENCY_PAIR']);
     expect(pair.currency).toBe('CHF');
     expect(pair.holding).toBeNull();
+  });
+});
+
+describe('sortMobileWatchlistRows', () => {
+  const rows = mobileWatchlistRows(group);
+
+  it('orders names by the rules of the language and changes from the largest gain, missing changes last', () => {
+    expect(sortMobileWatchlistRows(rows, { key: 'name', descending: false }, 'de-CH').map((r) => r.name)).toEqual([
+      'EUR/CHF',
+      'Nestlé N',
+      'Novartis N'
+    ]);
+    expect(sortMobileWatchlistRows(rows, { key: 'dailyChange', descending: true }, 'de-CH').map((r) => r.name)).toEqual(
+      ['Nestlé N', 'Novartis N', 'EUR/CHF']
+    );
+    expect(
+      sortMobileWatchlistRows(rows, { key: 'dailyChange', descending: false }, 'de-CH').map((r) => r.name)
+    ).toEqual(['Novartis N', 'Nestlé N', 'EUR/CHF']);
+  });
+
+  it('keeps the order of the server when no order is chosen', () => {
+    expect(sortMobileWatchlistRows(rows, null, 'de-CH')).toBe(rows);
+  });
+});
+
+describe('nextMobileWatchlistSort', () => {
+  it('cycles through the usual direction, the reverse one and the order of the server', () => {
+    const first = nextMobileWatchlistSort(null, 'dailyChange');
+    expect(first).toEqual({ key: 'dailyChange', descending: true });
+    const second = nextMobileWatchlistSort(first, 'dailyChange');
+    expect(second).toEqual({ key: 'dailyChange', descending: false });
+    expect(nextMobileWatchlistSort(second, 'dailyChange')).toBeNull();
+    expect(nextMobileWatchlistSort(second, 'name')).toEqual({ key: 'name', descending: false });
   });
 });

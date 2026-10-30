@@ -105,3 +105,68 @@ function currencypairRow(position: MobileCurrencypairPosition): MobileWatchlistR
     holding: null
   };
 }
+
+/** Column the mobile watchlist can be ordered by. */
+export type MobileWatchlistSortKey = 'name' | 'dailyChange';
+
+/** Order chosen on the watchlist; null keeps the order of the server. */
+export interface MobileWatchlistSort {
+  key: MobileWatchlistSortKey;
+  descending: boolean;
+}
+
+/** Names read alphabetically from A, changes from the largest gain, the direction a reader expects first. */
+function startsDescending(key: MobileWatchlistSortKey): boolean {
+  return key === 'dailyChange';
+}
+
+/**
+ * The order after a tap on a sort button. The first tap orders by that column in its usual direction, the second
+ * reverses it and the third returns to the order of the server.
+ *
+ * @param current Order shown now, null for the order of the server
+ * @param key Column tapped
+ * @returns The new order, null for the order of the server
+ */
+export function nextMobileWatchlistSort(
+  current: MobileWatchlistSort | null,
+  key: MobileWatchlistSortKey
+): MobileWatchlistSort | null {
+  if (current?.key !== key) {
+    return { key, descending: startsDescending(key) };
+  }
+  return current.descending === startsDescending(key) ? { key, descending: !current.descending } : null;
+}
+
+/**
+ * Orders the lines of a watchlist for display. Names compare by the rules of the user's language, so umlauts and
+ * numbers sort as a reader expects. A line without a change against the previous day stays at the end in both
+ * directions. Lines that compare equal keep the order of the server.
+ *
+ * @param rows Lines in the order of the server
+ * @param sort Order chosen, null for the order of the server
+ * @param locale Locale of the user, for comparing names
+ * @returns A new array in display order
+ */
+export function sortMobileWatchlistRows(
+  rows: MobileWatchlistRow[],
+  sort: MobileWatchlistSort | null,
+  locale: string
+): MobileWatchlistRow[] {
+  if (!sort) {
+    return rows;
+  }
+  const direction = sort.descending ? -1 : 1;
+  if (sort.key === 'name') {
+    const collator = new Intl.Collator(locale, { sensitivity: 'base', numeric: true });
+    return [...rows].sort((a, b) => direction * collator.compare(a.name, b.name));
+  }
+  return [...rows].sort((a, b) => {
+    const changeA = a.dailyChangePercentage;
+    const changeB = b.dailyChangePercentage;
+    if (changeA == null || changeB == null) {
+      return changeA == null ? (changeB == null ? 0 : 1) : -1;
+    }
+    return direction * (changeA - changeB);
+  });
+}

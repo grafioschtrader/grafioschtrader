@@ -1,5 +1,6 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import {
+  IonChip,
   IonContent,
   IonHeader,
   IonItem,
@@ -18,10 +19,20 @@ import { concat, Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { MobileFormatService } from '../service/mobile.format.service';
 import { MobileWatchlistService } from '../service/mobile.watchlist.service';
-import { MobileWatchlist, MobileWatchlistRow, mobileWatchlistRows } from './mobile.watchlist.rows';
+import {
+  MobileWatchlist,
+  MobileWatchlistRow,
+  mobileWatchlistRows,
+  MobileWatchlistSort,
+  MobileWatchlistSortKey,
+  nextMobileWatchlistSort,
+  sortMobileWatchlistRows
+} from './mobile.watchlist.rows';
 
 /** Remembers the chosen watchlist in this browser, so the next start opens it again. */
 const STORAGE_KEY = 'gtMobile.idWatchlist';
+/** Remembers the chosen order of the lines. */
+const SORT_STORAGE_KEY = 'gtMobile.watchlistSort';
 
 /** Value of an Ionic segment change. */
 interface SegmentChangeEvent {
@@ -31,7 +42,8 @@ interface SegmentChangeEvent {
 /**
  * The instruments of one watchlist as a price list: name and price, the kind of instrument with its currency and the
  * change against the previous day, and for a held position a third line with units, price gain and total position.
- * The prices last stored are shown at once; the server then updates them, which can take a few seconds.
+ * The prices last stored are shown at once; the server then updates them, which can take a few seconds. The lines can
+ * be ordered by name or by the change against the previous day.
  */
 @Component({
   selector: 'mobile-watchlist-page',
@@ -44,6 +56,7 @@ interface SegmentChangeEvent {
     IonRefresherContent,
     IonSegment,
     IonSegmentButton,
+    IonChip,
     IonList,
     IonItem,
     IonLabel,
@@ -69,6 +82,18 @@ interface SegmentChangeEvent {
           </ion-segment>
         </ion-toolbar>
       }
+      @if (watchlists().length) {
+        <ion-toolbar class="sort-bar">
+          @for (sortKey of sortKeys; track sortKey.key) {
+            <ion-chip
+              [outline]="sort()?.key !== sortKey.key"
+              [color]="sort()?.key === sortKey.key ? 'primary' : 'medium'"
+              (click)="onSort(sortKey.key)">
+              <ion-label>{{ sortKey.labelKey | translate }} {{ sortArrow(sortKey.key) }}</ion-label>
+            </ion-chip>
+          }
+        </ion-toolbar>
+      }
     </ion-header>
     <ion-content>
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
@@ -78,7 +103,7 @@ interface SegmentChangeEvent {
         <p class="widget-note ion-padding">{{ 'MOBILE_WATCHLIST_NONE' | translate }}</p>
       } @else if (loadFailed()) {
         <p class="widget-note loss ion-padding">{{ 'DASHBOARD_LOAD_ERROR' | translate }}</p>
-      } @else if (rows(); as rows) {
+      } @else if (shownRows(); as rows) {
         <ion-list lines="full">
           @for (row of rows; track row.idSecuritycurrency) {
             <ion-item>
@@ -152,6 +177,10 @@ interface SegmentChangeEvent {
       .watchlist-sub .loss {
         color: var(--gt-loss-color);
       }
+      .sort-bar {
+        --min-height: 40px;
+        padding: 0 8px;
+      }
       .toolbar-spinner {
         margin-right: 12px;
         color: var(--ion-color-primary-contrast);
@@ -174,6 +203,18 @@ export class WatchlistPage implements OnInit {
   /** The content of the selected watchlist could not be read at all. */
   protected readonly loadFailed = signal(false);
   private loadSubscription: Subscription | null = null;
+
+  protected readonly sortKeys: { key: MobileWatchlistSortKey; labelKey: string }[] = [
+    { key: 'name', labelKey: 'NAME' },
+    { key: 'dailyChange', labelKey: 'DAILY_CHANGE' }
+  ];
+  /** Order chosen by the user; it applies to every watchlist and is remembered in this browser. */
+  protected readonly sort = signal<MobileWatchlistSort | null>(readStoredSort());
+  /** Lines of the selected watchlist in the chosen order; updated prices are ordered anew. */
+  protected readonly shownRows = computed(() => {
+    const rows = this.rows();
+    return rows && sortMobileWatchlistRows(rows, this.sort(), this.format.getLocale());
+  });
 
   /** Translated instrument kinds, rebuilt when the rows change. */
   private readonly kindTexts = computed(() => {
@@ -227,6 +268,17 @@ export class WatchlistPage implements OnInit {
   protected kindText(row: MobileWatchlistRow): string {
     const texts = this.kindTexts();
     return [...row.kindKeys.map((key) => texts.get(key) ?? key), row.currency].filter((part) => !!part).join(' · ');
+  }
+
+  protected onSort(key: MobileWatchlistSortKey): void {
+    const sort = nextMobileWatchlistSort(this.sort(), key);
+    this.sort.set(sort);
+    storeSort(sort);
+  }
+
+  protected sortArrow(key: MobileWatchlistSortKey): string {
+    const sort = this.sort();
+    return sort?.key === key ? (sort.descending ? '↓' : '↑') : '';
   }
 
   protected arrow(change: number | null): string {
@@ -283,5 +335,33 @@ function storeId(idWatchlist: number): void {
     localStorage.setItem(STORAGE_KEY, String(idWatchlist));
   } catch {
     // Without storage the first watchlist opens next time.
+  }
+}
+
+/** A stored order is used only when it is still one the page offers. */
+function readStoredSort(): MobileWatchlistSort | null {
+  try {
+    const stored: unknown = JSON.parse(localStorage.getItem(SORT_STORAGE_KEY) ?? 'null');
+    if (typeof stored === 'object' && stored !== null && 'key' in stored && 'descending' in stored) {
+      const { key, descending } = stored;
+      if ((key === 'name' || key === 'dailyChange') && typeof descending === 'boolean') {
+        return { key, descending };
+      }
+    }
+  } catch {
+    // Unreadable storage keeps the order of the server.
+  }
+  return null;
+}
+
+function storeSort(sort: MobileWatchlistSort | null): void {
+  try {
+    if (sort) {
+      localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(sort));
+    } else {
+      localStorage.removeItem(SORT_STORAGE_KEY);
+    }
+  } catch {
+    // Without storage the next start shows the order of the server.
   }
 }
