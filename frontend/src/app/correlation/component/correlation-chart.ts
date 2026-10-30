@@ -33,10 +33,11 @@ export function buildCorrelationFigure(input: CorrelationChartInput, type: Corre
   results.forEach((result) => {
     if (combined) {
       result.securitycurrencyList.forEach((sc, index) => {
-        if (instruments.has(sc.idSecuritycurrency)) {
+        const id = sc.idSecuritycurrency;
+        if (id == null || instruments.has(id)) {
           return;
         }
-        instruments.add(sc.idSecuritycurrency);
+        instruments.add(id);
         const values = percentageCloses(result.closes?.[index]);
         if (!values || !result.closeDates?.length || values.length !== result.closeDates.length) {
           missingCloses = true;

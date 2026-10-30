@@ -13,13 +13,13 @@ export class SecurityaccountAssetclassSpecInvestGroup extends SecurityaccountGro
       translateService,
       datatableConfigBase,
       'specialinvestmentinstrument',
-      'security.assetClass.specialInvestmentInstrument',
+      'security.assetClass?.specialInvestmentInstrument',
       'GROUP_BY_FINANCIAL_INSTRUMENT'
     );
   }
 
   public getGroupValue(security: Security) {
-    return security.assetClass.specialInvestmentInstrument;
+    return security.assetClass?.specialInvestmentInstrument;
   }
 
   protected getGroupFieldAsString(enumType: SpecialInvestmentInstruments): string | number {

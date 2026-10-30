@@ -58,9 +58,9 @@ import { InstrumentStatisticsSummaryComponent } from './instrument-statistics-su
 export class InstrumentStatisticsResultComponent implements OnInit {
   private securityService = inject(SecurityService);
 
-  readonly idSecuritycurrency = input<number>(undefined);
-  readonly dateFrom = input<Date | string>(undefined);
-  readonly dateTo = input<Date | string>(undefined);
+  readonly idSecuritycurrency = input.required<number>();
+  readonly dateFrom = input<Date | string>();
+  readonly dateTo = input<Date | string>();
   /**
    * Whether the heading is rendered. A caller which already labels this block, for example the accordion panel of an
    * expanded watchlist row, sets this to false to avoid showing the same title twice.

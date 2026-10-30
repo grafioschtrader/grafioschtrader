@@ -54,8 +54,8 @@ export function isManualIssuerCountryChange(
   dataLoaded: boolean,
   applyingPrefill: boolean,
   controlDirty: boolean,
-  issuerCountry: string,
-  lastPrefill: string
+  issuerCountry: string | null,
+  lastPrefill: string | null
 ): boolean {
   return dataLoaded && !applyingPrefill && controlDirty && issuerCountry !== lastPrefill;
 }
@@ -173,9 +173,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   readonly bondTerms = viewChild(SecurityBondTermsComponent);
   // Access child components
   readonly dynamicSplitForm = viewChild.required<DynamicFormComponent>('splitForm');
-  readonly seetc = viewChild(SecuritysplitEditTableComponent);
+  readonly seetc = viewChild.required(SecuritysplitEditTableComponent);
   readonly dynamicPeriodPriceForm = viewChild.required<DynamicFormComponent>('periodPriceForm');
-  readonly shpetc = viewChild(SecurityHistoryquotePeriodEditTableComponent);
+  readonly shpetc = viewChild.required(SecurityHistoryquotePeriodEditTableComponent);
 
   // Per-instrument limits sourced from the backend (gt.max.instrument.splits /
   // gt.max.instrument.historyquote.periods), loaded in loadHelperData(). The 20 defaults are a safe fallback while
@@ -214,7 +214,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
   private applyingIssuerCountryPrefill = false;
   private issuerCountryOverridden = false;
-  private lastIssuerCountryPrefill: string = null;
+  private lastIssuerCountryPrefill: string | null = null;
 
   constructor() {
     super();
@@ -328,7 +328,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       });
   }
 
-  valueChangedOnAssetClassExtend(assetClass: Assetclass): void {
+  valueChangedOnAssetClassExtend(assetClass: Assetclass | undefined): void {
     this.enableDisableDividendSplitConnector(assetClass);
     this.applySimulationFieldAvailability(assetClass);
     this.reloadFeedConnectorsForContext();
@@ -514,7 +514,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
    *
    * @returns The MIC, or null when no stock exchange is chosen
    */
-  getSelectedStockexchangeMic(): string {
+  getSelectedStockexchangeMic(): string | null {
     const idStockexchange: number = requireFormControl(this.configObject.stockexchange).value;
     const stockexchanges = this.configObject.stockexchange.referencedDataObject as Stockexchange[];
     return stockexchanges?.find((se) => se.idStockexchange === idStockexchange)?.mic ?? null;
@@ -767,11 +767,10 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     observables.push(this.stockexchangeService.getAllStockexchanges(false));
     observables.push(this.gpsGT.getCurrencies());
     const securityCurrencypairCallParam = this.securityCurrencypairCallParam();
+    const id = securityCurrencypairCallParam?.idSecuritycurrency;
     observables.push(
-      securityCurrencypairCallParam
-        ? this.assetclassService.getPossibleAssetclassForExistingSecurityOrAll(
-            securityCurrencypairCallParam.idSecuritycurrency
-          )
+      id != null
+        ? this.assetclassService.getPossibleAssetclassForExistingSecurityOrAll(id)
         : this.assetclassService.getAllAssetclass()
     );
     // Pre-filter the connector list only in gt.force.connector.match mode 2, and only when editing an existing
@@ -793,20 +792,19 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     observables.push(this.gps.getCountriesForSelectBox());
 
     if (securityCurrencypairCallParam) {
-      this.securityEditSupport.hasMarketValue = !(<Security>securityCurrencypairCallParam).stockexchange.noMarketValue;
+      this.securityEditSupport.hasMarketValue =
+        (<Security>securityCurrencypairCallParam).stockexchange?.noMarketValue !== true;
     }
 
     // The offer of stock exchanges is narrowed to the own kind once this instrument carries prices or transactions.
     let idxCategoryLocked = -1;
-    if (securityCurrencypairCallParam) {
+    if (id != null) {
       idxCategoryLocked = observables.length;
-      observables.push(
-        this.securityService.isStockexchangeCategoryLocked(securityCurrencypairCallParam.idSecuritycurrency)
-      );
+      observables.push(this.securityService.isStockexchangeCategoryLocked(id));
     }
 
     let idxSplitPeriod = -1;
-    if (securityCurrencypairCallParam) {
+    if (securityCurrencypairCallParam && id != null) {
       if (this.securityEditSupport.hasMarketValue) {
         // Only load security splits for an existing security
         if ((<Security>securityCurrencypairCallParam).splitPropose) {
@@ -814,22 +812,14 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           this.seetc().setDataList((<Security>securityCurrencypairCallParam).splitPropose, true);
         } else {
           idxSplitPeriod = observables.length;
-          observables.push(
-            this.securitysplitService.getSecuritysplitsByIdSecuritycurrency(
-              securityCurrencypairCallParam.idSecuritycurrency
-            )
-          );
+          observables.push(this.securitysplitService.getSecuritysplitsByIdSecuritycurrency(id));
         }
       } else {
         if ((<Security>securityCurrencypairCallParam).hpPropose) {
           this.shpetc().setDataList((<Security>securityCurrencypairCallParam).hpPropose, true);
         } else {
           idxSplitPeriod = observables.length;
-          observables.push(
-            this.historyquotePeriodService.getHistoryquotePeriodByIdSecuritycurrency(
-              securityCurrencypairCallParam.idSecuritycurrency
-            )
-          );
+          observables.push(this.historyquotePeriodService.getHistoryquotePeriodByIdSecuritycurrency(id));
         }
       }
     }
@@ -892,10 +882,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
    * @param categoryLocked whether the edited instrument is already bound to its kind of stock exchange
    */
   private restrictStockexchangeOptions(categoryLocked: boolean): void {
-    this.securityEditSupport.setStockexchangeOptions(
-      this.configObject,
-      categoryLocked ? (<Security>this.securityCurrencypairCallParam()).stockexchange.noMarketValue : null
-    );
+    const existing = this.securityCurrencypairCallParam();
+    const noMarketValue = existing && 'stockexchange' in existing ? existing.stockexchange?.noMarketValue : undefined;
+    this.securityEditSupport.setStockexchangeOptions(this.configObject, categoryLocked ? noMarketValue : null);
   }
 
   /**
@@ -928,13 +917,13 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     );
   }
 
-  private enableDisableDividendSplitConnector(assetClass: Assetclass): void {
-    this.selectedAssetClass.set(assetClass);
+  private enableDisableDividendSplitConnector(assetClass: Assetclass | undefined): void {
+    this.selectedAssetClass.set(assetClass ?? null);
     this.hideVisibleFeedConnectorsFields(this.securityEditSupport.connectorSplitConfig, !this.canHaveSplits(), null);
     this.enableDisableDividendConnector(assetClass, requireFormControl(this.configObject.distributionFrequency).value);
   }
 
-  private enableDisableDividendConnector(assetClass: Assetclass, distributionFrequency: string): void {
+  private enableDisableDividendConnector(assetClass: Assetclass | undefined, distributionFrequency: string): void {
     this.hideVisibleFeedConnectorsFields(
       this.securityEditSupport.connectorDividendConfig,
       !Security.canHaveDividendConnector(
@@ -975,8 +964,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       .subscribe((currency) => this.currentSecurityCurrency.set(currency ?? ''));
   }
 
-  private applySimulationFieldAvailability(assetClass: Assetclass): void {
-    this.selectedAssetClass.set(assetClass);
+  private applySimulationFieldAvailability(assetClass: Assetclass | undefined): void {
+    this.selectedAssetClass.set(assetClass ?? null);
     const canHaveIssuerCountry = Security.canHaveIssuerCountry(assetClass);
     this.configObject.issuerCountry.invisible = !canHaveIssuerCountry;
     if (canHaveIssuerCountry) {
@@ -995,7 +984,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
    * Hides the distribution frequency for a non-investable index and fixes it to DF_NONE. The disabled value is still
    * transferred on save, so the index is stored without a distribution frequency.
    */
-  private applyDistributionFrequencyAvailability(assetClass: Assetclass): void {
+  private applyDistributionFrequencyAvailability(assetClass: Assetclass | undefined): void {
     const distributionFrequency = this.configObject.distributionFrequency;
     const canHaveDistributionFrequency = Security.canHaveDistributionFrequency(assetClass);
     distributionFrequency.invisible = !canHaveDistributionFrequency;
@@ -1028,7 +1017,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     }
   }
 
-  private setIssuerCountry(issuerCountry: string): void {
+  private setIssuerCountry(issuerCountry: string | null): void {
     this.applyingIssuerCountryPrefill = true;
     requireFormControl(this.configObject.issuerCountry).setValue(issuerCountry);
     this.lastIssuerCountryPrefill = issuerCountry;
@@ -1036,11 +1025,10 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   private setHasMarkedValue(idStockexchange: number): void {
-    this.securityEditSupport.hasMarketValue =
-      !!idStockexchange &&
-      !(<Stockexchange[]>this.configObject.stockexchange.referencedDataObject).find(
-        (stockexchange: Stockexchange) => stockexchange.idStockexchange === +idStockexchange
-      ).noMarketValue;
+    const stockexchange = (<Stockexchange[]>this.configObject.stockexchange.referencedDataObject).find(
+      (stockexchange: Stockexchange) => stockexchange.idStockexchange === +idStockexchange
+    );
+    this.securityEditSupport.hasMarketValue = !!stockexchange && !stockexchange.noMarketValue;
   }
 
   private disableEnableInputForExisting(): void {

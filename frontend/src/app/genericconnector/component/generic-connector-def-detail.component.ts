@@ -56,7 +56,7 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
   imports: [TranslateModule]
 })
 export class GenericConnectorDefDetailComponent extends SingleRecordConfigBase {
-  readonly connectorDef = input<GenericConnectorDef>(undefined);
+  readonly connectorDef = input.required<GenericConnectorDef>();
 
   constructor() {
     super();

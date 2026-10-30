@@ -88,7 +88,7 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
     if (this.callParam.thisObject) {
       Object.assign(watchlist, this.callParam.thisObject);
     }
-    watchlist.idTenant = this.gps.getIdTenant();
+    watchlist.idTenant = this.gps.requireIdTenant();
     this.form().cleanMaskAndTransferValuesToBusinessObject(watchlist);
     return watchlist;
   }

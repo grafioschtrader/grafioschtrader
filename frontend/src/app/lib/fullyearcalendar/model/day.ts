@@ -3,7 +3,7 @@ import { DayOfWeek } from './day.of.week';
 
 export class Day {
   day: Date;
-  dayOfWeek: DayOfWeek;
+  dayOfWeek: DayOfWeek | null;
   init = false;
   color: string;
   tooltip: string;

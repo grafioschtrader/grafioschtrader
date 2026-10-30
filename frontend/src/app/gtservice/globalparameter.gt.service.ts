@@ -72,8 +72,9 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
     requestMapping: string,
     uriPart: string
   ): Observable<number> {
-    if (sessionStorage.getItem(globalSessionNames)) {
-      return of(+sessionStorage.getItem(globalSessionNames));
+    const storedValue = sessionStorage.getItem(globalSessionNames);
+    if (storedValue) {
+      return of(+storedValue);
     } else {
       return this.httpClient
         .get<number>(`${BaseSettings.API_ENDPOINT}` + `${requestMapping}/${uriPart}`, this.getHeaders())

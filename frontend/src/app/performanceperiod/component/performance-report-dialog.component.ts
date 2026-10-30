@@ -145,8 +145,8 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
     this.configObject.detailColumns.invisible = true;
     const remembered = this.data.settings;
     const preset =
-      remembered && options.presets.some((p) => p.key === remembered.preset)
-        ? remembered.preset
+      remembered && options.presets.some((p) => p.key === remembered?.preset)
+        ? remembered?.preset
         : this.data.window.reportDate
           ? 'STATEMENT_OF_ASSETS'
           : 'PERFORMANCE_DETAIL';
@@ -165,12 +165,14 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
       sections,
       annualYears: remembered?.annualYears || 10,
       detailColumns: remembered?.detailColumns || false,
-      language: options.languages.some((o) => o.key === remembered?.language)
-        ? remembered.language
-        : this.gps.getUserLang(),
-      numberFormat: options.numberFormats.some((o) => o.key === remembered?.numberFormat)
-        ? remembered.numberFormat
-        : locale
+      language:
+        remembered != null && options.languages.some((o) => o.key === remembered.language)
+          ? remembered?.language
+          : this.gps.getUserLang(),
+      numberFormat:
+        remembered != null && options.numberFormats.some((o) => o.key === remembered.numberFormat)
+          ? remembered?.numberFormat
+          : locale
     };
     for (const field of this.config) {
       if (field.field != null && field.field in initial) {
@@ -233,6 +235,10 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
     this.subscriptions.add(
       this.holdingService.downloadPeriodPerformancePdf(request).subscribe({
         next: (response) => {
+          if (response.body == null) {
+            this.reset();
+            return;
+          }
           saveAs(response.body, performanceReportFilename(response.headers.get('Content-Disposition')));
           if (!this.gps.isReadOnlyUser() && requireFormControl(this.configObject.rememberSettings).value) {
             this.subscriptions.add(

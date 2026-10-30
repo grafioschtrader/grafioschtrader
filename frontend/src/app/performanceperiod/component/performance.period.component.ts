@@ -136,9 +136,9 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   readonly loading = signal(false);
   readonly reportDialogService = inject(PerformanceReportDialogService);
   readonly menuItems = signal<MenuItem[]>([]);
-  chartData: Partial<ChartTrace>[];
+  chartData: ReturnType<typeof PlotlyHelper.initializeChartTrace>[];
   private subscriptionRequestFromChart: Subscription;
-  private idPortfolio: number;
+  private idPortfolio: number | null;
   private reportWindow: PerformanceWindowDef;
   private destroyRef = inject(DestroyRef);
 
@@ -151,7 +151,8 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   }
 
   ngOnInit(): void {
-    this.idPortfolio = +this.activatedRoute.snapshot.paramMap.get('id');
+    const id = this.activatedRoute.snapshot.paramMap.get('id');
+    this.idPortfolio = id == null ? null : +id;
     this.createInputFormDefinition();
     this.loading.set(true);
     afterNextRender(() => this.initializeDateRange(), { injector: this.renderInjector });
@@ -408,7 +409,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
       Object.keys(pcdd)
         .filter((key, tIndex) => key !== 'date')
         .forEach((key, tIndex) => {
-          let trace: Partial<ChartTrace>;
+          let trace: ReturnType<typeof PlotlyHelper.initializeChartTrace>;
           if (i === 0) {
             // Create the trace
             trace = PlotlyHelper.initializeChartTrace(key, 'scatter', 'lines');

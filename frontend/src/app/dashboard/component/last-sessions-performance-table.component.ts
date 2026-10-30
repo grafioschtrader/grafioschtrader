@@ -80,9 +80,7 @@ export class LastSessionsPerformanceTableComponent extends TableConfigBase {
     effect(() => {
       this.currency();
       untracked(() => {
-        this.amountFields.forEach(
-          (field) => (this.fields.find((column) => column.field === field).fixedCurrency = this.currency())
-        );
+        this.amountFields.forEach((field) => (this.requireColumnConfigByField(field).fixedCurrency = this.currency()));
         this.notifyViewChanged();
       });
     });
@@ -92,7 +90,7 @@ export class LastSessionsPerformanceTableComponent extends TableConfigBase {
    * Tells the reader when a session does not rest on market prices alone. Nothing is said about an ordinary session,
    * because a tooltip on every row is a tooltip nobody reads.
    */
-  private sessionTooltip(row: LastSessionsRow): string {
+  private sessionTooltip(row: LastSessionsRow): string | undefined {
     return row.substitute ? this.translateService.instant('DASHBOARD_LAST_SESSIONS_SUBSTITUTE') : undefined;
   }
 }

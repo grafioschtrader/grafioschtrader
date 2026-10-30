@@ -92,8 +92,8 @@ export class GenericConnectorTestDialogComponent extends SimpleFormEditBase impl
   private genericConnectorDefService: GenericConnectorDefService = inject(GenericConnectorDefService);
   private readonly messageToastService = inject(MessageToastService);
 
-  readonly endpoint = input<GenericConnectorEndpoint>(undefined);
-  readonly connectorDef = input<GenericConnectorDef>(undefined);
+  readonly endpoint = input.required<GenericConnectorEndpoint>();
+  readonly connectorDef = input.required<GenericConnectorDef>();
 
   readonly testResult = signal<GenericConnectorTestResult | null>(null);
   readonly parsedColumns = computed(() => {

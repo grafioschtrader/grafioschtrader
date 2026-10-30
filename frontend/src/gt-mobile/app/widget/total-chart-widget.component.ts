@@ -10,6 +10,7 @@ import {
   viewChild
 } from '@angular/core';
 import { IonLabel, IonSegment, IonSegmentButton } from '@ionic/angular';
+import type { Config, Data, Layout } from 'plotly.js';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DashboardResult } from '../../../app/lib/dashboard/dashboard.types';
 import { PerformanceTotalChart } from '../../../app/dashboard/model/performance.total.chart';
@@ -137,7 +138,7 @@ export class TotalChartWidgetComponent {
     );
   }
 
-  private traces(chart: PerformanceTotalChart): any[] {
+  private traces(chart: PerformanceTotalChart): Data[] {
     return performanceTotalChartTraces(
       chart.points,
       {
@@ -153,7 +154,7 @@ export class TotalChartWidgetComponent {
   }
 
   /** Text and grid colors of the Ionic theme, so the chart follows the light and the dark mode. */
-  private layout(chart: PerformanceTotalChart): any {
+  private layout(chart: PerformanceTotalChart): Partial<Layout> {
     const style = getComputedStyle(this.elementRef.nativeElement);
     const layout = performanceTotalChartLayout(chart, {
       textColor: style.getPropertyValue('--ion-text-color').trim() || '#222428',
@@ -165,7 +166,7 @@ export class TotalChartWidgetComponent {
     return layout;
   }
 
-  private plotlyConfig(): any {
+  private plotlyConfig(): Partial<Config> {
     return {
       ...PlotlyLocales.setPlotyLocales(this.format),
       responsive: false,

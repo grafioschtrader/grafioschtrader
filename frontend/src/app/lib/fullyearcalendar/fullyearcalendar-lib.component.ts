@@ -65,11 +65,10 @@ export class FullyearcalendarLibComponent {
   readonly year = computed(() => this.buildYear(this.yearCalendarData()));
   private colorBgToFgColor: Map<string, string> = new Map();
 
-  isDisabled(date: Date, disabledDays: DisabledDate[]): boolean {
+  isDisabled(date: Date | null | undefined, disabledDays: DisabledDate[] | undefined): boolean {
     return (
-      date &&
-      disabledDays &&
-      disabledDays.find(
+      date != null &&
+      disabledDays?.find(
         (i) =>
           i.date.getFullYear() === date.getFullYear() &&
           i.date.getMonth() === date.getMonth() &&
@@ -78,8 +77,8 @@ export class FullyearcalendarLibComponent {
     );
   }
 
-  isWeekdayDisabled(dayOfWeek: DayOfWeek, daysOfWeek: DayOfWeek[]): boolean {
-    return daysOfWeek && daysOfWeek.indexOf(dayOfWeek) >= 0;
+  isWeekdayDisabled(dayOfWeek: DayOfWeek | null, daysOfWeek: DayOfWeek[] | undefined): boolean {
+    return dayOfWeek !== null && (daysOfWeek?.includes(dayOfWeek) ?? false);
   }
 
   dayClicked(day: Date): void {
@@ -87,7 +86,7 @@ export class FullyearcalendarLibComponent {
   }
 
   getForegroundColorByBackgroundColor(backgroundColor: string): string {
-    let foregroundColor: string = this.colorBgToFgColor.get(backgroundColor);
+    let foregroundColor = this.colorBgToFgColor.get(backgroundColor);
     if (!foregroundColor) {
       const rgb = this.convertColorToRGBA(backgroundColor);
       foregroundColor = rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114 > 186 ? 'black' : 'white';
@@ -108,6 +107,9 @@ export class FullyearcalendarLibComponent {
     cvs.height = 1;
     cvs.width = 1;
     const ctx = cvs.getContext('2d', { willReadFrequently: true });
+    if (!ctx) {
+      throw new Error('Calendar colors require a 2D canvas context');
+    }
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, 1, 1);
     return ctx.getImageData(0, 0, 1, 1).data;

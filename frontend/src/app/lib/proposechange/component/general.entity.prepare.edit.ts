@@ -83,7 +83,7 @@ export interface PrepareCallParam<T extends BaseID> {
    * @param proposeEntity - The entity being proposed for editing
    * @returns String identifier of alternative entity mapping, or null to use default
    */
-  redirectEntityMapping(proposeEntity: T): string;
+  redirectEntityMapping(proposeEntity: T): string | null;
 
   /**
    * Prepares an entity for display in an edit dialog.

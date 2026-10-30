@@ -123,7 +123,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
       if (this.selectedIdAlgoTop) {
         // The action and the reason are stored as locale independent tokens, so the table needs their translations
         // before it can show or sort them.
-        this.createTranslatedValueStore(this.securityPositionAll);
+        this.createTranslatedValueStore(this.securityPositionAll ?? []);
       }
       this.notifyViewChanged();
     });
@@ -215,7 +215,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
 
   protected extendTransactionParamData(transactionCallParam: TransactionCallParam): void {}
 
-  protected getOptionalParameters(): OptionalParameters {
+  protected getOptionalParameters(): OptionalParameters | null {
     return null;
   }
 
@@ -361,10 +361,13 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
       ),
       ShowRecordConfigBase.createColumnConfig(DataType.NumericRaw, 'toleranceThreshold', 'TOLERANCE_THRESHOLD')
     ];
+    const fields = this.rebalancingSummaryFields;
     this.translateService
-      .get(this.rebalancingSummaryFields.map((field) => field.headerKey))
+      .get(fields.map((field) => field.headerKey).filter((key) => key != null))
       .subscribe((translations: { [key: string]: string }) => {
-        this.rebalancingSummaryFields.forEach((field) => (field.headerTranslated = translations[field.headerKey]));
+        fields.forEach(
+          (field) => (field.headerTranslated = field.headerKey == null ? undefined : translations[field.headerKey])
+        );
         this.notifyViewChanged();
       });
   }

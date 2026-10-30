@@ -16,7 +16,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   imports: [TranslateModule, TableModule, TooltipModule]
 })
 export class InstrumentAnnualisedReturnComponent extends TableConfigBase implements OnInit {
-  readonly values = input<AnnualisedYears[]>(undefined);
+  readonly values = input.required<AnnualisedYears[]>();
   readonly mainCurrency = input<string>();
   datakey = 'numberOfYears';
   groupTitle = 'ANNUALISED_RETURN';

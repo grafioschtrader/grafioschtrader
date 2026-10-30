@@ -100,8 +100,8 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
 
   existingEntityLimit: EntityLimit;
 
-  proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
-  private proposeMap: Map<number, ProposeChangeEntityWithEntity> = new Map();
+  proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | undefined;
+  private proposeMap: Map<number | undefined, ProposeChangeEntityWithEntity> = new Map();
 
   /** False when the last limit proposal asks for a limit the user does not have yet, so there is nothing to delete */
   private deleteAllowed = true;
@@ -152,7 +152,7 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
       : '';
   }
 
-  getLimitProposeIcon(entityLimit: EntityLimit, field: ColumnConfig): string {
+  getLimitProposeIcon(entityLimit: EntityLimit, field: ColumnConfig): string | null {
     return !entityLimit.idEntityLimit || this.proposeMap.has(entityLimit.idEntityLimit) ? 'user_limit_update' : null;
   }
 
@@ -189,19 +189,19 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
   }
 
   handleDelete(selectedEntityLimit: EntityLimit) {
+    const id = selectedEntityLimit.idEntityLimit;
+    if (id == null) return;
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + EntityLimitUserTableComponent.ENTITY_LIMIT,
       () => {
-        this.entityLimitService
-          .deleteEntity(selectedEntityLimit[this.entityKeyName as keyof EntityLimit] as number)
-          .subscribe((response) => {
-            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-              i18nRecord: EntityLimitUserTableComponent.ENTITY_LIMIT
-            });
-            this.dateChanged.emit(new ProcessedActionData(ProcessedAction.DELETED, null));
+        this.entityLimitService.deleteEntity(id).subscribe((response) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+            i18nRecord: EntityLimitUserTableComponent.ENTITY_LIMIT
           });
+          this.dateChanged.emit(new ProcessedActionData(ProcessedAction.DELETED, null));
+        });
       }
     );
   }
@@ -210,11 +210,10 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
     this.visibleDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       if (processedActionData.action === ProcessedAction.REJECT_DATA_CHANGE) {
+        const proposalId = this.proposeChangeEntityWithEntity?.proposeChangeEntity.idProposeRequest;
+        if (proposalId == null) return;
         this.proposeUserTaskService
-          .rejectUserTask(
-            this.proposeChangeEntityWithEntity.proposeChangeEntity.idProposeRequest,
-            processedActionData.data
-          )
+          .rejectUserTask(proposalId, processedActionData.data)
           .subscribe((stringResponse) =>
             this.messageToastService.showMessage(InfoLevelType.SUCCESS, stringResponse.response)
           );
@@ -269,9 +268,13 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
     if (user.userChangeLimitProposeList) {
       for (const proposeUserTask of user.userChangeLimitProposeList) {
         const entityField = proposeUserTask.proposeChangeFieldList.find((p) => p.field === 'entity');
+        if (!entityField) continue;
         let existingLimit = entityLimits.find((uec) => uec.entityName === entityField.valueDesarialized);
         this.deleteAllowed = !!existingLimit;
         if (!existingLimit) {
+          const dayLimit = proposeUserTask.proposeChangeFieldList.find((p) => p.field === 'dayLimit');
+          const untilDate = proposeUserTask.proposeChangeFieldList.find((p) => p.field === 'untilDate');
+          if (!dayLimit || !untilDate) continue;
           existingLimit = new EntityLimit();
           // create and add user entity change Limit
           const uecl: EntityLimit = new EntityLimit();
@@ -279,12 +282,8 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
           existingLimit.idUser = uecl.idUser;
           uecl.entityName = entityField.valueDesarialized;
           existingLimit.entityName = uecl.entityName;
-          uecl.limitValue = proposeUserTask.proposeChangeFieldList.find(
-            (p) => p.field === 'dayLimit'
-          ).valueDesarialized;
-          uecl.validUntil = proposeUserTask.proposeChangeFieldList.find(
-            (p) => p.field === 'untilDate'
-          ).valueDesarialized;
+          uecl.limitValue = dayLimit.valueDesarialized;
+          uecl.validUntil = untilDate.valueDesarialized;
           // A limit increase request always asks for a daily CUD budget of one user.
           uecl.keyId = 'DAY_CUD|' + uecl.entityName + '|||';
           uecl.limitTypeKey = 'LIMIT_TYPE_DAY_CUD';

@@ -160,7 +160,7 @@ export class TenantDividendsChartComponent
   private readRequest: Subscription;
 
   /** Year the year based charts refer to; set by clicking a year row of the dividends table. */
-  private selectedYear: number = null;
+  private selectedYear: number | null = null;
   private chartData: SecurityDividendsChart;
   private idsAccounts: IdsAccounts;
   private formReady = false;
@@ -344,7 +344,7 @@ export class TenantDividendsChartComponent
     }
   }
 
-  private buildFigure(chartType: IncomeChartType, year: number): { data: any[]; layout: any } {
+  private buildFigure(chartType: IncomeChartType, year: number | null): { data: any[]; layout: any } | null {
     switch (chartType) {
       case IncomeChartType.INCOME_CHART_MONTHLY:
         return this.buildMonthlyChart(this.chartData.incomeYears.find((iy) => iy.year === year));
@@ -363,7 +363,7 @@ export class TenantDividendsChartComponent
   }
 
   /** Distributions of the selected year per month, net with the withholding tax stacked on top. */
-  private buildMonthlyChart(iy: IncomeYear): { data: any[]; layout: any } {
+  private buildMonthlyChart(iy: IncomeYear | undefined): { data: any[]; layout: any } | null {
     if (!iy || (!this.hasDistributions(iy) && !iy.cashInterestMC)) {
       return null;
     }
@@ -379,7 +379,7 @@ export class TenantDividendsChartComponent
   }
 
   /** Income upwards and costs downwards per year, with the net income as a line on the same axis. */
-  private buildIncomeCostChart(): { data: any[]; layout: any } {
+  private buildIncomeCostChart(): { data: any[]; layout: any } | null {
     const iys = this.chartData.incomeYears;
     if (iys.length === 0) {
       return null;
@@ -454,7 +454,7 @@ export class TenantDividendsChartComponent
   }
 
   /** Net distributions per year, stacked by asset class. */
-  private buildAssetclassYearsChart(): { data: any[]; layout: any } {
+  private buildAssetclassYearsChart(): { data: any[]; layout: any } | null {
     const groups = this.groupAssetclasses(this.chartData.incomeAssetclasses);
     if (groups.length === 0) {
       return null;
@@ -473,7 +473,7 @@ export class TenantDividendsChartComponent
   }
 
   /** Share of each asset class in the net distributions of the selected year. */
-  private buildAssetclassShareChart(year: number): { data: any[]; layout: any } {
+  private buildAssetclassShareChart(year: number | null): { data: any[]; layout: any } | null {
     const groups = this.groupAssetclasses(this.chartData.incomeAssetclasses.filter((ia) => ia.year === year)).filter(
       (g) => g.total > 0
     );
@@ -499,7 +499,7 @@ export class TenantDividendsChartComponent
   }
 
   /** Net income per year and month as a heat map, the withholding tax is shown in the tooltip. */
-  private buildHeatmapChart(): { data: any[]; layout: any } {
+  private buildHeatmapChart(): { data: any[]; layout: any } | null {
     const iys = this.chartData.incomeYears;
     if (!iys.some((iy) => this.hasDistributions(iy) || iy.cashInterestMC)) {
       return null;
@@ -533,7 +533,8 @@ export class TenantDividendsChartComponent
    * One line per year with the net income accumulated over the months. The selected year and the year before keep
    * their series color, all other years recede to a muted gray so the comparison stays readable for many years.
    */
-  private buildCumulativeChart(year: number): { data: any[]; layout: any } {
+  private buildCumulativeChart(year: number | null): { data: any[]; layout: any } | null {
+    if (year == null) return null;
     const iys = this.chartData.incomeYears.filter((iy) => this.hasDistributions(iy) || iy.cashInterestMC);
     if (iys.length === 0) {
       return null;
@@ -626,7 +627,7 @@ export class TenantDividendsChartComponent
     return `,.${this.gps.getCurrencyPrecision(this.chartData.mainCurrency)}f`;
   }
 
-  private createLayout(titleKey: string, titleSuffix: string, barmode: string): any {
+  private createLayout(titleKey: string, titleSuffix: string | null, barmode: string | null): any {
     const title = this.translateService.instant(titleKey) + (titleSuffix ? ' ' + titleSuffix : '');
     return {
       title: { text: title, font: { size: 15 } },

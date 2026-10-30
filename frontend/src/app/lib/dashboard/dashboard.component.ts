@@ -64,10 +64,10 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   private host: ElementRef<HTMLElement> = inject(ElementRef);
   private zone: NgZone = inject(NgZone);
 
-  document: DashboardDocument;
+  document: DashboardDocument | null;
   draft: DashboardWidget[] = [];
   results: Record<string, DashboardResult> = {};
-  catalogue: DashboardCatalogue;
+  catalogue: DashboardCatalogue | null;
   editing = false;
   loading = false;
   /** The slower load groups are still being fetched, so a card without a result is waiting rather than empty. */
@@ -242,7 +242,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
         error: (error) => {
           if (!this.current(generation, context)) return;
           this.groupsLoading = false;
-          this.document.widgets
+          this.document?.widgets
             .filter((w) => !this.results[w.instanceId])
             .forEach((w) => (this.results[w.instanceId] = this.failedResult(w, error.status)));
           this.notifyViewChanged();
@@ -263,9 +263,10 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     };
   }
   edit(): void {
-    if (!this.canEdit) return;
+    const document = this.document;
+    if (!this.canEdit || !document) return;
     this.restore();
-    this.draft = structuredClone(this.document.widgets);
+    this.draft = structuredClone(document.widgets);
     this.editing = true;
     this.resetPending = false;
     this.conflict = false;
@@ -288,13 +289,14 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     this.onComponentClick(null);
   }
   save(): void {
-    if (!this.canEdit || !this.editing) return;
+    const document = this.document;
+    if (!this.canEdit || !this.editing || !document) return;
     this.saving = true;
     this.error = '';
     const generation = this.generation,
       context = this.context();
     this.subscriptions.add(
-      this.service.save(this.document.revision, this.draft, this.resetPending).subscribe({
+      this.service.save(document.revision, this.draft, this.resetPending).subscribe({
         next: (document) => {
           this.saving = false;
           if (!this.current(generation, context)) return;
@@ -323,9 +325,9 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     this.cancel();
     this.load();
   }
-  private fetchCatalogue(action: () => void): void {
+  private fetchCatalogue(action: (catalogue: DashboardCatalogue) => void): void {
     if (this.catalogue) {
-      action();
+      action(this.catalogue);
       return;
     }
     if (this.catalogueLoading) return;
@@ -339,7 +341,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
           if (this.current(generation, context) && this.editing) {
             this.catalogue = catalogue;
             this.refreshAvailable();
-            action();
+            action(catalogue);
           }
           this.notifyViewChanged();
         },
@@ -352,8 +354,8 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     );
   }
   reset(): void {
-    this.fetchCatalogue(() => {
-      this.draft = structuredClone(this.catalogue.defaults);
+    this.fetchCatalogue((catalogue) => {
+      this.draft = structuredClone(catalogue.defaults);
       this.resetPending = true;
       this.refreshAvailable();
     });
@@ -371,15 +373,16 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     return !!this.catalogue?.descriptors.find((d) => d.type === widget.type)?.formDefinition;
   }
   configure(widget: DashboardWidget): void {
-    this.fetchCatalogue(() => {
-      const descriptor = this.catalogue.descriptors.find((d) => d.type === widget.type);
+    this.fetchCatalogue((catalogue) => {
+      const descriptor = catalogue.descriptors.find((d) => d.type === widget.type);
       if (descriptor) this.configuring = { descriptor, widget };
     });
   }
   configured(action: ProcessedActionData): void {
-    if (action.action === ProcessedAction.UPDATED) {
+    const configuring = this.configuring;
+    if (action.action === ProcessedAction.UPDATED && configuring) {
       this.draft = this.draft.map((w) =>
-        w.instanceId === this.configuring.widget.instanceId ? { ...w, config: action.data } : w
+        w.instanceId === configuring.widget.instanceId ? { ...w, config: action.data } : w
       );
     }
     this.configuring = null;

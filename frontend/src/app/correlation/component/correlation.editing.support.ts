@@ -32,7 +32,7 @@ export class CorrelationEditingSupport {
   private requiredMinPeriods = 3;
 
   /** Currently selected sampling period type */
-  private actualSamplingPeriod: SamplingPeriodType;
+  private actualSamplingPeriod: SamplingPeriodType | undefined;
 
   /**
    * Creates field configuration array for correlation set form including name, date range,
@@ -44,9 +44,9 @@ export class CorrelationEditingSupport {
    * @returns Array of configured form field definitions ready for dynamic form rendering
    */
   getCorrelationFieldDefinition(
-    mainField: string,
+    mainField: string | null,
     usedLayoutColumns: number,
-    submitTextKey: string = null
+    submitTextKey: string | null = null
   ): FieldConfig[] {
     const fieldConfig: FieldConfig[] = [
       DynamicFieldHelper.createFieldInputString('name', 'CORRELATION_SET_NAME', 25, true),
@@ -57,7 +57,7 @@ export class CorrelationEditingSupport {
       DynamicFieldHelper.createFieldSelectNumberHeqF(this.rolling, false),
       DynamicFieldHelper.createFieldCheckboxHeqF('adjustCurrency'),
       DynamicFieldHelper.createFieldCheckboxHeqF('includeDividends'),
-      DynamicFieldHelper.createSubmitButton(submitTextKey)
+      DynamicFieldHelper.createSubmitButton(submitTextKey ?? undefined)
     ];
     if (mainField) {
       fieldConfig.splice(
@@ -157,7 +157,11 @@ export class CorrelationEditingSupport {
    * @param configObject - Map of field names to FieldConfig objects for updating calendar constraints
    */
   private setDateToMin(configObject: { [name: string]: FieldConfig }): void {
-    configObject.dateTo.calendarConfig.minDate = moment(requireFormControl(configObject.dateFrom).value)
+    const calendar = configObject.dateTo.calendarConfig;
+    if (!calendar) {
+      throw new Error('Correlation dateTo requires a calendar configuration');
+    }
+    calendar.minDate = moment(requireFormControl(configObject.dateFrom).value)
       .add(this.requiredMinPeriods, this.periodMoment)
       .toDate();
   }

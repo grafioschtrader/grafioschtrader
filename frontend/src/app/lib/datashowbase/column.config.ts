@@ -19,7 +19,7 @@ export interface ColumnConfig extends BaseFieldDefinition {
   field: string;
 
   /** Translation key for the column header text */
-  headerKey: string;
+  headerKey: string | null;
 
   /** Actual translated header text populated by translation service */
   headerTranslated?: string;

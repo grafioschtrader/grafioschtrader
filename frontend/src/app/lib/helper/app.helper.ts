@@ -47,8 +47,8 @@ export class AppHelper {
    * @param currentLang Current language code to normalize
    * @returns Normalized language code ('de' or 'en')
    */
-  static getNonUserDefinedLanguage(currentLang: string): string {
-    return ['de', 'en'].indexOf(currentLang) >= 0 ? currentLang : 'en';
+  static getNonUserDefinedLanguage(currentLang: string | undefined): string {
+    return currentLang && ['de', 'en'].includes(currentLang) ? currentLang : 'en';
   }
 
   /**
@@ -119,7 +119,7 @@ export class AppHelper {
    */
   public static createParamObjectFromParamMap(paramMap: ParamMap): any {
     const paramObject: Record<string, unknown> = {};
-    paramMap.keys.forEach((key) => (paramObject[key] = JSON.parse(paramMap.get(key))));
+    paramMap.keys.forEach((key) => (paramObject[key] = JSON.parse(paramMap.get(key) ?? 'null')));
     return paramObject;
   }
 

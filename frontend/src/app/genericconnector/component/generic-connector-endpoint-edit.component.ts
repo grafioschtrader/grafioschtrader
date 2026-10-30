@@ -56,8 +56,8 @@ const ALL_FEED_INSTRUMENT_COMBOS = [
 export class GenericConnectorEndpointEditComponent extends SimpleFormEditBase implements OnInit {
   public translateService: TranslateService = inject(TranslateService);
 
-  readonly endpoint = input<GenericConnectorEndpoint>(undefined);
-  readonly connectorDef = input<GenericConnectorDef>(undefined);
+  readonly endpoint = input.required<GenericConnectorEndpoint>();
+  readonly connectorDef = input.required<GenericConnectorDef>();
   private optionTranslations: Record<string, string> = {};
 
   constructor() {

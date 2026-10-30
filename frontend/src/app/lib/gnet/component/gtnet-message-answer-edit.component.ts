@@ -98,7 +98,7 @@ const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
 export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetMessageAnswer> implements OnInit {
   private gtNetProtocolService: GTNetProtocolService = inject(GTNetProtocolService);
 
-  readonly callParam = input<GTNetMessageAnswerCallParam>(undefined);
+  readonly callParam = input.required<GTNetMessageAnswerCallParam>();
 
   private readonly injector = inject(Injector);
   private currentTypeFilter: EvalExType = 'ANY';

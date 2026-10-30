@@ -43,7 +43,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
   private portfolioService: PortfolioService = inject(PortfolioService);
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
-  readonly callParam = input<CallParam>(undefined);
+  readonly callParam = input.required<CallParam>();
 
   portfolio: Portfolio;
 
@@ -60,10 +60,14 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     // The whole form (fields, order, constraints, labels) is generated from the Cashaccount entity's
     // @DynamicFormField + Bean Validation annotations. The definition is pre-fetched by the opener and
     // passed via callParam, so the form is built synchronously here and edit values transfer reliably.
+    const formDefinition = this.callParam().optParam?.formDefinition;
+    if (!formDefinition) {
+      throw new Error('Cash account editor requires its form definition');
+    }
     this.config = <FieldConfig[]>(
       DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
         this.translateService,
-        this.callParam().optParam.formDefinition,
+        formDefinition,
         '',
         true
       )
@@ -86,7 +90,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     if (callParam.thisObject != null) {
       this.form().transferBusinessObjectToForm(callParam.thisObject);
     }
-    this.configObject.name.elementRef.nativeElement.focus();
+    this.configObject.name.elementRef?.nativeElement.focus();
     // Currency options load asynchronously and only populate the dropdown; they must not reset the form.
     this.gpsGT
       .getCurrencies()
@@ -106,15 +110,11 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
   }
 
   private prepareSecurityaccountOption() {
-    if (this.portfolio.securityaccountList.length >= 2) {
+    const accounts = this.portfolio.securityaccountList;
+    if (accounts && accounts.length >= 2) {
       AppHelper.enableAndVisibleInput(this.configObject.connectIdSecurityaccount);
       this.configObject.connectIdSecurityaccount.valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-          'idSecuritycashAccount',
-          'name',
-          this.portfolio.securityaccountList,
-          true
-        );
+        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idSecuritycashAccount', 'name', accounts, true);
     } else {
       AppHelper.disableAndHideInput(this.configObject.connectIdSecurityaccount);
     }

@@ -65,7 +65,7 @@ export class TenantSummariesSecurityaccountComponent extends SecurityaccountTabl
   }
 
   ngOnInit() {
-    this.idTenant = this.gps.getIdTenant();
+    this.idTenant = this.gps.requireIdTenant();
     this.readData();
   }
 
@@ -93,7 +93,7 @@ export class TenantSummariesSecurityaccountComponent extends SecurityaccountTabl
 
   protected extendTransactionParamData(transactionCallParam: TransactionCallParam): void {}
 
-  protected getOptionalParameters(): OptionalParameters {
+  protected getOptionalParameters(): OptionalParameters | null {
     return null;
   }
 }

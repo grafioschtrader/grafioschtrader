@@ -73,7 +73,7 @@ export class LastSessionsPerformanceWidgetComponent
   private dashboardService: DashboardService = inject(DashboardService);
   private portfolioService: PortfolioService = inject(PortfolioService);
 
-  readonly result = input<DashboardResult>(undefined);
+  readonly result = input<DashboardResult>();
 
   readonly form = viewChild<DynamicFormComponent>('form');
 
@@ -188,9 +188,13 @@ export class LastSessionsPerformanceWidgetComponent
       ),
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'externalCashTransferMC', 'EXTERNAL_CASH_TRANSFER')
     ];
-    this.translateService.get(this.totalFields.map((field) => field.headerKey)).subscribe((translations) => {
-      this.totalFields.forEach((field) => (field.headerTranslated = translations[field.headerKey]));
-      this.notifyViewChanged();
-    });
+    this.translateService
+      .get(this.totalFields.map((field) => field.headerKey).filter((key) => key != null))
+      .subscribe((translations) => {
+        this.totalFields.forEach(
+          (field) => (field.headerTranslated = field.headerKey == null ? undefined : translations[field.headerKey])
+        );
+        this.notifyViewChanged();
+      });
   }
 }

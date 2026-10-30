@@ -110,7 +110,7 @@ export class SecurityHistoryquoteQualityTreetableComponent
   readonly historyquoteQualityIds = signal<HistoryquoteQualityIds | null>(null);
   readonly groupTitle = signal<string | null>(null);
   readonly contextMenuItems = signal<MenuItem[] | null>(null);
-  securityIdWithCurrency: SecurityIdWithCurrency;
+  securityIdWithCurrency: SecurityIdWithCurrency | null;
 
   readonly qualityNode = signal<TreeNode[]>([]);
   readonly historyquoteQualityHead = signal<HistoryquoteQualityHead | null>(null);
@@ -177,7 +177,7 @@ export class SecurityHistoryquoteQualityTreetableComponent
     this.resetMenu();
   }
 
-  handleChangedIdSecurity(securityIdWithCurrency: SecurityIdWithCurrency): void {
+  handleChangedIdSecurity(securityIdWithCurrency: SecurityIdWithCurrency | null): void {
     this.securityIdWithCurrency = securityIdWithCurrency;
     this.resetMenu();
   }
@@ -221,31 +221,32 @@ export class SecurityHistoryquoteQualityTreetableComponent
     }
   }
 
-  private publishMenu(menuItems: MenuItem[]): void {
+  private publishMenu(menuItems: MenuItem[] | null): void {
     this.contextMenuItems.set(menuItems);
     this.activePanelService.activatePanel(this, { showMenu: menuItems, editMenu: null });
   }
 
   private showData(hqg: HistoryquoteQualityHead): void {
     const tn: TreeNode[] = [];
-    this.addTreeNode(tn, hqg, null);
+    this.addTreeNode(tn, hqg);
     this.historyquoteQualityHead.set(hqg);
     this.lastUpdate.set(AppHelper.getDateByFormat(this.gps, hqg.lastUpdate));
     this.selectedNode.set(null);
-    this.qualityNode.set(tn[0].children);
+    this.qualityNode.set(tn[0].children ?? []);
   }
 
-  private addTreeNode(tn: TreeNode[], hqg: HistoryquoteQualityGroup, parentNode: TreeNode): void {
+  private addTreeNode(tn: TreeNode[], hqg: HistoryquoteQualityGroup, parentNode?: TreeNode): void {
+    const children: TreeNode[] = [];
     const treeNode: TreeNode = {
       data: hqg,
-      children: [],
+      children,
       expanded: false,
       leaf: hqg.childrendHqg.length === 0,
       parent: parentNode
     };
     tn.push(treeNode);
     hqg.childrendHqg.forEach((historyquoteQualityGroup: HistoryquoteQualityGroup) =>
-      this.addTreeNode(treeNode.children, historyquoteQualityGroup, treeNode)
+      this.addTreeNode(children, historyquoteQualityGroup, treeNode)
     );
   }
 }

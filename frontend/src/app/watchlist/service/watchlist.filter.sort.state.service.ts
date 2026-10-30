@@ -369,7 +369,10 @@ export class WatchlistFilterSortStateService {
     const keys = new Map<string, string>();
     fields
       .filter((field) => field.filterType)
-      .forEach((field) => keys.set(getFilterKey(field), field.headerTranslated || field.headerKey));
+      .forEach((field) => {
+        const label = field.headerTranslated || field.headerKey;
+        if (label != null) keys.set(getFilterKey(field), label);
+      });
     return keys;
   }
 
@@ -381,7 +384,10 @@ export class WatchlistFilterSortStateService {
    */
   private applicableSortFields(fields: ColumnConfig[]): Map<string, string> {
     const sortFields = new Map<string, string>();
-    fields.forEach((field) => sortFields.set(field.field, field.headerTranslated || field.headerKey));
+    fields.forEach((field) => {
+      const label = field.headerTranslated || field.headerKey;
+      if (label != null) sortFields.set(field.field, label);
+    });
     return sortFields;
   }
 

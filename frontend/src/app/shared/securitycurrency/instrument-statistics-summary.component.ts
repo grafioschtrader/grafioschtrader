@@ -33,7 +33,7 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
   imports: [TranslateModule, ConfigurableTreeTableComponent]
 })
 export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase implements OnInit {
-  readonly statisticsSummary = input<StatisticsSummary>(undefined);
+  readonly statisticsSummary = input.required<StatisticsSummary>();
   readonly mainCurrency = input<string>();
   rootNodes: TreeNode[];
   readonly negativeValue = (row: any, field: ColumnConfig) => this.isValueByPathMinus(row, field);
@@ -60,22 +60,23 @@ export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase im
   }
 
   private prepareData(): void {
+    const children: TreeNode[] = [];
     const mainTree: TreeNode = {
       data: this.statisticsSummary().statsPropertyMap,
-      children: [],
+      children,
       leaf: false
     };
     const sptKeys = Object.keys(mainTree.data);
     sptKeys.forEach((sptKey) => {
       const data = { property: sptKey };
-      mainTree.children.push({
+      children.push({
         data,
         children: this.getChildren(mainTree, sptKey),
         expanded: true,
         leaf: false
       });
     });
-    this.rootNodes = mainTree.children;
+    this.rootNodes = children;
     this.createTranslateValuesStoreForTranslation(this.rootNodes);
   }
 

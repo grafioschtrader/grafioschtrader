@@ -93,7 +93,9 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
         const existingFromCurrencies: Currencypair[] = this.existingCurrencypairs.filter(
           (currencypair) => currencypair.fromCurrency === data
         );
-        this.configObject.toCurrency.valueKeyHtmlOptions = this.configObject.fromCurrency.valueKeyHtmlOptions.filter(
+        this.configObject.toCurrency.valueKeyHtmlOptions = (
+          this.configObject.fromCurrency.valueKeyHtmlOptions ?? []
+        ).filter(
           (vKHO) => existingFromCurrencies.filter((currencypair) => currencypair.toCurrency === vKHO.key).length === 0
         );
       });
@@ -165,9 +167,10 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   }
 
   private removeByUpdateFormExstingCurrency(): void {
-    if (this.securityCurrencypairCallParam()) {
+    const existing = this.securityCurrencypairCallParam();
+    if (existing) {
       this.existingCurrencypairs = this.existingCurrencypairs.filter(
-        (currencypair) => currencypair.idSecuritycurrency !== this.securityCurrencypairCallParam().idSecuritycurrency
+        (currencypair) => currencypair.idSecuritycurrency !== existing.idSecuritycurrency
       );
     }
   }

@@ -52,7 +52,7 @@ export class UserAccessTokenDialogComponent implements OnInit {
   private dynamicDialogConfig = inject<DynamicDialogConfig<UserAccessTokenDialogData>>(DynamicDialogConfig);
   private userAccessTokenService = inject(UserAccessTokenService);
 
-  introKey: string;
+  introKey: string | undefined;
   readonly clientInfo = signal<AccessTokenClientInfo | null>(null);
   readonly configSnippet = computed(() =>
     this.clientInfo()?.configSnippet?.replace('${TIME_ZONE}', Intl.DateTimeFormat().resolvedOptions().timeZone)

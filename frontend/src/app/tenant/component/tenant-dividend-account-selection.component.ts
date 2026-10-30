@@ -64,10 +64,10 @@ import { TreeTableModule } from '@openng/optimus-ui/treetable';
   imports: [TreeTableModule, TranslateModule]
 })
 export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase implements OnInit {
-  readonly columnConfig = input<ColumnConfig[]>(undefined);
-  readonly portfolios = input<Portfolio[]>(undefined);
-  readonly idsAccount = input<number[]>(undefined);
-  readonly listAttributeName = input<'securityaccountList' | 'cashaccountList'>(undefined);
+  readonly columnConfig = input.required<ColumnConfig[]>();
+  readonly portfolios = input.required<Portfolio[]>();
+  readonly idsAccount = input.required<number[]>();
+  readonly listAttributeName = input.required<'securityaccountList' | 'cashaccountList'>();
   readonly title = input<string>();
   readonly selectionRequired = input<boolean>();
 
@@ -89,25 +89,28 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
 
     const psa: TreeNode[] = [];
     const selected: TreeNode[] = [];
+    const attribute = this.listAttributeName();
     this.portfolios().forEach((portfolio) => {
-      if (portfolio[this.listAttributeName()].length > 0) {
+      const accounts = portfolio[attribute];
+      if (accounts && accounts.length > 0) {
+        const children: TreeNode[] = [];
         const portfolioTreeNode: TreeNode = {
           data: portfolio,
-          children: [],
+          children,
           expanded: true,
           leaf: false
         };
         psa.push(portfolioTreeNode);
         let childSelectionCount = 0;
-        portfolio[this.listAttributeName()].forEach((account: { idSecuritycashAccount: number }) => {
+        accounts.forEach((account: { idSecuritycashAccount: number }) => {
           const accountTeeNode = { data: account, leaf: true };
-          portfolioTreeNode.children.push(accountTeeNode);
+          children.push(accountTeeNode);
           if (markAll || this.idsAccount().indexOf(account.idSecuritycashAccount) >= 0) {
             selected.push(accountTeeNode);
             childSelectionCount++;
           }
         });
-        if (childSelectionCount > 0 && portfolio[this.listAttributeName()].length === childSelectionCount) {
+        if (childSelectionCount > 0 && accounts.length === childSelectionCount) {
           selected.push(portfolioTreeNode);
         }
       }

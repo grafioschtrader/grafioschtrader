@@ -37,7 +37,7 @@ export class SecurityaccountAssetclassGroup extends SecurityaccountGroupBaseDyna
   }
 
   public getGroupValue(security: Security) {
-    return security.assetClass.idAssetClass;
+    return security.assetClass?.idAssetClass;
   }
 
   protected getGroupFieldAsString(idAssetclass: number): string {

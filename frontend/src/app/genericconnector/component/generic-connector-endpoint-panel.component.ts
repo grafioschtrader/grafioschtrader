@@ -54,7 +54,7 @@ import { GenericConnectorFieldMappingTableComponent } from './generic-connector-
   imports: [TranslateModule, GenericConnectorFieldMappingTableComponent]
 })
 export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBase {
-  readonly endpoint = input<GenericConnectorEndpoint>(undefined);
+  readonly endpoint = input.required<GenericConnectorEndpoint>();
   readonly editable = input<boolean>(true);
   readonly editEndpoint = output<void>();
   readonly fieldMappingsChange = output<GenericConnectorFieldMapping[]>();

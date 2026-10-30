@@ -42,7 +42,7 @@ import { PerformancePeriodMetrics } from '../model/performance.period';
 })
 export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase {
   /** Figures of the period, null or undefined while no report was loaded; nothing is rendered then. */
-  readonly metrics = input<PerformancePeriodMetrics>(null);
+  readonly metrics = input<PerformancePeriodMetrics | null>(null);
 
   readonly PERFORMANCE_RETURN = 'PERFORMANCE_RETURN';
   readonly PERFORMANCE_RISK = 'PERFORMANCE_RISK';

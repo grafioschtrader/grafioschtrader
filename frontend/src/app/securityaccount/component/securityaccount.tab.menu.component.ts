@@ -42,7 +42,7 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
   private treeNavState = inject(TreeNavigationStateService);
   private gpsGT = inject(GlobalparameterGTService);
 
-  private securityaccount: Securityaccount;
+  private securityaccount: Securityaccount | null;
   private lastRouteKey: string = AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY;
   private successFailedImportTransParam: any = null;
   /**

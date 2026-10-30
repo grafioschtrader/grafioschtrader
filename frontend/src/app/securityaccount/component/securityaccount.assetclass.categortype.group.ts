@@ -13,7 +13,7 @@ export class SecurityaccountAssetclassCategortypeGroup extends SecurityaccountGr
       translateService,
       datatableConfigBase,
       'assetclasstype',
-      'security.assetClass.categoryType',
+      'security.assetClass?.categoryType',
       'GROUP_BY_ASSETCLASS'
     );
     // this.translateService.get('short').subscribe(translated => this.translatedShort = translated);
@@ -33,7 +33,7 @@ export class SecurityaccountAssetclassCategortypeGroup extends SecurityaccountGr
     }
   */
   public getGroupValue(security: Security) {
-    return security.assetClass.categoryType;
+    return security.assetClass?.categoryType;
   }
 
   protected getGroupFieldAsString(enumType: AssetclassType): string | number {

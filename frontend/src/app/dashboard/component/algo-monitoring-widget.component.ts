@@ -63,7 +63,7 @@ import { AlgoMonitoringSummary } from '../model/algo.monitoring.summary';
 export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase {
   private router: Router = inject(Router);
 
-  readonly result = input<DashboardResult>(undefined);
+  readonly result = input<DashboardResult>();
 
   readonly summary = computed(() => this.result()?.payload?.custom as AlgoMonitoringSummary);
   readonly statusParams = computed(() => ({
@@ -128,9 +128,11 @@ export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase {
       )
     ];
     this.translateService
-      .get(this.summaryFields.map((field) => field.headerKey))
+      .get(this.summaryFields.map((field) => field.headerKey).filter((key) => key != null))
       .subscribe((translations: { [key: string]: string }) => {
-        this.summaryFields.forEach((field) => (field.headerTranslated = translations[field.headerKey]));
+        this.summaryFields.forEach(
+          (field) => (field.headerTranslated = field.headerKey == null ? undefined : translations[field.headerKey])
+        );
         this.notifyViewChanged();
       });
   }

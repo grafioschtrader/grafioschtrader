@@ -12,6 +12,7 @@ import {
   IonToolbar
 } from '@ionic/angular';
 import { TranslatePipe } from '@ngx-translate/core';
+import { MOBILE_HOME } from '../mobile.routes';
 import { MobileLoginService } from '../service/mobile.login.service';
 
 /** Value of an Ionic input event. */
@@ -104,7 +105,7 @@ export class LoginPage {
         if (token && response.body) {
           this.loginService.afterSuccessfulLogin(token, response.body);
           this.password.set('');
-          this.router.navigate(['/dashboard'], { replaceUrl: true });
+          this.router.navigate([MOBILE_HOME], { replaceUrl: true });
         }
         this.busy.set(false);
       },

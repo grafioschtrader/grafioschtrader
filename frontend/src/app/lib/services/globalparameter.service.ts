@@ -26,9 +26,9 @@ export class GlobalparameterService
 {
   /** Number and date formats of the session; replaced on every login by {@link clearValues}. */
   private localeFormat = new LocaleFormat();
-  private entityKeyMapping: { [entityName: string]: string };
+  private entityKeyMapping: { [entityName: string]: string } | null;
 
-  private fieldSizeMap: { [fieldNameOrKey: string]: number };
+  private fieldSizeMap: { [fieldNameOrKey: string]: number } | null;
   private featureCache = new Map<FeatureType, boolean>();
 
   useDashboard(): boolean {
@@ -79,13 +79,22 @@ export class GlobalparameterService
     return BaseSettings.FID_STANDARD_FRACTION_DIGITS;
   }
 
-  public getIdTenant(): number {
+  public getIdTenant(): number | null {
     const idTenant = sessionStorage.getItem(GlobalSessionNames.ID_TENANT);
     return idTenant ? +idTenant : null;
   }
 
+  /** Returns the active tenant id for actions that require an established tenant session. */
+  public requireIdTenant(): number {
+    const id = this.getIdTenant();
+    if (id === null) {
+      throw new Error('This action requires an active tenant session');
+    }
+    return id;
+  }
+
   public getIdUser(): number {
-    return +sessionStorage.getItem(GlobalSessionNames.ID_USER);
+    return Number(sessionStorage.getItem(GlobalSessionNames.ID_USER));
   }
 
   public getUserLang(): string {
@@ -96,7 +105,7 @@ export class GlobalparameterService
     return this.localeFormat.getLocale();
   }
 
-  public getStandardTimeZone(): string {
+  public getStandardTimeZone(): string | null {
     return sessionStorage.getItem(GlobalSessionNames.STANDARD_TIMEZONE);
   }
 
@@ -105,11 +114,11 @@ export class GlobalparameterService
   }
 
   public hasRole(requiredRole: string) {
-    const roles: string = sessionStorage.getItem(GlobalSessionNames.ROLES);
-    return roles.split(',').indexOf(requiredRole) >= 0;
+    const roles = sessionStorage.getItem(GlobalSessionNames.ROLES);
+    return roles?.split(',').includes(requiredRole) ?? false;
   }
 
-  public getMostPrivilegedRole(): string {
+  public getMostPrivilegedRole(): string | null {
     return sessionStorage.getItem(GlobalSessionNames.MOST_PRIVILEGED_ROLE);
   }
 
@@ -123,7 +132,7 @@ export class GlobalparameterService
   }
 
   public isEntityCreatedByUser(entity: Auditable): boolean {
-    return entity.createdBy === +sessionStorage.getItem(GlobalSessionNames.ID_USER);
+    return entity.createdBy === this.getIdUser();
   }
 
   public getTimeDateFormatForTable(): string {
@@ -160,14 +169,20 @@ export class GlobalparameterService
    */
   public getKeyNameByEntityName(entityName: string): string {
     if (!this.entityKeyMapping) {
-      this.entityKeyMapping = JSON.parse(sessionStorage.getItem(GlobalSessionNames.ENTITY_KEY_MAPPING));
+      this.entityKeyMapping = JSON.parse(sessionStorage.getItem(GlobalSessionNames.ENTITY_KEY_MAPPING) ?? 'null');
+    }
+    if (!this.entityKeyMapping) {
+      throw new Error('Entity key mapping requires an initialized login session');
     }
     return this.entityKeyMapping[entityName];
   }
 
   public getFieldSize(fieldNameOrKey: string): number {
     if (!this.fieldSizeMap) {
-      this.fieldSizeMap = JSON.parse(sessionStorage.getItem(GlobalSessionNames.FIELD_SIZE));
+      this.fieldSizeMap = JSON.parse(sessionStorage.getItem(GlobalSessionNames.FIELD_SIZE) ?? 'null');
+    }
+    if (!this.fieldSizeMap) {
+      throw new Error('Field sizes require an initialized login session');
     }
     return this.fieldSizeMap[fieldNameOrKey];
   }
@@ -249,12 +264,13 @@ export class GlobalparameterService
   }
 
   private prepareUseFeatures(featureType: FeatureType): boolean {
-    // Check if the feature state is already cached
-    if (!this.featureCache.has(featureType)) {
-      const features = JSON.parse(sessionStorage.getItem(GlobalSessionNames.USE_FEATURES));
-      this.featureCache.set(featureType, features.indexOf(FeatureType[featureType]) >= 0);
+    let enabled = this.featureCache.get(featureType);
+    if (enabled === undefined) {
+      const features: string[] = JSON.parse(sessionStorage.getItem(GlobalSessionNames.USE_FEATURES) ?? '[]');
+      enabled = features.includes(FeatureType[featureType]);
+      this.featureCache.set(featureType, enabled);
     }
-    return this.featureCache.get(featureType);
+    return enabled;
   }
 
   public getNumberFormat(): NumberFormat {

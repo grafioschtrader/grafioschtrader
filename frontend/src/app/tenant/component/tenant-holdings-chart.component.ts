@@ -231,11 +231,14 @@ export class TenantHoldingsChartComponent
    * Returns the figure of the selected chart, or null with the hint to show instead. The treemap is only built by the
    * plain asset class report; with a rebalancing strategy selected the table loads a different report.
    */
-  private buildFigure(chartType: HoldingsChartType): { data: any[]; layout: any } {
+  private buildFigure(chartType: HoldingsChartType): { data: any[]; layout: any } | null {
     this.noDataTextKey.set(null);
+    const input = this.chartInput();
+    if (!input) return null;
     if (chartType === HoldingsChartType.HOLDINGS_CHART_TREEMAP) {
-      const treemap = this.chartInput().summary?.holdingsTreemap;
-      if (this.chartInput().rebalancing || !treemap) {
+      const summary = input.summary;
+      const treemap = summary?.holdingsTreemap;
+      if (input.rebalancing || !treemap || !summary) {
         this.noDataTextKey.set('HOLDINGS_TREEMAP_NO_STRATEGY');
         return null;
       }
@@ -243,13 +246,12 @@ export class TenantHoldingsChartComponent
         this.noDataTextKey.set('NO_DATA_AVAILABLE');
         return null;
       }
-      return new HoldingsTreemapChart(
-        this.translateService,
-        this.gps,
-        this.chartInput().summary.currency
-      ).getChartDefinition(this.chartInput().title, treemap);
+      return new HoldingsTreemapChart(this.translateService, this.gps, summary.currency).getChartDefinition(
+        input.title,
+        treemap
+      );
     }
-    return this.chartInput().assetclassChart;
+    return input.assetclassChart;
   }
 
   private resizeChart(): void {

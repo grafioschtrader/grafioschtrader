@@ -16,7 +16,7 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
 
   protected readonly destroyRef = inject(DestroyRef);
 
-  readonly maxRows = input<number>(undefined);
+  readonly maxRows = input.required<number>();
   readonly editData = output<any>();
   readonly savedData = output<any>();
 
@@ -93,12 +93,14 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
   }
 
   save(security: Security, noteRequest: string): void {
+    const id = security.idSecuritycurrency;
+    if (id == null) return;
     if (this.dataChanged) {
       const securitySplitsCleaned = plainToInstance(this.classz, this.dataList(), <any>{
         excludeExtraneousValues: true
       });
       this.deleteCreateMultipleService
-        .deleteAndCreateMultiple(security.idSecuritycurrency, securitySplitsCleaned, noteRequest)
+        .deleteAndCreateMultiple(id, securitySplitsCleaned, noteRequest)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((savedEntity) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {

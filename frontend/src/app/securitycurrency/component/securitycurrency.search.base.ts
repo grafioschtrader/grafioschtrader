@@ -153,7 +153,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   protected initialize(): void {
     this.dynamicFormComponent().form.setValidators(atLeastOneFieldValidator);
     const denyAssetClass = [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN];
-    if (this.supplementCriteria() && this.supplementCriteria().onlySecurity) {
+    if (this.supplementCriteria()?.onlySecurity) {
       denyAssetClass.push(AssetclassType.CURRENCY_PAIR);
     }
 
@@ -185,7 +185,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
           );
         this.dynamicFormComponent().setDefaultValuesAndEnableSubmit();
         this.valueChangedOnForm();
-        this.configObject.isin.elementRef.nativeElement.focus();
+        this.configObject.isin.elementRef?.nativeElement.focus();
       });
   }
 
@@ -200,7 +200,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
         this.monitor = true;
         this.dynamicFormComponent()
           .controls.filter((fieldConfig) => fieldConfig.userDefinedValue === this.secondGroup)
-          .forEach((fieldConfig) => AppHelper.invisibleAndHide(fieldConfig, security.isin && security.isin !== ''));
+          .forEach((fieldConfig) => AppHelper.invisibleAndHide(fieldConfig, !!security.isin && security.isin !== ''));
 
         if (!security.isin || security.isin === '') {
           const secondGroupIsEmpty = this.isSecondGroupEmpty();

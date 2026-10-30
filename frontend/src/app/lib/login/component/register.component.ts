@@ -69,8 +69,8 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit {
   private router = inject(Router);
   private loginService = inject(LoginService);
 
-  readonly progressValue = signal<number>(undefined);
-  readonly errorLastRegistration = input<string>(undefined, { alias: 'failure' });
+  readonly progressValue = signal<number | undefined>(undefined);
+  readonly errorLastRegistration = input<string | undefined>(undefined, { alias: 'failure' });
   readonly confirmEmail = signal(false);
   readonly applicationInfo = signal<ApplicationInfo | null>(null);
 
@@ -103,12 +103,16 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit {
   }
 
   submit(value: { [name: string]: any }): void {
+    const form = this.form();
+    if (!form) {
+      return;
+    }
     const user = new User();
-    this.form().cleanMaskAndTransferValuesToBusinessObject(user);
+    form.cleanMaskAndTransferValuesToBusinessObject(user);
     const date = new Date();
     user.timezoneOffset = date.getTimezoneOffset();
     this.loginService.logout();
-    this.form().setDisableAll(true);
+    form.setDisableAll(true);
     this.showProgressIndicator();
     this.loginService.update(user).subscribe({
       next: (newUser) => {
@@ -118,7 +122,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit {
       },
       error: () => {
         this.progressValue.set(undefined);
-        this.form().setDisableAll(false);
+        this.form()?.setDisableAll(false);
         this.configObject.submit.disabled = false;
       }
     });
@@ -127,12 +131,14 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit {
   showProgressIndicator() {
     this.progressValue.set(0);
     const interval = setInterval(() => {
-      if (this.progressValue() === undefined) {
+      const currentProgress = this.progressValue();
+      if (currentProgress === undefined) {
         clearInterval(interval);
         return;
       }
-      this.progressValue.update((value) => Math.min(100, value + Math.floor(Math.random() * 10) + 1));
-      if (this.progressValue() >= 100) {
+      const progress = Math.min(100, currentProgress + Math.floor(Math.random() * 10) + 1);
+      this.progressValue.set(progress);
+      if (progress >= 100) {
         clearInterval(interval);
       }
     }, 1000);

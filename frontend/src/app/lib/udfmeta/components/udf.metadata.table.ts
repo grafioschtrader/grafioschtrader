@@ -188,7 +188,8 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @returns True if the special type is in the disabled array, false otherwise
    */
   udfDisabled(entity: T, field: ColumnConfig, valueField: any): boolean {
-    return this.specialTypeDisabledArr().includes(this.resolveSpecialType(entity)?.value);
+    const specialType = this.resolveSpecialType(entity);
+    return specialType !== undefined && this.specialTypeDisabledArr().includes(specialType.value);
   }
 
   /**

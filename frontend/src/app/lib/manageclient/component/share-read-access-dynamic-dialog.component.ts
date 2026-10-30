@@ -80,9 +80,13 @@ export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent
     if (!this.checked) {
       return;
     }
+    const form = this.form();
+    if (!form) {
+      return;
+    }
     const businessObject: any = {};
-    this.form().cleanMaskAndTransferValuesToBusinessObject(businessObject, true);
-    this.form().setDisableAll(true);
+    form.cleanMaskAndTransferValuesToBusinessObject(businessObject, true);
+    form.setDisableAll(true);
     this.manageClientService
       .shareReadAccess({
         email: businessObject.email,
@@ -94,7 +98,7 @@ export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent
           this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, businessObject));
         },
         error: () => {
-          this.form().setDisableAll(false);
+          this.form()?.setDisableAll(false);
           this.configObject.submit.disabled = false;
         }
       });
@@ -163,7 +167,7 @@ export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent
     requireFormControl(this.configObject.passwordConfirm).setValue(null);
     this.configObject.submit.disabled = true;
     if (clearEmail) {
-      setTimeout(() => this.configObject.email.elementRef.nativeElement.focus());
+      setTimeout(() => this.configObject.email.elementRef?.nativeElement.focus());
     }
   }
 

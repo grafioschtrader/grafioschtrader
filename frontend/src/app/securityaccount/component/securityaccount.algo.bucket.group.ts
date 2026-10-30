@@ -17,7 +17,7 @@ export class SecurityaccountAlgoBucketGroup extends SecurityaccountGroupBaseDyna
     super(translateService, datatableConfigBase, 'rebalancing', 'security.assetClass.categoryType', 'GROUP_BY_ALGO');
   }
 
-  public getGroupValue(security: Security): string {
+  public getGroupValue(security: Security): string | null {
     return null;
   }
 

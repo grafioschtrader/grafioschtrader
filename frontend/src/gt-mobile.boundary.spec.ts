@@ -42,8 +42,8 @@ function filesImportingForbidden(entry: string): string[] {
   const offenders: string[] = [];
   const pending = [entry];
   while (pending.length) {
-    const file = pending.pop()!;
-    if (visited.has(file)) {
+    const file = pending.pop();
+    if (file === undefined || visited.has(file)) {
       continue;
     }
     visited.add(file);

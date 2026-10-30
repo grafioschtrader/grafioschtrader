@@ -83,10 +83,17 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected override initialize(): void {
+  override onShow(event: unknown): void {
     this.created.set(null);
-    this.form().setDefaultValuesAndEnableSubmit();
-    this.form().setValue('expiresInDays', 90);
+    super.onShow(event);
+  }
+
+  protected override initialize(): void {
+    const form = this.form();
+    if (form) {
+      form.setDefaultValuesAndEnableSubmit();
+      form.setValue('expiresInDays', 90);
+    }
   }
 
   submit(value: { [name: string]: any }): void {

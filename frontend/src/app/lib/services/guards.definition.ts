@@ -12,7 +12,7 @@ import { BaseSettings } from '../base.settings';
 /** Allows any signed-in user; sends everybody else back to the login route. */
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
-  const roles: string = sessionStorage.getItem(GlobalSessionNames.ROLES);
+  const roles = sessionStorage.getItem(GlobalSessionNames.ROLES);
   if (roles) {
     if (roles.indexOf(BaseSettings.ROLE_LIMIT_EDIT) >= 0 || roles.indexOf(BaseSettings.ROLE_USER) >= 0) {
       return true;
@@ -24,7 +24,7 @@ export const authGuard: CanActivateFn = () => {
 
 /** Allows users that may edit shared data. Blocks silently, because the route is not offered to others anyway. */
 export const allEditGuard: CanActivateFn = () => {
-  const roles: string = sessionStorage.getItem(GlobalSessionNames.ROLES);
+  const roles = sessionStorage.getItem(GlobalSessionNames.ROLES);
   if (roles && roles.split(',').indexOf(BaseSettings.ROLE_ALL_EDIT) >= 0) {
     return true;
   }
@@ -33,7 +33,7 @@ export const allEditGuard: CanActivateFn = () => {
 
 /** Allows administrators only. Blocks silently, because the route is not offered to others anyway. */
 export const adminGuard: CanActivateFn = () => {
-  const roles: string = sessionStorage.getItem(GlobalSessionNames.ROLES);
+  const roles = sessionStorage.getItem(GlobalSessionNames.ROLES);
   if (roles && roles.split(',').indexOf(BaseSettings.ROLE_ADMIN) >= 0) {
     return true;
   }

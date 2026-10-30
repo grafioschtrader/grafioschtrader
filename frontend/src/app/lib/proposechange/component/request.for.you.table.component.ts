@@ -163,7 +163,11 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     if (entityMapping.editComponentType) {
       return Promise.resolve();
     }
-    return entityMapping.loadEditComponent().then(
+    const loader = entityMapping.loadEditComponent;
+    if (!loader) {
+      throw new Error('Missing edit component loader for entity mapping');
+    }
+    return loader().then(
       (componentType) => {
         entityMapping.editComponentType = componentType;
       },

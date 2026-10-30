@@ -8,7 +8,7 @@ export class Month {
   days: Day[] = [];
   weeks: Week[] = [];
 
-  constructor(daysOfmonth?: Day[]) {
+  constructor(daysOfmonth: Day[] = []) {
     for (let i = 0; i < 6; i++) {
       this.weeks.push(new Week());
     }

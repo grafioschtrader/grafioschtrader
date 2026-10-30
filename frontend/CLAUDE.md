@@ -162,6 +162,40 @@ label and expression; reports and cell actions guard ids and proposal versions/v
 Derived-instrument lookup can return undefined; missing links clear their displayed value. Icons and cell/header
 tooltips can be absent. `SingleRecordConfigBase` retains null as an explicit invalidation of its field-group cache.
 
+Instrument editors keep their empty entity/proposal inputs nullable. Split and period tables are unconditional required
+queries; their limits are required inputs. Optional bond forms are captured and checked before transfer. Coupon
+metadata retains null rates/day-counts and null when all metadata is removed. Referenced option lookup accepts a null
+key argument when `dataproperty` supplies the key; without either it raises a named configuration error. Asset-class
+callbacks include the cleared selection. Statistics requests omit absent date bounds. Proposal handlers return null
+for no entity redirection; quote proposals require a persisted instrument id.
+Generic connector edit forms accept an absent draft, while endpoint/detail/test panels require their inputs. The
+constructed geography tree has required keys/labels; project only defined keys from generic TreeSelect selections.
+Capture connector ids before asynchronous activation/deactivation. Quality-table selection and its published menu
+include null, and tree construction owns initialized child arrays.
+
+Portfolio, security-account and tenant reports retain absent summaries, positions and selections. Requests requiring a
+portfolio/instrument id return while it is missing; a null portfolio filter remains tenant-wide. Capture summaries,
+chart titles and selected ids before callbacks. Numeric performance field keys include nullable numeric metrics;
+missing returns stay blank and have no negative-value styling. Optional remembered PDF settings are checked before
+use, and downloads require a response body. Empty report charts return null; a missing selected year remains absent.
+Transaction-cost traces own initialized coordinates and per-point ids, with account ids in a separate array aligned
+with the traces. Capture both ids before a deferred row selection. Report child components require the inputs their
+parent always supplies; clearing a child selection emits null.
+`ColumnConfig.headerKey` may be null for formatting-only columns. Header/tooltip translation, saved visibility and
+filter/sort labels skip absent keys while retaining header-group translation. Chart trace names can be absent.
+
+Session lookups retain missing tenant ids, time zones and roles. `requireIdTenant()` checks the active tenant for
+views/actions that require one; role and feature checks deny access when their session data is absent. Entity-key and
+field-size caches report a missing login initialization instead of constructing replacement metadata. Login handlers
+check both the token header and response body. Optional remembered JSON values retain null when no value is stored.
+Dashboard documents/catalogues and widget results can be absent; capture a loaded document before editing/saving and
+pass the loaded catalogue into deferred actions. Conditional forms stay optional, including token creation after its
+one-time result replaces the form. Clear that result before the next dialog render initializes the form.
+Error rules can have a null translation key when they supply their own text. `FilterableTable` describes the shared
+filter method, including the null sentinel both Optimus implementations use to clear a filter.
+Full-year calendar weeks contain undated padding days at the edges of a month. Disabled-date checks retain their
+date guard so these placeholders stay empty when disabled days are configured.
+
 ## Minimal Business Logic in Frontend
 
 **IMPORTANT**: Keep business logic in the frontend to an absolute minimum. Most business logic belongs in the backend.
@@ -1394,7 +1428,11 @@ renders the server-computed results of `/api/dashboard` and never saves a layout
   `sessionStorage`, so the shared `authInterceptor` works unchanged.
 - **Texts** are application texts: new keys go to `grafioschtrader-common` (`MOBILE_*`); the cards reuse the
   `DASHBOARD_*` keys of the desktop.
-- `tsconfig.gt-mobile.json` enables `strictNullChecks`, so a shared file the app imports must compile under it.
+- `tsconfig.gt-mobile.json` enables `strictNullChecks`, so a shared file the app imports must compile under it —
+  even through `import type`. The desktop entity classes (`src/app/entities/**`) do not yet, so the app declares the
+  JSON fields it reads as its own interfaces (see `watchlist/mobile.watchlist.rows.ts`) instead of importing them.
+- Routes: `#/login`, then the tabs `#/tabs/dashboard` and `#/tabs/watchlists` (`page/tabs.page.ts`), and the
+  full-screen widget `#/widget/:instanceId` outside the tabs. A new main view is a further tab.
 - A new widget type needs a renderer in `src/gt-mobile/app/widget/` and a `@case` in `widget-body.component.ts`;
   without one the card says the widget is only available in the desktop view.
 - Dev server: `npm run start:mobile` (port 4203, same proxy as `npm start`).

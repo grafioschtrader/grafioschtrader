@@ -44,10 +44,10 @@ export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySea
   readonly visibleAddInstrumentDialog = input<boolean>();
 
   /** The unique identifier of the correlation set to add instruments to */
-  readonly idCorrelationSet = input<number>(undefined);
+  readonly idCorrelationSet = input.required<number>();
 
   /** Array of tenant limits that constrain the number of instruments that can be added */
-  readonly tenantLimits = input<TenantLimit[]>(undefined);
+  readonly tenantLimits = input.required<TenantLimit[]>();
 
   /** Reference to the child table component that displays and manages instrument selection */
   readonly csaitc = viewChild.required(CorrelationSetAddInstrumentTableComponent);

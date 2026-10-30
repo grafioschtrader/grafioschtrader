@@ -168,8 +168,8 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   private taxDataService: TaxDataService = inject(TaxDataService);
   private productIconService: ProductIconService = inject(ProductIconService);
 
-  readonly idsSecurityaccount = input<number[]>(undefined);
-  readonly securityDividendsGrandTotal = input<SecurityDividendsGrandTotal>(undefined);
+  readonly idsSecurityaccount = input.required<number[]>();
+  readonly securityDividendsGrandTotal = input.required<SecurityDividendsGrandTotal>();
   readonly securityDividendsPositionsInput = input<
     SecurityDividendsPosition[],
     SecurityDividendsPosition[] | null | undefined
@@ -178,7 +178,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   private readonly destroyRef = inject(DestroyRef);
   readonly pendingExclusions = signal<Set<number>>(new Set());
   private menuRequest: Subscription;
-  readonly year = input<number>(undefined);
+  readonly year = input.required<number>();
   readonly filterTransactionsToYearEnd = input<boolean>();
 
   /**
@@ -217,7 +217,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
 
   constructor() {
     super();
-    this.idTenant = this.gps.getIdTenant();
+    this.idTenant = this.gps.requireIdTenant();
   }
 
   /** Translated reason texts for the name-cell background colors, keyed by NLS key. */
@@ -301,7 +301,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
    * @returns A style object for the cell
    */
   getCellStyle(row: SecurityDividendsPosition, field: ColumnConfig): { [key: string]: string } {
-    const widthStyle = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
+    const widthStyle: Record<string, string> = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
     if (field.field === 'security.name') {
       const color = this.getNameCellColor(row);
       return color ? { ...widthStyle, 'background-color': color } : widthStyle;
@@ -490,6 +490,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
 
   onExclusionToggle(sdp: SecurityDividendsPosition): void {
     const id = sdp.security.idSecuritycurrency;
+    if (id == null) return;
     this.securityDividendsPositions.update((rows) =>
       rows.map((row) =>
         row.security.idSecuritycurrency === id ? { ...row, excludedFromTax: !sdp.excludedFromTax } : row

@@ -78,7 +78,7 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase {
     effect(() => {
       this.currency();
       untracked(() => {
-        this.fields.find((field) => field.field === 'amountMC').fixedCurrency = this.currency();
+        this.requireColumnConfigByField('amountMC').fixedCurrency = this.currency();
         this.notifyViewChanged();
       });
     });
@@ -158,7 +158,7 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase {
   }
 
   /** Explains the marker, and for the intraday branch says how old the price behind the row is. */
-  private instrumentTooltip(dataobject: any): string {
+  private instrumentTooltip(dataobject: any): string | null {
     if (!dataobject.substitute) {
       return null;
     }

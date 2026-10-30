@@ -134,8 +134,10 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
 
   ngOnInit(): void {
     this.translateHeadersAndColumns();
+    const key = this.submittedAtField.headerKey;
+    if (key == null) throw new Error('The replay submission field requires its header key.');
     this.translateService
-      .get(this.submittedAtField.headerKey)
+      .get(key)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((text) => {
         this.submittedAtField.headerTranslated = text;

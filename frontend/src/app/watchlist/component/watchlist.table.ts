@@ -1114,7 +1114,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
 
   /** Initializes the current route before subclasses load data, and tracks later watchlist changes. */
   protected init(): void {
-    this.idTenant = this.gps.getIdTenant();
+    this.idTenant = this.gps.requireIdTenant();
     this.filterSortState = this.injector.get(WatchlistFilterSortStateService);
     this.subscriptionFilterSortChanged = this.filterSortState.changed$
       .pipe(takeUntilDestroyed(this.destroyRef))

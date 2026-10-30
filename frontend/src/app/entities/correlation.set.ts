@@ -10,7 +10,7 @@ export class CorrelationSet implements BaseID {
   note: string | null = null;
   samplingPeriod: SamplingPeriodType | string | null = null;
   rolling: number = SamplingPeriodType.DAILY_RETURNS;
-  securitycurrencyList: (Security | Currencypair)[];
+  securitycurrencyList?: (Security | Currencypair)[];
   dateFrom: Date | string | null = null;
   dateTo: Date | string | null = null;
   adjustCurrency: boolean = false;

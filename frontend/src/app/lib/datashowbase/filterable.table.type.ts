@@ -1,9 +1,7 @@
-import { Table } from '@openng/optimus-ui/table';
-import { TreeTable } from '@openng/optimus-ui/treetable';
-
 /**
- * Union type for Optimus Table and TreeTable components.
- * Both components share the same `filter(value, field, matchMode)` API,
- * allowing filter functionality to be shared between table and tree table components.
+ * The common filter API of Optimus Table and TreeTable. Both implementations clear a filter for a null value,
+ * although the TreeTable declaration currently excludes that sentinel.
  */
-export type FilterableTable = Table | TreeTable;
+export interface FilterableTable {
+  filter(value: string | string[] | null, field: string, matchMode: string | null): void;
+}

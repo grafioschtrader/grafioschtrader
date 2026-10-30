@@ -189,7 +189,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   imports: [TreeTableModule, TooltipModule]
 })
 export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
-  readonly performancePeriod = input<PerformancePeriod>(null);
+  readonly performancePeriod = input<PerformancePeriod | null>(null);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly GAIN_MC = 'totalGainMC';
@@ -245,7 +245,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
     this.translateHeadersAndColumns();
   }
 
-  getFirstColumnLabel(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
+  getFirstColumnLabel(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number | null {
     let colVal: string | number;
 
     switch (dataobject.showField) {
@@ -264,7 +264,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
         break;
 
       default:
-        if (this.performancePeriod().periodSplit === WeekYear[WeekYear.WM_WEEK]) {
+        if (this.performancePeriod()?.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
           // Date range for week
           colVal =
             moment(dataobject.periodWindow.startDate).format(this.gps.getDateFormatWithoutYear()) +
@@ -278,7 +278,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
     return colVal;
   }
 
-  getLastColumn(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
+  getLastColumn(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number | null {
     return dataobject.showField === this.GAIN_MC ? valueField : null;
   }
 
@@ -290,7 +290,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
    * @param valueField Already formatted return of the window
    * @returns The formatted return for the window row, otherwise null
    */
-  getTwrColumn(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
+  getTwrColumn(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number | null {
     return dataobject.showField === this.GAIN_MC ? valueField : null;
   }
 
@@ -319,7 +319,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
    * @param field Column configuration of the cell
    * @returns The tooltip text
    */
-  getCellTooltip(dataobject: PeriodWindowWithField, field: ColumnConfig): string {
+  getCellTooltip(dataobject: PeriodWindowWithField, field: ColumnConfig): string | null {
     if (dataobject.showField === this.TWR_PERCENT && !isNaN(<any>field.field)) {
       const psmh = <PeriodStep>dataobject.periodWindow.periodStepList[+field.field];
       if (psmh.hasOwnProperty(this.TWR_PERCENT)) {
@@ -333,18 +333,12 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
     return this.getValueByPath(dataobject, field);
   }
 
-  getDataValue(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
+  getDataValue(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number | null {
     const psmh: PeriodStepMissingHoliday = dataobject.periodWindow.periodStepList[+field.field];
     if (psmh.hasOwnProperty(dataobject.showField)) {
-      if ((<PeriodStep>psmh)[dataobject.showField] == null) {
-        return null;
-      }
-      return AppHelper.numberFormat(
-        this.gps,
-        (<PeriodStep>psmh)[dataobject.showField],
-        field.maxFractionDigits,
-        field.minFractionDigits
-      );
+      const value = (<PeriodStep>psmh)[dataobject.showField];
+      if (value == null) return null;
+      return AppHelper.numberFormat(this.gps, value, field.maxFractionDigits, field.minFractionDigits);
     }
     return null;
   }
@@ -397,11 +391,14 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
    */
   isFooterValueMinus(field: ColumnConfig): boolean {
     if (field.field === this.WINDOW_TWR_FIELD) {
-      return this.performancePeriod()?.metrics?.twrPercent < 0;
+      const value = this.performancePeriod()?.metrics?.twrPercent;
+      return value != null && value < 0;
     }
+    const period = this.performancePeriod();
+    if (!period) return false;
     return isNaN(<any>field.field)
-      ? this.performancePeriod()?.difference.totalGainMC < 0
-      : this.isValueByPathMinus(this.performancePeriod()?.sumPeriodColSteps, field);
+      ? period.difference.totalGainMC < 0
+      : this.isValueByPathMinus(period.sumPeriodColSteps, field);
   }
 
   isValueByPathMinusWithEmptyColor(dataobject: PeriodWindowWithField, field: ColumnConfig): boolean {
@@ -413,7 +410,8 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
     } else {
       const psmh: PeriodStepMissingHoliday = dataobject.periodWindow.periodStepList[+field.field];
       if (psmh.hasOwnProperty(dataobject.showField)) {
-        return (<PeriodStep>psmh)[dataobject.showField] < 0;
+        const value = (<PeriodStep>psmh)[dataobject.showField];
+        return value != null && value < 0;
       }
     }
     return false;
@@ -427,11 +425,12 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
   }
 
   private createPeriodTreeTableDefinition(): void {
-    if (this.performancePeriod()) {
-      if (this.performancePeriod().periodSplit !== this.lastPeriodSplit) {
+    const period = this.performancePeriod();
+    if (period) {
+      if (period.periodSplit !== this.lastPeriodSplit) {
         this.fields.length > 3 && this.spliceColumns(1, this.fields.length - 3);
         const calendarLang = Helper.CALENDAR_LANG[this.gps.getUserLang()];
-        if (this.performancePeriod().periodSplit === WeekYear[WeekYear.WM_WEEK]) {
+        if (period.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
           // for week-day
           for (let i = 1; i < calendarLang.dayNamesShort.length - 1; i++) {
             const fieldName = '' + (i - 1);
@@ -454,12 +453,12 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
             this.fields[i + 1].columnGroupConfigs = [new ColumnGroupConfig(fieldName)];
           }
         }
-        this.lastPeriodSplit = this.performancePeriod().periodSplit;
+        this.lastPeriodSplit = period.periodSplit;
       }
     }
   }
 
-  private createPeriodNodes(period: PerformancePeriod): TreeNode[] {
+  private createPeriodNodes(period: PerformancePeriod | null): TreeNode[] {
     const tn: TreeNode[] = [];
     if (period) {
       period.periodWindows.forEach((periodWindow) => {

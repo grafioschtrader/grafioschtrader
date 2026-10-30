@@ -79,7 +79,7 @@ export class ManagedClientsTableDialogComponent extends TableConfigBase implemen
   private messageToastService: MessageToastService = inject(MessageToastService);
 
   readonly managedClients = signal<TenantAccessInfo[]>([]);
-  currentIdTenant: number;
+  currentIdTenant: number | null;
 
   constructor() {
     super();

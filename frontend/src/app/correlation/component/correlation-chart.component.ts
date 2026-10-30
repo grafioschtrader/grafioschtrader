@@ -100,9 +100,10 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   readonly chartElement = viewChild.required<ElementRef>('chart');
   readonly chartInput = this.chartService.input;
   private readonly chartType = signal(CorrelationChartType.Combined);
-  private readonly figure = computed(() =>
-    this.chartInput() ? buildCorrelationFigure(this.chartInput(), this.chartType()) : null
-  );
+  private readonly figure = computed(() => {
+    const input = this.chartInput();
+    return input ? buildCorrelationFigure(input, this.chartType()) : null;
+  });
   readonly noData = computed(() => !this.figure()?.data.length);
   readonly missingCloses = computed(() => !!this.figure()?.missingCloses);
   private readonly destroyRef = inject(DestroyRef);
@@ -206,7 +207,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
     const version = ++this.renderVersion;
     this.pendingRender?.destroy();
     const figure = this.figure();
-    if (this.noData()) {
+    if (!figure || !figure.data.length) {
       this.plotly?.purge(this.chartElement().nativeElement);
       return;
     }

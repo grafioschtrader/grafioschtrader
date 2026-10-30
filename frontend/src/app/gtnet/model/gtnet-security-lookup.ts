@@ -57,7 +57,7 @@ export interface SecurityGtnetLookupDTO {
   subCategoryScheme?: 'REGIONAL' | 'SECTOR' | 'UNKNOWN';
 
   // Stock exchange (MIC code for cross-instance mapping)
-  stockexchangeMic: string;
+  stockexchangeMic: string | null;
   stockexchangeName?: string;
   stockexchangeLink?: string;
 

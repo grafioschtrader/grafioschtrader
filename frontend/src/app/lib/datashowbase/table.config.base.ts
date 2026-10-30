@@ -157,7 +157,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   writeTableDefinition(key: string) {
     const visibleColumns: any[] = [];
     this.fields.forEach((field) => {
-      visibleColumns.push({ [field.headerKey]: field.visible });
+      if (field.headerKey != null) visibleColumns.push({ [field.headerKey]: field.visible });
     });
     this.usersettingsService.saveArray(key, visibleColumns);
     if (this.rowsPerPage) {
@@ -185,7 +185,8 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
         const fieldObject: any = Object.assign({}, ...readFields);
         this.fields.forEach((field) => {
           // Dynamic columns may be newer than the saved visibility settings.
-          if (Object.hasOwn(fieldObject, field.headerKey)) field.visible = fieldObject[field.headerKey];
+          if (field.headerKey != null && Object.hasOwn(fieldObject, field.headerKey))
+            field.visible = fieldObject[field.headerKey];
         });
       }
     }

@@ -28,7 +28,7 @@ export interface PlotlyLegend {
 export interface ChartTrace {
   x: (string | number)[];
   y: number[];
-  name: string;
+  name: string | undefined;
   type: string;
   mode: string;
   visible: boolean | 'legendonly';
@@ -36,7 +36,7 @@ export interface ChartTrace {
 
 export class PlotlyHelper {
   public static initializeChartTrace(
-    name: string,
+    name: string | undefined,
     type: string,
     mode?: string
   ): Pick<ChartTrace, 'x' | 'y' | 'name' | 'type'> & Partial<ChartTrace> {

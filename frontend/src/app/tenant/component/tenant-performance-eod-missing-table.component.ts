@@ -43,14 +43,14 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   /**
    * Contains the missings days -> key = idSecuritycurrency
    */
-  readonly countIdSecurityMissingsMap = input<{
+  readonly countIdSecurityMissingsMap = input.required<{
     [key: number]: number;
-  }>(undefined);
-  readonly securities = input<Security[]>(undefined);
-  readonly selectedDayIdSecurities = input<number[]>(undefined);
-  readonly changedSecurity = output<Security>();
+  }>({});
+  readonly securities = input.required<Security[]>();
+  readonly selectedDayIdSecurities = input.required<number[]>();
+  readonly changedSecurity = output<Security | null>();
 
-  selectedSecurity: Security;
+  selectedSecurity: Security | null;
   private readonly feedConnectorsKV = signal<{ [id: string]: string }>({});
   private readonly destroyRef = inject(DestroyRef);
   readonly rowHighlightClass = (row: Security) => this.getRowHighlightClass(row);
@@ -97,7 +97,9 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   }
 
   getRowHighlightClass(row: Security): string | null {
-    return this.selectedDayIdSecurities().indexOf(row.idSecuritycurrency) >= 0 ? 'rowgroup-total' : null;
+    return row.idSecuritycurrency != null && this.selectedDayIdSecurities().indexOf(row.idSecuritycurrency) >= 0
+      ? 'rowgroup-total'
+      : null;
   }
 
   ngOnInit(): void {

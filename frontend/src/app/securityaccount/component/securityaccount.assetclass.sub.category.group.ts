@@ -15,14 +15,14 @@ export class SecurityaccountAssetclassSubCategoryGroup extends SecurityaccountGr
       translateService,
       datatableConfigBase,
       'subcategorynls',
-      'security.assetClass.subCategoryNLS.map.' + gps.getUserLang(),
+      'security.assetClass?.subCategoryNLS.map.' + gps.getUserLang(),
       'GROUP_BY_SUB_CATEGORY'
     );
     this.language = gps.getUserLang();
   }
 
   public getGroupValue(security: Security) {
-    return security.assetClass.subCategoryNLS.map[this.language];
+    return security.assetClass?.subCategoryNLS.map[this.language];
   }
 
   protected getGroupFieldAsString(value: string): string {

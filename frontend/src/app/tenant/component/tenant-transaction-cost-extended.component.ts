@@ -101,23 +101,23 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
   private securityService: SecurityService = inject(SecurityService);
 
   /** Array of transaction cost positions to be displayed in the table */
-  readonly transactionCostPositions = input<TransactionCostPosition[]>(undefined);
+  readonly transactionCostPositions = input.required<TransactionCostPosition[]>();
 
   /** Grand summary containing aggregated transaction cost data and main currency information */
-  readonly transactionCostGrandSummary = input<TransactionCostGrandSummary>(undefined);
+  readonly transactionCostGrandSummary = input.required<TransactionCostGrandSummary>();
 
   /** Currently selected row in the table */
-  readonly baseSelectedRowInput = input<TransactionCostPosition>(undefined, { alias: 'baseSelectedRow' });
+  readonly baseSelectedRowInput = input<TransactionCostPosition | null>(undefined, { alias: 'baseSelectedRow' });
   readonly baseSelectedRow = linkedSignal(() => this.baseSelectedRowInput());
 
   /** Index of the first row displayed on the current page */
-  readonly firstRowIndex = input<number>(undefined);
+  readonly firstRowIndex = input.required<number>();
 
   /** Reference to the Optimus table component for accessing table functionality like CSV export */
   readonly dataTable = viewChild.required<Table>('dataTable');
 
   /** Currently selected transaction cost position for context menu operations */
-  private selectedTransactionCostPosition: TransactionCostPosition;
+  private selectedTransactionCostPosition: TransactionCostPosition | null;
 
   /**
    * Creates an instance of TenantTransactionCostExtendedComponent with all required dependencies.
@@ -170,9 +170,8 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
     });
     this.prepareTableAndTranslate();
     this.createTranslatedValueStoreAndFilterField(this.transactionCostPositions());
-    if (this.baseSelectedRow()) {
-      this.selectedTransaction.set(this.baseSelectedRow().transaction);
-    }
+    const row = this.baseSelectedRow();
+    if (row) this.selectedTransaction.set(row.transaction);
   }
 
   /**
@@ -181,8 +180,8 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
    * @param transaction The transaction for which to retrieve the security
    * @returns The security object associated with the currently selected transaction cost position
    */
-  getSecurity(transaction: Transaction): Security {
-    return this.selectedTransactionCostPosition.transaction.security;
+  getSecurity(transaction: Transaction): Security | undefined {
+    return transaction.security;
   }
 
   /**
@@ -191,8 +190,9 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
    * @param event The row selection event containing the selected data
    */
   onRowSelect(event: { data?: TransactionCostPosition | TransactionCostPosition[] }): void {
-    this.selectedTransactionCostPosition = Array.isArray(event.data) ? event.data[0] : event.data;
-    this.selectedTransaction.set(this.selectedTransactionCostPosition.transaction);
+    const row = (Array.isArray(event.data) ? event.data[0] : event.data) ?? null;
+    this.selectedTransactionCostPosition = row;
+    this.selectedTransaction.set(row?.transaction ?? null);
     this.setMenuItemsToActivePanel();
   }
 

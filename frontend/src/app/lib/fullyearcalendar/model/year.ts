@@ -31,7 +31,7 @@ export class Year {
     return -1;
   }
 
-  public static getDayOfWeek(day: number): DayOfWeek {
+  public static getDayOfWeek(day: number): DayOfWeek | null {
     switch (day) {
       case 0:
         return DayOfWeek.SUNDAY;

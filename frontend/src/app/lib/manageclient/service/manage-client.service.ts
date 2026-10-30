@@ -117,11 +117,9 @@ export class ManageClientService extends AuthServiceWithLogout<any> {
   public switchAndReload(idTargetTenant: number, backToHome: boolean, onSwitched?: () => void): void {
     this.switchTenant(idTargetTenant).subscribe({
       next: (response) => {
-        if (!backToHome && !sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT)) {
-          sessionStorage.setItem(
-            GlobalSessionNames.MAIN_ID_TENANT,
-            sessionStorage.getItem(GlobalSessionNames.ID_TENANT)
-          );
+        const homeTenant = sessionStorage.getItem(GlobalSessionNames.ID_TENANT);
+        if (!backToHome && homeTenant !== null && !sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT)) {
+          sessionStorage.setItem(GlobalSessionNames.MAIN_ID_TENANT, homeTenant);
         }
         sessionStorage.setItem(GlobalSessionNames.JWT, response.token);
         sessionStorage.setItem(GlobalSessionNames.ID_TENANT, idTargetTenant.toString());

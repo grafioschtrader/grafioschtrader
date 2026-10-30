@@ -29,8 +29,8 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   protected readonly injector = inject(Injector);
   private dialogSession = new Subscription();
   // Input from parent component
-  readonly securityCurrencypairCallParam = input<Security | Securitycurrency>(undefined);
-  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
+  readonly securityCurrencypairCallParam = input<Security | Securitycurrency | null>();
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
   // Access child components
   readonly dynamicForm = viewChild.required(DynamicFormComponent);
   // Output for parent view
@@ -63,7 +63,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   public hideVisibleFeedConnectorsFields(
     connectorFieldConfig: FieldConfig[],
     hideConnector: boolean,
-    feedIdentifier: FeedIdentifier
+    feedIdentifier: FeedIdentifier | null
   ): void {
     const idFieldConfigurations = connectorFieldConfig.filter((field) => field.field?.startsWith('id'));
     const urlFieldConfigurations = connectorFieldConfig.filter((field) => field.field?.startsWith('url'));
@@ -126,9 +126,12 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   protected disableEnableFeedUrlExtended(
     urlExtended: FieldConfig,
     feedIdentifiers: string[],
-    feedIdentifier: FeedIdentifier
+    feedIdentifier: FeedIdentifier | null
   ): void {
-    AppHelper.invisibleAndHide(urlExtended, feedIdentifiers.indexOf(FeedIdentifier[feedIdentifier]) >= 0);
+    AppHelper.invisibleAndHide(
+      urlExtended,
+      feedIdentifier != null && feedIdentifiers.indexOf(FeedIdentifier[feedIdentifier]) >= 0
+    );
 
     DynamicFieldHelper.resetValidator(
       urlExtended,
@@ -151,7 +154,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   private valueChangedOnFeedConnectors(
     connectorIdConfigs: FieldConfig[],
     urlExtends: FieldConfig[],
-    feedIdentifier: FeedIdentifier
+    feedIdentifier: FeedIdentifier | null
   ): void {
     for (let i = 0; i < connectorIdConfigs.length; i++) {
       const connectorConfig = connectorIdConfigs[i];

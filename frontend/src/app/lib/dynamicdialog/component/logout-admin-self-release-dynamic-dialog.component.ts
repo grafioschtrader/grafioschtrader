@@ -42,7 +42,13 @@ export class LogoutAdminSelfReleaseDynamicDialogComponent {
       .login(this.dynamicDialogConfig.data.email, this.dynamicDialogConfig.data.password, 'ADMIN_SELF_RELEASE')
       .subscribe({
         next: (response) => {
-          this.loginService.afterSuccessfulLogin(response.headers.get('x-auth-token'), response.body);
+          const token = response.headers.get('x-auth-token');
+          const configuration = response.body;
+          if (!token || !configuration) {
+            this.loading.set(false);
+            return;
+          }
+          this.loginService.afterSuccessfulLogin(token, configuration);
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'ADMIN_SELF_RELEASE_SUCCESS');
           this.dynamicDialogRef.close();
           if (this.gps.getIdTenant()) {

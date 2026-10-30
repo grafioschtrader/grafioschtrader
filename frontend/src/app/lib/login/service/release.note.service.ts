@@ -11,7 +11,9 @@ export class ReleaseNoteService {
   private translateService = inject(TranslateService);
 
   getTopReleaseNotes(limit: number = 3): Observable<ReleaseNote[]> {
-    const params = new HttpParams().set('lang', this.translateService.getBrowserLang()).set('limit', limit.toString());
+    const params = new HttpParams()
+      .set('lang', this.translateService.getBrowserLang() ?? 'en')
+      .set('limit', limit.toString());
     return this.httpClient.get<ReleaseNote[]>(`${BaseSettings.API_ENDPOINT}releasenote`, {
       params,
       context: new HttpContext().set(SKIP_AUTH_HEADERS, true)

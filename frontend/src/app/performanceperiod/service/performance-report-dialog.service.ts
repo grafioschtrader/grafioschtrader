@@ -36,7 +36,7 @@ export class PerformanceReportDialogService {
    * @param destroyRef - Lifetime of the calling view, which cancels a pending metadata request
    * @returns The menu item opening the dialog
    */
-  menu(date: () => Date, idPortfolio: () => number | null, destroyRef: DestroyRef): MenuItem {
+  menu(date: () => Date, idPortfolio: () => number | null | undefined, destroyRef: DestroyRef): MenuItem {
     return {
       label: this.translate.instant('PDF_REPORT') + BaseSettings.DIALOG_MENU_SUFFIX,
       command: () => {

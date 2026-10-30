@@ -34,15 +34,19 @@ export class BusinessSelectOptionsHelper {
     activeDateNol: number
   ) {
     const activeDate: string = moment(activeDateNol).format('YYYYMMDD');
-    fieldConfig.valueKeyHtmlOptions.forEach((vkho) => {
+    const options = fieldConfig.valueKeyHtmlOptions;
+    if (!options) return;
+    options.forEach((vkho) => {
       const security = securities.find((s) => s.idSecuritycurrency === vkho.key);
-      vkho.disabled = !(
-        (activeDate as string | number) >= (security.activeFromDate as string | number) &&
-        (activeDate as string | number) <= (security.activeToDate as string | number)
-      );
+      vkho.disabled =
+        !security ||
+        !(
+          (activeDate as string | number) >= (security.activeFromDate as string | number) &&
+          (activeDate as string | number) <= (security.activeToDate as string | number)
+        );
     });
     // A new array reference tells the form and the select that the options changed
-    fieldConfig.valueKeyHtmlOptions = [...fieldConfig.valueKeyHtmlOptions];
+    fieldConfig.valueKeyHtmlOptions = [...options];
   }
 
   /**
@@ -62,7 +66,9 @@ export class BusinessSelectOptionsHelper {
     activeDateNol: number
   ): void {
     const activeDate: string = moment(activeDateNol).format('YYYYMMDD');
-    fieldConfig.valueKeyHtmlOptions.forEach((vkho) => {
+    const options = fieldConfig.valueKeyHtmlOptions;
+    if (!options) return;
+    options.forEach((vkho) => {
       const account = accounts.find((a) => a.idSecuritycashAccount === vkho.key);
       if (account) {
         vkho.disabled = account.activeToDate != null && activeDate > moment(account.activeToDate).format('YYYYMMDD');

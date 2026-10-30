@@ -1,7 +1,7 @@
 # Angular 22: Modernisierung des Frontends
 
 **Code baseline:** backend 0.39.2, highest Flyway script `V0_39_2__typed_null_globalparameters.sql`; frontend
-0.39.2 mit `@angular/core` 22.2.3, TypeScript 6.0.3, `@openng/optimus-ui` 2.0.2; Arbeitsbaum vom 30.10.2026.
+0.39.2 mit `@angular/core` 22.2.4, TypeScript 6.0.3, `@openng/optimus-ui` 2.0.2; Arbeitsbaum vom 30.10.2026.
 
 ## 1. Ziel
 
@@ -25,7 +25,7 @@ Leitlinien:
 
 ## 2. Bestandsaufnahme
 
-Erhoben über `src/**/*.ts` und `src/**/*.html` (929 TypeScript-Dateien einschließlich Tests).
+Erhoben über `src/**/*.ts` und `src/**/*.html` (961 TypeScript-Dateien einschließlich Tests).
 
 | Bereich | Heute | Angular-22-Ziel |
 | --- | --- | --- |
@@ -39,9 +39,9 @@ Templates nicht mitgezählt):
 | Option | Fehler |
 | --- | --- |
 | Ohne zusätzliche Option | 0 |
-| `--strictNullChecks` | 667 (`lib` 110, `shared` 101, `tenant` 86, Rest < 100 je Modul) |
-| `--strictNullChecks --strictPropertyInitialization` | 1443 |
-| `--strict` | 1443 |
+| `--strictNullChecks` | 250 (`entities` 60, `shared` 28, `imptransaction` 22, Rest < 100 je Modul) |
+| `--strictNullChecks --strictPropertyInitialization` | 1009 |
+| `--strict` | 1009 |
 
 ## 3. Querschnittsregeln
 
@@ -82,7 +82,7 @@ Regeln, die beide Hosts betreffen, gelten ebenso für `src/grafiosch-host/README
 1. **`strictNullChecks` über einen Zählstand.** Abbau in größeren Paketen mit gemeinsamer Ursache: Verträge in
    Formular- und Tabellenbasisklassen zusammen mit ihren Verbrauchern, DTOs mit den betroffenen Anwendungsmodulen,
    danach die verbleibenden Bereiche nach Fehlerzahl. Wiederkehrende Fehler werden über den zuständigen Basisvertrag
-   behoben; Paketgrenzen folgen diesem Zusammenhang; ein Paket soll etwa 100 Diagnosen beseitigen. Bestehende `null`-Initialwerte
+   behoben; Paketgrenzen folgen diesem Zusammenhang; ein Paket soll 120 bis 180 Diagnosen beseitigen. Bestehende `null`-Initialwerte
    und optionale Eigenschaften bleiben erhalten; ihre Typen und die Verbraucher bilden fehlende Werte ausdrücklich ab.
    Jedes Paket wird mit `npm run check:strict` geprüft; `npm run check:strict -- --update` senkt anschließend die
    Grenzen in `scripts/strict-null-baseline.json`. Die Zählung erfasst den TypeScript-Abhängigkeitsgraphen von

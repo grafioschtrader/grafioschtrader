@@ -27,10 +27,9 @@ export class LoginService extends BaseAuthService<User> {
   private afterLoginHandler = inject(AfterLoginHandler, { optional: true });
 
   public static setGlobalLang(translateService: TranslateService, optimusConfig: Optimus): void {
-    if (translateService.getLangs().find((lang) => lang === sessionStorage.getItem(GlobalSessionNames.LANGUAGE))) {
-      translateService
-        .use(sessionStorage.getItem(GlobalSessionNames.LANGUAGE))
-        .subscribe((params) => console.log('loaded'));
+    const language = sessionStorage.getItem(GlobalSessionNames.LANGUAGE);
+    if (language && translateService.getLangs().includes(language)) {
+      translateService.use(language).subscribe((params) => console.log('loaded'));
     } else {
       translateService.use(AppHelper.getNonUserDefinedLanguage(translateService.getBrowserLang()));
     }

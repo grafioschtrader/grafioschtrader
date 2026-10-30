@@ -67,7 +67,7 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
       ) as Observable<HttpResponse<Blob>>;
   }
 
-  getFirstAndMissingTradingDays(idPortfolio: number): Observable<FirstAndMissingTradingDays> {
+  getFirstAndMissingTradingDays(idPortfolio: number | null | undefined): Observable<FirstAndMissingTradingDays> {
     return <Observable<FirstAndMissingTradingDays>>(
       this.httpClient
         .get(
@@ -118,7 +118,7 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
       .pipe(catchError(this.handleError.bind(this)));
   }
 
-  private getOptionsWithIdPortfolio(idPortfolio: number) {
+  private getOptionsWithIdPortfolio(idPortfolio: number | null | undefined) {
     const httpParams = new HttpParams().set('idPortfolio', '' + (idPortfolio ? idPortfolio : ''));
     return { headers: this.prepareHeaders(), params: httpParams };
   }
@@ -130,7 +130,7 @@ export class PerformanceWindowDef {
   /** Name of a {@link WeekYear} constant, as the period-split select delivers it and the REST path expects it. */
   periodSplit: string;
 
-  constructor(public idPortfolio: number) {}
+  constructor(public idPortfolio: number | null | undefined) {}
 }
 
 export class FirstAndMissingTradingDays {

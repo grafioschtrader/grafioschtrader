@@ -62,7 +62,7 @@ export class GTNetMessageEditComponent extends SimpleFormEditBase implements OnI
   private messageToastService: MessageToastService = inject(MessageToastService);
   private gtNetService: GTNetService = inject(GTNetService);
 
-  readonly msgCallParam = input<MsgCallParam>(undefined);
+  readonly msgCallParam = input.required<MsgCallParam>();
   private readonly MESSAGE_CODE = 'messageCode';
   private readonly VISIBILITY = 'visibility';
   private classDescriptorInputAndShows: ClassDescriptorInputAndShow;

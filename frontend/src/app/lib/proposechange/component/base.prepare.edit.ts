@@ -19,7 +19,7 @@ export abstract class BasePrepareEdit<T extends BaseID = BaseID> {
    * @param proposedEntity - The entity being proposed for editing
    * @returns String identifier of the alternative entity mapping, or null to use default mapping
    */
-  redirectEntityMapping(proposedEntity: T): string {
+  redirectEntityMapping(proposedEntity: T): string | null {
     return null;
   }
 }

@@ -50,9 +50,9 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
 export class TenantDividendsCashaccountExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
   private parentChildRegisterService: ParentChildRegisterService = inject(ParentChildRegisterService);
 
-  readonly securityDividendsGrandTotal = input<SecurityDividendsGrandTotal>(undefined);
-  readonly year = input<number>(undefined);
-  readonly cashAccountPositions = input<CashAccountPosition[]>(undefined);
+  readonly securityDividendsGrandTotal = input.required<SecurityDividendsGrandTotal>();
+  readonly year = input.required<number>();
+  readonly cashAccountPositions = input.required<CashAccountPosition[]>();
 
   readonly dateChanged = output<ProcessedActionData>();
 

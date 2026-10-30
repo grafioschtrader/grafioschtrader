@@ -248,7 +248,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
         command: (event) => this.showPortfolioSelectionDialog()
       }
     ];
-    if (this.isSwissTenant && this.securityDividendsGrandTotal()?.availableTaxYears?.length > 0) {
+    if (this.isSwissTenant && (this.securityDividendsGrandTotal()?.availableTaxYears?.length ?? 0) > 0) {
       menuItems.push({
         label: 'EXPORT_TAX_STATEMENT',
         command: (event) => this.showExportDialog()

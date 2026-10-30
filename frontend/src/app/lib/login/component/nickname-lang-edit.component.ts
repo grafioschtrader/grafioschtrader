@@ -87,7 +87,7 @@ export class NicknameLangEditComponent extends SimpleFormEditBase implements OnI
       .subscribe(([locales, user]: [ValueKeyHtmlSelectOptions[], UserOwnProjection]) => {
         this.configObject.localeStr.valueKeyHtmlOptions = locales;
         this.form().transferBusinessObjectToForm(user);
-        this.configObject.nickname.elementRef.nativeElement.focus();
+        this.configObject.nickname.elementRef?.nativeElement.focus();
       });
   }
 }

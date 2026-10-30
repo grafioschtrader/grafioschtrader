@@ -38,8 +38,10 @@ export class HistoryquotePrepareEdit extends BasePrepareEdit<Historyquote> imple
    * @returns Observable that completes when the associated entity is loaded
    */
   prepareForEditEntity(entity: Historyquote, entityMapping: EntityMapping): Observable<void> {
-    const cpObservable = this.currencypairService.getCurrencypairByIdSecuritycurrency(entity.idSecuritycurrency);
-    const securityObservable = this.securityService.getSecurityByIdSecuritycurrency(entity.idSecuritycurrency);
+    const id = entity.idSecuritycurrency;
+    if (id == null) throw new Error('Editing a quote proposal requires its persisted instrument.');
+    const cpObservable = this.currencypairService.getCurrencypairByIdSecuritycurrency(id);
+    const securityObservable = this.securityService.getSecurityByIdSecuritycurrency(id);
 
     return combineLatest([cpObservable, securityObservable]).pipe(
       map((data: any[]) => {

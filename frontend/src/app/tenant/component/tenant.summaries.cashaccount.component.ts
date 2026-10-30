@@ -223,7 +223,7 @@ export class TenantSummariesCashaccountComponent
       .get(this.CHART_TITLE)
       .pipe(takeUntilDestroyed(this.reportDestroyRef))
       .subscribe((translated) => (this.CHART_TITLE = translated));
-    this.idTenant = this.gps.getIdTenant();
+    this.idTenant = this.gps.requireIdTenant();
     this.onComponentClick(null);
     this.readData();
   }
@@ -283,7 +283,7 @@ export class TenantSummariesCashaccountComponent
    *
    * @returns the affected pairs as a readable enumeration, for example 'BTC/CHF', or null when nothing is missing
    */
-  get missingCurrenciesText(): string {
+  get missingCurrenciesText(): string | null {
     const missingExchangeRates = this.accountPositionGrandSummary()?.missingExchangeRates;
     return missingExchangeRates?.length
       ? missingExchangeRates.map((mer) => `${mer.fromCurrency}/${mer.toCurrency}`).join(', ')
@@ -339,7 +339,7 @@ export class TenantSummariesCashaccountComponent
    * @returns The highlighting style merged with the column width
    */
   getGrandCellStyle(field: ColumnConfig): { [key: string]: string } {
-    const widthStyle = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
+    const widthStyle: Record<string, string> = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
     return DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) &&
       this.accountPositionGrandSummary()?.grandDisposalComplete === false
       ? { ...widthStyle, ...DisposalCostHelper.INCOMPLETE_STYLE }

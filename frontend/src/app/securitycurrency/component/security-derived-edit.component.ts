@@ -84,8 +84,8 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
   private dialogService: DialogService = inject(DialogService);
 
   // Input from parent component
-  readonly securityCallParam = input<Security>(undefined);
-  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
+  readonly securityCallParam = input<Security | null>();
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
 
   // Access child components
   readonly dynamicForm = viewChild.required(DynamicFormComponent);
@@ -95,9 +95,9 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
   readonly formFields = signal<FieldConfig[]>([]);
   private readonly injector = inject(Injector);
   private pendingRender: AfterRenderRef;
-  private instrumentDialog: DynamicDialogRef;
+  private instrumentDialog: DynamicDialogRef | null;
 
-  private baseInstrument: Security | CurrencypairWatchlist;
+  private baseInstrument: Security | CurrencypairWatchlist | null;
   private additionalInstruments: {
     [fieldName: string]: Security | CurrencypairWatchlist;
   } = {};
@@ -170,7 +170,8 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
   }
 
   disableBaseInstrumentFields(): void {
-    if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securityCallParam())) {
+    const existing = this.securityCallParam();
+    if (existing && !AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, existing)) {
       this.formFields()
         .filter((fieldConfig) => fieldConfig.fieldsetName === this.derivedData)
         .forEach((fieldConfig) => requireFormControl(fieldConfig).disable());
@@ -284,13 +285,12 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
     let idxCategoryLocked = -1;
     let idxDerivedLinks = -1;
     const securityCallParam = this.securityCallParam();
-    if (securityCallParam) {
+    const id = securityCallParam?.idSecuritycurrency;
+    if (id != null) {
       idxCategoryLocked = observables.length;
-      observables.push(this.securityService.isStockexchangeCategoryLocked(securityCallParam.idSecuritycurrency));
+      observables.push(this.securityService.isStockexchangeCategoryLocked(id));
       idxDerivedLinks = observables.length;
-      observables.push(
-        this.securityService.getDerivedInstrumentsLinksForSecurity(securityCallParam.idSecuritycurrency)
-      );
+      observables.push(this.securityService.getDerivedInstrumentsLinksForSecurity(id));
     }
 
     combineLatest(observables)
@@ -306,7 +306,7 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
         this.securityEditSupport.setStockexchangeOptions(
           this.configObject,
           idxCategoryLocked >= 0 && <boolean>data[idxCategoryLocked]
-            ? securityCallParamValue.stockexchange.noMarketValue
+            ? securityCallParamValue?.stockexchange?.noMarketValue
             : null
         );
         this.form().setDefaultValuesAndEnableSubmit();
@@ -367,7 +367,7 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
 
   private setBaseInstrumentForExistingSecurity(scdl: SecurityCurrencypairDerivedLinks): void {
     this.configObject[this.BASE_PRODUCT_NAME].disabled = true;
-    const idLink = this.securityCallParam().idLinkSecuritycurrency;
+    const idLink = this.securityCallParam()?.idLinkSecuritycurrency;
     if (idLink == null) return;
     const baseInstrument = SecurityCurrencypairDerivedLinks.getBaseInstrument(scdl, idLink);
     if (!baseInstrument) {
@@ -391,7 +391,7 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
     const formula: string = requireFormControl(this.configObject[this.FORMULA_PRICES]).value;
     if (
       this.baseInstrument &&
-      this.baseInstrument.assetClass.categoryType === AssetclassType[AssetclassType.CURRENCY_PAIR] &&
+      this.baseInstrument.assetClass?.categoryType === AssetclassType[AssetclassType.CURRENCY_PAIR] &&
       (!formula || formula.length === 0)
     ) {
       this.securityEditSupport.filterAssetclasses(this.configObject, AssetclassType.CURRENCY_PAIR);
@@ -430,12 +430,10 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
         ) {
           const fieldName = SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_' + ufv;
           const securityCallParam = this.securityCallParam();
+          const idLink = this.additionalInstruments[fieldName]?.idSecuritycurrency;
+          if (idLink == null) throw new Error(`Derived instrument variable "${ufv}" requires its instrument.`);
           security.securityDerivedLinks.push(
-            new SecurityDerivedLink(
-              securityCallParam ? securityCallParam.idSecuritycurrency : null,
-              ufv,
-              this.additionalInstruments[fieldName].idSecuritycurrency
-            )
+            new SecurityDerivedLink(securityCallParam?.idSecuritycurrency ?? null, ufv, idLink)
           );
         }
       });

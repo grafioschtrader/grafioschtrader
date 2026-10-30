@@ -233,7 +233,7 @@ export class CorrelationComponent
     if (correlationSet) {
       if (this.selectedEntity?.idCorrelationSet !== correlationSet.idCorrelationSet) return;
       this.selectedEntity = Object.assign(new CorrelationSet(), this.selectedEntity, {
-        securitycurrencyList: [...correlationSet.securitycurrencyList]
+        securitycurrencyList: correlationSet.securitycurrencyList ? [...correlationSet.securitycurrencyList] : undefined
       });
       this.setChildDataAndCalculateWhenPossible(this.selectedEntity, true);
     } else {
@@ -343,6 +343,7 @@ export class CorrelationComponent
     this.calculationTarget.set(
       selectedEntity &&
         selectedEntity.idCorrelationSet != null &&
+        selectedEntity.securitycurrencyList &&
         selectedEntity.securitycurrencyList.length >= 2 &&
         calculate
         ? { correlationSet: selectedEntity, id: selectedEntity.idCorrelationSet }
@@ -358,7 +359,7 @@ export class CorrelationComponent
    */
   private getDividendMissingNames(correlationSet: CorrelationSet, correlationResult: CorrelationResult): string | null {
     const ids = correlationResult.idsMissingDividends ?? [];
-    const names = correlationSet.securitycurrencyList
+    const names = (correlationSet.securitycurrencyList ?? [])
       .filter((sc) => sc.idSecuritycurrency != null && ids.includes(sc.idSecuritycurrency))
       .map((sc) => (<Security>sc).name);
     return names.length > 0 ? names.join(', ') : null;

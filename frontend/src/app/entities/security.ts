@@ -18,12 +18,12 @@ export class Security extends Securitycurrency implements BaseID {
   denomination?: number = null;
   stockexchange?: Stockexchange = null;
   productLink?: string = null;
-  idTenantPrivate?: number = null;
+  idTenantPrivate?: number | null = null;
   activeFromDate: string | number | Date = null;
   activeToDate: string | number | Date = null;
   distributionFrequency: string = null;
   issuerCountry?: string = null;
-  simulationMetadata?: SecuritySimulationMetadata = null;
+  simulationMetadata?: SecuritySimulationMetadata | null = null;
   leverageFactor?: number = null;
   /** Backend rule shared with historical simulation order eligibility. */
   simulationTradingExcluded?: boolean;
@@ -120,7 +120,7 @@ export class Security extends Securitycurrency implements BaseID {
     );
   }
 
-  public static canHaveIssuerCountry(assetClass: Assetclass): boolean {
+  public static canHaveIssuerCountry(assetClass: Assetclass | null | undefined): boolean {
     if (!assetClass) {
       return false;
     }
@@ -142,7 +142,7 @@ export class Security extends Securitycurrency implements BaseID {
    * @param assetClass the selected asset class, may be null while none is chosen
    * @returns false only for a non-investable index
    */
-  public static canHaveDistributionFrequency(assetClass: Assetclass): boolean {
+  public static canHaveDistributionFrequency(assetClass: Assetclass | null | undefined): boolean {
     if (!assetClass) {
       return true;
     }
@@ -170,10 +170,10 @@ export class Security extends Securitycurrency implements BaseID {
 }
 
 export interface SecuritySimulationMetadata {
-  bondTerms?: SecurityBondTerms;
+  bondTerms?: SecurityBondTerms | null;
 }
 
 export interface SecurityBondTerms {
-  couponRate?: number;
-  couponDayCount?: string;
+  couponRate?: number | null;
+  couponDayCount?: string | null;
 }

@@ -83,8 +83,8 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
   private securityService: SecurityService = inject(SecurityService);
   private currencypairService: CurrencypairService = inject(CurrencypairService);
 
-  readonly callBackSetSecurity = input<CallBackSetSecurity>(undefined);
-  readonly supplementCriteria = input<SupplementCriteria>(undefined);
+  readonly callBackSetSecurity = input.required<CallBackSetSecurity>();
+  readonly supplementCriteria = input<SupplementCriteria>();
 
   readonly selectedSecurity = signal<Security | null>(null);
   /** A new columns reference re-renders the header and body templates of the OnPush p-table after translation. */
@@ -99,18 +99,18 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
   }
 
   loadData(securitycurrencySearch: SecuritycurrencySearch): void {
-    securitycurrencySearch.excludeDerivedSecurity = this.supplementCriteria().excludeDerivedSecurity;
+    const criteria = this.supplementCriteria();
+    securitycurrencySearch.excludeDerivedSecurity = criteria?.excludeDerivedSecurity ?? false;
     const obs: Observable<(Currencypair | Security)[]>[] = [
       this.securityService.searchByCriteria(securitycurrencySearch)
     ];
-    !this.supplementCriteria().onlySecurity &&
-      obs.push(this.currencypairService.searchByCriteria(securitycurrencySearch));
+    !criteria?.onlySecurity && obs.push(this.currencypairService.searchByCriteria(securitycurrencySearch));
     combineLatest(obs)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data: (Currencypair | Security)[][]) => {
         this.securitycurrencyList = data[0];
         this.createTranslatedValueStoreAndFilterField(data[0]);
-        if (!this.supplementCriteria().onlySecurity) {
+        if (!criteria?.onlySecurity) {
           this.transformCurrencypairToCurrencypairWatchlist(<Currencypair[]>data[1]);
         }
       });

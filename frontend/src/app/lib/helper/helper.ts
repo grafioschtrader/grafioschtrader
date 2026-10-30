@@ -171,13 +171,15 @@ export abstract class Helper {
     }
   }
 
-  public static getReferencedDataObject(fieldConfig: FieldConfig, keyProperty: string): any {
+  public static getReferencedDataObject(fieldConfig: FieldConfig, keyProperty: string | null): any {
     if (fieldConfig.dataproperty) {
       keyProperty = fieldConfig.dataproperty.substring(fieldConfig.dataproperty.indexOf('.') + 1);
     }
 
+    if (keyProperty == null) throw new Error(`Referenced data for "${fieldConfig.field}" requires a key property.`);
+    const key = keyProperty;
     return fieldConfig.referencedDataObject.filter(
-      (refObject: { [x: string]: number }) => refObject[keyProperty] === +requireFormControl(fieldConfig).value
+      (refObject: { [x: string]: number }) => refObject[key] === +requireFormControl(fieldConfig).value
     )[0];
   }
 

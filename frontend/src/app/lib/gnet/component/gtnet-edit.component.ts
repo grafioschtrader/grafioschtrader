@@ -92,7 +92,7 @@ import { BaseSettings } from '../../base.settings';
 export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements OnInit {
   private gtNetService: GTNetService = inject(GTNetService);
 
-  readonly callParam = input<GTNetCallParam>(undefined);
+  readonly callParam = input.required<GTNetCallParam>();
   readonly entityTable = viewChild<EditableTableComponent<GTNetEntity>>('entityTable');
 
   private readonly BASE_SETTING = 'BASE_SETTING';
@@ -258,10 +258,10 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
    * Translates entity table headers.
    */
   private translateEntityHeaders(): void {
-    const headerKeys = this.entityFields.map((f) => f.headerKey);
+    const headerKeys = this.entityFields.map((f) => f.headerKey).filter((key) => key != null);
     this.translateService.get(headerKeys).subscribe((translations) => {
       this.entityFields.forEach((field) => {
-        field.headerTranslated = translations[field.headerKey] || field.headerKey;
+        field.headerTranslated = field.headerKey == null ? undefined : translations[field.headerKey] || field.headerKey;
       });
       this.entityFieldsReady.set(true);
     });

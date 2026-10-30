@@ -232,12 +232,12 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'rmse', 'RMSE', true, false, { maxFractionDigits: 2 })
     ];
     const allFields = [...this.summaryInfoFields, ...this.summaryStatFields];
-    const headerKeys = allFields.map((f) => f.headerKey);
+    const headerKeys = allFields.map((f) => f.headerKey).filter((key) => key != null);
     this.translateService
       .get(headerKeys)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((translations) => {
-        allFields.forEach((f) => (f.headerTranslated = translations[f.headerKey]));
+        allFields.forEach((f) => (f.headerTranslated = f.headerKey == null ? undefined : translations[f.headerKey]));
         this.notifyViewChanged();
       });
   }

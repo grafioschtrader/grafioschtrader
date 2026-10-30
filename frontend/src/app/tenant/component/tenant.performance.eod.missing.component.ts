@@ -111,10 +111,10 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
   });
   allMissingDays: Date[] = [];
   securityMissingDays: Date[] = [];
-  selectedDayByUser: Date;
+  selectedDayByUser: Date | null;
   readonly selectedDayIdSecurities = signal<number[]>([]);
   foundDayMarkedRange: boolean;
-  selectedSecurity: Security;
+  selectedSecurity: Security | null;
 
   private readDataSub?: Subscription;
 
@@ -198,15 +198,16 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     }
   }
 
-  handleChangedSecurity(security: Security): void {
+  handleChangedSecurity(security: Security | null): void {
     this.selectedSecurity = security;
     this.resetMenu();
     this.clearDaySelection(this.selectedDayByUser);
     this.clearCalendarFromTableSelection();
-    if (security) {
+    const id = security?.idSecuritycurrency;
+    if (id != null) {
       Object.entries(this.missingQuotesWithSecurities()?.dateSecurityMissingMap ?? {}).forEach(
         ([date, idsSecurity]) => {
-          if (idsSecurity.indexOf(security.idSecuritycurrency) >= 0) {
+          if (idsSecurity.indexOf(id) >= 0) {
             const tradingDay = new Date(date);
             tradingDay.setHours(0, 0, 0, 0);
             this.securityMissingDays.push(tradingDay);
@@ -228,11 +229,11 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
 
   protected override getMenuShowOptions(): MenuItem[] {
     let menuItems: MenuItem[] = [];
-    if (this.selectedSecurity) {
+    if (this.selectedSecurity?.idSecuritycurrency != null) {
       menuItems = menuItems.concat(
         this.timeSeriesQuotesService.getMenuItems(
           this.selectedSecurity.idSecuritycurrency,
-          this.selectedSecurity.currency,
+          this.selectedSecurity.currency ?? null,
           false
         )
       );
@@ -245,8 +246,8 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     return showMenu.slice(1);
   }
 
-  private clearDaySelection(day: Date): void {
-    if (this.selectedDayByUser) {
+  private clearDaySelection(day: Date | null): void {
+    if (this.selectedDayByUser && day != null) {
       this.selectedDayByUser = null;
       this.selectedDayIdSecurities.set([]);
       this.addRemoveOnOffDay(day);

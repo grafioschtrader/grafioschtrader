@@ -8,7 +8,7 @@ export interface ErrorMessageRules {
   /** Name of validator, it is used for referencing it  */
   name: string;
   /** Must match with the key in the translation file */
-  keyi18n: string;
+  keyi18n: string | null;
   param1?: string | number | string[];
   param2?: string | number;
   rules: string[];

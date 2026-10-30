@@ -84,9 +84,9 @@ export class LoginComponent extends FormBase implements OnInit {
   private gps: GlobalparameterService = inject(GlobalparameterService);
 
   readonly form = viewChild(DynamicFormComponent);
-  readonly applicationInfo = signal<ApplicationInfo>(undefined);
+  readonly applicationInfo = signal<ApplicationInfo | null | undefined>(undefined);
   readonly releaseNotes = signal<ReleaseNote[]>([]);
-  readonly successLastRegistration = input<string>(undefined, { alias: 'success' });
+  readonly successLastRegistration = input<string | undefined>(undefined, { alias: 'success' });
   readonly visiblePasswordDialog = signal(false);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -117,10 +117,13 @@ export class LoginComponent extends FormBase implements OnInit {
   submit(value: { [name: string]: any }): void {
     this.loginService.login(value.email, value.password).subscribe({
       next: (response) => {
-        const passwordRegexOk: boolean = this.loginService.afterSuccessfulLogin(
-          response.headers.get('x-auth-token'),
-          response.body
-        );
+        const token = response.headers.get('x-auth-token');
+        const configuration = response.body;
+        if (!token || !configuration) {
+          this.configObject.submit.disabled = false;
+          return;
+        }
+        const passwordRegexOk = this.loginService.afterSuccessfulLogin(token, configuration);
         if (this.gps.getIdTenant()) {
           this.navigateToMainView(passwordRegexOk);
         } else {
@@ -185,8 +188,8 @@ export class LoginComponent extends FormBase implements OnInit {
     this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'email', fdias));
     this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'password', fdias));
 
-    const users = this.applicationInfo().users;
-    if (users.active < users.allowed) {
+    const users = this.applicationInfo()?.users;
+    if (users && users.active < users.allowed) {
       this.config.push(
         DynamicFieldHelper.createFunctionButton('REGISTRATION', (e) =>
           this.router.navigate([`/${BaseSettings.REGISTER_KEY}`])

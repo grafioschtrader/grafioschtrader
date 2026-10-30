@@ -218,7 +218,7 @@ export class MailSendParam {
    * @param idEntityContext Optional id of the context entity referenced by contextEntity.
    */
   constructor(
-    public idUserTo: number,
+    public idUserTo: number | undefined,
     public mailSendRecv?: MailSendRecv | null,
     public subject?: string,
     public roleName?: string,

@@ -104,11 +104,11 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   expandedAccountPositionSummary: AccountPositionSummary[] = [];
   expandedIdCashaccount: number[] = [];
   // For the component Edit-Menu, it shows the same menu items as the context menu
-  selectedAccountPositionSummary: AccountPositionSummary;
+  selectedAccountPositionSummary: AccountPositionSummary | null;
   contextMenuItems: MenuItem[] = [];
   private columnConfigs: ColumnConfig[] = [];
   private excludedDivTaxColumn: ColumnConfig;
-  private tenantLimit: TenantLimit;
+  private tenantLimit: TenantLimit | null;
 
   private statementReports = inject(PerformanceReportDialogService);
   private reportDestroyRef = inject(DestroyRef);
@@ -263,10 +263,9 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   }
 
   readData(): void {
-    const request = this.cashaccountService.getCashaccountPositionGroupSummaryRequest(
-      this.portfolio.idPortfolio,
-      this.untilDate
-    );
+    const id = this.portfolio?.idPortfolio;
+    if (id == null) return;
+    const request = this.cashaccountService.getCashaccountPositionGroupSummaryRequest(id, this.untilDate);
     const current = this.summaryRequest();
     if (current?.url === request.url && current.params.toString() === request.params.toString())
       this.positionResource.reload();
@@ -291,7 +290,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     );
   }
 
-  prepareEditMenu(accountPositionSummary: AccountPositionSummary): MenuItem[] {
+  prepareEditMenu(accountPositionSummary: AccountPositionSummary | null): MenuItem[] {
     const menuItems: MenuItem[] = [];
 
     menuItems.push({
@@ -443,7 +442,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
    *
    * @returns the affected pairs as a readable enumeration, for example 'BTC/CHF', or null when nothing is missing
    */
-  get missingCurrenciesText(): string {
+  get missingCurrenciesText(): string | null {
     const missingExchangeRates = this.accountPositionGroupSummary?.missingExchangeRates;
     return missingExchangeRates?.length
       ? missingExchangeRates.map((mer) => `${mer.fromCurrency}/${mer.toCurrency}`).join(', ')
@@ -469,7 +468,11 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     }
   }
 
-  private handleEditAccount(portfolio: Portfolio, cashaccount: Cashaccount, optParam: { [key: string]: boolean }) {
+  private handleEditAccount(
+    portfolio: Portfolio,
+    cashaccount: Cashaccount | null,
+    optParam: { [key: string]: boolean } | null
+  ) {
     // Pre-fetch the entity form definition (memoised) before opening the dialog, so the dialog can build
     // its dynamic form synchronously in ngOnInit and edit values populate reliably.
     this.gps.getEntityFormDefinition(AppSettings.CASHACCOUNT).subscribe((formDefinition) => {
@@ -482,7 +485,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     });
   }
 
-  private resetMenu(selectedAccountPositionSummary: AccountPositionSummary): void {
+  private resetMenu(selectedAccountPositionSummary: AccountPositionSummary | null): void {
     this.selectedAccountPositionSummary = selectedAccountPositionSummary;
     this.contextMenuItems = this.prepareEditMenu(this.selectedAccountPositionSummary);
     this.activePanelService.activatePanel(this, {

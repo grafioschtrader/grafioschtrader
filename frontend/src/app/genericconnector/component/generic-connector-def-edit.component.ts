@@ -26,6 +26,12 @@ import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.k
 import { TreeNode } from '@openng/optimus-ui/api';
 import { combineLatest } from 'rxjs';
 
+interface GeoTreeNode extends TreeNode {
+  key: string;
+  label: string;
+  children?: GeoTreeNode[];
+}
+
 @Component({
   selector: 'generic-connector-def-edit',
   template: ` <p-dialog
@@ -62,13 +68,13 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   private httpClient: HttpClient = inject(HttpClient);
 
   readonly yamlEditor = viewChild.required(YamlEditorComponent);
-  readonly callParam = input<GenericConnectorDef>(undefined);
+  readonly callParam = input<GenericConnectorDef | null>();
 
   readonly tokenConfigYamlValue = signal('');
   readonly tokenConfigSchema = signal<any>(null);
   readonly optionsLoading = signal(true);
   private readonly injector = inject(Injector);
-  private geoTreeNodes: TreeNode[] = [];
+  private geoTreeNodes: GeoTreeNode[] = [];
   private catTranslations: { [key: string]: string } = {};
 
   constructor() {
@@ -253,11 +259,11 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    * (not all ISO 10383 MICs). With propagateSelectionDown/Up disabled, country and MIC nodes are independently
    * selectable — checking "US" means the whole country without requiring all US MICs to be checked.
    */
-  private buildGeoTree(stockexchanges: Stockexchange[], countries: ValueKeyHtmlSelectOptions[]): TreeNode[] {
+  private buildGeoTree(stockexchanges: Stockexchange[], countries: ValueKeyHtmlSelectOptions[]): GeoTreeNode[] {
     const countryNames: { [cc: string]: string } = {};
     countries.forEach((c) => (countryNames[c.key as string] = c.value));
 
-    const countryMap: Record<string, TreeNode & { label: string; children: TreeNode[] }> = {};
+    const countryMap: Record<string, GeoTreeNode & { children: GeoTreeNode[] }> = {};
     stockexchanges.forEach((se) => {
       const { countryCode, mic } = se;
       if (countryCode == null || mic == null) return;
@@ -286,7 +292,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    */
   private loadSupportedCategories(): void {
     const callParam = this.callParam();
-    if (callParam.supportedCategories) {
+    if (callParam?.supportedCategories) {
       const cats = callParam.supportedCategories.split(',').map((s) => s.trim());
       requireFormControl(this.configObject.supportedCategories).setValue(cats);
     }
@@ -298,7 +304,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    */
   private loadGeoRestrictions(): void {
     const callParam = this.callParam();
-    if (!callParam.geoRestrictions) {
+    if (!callParam?.geoRestrictions) {
       return;
     }
     const tokens = callParam.geoRestrictions.trim().split(/\s+/);
@@ -343,7 +349,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
         const childCount = geoNode.children?.length || 0;
         let checkedCount = 0;
         geoNode.children?.forEach((catNode) => {
-          if (exclKeySet.has(catNode.key)) {
+          if (catNode.key != null && exclKeySet.has(catNode.key)) {
             exclNodes.push(catNode);
             checkedCount++;
           }
@@ -367,7 +373,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     const categoryNames = Object.keys(AssetclassCategory).filter((k) => isNaN(Number(k)));
 
     // Collect all checked geo codes from inclusions (TreeNode[])
-    const selectedKeys = new Set<string>(inclusionVal?.map((n) => n.key) || []);
+    const selectedKeys = new Set<string>(inclusionVal?.map((n) => n.key).filter((key) => key != null) || []);
 
     const geoCodes: { key: string; label: string; icon?: string }[] = [];
     this.geoTreeNodes.forEach((countryNode) => {
@@ -403,7 +409,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
 
     // Preserve old selections that still exist in the new tree (match by key, use NEW node references)
     if (oldExclVal && oldExclVal.length > 0) {
-      const oldKeys = new Set<string>(oldExclVal.map((n) => n.key));
+      const oldKeys = new Set<string>(oldExclVal.map((n) => n.key).filter((key) => key != null));
       const newNodesByKey = new Map<string, TreeNode>();
       newExclusionNodes.forEach((geoNode) => {
         newNodesByKey.set(geoNode.key, geoNode);
@@ -431,7 +437,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     const tokens: string[] = [];
 
     if (inclusionVal) {
-      const inclusionKeys = new Set<string>(inclusionVal.map((n) => n.key));
+      const inclusionKeys = new Set<string>(inclusionVal.map((n) => n.key).filter((key) => key != null));
       this.geoTreeNodes.forEach((countryNode) => {
         if (inclusionKeys.has(countryNode.key)) {
           tokens.push(countryNode.key);
@@ -446,11 +452,11 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     const exclVal: TreeNode[] = requireFormControl(this.configObject.geoExclusions).value;
     if (exclVal) {
       // Only serialize leaf nodes (geo:-CATEGORY), skip parent geo nodes
-      const exclKeys = new Set<string>(exclVal.map((n) => n.key));
+      const exclKeys = new Set<string>(exclVal.map((n) => n.key).filter((key) => key != null));
       const exclNodes = this.configObject.geoExclusions.treeNodes || [];
       exclNodes.forEach((geoNode) => {
         geoNode.children?.forEach((catNode) => {
-          if (exclKeys.has(catNode.key)) {
+          if (catNode.key != null && exclKeys.has(catNode.key)) {
             tokens.push(catNode.key);
           }
         });

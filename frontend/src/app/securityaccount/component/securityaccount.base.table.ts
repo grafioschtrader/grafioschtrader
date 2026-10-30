@@ -65,8 +65,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
    * stay undefined and the corresponding blocks of the template are not rendered.
    */
   algoTopOptions: SelectItem[];
-  selectedIdAlgoTop: number = null;
-  rebalancingSummaryFields: ColumnConfig[];
+  selectedIdAlgoTop: number | null = null;
+  rebalancingSummaryFields: ColumnConfig[] | null;
   /** Summary figures whose header key has a {@code _TOOLTIP} companion explaining how the figure is measured. */
   readonly summaryFieldsWithTooltip: string[] = [
     'overallAllocationMismatchPercentage',
@@ -83,7 +83,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   idPortfolio: number;
   groupOptions: SelectItem[];
   selectedGroup: string;
-  protected securityAccount: Securityaccount;
+  protected securityAccount: Securityaccount | null;
 
   /**
    * PDF drop zone of the report of a single securities account. Declared here for the same reason as
@@ -98,8 +98,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     SecurityPositionDynamicGroupSummary<any> | SecurityPositionCurrenyGroupSummary,
     any
   >;
-  securityPositionAll: SecurityPositionSummary[];
-  securityPositionSummary: SecurityPositionGrandSummary;
+  securityPositionAll: SecurityPositionSummary[] | null;
+  securityPositionSummary: SecurityPositionGrandSummary | null;
   groupMap: Map<any, SecurityaccountGroupBase<any, any>>;
   groupChangeIndexMap: Map<number, SecurityPositionGroupSummary>;
   // For child transaction dialog
@@ -109,7 +109,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   expandedSecurityPositionSummary: SecurityPositionSummary[] = [];
   expandedIdSecuritycurrency: number[] = [];
   contextMenuItems: MenuItem[] | null = [];
-  selectedSecurityPositionSummary: SecurityPositionSummary;
+  selectedSecurityPositionSummary: SecurityPositionSummary | null;
   portfolio: Portfolio;
   protected includeClosedPosition = false;
   protected internalColumnConfigs: ColumnConfig[];
@@ -173,13 +173,18 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   transformToFlatArray(securityPositionGrandSummary: SecurityPositionGrandSummary): void {
+    const positions: SecurityPositionSummary[] = [];
+    this.securityPositionAll = positions;
     this.groupMap = new Map();
     this.groupChangeIndexMap = new Map();
     let rowIndex = -1;
     for (const securityPositionGroupSummary of securityPositionGrandSummary.securityPositionGroupSummaryList) {
       for (const securityPositionSummary of securityPositionGroupSummary.securityPositionSummaryList) {
-        this.securityPositionAll.push(securityPositionSummary);
-        if (this.expandedIdSecuritycurrency.indexOf(securityPositionSummary.security.idSecuritycurrency) >= 0) {
+        positions.push(securityPositionSummary);
+        if (
+          securityPositionSummary.security.idSecuritycurrency != null &&
+          this.expandedIdSecuritycurrency.indexOf(securityPositionSummary.security.idSecuritycurrency) >= 0
+        ) {
           this.expandedSecurityPositionSummary.push(securityPositionSummary);
         }
         rowIndex++;
@@ -193,7 +198,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.showTable = true;
   }
 
-  getMenuShowOptionsParam(securitycurrencySelected: Securitycurrency): MenuItem[] {
+  getMenuShowOptionsParam(securitycurrencySelected: Securitycurrency | null): MenuItem[] {
     const otherMenuShowOptions = super.getMenuShowOptions();
 
     let menuItems: MenuItem[] = [];
@@ -201,7 +206,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
       menuItems.push(...otherMenuShowOptions);
     }
 
-    if (securitycurrencySelected && securitycurrencySelected.idSecuritycurrency >= 0) {
+    if (securitycurrencySelected?.idSecuritycurrency != null && securitycurrencySelected.idSecuritycurrency >= 0) {
       menuItems = this.addTimeSeriesMenus(<Security>securitycurrencySelected, menuItems, false);
     }
 
@@ -218,7 +223,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
       icon: this.includeClosedPosition ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY
     });
 
-    if (securitycurrencySelected && securitycurrencySelected.idSecuritycurrency >= 0) {
+    if (securitycurrencySelected?.idSecuritycurrency != null && securitycurrencySelected.idSecuritycurrency >= 0) {
       menuItems.push(...BusinessHelper.getUrlLinkMenus(securitycurrencySelected));
     }
 
@@ -254,11 +259,13 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   handleOpenClosePosition(event: MenuItemCommandEvent) {
-    if (event.item.icon === BaseSettings.ICONNAME_SQUARE_EMTPY) {
-      event.item.icon = BaseSettings.ICONNAME_SQUARE_CHECK;
+    const item = event.item;
+    if (!item) return;
+    if (item.icon === BaseSettings.ICONNAME_SQUARE_EMTPY) {
+      item.icon = BaseSettings.ICONNAME_SQUARE_CHECK;
       this.includeClosedPosition = true;
     } else {
-      event.item.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
+      item.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
       this.includeClosedPosition = false;
     }
     this.readData();
@@ -286,8 +293,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   ////////////////////////////////////////////////
   // For Chart
 
-  onComponentClick(event: PanelClickEvent): void {
-    if (!event || !event[this.consumedGT]) {
+  onComponentClick(event: PanelClickEvent | null): void {
+    if (!event?.[this.consumedGT]) {
       this.resetMenu();
     }
   }
@@ -324,7 +331,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
    * @returns Style object for the native style binding
    */
   getCellStyle(positionSummary: SecurityPositionSummary, field: ColumnConfig): { [key: string]: string } {
-    const widthStyle = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
+    const widthStyle: Record<string, string> = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
     if (DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && positionSummary?.disposalComplete === false) {
       return { ...widthStyle, ...DisposalCostHelper.INCOMPLETE_STYLE };
     }
@@ -394,7 +401,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
   protected abstract extendTransactionParamData(transactionCallParam: TransactionCallParam): void;
 
-  protected abstract getOptionalParameters(): OptionalParameters;
+  protected abstract getOptionalParameters(): OptionalParameters | null;
 
   protected createColumns() {
     this.removeAllColumns();
@@ -526,24 +533,24 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   protected initTableTextTranslation() {
+    const summary = this.securityPositionSummary;
+    if (!summary) return;
     this.internalColumnConfigs.forEach((columnConfig) => {
-      columnConfig.headerSuffix = this.securityPositionSummary.currency;
-      columnConfig.fixedCurrency = this.securityPositionSummary.currency;
+      columnConfig.headerSuffix = summary.currency;
+      columnConfig.fixedCurrency = summary.currency;
     });
     this.prepareTableAndTranslate();
-    this.securityaccountGroupBase.translateGroupValues(
-      <any[]>this.securityPositionSummary.securityPositionGroupSummaryList
-    );
+    this.securityaccountGroupBase.translateGroupValues(<any[]>summary.securityPositionGroupSummaryList);
     this.notifyViewChanged();
     this.changeToOpenChart();
   }
 
   protected addTimeSeriesMenus(security: Security, menuItems: MenuItem[], translate: boolean): MenuItem[] {
-    if (security) {
+    if (security?.idSecuritycurrency != null) {
       menuItems = menuItems.concat(
         this.timeSeriesQuotesService.getMenuItems(
           security.idSecuritycurrency,
-          security.currency,
+          security.currency ?? null,
           true,
           this.addNoMarketValueOpt(security)
         )
@@ -555,24 +562,26 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   protected changeToOpenChart() {
-    this.subscriptionRequestFromChart &&
-      this.chartDataService.sentToChart(
-        this.securityaccountGroupBase.getChartDefinition(this.getTitleChart(), this.securityPositionSummary)
-      );
+    const summary = this.securityPositionSummary;
+    const title = this.getTitleChart();
+    if (this.subscriptionRequestFromChart && summary && title != null) {
+      this.chartDataService.sentToChart(this.securityaccountGroupBase.getChartDefinition(title, summary));
+    }
   }
 
-  protected getTitleChart(): string {
-    return this.titleElementRef().nativeElement.innerHTML.replace(/\s+/g, ' ');
+  protected getTitleChart(): string | undefined {
+    return this.titleElementRef()?.nativeElement.innerHTML.replace(/\s+/g, ' ');
   }
 
   protected getComponentId(): string {
     const routeUrlComponent = /(\/\w+\/)\({0,1}(\w+)/.exec(this.router.url);
+    if (!routeUrlComponent) throw new Error('A holdings chart requires its report route.');
     return routeUrlComponent[2];
   }
 
   private addNoMarketValueOpt(security: Security): OptionalParameters {
     const optionalParameters = this.getOptionalParameters() || {};
-    optionalParameters.noMarketValue = security.stockexchange.noMarketValue;
+    optionalParameters.noMarketValue = security.stockexchange?.noMarketValue;
     return optionalParameters;
   }
 
@@ -595,9 +604,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   private prepareChartDataWithRequest(): void {
     this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$.subscribe((id) => {
       if (id === this.getComponentId()) {
-        this.chartDataService.sentToChart(
-          this.securityaccountGroupBase.getChartDefinition(this.getTitleChart(), this.securityPositionSummary)
-        );
+        this.changeToOpenChart();
       }
     });
   }
@@ -610,33 +617,26 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
       ),
       editMenu: this.contextMenuItems
     });
-    if (this.contextMenuItems) {
-      this.contextMenuItems = this.addTimeSeriesMenus(
-        this.selectedSecurityPositionSummary.security,
-        this.contextMenuItems,
-        true
-      );
-      this.contextMenuItems = this.addUrlLinkMenus(
-        this.selectedSecurityPositionSummary.security,
-        this.contextMenuItems,
-        true
-      );
+    const selection = this.selectedSecurityPositionSummary;
+    if (this.contextMenuItems && selection) {
+      this.contextMenuItems = this.addTimeSeriesMenus(selection.security, this.contextMenuItems, true);
+      this.contextMenuItems = this.addUrlLinkMenus(selection.security, this.contextMenuItems, true);
     }
   }
 
-  private getEditMenu(securityPositionSummary: SecurityPositionSummary): MenuItem[] | null {
+  private getEditMenu(securityPositionSummary: SecurityPositionSummary | null): MenuItem[] | null {
     let menuItems: MenuItem[] | null = null;
 
     if (
       securityPositionSummary &&
-      (AssetclassType[securityPositionSummary.security.assetClass.categoryType as keyof typeof AssetclassType] <
+      (AssetclassType[securityPositionSummary.security.assetClass?.categoryType as keyof typeof AssetclassType] <
         AssetclassType.CURRENCY_PAIR ||
-        (AssetclassType[securityPositionSummary.security.assetClass.categoryType as keyof typeof AssetclassType] ===
+        (AssetclassType[securityPositionSummary.security.assetClass?.categoryType as keyof typeof AssetclassType] ===
           AssetclassType.CURRENCY_PAIR &&
           [SpecialInvestmentInstruments.FOREX, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT].includes(
             SpecialInvestmentInstruments[
               securityPositionSummary.security.assetClass
-                .specialInvestmentInstrument as keyof typeof SpecialInvestmentInstruments
+                ?.specialInvestmentInstrument as keyof typeof SpecialInvestmentInstruments
             ]
           )))
     ) {

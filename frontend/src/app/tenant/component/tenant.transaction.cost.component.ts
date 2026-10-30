@@ -19,7 +19,7 @@ import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.s
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { AppSettings } from '../../shared/app.settings';
-import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 import { ChartDataService } from '../../shared/chart/service/chart.data.service';
 import { TenantTransactionCostExtendedComponent } from './tenant-transaction-cost-extended.component';
 
@@ -73,7 +73,8 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
    */
   readonly refId = 'refId';
 
-  chartData: (Partial<ChartTrace> & { refId?: number[] })[] & { refId?: number[] } = [];
+  chartData: (ReturnType<typeof PlotlyHelper.initializeChartTrace> & { refId: (number | undefined)[] })[] = [];
+  private chartAccountIds: (number | undefined)[] = [];
 
   selectedRow: TransactionCostGroupSummary;
 
@@ -167,12 +168,20 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   chartDataPointClicked(traceIndex: number, dataPointIndex: number) {
     const summary = this.transactionCostGrandSummary();
     if (!summary) return;
+    const id = this.chartAccountIds[traceIndex];
+    const idTransaction = this.chartData[traceIndex]?.refId[dataPointIndex];
+    if (id == null || idTransaction == null) return;
     const tcgs = summary.transactionCostGroupSummaries.find(
-      (tcgsTemp) => tcgsTemp.securityaccount.idSecuritycashAccount === this.chartData[this.refId][traceIndex]
+      (tcgsTemp) => tcgsTemp.securityaccount.idSecuritycashAccount === id
     );
     if (!tcgs) return;
     this.expandedTCGSid.update((keys) => ({ ...keys, [tcgs.securityaccount.idSecuritycashAccount]: true }));
-    afterNextRender(() => this.selectRowAndGoToPage(traceIndex, dataPointIndex, tcgs), { injector: this.injector });
+    afterNextRender(
+      () => {
+        if (this.transactionCostGrandSummary() === summary) this.selectRowAndGoToPage(idTransaction, tcgs);
+      },
+      { injector: this.injector }
+    );
   }
 
   isActivated(): boolean {
@@ -232,23 +241,22 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
     const summary = this.transactionCostGrandSummary();
     if (!summary) return;
     this.chartData = [];
-    this.chartData[this.refId] = [];
+    this.chartAccountIds = [];
     this.chartIdNumberToTransactionCostPosition = [];
     summary.transactionCostGroupSummaries.forEach((tcgs) => {
-      const traceSecurityaccount: Partial<ChartTrace> & { refId?: number[] } = PlotlyHelper.initializeChartTrace(
-        tcgs.securityaccount.name,
-        'scatter',
-        'markers'
-      );
+      const transactionIds: (number | undefined)[] = [];
+      const traceSecurityaccount = {
+        ...PlotlyHelper.initializeChartTrace(tcgs.securityaccount.name, 'scatter', 'markers'),
+        refId: transactionIds
+      };
       traceSecurityaccount.visible = 'legendonly';
       this.chartData.push(traceSecurityaccount);
-      this.chartData[this.refId].push(tcgs.securityaccount.idSecuritycashAccount);
+      this.chartAccountIds.push(tcgs.securityaccount.idSecuritycashAccount);
 
-      traceSecurityaccount[this.refId] = [];
       tcgs.transactionCostPositions.forEach((tcp) => {
         traceSecurityaccount.x.push(tcp.basePriceForTransactionCostMC);
         traceSecurityaccount.y.push(tcp.transactionCostMC);
-        traceSecurityaccount[this.refId].push(tcp.transaction.idTransaction);
+        transactionIds.push(tcp.transaction.idTransaction);
         this.chartIdNumberToTransactionCostPosition.push(tcp);
       });
     });
@@ -263,8 +271,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
     });
   }
 
-  private selectRowAndGoToPage(traceIndex: number, dataPointIndex: number, tcgs: TransactionCostGroupSummary): void {
-    const idTransaction = this.chartData[traceIndex][this.refId][dataPointIndex];
+  private selectRowAndGoToPage(idTransaction: number, tcgs: TransactionCostGroupSummary): void {
     let rowIndex = 0;
     for (let i = 0; i < tcgs.transactionCostPositions.length; i++) {
       if (tcgs.transactionCostPositions[i].transaction.idTransaction === idTransaction) {

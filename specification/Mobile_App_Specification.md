@@ -14,9 +14,11 @@ Dashboards an; das Erfassen von Transaktionen gehört nicht zum Umfang. Es bleib
 - Angular-Projekt `gt-mobile` (`frontend/src/gt-mobile/`, Ionic, keine Optimus UI), Build nach `dist/browser/m`
   mit Base Href `/grafioschtrader/m/`, Hash-Routing, Service Worker nur für die App-Hülle. Regeln in
   `frontend/CLAUDE.md` → „The mobile application“.
-- Ansichten: `#/login`, `#/dashboard` (Cards in der Reihenfolge des Layouts, Pull-to-Refresh),
-  `#/widget/:instanceId` (Vollbild). Daten über `MobileDashboardService` aus `GET /api/dashboard`,
-  `/api/dashboard/group/{n}` und `/api/dashboard/widget/{id}`; der gemeinsame Zustand in `MobileDashboardStore`.
+- Ansichten: `#/login`, die Tabs `#/tabs/dashboard` (Cards in der Reihenfolge des Layouts, Pull-to-Refresh) und
+  `#/tabs/watchlists` (Kursliste je Watchlist), `#/widget/:instanceId` (Vollbild). Dashboard-Daten über
+  `MobileDashboardService` aus `GET /api/dashboard`, `/api/dashboard/group/{n}` und `/api/dashboard/widget/{id}`, der
+  gemeinsame Zustand in `MobileDashboardStore`; Watchlists über `MobileWatchlistService` aus
+  `GET /api/watchlist/tenant`, `/api/watchlist/{id}` und `/api/watchlist/{id}/quote`.
 - Anmeldung über `POST /api/login`, JWT im `sessionStorage` (`MobileLoginService`). Nach dem Schliessen der App ist
   eine neue Anmeldung nötig.
 - Dev-Server: `npm run start:mobile` auf Port 4203 mit `proxy.conf.json`.
@@ -34,7 +36,9 @@ Neues Playwright-Projekt `gt-mobile-e2e` in `frontend/playwright.config.ts` mit 
 - öffnet die Vollbild-Ansicht von `PERFORMANCE_TOTAL_CHART`, wechselt den Zeitraum und prüft, dass
   `GET /api/dashboard/widget/{id}?config=` mit dem gewählten `range` gesendet wird und das Plotly-Element neu
   gezeichnet ist;
-- meldet sich ab und prüft, dass `#/dashboard` wieder auf `#/login` umleitet.
+- wechselt in den Tab `#/tabs/watchlists`, wählt eine Watchlist mit einem gehaltenen Wertpapier und prüft, dass
+  dessen Zeile Bestand, Kursgewinn und Total Position zeigt und eine nicht gehaltene Zeile keine dritte Zeile hat;
+- meldet sich ab und prüft, dass `#/tabs/dashboard` wieder auf `#/login` umleitet.
 
 Die Spec legt keine Daten an und braucht deshalb keine Bereinigung.
 

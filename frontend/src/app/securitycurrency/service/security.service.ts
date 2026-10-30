@@ -244,8 +244,8 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
 
   getSecurityStatisticsReturnResult(
     idSecuritycurrency: number,
-    dateFrom: Date | string,
-    dateTo: Date | string
+    dateFrom: Date | string | undefined,
+    dateTo: Date | string | undefined
   ): Observable<InstrumentStatisticsResult> {
     return this.httpClient
       .get<InstrumentStatisticsResult>(
@@ -278,7 +278,11 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     } satisfies HttpResourceRequest;
   }
 
-  private getDateFromAndTo(dateFrom: Date | string, dateTo: Date | string, httpHeaders: HttpHeaders) {
+  private getDateFromAndTo(
+    dateFrom: Date | string | undefined,
+    dateTo: Date | string | undefined,
+    httpHeaders: HttpHeaders
+  ) {
     let httpParams = new HttpParams();
     dateFrom &&
       (httpParams = httpParams.append('dateFrom', moment(dateFrom).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)));

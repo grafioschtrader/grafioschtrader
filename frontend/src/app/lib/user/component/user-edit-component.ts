@@ -56,15 +56,8 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'timezoneOffset', true, -720, 720, {
         fieldSuffix: 'MINUTES'
       }),
-      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'securityBreachCount', true, 0, 99, null),
-      DynamicFieldHelper.createFieldMinMaxNumberHeqF(
-        DataType.NumericInteger,
-        'limitRequestExceedCount',
-        true,
-        0,
-        99,
-        null
-      ),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'securityBreachCount', true, 0, 99),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'limitRequestExceedCount', true, 0, 99),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this, true)
       // DynamicFieldHelper.createSubmitButton()
     ];

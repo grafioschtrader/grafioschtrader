@@ -163,7 +163,8 @@ export class TranslateHelper {
   public static translateMessageError(translateService: TranslateService, fieldConfig: ValidationErrorRule) {
     fieldConfig.errors
       ?.filter((e) => !e.text)
-      .forEach((error) =>
+      .forEach((error) => {
+        if (error.keyi18n === null) return;
         translateService
           .get(error.keyi18n, {
             param1: error.param1,
@@ -173,8 +174,8 @@ export class TranslateHelper {
             error.text = text;
             // The text sits below the errors property, so the form is notified explicitly
             FormNotifier.notifyOf(fieldConfig);
-          })
-      );
+          });
+      });
   }
 
   /**

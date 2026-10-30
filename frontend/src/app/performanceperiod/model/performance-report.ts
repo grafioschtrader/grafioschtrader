@@ -45,7 +45,7 @@ export function performanceReportFilename(disposition: string | null): string {
     name
       .split(/[\\/]/)
       .pop()
-      .replace(/[\x00-\x1f]/g, '_') || 'performance.pdf'
+      ?.replace(/[\x00-\x1f]/g, '_') || 'performance.pdf'
   );
 }
 

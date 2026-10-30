@@ -62,8 +62,20 @@ keys and `PanelClickEvent` for native panel clicks. Keep the library independent
 types. `npx tsc -p tsconfig.spec.json --noEmit` checks the test sources in addition to both host builds.
 Column header tooltips are optional, and cell-tooltip callbacks can return null/undefined for no tooltip.
 `SingleRecordConfigBase` accepts null when a derived view invalidates its field-group cache and rebuilds it on demand.
+`Helper.getReferencedDataObject` accepts a null key argument when the field supplies `dataproperty`; a missing key
+configuration raises a named error. Proposal handler redirection returns null when the current entity mapping applies.
+`ColumnConfig.headerKey` can be null for formatting-only columns. Header and tooltip translation skip absent keys,
+while header groups retain their own translation; stored column visibility omits absent keys.
 HTTP calls declare their response body types; an error handler that only rethrows returns `Observable<never>`.
 Login supplies `HttpResponse<ConfigurationWithLogin>` with the token header and configuration body.
+Login handlers check both values before establishing the session. Missing tenant ids, time zones and roles retain
+their absence; `requireIdTenant()` checks actions requiring an active tenant. Role/feature checks grant no access
+without session data, and missing entity-key/field-size metadata raises a named initialization error.
+Dashboard documents/catalogues and widget results can be absent; deferred catalogue actions receive the loaded
+catalogue. Conditional forms remain optional, and the token editor clears its one-time result before the next render.
+Text-only error rules can omit their translation key with null. `FilterableTable` includes the null filter-clear
+sentinel accepted by both Optimus table implementations.
+The full-year calendar retains its date guard for undated padding days at the edges of a month.
 Validators accept `AbstractControl`; generic event handlers keep the concrete event type supplied by the host.
 
 During the null-check migration, `npm run check:strict` guards the per-module diagnostic baseline for the main

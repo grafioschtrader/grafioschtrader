@@ -27,7 +27,7 @@ export class SecurityPrepareEdit extends GeneralEntityPrepareEdit<Security> impl
    * @param proposedEntity - The security being proposed for editing
    * @returns Derived entity mapping identifier if security is derived, null otherwise
    */
-  override redirectEntityMapping(proposedEntity: Security): string {
+  override redirectEntityMapping(proposedEntity: Security): string | null {
     return proposedEntity.idLinkSecuritycurrency ? this.derivedEntityMapping : null;
   }
 }

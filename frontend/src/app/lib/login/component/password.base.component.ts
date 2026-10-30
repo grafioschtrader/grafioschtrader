@@ -56,7 +56,7 @@ export abstract class PasswordBaseComponent {
       rules: [RuleEvent.TOUCHED, 'dirty']
     });
 
-    this.setValidators(PasswordBaseComponent.passwordConfirm, equalTo(this.configObject.password.formControl), {
+    this.setValidators(PasswordBaseComponent.passwordConfirm, equalTo(requireFormControl(this.configObject.password)), {
       name: 'equalTo',
       keyi18n: 'equalToPassword',
       rules: [RuleEvent.TOUCHED, 'dirty']

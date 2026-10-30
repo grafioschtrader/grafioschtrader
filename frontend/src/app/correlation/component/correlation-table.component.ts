@@ -227,7 +227,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
     this.securityCurrencyColumn =
       columnHeader !== null && field.userValue != null
-        ? (this.correlationSet()?.securitycurrencyList[field.userValue] ?? null)
+        ? (this.correlationSet()?.securitycurrencyList?.[field.userValue] ?? null)
         : null;
   }
 
@@ -263,7 +263,11 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       label: 'ADD_EXISTING_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: (e) => this.addExistingSecurity(e),
       disabled:
-        !limits?.length || !set || set.idCorrelationSet == null || set.securitycurrencyList.length >= limits[0].limit
+        !limits?.length ||
+        !set ||
+        set.idCorrelationSet == null ||
+        !set.securitycurrencyList ||
+        set.securitycurrencyList.length >= limits[0].limit
     });
     const id = this.selectedEntity()?.idSecuritycurrency;
     if (id != null) {
@@ -477,7 +481,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     this.correlationSet.set(
       correlationSet
         ? Object.assign(new CorrelationSet(), correlationSet, {
-            securitycurrencyList: correlationSet.securitycurrencyList.map((row, index) =>
+            securitycurrencyList: correlationSet.securitycurrencyList?.map((row, index) =>
               Object.hasOwn(row, this.tickerSymbol) && !(row as Security).tickerSymbol
                 ? Object.assign(new Security(), row, { tickerSymbol: '(' + index + ')' })
                 : row
@@ -511,7 +515,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   private addTickerAndCorrelationColumnDefinition(correlationSet: CorrelationSet): void {
     this.addColumnFeqH(DataType.String, this.tickerSymbol, true, false);
     let i = 0;
-    correlationSet.securitycurrencyList.forEach((sc) => {
+    correlationSet.securitycurrencyList?.forEach((sc) => {
       let label = sc.hasOwnProperty(this.tickerSymbol) ? (<Security>sc)[this.tickerSymbol] : sc.name;
       if (!label) {
         label = '(' + i + ')';
@@ -554,7 +558,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   /** Reloads surviving pairs when dates, adjustments or instruments change. */
   public refreshChartWhenCorrelationSetChanges(): void {
     const set = this.correlationSet();
-    const ids = new Set(this.correlationSet()?.securitycurrencyList.map((sc) => sc.idSecuritycurrency) ?? []);
+    const ids = new Set(set?.securitycurrencyList?.map((sc) => sc.idSecuritycurrency) ?? []);
     Object.keys(this.chartPairs).forEach((key) => {
       if (this.chartPairs[key].some((id) => !ids.has(id))) {
         delete this.chartPairs[key];

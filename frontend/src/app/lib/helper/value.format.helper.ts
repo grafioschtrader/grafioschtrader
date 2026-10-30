@@ -47,7 +47,7 @@ export class ValueFormatHelper {
    * appropriate locale-specific formatting.
    *
    * @param settings Locale and formatting settings
-   * @param dataobject Source data object
+   * @param rowObject Source data object
    * @param field Column configuration specifying data type and formatting
    * @param valueField Path to the value within the data object
    * @param currencyFieldOverride Optional path to the currency code within the data object. Used by group/grand-total
@@ -57,13 +57,12 @@ export class ValueFormatHelper {
    */
   public static getValueByPathWithField(
     settings: ValueFormatSettings,
-    dataobject: any,
+    rowObject: unknown,
     field: ValueFormatField,
     valueField: string,
     currencyFieldOverride?: string
   ) {
-    const rowObject = dataobject;
-    dataobject = ValueFormatHelper.getValueByPath(dataobject, valueField);
+    const dataobject = ValueFormatHelper.getValueByPath(rowObject, valueField);
     if (dataobject || (field.dataType === DataType.NumericShowZero && dataobject === 0)) {
       switch (field.dataType) {
         case DataType.NumericInteger:
@@ -169,7 +168,7 @@ export class ValueFormatHelper {
    * @param field Column configuration possibly carrying fractionDigitsField/fixedFractionDigits
    * @returns Number of fraction digits or undefined
    */
-  private static resolveFractionDigits(rowObject: any, field: ValueFormatField): number | undefined {
+  private static resolveFractionDigits(rowObject: unknown, field: ValueFormatField): number | undefined {
     if (field.fractionDigitsField && rowObject) {
       const fractionDigits = ValueFormatHelper.getValueByPath(rowObject, field.fractionDigitsField);
       if (fractionDigits != null) {
@@ -192,7 +191,7 @@ export class ValueFormatHelper {
    * @returns Resolved currency code or undefined
    */
   private static resolvePrecisionCurrency(
-    rowObject: any,
+    rowObject: unknown,
     field: ValueFormatField,
     currencyFieldOverride?: string
   ): string | undefined {

@@ -1,3 +1,4 @@
+import type { Layout, ScatterData } from 'plotly.js';
 import { PerformanceTotalChart, PerformanceTotalChartPoint } from './performance.total.chart';
 
 /** Line colors in a fixed order, the same first two slots the other charts of GT use. */
@@ -39,7 +40,7 @@ export function performanceTotalChartTraces(
   points: PerformanceTotalChartPoint[],
   texts: PerformanceTotalChartTexts,
   format: PerformanceTotalChartFormat
-): any[] {
+): Partial<ScatterData>[] {
   const x = points.map((p) => p.date);
   const customdata = points.map((p) => [
     format.date(p),
@@ -83,7 +84,10 @@ export function performanceTotalChartTraces(
  * @param surface Colors and separators of the surface
  * @returns Plotly layout
  */
-export function performanceTotalChartLayout(chart: PerformanceTotalChart, surface: PerformanceTotalChartSurface): any {
+export function performanceTotalChartLayout(
+  chart: PerformanceTotalChart,
+  surface: PerformanceTotalChartSurface
+): Partial<Layout> {
   return {
     autosize: true,
     margin: { l: 8, r: 16, t: 30, b: 8 },

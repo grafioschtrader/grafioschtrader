@@ -119,7 +119,7 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
 })
 export class GTNetExpandedComponent {
   /** The peer of the expanded row. */
-  readonly gtNet = input<GTNet>(undefined);
+  readonly gtNet = input<GTNet>();
   readonly exchangeKindTypes = input<ExchangeKindTypeInfo[]>([]);
   /** Messages of this peer, loaded by the parent when the row was expanded. */
   readonly gtNetMessages = input<GTNetMessage[]>([]);
@@ -137,7 +137,7 @@ export class GTNetExpandedComponent {
   readonly outgoingPendingIds = input<Set<number>>(new Set());
   readonly formDefinitions = input<{
     [type: string]: ClassDescriptorInputAndShow;
-  }>(undefined);
+  }>();
   /** True while the parent is still fetching the lazily loaded panels. */
   readonly loading = input(false);
 

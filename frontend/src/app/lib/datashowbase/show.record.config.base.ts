@@ -225,7 +225,7 @@ export abstract class ShowRecordConfigBase {
   public static createColumnConfig(
     dataType: DataType,
     field: string,
-    headerKey: string,
+    headerKey: string | null,
     visible: boolean = true,
     changeVisibility: boolean = true,
     optionalParams?: OptionalParams
@@ -336,7 +336,7 @@ export abstract class ShowRecordConfigBase {
    * This method handles the complete translation process for all configured columns.
    */
   translateHeadersAndColumns(): void {
-    const headerKeys: string[] = this.fields.map((field) => field.headerKey);
+    const headerKeys = this.fields.map((field) => field.headerKey).filter((key) => key != null);
     this.translateHeaders(headerKeys, this.fields);
     this.translateHeadersTooltips(headerKeys, this.fields);
     this.translateColumnTotalTextValue(this.fields);
@@ -458,15 +458,19 @@ export abstract class ShowRecordConfigBase {
    * @param columConfig - Array of column configurations to update with translations
    * @protected
    */
-  protected translateHeaders(translateHeaderKeys: string[], columConfig: ColumnConfig[]): void {
-    const groupKeys = columConfig.map((f) => f.headerGroupKey).filter((k) => k != null && k !== '');
-    const allKeys = [...new Set([...translateHeaderKeys.filter((thk) => !!thk), ...groupKeys])];
+  protected translateHeaders(translateHeaderKeys: (string | null)[], columConfig: ColumnConfig[]): void {
+    const groupKeys = columConfig.map((f) => f.headerGroupKey).filter((k): k is string => k != null && k !== '');
+    const allKeys = [
+      ...new Set([...translateHeaderKeys.filter((thk): thk is string => thk != null && thk !== ''), ...groupKeys])
+    ];
     this.translateService.get(allKeys).subscribe((allTranslatedTexts: any) => {
       columConfig.forEach((field) => {
         field.headerTranslated =
-          (field.headerPrefix == null ? '' : field.headerSuffix + ' ') +
-          allTranslatedTexts[field.headerKey] +
-          (field.headerSuffix == null ? '' : ' ' + field.headerSuffix);
+          field.headerKey == null
+            ? undefined
+            : (field.headerPrefix == null ? '' : field.headerSuffix + ' ') +
+              allTranslatedTexts[field.headerKey] +
+              (field.headerSuffix == null ? '' : ' ' + field.headerSuffix);
         if (field.headerGroupKey) {
           field.headerGroupTranslated = allTranslatedTexts[field.headerGroupKey];
         }
@@ -489,6 +493,7 @@ export abstract class ShowRecordConfigBase {
       .get(translateHeaderKeys.map((thtk) => thtk + tSuffix))
       .subscribe((allTranslatedTexts: any) => {
         columConfig.forEach((field) => {
+          if (field.headerKey == null) return;
           const key = field.headerKey + tSuffix;
           field.headerTooltipTranslated =
             allTranslatedTexts[key] !== key ? allTranslatedTexts[key] : field.headerTooltipTranslated;

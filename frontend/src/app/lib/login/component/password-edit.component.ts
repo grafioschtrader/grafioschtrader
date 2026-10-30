@@ -1,4 +1,4 @@
-import { Component, OnInit, input, linkedSignal, inject } from '@angular/core';
+import { Component, OnInit, input, linkedSignal, inject, viewChild } from '@angular/core';
 import { MainDialogService } from '../../mainmenubar/service/main.dialog.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { LoginService } from '../service/log-in.service';
@@ -15,6 +15,7 @@ import { GlobalSessionNames } from '../../global.session.names';
 import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
 import { HelpIds } from '../../help/help.ids';
 
+import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 
@@ -50,11 +51,15 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
   readonly visibleDialogInput = input<boolean>(undefined, { alias: 'visibleDialog' });
   readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
 
+  override readonly form = viewChild.required(DynamicFormComponent);
+
   private static readonly passwordOld = 'passwordOld';
 
   constructor() {
     super();
-    this.changePasswdFormDefinition(JSON.parse(sessionStorage.getItem(GlobalSessionNames.USER_FORM_DEFINITION)));
+    this.changePasswdFormDefinition(
+      JSON.parse(sessionStorage.getItem(GlobalSessionNames.USER_FORM_DEFINITION) ?? 'null')
+    );
   }
 
   ngOnInit(): void {
@@ -62,7 +67,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
       this.passwordRegexProperties = prp;
       this.form().setDefaultValuesAndEnableSubmit();
       super.preparePasswordFields();
-      this.configObject[PasswordEditComponent.passwordOld].elementRef.nativeElement.focus();
+      this.configObject[PasswordEditComponent.passwordOld].elementRef?.nativeElement.focus();
     });
   }
 

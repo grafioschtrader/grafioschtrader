@@ -450,8 +450,10 @@ export class GenericConnectorComponent
   // --- Admin actions ---
 
   private handleActivate(entity: GenericConnectorDef): void {
+    const id = entity.idGenericConnector;
+    if (id == null) return;
     this.genericConnectorDefService
-      .activateConnector(entity.idGenericConnector)
+      .activateConnector(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
@@ -462,6 +464,8 @@ export class GenericConnectorComponent
   }
 
   private handleDeactivate(entity: GenericConnectorDef): void {
+    const id = entity.idGenericConnector;
+    if (id == null) return;
     forkJoin([
       this.translateService.get('MSG_CONFIRM_DEACTIVATE_CONNECTOR', {
         count: entity.instrumentCount
@@ -475,7 +479,7 @@ export class GenericConnectorComponent
           header: header,
           accept: () => {
             this.genericConnectorDefService
-              .deactivateConnector(entity.idGenericConnector)
+              .deactivateConnector(id)
               .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe(() => {
                 this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {

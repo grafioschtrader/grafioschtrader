@@ -42,7 +42,7 @@ export class SecuritysplitEditTableComponent extends SplitPeriodTableBase<Securi
     super.addDataRow(rowData);
   }
 
-  getCreateTypeIcon(entity: Securitysplit, field: ColumnConfig): string {
-    return DividendSplitSvgCreator.createTypeIconMap[entity.createType];
+  getCreateTypeIcon(entity: Securitysplit, field: ColumnConfig): string | undefined {
+    return entity.createType == null ? undefined : DividendSplitSvgCreator.createTypeIconMap[entity.createType];
   }
 }

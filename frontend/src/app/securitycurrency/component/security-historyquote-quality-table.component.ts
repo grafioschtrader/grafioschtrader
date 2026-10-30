@@ -67,9 +67,9 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase {
   private timeSeriesQuotesService: TimeSeriesQuotesService = inject(TimeSeriesQuotesService);
   private securityService: SecurityService = inject(SecurityService);
 
-  readonly historyquoteQualityIds = input<HistoryquoteQualityIds>(undefined);
+  readonly historyquoteQualityIds = input<HistoryquoteQualityIds>();
   readonly groupTitle = input<string>();
-  readonly changedIdSecurity = output<SecurityIdWithCurrency>();
+  readonly changedIdSecurity = output<SecurityIdWithCurrency | null>();
 
   readonly selectedSecurity = signal<IHistoryquoteQualityWithSecurityProp | null>(null);
   readonly hqwspList = computed(() => (this.qualityResource.hasValue() ? this.qualityResource.value() : []));
@@ -120,7 +120,7 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase {
 
   onRowSelect(event: { data?: IHistoryquoteQualityWithSecurityProp | IHistoryquoteQualityWithSecurityProp[] }): void {
     const selected = Array.isArray(event.data) ? event.data[0] : event.data;
-    this.changedIdSecurity.emit(new SecurityIdWithCurrency(selected.idSecurity, selected.currency));
+    if (selected) this.changedIdSecurity.emit(new SecurityIdWithCurrency(selected.idSecurity, selected.currency));
   }
 
   onRowUnselect(event: unknown): void {

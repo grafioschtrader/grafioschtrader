@@ -107,11 +107,11 @@ export class PerformanceTotalChartWidgetComponent
   private elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private zone: NgZone = inject(NgZone);
 
-  readonly result = input<DashboardResult>(undefined);
+  readonly result = input<DashboardResult>();
   /** Set by the dashboard while this card takes over the whole dashboard area. */
   readonly maximized = input(false);
 
-  readonly plotElement = viewChild<ElementRef<HTMLDivElement>>('plot');
+  readonly plotElement = viewChild.required<ElementRef<HTMLDivElement>>('plot');
 
   /** Server results replace the local chart; maximizing alone keeps its chosen portfolio and period. */
   readonly chart = linkedSignal(() => this.result()?.payload?.custom as PerformanceTotalChart);

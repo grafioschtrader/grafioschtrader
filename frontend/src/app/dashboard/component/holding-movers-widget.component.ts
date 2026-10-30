@@ -72,7 +72,7 @@ export class HoldingMoversWidgetComponent implements AfterViewInit, OnDestroy {
   private dashboardService = inject(DashboardService);
   private userSettingsService = inject(UserSettingsService);
 
-  readonly result = input<DashboardResult>(undefined);
+  readonly result = input<DashboardResult>();
 
   readonly form = viewChild<DynamicFormComponent>('form');
 

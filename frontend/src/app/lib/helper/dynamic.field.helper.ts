@@ -1553,9 +1553,12 @@ export class DynamicFieldHelper {
     translateService: TranslateService,
     fieldConfig: FieldConfig,
     rule: ErrorMessageRules,
-    textKey: string = rule.keyi18n,
+    textKey: string | null = rule.keyi18n,
     params: { [key: string]: any } = { param1: rule.param1, param2: rule.param2 }
   ): void {
+    if (textKey === null) {
+      throw new Error('A translated error rule requires a translation key');
+    }
     rule.text = null;
     fieldConfig.errors = [...(fieldConfig.errors ?? []).filter((e) => e.name !== rule.name), rule];
     translateService.get(textKey, params).subscribe((text) => {

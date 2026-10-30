@@ -12,7 +12,7 @@ import { ChartData } from '../plotly.helper';
 @Service()
 export class ChartDataService {
   // lastCallBackFN: (traceIndex: number, dataPointIndex: number) => void;
-  private idShownChart: string = null;
+  private idShownChart: string | null = null;
 
   private requestFromChart = new Subject<string>();
   requestFromChart$ = this.requestFromChart.asObservable();

@@ -87,7 +87,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
   private gps: GlobalparameterService = inject(GlobalparameterService);
   private taxDataService: TaxDataService = inject(TaxDataService);
 
-  readonly entity = input<Security>(undefined);
+  readonly entity = input<Security | null>();
   readonly securityName = input<string>();
   /** Currency of the edited security, the basis of the proposed day-count convention. */
   readonly currency = input<string>();
@@ -100,12 +100,12 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
   private couponRateSubscribe: Subscription;
   private applyingCouponRatePrefill = false;
   private couponRateOverridden = false;
-  private lastCouponRatePrefill: number = null;
+  private lastCouponRatePrefill: number | null = null;
   private couponDayCountDefaults: CouponDayCountDefaults;
   private couponDayCountSubscribe: Subscription;
   private applyingCouponDayCountPrefill = false;
   private couponDayCountOverridden = false;
-  private lastCouponDayCountPrefill: string = null;
+  private lastCouponDayCountPrefill: string | null = null;
 
   constructor() {
     super();
@@ -175,15 +175,14 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
   }
 
   transfer(target: Security): boolean {
-    if (!this.form()) {
-      return false;
-    }
-    this.form().form.markAllAsTouched();
-    if (this.form().form.invalid) {
+    const form = this.form();
+    if (!form) return false;
+    form.form.markAllAsTouched();
+    if (form.form.invalid) {
       return false;
     }
     const bondTerms: SecurityBondTerms = {};
-    this.form().cleanMaskAndTransferValuesToBusinessObject(bondTerms, true);
+    form.cleanMaskAndTransferValuesToBusinessObject(bondTerms, true);
     if (bondTerms.couponDayCount === '') {
       bondTerms.couponDayCount = null;
     }
@@ -205,15 +204,16 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
   }
 
   private initializeForm(): void {
-    if (!this.form() || !this.configObject) {
+    const form = this.form();
+    if (!form || !this.configObject) {
       return;
     }
     this.couponRateSubscribe?.unsubscribe();
     this.couponDayCountSubscribe?.unsubscribe();
-    this.form().setDefaultValuesAndEnableSubmit();
+    form.setDefaultValuesAndEnableSubmit();
     const storedTerms = this.entity()?.simulationMetadata?.bondTerms;
     if (storedTerms) {
-      this.form().transferBusinessObjectToForm(storedTerms);
+      form.transferBusinessObjectToForm(storedTerms);
     }
     this.couponRateOverridden = storedTerms?.couponRate != null;
     this.lastCouponRatePrefill = null;

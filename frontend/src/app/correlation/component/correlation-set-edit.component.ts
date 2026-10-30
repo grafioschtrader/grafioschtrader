@@ -38,10 +38,10 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
   /** Dialog configuration parameters containing entity data and operation context */
   private readonly injector = inject(Injector);
 
-  readonly callParam = input<CallParam>(undefined);
+  readonly callParam = input.required<CallParam>();
 
   /** Correlation set limits and configuration constraints for validation */
-  readonly correlationLimit = input<CorrelationLimit>(undefined);
+  readonly correlationLimit = input.required<CorrelationLimit>();
 
   /** Helper service for managing correlation-specific form fields and validation */
   private correlationEditingSupport: CorrelationEditingSupport = new CorrelationEditingSupport();

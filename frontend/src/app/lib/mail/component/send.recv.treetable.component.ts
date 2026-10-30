@@ -173,7 +173,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
           const replyId = mailSendRecv.idReplyToLocal;
           const parent = replyId == null ? undefined : this.sendRecvParentMap[replyId];
           if (parent) {
-            parent.children.push({
+            (parent.children ??= []).push({
               data: mailSendRecv,
               expanded: false,
               leaf: true

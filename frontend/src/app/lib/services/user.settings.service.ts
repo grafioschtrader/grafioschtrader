@@ -10,7 +10,7 @@ export class UserSettingsService {
   }
 
   public readSingleValue(propertyKey: string): any {
-    return JSON.parse(localStorage.getItem(propertyKey));
+    return JSON.parse(localStorage.getItem(propertyKey) ?? 'null');
   }
 
   /// -----------------------------------------------------------
@@ -21,7 +21,7 @@ export class UserSettingsService {
   }
 
   public readArray(propertyKey: string): any[] {
-    const value: string = localStorage.getItem(propertyKey);
+    const value = localStorage.getItem(propertyKey);
     return value ? JSON.parse(value) : [];
   }
 

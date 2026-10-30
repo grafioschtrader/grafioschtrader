@@ -36,7 +36,7 @@ import { WidgetBodyComponent } from '../widget/widget-body.component';
     <ion-header>
       <ion-toolbar color="primary">
         <ion-buttons slot="start">
-          <ion-back-button defaultHref="/dashboard" />
+          <ion-back-button defaultHref="/tabs/dashboard" />
         </ion-buttons>
         <ion-title>{{ title() | translate }}</ion-title>
       </ion-toolbar>

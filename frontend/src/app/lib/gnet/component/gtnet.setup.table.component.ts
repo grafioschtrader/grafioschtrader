@@ -257,7 +257,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   };
 
   /** Highlights the own entry */
-  readonly isMyEntry = (row: GTNet, field: ColumnConfig): boolean => row.idGtNet === this.gtNetMyEntryId();
+  readonly isMyEntry = (row: GTNet, field: ColumnConfig | null): boolean => row.idGtNet === this.gtNetMyEntryId();
 
   constructor() {
     super(
@@ -511,7 +511,9 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
       return;
     }
-    const id = this.selectedEntity().idGtNet;
+    const selected = this.selectedEntity();
+    if (!selected) return;
+    const id = selected.idGtNet;
     this.gtNetService.checkPeerStatus(id).subscribe({
       next: (updated) => {
         if (this.entityList().some((g) => g.idGtNet === id)) {
@@ -712,7 +714,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   /** Returns connection timeout from nested gtNetConfig, or null if not set */
-  getConnectionTimeout(dataobject: GTNet, field: ColumnConfig, valueField: any): number {
+  getConnectionTimeout(dataobject: GTNet, field: ColumnConfig, valueField: any): number | null {
     return dataobject.gtNetConfig?.connectionTimeout ?? null;
   }
 

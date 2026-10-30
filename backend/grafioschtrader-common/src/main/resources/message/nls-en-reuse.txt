@@ -98,3 +98,6 @@ RESOLVER_ARGUMENT
 WIC_DEFAULT_1
 WIC_DEFAULT_4
 WIC_DEFAULT_8
+
+# --- Deliberate: the English loanword is the usual German term as well.
+MOBILE_WATCHLISTS

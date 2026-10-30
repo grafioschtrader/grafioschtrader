@@ -156,11 +156,11 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
     }
   }
 
-  getReleaseLogoutProposeIcon(user: User, field: ColumnConfig): string {
+  getReleaseLogoutProposeIcon(user: User, field: ColumnConfig): string | null {
     return user.userChangePropose ? UserTableComponent.createTypeIconMap[UserTaskType.RELEASE_LOGOUT] : null;
   }
 
-  getLimitProposeIcon(user: User, field: ColumnConfig): string {
+  getLimitProposeIcon(user: User, field: ColumnConfig): string | null {
     return user.userChangeLimitProposeList.length > 0
       ? UserTableComponent.createTypeIconMap[UserTaskType.LIMIT_CUD_CHANGE]
       : null;
@@ -204,8 +204,10 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       if (processedActionData.action === ProcessedAction.REJECT_DATA_CHANGE) {
         // Reject the proposed user changes, which were created by a user violation
+        const proposalId = this.selectedEntity()?.userChangePropose?.idProposeRequest;
+        if (proposalId == null) return;
         this.proposeUserTaskService
-          .rejectUserTask(this.selectedEntity().userChangePropose.idProposeRequest, processedActionData.data)
+          .rejectUserTask(proposalId, processedActionData.data)
           .subscribe((stringResponse) =>
             this.messageToastService.showMessage(InfoLevelType.SUCCESS, stringResponse.response)
           );

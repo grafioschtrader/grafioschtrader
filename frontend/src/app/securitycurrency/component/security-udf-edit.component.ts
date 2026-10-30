@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { Assetclass } from '../../entities/assetclass';
 import { SecurityUDFHelper } from './security.udf.helper';
 import { BaseUDFDataEdit } from '../../lib/udfmeta/components/base.udf.data.edit';
 import { Security } from '../../entities/security';
@@ -26,7 +25,7 @@ export class SecurityUDFEditComponent extends BaseUDFDataEdit implements OnInit 
   }
 
   ngOnInit(): void {
-    const assetclass: Assetclass = (<Security>this.uDFGeneralCallParam().selectedEntity).assetClass;
+    const assetclass = (<Security>this.uDFGeneralCallParam().selectedEntity).assetClass;
     super.baseInit(SecurityUDFHelper.getFieldDescriptorInputAndShowExtendedSecurity(assetclass, false));
   }
 }

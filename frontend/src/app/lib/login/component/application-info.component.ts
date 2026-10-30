@@ -23,5 +23,5 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 export class ApplicationInfoComponent {
   translateService = inject(TranslateService);
 
-  readonly applicationInfo = input<ApplicationInfo>(undefined);
+  readonly applicationInfo = input<ApplicationInfo | null>();
 }

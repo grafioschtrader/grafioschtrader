@@ -62,7 +62,7 @@ export class SecurityEditSupport {
   constructor(
     private translateService: TranslateService,
     private gps: GlobalparameterService,
-    private callbackValueChanged: CallbackValueChanged
+    private callbackValueChanged: CallbackValueChanged | null
   ) {}
 
   static getSecurityBaseFieldDefinition(securityDerived: SecurityDerived, gps: GlobalparameterService): FieldConfig[] {
@@ -352,11 +352,11 @@ export class SecurityEditSupport {
    */
   setStockexchangeOptions(
     configObject: { [name: string]: FieldConfig },
-    restrictToNoMarketValue: boolean | null
+    restrictToNoMarketValue: boolean | null | undefined
   ): void {
     const stockexchanges = <Stockexchange[]>configObject.stockexchange.referencedDataObject;
     const offered =
-      restrictToNoMarketValue === null
+      restrictToNoMarketValue == null
         ? stockexchanges
         : stockexchanges.filter((stockexchange) => stockexchange.noMarketValue === restrictToNoMarketValue);
     configObject.stockexchange.groupItem = [new GroupItem('', '', '', null)].concat(
@@ -387,7 +387,7 @@ export class SecurityEditSupport {
    * @return true when the stock exchange can be selected
    */
   isStockexchangeOffered(configObject: { [name: string]: FieldConfig }, idStockexchange: number): boolean {
-    return configObject.stockexchange.groupItem.some((groupItem) => groupItem.key === idStockexchange);
+    return configObject.stockexchange.groupItem?.some((groupItem) => groupItem.key === idStockexchange) ?? false;
   }
 
   removeFilterAssetclass(configObject: { [name: string]: FieldConfig }): void {
@@ -419,12 +419,8 @@ export class SecurityEditSupport {
   valueChangedOnAssetClass(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
     this.assetClassSubscribe = requireFormControl(configObject.assetClass).valueChanges.subscribe(
       (idAssetclass: number) => {
-        const assetClass: Assetclass = this.disableEnableFieldsOnAssetclass(
-          securityDerived,
-          configObject,
-          idAssetclass
-        );
-        this.callbackValueChanged && this.callbackValueChanged.valueChangedOnAssetClassExtend(assetClass);
+        const assetClass = this.disableEnableFieldsOnAssetclass(securityDerived, configObject, idAssetclass);
+        this.callbackValueChanged?.valueChangedOnAssetClassExtend(assetClass);
       }
     );
   }
@@ -433,12 +429,12 @@ export class SecurityEditSupport {
     securityDerived: SecurityDerived,
     configObject: { [name: string]: FieldConfig },
     idAssetclass: number
-  ): Assetclass {
-    let assetClass: Assetclass;
+  ): Assetclass | undefined {
+    let assetClass: Assetclass | undefined;
     if (idAssetclass) {
       assetClass = Helper.getReferencedDataObject(configObject.assetClass, null);
       this.enableDisableDenomination(configObject, assetClass, this.hasMarketValue);
-      this.hideShowSomeFields(securityDerived, configObject, assetClass);
+      if (assetClass) this.hideShowSomeFields(securityDerived, configObject, assetClass);
     }
     return assetClass;
   }
@@ -452,11 +448,12 @@ export class SecurityEditSupport {
     this.activeFromDateSubscribe = requireFormControl(configObject.activeFromDate).valueChanges.subscribe(
       (activeFromDate: Date) => {
         if (activeFromDate) {
-          configObject.activeToDate.calendarConfig.minDate = new Date(activeFromDate.getTime() + 86400000);
+          const calendar = configObject.activeToDate.calendarConfig;
+          if (!calendar) throw new Error('The activeToDate field requires its calendar configuration.');
+          calendar.minDate = new Date(activeFromDate.getTime() + 86400000);
           if (
             requireFormControl(configObject.activeToDate).value &&
-            requireFormControl(configObject.activeToDate).value.getTime() <
-              configObject.activeToDate.calendarConfig.minDate.getTime()
+            requireFormControl(configObject.activeToDate).value.getTime() < calendar.minDate.getTime()
           ) {
             requireFormControl(configObject.activeToDate).setValue(null);
           }
@@ -476,7 +473,7 @@ export class SecurityEditSupport {
 
   setPrivatePaper(
     securityDerived: SecurityDerived,
-    isPrivate: boolean,
+    isPrivate: boolean | null | undefined,
     configObject: {
       [name: string]: FieldConfig;
     }
@@ -491,8 +488,8 @@ export class SecurityEditSupport {
 
   prepareForSave(
     formBase: FormBase,
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity,
-    existingSecurity: Security,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined,
+    existingSecurity: Security | null | undefined,
     dynamicForm: DynamicFormComponent,
     value: { [name: string]: any }
   ): Security {
@@ -531,7 +528,7 @@ export class SecurityEditSupport {
    */
   private enableDisableDenomination(
     configObject: { [name: string]: FieldConfig },
-    assetClass: Assetclass,
+    assetClass: Assetclass | undefined,
     hasMarkedPrice: boolean
   ): void {
     if (configObject.denomination) {
@@ -582,5 +579,5 @@ export enum SecurityDerived {
 }
 
 export interface CallbackValueChanged {
-  valueChangedOnAssetClassExtend(assetClass: Assetclass): void;
+  valueChangedOnAssetClassExtend(assetClass: Assetclass | undefined): void;
 }
