@@ -59,7 +59,7 @@ import { BaseSettings } from '../../base.settings';
         #form="dynamicForm"
         (submitBt)="submit($event)" />
 
-      @if (callParam()?.isMyEntry && entityFieldsReady()) {
+      @if (callParam().isMyEntry && entityFieldsReady()) {
         <h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">
           {{ 'ENTITY_CONFIGURATIONS' | translate }}
         </h4>

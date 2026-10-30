@@ -29,7 +29,7 @@ import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configura
 export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase implements OnInit {
   private gtNetExchangeService: GTNetExchangeService = inject(GTNetExchangeService);
 
-  readonly idSecuritycurrency = input<number>(undefined);
+  readonly idSecuritycurrency = input.required<number>();
   /** Discriminator type: 'S' for Security, 'C' for Currencypair */
   readonly dtype = input<string>();
 

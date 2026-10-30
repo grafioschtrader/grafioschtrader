@@ -41,7 +41,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
 })
 export class CorrelationAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility state of the add instrument dialog */
-  readonly visibleAddInstrumentDialog = input<boolean>();
+  readonly visibleAddInstrumentDialog = input(false);
 
   /** The unique identifier of the correlation set to add instruments to */
   readonly idCorrelationSet = input.required<number>();

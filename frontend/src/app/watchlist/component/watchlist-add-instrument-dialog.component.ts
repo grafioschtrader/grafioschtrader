@@ -48,7 +48,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
 })
 export class WatchlistAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility of the add instrument dialog. */
-  readonly visibleAddInstrumentDialog = input<boolean>();
+  readonly visibleAddInstrumentDialog = input(false);
   /** The ID of the watchlist to add instruments to. */
   readonly idWatchlist = input.required<number>();
   /** Tenant limits for securities and currencies in the watchlist. */

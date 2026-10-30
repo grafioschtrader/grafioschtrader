@@ -67,11 +67,11 @@ export class TaxYearCorrectionTableComponent extends TableEditConfigBase {
   private confirmationService: ConfirmationService = inject(ConfirmationService);
 
   /** The security whose corrections are maintained. */
-  readonly idSecuritycurrency = input<number>(undefined);
+  readonly idSecuritycurrency = input.required<number>();
   /** Tax years offered for new rows in addition to the years with ICTax data (e.g. the report years). */
   readonly yearOptions = input<number[]>([]);
   /** Tax year preselected for new rows, typically the year the dialog was opened from. */
-  readonly suggestedYear = input<number>(undefined);
+  readonly suggestedYear = input.required<number>();
   /** Fires after any successful create/update/delete so the opener can reload the dividends report. */
   readonly dataChanged = output<void>();
 

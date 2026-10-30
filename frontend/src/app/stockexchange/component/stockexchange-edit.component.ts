@@ -56,8 +56,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   private tradingCalendarRuleSetService: TradingCalendarRuleSetService = inject(TradingCalendarRuleSetService);
   private securityService: SecurityService = inject(SecurityService);
 
-  readonly callParam = input<StockexchangeCallParam>(undefined);
-  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
+  readonly callParam = input.required<StockexchangeCallParam>();
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
   private readonly nameMaxLength = 32;
   private countriesAsKeyValue: { [cc: string]: string } = {};
   private ruleSetIdByMic: { [mic: string]: number } = {};
@@ -192,7 +192,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     requireFormControl(this.configObject.mic)
       .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((mic) => {
-        const sm: StockexchangeMic = this.callParam().stockexchangeMics.find((smf) => smf.mic === mic);
+        const sm = this.callParam().stockexchangeMics.find((smf) => smf.mic === mic);
         if (sm) {
           requireFormControl(this.configObject.name).setValue(sm.name.toLowerCase().substring(0, this.nameMaxLength));
           requireFormControl(this.configObject.countryCode).setValue(sm.countryCode);
@@ -249,7 +249,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private valueChangedOnCountryCode(): void {
-    const country = this.configObject.countryCode.formControl;
+    const country = requireFormControl(this.configObject.countryCode);
     country.valueChanges
       .pipe(
         startWith(country.value),
@@ -323,8 +323,9 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private addEntry(groupItem: GroupItem, sm: StockexchangeMic): void {
-    groupItem.children.splice(
-      this.sortedIndex(groupItem.children, sm.name),
+    const children = (groupItem.children ??= []);
+    children.splice(
+      this.sortedIndex(children, sm.name),
       0,
       new GroupItem(sm.mic, sm.mic, sm.name + ', ' + sm.city + ', ' + sm.mic, null)
     );

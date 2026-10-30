@@ -68,7 +68,7 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
         (rowEditSave)="onRowEditSave($event)"
         (rowSelect)="onRowSelect($event)"
         (rowUnselect)="onRowUnselect($event)" />
-      @if (selectedHead() && contextMenuItems()?.length > 0) {
+      @if (selectedHead() && contextMenuItems().length > 0) {
         <p-contextMenu [target]="cmDiv" [model]="contextMenuItems()" />
       }
     </div>
@@ -79,10 +79,10 @@ import { GTNet } from '../../../lib/gnet/model/gtnet';
         <securitycurrency-extended-info
           [securitycurrency]="position.security"
           [feedConnectorsKV]="feedConnectorsKV"
-          [intradayUrl]="getUrlForPosition(position, 'intradayUrl')"
-          [historicalUrl]="getUrlForPosition(position, 'historicalUrl')"
-          [dividendUrl]="getUrlForPosition(position, 'dividendUrl')"
-          [splitUrl]="getUrlForPosition(position, 'splitUrl')" />
+          [intradayUrl]="getUrlForPosition(position, 'intradayUrl') ?? undefined"
+          [historicalUrl]="getUrlForPosition(position, 'historicalUrl') ?? undefined"
+          [dividendUrl]="getUrlForPosition(position, 'dividendUrl') ?? undefined"
+          [splitUrl]="getUrlForPosition(position, 'splitUrl') ?? undefined" />
       } @else if (position.gaps?.length > 0) {
         <gtnet-security-imp-gap-table [gaps]="position.gaps" [gtNetsMap]="gtNetsMap()" />
       }
@@ -252,17 +252,16 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    */
   onRowExpand(event: { data: GTNetSecurityImpPos }): void {
     const position = event.data;
-    if (position.security?.idSecuritycurrency && !(position as any).dataProviderUrls) {
-      this.securityService
-        .getDataProviderUrls(position.security.idSecuritycurrency)
-        .subscribe((urls: SecurityDataProviderUrls) => {
-          // Store URLs directly on position for change detection
-          (position as any).dataProviderUrls = urls;
-          // Also cache for potential reuse
-          this.dataProviderUrlsCache[position.security.idSecuritycurrency] = urls;
-          // The expanded row reads the URLs from the position
-          this.notifyViewChanged();
-        });
+    const id = position.security?.idSecuritycurrency;
+    if (id != null && !(position as any).dataProviderUrls) {
+      this.securityService.getDataProviderUrls(id).subscribe((urls: SecurityDataProviderUrls) => {
+        // Store URLs directly on position for change detection
+        (position as any).dataProviderUrls = urls;
+        // Also cache for potential reuse
+        this.dataProviderUrlsCache[id] = urls;
+        // The expanded row reads the URLs from the position
+        this.notifyViewChanged();
+      });
     }
   }
 
@@ -285,9 +284,10 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     this.resetMenu();
     this.positionsSubscription?.unsubscribe();
 
-    if (head) {
+    const id = head?.idGtNetSecurityImpHead;
+    if (id != null) {
       this.positionsSubscription = this.gtNetSecurityImpPosService
-        .getByHead(head.idGtNetSecurityImpHead)
+        .getByHead(id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((positions: GTNetSecurityImpPos[]) => {
           const rows = positions.map((pos) => {
@@ -342,7 +342,9 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    */
   createNewEntity = (): GTNetSecurityImpPos => {
     const entity = new GTNetSecurityImpPos();
-    entity.idGtNetSecurityImpHead = this.selectedHead()?.idGtNetSecurityImpHead;
+    const id = this.selectedHead()?.idGtNetSecurityImpHead;
+    if (id == null) throw new Error('A new import position requires a persisted import head');
+    entity.idGtNetSecurityImpHead = id;
     (entity as any).rowKey = `new_${this.newRowCounter++}`;
     return entity;
   };
@@ -523,7 +525,8 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    */
   private handleDeletePosition(): void {
     const selected = this.selectedPosition();
-    if (!selected?.idGtNetSecurityImpPos) {
+    const id = selected?.idGtNetSecurityImpPos;
+    if (!selected || id == null) {
       return;
     }
 
@@ -532,7 +535,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|GTNET_SECURITY_IMP_POS',
       () => {
-        this.gtNetSecurityImpPosService.deleteEntity(selected.idGtNetSecurityImpPos).subscribe(() => {
+        this.gtNetSecurityImpPosService.deleteEntity(id).subscribe(() => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
             i18nRecord: 'GTNET_SECURITY_IMP_POS'
           });
@@ -551,7 +554,8 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    */
   private handleDeleteLinkedSecurity(): void {
     const selected = this.selectedPosition();
-    if (!selected?.idGtNetSecurityImpPos || !selected?.security) {
+    const id = selected?.idGtNetSecurityImpPos;
+    if (!selected?.security || id == null) {
       return;
     }
 
@@ -560,21 +564,19 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       this.confirmationService,
       'MSG_CONFIRM_DELETE_LINKED_SECURITY',
       () => {
-        this.gtNetSecurityImpPosService
-          .deleteLinkedSecurity(selected.idGtNetSecurityImpPos)
-          .subscribe((updatedPosition: GTNetSecurityImpPos) => {
-            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_LINKED_SECURITY_DELETED');
-            // Replace the position in the list
-            (updatedPosition as any).rowKey = `existing_${updatedPosition.idGtNetSecurityImpPos}`;
-            this.positions.update((positions) =>
-              positions.map((p) =>
-                p.idGtNetSecurityImpPos === updatedPosition.idGtNetSecurityImpPos ? updatedPosition : p
-              )
-            );
-            this.selectedPosition.set(updatedPosition);
-            this.resetMenu();
-            this.positionChanged.emit();
-          });
+        this.gtNetSecurityImpPosService.deleteLinkedSecurity(id).subscribe((updatedPosition: GTNetSecurityImpPos) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_LINKED_SECURITY_DELETED');
+          // Replace the position in the list
+          (updatedPosition as any).rowKey = `existing_${updatedPosition.idGtNetSecurityImpPos}`;
+          this.positions.update((positions) =>
+            positions.map((p) =>
+              p.idGtNetSecurityImpPos === updatedPosition.idGtNetSecurityImpPos ? updatedPosition : p
+            )
+          );
+          this.selectedPosition.set(updatedPosition);
+          this.resetMenu();
+          this.positionChanged.emit();
+        });
       }
     );
   }

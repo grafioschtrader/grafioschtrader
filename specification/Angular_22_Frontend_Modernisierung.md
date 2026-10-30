@@ -31,7 +31,7 @@ Erhoben über `src/**/*.ts` und `src/**/*.html` (961 TypeScript-Dateien einschli
 | --- | --- | --- |
 | Verzögertes Rendern | 0 × `@defer` | `@defer` nach Messung |
 | Formulare | `dynamic-form` auf `UntypedFormGroup` (10 Dateien in `lib/dynamic-form` und `lib/validator`), 107 Verwender | Signal Forms nach Prototyp |
-| Typisierung | `strict: false`, `strictTemplates: true`; `noImplicitAny`, `strictBindCallApply`, `strictFunctionTypes`, `noImplicitThis`, `useUnknownInCatchVariables`, `alwaysStrict`, `strictBuiltinIteratorReturn` aktiv | `strict: true` |
+| Typisierung | `strict: false`, `strictTemplates: true`; `noImplicitAny`, `strictBindCallApply`, `strictFunctionTypes`, `noImplicitThis`, `useUnknownInCatchVariables`, `alwaysStrict`, `strictBuiltinIteratorReturn`, `strictNullChecks` aktiv | `strict: true` |
 
 Fehlerzahlen von `npx tsc -p tsconfig.app.json --noEmit` mit zusätzlichen Compiler-Optionen (nur TypeScript-Code,
 Templates nicht mitgezählt):
@@ -39,9 +39,8 @@ Templates nicht mitgezählt):
 | Option | Fehler |
 | --- | --- |
 | Ohne zusätzliche Option | 0 |
-| `--strictNullChecks` | 250 (`entities` 60, `shared` 28, `imptransaction` 22, Rest < 100 je Modul) |
-| `--strictNullChecks --strictPropertyInitialization` | 1009 |
-| `--strict` | 1009 |
+| `--strictPropertyInitialization` | 757 |
+| `--strict` | 757 |
 
 ## 3. Querschnittsregeln
 
@@ -79,24 +78,10 @@ Regeln, die beide Hosts betreffen, gelten ebenso für `src/grafiosch-host/README
 
 ### 4.5 Strikte Typisierung
 
-1. **`strictNullChecks` über einen Zählstand.** Abbau in größeren Paketen mit gemeinsamer Ursache: Verträge in
-   Formular- und Tabellenbasisklassen zusammen mit ihren Verbrauchern, DTOs mit den betroffenen Anwendungsmodulen,
-   danach die verbleibenden Bereiche nach Fehlerzahl. Wiederkehrende Fehler werden über den zuständigen Basisvertrag
-   behoben; Paketgrenzen folgen diesem Zusammenhang; ein Paket soll 120 bis 180 Diagnosen beseitigen. Bestehende `null`-Initialwerte
-   und optionale Eigenschaften bleiben erhalten; ihre Typen und die Verbraucher bilden fehlende Werte ausdrücklich ab.
-   Jedes Paket wird mit `npm run check:strict` geprüft; `npm run check:strict -- --update` senkt anschließend die
-   Grenzen in `scripts/strict-null-baseline.json`. Die Zählung erfasst den TypeScript-Abhängigkeitsgraphen von
-   `tsconfig.app.json`; Angular-Templates und ausschließlich vom Bibliothekshost verwendete Dateien benötigen eigene
-   Prüfungen. Bei null Fehlern wird die Option in `tsconfig.json` für beide Hosts gesetzt. Mit `strictNullChecks`
-   prüft `strictTemplates` auch `null` in Template-Bindungen; diese Fehler kommen beim Einschalten hinzu und werden
-   in derselben Stufe bereinigt. Danach entfallen `scripts/strict-null-count.mjs`, seine Baseline und Hilfstests sowie
-   die zugehörigen npm-Aufrufe.
-2. **`strictPropertyInitialization` zuletzt.** Eingaben, Queries und Abhängigkeiten sind
-   initialisierte Felder; die verbleibenden Fehler betreffen fachliche Felder.
-3. Am Ende steht `"strict": true` in `tsconfig.json`, die Einzeloptionen entfallen.
-
-Strikte Null-Prüfung ist Voraussetzung dafür, dass `hasValue()` einer Ressource den Typ von `value()` tatsächlich
-einengt und dass Signal Forms typisierte Feldzugriffe liefern.
+1. **`strictPropertyInitialization`.** Eingaben, Queries und Abhängigkeiten sind initialisierte Felder; die
+   verbleibenden Fehler betreffen fachliche Felder. Ihre Initialwerte und Lebenszyklen werden ausdrücklich modelliert.
+   Benötigte Werte werden vor dem Zugriff geprüft; fehlende Daten erhalten keine erfundenen Standardwerte.
+2. Am Ende steht `"strict": true` in `tsconfig.json`, die Einzeloptionen entfallen.
 
 ### 4.6 `@defer` nach Messung
 
@@ -166,7 +151,6 @@ nach `frontend/CLAUDE.md`. Bis zu dieser Entscheidung gilt die bestehende Regel.
 | Absicherung | Ratchet-Tests in Vitest statt ESLint | Bewährtes Muster im Projekt, läuft mit `npm test`, keine zusätzliche Werkzeugkette |
 | Typisierte Reactive Forms (`FormGroup<T>`) | Keine Umstellung | Die Felder von `dynamic-form` sind erst zur Laufzeit bekannt; ein generischer Typ bringt dort keinen Gewinn. Typisierung kommt, falls überhaupt, mit Signal Forms |
 | Signal Forms | Prototyp in `dynamic-form`, kein Einzeldialog außerhalb | Nur dort zeigt sich, ob Deskriptoren, Layout und Optimus-Felder tragen |
-| `strictNullChecks` | Zählstand pro Verzeichnis statt Umstellung in einem Schritt | Der Gesamtbestand ist in einem Commit nicht prüfbar |
 | `@defer` | Nur nach Messung | Routen, Dialoge und Plotly sind bereits verzögert geladen |
 | Angular Aria | Für neu gebaute eigene Bedienelemente; kein Umbau bestehender Optimus-Komponenten | GT hat heute kein selbst gebautes Bedienelement, das einem Aria-Muster (Listbox, Combobox, Menü, Tabs, Baum, Grid, Toolbar) entspricht |
 

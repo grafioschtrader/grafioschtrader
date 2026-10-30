@@ -1,4 +1,5 @@
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
@@ -68,10 +69,12 @@ enum NodeLevel {
         <tax-exchange-rate-table [taxYear]="node.entity" />
       </ng-template>
       @if (visibleUploadFileDialog()) {
-        <upload-file-dialog
-          [visibleDialog]="visibleUploadFileDialog()"
-          [fileUploadParam]="fileUploadParam"
-          (closeDialog)="onUploadDialogClose()" />
+        @if (fileUploadParam; as uploadParam) {
+          <upload-file-dialog
+            [visibleDialog]="visibleUploadFileDialog()"
+            [fileUploadParam]="uploadParam"
+            (closeDialog)="onUploadDialogClose()" />
+        }
       }
       @if (modelCountry(); as country) {
         <tax-model-edit [visibleDialog]="true" [country]="country" (closeDialog)="closeModel()" />
@@ -102,7 +105,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   /** Row highlighted by the single-selection tree table. */
   readonly tableSelection = signal<TreeNode | null>(null);
   readonly contextMenuItems = signal<MenuItem[] | null>(null);
-  fileUploadParam: FileUploadParam;
+  fileUploadParam: FileUploadParam | null;
   readonly visibleUploadFileDialog = signal(false);
   isAdmin: boolean;
   readonly modelCountry = signal<TaxCountry | null>(null);
@@ -113,7 +116,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
     this.readData();
   }
 
-  private selectedNode: TreeNode;
+  private selectedNode: TreeNode | null;
   private countryNames: Intl.DisplayNames;
 
   constructor() {
@@ -268,7 +271,9 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
       if (level === NodeLevel.COUNTRY) {
         menuItems.push({
           label: 'TAX_MODEL_YAML' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: () => this.modelCountry.set(this.selectedNode.data.entity)
+          command: () => {
+            if (this.selectedNode) this.modelCountry.set(this.selectedNode.data.entity);
+          }
         });
         menuItems.push({
           label: 'CREATE_TAX_YEAR' + BaseSettings.DIALOG_MENU_SUFFIX,
@@ -330,7 +335,8 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   }
 
   private createYear(): void {
-    const country: TaxCountry = this.selectedNode.data.entity;
+    const country: TaxCountry | undefined = this.selectedNode?.data.entity;
+    if (!country) return;
     this.translateService
       .get('CREATE_TAX_YEAR')
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -359,7 +365,8 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   }
 
   private showUploadDialog(): void {
-    const year: TaxYear = this.selectedNode.data.entity;
+    const year: TaxYear | undefined = this.selectedNode?.data.entity;
+    if (!year) return;
     this.fileUploadParam = new FileUploadParam(
       HelpIds.HELP_TAX_DATA,
       null,
@@ -373,7 +380,8 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   }
 
   private deleteCountry(): void {
-    const country: TaxCountry = this.selectedNode.data.entity;
+    const country: TaxCountry | undefined = this.selectedNode?.data.entity;
+    if (!country) return;
     this.taxDataService
       .deleteCountry(country.idTaxCountry)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -381,7 +389,8 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   }
 
   private deleteYear(): void {
-    const year: TaxYear = this.selectedNode.data.entity;
+    const year: TaxYear | undefined = this.selectedNode?.data.entity;
+    if (!year) return;
     this.taxDataService
       .deleteYear(year.idTaxYear)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -389,7 +398,8 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   }
 
   private deleteUpload(): void {
-    const upload: TaxUpload = this.selectedNode.data.entity;
+    const upload: TaxUpload | undefined = this.selectedNode?.data.entity;
+    if (!upload) return;
     this.taxDataService
       .deleteUpload(upload.idTaxUpload)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -408,12 +418,15 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   }
 
   private reimportFile(): void {
-    const upload: TaxUpload = this.selectedNode.data.entity;
+    const upload: TaxUpload | undefined = this.selectedNode?.data.entity;
+    if (!upload) return;
     this.taxDataService
       .reimport(upload.idTaxUpload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((updated: TaxUpload) => {
-        this.messageToastService.showMessageI18n(null, 'REIMPORT_TAX_DATA_SUCCESS', { count: updated.recordCount });
+        this.messageToastService.showMessageI18n(InfoLevelType.INFO, 'REIMPORT_TAX_DATA_SUCCESS', {
+          count: updated.recordCount
+        });
         this.readData();
       });
   }

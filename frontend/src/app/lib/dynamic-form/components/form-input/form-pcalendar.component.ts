@@ -19,7 +19,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-datepicker
-        [id]="config.field"
+        [id]="fieldName"
         [style]="{ 'max-width': '180px' }"
         [inputStyleClass]="'form-control ' + (isRequired ? 'required-input' : '')"
         [showTime]="config.dataType === DataType.DateTimeNumeric"
@@ -29,17 +29,17 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
         pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}"
         #input
         [hideOnDateTimeSelect]="true"
-        [minDate]="config.calendarConfig.minDate"
-        [maxDate]="config.calendarConfig.maxDate"
-        [disabledDates]="config.calendarConfig.disabledDates"
-        [disabledDays]="config.calendarConfig.disabledDays"
+        [minDate]="config.calendarConfig?.minDate"
+        [maxDate]="config.calendarConfig?.maxDate"
+        [disabledDates]="config.calendarConfig?.disabledDates ?? []"
+        [disabledDays]="config.calendarConfig?.disabledDays ?? []"
         selectionMode="single"
         [required]="isRequired"
         [showOnFocus]="false"
         [showIcon]="true"
         appendTo="body"
         (onBlur)="onCalendarBlur($event)"
-        [formControlName]="config.field" />
+        [formControlName]="fieldName" />
     </ng-container>
   `,
   imports: [ReactiveFormsModule, DatePicker, TooltipModule, TranslateModule, FilterOutPipe]

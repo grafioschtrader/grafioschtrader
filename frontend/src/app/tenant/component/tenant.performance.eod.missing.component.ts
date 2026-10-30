@@ -73,9 +73,7 @@ import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-
       <tenant-performance-eod-missing-table
         [securities]="securities()"
         [selectedDayIdSecurities]="selectedDayIdSecurities()"
-        [countIdSecurityMissingsMap]="
-          $safeNavigationMigration(missingQuotesWithSecurities()?.countIdSecurityMissingsMap)
-        "
+        [countIdSecurityMissingsMap]="missingQuotesWithSecurities()?.countIdSecurityMissingsMap ?? {}"
         (changedSecurity)="handleChangedSecurity($event)" />
 
       @if (contextMenuItems().length) {

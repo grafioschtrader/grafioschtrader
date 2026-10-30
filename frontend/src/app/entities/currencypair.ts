@@ -2,8 +2,8 @@ import { Securitycurrency } from './securitycurrency';
 import { BaseID } from '../lib/entities/base.id';
 
 export class Currencypair extends Securitycurrency implements BaseID {
-  public fromCurrency: string;
-  public toCurrency: string;
+  public fromCurrency: string | undefined;
+  public toCurrency: string | undefined;
   public isCryptocurrency?: boolean;
 
   // public toStringFN = (): string => this.fromCurrency + '/' + this.toCurrency;

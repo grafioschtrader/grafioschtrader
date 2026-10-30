@@ -5,6 +5,7 @@
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": false,
+    "strictNullChecks": true,
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,

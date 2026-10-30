@@ -94,7 +94,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    */
   protected constructor(
     protected entityName: string,
-    protected deleteService: DeleteService,
+    protected deleteService: DeleteService | null,
     private crudMenuOptions: CrudMenuOptions[] = ALLOW_ALL_CRUD_OPERATIONS
   ) {
     super();
@@ -129,6 +129,8 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
    * @param entity - Entity to delete
    */
   handleDeleteEntity(entity: T): void {
+    const deleteService = this.deleteService;
+    if (!deleteService) return;
     const id = this.beforeDelete(entity)[this.entityKeyName];
     if (typeof id !== 'number' && typeof id !== 'string') return;
     AppHelper.confirmationDialog(
@@ -136,7 +138,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + this.entityNameUpper,
       () =>
-        this.deleteService.deleteEntity(id).subscribe({
+        deleteService.deleteEntity(id).subscribe({
           next: () => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: this.entityNameUpper
@@ -288,7 +290,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
         menuItems.push({
           label: 'DELETE_RECORD|' + this.entityNameUpper,
           command: () => this.handleDeleteEntity(entity),
-          disabled: !this.hasRightsForDeleteEntity(entity)
+          disabled: !this.deleteService || !this.hasRightsForDeleteEntity(entity)
         });
       }
       this.addCustomMenusToSelectedEntity(entity, menuItems);

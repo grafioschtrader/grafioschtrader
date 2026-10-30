@@ -50,8 +50,8 @@ describe('BusinessHelper.getCurrencypairWithSetOfFromAndTo', () => {
   it('creates pair for different currencies', () => {
     const result = BusinessHelper.getCurrencypairWithSetOfFromAndTo('USD', 'EUR');
     expect(result).not.toBeNull();
-    expect(result.fromCurrency).toBe('EUR');
-    expect(result.toCurrency).toBe('USD');
+    expect(result?.fromCurrency).toBe('EUR');
+    expect(result?.toCurrency).toBe('USD');
   });
 
   it('returns null for same currencies', () => {

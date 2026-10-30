@@ -56,7 +56,7 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T extends object> extends S
    * @returns The options with numeric keys, matching the numeric ids of the entity
    */
   protected getAccountOptions(
-    idSecuritycurrency?: number,
+    idSecuritycurrency?: number | null,
     idAssetClass?: number
   ): Observable<ValueKeyHtmlSelectOptions[]> {
     return this.securityaccountService

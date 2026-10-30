@@ -39,8 +39,8 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetclass> implements OnInit {
-  readonly callParam = input<AssetclassCallParam>(undefined);
-  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
+  readonly callParam = input.required<AssetclassCallParam>();
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
 
   private readonly injector = inject(Injector);
 

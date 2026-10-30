@@ -1,3 +1,4 @@
+import { TranslateService } from '@ngx-translate/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BaseSettings } from '../lib/base.settings';
 import { AppHelper } from '../lib/helper/app.helper';
@@ -33,7 +34,7 @@ describe('percentage output precision', () => {
       maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION
     } as ColumnConfig;
     const value = BusinessHelper.roundNumber(0.6751 * 100, AppSettings.FID_PERCENTAGE_FRACTION);
-    expect(AppHelper.getValueByPathWithField(gps, null, { value }, field, 'value')).toBe(
+    expect(AppHelper.getValueByPathWithField(gps, {} as TranslateService, { value }, field, 'value')).toBe(
       locale === 'de-DE' ? '67,51' : '67.51'
     );
   });

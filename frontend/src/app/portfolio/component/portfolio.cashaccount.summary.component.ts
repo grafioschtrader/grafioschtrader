@@ -244,6 +244,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
         this.excludedDivTaxColumn.visible = this.accountPositionGroupSummary.excludeDivTax;
         this.expandedAccountPositionSummary = this.accountPositionGroupSummary.accountPositionSummaryList.filter(
           (accountPositionSummary) =>
+            accountPositionSummary.cashaccount.idSecuritycashAccount != null &&
             this.expandedIdCashaccount.indexOf(accountPositionSummary.cashaccount.idSecuritycashAccount) >= 0
         );
         this.columnConfigs.forEach((columnConfig) => {
@@ -272,7 +273,8 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     else this.summaryRequest.set(request);
   }
 
-  handleDeleteCashaccount(idSecuritycashAccount: number) {
+  handleDeleteCashaccount(idSecuritycashAccount: number | null) {
+    if (idSecuritycashAccount == null) return;
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
@@ -338,16 +340,19 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   }
 
   ////////////////////////////////////////////////
-  onRowExpand(event: { data: { cashaccount: { idSecuritycashAccount: number } } }): void {
-    this.expandedIdCashaccount.push(event.data.cashaccount.idSecuritycashAccount);
+  onRowExpand(event: { data: { cashaccount: { idSecuritycashAccount: number | null } } }): void {
+    const id = event.data.cashaccount.idSecuritycashAccount;
+    if (id != null) this.expandedIdCashaccount.push(id);
   }
 
   ////////////////////////////////////////////////
   // Event handler
 
-  onRowCollapse(event: { data: { cashaccount: { idSecuritycashAccount: number } } }): void {
-    const index = this.expandedIdCashaccount.indexOf(event.data.cashaccount.idSecuritycashAccount);
-    this.expandedIdCashaccount.splice(index, 1);
+  onRowCollapse(event: { data: { cashaccount: { idSecuritycashAccount: number | null } } }): void {
+    const id = event.data.cashaccount.idSecuritycashAccount;
+    if (id == null) return;
+    const index = this.expandedIdCashaccount.indexOf(id);
+    if (index >= 0) this.expandedIdCashaccount.splice(index, 1);
   }
 
   handleSingleAccountTransaction(transactionType: TransactionType, cashaccount: Cashaccount): void {

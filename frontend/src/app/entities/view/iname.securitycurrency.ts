@@ -1,7 +1,7 @@
 import { Securitycurrency } from '../securitycurrency';
 
 export interface INameSecuritycurrency {
-  getName(): string;
+  getName(): string | null;
 
   getSecuritycurrency(): Securitycurrency;
 }

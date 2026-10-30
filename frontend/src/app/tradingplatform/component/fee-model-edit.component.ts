@@ -111,7 +111,7 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
       <p-fieldset [legend]="'FX_CONVERSION' | translate" [toggleable]="true" [collapsed]="true" styleClass="mt-3">
         <fx-markup-preview
           [yaml]="feeModelYamlValue()"
-          [idSecurityaccount]="securityaccount?.idSecuritycashAccount"
+          [idSecurityaccount]="isDynamic ? (securityaccount.idSecuritycashAccount ?? undefined) : undefined"
           [idTradingPlatformPlan]="callParam()?.idTradingPlatformPlan" />
       </p-fieldset>
     </ng-template>
@@ -135,13 +135,13 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
   private httpClient: HttpClient = inject(HttpClient);
   private messageToastService: MessageToastService = inject(MessageToastService);
   public translateService: TranslateService = inject(TranslateService);
-  private dynamicDialogRef: DynamicDialogRef = inject(DynamicDialogRef, { optional: true });
-  private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig, { optional: true });
+  private dynamicDialogRef = inject(DynamicDialogRef, { optional: true });
+  private dynamicDialogConfig = inject(DynamicDialogConfig, { optional: true });
 
   readonly yamlEditor = viewChild(YamlEditorComponent);
   static readonly DIALOG_WIDTH = 900;
 
-  readonly callParam = input<TradingPlatformPlan>(undefined);
+  readonly callParam = input<TradingPlatformPlan>();
 
   isDynamic = false;
   readonly feeModelYamlValue = signal('');
@@ -193,6 +193,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
 
     if (this.isDynamic) {
+      if (!this.dynamicDialogConfig) throw new Error('FeeModelEditComponent requires dialog configuration');
       this.securityaccount = this.dynamicDialogConfig.data.callParam.thisObject;
       afterNextRender(() => this.initialize(), { injector: this.injector });
     }
@@ -205,7 +206,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       this.feeModelYamlValue.set(this.callParam()?.feeModelYaml || '');
     }
     this.testResult.set(null);
-    this.form().setDefaultValuesAndEnableSubmit();
+    this.form()?.setDefaultValuesAndEnableSubmit();
     const enumKeys = (e: any): string[] => Object.keys(e).filter((key) => typeof e[key] === 'number');
     const instrumentKeys = enumKeys(SpecialInvestmentInstruments);
     const categoryKeys = enumKeys(AssetclassType);
@@ -241,7 +242,8 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
 
   async save(): Promise<void> {
     const untilClosed = this.untilDialogClosed<Securityaccount | TradingPlatformPlan>();
-    if (!(await this.yamlEditor().validateForSubmit())) return;
+    const editor = this.yamlEditor();
+    if (!editor || !(await editor.validateForSubmit())) return;
     if (this.isDynamic) {
       const sa = new Securityaccount();
       Object.assign(sa, this.securityaccount);
@@ -254,7 +256,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
               i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.SECURITYACCOUNT)
             });
-            this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.UPDATED));
+            this.dynamicDialogRef?.close(new ProcessedActionData(ProcessedAction.UPDATED));
           }
         });
     } else {
@@ -306,7 +308,8 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
     const revision = ++this.estimateRevision;
     this.estimateSubscription?.unsubscribe();
     const untilClosed = this.untilDialogClosed<TransactionCostEstimateResult>();
-    if (!(await this.yamlEditor().validateForSubmit())) return;
+    const editor = this.yamlEditor();
+    if (!editor || !(await editor.validateForSubmit())) return;
     if (revision !== this.estimateRevision) return;
     this.testResult.set(null);
 

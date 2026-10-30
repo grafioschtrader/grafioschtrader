@@ -48,7 +48,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
   private loginService = inject(LoginService);
 
   readonly forcePasswordChange = input<boolean>();
-  readonly visibleDialogInput = input<boolean>(undefined, { alias: 'visibleDialog' });
+  readonly visibleDialogInput = input(false, { alias: 'visibleDialog' });
   readonly visibleDialog = linkedSignal(() => this.visibleDialogInput());
 
   override readonly form = viewChild.required(DynamicFormComponent);

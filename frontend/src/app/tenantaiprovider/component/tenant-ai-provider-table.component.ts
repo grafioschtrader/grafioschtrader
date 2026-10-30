@@ -24,19 +24,19 @@ import { TenantAIProviderEditComponent } from './tenant-ai-provider-edit.compone
         [label]="'AI_PROVIDER_CREATE' | translate"
         [disabled]="!options() || gps.isReadOnlyUser()"
         (onClick)="handleEditEntity(null)" />
-      @if (selectedEntity()) {
+      @if (selectedEntity(); as selectedEntityValue) {
         <p-button
           [label]="'EDIT' | translate"
           [disabled]="gps.isReadOnlyUser()"
-          (onClick)="handleEditEntity(selectedEntity())" />
+          (onClick)="handleEditEntity(selectedEntityValue)" />
         <p-button
           [label]="'DELETE' | translate"
           [disabled]="gps.isReadOnlyUser()"
-          (onClick)="handleDeleteEntity(selectedEntity())" />
+          (onClick)="handleDeleteEntity(selectedEntityValue)" />
         <p-button
           [label]="'AI_TEST_KEY' | translate"
           [disabled]="testing() || gps.isReadOnlyUser()"
-          (onClick)="testKey(selectedEntity())" />
+          (onClick)="testKey(selectedEntityValue)" />
       }
       <p-button [rounded]="true" [style]="{ 'margin-left': 'auto' }" (onClick)="helpLink()">
         <i class="pi pi-question" pButtonIcon></i>
@@ -67,13 +67,17 @@ import { TenantAIProviderEditComponent } from './tenant-ai-provider-edit.compone
       [contextMenuAppendTo]="'body'"
       (componentClick)="onComponentClick($event)" />
     @if (visibleDialog()) {
-      <tenant-ai-provider-edit
-        [visibleDialog]="visibleDialog()"
-        [entity]="editedEntity"
-        [options]="options()"
-        [formDefinition]="formDefinition()"
-        [existingProviders]="existingProviders"
-        (closeDialog)="handleCloseDialog($event)" />
+      @if (options(); as providerOptions) {
+        @if (formDefinition(); as definition) {
+          <tenant-ai-provider-edit
+            [visibleDialog]="visibleDialog()"
+            [entity]="editedEntity"
+            [options]="providerOptions"
+            [formDefinition]="definition"
+            [existingProviders]="existingProviders"
+            (closeDialog)="handleCloseDialog($event)" />
+        }
+      }
     }
   `
 })
@@ -118,7 +122,9 @@ export class TenantAIProviderTableComponent extends TableCrudSupportMenu<TenantA
   }
   protected override prepareCallParam(entity: TenantAIProvider | null): void {
     this.editedEntity = entity;
-    this.existingProviders = this.entityList().map((e) => e.provider);
+    this.existingProviders = this.entityList()
+      .map((e) => e.provider)
+      .filter((provider): provider is string => provider != null);
   }
   protected override readData(): void {
     this.service
@@ -144,13 +150,14 @@ export class TenantAIProviderTableComponent extends TableCrudSupportMenu<TenantA
     }
   }
   testKey(entity: TenantAIProvider): void {
-    if (this.testing()) {
+    const id = entity.idTenantAIProvider;
+    if (id == null || this.testing()) {
       return;
     }
     this.testing.set(true);
     this.testResult.set(null);
     this.service
-      .testKey(entity.idTenantAIProvider)
+      .testKey(id)
       .pipe(
         finalize(() => this.testing.set(false)),
         takeUntilDestroyed(this.destroyRef)

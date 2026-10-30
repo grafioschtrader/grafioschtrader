@@ -65,7 +65,7 @@ export class GTNetSecurityImpHeadService
    */
   queueImportJob(
     idGtNetSecurityImpHead: number,
-    idTransactionHead?: number
+    idTransactionHead?: number | null
   ): Observable<{ queued: boolean; idGtNetSecurityImpHead: number }> {
     let url = `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_HEAD_KEY}/${idGtNetSecurityImpHead}/importjob`;
     if (idTransactionHead != null) {

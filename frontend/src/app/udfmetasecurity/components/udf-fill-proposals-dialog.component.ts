@@ -19,7 +19,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
   selector: 'udf-fill-proposals-dialog',
   template: `
     <p-dialog
-      header="{{ 'UDF_FILL_PROPOSALS' | translate }}: {{ field()?.description }}"
+      header="{{ 'UDF_FILL_PROPOSALS' | translate }}: {{ field().description }}"
       [visible]="visibleDialog()"
       [style]="{ width: '900px' }"
       [modal]="true"
@@ -30,8 +30,8 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
         <p-button [label]="'UDF_FILL_SUGGEST' | translate" (onClick)="suggest()" />
         <p-button [label]="'UDF_FILL_RETRY' | translate" severity="secondary" (onClick)="retry()" />
       </div>
-      @if (decisionText()) {
-        <p class="bg-info">{{ decisionText() }}</p>
+      @if (decisionText(); as decisionTextValue) {
+        <p class="bg-info">{{ decisionTextValue }}</p>
       }
       @if (proposals().length === 0) {
         <p>{{ 'UDF_FILL_PROPOSALS_NONE' | translate }}</p>
@@ -98,10 +98,10 @@ export class UDFFillProposalsDialogComponent {
   private messageToastService = inject(MessageToastService);
 
   /** The field with the fill source LLM */
-  readonly field = input<UDFMetadataSecurity>(undefined);
+  readonly field = input.required<UDFMetadataSecurity>();
 
   /** Controls the visibility of the dialog */
-  readonly visibleDialog = input<boolean>();
+  readonly visibleDialog = input(false);
 
   /** Emits when the dialog closes */
   readonly closeDialog = output<void>();

@@ -72,7 +72,7 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase {
   readonly alternatives = input<ConnectorAlternative[]>([]);
 
   /** The chosen connector; the dialog preselects it when only one usable connector exists */
-  readonly selectedAlternativeInput = input<ConnectorAlternative | null>(undefined, { alias: 'selectedAlternative' });
+  readonly selectedAlternativeInput = input<ConnectorAlternative | null>(null, { alias: 'selectedAlternative' });
   readonly selectedAlternative = linkedSignal(() => this.selectedAlternativeInput());
 
   /** Shows the distribution frequency derived from the dividends; only meaningful in the dividend table */
@@ -150,7 +150,7 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase {
    *
    * @param alternative - The chosen connector, or null when the selection is removed
    */
-  onSelectionChange(selection: ConnectorAlternative | ConnectorAlternative[]): void {
+  onSelectionChange(selection: ConnectorAlternative | ConnectorAlternative[] | null): void {
     const alternative = Helper.singleSelection(selection);
     this.selectedAlternative.set(alternative);
     this.alternativeSelected.emit(alternative);

@@ -86,23 +86,27 @@
       <ng-template let-columns="fields" let-sDYG #expandedrow>
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1">
+            @if (idsAccounts(); as accounts) { @if (securityDividendsGrandTotal(); as grandTotal) {
             <tenant-dividends-security-extended
               (dateChanged)="transactionDataChanged($event)"
-              [idsSecurityaccount]="idsAccounts().idsSecurityaccount"
-              [securityDividendsGrandTotal]="securityDividendsGrandTotal()"
+              [idsSecurityaccount]="accounts.idsSecurityaccount"
+              [securityDividendsGrandTotal]="grandTotal"
               [securityDividendsPositions]="sDYG.securityDividendsPositions"
               [year]="sDYG.year"
               [expandedRowKeys]="getSecurityExpandedKeys(sDYG.year)"
               [filterTransactionsToYearEnd]="filterTransactionsToYearEnd()" />
+            } }
           </td>
         </tr>
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1">
+            @if (securityDividendsGrandTotal(); as grandTotal) {
             <tenant-dividends-cashaccount-extended
               (dateChanged)="transactionDataChanged($event)"
-              [securityDividendsGrandTotal]="securityDividendsGrandTotal()"
+              [securityDividendsGrandTotal]="grandTotal"
               [year]="sDYG.year"
               [cashAccountPositions]="sDYG.cashAccountPositions" />
+            }
           </td>
         </tr>
       </ng-template>
@@ -111,17 +115,19 @@
   </div>
 </div>
 
-@if (visibleSecurityaccountDialog()) {
+@if (visibleSecurityaccountDialog()) { @if (idsAccounts(); as accounts) { @if (securityDividendsGrandTotal(); as
+grandTotal) {
 <tenant-dividend-security-account-selection-dialog
   (closeDialog)="handleOnProcessedDialog($event)"
-  [idsAccounts]="idsAccounts()"
-  [portfolios]="securityDividendsGrandTotal().portfolioList"
+  [idsAccounts]="accounts"
+  [portfolios]="grandTotal.portfolioList"
   [visibleDialog]="visibleSecurityaccountDialog()" />
-} @if (visibleExportDialog()) {
+} } } @if (visibleExportDialog()) { @if (idsAccounts(); as accounts) { @if (securityDividendsGrandTotal(); as
+grandTotal) {
 <tax-statement-export-dialog
   (closeDialog)="handleExportDialogClose($event)"
-  [idsSecurityaccount]="idsAccounts().idsSecurityaccount"
-  [availableTaxYears]="$safeNavigationMigration(securityDividendsGrandTotal()?.availableTaxYears)"
-  [taxExportSettings]="$safeNavigationMigration(securityDividendsGrandTotal()?.taxExportSettings)"
+  [idsSecurityaccount]="accounts.idsSecurityaccount"
+  [availableTaxYears]="grandTotal.availableTaxYears ?? []"
+  [taxExportSettings]="grandTotal.taxExportSettings"
   [visibleDialog]="visibleExportDialog()" />
-}
+} } }

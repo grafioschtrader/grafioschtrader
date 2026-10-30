@@ -5,7 +5,7 @@ This file provides frontend-specific guidance to Claude Code when working with t
 ## Type checking
 
 Both hosts and the Vitest sources inherit `noImplicitAny`, `strictBindCallApply`, `strictFunctionTypes`, `noImplicitThis`, `useUnknownInCatchVariables`,
-`alwaysStrict` and `strictBuiltinIteratorReturn` from `tsconfig.json`. The Angular API ratchet guards these options.
+`alwaysStrict`, `strictBuiltinIteratorReturn` and `strictNullChecks` from `tsconfig.json`. The Angular API ratchet guards these options.
 Keep callback parameters, model fields and return types explicit where TypeScript cannot infer them. Use `unknown`
 for an unused event or an opaque value; do not add `any` to silence a diagnostic. Dynamic JSON dictionaries use
 `Record` types; entity keys use `keyof T`. Numeric enum names received from JSON are indexed through
@@ -19,15 +19,12 @@ Validator callbacks accept `AbstractControl` and return `ValidationErrors | null
 generic model parameters. Handlers shared by several CDK drop lists retain the list's generic parameter.
 
 Verify both host builds and `npx tsc -p tsconfig.spec.json --noEmit`; Vitest executes tests without type checking them.
-The remaining strict options are enabled in separate stages; `strictNullChecks` and `strictPropertyInitialization`
-are not yet enabled.
+`strictNullChecks` also checks Angular template bindings in both hosts. `strictPropertyInitialization` remains a
+separate stage. Keep required inputs non-null and render their consumers only after the context is loaded. Capture
+nullable signal values with `@if (value(); as loaded)` or `@let` before narrowing them; a repeated signal read is a
+separate value to the template checker. Dynamic input templates use `BaseInputComponent.fieldName`, which checks
+the required field name, and grouped layouts use `requireFormControl` after form construction.
 
-During the null-check migration, run `npm run check:strict` after each package. It compiles the main application's
-TypeScript graph with `strictNullChecks` and compares every module under `src/app` with
-`scripts/strict-null-baseline.json`; root and external diagnostics are counted too. No module may increase, even
-when the total decreases. After fixing errors, `npm run check:strict -- --update` only lowers the limits.
-This separate compiler run does not check Angular templates or host-only sources; continue verifying both builds.
-`npm test` includes pure tests of the counting and baseline rules, without running the full compiler.
 Represent existing empty DTO values explicitly with `| null`, retaining their initializers and optional properties.
 Keep `null` and `undefined` distinct where JSON serialization depends on them; do not replace missing values with
 empty strings, zeroes, casts or non-null assertions merely to satisfy the compiler.
@@ -195,6 +192,16 @@ Error rules can have a null translation key when they supply their own text. `Fi
 filter method, including the null sentinel both Optimus implementations use to clear a filter.
 Full-year calendar weeks contain undated padding days at the edges of a month. Disabled-date checks retain their
 date guard so these placeholders stay empty when disabled days are configured.
+
+Instrument, account, portfolio, tenant and GTNet-import DTOs retain their null defaults, including their identifiers,
+names, currencies and dates. Guard persisted ids before navigation, quotation reads, batch edits and confirmations;
+capture checked ids and currency codes before deferred callbacks. Currency-pair drafts can lack either currency;
+conversion requests require both. Missing currency/amount data leaves a calculated transaction amount absent.
+Currency labels and tooltips can be absent; formatting an amount without a currency uses the existing standard
+fraction digits. `DynamicFieldHelper.setCurrency` clears an absent currency label, and calendar minDate accepts null
+to remove a transaction-period restriction. `TableCrudSupportMenu` accepts a null delete service for views without
+deletion; it disables deletion and guards the action. `AppHelper.toExternalWebpage` ignores absent URLs.
+Plotly click handling ignores an empty point list, and layout traversal skips null/scalar values safely.
 
 ## Minimal Business Logic in Frontend
 
@@ -1428,9 +1435,11 @@ renders the server-computed results of `/api/dashboard` and never saves a layout
   `sessionStorage`, so the shared `authInterceptor` works unchanged.
 - **Texts** are application texts: new keys go to `grafioschtrader-common` (`MOBILE_*`); the cards reuse the
   `DASHBOARD_*` keys of the desktop.
-- `tsconfig.gt-mobile.json` enables `strictNullChecks`, so a shared file the app imports must compile under it —
-  even through `import type`. The desktop entity classes (`src/app/entities/**`) do not yet, so the app declares the
-  JSON fields it reads as its own interfaces (see `watchlist/mobile.watchlist.rows.ts`) instead of importing them.
+- `tsconfig.gt-mobile.json` sets `strict: true`, ahead of the desktop, so every shared file the app imports must
+  compile with `strictPropertyInitialization` too — even through `import type`; `src/angular-api.ratchet.spec.ts`
+  keeps the option on. Check with `npx tsc -p tsconfig.gt-mobile.json --noEmit`. Many desktop entity classes
+  (`src/app/entities/**`) do not compile under it yet, so the app declares the JSON fields it reads as its own
+  interfaces (see `watchlist/mobile.watchlist.rows.ts`) instead of importing them.
 - Routes: `#/login`, then the tabs `#/tabs/dashboard` and `#/tabs/watchlists` (`page/tabs.page.ts`), and the
   full-screen widget `#/widget/:instanceId` outside the tabs. A new main view is a further tab.
 - A new widget type needs a renderer in `src/gt-mobile/app/widget/` and a `@case` in `widget-body.component.ts`;

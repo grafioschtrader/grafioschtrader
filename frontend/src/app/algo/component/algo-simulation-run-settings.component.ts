@@ -44,9 +44,9 @@ import { StrategyDetailComponent } from './strategy-detail.component';
           <div class="col-md-2 showlabel text-end">{{ submittedAtField.headerTranslated }}:</div>
           <div class="col-md-10 nopadding wrap">{{ getValueByPath(settings(), submittedAtField) }}</div>
         </div>
-        @if (treeNodes()) {
+        @if (treeNodes(); as treeNodesValue) {
           <configurable-tree-table
-            [data]="treeNodes()"
+            [data]="treeNodesValue"
             [fields]="fields"
             [fieldsRevision]="fieldsRevision()"
             dataKey="idTree"

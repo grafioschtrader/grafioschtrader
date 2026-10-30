@@ -1,9 +1,9 @@
 import { Security } from '../../entities/security';
 
 export interface SecurityAction {
-  idSecurityAction: number;
-  securityOld: Security;
-  securityNew: Security;
+  idSecurityAction: number | null;
+  securityOld: Security | null;
+  securityNew: Security | null;
   isinOld: string;
   isinNew: string;
   actionDate: string;
@@ -12,8 +12,8 @@ export interface SecurityAction {
   toFactor: number;
   affectedCount: number;
   appliedCount: number;
-  createdBy: number;
-  creationTime: string;
+  createdBy: number | null;
+  creationTime: string | null;
 }
 
 export interface SecurityActionApplication {

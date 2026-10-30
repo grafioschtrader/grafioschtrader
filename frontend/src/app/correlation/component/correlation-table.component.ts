@@ -128,20 +128,29 @@ import { CorrelationAddInstrumentDialogComponent } from './correlation-add-instr
       <ng-template #expandedrow let-securitycrrency let-columns="fields">
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-            <instrument-statistics-result
-              [idSecuritycurrency]="securitycrrency.idSecuritycurrency"
-              [dateFrom]="correlationSet().dateFrom"
-              [dateTo]="correlationSet().dateTo" />
+            @if (correlationSet(); as set) {
+              <instrument-statistics-result
+                [idSecuritycurrency]="securitycrrency.idSecuritycurrency"
+                [dateFrom]="set.dateFrom ?? undefined"
+                [dateTo]="set.dateTo ?? undefined" />
+            }
           </td>
         </tr>
       </ng-template>
     </p-table>
     @if (visibleAddInstrumentDialog()) {
-      <correlation-add-instrument
-        [idCorrelationSet]="correlationSet().idCorrelationSet"
-        [tenantLimits]="tenantLimits()"
-        [visibleAddInstrumentDialog]="visibleAddInstrumentDialog()"
-        (closeDialog)="handleCloseAddInstrumentDialog($event)" />
+      @if (correlationSet(); as set) {
+        @if (tenantLimits(); as limits) {
+          @let setId = set.idCorrelationSet;
+          @if (setId != null) {
+            <correlation-add-instrument
+              [idCorrelationSet]="setId"
+              [tenantLimits]="limits"
+              [visibleAddInstrumentDialog]="visibleAddInstrumentDialog()"
+              (closeDialog)="handleCloseAddInstrumentDialog($event)" />
+          }
+        }
+      }
     }
   `,
   imports: [
@@ -342,10 +351,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param securityCurrency The security currency to get display name for
    * @returns Ticker symbol or truncated name
    */
-  private getTickerOrName(securityCurrency: Securitycurrency): string {
+  private getTickerOrName(securityCurrency: Securitycurrency): string | null {
     if (securityCurrency.hasOwnProperty(this.tickerSymbol)) {
       const ticker = (<Security>securityCurrency)[this.tickerSymbol];
-      return ticker ? ticker : securityCurrency.name.slice(0, 20);
+      return ticker ? ticker : (securityCurrency.name?.slice(0, 20) ?? null);
     }
     return securityCurrency.name;
   }

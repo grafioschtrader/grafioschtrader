@@ -10,32 +10,32 @@ import { SpecialInvestmentInstruments } from '../shared/types/special.investment
 import { DistributionFrequency } from '../shared/types/distribution.frequency';
 
 export class Security extends Securitycurrency implements BaseID {
-  currency?: string = null;
-  isin?: string = null;
-  tickerSymbol?: string = null;
-  sVolume?: number = null;
-  assetClass?: Assetclass = null;
-  denomination?: number = null;
-  stockexchange?: Stockexchange = null;
-  productLink?: string = null;
+  currency?: string | null = null;
+  isin?: string | null = null;
+  tickerSymbol?: string | null = null;
+  sVolume?: number | null = null;
+  assetClass?: Assetclass | null = null;
+  denomination?: number | null = null;
+  stockexchange?: Stockexchange | null = null;
+  productLink?: string | null = null;
   idTenantPrivate?: number | null = null;
-  activeFromDate: string | number | Date = null;
-  activeToDate: string | number | Date = null;
-  distributionFrequency: string = null;
-  issuerCountry?: string = null;
+  activeFromDate: string | number | Date | null = null;
+  activeToDate: string | number | Date | null = null;
+  distributionFrequency: string | null = null;
+  issuerCountry?: string | null = null;
   simulationMetadata?: SecuritySimulationMetadata | null = null;
-  leverageFactor?: number = null;
+  leverageFactor?: number | null = null;
   /** Backend rule shared with historical simulation order eligibility. */
   simulationTradingExcluded?: boolean;
-  idLinkSecuritycurrency?: number = null;
-  formulaPrices?: string = null;
-  idConnectorDividend?: string = null;
-  urlDividendExtend?: string = null;
-  dividendCurrency: string = null;
-  retryDividendLoad?: number = null;
-  idConnectorSplit?: string = null;
-  urlSplitExtend?: string = null;
-  retrySplitLoad?: number = null;
+  idLinkSecuritycurrency?: number | null = null;
+  formulaPrices?: string | null = null;
+  idConnectorDividend?: string | null = null;
+  urlDividendExtend?: string | null = null;
+  dividendCurrency: string | null = null;
+  retryDividendLoad?: number | null = null;
+  idConnectorSplit?: string | null = null;
+  urlSplitExtend?: string | null = null;
+  retrySplitLoad?: number | null = null;
   dividendEarliestNextCheck: number;
 
   calculatedPrice: boolean;

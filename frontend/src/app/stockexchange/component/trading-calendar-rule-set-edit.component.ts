@@ -70,8 +70,8 @@ import { TradingCalendarRuleSetPreviewComponent } from './trading-calendar-rule-
             <i class="pi pi-angle-right" pButtonIcon></i>
           </p-button>
         </div>
-        @if (previewError()) {
-          <div class="text-red-600">{{ previewError() }}</div>
+        @if (previewError(); as previewErrorValue) {
+          <div class="text-red-600">{{ previewErrorValue }}</div>
         } @else {
           <trading-calendar-rule-set-preview [closures]="previewClosures()" />
         }
@@ -97,7 +97,7 @@ export class TradingCalendarRuleSetEditComponent
 
   readonly yamlEditor = viewChild(YamlEditorComponent);
   readonly callParam = input<TradingCalendarRuleSet | null>();
-  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
 
   readonly ruleYamlValue = signal('');
   readonly ruleSchema = signal<any>(null);
@@ -192,7 +192,8 @@ export class TradingCalendarRuleSetEditComponent
    * save as well, but reporting them here lists every problem at once instead of the first one as a toast.
    */
   override async submit(value: { [name: string]: any }): Promise<void> {
-    if (await this.yamlEditor().validateForSubmit()) {
+    const editor = this.yamlEditor();
+    if (editor && (await editor.validateForSubmit())) {
       if (!this.destroyRef.destroyed && this.optionsLoaded) super.submit(value);
     } else this.updateSubmitState();
   }
@@ -203,7 +204,7 @@ export class TradingCalendarRuleSetEditComponent
   }
 
   /** The before-toggle event contains the old state: only expanding starts a preview. */
-  onPreviewToggle(collapsed: boolean): void {
+  onPreviewToggle(collapsed: boolean | undefined): void {
     this.previewSubscription?.unsubscribe();
     if (collapsed) this.loadPreview();
   }

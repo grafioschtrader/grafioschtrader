@@ -5,13 +5,12 @@ import { Helper } from '../../lib/helper/helper';
 import { BaseSettings } from '../../lib/base.settings';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { SecurityActionService } from '../service/security-action.service';
-import { SecurityAction } from '../model/security-action.model';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { HelpIds } from '../../lib/help/help.ids';
-import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
+import { SimpleDynamicFormBase } from '../../lib/edit/simple.dynamic.form.base';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
@@ -32,10 +31,7 @@ import { Portfolio } from '../../entities/portfolio';
   `,
   imports: [...DYNAMIC_FORM_IMPORTS]
 })
-export class SecurityTransferCreateDialogComponent
-  extends SimpleDynamicEditBase<SecurityAction>
-  implements OnInit, AfterViewInit
-{
+export class SecurityTransferCreateDialogComponent extends SimpleDynamicFormBase implements OnInit, AfterViewInit {
   private securityActionService: SecurityActionService = inject(SecurityActionService);
   private portfolioService: PortfolioService = inject(PortfolioService);
 
@@ -45,7 +41,7 @@ export class SecurityTransferCreateDialogComponent
   private portfolios: Portfolio[] = [];
 
   constructor() {
-    super(HelpIds.HELP_BASEDATA_SECURITY_ACTION_SECURITY_TRANSFER, inject(SecurityActionService));
+    super(HelpIds.HELP_BASEDATA_SECURITY_ACTION_SECURITY_TRANSFER);
   }
 
   ngOnInit(): void {
@@ -84,7 +80,7 @@ export class SecurityTransferCreateDialogComponent
           return targetAccounts.length > 0;
         });
         this.configObject.idPortfolioTarget.valueKeyHtmlOptions = eligiblePortfolios.flatMap((p) =>
-          p.idPortfolio == null ? [] : [new ValueKeyHtmlSelectOptions(p.idPortfolio, p.name)]
+          p.idPortfolio == null || p.name == null ? [] : [new ValueKeyHtmlSelectOptions(p.idPortfolio, p.name)]
         );
         this.setupPortfolioChangeListener();
         this.form().setDefaultValuesAndEnableSubmit();
@@ -104,7 +100,7 @@ export class SecurityTransferCreateDialogComponent
       .subscribe((idPortfolio) => this.updateSecurityaccountOptions(idPortfolio));
   }
 
-  private findAccountName(idSecurityaccount: number): string | null {
+  private findAccountName(idSecurityaccount: number): string | null | undefined {
     for (const portfolio of this.portfolios) {
       const account = (portfolio.securityaccountList || []).find(
         (sa) => sa.idSecuritycashAccount === +idSecurityaccount
@@ -126,8 +122,10 @@ export class SecurityTransferCreateDialogComponent
     const accounts = (portfolio?.securityaccountList || []).filter(
       (sa) => sa.idSecuritycashAccount !== this.idSecurityaccountSource
     );
-    this.configObject.idSecurityaccountTarget.valueKeyHtmlOptions = accounts.map(
-      (sa) => new ValueKeyHtmlSelectOptions(sa.idSecuritycashAccount, sa.name)
+    this.configObject.idSecurityaccountTarget.valueKeyHtmlOptions = accounts.flatMap((sa) =>
+      sa.idSecuritycashAccount == null || sa.name == null
+        ? []
+        : [new ValueKeyHtmlSelectOptions(sa.idSecuritycashAccount, sa.name)]
     );
     if (accounts.length === 1) {
       requireFormControl(this.configObject.idSecurityaccountTarget).setValue(accounts[0].idSecuritycashAccount);
@@ -155,10 +153,5 @@ export class SecurityTransferCreateDialogComponent
       next: (result) => this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, result)),
       error: () => (this.configObject.submit.disabled = false)
     });
-  }
-
-  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): SecurityAction {
-    // Not used — submit() is overridden
-    return null;
   }
 }

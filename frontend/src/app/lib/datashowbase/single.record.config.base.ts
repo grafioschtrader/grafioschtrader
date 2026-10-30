@@ -53,7 +53,7 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
   addFieldProperty(
     dataType: DataType,
     field: string,
-    headerKey: string,
+    headerKey: string | null,
     optionalParams?: OptionalParams
   ): ColumnConfig {
     return this.addColumn(dataType, field, headerKey, true, true, optionalParams);

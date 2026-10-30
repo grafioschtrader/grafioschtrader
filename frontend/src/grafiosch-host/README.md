@@ -56,7 +56,7 @@ Template switches declare an intentional fallback or an exhaustive `@default nev
 Angular API ratchets apply to the library and both host entry points.
 
 Both hosts share the type-checking baseline in `tsconfig.json`: `noImplicitAny`, `strictBindCallApply`, `strictFunctionTypes`, `noImplicitThis`,
-`useUnknownInCatchVariables`, `alwaysStrict` and `strictBuiltinIteratorReturn`. The Angular API ratchet also verifies
+`useUnknownInCatchVariables`, `alwaysStrict`, `strictBuiltinIteratorReturn` and `strictNullChecks`. The Angular API ratchet also verifies
 that the test configuration inherits these options. Use typed callbacks and JSON dictionaries, `keyof T` for entity
 keys and `PanelClickEvent` for native panel clicks. Keep the library independent of application models when adding
 types. `npx tsc -p tsconfig.spec.json --noEmit` checks the test sources in addition to both host builds.
@@ -76,12 +76,17 @@ catalogue. Conditional forms remain optional, and the token editor clears its on
 Text-only error rules can omit their translation key with null. `FilterableTable` includes the null filter-clear
 sentinel accepted by both Optimus table implementations.
 The full-year calendar retains its date guard for undated padding days at the edges of a month.
+`TableCrudSupportMenu` accepts a null delete service for views without deletion and disables/guards its delete action.
+`AppHelper.toExternalWebpage` ignores an absent URL. Currency formatting retains the standard fraction digits when
+no currency is known; `DynamicFieldHelper.setCurrency` clears an absent label. Calendar minDate accepts null to
+remove a date restriction. Domain callers retain nullable DTO fields and check persisted ids before actions.
 Validators accept `AbstractControl`; generic event handlers keep the concrete event type supplied by the host.
 
-During the null-check migration, `npm run check:strict` guards the per-module diagnostic baseline for the main
-application's TypeScript graph, including the library sources it imports. It does not check Angular templates or
-host-only sources. Keep verifying both host builds. `npm run check:strict -- --update` only lowers module limits;
-retain existing DTO defaults and declare `null` and optional values explicitly when adding their types.
+Null checks apply to TypeScript, Angular template bindings and the Vitest sources. Render a required-input dialog
+only after its context is loaded; capture nullable signal values once before narrowing them. Missing menu models are
+accepted by the shared table wrappers and normalized at the Optimus boundary. Dynamic input templates use the checked
+`BaseInputComponent.fieldName`; grouped forms use `requireFormControl` after construction. Retain DTO defaults and
+declare `null` and optional values explicitly, including nullable backend form metadata and unsaved entity ids.
 The shared `BaseAuthService.updateEntity` accepts null/undefined ids for POST creation and existing ids for PUT.
 Operations requiring a persisted id narrow it first and retain that id across asynchronous confirmations.
 `BaseID.getId()` includes null/undefined for new entities. The shared CRUD table checks and captures the deletion id

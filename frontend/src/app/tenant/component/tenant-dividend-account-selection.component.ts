@@ -102,7 +102,8 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
         };
         psa.push(portfolioTreeNode);
         let childSelectionCount = 0;
-        accounts.forEach((account: { idSecuritycashAccount: number }) => {
+        accounts.forEach((account) => {
+          if (account.idSecuritycashAccount == null) return;
           const accountTeeNode = { data: account, leaf: true };
           children.push(accountTeeNode);
           if (markAll || this.idsAccount().indexOf(account.idSecuritycashAccount) >= 0) {
@@ -120,7 +121,7 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
     this.selectedNodes.set(selected);
   }
 
-  onSelectionChange(selection: TreeNode | TreeNode[]): void {
+  onSelectionChange(selection: TreeNode | TreeNode[] | null): void {
     this.selectedNodes.set(Array.isArray(selection) ? selection : selection ? [selection] : []);
   }
 

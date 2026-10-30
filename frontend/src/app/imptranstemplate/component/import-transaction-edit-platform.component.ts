@@ -42,9 +42,9 @@ export class ImportTransactionEditPlatformComponent
 {
   private readonly injector = inject(Injector);
 
-  readonly callParam = input<CallParam>(undefined);
-  readonly platformTransactionImportHtmlOptions = input<ValueKeyHtmlSelectOptions[]>(undefined);
-  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
+  readonly callParam = input.required<CallParam>();
+  readonly platformTransactionImportHtmlOptions = input.required<ValueKeyHtmlSelectOptions[]>();
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
 
   constructor() {
     super(

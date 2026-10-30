@@ -50,7 +50,7 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
         <p-accordion-content>
           @if (isOpen(PANEL_ENTITIES)) {
             <gtnet-config-entity-table
-              [gtNetEntities]="gtNet().gtNetEntities"
+              [gtNetEntities]="gtNet()?.gtNetEntities ?? []"
               [exchangeKindTypes]="exchangeKindTypes()"
               (dataChanged)="configEntityDataChanged.emit($event)" />
           }
@@ -72,7 +72,7 @@ import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table
                 [gtNetMessages]="gtNetMessagesValue"
                 [incomingPendingIds]="incomingPendingIds()"
                 [outgoingPendingIds]="outgoingPendingIds()"
-                [formDefinitions]="formDefinitions()"
+                [formDefinitions]="formDefinitions() ?? {}"
                 (dataChanged)="messageDataChanged.emit($event)" />
             }
           }
@@ -181,8 +181,8 @@ export class GTNetExpandedComponent {
    *
    * @param panels the values of the panels which are now open
    */
-  onPanelsChange(panels: string | number | string[] | number[]): void {
-    this.openPanels.set((Array.isArray(panels) ? panels : [panels]).map(String));
+  onPanelsChange(panels: string | number | string[] | number[] | null | undefined): void {
+    this.openPanels.set((panels == null ? [] : Array.isArray(panels) ? panels : [panels]).map(String));
   }
 
   /** Clears the selection of the message tree table, if that panel is open at all. */

@@ -52,7 +52,7 @@ export class MessageToastComponent implements OnDestroy {
       if (messageConainer.i8n) {
         this.translateInterpolateParams(messageConainer);
       } else if (messageConainer.titleKey) {
-        this.translateTitle(messageConainer);
+        this.translateTitle(messageConainer, messageConainer.titleKey);
       } else {
         this.showMessage(<string>messageConainer.key, messageConainer.title, messageConainer);
       }
@@ -81,10 +81,10 @@ export class MessageToastComponent implements OnDestroy {
     }
   }
 
-  private translateTitle(messageConainer: MessageContainer) {
+  private translateTitle(messageConainer: MessageContainer, titleKey: string) {
     this.translateService
       .get(this.getHeaderKey(messageConainer))
-      .subscribe((title: string) => this.showMessage(messageConainer.titleKey, title, messageConainer));
+      .subscribe((title: string) => this.showMessage(titleKey, title, messageConainer));
   }
 
   private translateInterpolateParams(messageConainer: MessageContainer) {
@@ -115,7 +115,7 @@ export class MessageToastComponent implements OnDestroy {
     });
   }
 
-  private showMessage(message: string, title: string, messageConainer: MessageContainer): void {
+  private showMessage(message: string, title: string | undefined, messageConainer: MessageContainer): void {
     const isError = messageConainer.infoLevelType === InfoLevelType.ERROR;
     const toastMessage: ToastMessageOptions = {
       severity: this.getSeverity(messageConainer.infoLevelType),

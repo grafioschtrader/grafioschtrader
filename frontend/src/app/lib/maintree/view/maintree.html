@@ -17,7 +17,7 @@
     </ng-template>
   </p-tree>
   <!-- Context menu is always visible -->
-  <p-contextMenu #cm [model]="contextMenuItems()" />
+  <p-contextMenu #cm [model]="contextMenuItems() ?? undefined" />
 </div>
 
 <p-confirmDialog #cd header="Confirmation" icon="fa fa-question-circle" width="425">

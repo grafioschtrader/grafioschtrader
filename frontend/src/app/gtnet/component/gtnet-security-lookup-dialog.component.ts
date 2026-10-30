@@ -38,8 +38,8 @@ import { ProcessedAction } from '../../lib/types/processed.action';
           <p-progressSpinner />
         </div>
       } @else {
-        @if (errorMessage()) {
-          <p-message severity="error" [text]="errorMessage()" />
+        @if (errorMessage(); as errorMessageValue) {
+          <p-message severity="error" [text]="errorMessageValue" />
         }
 
         @if (response(); as response) {
@@ -81,7 +81,7 @@ export class GtnetSecurityLookupDialogComponent {
   private selectionHandled = false;
 
   /** Subscription to the current lookup request, cancelled on dialog close or new search */
-  private lookupSubscription: Subscription;
+  private lookupSubscription: Subscription | null;
 
   /**
    * Starts the search when the dialog has opened. Optimus UI emits onShow at the end of the enter motion; the state

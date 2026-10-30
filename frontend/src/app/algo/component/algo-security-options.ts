@@ -6,21 +6,21 @@ export interface AlgoSecurityOptionData {
   idSecuritycurrency: number;
   name: string;
   currency: string;
-  activeFromDate: string;
-  activeToDate: string;
+  activeFromDate: string | null;
+  activeToDate: string | null;
 }
 
 /** Builds searchable labels and independently highlighted dates without coupling presentation to eligibility. */
 export function createAlgoSecurityOptions(
   securities: AlgoSecurityOptionData[],
-  referenceDate: Date | string | undefined,
+  referenceDate: Date | string | null | undefined,
   formatDate: (security: AlgoSecurityOptionData, field: 'activeFromDate' | 'activeToDate') => string,
   labels: { activeFrom: string; activeTo: string; startsAfterReference: string; ended: string },
   today: string = moment().format('YYYY-MM-DD')
 ): GroupItem[] {
   const reference = referenceDate ? moment(referenceDate).format('YYYY-MM-DD') : undefined;
   return securities.map((security) => {
-    const lateStart = !!reference && security.activeFromDate > reference;
+    const lateStart = !!reference && !!security.activeFromDate && security.activeFromDate > reference;
     const ended = !!security.activeToDate && security.activeToDate < today;
     const segments = [
       { text: `${security.name} / ${security.currency} — ` },

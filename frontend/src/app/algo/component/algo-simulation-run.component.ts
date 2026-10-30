@@ -102,14 +102,14 @@ import { AlgoSimulationRunTableComponent } from './algo-simulation-run-table.com
       (click)="onComponentClick($event)">
       <h4>{{ 'SIMULATION_RUN' | translate }}</h4>
 
-      @if (simulation()) {
+      @if (simulation(); as simulationValue) {
         <div class="fcontainer">
           <fieldset class="out-border fbox">
             <legend class="out-border-legend">{{ 'SIMULATION_ENVIRONMENT' | translate }}</legend>
             @for (field of contextFields; track field.field) {
               <div class="row">
                 <div class="col-md-5 showlabel text-end">{{ field.headerTranslated }}:</div>
-                <div class="col-md-7 nopadding wrap">{{ getValueByPath(simulation(), field) }}</div>
+                <div class="col-md-7 nopadding wrap">{{ getValueByPath(simulationValue, field) }}</div>
               </div>
             }
             @if (recreateRequired) {
@@ -120,7 +120,7 @@ import { AlgoSimulationRunTableComponent } from './algo-simulation-run-table.com
           </fieldset>
         </div>
 
-        @if (run()) {
+        @if (run(); as runValue) {
           <div class="fcontainer">
             @for (fieldSetName of Object.keys(fieldSetGroups); track fieldSetName) {
               <fieldset class="out-border fbox">
@@ -133,12 +133,12 @@ import { AlgoSimulationRunTableComponent } from './algo-simulation-run-table.com
                         @case ('check') {
                           <span
                             ><i
-                              [class.fa]="getValueByPath(run(), field)"
-                              [class.fa-check]="getValueByPath(run(), field)"></i
+                              [class.fa]="getValueByPath(runValue, field)"
+                              [class.fa-check]="getValueByPath(runValue, field)"></i
                           ></span>
                         }
                         @default {
-                          {{ getValueByPath(run(), field) }}
+                          {{ getValueByPath(runValue, field) }}
                         }
                       }
                     </div>
@@ -149,17 +149,17 @@ import { AlgoSimulationRunTableComponent } from './algo-simulation-run-table.com
                     <div class="col-12 nopadding wrap">
                       {{
                         'SIMULATION_RUN_PROGRESS'
-                          | translate: { done: run().tradingDaysDone, total: run().tradingDaysTotal }
+                          | translate: { done: runValue.tradingDaysDone, total: runValue.tradingDaysTotal }
                       }}
                     </div>
                   </div>
-                  @if (run().failureMessage) {
+                  @if (failureMessage(); as failure) {
                     <div class="row">
                       <div class="col-md-5 showlabel text-end">{{ 'FAILURE_MESSAGE' | translate }}:</div>
                       <div class="col-md-7 nopadding wrap" role="alert">
-                        {{ failureMessage().key | translate }}
-                        @if (failureMessage().detail) {
-                          : {{ failureMessage().detail }}
+                        {{ failure.key | translate }}
+                        @if (failure.detail) {
+                          : {{ failure.detail }}
                         }
                       </div>
                     </div>
@@ -183,15 +183,15 @@ import { AlgoSimulationRunTableComponent } from './algo-simulation-run-table.com
               </ul>
             </fieldset>
           }
-          @if (incomeSummary()) {
+          @if (incomeSummary(); as incomeSummaryValue) {
             <fieldset class="out-border">
               <legend class="out-border-legend">{{ 'SIMULATION_INCOME_SUMMARY' | translate }}</legend>
-              <tax-details-table mode="income" [rows]="incomeSummary().income || []" />
+              <tax-details-table mode="income" [rows]="incomeSummaryValue.income || []" />
               <details>
                 <summary>
-                  {{ 'SIMULATION_TAX_WARNINGS' | translate }} ({{ incomeSummary().warnings?.length || 0 }})
+                  {{ 'SIMULATION_TAX_WARNINGS' | translate }} ({{ incomeSummaryValue.warnings?.length || 0 }})
                 </summary>
-                <tax-details-table mode="warnings" [rows]="incomeSummary().warnings || []" />
+                <tax-details-table mode="warnings" [rows]="incomeSummaryValue.warnings || []" />
               </details>
             </fieldset>
           }

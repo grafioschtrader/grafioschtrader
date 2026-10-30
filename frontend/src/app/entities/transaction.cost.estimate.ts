@@ -1,5 +1,5 @@
 export interface TransactionCostEstimateRequest {
-  idSecurityaccount?: number;
+  idSecurityaccount?: number | null;
   /** Inline YAML can be evaluated before a plan has been saved. */
   idTradingPlatformPlan?: number | null;
   tradeValue?: number;
@@ -18,7 +18,7 @@ export interface TransactionCostEstimateRequest {
   tradesInYear?: number;
   securityTradesInMonth?: number;
   transactionDate?: string | null;
-  yaml?: string;
+  yaml?: string | null;
 }
 
 export interface TransactionCostEstimateResult {

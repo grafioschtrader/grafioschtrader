@@ -166,7 +166,8 @@ export class AppHelper {
    * the corresponding page.
    * @param targetPage The target window name (default: 'blank' for new tab)
    */
-  public static toExternalWebpage(url: string, targetPage: string = 'blank'): void {
+  public static toExternalWebpage(url: string | null | undefined, targetPage: string = 'blank'): void {
+    if (!url) return;
     if (url.startsWith('--')) {
       url = location.host + url.substring(2);
     }

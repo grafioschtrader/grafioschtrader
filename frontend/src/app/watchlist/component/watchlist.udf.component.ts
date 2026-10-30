@@ -189,7 +189,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    */
   private extendSecurityWithUDF(group: SecuritycurrencyUDFGroup): SecuritycurrencyUDFGroup {
     this.udfValuesMap.clear();
-    const extend = <T extends { securitycurrency: { idSecuritycurrency?: number } }>(position: T): T => {
+    const extend = <T extends { securitycurrency: { idSecuritycurrency?: number | null } }>(position: T): T => {
       const id = position.securitycurrency.idSecuritycurrency;
       if (id == null) return position;
       const json = this.udfEntityValues[id];
@@ -392,7 +392,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
           optionalParam.width = 54;
           break;
         case DataType.String:
-          if (fd.max > 25) {
+          if (fd.max != null && fd.max > 25) {
             optionalParam.width = 200;
           }
           optionalParam.filterType = FilterType.likeDataType;

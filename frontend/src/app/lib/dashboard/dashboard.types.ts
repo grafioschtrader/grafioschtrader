@@ -62,7 +62,7 @@ export interface DashboardDescriptor {
   descriptionKey: string;
   defaultWidth: DashboardWidth;
   defaultConfig: DashboardConfig;
-  formDefinition: ClassDescriptorInputAndShow;
+  formDefinition: ClassDescriptorInputAndShow | null;
 }
 export interface DashboardCatalogue {
   descriptors: DashboardDescriptor[];

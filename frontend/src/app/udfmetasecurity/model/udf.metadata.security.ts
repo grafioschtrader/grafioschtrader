@@ -42,16 +42,16 @@ export class UDFMetadataSecurity extends UDFMetadata {
   fillSource: string = UDFFillSource.MANUAL;
 
   /** Rule of the fill source, for TEMPLATE one or more lines with placeholders; null for MANUAL */
-  fillRule: string = null;
+  fillRule: string | null = null;
 
   /**
    * How often the instance fills the field by itself, for RESOLVER and LLM only. Null means on request for LLM and the
    * global refresh setting for RESOLVER.
    */
-  fillPeriod: string = null;
+  fillPeriod: string | null = null;
 
   /** Maintained by the server, incremented whenever the fill source or the rule changes; never sent back */
-  fillRuleVersion: number = null;
+  fillRuleVersion: number | null = null;
 
   /** Set by the server when listed: whether anything fills the field; a language model needs a key of the tenant */
   active?: boolean;
@@ -124,7 +124,7 @@ export interface UDFFillMismatch {
   name: string;
   existing: string;
   /** The computed value, null when the rule computes none */
-  computed: string;
+  computed: string | null;
   /** Why no value was computed, null when one was */
   reason: string;
 }
@@ -132,7 +132,7 @@ export interface UDFFillMismatch {
 /** A value the rule computes for a security whose field is still empty. */
 export interface UDFFillSample {
   name: string;
-  computed: string;
+  computed: string | null;
 }
 
 /** Counters and examples of testing a fill rule; coverage and agreement are counted separately. */

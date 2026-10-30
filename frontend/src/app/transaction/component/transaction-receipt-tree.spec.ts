@@ -24,7 +24,7 @@ describe('transaction receipt tree', () => {
     const roots = buildTransactionReceiptTree(transactions);
 
     expect(roots.map((node) => node.data.idTransaction)).toEqual([1, 4]);
-    expect(roots[0].children.map((node) => node.data.idTransaction)).toEqual([2, 3]);
+    expect(roots[0].children?.map((node) => node.data.idTransaction)).toEqual([2, 3]);
     expect(roots[0].expanded).toBe(true);
     expect(roots[1].leaf).toBe(true);
   });
@@ -34,7 +34,7 @@ describe('transaction receipt tree', () => {
 
     expect(roots).toHaveLength(1);
     expect(roots[0].data.idTransaction).toBe(1);
-    expect(roots[0].children[0].data.idTransaction).toBe(2);
+    expect(roots[0].children?.[0].data.idTransaction).toBe(2);
   });
 
   it('keeps a transaction with a missing parent selectable at root level', () => {

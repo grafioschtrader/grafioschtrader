@@ -5,8 +5,9 @@ import { FieldConfig } from '../dynamic-form/models/field.config';
 
 describe('Helper.parseDateOnlyAsLocal', () => {
   it.each(['2026-03-01', '2026-09-15'])('loads %s at local midnight and preserves it across save cycles', (value) => {
-    let stored = value;
+    let stored: string | null = value;
     for (let cycle = 0; cycle < 2; cycle++) {
+      if (stored == null) throw new Error('Date disappeared during save cycle');
       const date = Helper.parseDateOnlyAsLocal(stored);
       const [year, month, day] = value.split('-').map(Number);
       expect([date.getFullYear(), date.getMonth() + 1, date.getDate()]).toEqual([year, month, day]);

@@ -80,7 +80,7 @@ export function isManualIssuerCountryChange(
           @if (canHaveSplits() || !dataLoaded()) {
             <p-tab value="splits">{{ 'SECURITY_SPLITS' | translate }}</p-tab>
           }
-          @if (!this.securityEditSupport?.hasMarketValue || !dataLoaded()) {
+          @if (!this.securityEditSupport.hasMarketValue || !dataLoaded()) {
             <p-tab value="periods">{{ 'HISTORYQUOTE_FOR_PERIOD' | translate }}</p-tab>
           }
           @if (canEditBondTerms()) {
@@ -133,19 +133,19 @@ export function isManualIssuerCountryChange(
     @if (visibleGtnetLookupDialog()) {
       <gtnet-security-lookup-dialog
         [visibleDialog]="visibleGtnetLookupDialog()"
-        [isin]="$safeNavigationMigration(configObject?.isin?.formControl?.value)"
-        [currency]="$safeNavigationMigration(configObject?.currency?.formControl?.value)"
-        [tickerSymbol]="$safeNavigationMigration(configObject?.tickerSymbol?.formControl?.value)"
+        [isin]="$safeNavigationMigration(configObject.isin.formControl?.value)"
+        [currency]="$safeNavigationMigration(configObject.currency.formControl?.value)"
+        [tickerSymbol]="$safeNavigationMigration(configObject.tickerSymbol.formControl?.value)"
         (closeDialog)="handleCloseGtnetLookupDialog($event)" />
     }
     @if (visibleSecurityLookupDialog()) {
       <security-lookup-dialog
         [visibleDialog]="visibleSecurityLookupDialog()"
-        [isin]="configObject.isin.formControl.value"
-        [currency]="configObject.currency.formControl.value"
+        [isin]="requireFormControl(configObject.isin).value"
+        [currency]="requireFormControl(configObject.currency).value"
         [mic]="getSelectedStockexchangeMic()"
-        [idAssetClass]="configObject.assetClass.formControl.value"
-        [tickerSymbol]="configObject.tickerSymbol.formControl.value"
+        [idAssetClass]="requireFormControl(configObject.assetClass).value"
+        [tickerSymbol]="requireFormControl(configObject.tickerSymbol).value"
         (closeDialog)="handleCloseSecurityLookupDialog($event)" />
     }`,
   imports: [
@@ -161,6 +161,7 @@ export function isManualIssuerCountryChange(
   ]
 })
 export class SecurityEditComponent extends SecuritycurrencyEdit implements OnInit, CallbackValueChanged {
+  protected readonly requireFormControl = requireFormControl;
   private messageToastService: MessageToastService = inject(MessageToastService);
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
   private stockexchangeService: StockexchangeService = inject(StockexchangeService);
@@ -184,7 +185,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   readonly maxHistoryquotePeriods = signal(20);
 
   // Input from parent view
-  readonly visibleEditSecurityDialog = input<boolean>();
+  readonly visibleEditSecurityDialog = input(false);
 
   // Tab management
   activeTabValue: string = 'security';
@@ -197,7 +198,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   configPeriodPrices: { [name: string]: FieldConfig };
   private readonly selectedAssetClass = signal<Assetclass | null>(null);
   readonly canHaveSplits = computed(() =>
-    Security.canHaveSplitConnector(this.selectedAssetClass(), this.securityEditSupport?.hasMarketValue ?? true)
+    Security.canHaveSplitConnector(this.selectedAssetClass(), this.securityEditSupport.hasMarketValue ?? true)
   );
   readonly canEditBondTerms = computed(() => Security.isBondDirectInvestment(this.selectedAssetClass()));
   readonly currentSecurityName = signal('');

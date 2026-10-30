@@ -40,29 +40,30 @@ type PageState = 'checking' | 'consent' | 'error' | 'redirecting';
           <p-message severity="error" [text]="errorKey() | translate" />
         }
         @case ('consent') {
-          @let request = validation();
-          <p>
-            <b>{{
-              'MCP_OAUTH_QUESTION' | translate: { clientName: request.clientName, clientHost: request.clientHost }
-            }}</b>
-          </p>
-          <p>{{ 'MCP_OAUTH_SCOPE_READ' | translate }}</p>
-          <p>{{ 'MCP_OAUTH_DURATION' | translate }}</p>
-          <ul>
-            <li>{{ 'ACCESS_TOKEN_NOTICE_PROVIDER' | translate }}</li>
-            <li>{{ 'ACCESS_TOKEN_NOTICE_LOCAL' | translate }}</li>
-            <li>{{ 'ACCESS_TOKEN_NOTICE_REVOKE' | translate }}</li>
-            <li>{{ 'ACCESS_TOKEN_NOTICE_SHARED' | translate }}</li>
-            <li>{{ 'ACCESS_TOKEN_NOTICE_HOME_TENANT' | translate }}</li>
-          </ul>
-          <div style="display: flex; gap: 0.5rem">
-            <p-button [label]="'MCP_OAUTH_APPROVE' | translate" [disabled]="deciding()" (onClick)="decide(true)" />
-            <p-button
-              [label]="'MCP_OAUTH_DENY' | translate"
-              severity="secondary"
-              [disabled]="deciding()"
-              (onClick)="decide(false)" />
-          </div>
+          @if (validation(); as request) {
+            <p>
+              <b>{{
+                'MCP_OAUTH_QUESTION' | translate: { clientName: request.clientName, clientHost: request.clientHost }
+              }}</b>
+            </p>
+            <p>{{ 'MCP_OAUTH_SCOPE_READ' | translate }}</p>
+            <p>{{ 'MCP_OAUTH_DURATION' | translate }}</p>
+            <ul>
+              <li>{{ 'ACCESS_TOKEN_NOTICE_PROVIDER' | translate }}</li>
+              <li>{{ 'ACCESS_TOKEN_NOTICE_LOCAL' | translate }}</li>
+              <li>{{ 'ACCESS_TOKEN_NOTICE_REVOKE' | translate }}</li>
+              <li>{{ 'ACCESS_TOKEN_NOTICE_SHARED' | translate }}</li>
+              <li>{{ 'ACCESS_TOKEN_NOTICE_HOME_TENANT' | translate }}</li>
+            </ul>
+            <div style="display: flex; gap: 0.5rem">
+              <p-button [label]="'MCP_OAUTH_APPROVE' | translate" [disabled]="deciding()" (onClick)="decide(true)" />
+              <p-button
+                [label]="'MCP_OAUTH_DENY' | translate"
+                severity="secondary"
+                [disabled]="deciding()"
+                (onClick)="decide(false)" />
+            </div>
+          }
         }
         @default never;
       }
@@ -119,7 +120,7 @@ export class McpOAuthAuthorizeComponent implements OnInit {
     }
   }
 
-  private showError(status: number, error: string): void {
+  private showError(status: number | undefined, error: string | undefined): void {
     if (status === 404) {
       this.errorKey.set('MCP_OAUTH_ERROR_NOT_AVAILABLE');
     } else if (status === 429 || status === 503) {
@@ -132,10 +133,11 @@ export class McpOAuthAuthorizeComponent implements OnInit {
 
   decide(approve: boolean): void {
     const validation = this.validation();
-    if (!validation || this.deciding()) return;
+    const requestId = validation?.authorizationRequestId;
+    if (!requestId || this.deciding()) return;
     this.deciding.set(true);
     this.mcpOAuthService
-      .consent(validation.authorizationRequestId, approve)
+      .consent(requestId, approve)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => this.goTo(response.redirect),
@@ -143,7 +145,11 @@ export class McpOAuthAuthorizeComponent implements OnInit {
       });
   }
 
-  private goTo(redirect: string): void {
+  private goTo(redirect: string | undefined): void {
+    if (!redirect) {
+      this.showError(undefined, undefined);
+      return;
+    }
     this.state.set('redirecting');
     window.location.assign(redirect);
   }

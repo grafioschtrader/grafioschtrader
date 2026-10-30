@@ -46,7 +46,7 @@ export class TaxStatementExportDialogComponent extends SimpleFormEditBase implem
 
   readonly idsSecurityaccount = input<number[]>([]);
   readonly availableTaxYears = input<number[]>([]);
-  readonly taxExportSettings = input<TaxStatementExportRequest>(undefined);
+  readonly taxExportSettings = input<TaxStatementExportRequest>();
 
   constructor() {
     super(HelpIds.HELP_TAX_DATA);

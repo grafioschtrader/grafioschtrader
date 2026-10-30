@@ -54,9 +54,10 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
         >
         <p-accordion-content>
           @if (isOpen(PANEL_STATISTICS)) {
-            <instrument-statistics-result
-              [showTitle]="false"
-              [idSecuritycurrency]="position().securitycurrency.idSecuritycurrency" />
+            @let securityId = position().securitycurrency.idSecuritycurrency;
+            @if (securityId != null) {
+              <instrument-statistics-result [showTitle]="false" [idSecuritycurrency]="securityId" />
+            }
           }
         </p-accordion-content>
       </p-accordion-panel>
@@ -110,8 +111,8 @@ export class WatchlistPriceFeedExpandedComponent implements OnInit {
    *
    * @param panels the values of the panels which are now open
    */
-  onPanelsChange(panels: string | number | string[] | number[]): void {
-    this.openPanels = (Array.isArray(panels) ? panels : [panels]).map(String);
+  onPanelsChange(panels: string | number | string[] | number[] | null | undefined): void {
+    this.openPanels = (panels == null ? [] : Array.isArray(panels) ? panels : [panels]).map(String);
     const id = this.position().securitycurrency.idSecuritycurrency;
     if (id != null) this.panelStateService.setOpenPanels(id, this.openPanels);
   }

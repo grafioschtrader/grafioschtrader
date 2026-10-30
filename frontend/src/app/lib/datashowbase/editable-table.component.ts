@@ -296,7 +296,7 @@ export interface ValidationErrorEvent<T> {
                       <i class="pi pi-pencil" pButtonIcon></i>
                     </button>
                   }
-                  @if (!editing && canDeleteRowFn() && canDeleteRowFn()(rowData)) {
+                  @if (!editing && canDeleteRowFn()?.(rowData)) {
                     <button
                       pButton
                       pRipple

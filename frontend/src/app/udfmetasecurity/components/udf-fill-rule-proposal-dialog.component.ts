@@ -93,10 +93,10 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   private translateService = inject(TranslateService);
 
   /** The saved field the rule is proposed for */
-  readonly idUDFMetadata = input<number>(undefined);
+  readonly idUDFMetadata = input.required<number>();
 
   /** Controls the visibility of the dialog */
-  readonly visibleDialog = input<boolean>();
+  readonly visibleDialog = input(false);
 
   /** Emits the proposed rule when the user takes it over */
   readonly ruleAccepted = output<string>();
@@ -109,7 +109,7 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   /** Examples ticked for sending; every change publishes a new set */
   readonly selected = signal<ReadonlySet<number>>(new Set());
   readonly loading = signal(false);
-  private pendingRequest: Subscription;
+  private pendingRequest: Subscription | null;
 
   /**
    * Loads what would be sent; nothing leaves the instance yet.

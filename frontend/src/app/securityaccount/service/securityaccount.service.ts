@@ -164,7 +164,10 @@ export class SecurityaccountService
    * @param idAssetClass - The asset class of an algo asset class node, if any
    * @returns Options keyed by the security account id, labelled 'portfolio / account'
    */
-  getAlgoAccountOptions(idSecuritycurrency?: number, idAssetClass?: number): Observable<ValueKeyHtmlSelectOptions[]> {
+  getAlgoAccountOptions(
+    idSecuritycurrency?: number | null,
+    idAssetClass?: number
+  ): Observable<ValueKeyHtmlSelectOptions[]> {
     let params = new HttpParams();
     if (idSecuritycurrency != null) {
       params = params.set('idSecuritycurrency', idSecuritycurrency.toString());

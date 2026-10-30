@@ -96,6 +96,6 @@ export class GrafioschMainTreeContributor extends GrafioschTreeContributorBase {
         null
       )
     };
-    this.rootNode.children.push(gtNetNode);
+    (this.rootNode.children ??= []).push(gtNetNode);
   }
 }

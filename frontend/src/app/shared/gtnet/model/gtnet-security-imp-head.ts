@@ -5,11 +5,11 @@ import { BaseID } from '../../../lib/entities/base.id';
  * import positions together for batch processing.
  */
 export class GTNetSecurityImpHead implements BaseID {
-  idGtNetSecurityImpHead: number = null;
-  name: string = null;
-  note: string = null;
+  idGtNetSecurityImpHead: number | null = null;
+  name: string | null = null;
+  note: string | null = null;
 
-  getId(): number {
+  getId(): number | null {
     return this.idGtNetSecurityImpHead;
   }
 }

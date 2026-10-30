@@ -67,7 +67,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                 @switch (field.templateName) {
                   @case ('greenRed') {
                     <span
-                      [pTooltip]="getCellTooltip(rowData, field)"
+                      [pTooltip]="getCellTooltip(rowData, field) ?? undefined"
                       [style.color]="isValueByPathMinusWithEmptyColor(rowData, field) ? 'red' : 'green'">
                       {{ getValueByPath(rowData, field) }}
                     </span>

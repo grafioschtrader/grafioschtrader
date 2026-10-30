@@ -7,7 +7,7 @@ import { ValueFormatHelper } from './value.format.helper';
 const settings: ValueFormatSettings = {
   getLocale: () => 'de-CH',
   getDecimalSymbol: () => '.',
-  getCurrencyPrecision: (currency) => ({ JPY: 0, BTC: 8 })[currency] ?? 2,
+  getCurrencyPrecision: (currency) => (currency == null ? 2 : ({ JPY: 0, BTC: 8 }[currency] ?? 2)),
   getNumberFormat: () => new Intl.NumberFormat('de-CH', { minimumFractionDigits: 2, maximumFractionDigits: 8 }),
   getNumberFormatForPrecision: (precision) =>
     new Intl.NumberFormat('de-CH', { minimumFractionDigits: precision, maximumFractionDigits: precision }),

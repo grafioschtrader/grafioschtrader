@@ -42,7 +42,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">
-      @if (fillGapsBounds()?.calendarOutdated) {
+      @if (fillGapsBounds().calendarOutdated) {
         <div class="alert alert-warning alert-dialog-wrap">
           {{ calendarLimitMessage() }}
         </div>

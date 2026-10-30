@@ -41,7 +41,7 @@ export class SecurityaccountImportTransactionEditHeadComponent
 
   private readonly injector = inject(Injector);
 
-  readonly callParam = input<CallParam>(undefined);
+  readonly callParam = input.required<CallParam>();
 
   constructor() {
     super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, 'IMPORT_SET', inject(ImportTransactionHeadService));

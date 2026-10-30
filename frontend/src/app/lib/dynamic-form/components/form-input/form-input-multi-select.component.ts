@@ -19,14 +19,14 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
     @let rev = notifier?.revision();
     <ng-container [formGroup]="group">
       <p-multiSelect
-        [style.width]="config.inputWidth + 1 + 'em'"
+        [style.width]="config.inputWidth == null ? null : config.inputWidth + 1 + 'em'"
         class="form-control input-sm"
         [class.required-input]="isRequired"
-        [id]="config.field"
+        [id]="fieldName"
         optionValue="key"
         optionLabel="value"
         [options]="config.valueKeyHtmlOptions"
-        [formControlName]="config.field"
+        [formControlName]="fieldName"
         pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}" />
     </ng-container>
   `,

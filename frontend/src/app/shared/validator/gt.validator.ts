@@ -1,7 +1,7 @@
 import { AbstractControl, ValidatorFn, Validators } from '@angular/forms';
 import { isPresent } from '../../lib/validator/validator';
 
-export const validISIN: ValidatorFn = (control: AbstractControl): { [key: string]: boolean } => {
+export const validISIN: ValidatorFn = (control: AbstractControl): { [key: string]: boolean } | null => {
   if (isPresent(Validators.required(control))) {
     return null;
   }

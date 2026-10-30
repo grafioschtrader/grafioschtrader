@@ -34,7 +34,7 @@ export class AlgoCallParam {
     public thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy | null,
     public algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm,
     public idWatchlist?: number,
-    public referenceDate?: Date | string
+    public referenceDate?: Date | string | null
   ) {}
 }
 

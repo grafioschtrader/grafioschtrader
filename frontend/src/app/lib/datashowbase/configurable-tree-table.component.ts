@@ -106,7 +106,7 @@ export interface TreeTableCellEditEvent {
         [value]="data()"
         [columns]="renderedFields()"
         [dataKey]="dataKey()"
-        [selectionMode]="selectionMode()"
+        [selectionMode]="selectionMode() ?? undefined"
         [selection]="selection()"
         (selectionChange)="onTreeSelectionChange($event)"
         (onNodeSelect)="nodeSelect.emit($event)"
@@ -242,7 +242,7 @@ export interface TreeTableCellEditEvent {
                           aria-hidden="true"></i
                       ></span>
                     } @else if (field.templateName === 'editableCheck') {
-                      @if (!checkboxVisibleFn() || checkboxVisibleFn()(rowData, field)) {
+                      @if (checkboxVisibleFn()?.(rowData, field) ?? true) {
                         <p-checkbox
                           [ngModel]="getValue(rowData, field)"
                           [binary]="true"
@@ -295,7 +295,7 @@ export interface TreeTableCellEditEvent {
 
       <!-- Context menu -->
       @if (showContextMenu()) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems()" [appendTo]="contextMenuAppendTo()" />
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems() ?? undefined" [appendTo]="contextMenuAppendTo()" />
       }
     </div>
   `
@@ -417,7 +417,7 @@ export class ConfigurableTreeTableComponent {
   // ============================================================================
 
   /** Array of menu items for the context menu. */
-  readonly contextMenuItems = input<MenuItem[]>([]);
+  readonly contextMenuItems = input<MenuItem[] | null>([]);
 
   /** Controls visibility of the context menu. */
   readonly showContextMenu = input(false);

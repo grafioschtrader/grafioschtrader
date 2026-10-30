@@ -21,8 +21,8 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
         [style.width]="config.inputWidth ? config.inputWidth + 1 + 'em' : null"
         class="form-select form-select-sm"
         [class.required-input]="isRequired"
-        [id]="config.field"
-        [formControlName]="config.field"
+        [id]="fieldName"
+        [formControlName]="fieldName"
         pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}">
         @for (s of config.valueKeyHtmlOptions; track s) {
           <option [value]="s.key" [disabled]="s.disabled">

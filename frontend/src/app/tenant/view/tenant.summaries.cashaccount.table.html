@@ -60,7 +60,7 @@
             [style]="getCellStyle(el, field)">
             @switch (field.templateName) { @case ('greenRed') {
             <span
-              [pTooltip]="getCellTooltip(el, field)"
+              [pTooltip]="getCellTooltip(el, field) ?? undefined"
               [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
               tooltipPosition="top">
               {{ getValueByPath(el, field) }}

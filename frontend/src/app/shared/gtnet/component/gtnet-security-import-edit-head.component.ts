@@ -37,7 +37,8 @@ import { GTNetSecurityImpHeadService } from '../service/gtnet-security-imp-head.
   imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
 })
 export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<GTNetSecurityImpHead> implements OnInit {
-  readonly entity = input<GTNetSecurityImpHead>(undefined);
+  /** The import set being edited; null when a new one is created. */
+  readonly entity = input<GTNetSecurityImpHead | null>(null);
 
   private readonly injector = inject(Injector);
 

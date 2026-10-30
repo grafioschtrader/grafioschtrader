@@ -20,7 +20,9 @@ export abstract class FormDefinitionHelper {
       'transactionTime',
       true
     );
-    transactionTime.calendarConfig.disabledDays = [0, 6];
+    const calendar = transactionTime.calendarConfig;
+    if (!calendar) throw new Error('Transaction time requires a calendar configuration');
+    calendar.disabledDays = [0, 6];
     return transactionTime;
   }
 
@@ -32,13 +34,15 @@ export abstract class FormDefinitionHelper {
    * @param closedUntil The effective closedUntil date (or null to remove restriction)
    */
   public static updateTransactionTimeMinDate(transactionTimeField: FieldConfig, closedUntil: Date | null): void {
+    const calendar = transactionTimeField.calendarConfig;
+    if (!calendar) throw new Error('Transaction time requires a calendar configuration');
     if (closedUntil) {
       // Set minDate to day after closedUntil (transactions on closedUntil are still locked)
       const nextDay = new Date(closedUntil);
       nextDay.setDate(nextDay.getDate() + 1);
-      transactionTimeField.calendarConfig.minDate = nextDay;
+      calendar.minDate = nextDay;
     } else {
-      transactionTimeField.calendarConfig.minDate = null;
+      calendar.minDate = null;
     }
   }
 

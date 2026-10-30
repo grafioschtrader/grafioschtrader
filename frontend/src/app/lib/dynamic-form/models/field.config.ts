@@ -99,7 +99,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
 
   /** Can only be used for input InputType.Input  */
   min?: number | null;
-  max?: number;
+  max?: number | null;
 
   /** Value connected to this definition */
   userDefinedValue?: number | string;
@@ -152,7 +152,7 @@ export interface InputNumberSetting {
 }
 
 export interface CalendarConfig {
-  minDate?: Date;
+  minDate?: Date | null;
   maxDate?: Date;
   disabledDays?: number[];
   disabledDates?: Date[];

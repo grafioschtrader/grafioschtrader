@@ -52,7 +52,7 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
                     <dynamic-form-layout
                       [config]="childField"
                       [formConfig]="formConfig()"
-                      [group]="field.formControl" />
+                      [group]="requireFormControl(field)" />
                   }
                 </ng-container>
                 <div class="col-12">
@@ -91,6 +91,7 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
   ]
 })
 export class DynamicFormComponent implements OnDestroy {
+  protected readonly requireFormControl = requireFormControl;
   private _formBuilder = inject(UntypedFormBuilder);
 
   readonly formConfig = input.required<FormConfig>();

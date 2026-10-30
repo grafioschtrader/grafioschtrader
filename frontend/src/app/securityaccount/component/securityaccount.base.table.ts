@@ -347,7 +347,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
    * @param group - Group summary of that row
    * @returns The highlighting style or an empty style
    */
-  getGroupCellStyle(field: ColumnConfig, group: SecurityPositionGroupSummary): { [key: string]: string } {
+  getGroupCellStyle(field: ColumnConfig, group: SecurityPositionGroupSummary | undefined): { [key: string]: string } {
     return DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && group?.groupDisposalComplete === false
       ? DisposalCostHelper.INCOMPLETE_STYLE
       : {};
@@ -374,7 +374,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
    * @param field - The column
    * @returns The tooltip text
    */
-  getCellTooltip(positionSummary: SecurityPositionSummary, field: ColumnConfig): string {
+  getCellTooltip(positionSummary: SecurityPositionSummary, field: ColumnConfig): string | null {
     if (DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && positionSummary?.disposalDetails) {
       return DisposalCostHelper.getDetailsText(positionSummary.disposalDetails, this.translateService, this.gps);
     }

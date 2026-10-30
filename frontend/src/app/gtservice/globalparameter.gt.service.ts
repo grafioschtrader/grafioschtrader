@@ -184,7 +184,7 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
   /**
    * True when the given currency code is one of the supported cryptocurrencies stored at login.
    */
-  public isCryptocurrency(currencyCode: string): boolean {
+  public isCryptocurrency(currencyCode: string | null | undefined): boolean {
     if (!currencyCode) {
       return false;
     }

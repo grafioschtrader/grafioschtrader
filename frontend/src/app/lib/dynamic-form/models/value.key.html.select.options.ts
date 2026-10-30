@@ -1,5 +1,5 @@
 export class ValueKeyHtmlSelectOptions {
-  disabled: boolean;
+  disabled?: boolean;
 
   constructor(
     public key: number | string | null,
@@ -8,8 +8,9 @@ export class ValueKeyHtmlSelectOptions {
 }
 
 export class GroupItem {
-  disabled: boolean;
-  children: GroupItem[];
+  disabled?: boolean;
+  /** Options of a group heading; absent for a selectable option. */
+  children?: GroupItem[];
   /** Optional styled text fragments; plain value/optionsText remain available for searching and accessibility. */
   textSegments?: SelectTextSegment[];
 

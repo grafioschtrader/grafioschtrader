@@ -832,9 +832,9 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       security: transactionType !== TransactionType.ACCUMULATE ? security : null
     });
     this.transactionCallParam.idWatchList = this.idWatchlist;
-    const activeToDate: Date = new Date(security.activeToDate);
+    const activeToDate = security.activeToDate == null ? null : new Date(security.activeToDate);
     this.transactionCallParam.defaultTransactionTime =
-      activeToDate.getTime() < new Date().getTime() ? activeToDate : new Date();
+      activeToDate && activeToDate.getTime() < new Date().getTime() ? activeToDate : new Date();
     this.visibleSecurityTransactionDialog.set(true);
   }
 

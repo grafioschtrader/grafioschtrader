@@ -60,7 +60,7 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
   private taxDataService: TaxDataService = inject(TaxDataService);
   private messageToastService: MessageToastService = inject(MessageToastService);
 
-  readonly taxYear = input<TaxYear>(undefined);
+  readonly taxYear = input.required<TaxYear>();
 
   contextMenuItems: MenuItem[] = [];
   private readonly destroyRef = inject(DestroyRef);

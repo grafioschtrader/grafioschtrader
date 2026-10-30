@@ -62,7 +62,7 @@ export class GlobalparameterService
   }
 
   /** @see LocaleFormat.getCurrencyPrecision */
-  public getCurrencyPrecision(currency: string): number {
+  public getCurrencyPrecision(currency: string | null | undefined): number {
     return this.localeFormat.getCurrencyPrecision(currency);
   }
 

@@ -25,7 +25,7 @@
       [(contextMenuSelection)]="selectedSecurityPositionSummary"
       [(selection)]="selectedSecurityPositionSummary"
       [columns]="fields"
-      [value]="securityPositionAll"
+      [value]="securityPositionAll ?? []"
       dataKey="security.idSecuritycurrency"
       selectionMode="single"
       stripedRows
@@ -35,7 +35,7 @@
           <div class="left-half">
             @if (groupOptions) {
             <h4 #title>
-              {{ 'SECURITYACCOUNT' | translate }}: {{ portfolio?.name }} {{ securityAccount?.name }}
+              {{ 'SECURITYACCOUNT' | translate }}: {{ portfolio && portfolio.name }} {{ securityAccount?.name }}
               <p-select (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup" [options]="groupOptions" />
             </h4>
             }
@@ -125,7 +125,7 @@
             ></span>
             } @case ('greenRed') {
             <span
-              [pTooltip]="getCellTooltip(el, field)"
+              [pTooltip]="getCellTooltip(el, field) ?? undefined"
               [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
               tooltipPosition="top">
               {{ getValueByPath(el, field) }}
@@ -196,14 +196,14 @@
               [idPortfolio]="idPortfolio"
               [idSecuritycurrency]="securityPositionAll.security.idSecuritycurrency"
               [idTenant]="idTenant"
-              [idsSecurityaccount]="[$safeNavigationMigration(securityAccount?.idSecuritycashAccount)]" />
+              [idsSecurityaccount]="securityAccount?.idSecuritycashAccount == null ? [] : [securityAccount.idSecuritycashAccount]" />
             } @if (!!securityPositionAll.security.stockexchange && isMarginProduct(securityPositionAll.security)) {
             <transaction-security-margin-treetable
               (dateChanged)="transactionDataChanged($event)"
               [idPortfolio]="idPortfolio"
               [idSecuritycurrency]="securityPositionAll.security.idSecuritycurrency"
               [idTenant]="idTenant"
-              [idsSecurityaccount]="[$safeNavigationMigration(securityAccount?.idSecuritycashAccount)]" />
+              [idsSecurityaccount]="securityAccount?.idSecuritycashAccount == null ? [] : [securityAccount.idSecuritycashAccount]" />
             } @if (!securityPositionAll.security.stockexchange) {
             <transaction-cashaccount-table
               (dateChanged)="transactionDataChanged($event)"

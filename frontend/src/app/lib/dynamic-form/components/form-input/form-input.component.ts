@@ -43,7 +43,7 @@ import { UpperCaseDirective } from './upper-case.directive';
           config.dataType === DataType.NumericInteger ? 'int' : config.dataType === DataType.Numeric ? 'num' : null
         "
         [attr.placeholder]="config.placeholder"
-        [formControlName]="config.field"
+        [formControlName]="fieldName"
         [attr.maxlength]="config.maxLength || null"
         [attr.size]="config.maxLength ? config.inputWidth || config.maxLength : null"
         pTooltip="{{
@@ -52,7 +52,7 @@ import { UpperCaseDirective } from './upper-case.directive';
             : (config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP')
         }}"
         [readonly]="config.readonly"
-        [id]="config.field"
+        [id]="fieldName"
         [min]="config.min"
         [max]="config.max"
         [upperCase]="config.upperCase" />

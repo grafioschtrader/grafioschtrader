@@ -17,8 +17,8 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
         class="form-check-input"
         type="checkbox"
         #input
-        [id]="config.field"
-        [formControlName]="config.field"
+        [id]="fieldName"
+        [formControlName]="fieldName"
         pTooltip="{{
           config.labelHelpText?.startsWith('*')
             ? config.labelHelpText.slice(1)

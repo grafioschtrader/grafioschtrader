@@ -58,7 +58,8 @@ import { TenantService } from '../service/tenant.service';
         [formConfig]="formConfig"
         [translateService]="translateService"
         #form="dynamicForm" />
-      @if (comparisonResponse() && comparisonResponse().totalTransactions > 0) {
+      @let comparison = comparisonResponse();
+      @if (comparison && comparison.totalTransactions > 0) {
         <div class="fcontainer">
           <fieldset class="out-border fbox">
             <legend class="out-border-legend">

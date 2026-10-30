@@ -188,7 +188,7 @@ export class StandingOrderTransactionTableComponent extends TransactionContextMe
     this.loadTransactions();
   }
 
-  protected getSecurity(transaction: Transaction): Security {
+  protected getSecurity(transaction: Transaction): Security | undefined {
     return transaction.security;
   }
 

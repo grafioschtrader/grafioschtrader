@@ -131,7 +131,7 @@ import { FilterType } from '../../datashowbase/filter.type';
                           [showClear]="true"
                           [filter]="$safeNavigationMigration(field.filterValues?.length) > 10"
                           (onChange)="tt.filter($event.value?.length ? $event.value : null, field.field, 'in')"
-                          (onClear)="tt.filter(null, field.field, 'in')" />
+                          (onClear)="tt.filter([], field.field, 'in')" />
                       }
 
                       <!-- Columns without a supported filter render no control. -->
@@ -369,7 +369,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   /**
    * Called when a tree node is selected. Marks received messages as read and updates context menu.
    */
-  onSelectionChange(selection: TreeNode | TreeNode[]): void {
+  onSelectionChange(selection: TreeNode | TreeNode[] | null): void {
     const node = Helper.singleSelection(selection);
     // Update context menu items based on new selection
     this.setMenuItemsToActivePanel();

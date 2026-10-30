@@ -84,8 +84,8 @@ import { SharedModule } from '@openng/optimus-ui/api';
         </tr>
       </ng-template>
       <security-historyquote-quality-table
-        [historyquoteQualityIds]="historyquoteQualityIds()"
-        [groupTitle]="groupTitle()"
+        [historyquoteQualityIds]="historyquoteQualityIds() ?? undefined"
+        [groupTitle]="groupTitle() ?? undefined"
         (changedIdSecurity)="handleChangedIdSecurity($event)" />
     </div>
   `,

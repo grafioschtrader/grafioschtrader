@@ -78,11 +78,13 @@ import { BaseSettings } from '../../base.settings';
     }
 
     @if (visibleChangeEntitiesOwnerDialog()) {
-      <user-change-owner-entities
-        [visibleDialog]="visibleChangeEntitiesOwnerDialog()"
-        [fromUser]="selectedEntity()"
-        [allUsers]="entityList()"
-        (closeDialog)="handleChangeOwnerCloseDialog($event)" />
+      @if (selectedEntity(); as fromUser) {
+        <user-change-owner-entities
+          [visibleDialog]="visibleChangeEntitiesOwnerDialog()"
+          [fromUser]="fromUser"
+          [allUsers]="entityList()"
+          (closeDialog)="handleChangeOwnerCloseDialog($event)" />
+      }
     }
   `,
   providers: [DialogService],

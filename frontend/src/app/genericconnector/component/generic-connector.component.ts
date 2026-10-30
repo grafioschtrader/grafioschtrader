@@ -104,18 +104,24 @@ import { AppSettings } from '../../shared/app.settings';
         (closeDialog)="handleCloseEditDialog($event)" />
     }
     @if (visibleEndpointDialog()) {
-      <generic-connector-endpoint-edit
-        [visibleDialog]="visibleEndpointDialog()"
-        [endpoint]="endpointToEdit"
-        [connectorDef]="selectedEntity"
-        (closeDialog)="handleCloseEndpointDialog($event)" />
+      @if (selectedEntity; as definition) {
+        <generic-connector-endpoint-edit
+          [visibleDialog]="visibleEndpointDialog()"
+          [endpoint]="endpointToEdit"
+          [connectorDef]="definition"
+          (closeDialog)="handleCloseEndpointDialog($event)" />
+      }
     }
     @if (visibleTestDialog()) {
-      <generic-connector-test-dialog
-        [visibleDialog]="visibleTestDialog()"
-        [endpoint]="selectedEndpoint()"
-        [connectorDef]="selectedEntity"
-        (closeDialog)="handleCloseTestDialog()" />
+      @if (selectedEntity; as definition) {
+        @if (selectedEndpoint(); as endpoint) {
+          <generic-connector-test-dialog
+            [visibleDialog]="visibleTestDialog()"
+            [endpoint]="endpoint"
+            [connectorDef]="definition"
+            (closeDialog)="handleCloseTestDialog()" />
+        }
+      }
     }
   `,
   imports: [

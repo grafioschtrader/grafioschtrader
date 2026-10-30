@@ -63,9 +63,11 @@ export class TransformPdfToTxtDialogComponent extends SimpleFormEditBase impleme
   }
 
   handleFileInput(files: FileList) {
+    const file = files.item(0);
+    if (!file) return;
     this.transformSubscription?.unsubscribe();
     this.transformSubscription = this.importTransactionPlatformService
-      .uploadAndTransformPDFToTxt(files.item(0))
+      .uploadAndTransformPDFToTxt(file)
       .pipe(this.untilDialogClosed())
       .subscribe((txt: string) => {
         requireFormControl(this.configObject.templateAsTxt).setValue(txt);

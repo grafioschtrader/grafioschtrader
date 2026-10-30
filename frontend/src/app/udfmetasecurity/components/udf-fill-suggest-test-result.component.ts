@@ -20,11 +20,11 @@ import { UDFMetadataSecurityService } from '../service/udf.metadata.security.ser
       @if (candidates()?.length === 0) {
         <p>{{ 'UDF_FILL_TEST_LLM_NONE' | translate }}</p>
       }
-      @if (running() && candidates()?.length > 0) {
+      @if (running() && (candidates()?.length ?? 0) > 0) {
         <div class="test-progress">
           <p-progressSpinner [style]="{ width: '2rem', height: '2rem' }" />
           <span>{{
-            'UDF_FILL_TEST_LLM_PROGRESS' | translate: { current: results().size + 1, total: candidates().length }
+            'UDF_FILL_TEST_LLM_PROGRESS' | translate: { current: results().size + 1, total: candidates()?.length }
           }}</span>
         </div>
       }
@@ -57,7 +57,7 @@ import { UDFMetadataSecurityService } from '../service/udf.metadata.security.ser
               @if (r.sourceUrl) {
                 <br /><a [href]="r.sourceUrl" target="_blank" rel="noopener noreferrer">{{ r.sourceUrl }}</a>
               }
-              @if (r.fetches?.length > 0) {
+              @if (r.fetches && r.fetches.length > 0) {
                 <br /><span class="test-fetches">{{ 'UDF_FILL_TEST_LLM_FETCHES' | translate }}</span>
                 <ul class="test-fetches">
                   @for (f of r.fetches; track $index) {
@@ -116,7 +116,7 @@ export class UDFFillSuggestTestResultComponent implements OnDestroy {
   private uDFMetadataSecurityService = inject(UDFMetadataSecurityService);
 
   /** The draft of the edit form; every new object starts a new test */
-  readonly request = input<UDFFillTestRequest>(undefined);
+  readonly request = input.required<UDFFillTestRequest>();
 
   /** The securities picked by the server, null while they are loading */
   readonly candidates = signal<UDFSuggestTestCandidate[] | null>(null);

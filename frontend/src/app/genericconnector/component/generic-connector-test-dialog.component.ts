@@ -52,7 +52,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
           }
         </p-fieldset>
 
-        @if (result.parsedRows?.length > 0) {
+        @if (result.parsedRows && result.parsedRows.length > 0) {
           <p-fieldset legend="{{ 'PARSED_DATA' | translate }}" class="mt-3">
             <div style="max-height: 300px; overflow-y: auto;">
               <p-table [value]="result.parsedRows" [scrollable]="true" styleClass="p-datatable-sm">

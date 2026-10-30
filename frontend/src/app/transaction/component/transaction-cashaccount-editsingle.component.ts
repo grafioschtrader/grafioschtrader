@@ -68,7 +68,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
   /** Controls visibility of the cash account transaction dialog */
-  readonly visibleCashaccountTransactionSingleDialog = input<boolean>();
+  readonly visibleCashaccountTransactionSingleDialog = input(false);
 
   /** Form configuration object containing locale and validation settings */
   formConfig: FormConfig;
@@ -77,7 +77,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   readonly minAmount = 0.00000001;
 
   /** Currency symbol for the selected cash account */
-  cashaccountCurrency = ' ';
+  cashaccountCurrency: string | null = ' ';
 
   /** Subscription for transaction type changes */
   private transactionTypeChangedSub: Subscription;

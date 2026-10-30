@@ -135,10 +135,10 @@ risk_controls:
       <yaml-editor
         #yamlEditor
         format="STRATEGY"
-        [activatable]="configObject.activatable?.formControl?.value !== false"
+        [activatable]="configObject.activatable.formControl?.value !== false"
         [(value)]="yamlContent"
         [height]="'500px'"
-        [schema]="configObject.activatable?.formControl?.value === false ? draftYamlSchema() : yamlSchema()" />
+        [schema]="configObject.activatable.formControl?.value === false ? draftYamlSchema() : yamlSchema()" />
       <div class="mt-2 text-end">
         <p-button [label]="'LOAD_TEMPLATE' | translate" severity="secondary" (click)="loadTemplate()" styleClass="me-2">
           <i class="pi pi-file" pButtonIcon></i>

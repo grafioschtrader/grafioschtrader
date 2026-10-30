@@ -81,26 +81,30 @@ import { CorrelationSetEditComponent } from './correlation-set-edit.component';
       } @else if (calculation.error()) {
         <p>{{ 'DATA_LOAD_FAILED' | translate }}</p>
       }
-      @if (timePeriod()) {
+      @if (timePeriod(); as timePeriodValue) {
         <p>
-          {{ 'TIME_PERIOD' | translate }} {{ timePeriod() }}
+          {{ 'TIME_PERIOD' | translate }} {{ timePeriodValue }}
           {{ 'INSTRUMENT_OVERLAPPING_PRICE_DATA' | translate }}
         </p>
       }
       @if (nonOverlappingDates()) {
         <p style="color:tomato;">{{ 'NON_OVERLAPPING_DATES' | translate }}</p>
       }
-      @if (dividendMissingNames()) {
-        <p style="color:tomato;">{{ 'CORRELATION_DIVIDEND_MISSING' | translate }} {{ dividendMissingNames() }}</p>
+      @if (dividendMissingNames(); as dividendMissingNamesValue) {
+        <p style="color:tomato;">{{ 'CORRELATION_DIVIDEND_MISSING' | translate }} {{ dividendMissingNamesValue }}</p>
       }
       <correlation-table [childToParent]="this" />
     </div>
     @if (visibleEditDialog) {
-      <correlation-set-edit
-        [visibleDialog]="visibleEditDialog"
-        [callParam]="callParam"
-        [correlationLimit]="correlationLimit()"
-        (closeDialog)="handleCloseEditDialog($event)" />
+      @if (callParam; as editCallParam) {
+        @if (correlationLimit(); as limit) {
+          <correlation-set-edit
+            [visibleDialog]="visibleEditDialog"
+            [callParam]="editCallParam"
+            [correlationLimit]="limit"
+            (closeDialog)="handleCloseEditDialog($event)" />
+        }
+      }
     }
   `,
   imports: [

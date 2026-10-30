@@ -10,9 +10,9 @@ import { ServiceEntityUpdate } from '../app/lib/edit/service.entity.update';
  * columns, which is why neither the entity nor its service can live in the library.
  */
 export class GrafioschTenant {
-  idTenant: number = null;
-  tenantName: string = null;
-  createIdUser: number = null;
+  idTenant: number | null = null;
+  tenantName: string | null = null;
+  createIdUser: number | null = null;
 }
 
 /**

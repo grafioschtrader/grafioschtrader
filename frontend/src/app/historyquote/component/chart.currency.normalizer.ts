@@ -59,9 +59,10 @@ export class ChartCurrencyNormalizer {
    */
   public setCrossRates(crossRateResponse: CrossRateResponse): void {
     this.mainCurrency = crossRateResponse.mainCurrency;
-    crossRateResponse.currenciesAndClosePrice.forEach((crr) =>
-      this.crossRateMap.set(crr.currencypair.fromCurrency, crr.currencypair.toCurrency, crr)
-    );
+    crossRateResponse.currenciesAndClosePrice.forEach((crr) => {
+      const { fromCurrency, toCurrency } = crr.currencypair;
+      if (fromCurrency != null && toCurrency != null) this.crossRateMap.set(fromCurrency, toCurrency, crr);
+    });
   }
 
   /**

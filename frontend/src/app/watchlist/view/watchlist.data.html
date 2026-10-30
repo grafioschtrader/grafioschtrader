@@ -43,7 +43,7 @@
          below it; the negative margin takes the heading's margin back and half of that padding, so the header keeps a
          small gap above the column headers. A rule on the table header itself would lose against the theme styles. -->
     <h4 caption style="margin-bottom: -0.5rem">
-      {{ 'WATCHLIST' | translate }}: "{{ watchlist().name }}" {{
+      {{ 'WATCHLIST' | translate }}: "{{ watchlist()?.name }}" {{
       $safeNavigationMigration(securitycurrencyGroup()?.lastTimestamp) | date: 'HH:mm dd.MM.yy' }}
       <!-- Position values of the selected row, only shown by the watchlist types which fill positionHeaderFields. Styled
            by the component that fills them. -->

@@ -220,9 +220,9 @@ export class MailSendParam {
   constructor(
     public idUserTo: number | undefined,
     public mailSendRecv?: MailSendRecv | null,
-    public subject?: string,
+    public subject?: string | null,
     public roleName?: string,
     public contextEntity?: string,
-    public idEntityContext?: number
+    public idEntityContext?: number | null
   ) {}
 }

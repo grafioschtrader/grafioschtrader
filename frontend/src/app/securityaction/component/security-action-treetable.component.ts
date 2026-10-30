@@ -83,13 +83,13 @@ export class SecurityActionTreetableComponent
 
   readonly treeNodes = signal<TreeNode[]>([]);
   /** Row highlighted by the single-selection tree table. */
-  tableSelection: TreeNode = null;
+  tableSelection: TreeNode | null = null;
   /** Translated menu of the selected node, shown as context menu and in the menu bar */
   readonly contextMenuItems = signal<MenuItem[] | null>(null);
   isAdmin: boolean;
   readonly visibleCreateDialog = signal(false);
 
-  private selectedNode: TreeNode;
+  private selectedNode: TreeNode | null;
   private treeData: SecurityActionTreeData;
   private readonly destroyRef = inject(DestroyRef);
   /** Latest tree request; a reload replaces one still outstanding */
@@ -190,7 +190,7 @@ export class SecurityActionTreetableComponent
         nodeKey: 'sys_root'
       },
       children: (data.systemActions || []).map((action) => {
-        const app = data.appliedByCurrentTenant[action.idSecurityAction];
+        const app = action.idSecurityAction == null ? undefined : data.appliedByCurrentTenant[action.idSecurityAction];
         let status = '';
         if (app && !app.reversed) {
           status = 'APPLIED';
@@ -346,9 +346,11 @@ export class SecurityActionTreetableComponent
   }
 
   private applyIsinChange(): void {
-    const action: SecurityAction = this.selectedNode.data.entity;
-    this.securityActionService.applySecurityAction(action.idSecurityAction).subscribe((application) => {
-      if (application?.alreadyPerformedCount > 0) {
+    const action: SecurityAction | undefined = this.selectedNode?.data.entity;
+    const actionId = action?.idSecurityAction;
+    if (actionId == null) return;
+    this.securityActionService.applySecurityAction(actionId).subscribe((application) => {
+      if ((application?.alreadyPerformedCount ?? 0) > 0) {
         this.messageToastService.showMessageI18n(InfoLevelType.INFO, 'APPLY_ISIN_CHANGE_ALREADY_PERFORMED', {
           count: application.alreadyPerformedCount
         });
@@ -360,23 +362,28 @@ export class SecurityActionTreetableComponent
   }
 
   private reverseIsinChange(): void {
-    const action: SecurityAction = this.selectedNode.data.entity;
-    this.securityActionService.reverseSecurityAction(action.idSecurityAction).subscribe(() => {
+    const action: SecurityAction | undefined = this.selectedNode?.data.entity;
+    const actionId = action?.idSecurityAction;
+    if (actionId == null) return;
+    this.securityActionService.reverseSecurityAction(actionId).subscribe(() => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REVERSE_ISIN_CHANGE_SUCCESS');
       this.readData();
     });
   }
 
   private deleteIsinChange(): void {
-    const action: SecurityAction = this.selectedNode.data.entity;
-    this.securityActionService.deleteSecurityAction(action.idSecurityAction).subscribe(() => {
+    const action: SecurityAction | undefined = this.selectedNode?.data.entity;
+    const actionId = action?.idSecurityAction;
+    if (actionId == null) return;
+    this.securityActionService.deleteSecurityAction(actionId).subscribe(() => {
       this.selectedNode = null;
       this.readData();
     });
   }
 
   private reverseTransfer(): void {
-    const transfer: SecurityTransfer = this.selectedNode.data.entity;
+    const transfer: SecurityTransfer | undefined = this.selectedNode?.data.entity;
+    if (!transfer) return;
     this.securityActionService.reverseTransfer(transfer.idSecurityTransfer).subscribe(() => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REVERSE_TRANSFER_SUCCESS');
       this.selectedNode = null;

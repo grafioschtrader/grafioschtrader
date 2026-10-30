@@ -56,7 +56,7 @@ import { StrategyDetailComponent } from './strategy-detail.component';
         'passiv-border': !isActivated()
       }">
       <configurable-tree-table
-        [data]="treeNodes()"
+        [data]="treeNodes() ?? []"
         [fields]="fields"
         [fieldsRevision]="fieldsRevision()"
         dataKey="idTree"
@@ -89,22 +89,22 @@ import { StrategyDetailComponent } from './strategy-detail.component';
           }
         </ng-template>
       </configurable-tree-table>
-      @if (readiness()) {
-        <div class="readiness()">
+      @if (readiness(); as readinessValue) {
+        <div class="readinessValue">
           <strong>{{
-            (readiness().readyForReplay ? 'ALGO_READY_FOR_REPLAY' : 'ALGO_NOT_READY_FOR_REPLAY') | translate
+            (readinessValue.readyForReplay ? 'ALGO_READY_FOR_REPLAY' : 'ALGO_NOT_READY_FOR_REPLAY') | translate
           }}</strong>
-          @if (readiness().readyForReplay) {
+          @if (readinessValue.readyForReplay) {
             <span>
               {{
-                (readiness().readyForRebalancing ? 'ALGO_READY_FOR_REBALANCING' : 'ALGO_NOT_READY_FOR_REBALANCING')
+                (readinessValue.readyForRebalancing ? 'ALGO_READY_FOR_REBALANCING' : 'ALGO_NOT_READY_FOR_REBALANCING')
                   | translate
               }}
             </span>
           }
-          @if (readiness().issues.length > 0) {
+          @if (readinessValue.issues.length > 0) {
             <ul>
-              @for (issue of readiness().issues; track $index) {
+              @for (issue of readinessValue.issues; track $index) {
                 <li [class.readiness-blocking]="issue.blocking">{{ issue.message }}</li>
               }
             </ul>
@@ -117,16 +117,20 @@ import { StrategyDetailComponent } from './strategy-detail.component';
       }
     </div>
     @if (visibleDialogs()[AlgoDialogVisible.ALGO_ASSETCLASS]) {
-      <algo-assetclass-edit
-        [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_ASSETCLASS]"
-        [algoCallParam]="algoCallParam()"
-        (closeDialog)="handleCloseAlgoAssetclassDialog($event)" />
+      @if (algoCallParam(); as editCallParam) {
+        <algo-assetclass-edit
+          [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_ASSETCLASS]"
+          [algoCallParam]="editCallParam"
+          (closeDialog)="handleCloseAlgoAssetclassDialog($event)" />
+      }
     }
     @if (visibleDialogs()[AlgoDialogVisible.ALGO_SECURITY]) {
-      <algo-security-edit
-        [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_SECURITY]"
-        [algoCallParam]="algoCallParam()"
-        (closeDialog)="handleCloseAlgoAssetclassDialog($event)" />
+      @if (algoCallParam(); as editCallParam) {
+        <algo-security-edit
+          [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_SECURITY]"
+          [algoCallParam]="editCallParam"
+          (closeDialog)="handleCloseAlgoAssetclassDialog($event)" />
+      }
     }
     @if (visibleDialogs()[AlgoDialogVisible.ALGO_ADD_INSTRUMENT]) {
       <algo-assetclass-add-instrument
@@ -135,10 +139,12 @@ import { StrategyDetailComponent } from './strategy-detail.component';
         (closeDialog)="handleCloseAddInstrumentDialog($event)" />
     }
     @if (visibleDialogs()[AlgoDialogVisible.ALGO_STRATEGY]) {
-      <algo-strategy-edit
-        [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_STRATEGY]"
-        [algoCallParam]="algoCallParam()"
-        (closeDialog)="handleCloseAlgoAssetclassDialog($event)" />
+      @if (algoCallParam(); as editCallParam) {
+        <algo-strategy-edit
+          [visibleDialog]="visibleDialogs()[AlgoDialogVisible.ALGO_STRATEGY]"
+          [algoCallParam]="editCallParam"
+          (closeDialog)="handleCloseAlgoAssetclassDialog($event)" />
+      }
     }
   `,
   styles: [

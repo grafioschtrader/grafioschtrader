@@ -15,7 +15,7 @@ import { Component, signal, input, linkedSignal } from '@angular/core';
 export class StepComponent {
   readonly styleClassInput = input<string>(undefined, { alias: 'styleClass' });
   readonly styleClass = linkedSignal(() => this.styleClassInput());
-  readonly label = input<string>(undefined);
+  readonly label = input<string>();
   /** Set by the surrounding StepsComponent */
   readonly active = signal(false);
 }

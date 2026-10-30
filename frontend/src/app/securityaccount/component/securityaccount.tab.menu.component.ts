@@ -146,7 +146,7 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
    * @param route - The route to navigate to
    */
   override navigateTo(route: string): void {
-    if (!this.securityaccount) {
+    if (this.securityaccount?.idSecuritycashAccount == null) {
       console.warn('No securityaccount available for navigation');
       return;
     }

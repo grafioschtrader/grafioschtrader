@@ -53,8 +53,8 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
 
   static readonly SYSTEM_CREATED_COLOR = 'red';
   static readonly USER_CREATED_COLOR = 'blue';
-  readonly stockexchange = input<Stockexchange>(undefined);
-  readonly sourceCopyStockexchanges = input<ValueKeyHtmlSelectOptions[]>(undefined);
+  readonly stockexchange = input.required<Stockexchange>();
+  readonly sourceCopyStockexchanges = input.required<ValueKeyHtmlSelectOptions[]>();
 
   readonly DATE_ATTRIBUTE = 'tradingDateMinus';
   readonly COPY_FULL_TITLE_KEY = 'TRADING_CALENDAR_FROM_OTHER_EXCHANGE_FULL';
@@ -158,7 +158,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   override getEditMenu(): MenuItem[] {
-    let menuItems: MenuItem[];
+    let menuItems: MenuItem[] = [];
     if (this.hasRightsToModify()) {
       menuItems = [
         {

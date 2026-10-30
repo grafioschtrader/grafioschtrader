@@ -32,7 +32,7 @@ export class DisposalCostHelper {
     details: DisposalCostDetail[],
     translateService: TranslateService,
     gps: GlobalparameterService
-  ): string {
+  ): string | null {
     if (!details?.length) {
       return null;
     }

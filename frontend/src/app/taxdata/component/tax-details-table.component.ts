@@ -38,7 +38,7 @@ export class TaxDetailsTableComponent extends TableConfigBase {
       this.currency();
       untracked(() => {
         if (this.mode() === 'matches') {
-          this.fields.find((field) => field.field === 'amount').fixedCurrency = this.currency();
+          this.requireColumnConfigByField('amount').fixedCurrency = this.currency();
           this.notifyViewChanged();
         }
         this.createTranslatedValueStore(this.rows());
@@ -98,7 +98,7 @@ export class TaxDetailsTableComponent extends TableConfigBase {
       );
     const modeValue = this.mode();
     if (modeValue === 'estimate') {
-      this.fields.find((field) => field.field === 'estimatedTax').currencyPrecisionField = 'currency';
+      this.requireColumnConfigByField('estimatedTax').currencyPrecisionField = 'currency';
     } else if (modeValue === 'income') {
       this.fields
         .filter((field) => field.dataType === DataType.Numeric)

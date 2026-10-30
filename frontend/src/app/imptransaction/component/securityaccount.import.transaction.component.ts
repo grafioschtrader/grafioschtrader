@@ -79,10 +79,12 @@ import { SecurityaccountImportTransactionTableComponent } from './securityaccoun
     </div>
 
     @if (visibleEditDialog) {
-      <securityaccount-import-transaction-edit-head
-        [visibleDialog]="visibleEditDialog"
-        [callParam]="callParam"
-        (closeDialog)="handleCloseEditDialog($event)" />
+      @if (callParam; as headCallParam) {
+        <securityaccount-import-transaction-edit-head
+          [visibleDialog]="visibleEditDialog"
+          [callParam]="headCallParam"
+          (closeDialog)="handleCloseEditDialog($event)" />
+      }
     }
 
     @if (visibleUploadFileDialog()) {
@@ -93,11 +95,14 @@ import { SecurityaccountImportTransactionTableComponent } from './securityaccoun
     }
 
     @if (visibleGtnetHeadSelectDialog()) {
-      <gtnet-import-head-select-dialog
-        [visibleDialog]="visibleGtnetHeadSelectDialog()"
-        [suggestedHeadName]="suggestedGtnetHeadName"
-        [idTransactionHead]="$safeNavigationMigration(selectedEntity?.idTransactionHead)"
-        (closeDialog)="handleCloseGtnetHeadSelectDialog($event)" />
+      @let headId = selectedEntity?.idTransactionHead;
+      @if (headId != null) {
+        <gtnet-import-head-select-dialog
+          [visibleDialog]="visibleGtnetHeadSelectDialog()"
+          [suggestedHeadName]="suggestedGtnetHeadName"
+          [idTransactionHead]="$safeNavigationMigration(headId)"
+          (closeDialog)="handleCloseGtnetHeadSelectDialog($event)" />
+      }
     }
   `,
   imports: [
@@ -133,10 +138,10 @@ export class SecurityaccountImportTransactionComponent
   fileUploadParam: FileUploadParam;
   // callParam: CallParam;
   importTransactionTemplates: ImportTransactionTemplate[];
-  successFailedDirectImportTransaction: SuccessFailedDirectImportTransaction;
+  successFailedDirectImportTransaction: SuccessFailedDirectImportTransaction | null;
   suggestedGtnetHeadName = '';
 
-  securityAccount: Securityaccount;
+  securityAccount: Securityaccount | null;
   private readonly injector = inject(Injector);
 
   private readonly headAccountId = signal<number | undefined>(undefined);
@@ -200,12 +205,11 @@ export class SecurityaccountImportTransactionComponent
       const render = untracked(() => {
         this.importTransactionTemplates = result.templates;
         if (result.importResult) {
-          this.successFailedDirectImportTransaction = JSON.parse(result.importResult);
+          const importResult: SuccessFailedDirectImportTransaction = JSON.parse(result.importResult);
+          this.successFailedDirectImportTransaction = importResult;
           this.messageToastService.showMessageI18n(
-            this.successFailedDirectImportTransaction.possibleDuplicate ? InfoLevelType.WARNING : InfoLevelType.ERROR,
-            this.successFailedDirectImportTransaction.possibleDuplicate
-              ? 'POSSIBLE_DUPLICATE_TRANS_FROM_IMPORT'
-              : 'FAILED_TRANS_FROM_IMPORT'
+            importResult.possibleDuplicate ? InfoLevelType.WARNING : InfoLevelType.ERROR,
+            importResult.possibleDuplicate ? 'POSSIBLE_DUPLICATE_TRANS_FROM_IMPORT' : 'FAILED_TRANS_FROM_IMPORT'
           );
         }
         return afterNextRender(
@@ -231,10 +235,10 @@ export class SecurityaccountImportTransactionComponent
             true
           );
 
-        if (!this.selectedEntity && this.successFailedDirectImportTransaction) {
+        const importResult = this.successFailedDirectImportTransaction;
+        if (!this.selectedEntity && importResult) {
           this.selectedEntity = this.entityList.find(
-            (imporTtransactionHead) =>
-              imporTtransactionHead.idTransactionHead === this.successFailedDirectImportTransaction.idTransactionHead
+            (imporTtransactionHead) => imporTtransactionHead.idTransactionHead === importResult.idTransactionHead
           );
         }
 
@@ -257,9 +261,9 @@ export class SecurityaccountImportTransactionComponent
    * conditionally avoids a backend error for accounts without an import platform.
    */
   private loadImportTransactionTemplates(
-    account: Securityaccount = this.securityAccount
+    account: Securityaccount | null = this.securityAccount
   ): Observable<ImportTransactionTemplate[]> {
-    const platform = account.tradingPlatformPlan;
+    const platform = account?.tradingPlatformPlan;
     const planId = platform?.idTradingPlatformPlan;
     const accountTemplates$ =
       platform?.importTransactionPlatform && planId != null
@@ -280,7 +284,7 @@ export class SecurityaccountImportTransactionComponent
   }
 
   readData(): void {
-    const id = this.securityAccount?.idSecuritycashAccount;
+    const id = this.securityAccount?.idSecuritycashAccount ?? undefined;
     if (this.headAccountId() === id) this.headsResource.reload();
     else this.headAccountId.set(id);
   }
@@ -342,7 +346,7 @@ export class SecurityaccountImportTransactionComponent
 
   rowSelectionChanged(
     childEntityList: CombineTemplateAndImpTransPos[],
-    childSelectedEntity: CombineTemplateAndImpTransPos
+    childSelectedEntity: CombineTemplateAndImpTransPos | null
   ) {
     this.childEntityList = childEntityList;
     this.refreshMenus();
@@ -388,12 +392,14 @@ export class SecurityaccountImportTransactionComponent
   }
 
   handleUploadFiles(
-    additionalFieldConfig: AdditionalFieldConfig,
-    importTransactionHead: ImportTransactionHead,
+    additionalFieldConfig: AdditionalFieldConfig | null,
+    importTransactionHead: ImportTransactionHead | null,
     titleUpload: string,
     acceptFileType: string,
     multiple: boolean
   ): void {
+    const headId = importTransactionHead?.idTransactionHead;
+    if (headId == null) return;
     this.fileUploadParam = new FileUploadParam(
       HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT,
       additionalFieldConfig,
@@ -401,7 +407,7 @@ export class SecurityaccountImportTransactionComponent
       titleUpload,
       multiple,
       this.importTransactionHeadService,
-      importTransactionHead.idTransactionHead
+      headId
     );
     this.visibleUploadFileDialog.set(true);
   }

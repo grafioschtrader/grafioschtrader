@@ -90,7 +90,7 @@ import { HelpIds } from '../../lib/help/help.ids';
               type="text"
               class="w-full"
               style="flex: 1 1 auto; width: 100%"
-              (input)="configurableTable().table().filterGlobal($any($event.target).value, 'contains')"
+              (input)="configurableTable().table()?.filterGlobal($any($event.target).value, 'contains')"
               [placeholder]="'SEARCH' | translate" />
           </div>
         </div>
@@ -295,12 +295,13 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   /**
    * Wrapper for selection change to call resetMenu
    */
-  onSelectionChange(entity: Security | Security[]): void {
+  onSelectionChange(entity: Security | Security[] | null): void {
     this.resetMenu(entity as Security);
   }
 
   /** Only instruments with supplier details have something to expand */
-  readonly canExpand = (row: Security): boolean => this.idSecuritycurreniesWithDetails.has(row.idSecuritycurrency);
+  readonly canExpand = (row: Security): boolean =>
+    row.idSecuritycurrency != null && this.idSecuritycurreniesWithDetails.has(row.idSecuritycurrency);
 
   public override getHelpContextId(): string {
     return HelpIds.HELP_GT_NET_EXCHANGE;

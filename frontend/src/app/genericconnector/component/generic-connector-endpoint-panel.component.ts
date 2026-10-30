@@ -45,9 +45,9 @@ import { GenericConnectorFieldMappingTableComponent } from './generic-connector-
     </div>
     <br />
     <generic-connector-field-mapping-table
-      [fieldMappings]="$safeNavigationMigration(endpoint()?.fieldMappings)"
-      [feedSupport]="$safeNavigationMigration(endpoint()?.feedSupport)"
-      [responseFormat]="$safeNavigationMigration(endpoint()?.responseFormat)"
+      [fieldMappings]="$safeNavigationMigration(endpoint().fieldMappings)"
+      [feedSupport]="endpoint().feedSupport ?? undefined"
+      [responseFormat]="endpoint().responseFormat ?? undefined"
       [editable]="editable()"
       (fieldMappingsChange)="onFieldMappingsChange($event)" />
   `,

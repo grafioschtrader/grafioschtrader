@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DestroyableInjector, Injector, runInInjectionContext } from '@angular/core';
 import { Subject, throwError } from 'rxjs';
 import { YamlEditorComponent } from './yaml-editor.component';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 let injectors: DestroyableInjector[];
 beforeEach(() => {
@@ -114,7 +114,7 @@ describe('YAML validation before submission', () => {
   it('never authorizes a save or displays errors from an older text revision', async () => {
     const response = new Subject<any[]>();
     const component = createEditor({ post: () => response } as any);
-    component.getHeaders = () => ({ headers: null });
+    component.getHeaders = () => ({ headers: new HttpHeaders() });
     vi.spyOn(component, 'format').mockReturnValue('FEES');
     component.value.set('rules: []');
     const validation = component.validateForSubmit();
@@ -132,7 +132,7 @@ describe('YAML validation before submission', () => {
     component.value.set('seed: [');
     expect(await component.validateForSubmit()).toBe(false);
     expect(post).not.toHaveBeenCalled();
-    component.getHeaders = () => ({ headers: null });
+    component.getHeaders = () => ({ headers: new HttpHeaders() });
     component.value.set('seed: {}');
     post.mockReturnValue(throwError(() => new Error('offline')));
     expect(await component.validateForSubmit()).toBe(false);

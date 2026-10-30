@@ -56,7 +56,7 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
 export class BankruptSecurityEditComponent extends SimpleEntityEditBase<BankruptSecurity> implements OnInit {
   private dialogService: DialogService = inject(DialogService);
 
-  readonly callParam = input<BankruptSecurityCallParam>(undefined);
+  readonly callParam = input.required<BankruptSecurityCallParam>();
 
   private readonly supplementCriteria = new SupplementCriteria(true, true);
   private selectedSecurity: Security | null = null;

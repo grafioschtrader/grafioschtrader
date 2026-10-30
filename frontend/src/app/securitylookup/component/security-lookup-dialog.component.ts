@@ -55,8 +55,8 @@ import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../mod
           <p-progressSpinner />
         </div>
       } @else {
-        @if (errorMessage()) {
-          <p-message severity="error" [text]="errorMessage()" />
+        @if (errorMessage(); as errorMessageValue) {
+          <p-message severity="error" [text]="errorMessageValue" />
         }
         @if (response(); as response) {
           <security-lookup-hint-table titleKey="LOOKUP_HINTS" [hints]="response.hints" />
@@ -101,9 +101,9 @@ export class SecurityLookupDialogComponent {
   readonly isin = input<string>();
   readonly currency = input<string>();
   /** MIC of the stock exchange chosen in the security form */
-  readonly mic = input<string>();
+  readonly mic = input<string | null>();
   /** Asset class chosen in the form; selects the providers and connectors */
-  readonly idAssetClass = input<number>(undefined);
+  readonly idAssetClass = input<number>();
   /** Ticker entered in the form; helps providers that know the ISIN only for another listing */
   readonly tickerSymbol = input<string>();
 
@@ -127,7 +127,7 @@ export class SecurityLookupDialogComponent {
 
   /** Prevents a second emission when "Apply" closes the dialog */
   private selectionHandled = false;
-  private lookupSubscription: Subscription;
+  private lookupSubscription: Subscription | null;
 
   /**
    * Starts the lookup when the dialog has opened. Optimus UI emits onShow at the end of the enter motion; the state
@@ -232,12 +232,13 @@ export class SecurityLookupDialogComponent {
   private performLookup(): void {
     const isin = this.isin();
     const currency = this.currency();
+    const assetClassId = this.idAssetClass();
     // A stock exchange may have no MIC; the lookup then searches the listings of every exchange.
-    if (isin == null || currency == null) return;
+    if (isin == null || currency == null || assetClassId == null) return;
     this.cancelPendingRequest();
     this.loading.set(true);
     this.lookupSubscription = this.securityLookupService
-      .lookup(isin, currency, this.mic(), this.idAssetClass(), this.tickerSymbol())
+      .lookup(isin, currency, this.mic(), assetClassId, this.tickerSymbol())
       .subscribe({
         next: (response) => {
           this.nameCandidate.set(preselectNameCandidate(response.candidates));

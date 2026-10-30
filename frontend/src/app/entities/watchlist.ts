@@ -3,7 +3,7 @@ import { Exclude } from 'class-transformer';
 
 export class Watchlist extends TenantBaseId {
   idWatchlist?: number;
-  name?: string = null;
+  name?: string | null = null;
 
   @Exclude()
   public getId(): number | undefined {

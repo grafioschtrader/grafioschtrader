@@ -27,7 +27,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
       <button
         pButton
         class="btn btn-primary ms-1"
-        [loading]="config.groupItemUseOrLoading"
+        [loading]="config.groupItemUseOrLoading ?? false"
         type="submit"
         [label]="config.labelKey | translate"
         [disabled]="!group.valid || config.disabled"
@@ -37,7 +37,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
         }
       </button>
     }
-    @if (config.buttonFN && !config.labelKey.endsWith('_')) {
+    @if (config.buttonFN && !config.labelKey?.endsWith('_')) {
       <button
         pButton
         class="btn btn-primary ms-1"
@@ -51,7 +51,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
         }
       </button>
     }
-    @if (config.buttonFN && config.labelKey.endsWith('_')) {
+    @if (config.buttonFN && config.labelKey?.endsWith('_')) {
       <button
         pButton
         class="btn btn-primary ms-1 button-no-label"

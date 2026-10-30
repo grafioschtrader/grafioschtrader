@@ -15,7 +15,7 @@ const security: AlgoSecurityOptionData = {
   activeToDate: '2026-09-16'
 };
 
-function options(reference: string | Date = '2020-02-05', dates = security, pattern = 'DD.MM.YYYY') {
+function options(reference: string | Date | null = '2020-02-05', dates = security, pattern = 'DD.MM.YYYY') {
   const gps = { getDateFormat: () => pattern } as GlobalparameterService;
   return createAlgoSecurityOptions(
     [dates],
@@ -40,39 +40,39 @@ describe('strategy security date options', () => {
 
   it('colors only the individual dates, independently, and explains each warning', () => {
     const option = options();
-    expect(option.textSegments.map((segment) => segment.cssClass)).toEqual([
+    expect(option.textSegments?.map((segment) => segment.cssClass)).toEqual([
       undefined,
       'text-danger',
       undefined,
       'text-danger'
     ]);
-    expect(option.textSegments[1].title).toBe('From: Starts later');
-    expect(option.textSegments[3].title).toBe('Until: Ended');
+    expect(option.textSegments?.[1].title).toBe('From: Starts later');
+    expect(option.textSegments?.[3].title).toBe('Until: Ended');
     expect(option.disabled).toBeUndefined();
     const current = options('2020-02-05', { ...security, activeToDate: '2099-12-31' });
-    expect(current.textSegments[1].cssClass).toBe('text-danger');
-    expect(current.textSegments[3].cssClass).toBeUndefined();
+    expect(current.textSegments?.[1].cssClass).toBe('text-danger');
+    expect(current.textSegments?.[3].cssClass).toBeUndefined();
   });
 
   it('does not highlight equality with reference date or today', () => {
     const option = options(new Date(2020, 1, 6), { ...security, activeToDate: '2026-09-17' });
-    expect(option.textSegments.every((segment) => !segment.cssClass)).toBe(true);
+    expect(option.textSegments?.every((segment) => !segment.cssClass)).toBe(true);
   });
 
   it('does not highlight an earlier start or a future end', () => {
     const option = options('2021-01-01', { ...security, activeToDate: '2099-12-31' });
-    expect(option.textSegments.every((segment) => !segment.cssClass)).toBe(true);
+    expect(option.textSegments?.every((segment) => !segment.cssClass)).toBe(true);
   });
 
   it('still highlights an expired end without a strategy reference date', () => {
     const option = options(null);
-    expect(option.textSegments[1].cssClass).toBeUndefined();
-    expect(option.textSegments[3].cssClass).toBe('text-danger');
+    expect(option.textSegments?.[1].cssClass).toBeUndefined();
+    expect(option.textSegments?.[3].cssClass).toBe('text-danger');
   });
 
   it('keeps missing dates readable without false warnings', () => {
     const option = options(null, { ...security, activeFromDate: null, activeToDate: null });
     expect(option.value).toBe('Example / CHF — — – —');
-    expect(option.textSegments.every((segment) => !segment.cssClass)).toBe(true);
+    expect(option.textSegments?.every((segment) => !segment.cssClass)).toBe(true);
   });
 });

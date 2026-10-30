@@ -32,7 +32,7 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
       .pipe(catchError(this.handleError.bind(this)));
   }
 
-  saveTaxModel(id: number, yaml: string): Observable<{ yaml: string }> {
+  saveTaxModel(id: number, yaml: string | null): Observable<{ yaml: string }> {
     return this.httpClient
       .put<{ yaml: string }>(`${TaxDataService.BASE_URL}/country/${id}/taxmodelyaml`, { yaml }, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
@@ -71,7 +71,9 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
       .pipe(catchError(this.handleError.bind(this)));
   }
 
-  createCountry(taxCountry: TaxCountry): Observable<TaxCountry> {
+  createCountry(
+    taxCountry: Omit<TaxCountry, 'idTaxCountry'> & { idTaxCountry: number | null }
+  ): Observable<TaxCountry> {
     return this.httpClient
       .post<TaxCountry>(`${TaxDataService.BASE_URL}/country`, taxCountry, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
@@ -83,7 +85,7 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
       .pipe(catchError(this.handleError.bind(this)));
   }
 
-  createYear(taxYear: TaxYear): Observable<TaxYear> {
+  createYear(taxYear: Omit<TaxYear, 'idTaxYear'> & { idTaxYear: number | null }): Observable<TaxYear> {
     return this.httpClient
       .post<TaxYear>(`${TaxDataService.BASE_URL}/year`, taxYear, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));

@@ -36,9 +36,9 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
  */
 @Component({
   template: `
-    @if (creationAvailableFrom()) {
+    @if (creationAvailableFrom(); as creationAvailableFromValue) {
       <p role="alert" class="alert alert-warning alert-dialog-wrap">
-        {{ 'SIMULATION_PORTFOLIO_WAIT' | translate: { date: creationAvailableFrom() } }}
+        {{ 'SIMULATION_PORTFOLIO_WAIT' | translate: { date: creationAvailableFromValue } }}
       </p>
     }
     @if (dataNotes().length) {
@@ -57,9 +57,9 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
       [translateService]="translateService"
       #form="dynamicForm"
       (submitBt)="submit($event)" />
-    @if (preview()) {
+    @if (preview(); as previewValue) {
       <p>{{ 'SIMULATION_PREVIEW_HELP' | translate }}</p>
-      @for (error of preview().errors; track error) {
+      @for (error of previewValue.errors; track error) {
         <p role="alert">{{ error }}</p>
       }
       <table class="table">
@@ -71,7 +71,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
           </tr>
         </thead>
         <tbody>
-          @for (account of preview().accounts; track account.idCashaccount) {
+          @for (account of previewValue.accounts; track account.idCashaccount) {
             <tr>
               <td>{{ account.name }}</td>
               <td>{{ account.currency }}</td>
@@ -80,7 +80,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
           }
         </tbody>
       </table>
-      @for (position of preview().unresolvedPositions; track position.positionKey) {
+      @for (position of previewValue.unresolvedPositions; track position.positionKey) {
         <label [attr.for]="'destination_' + position.positionKey">
           {{ position.securityName }} / {{ position.securityaccountName }} ({{ position.currency }})
         </label>
@@ -296,6 +296,7 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicFor
       // A blank field leaves the account out of the environment, while 0 takes it over without money.
       dto.cashBalances = {};
       for (const ca of this.cashAccounts) {
+        if (ca.idSecuritycashAccount == null) continue;
         const balance = value[`cashBalance_${ca.idSecuritycashAccount}`];
         if (balance != null && balance !== '') {
           dto.cashBalances[ca.idSecuritycashAccount] = balance;

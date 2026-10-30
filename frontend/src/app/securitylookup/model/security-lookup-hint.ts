@@ -14,7 +14,7 @@ const DATE_SUFFIX = 'Date';
  * @returns The parameters for the translation of the hint text
  */
 export function hintParams(
-  args: { [name: string]: string },
+  args: { [name: string]: string } | null | undefined,
   translate: (key: string) => string,
   formatDate: (isoDate: string) => string
 ): { [name: string]: string } {
@@ -35,6 +35,6 @@ export function hintParams(
 export interface LookupHintRow {
   severity: string;
   /** Translation key of the field label, e.g. ACTIVE_FROM_DATE */
-  fieldKey: string;
+  fieldKey: string | null;
   text: string;
 }

@@ -395,8 +395,8 @@ export interface ColumnEditConfig extends PropertyEditShare, ValidationErrorRule
 
  */
 export class ColumnGroupConfig {
-  /** Translated text for display, populated by translation service */
-  textValueTranslated: string;
+  /** Translated text for display, absent until the translation service delivers it */
+  textValueTranslated?: string;
 
   /** Number of columns this group configuration should span */
   colspan?: number;

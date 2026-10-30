@@ -45,8 +45,8 @@ export class ImportTransactionEditTemplateComponent
 {
   public importTransactionTemplateService: ImportTransactionTemplateService = inject(ImportTransactionTemplateService);
 
-  readonly callParam = input<CallParam>(undefined);
-  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
+  readonly callParam = input.required<CallParam>();
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
 
   constructor() {
     super(
@@ -98,7 +98,7 @@ export class ImportTransactionEditTemplateComponent
           TemplateCategory
         );
         this.configObject.templateLanguage.valueKeyHtmlOptions = data;
-        this.configObject.templatePurpose.elementRef.nativeElement.focus();
+        this.configObject.templatePurpose.elementRef?.nativeElement.focus();
       });
   }
 

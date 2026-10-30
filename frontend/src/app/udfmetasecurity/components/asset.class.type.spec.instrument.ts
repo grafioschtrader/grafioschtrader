@@ -79,14 +79,12 @@ export abstract class AssetClassTypeSpecInstrument<T extends object> extends Sim
           vkh.length === 0 && requireFormControl(this.configObject[this.fieldSpecialInvestmentInstrument]).setValue('');
         } else {
           if (this.canChangeValues() && categoryType && categoryType.length > 0) {
-            this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions =
-              this.valueKeyHtmlOptionsSpecInvest.filter((v) =>
-                this.assetclassSpezInstMap[categoryType as AssetclassType].includes(
-                  v.key as SpecialInvestmentInstruments
-                )
-              );
+            const options = this.valueKeyHtmlOptionsSpecInvest.filter((v) =>
+              this.assetclassSpezInstMap[categoryType as AssetclassType].includes(v.key as SpecialInvestmentInstruments)
+            );
+            this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions = options;
             requireFormControl(this.configObject[this.fieldSpecialInvestmentInstrument]).setValue(
-              this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions[0].key
+              options[0]?.key ?? null
             );
           }
         }

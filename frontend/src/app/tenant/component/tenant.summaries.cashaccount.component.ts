@@ -326,7 +326,7 @@ export class TenantSummariesCashaccountComponent
    * @param group - The group summary of that row
    * @returns The highlighting style or an empty style
    */
-  getGroupCellStyle(field: ColumnConfig, group: AccountPositionGroupSummary): { [key: string]: string } {
+  getGroupCellStyle(field: ColumnConfig, group: AccountPositionGroupSummary | undefined): { [key: string]: string } {
     return DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && group?.groupDisposalComplete === false
       ? DisposalCostHelper.INCOMPLETE_STYLE
       : {};
@@ -354,7 +354,7 @@ export class TenantSummariesCashaccountComponent
    * @param field - The column
    * @returns The tooltip text
    */
-  getCellTooltip(accountPositionSummary: AccountPositionSummary, field: ColumnConfig): string {
+  getCellTooltip(accountPositionSummary: AccountPositionSummary, field: ColumnConfig): string | null {
     if (DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && accountPositionSummary?.disposalDetails) {
       return DisposalCostHelper.getDetailsText(accountPositionSummary.disposalDetails, this.translateService, this.gps);
     }

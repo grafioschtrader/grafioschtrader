@@ -55,6 +55,7 @@ export function chooseDistributionFrequency(
     (alternatives ?? [])
       .filter((a) => isUsableAlternative('dividend', a) && a.distributionFrequency)
       .map((a) => a.distributionFrequency)
+      .filter((frequency): frequency is string => frequency != null)
   );
   return frequencies.size === 1 ? frequencies.values().next().value : undefined;
 }

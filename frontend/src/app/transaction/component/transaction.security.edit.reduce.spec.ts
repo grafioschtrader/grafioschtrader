@@ -9,7 +9,7 @@ import {
 } from './transaction.security.edit.reduce';
 
 describe('Financing-cost security account selection', () => {
-  function callParam(): TransactionCallParam {
+  function callParam() {
     const param = new TransactionCallParam();
     param.transaction = Object.assign(new Transaction(), { idSecurityaccount: 189, connectedIdTransaction: 1 });
     return param;
@@ -38,6 +38,7 @@ describe('Financing-cost security account selection', () => {
 
   it('retains the linked account when editing a saved financing transaction', () => {
     const param = callParam();
+    if (!param.transaction) throw new Error('Test requires an existing transaction');
     param.transaction.idTransaction = 3;
     const handler = new TransactionSecurityEditFinanceCost(param);
     expect(handler.acceptSecurityaccount(linkedAccount, [], false, null)).toBe(true);

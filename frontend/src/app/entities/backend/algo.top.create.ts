@@ -13,7 +13,7 @@ export class AssetclassPercentage {
 
 /** Generates the hierarchy from dated portfolio holdings without linking a watchlist. */
 export class AlgoTopCreateFromPortfolio extends AlgoTopCreate {
-  override referenceDate: Date = null;
+  override referenceDate: Date | null = null;
 }
 
 /**

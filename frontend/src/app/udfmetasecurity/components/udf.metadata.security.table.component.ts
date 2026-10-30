@@ -68,10 +68,12 @@ import { BaseSettings } from '../../lib/base.settings';
         (closeDialog)="handleCloseDialog($event)" />
     }
     @if (visibleProposalsDialog()) {
-      <udf-fill-proposals-dialog
-        [visibleDialog]="visibleProposalsDialog()"
-        [field]="proposalsField()"
-        (closeDialog)="visibleProposalsDialog.set(false)" />
+      @if (proposalsField(); as field) {
+        <udf-fill-proposals-dialog
+          [visibleDialog]="visibleProposalsDialog()"
+          [field]="field"
+          (closeDialog)="visibleProposalsDialog.set(false)" />
+      }
     }
   `,
   providers: [DialogService],

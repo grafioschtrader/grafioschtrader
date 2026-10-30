@@ -263,7 +263,7 @@ export class DynamicFieldHelper {
   public static createFieldSuggestionInputString(
     fieldName: string,
     labelKey: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     fieldOptions?: FieldOptions
   ): FieldConfig {
@@ -407,7 +407,7 @@ export class DynamicFieldHelper {
    */
   public static createFieldTextareaInputStringHeqF(
     fieldName: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     fieldOptions?: FieldOptions
   ): FieldConfig {
@@ -436,7 +436,7 @@ export class DynamicFieldHelper {
   public static createFieldTextareaInputString(
     fieldName: string,
     labelKey: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     fieldOptions?: FieldOptions
   ): FieldConfig {
@@ -489,7 +489,7 @@ export class DynamicFieldHelper {
    */
   public static createFieldInputWebUrlHeqF(
     fieldName: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     fieldOptions?: FieldOptions
   ): FieldConfig {
@@ -515,7 +515,7 @@ export class DynamicFieldHelper {
    */
   public static createFieldInputStringVSHeqF(
     fieldName: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     validationSpecials: (VALIDATION_SPECIAL | string)[],
     fieldOptions?: FieldOptions
@@ -547,7 +547,7 @@ export class DynamicFieldHelper {
   public static createFieldInputStringVSParam(
     fieldName: string,
     labelKey: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     validationSpecial: VALIDATION_SPECIAL | string,
     param: any,
@@ -582,7 +582,7 @@ export class DynamicFieldHelper {
   public static createFieldInputStringVS(
     fieldName: string,
     labelKey: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     validationSpecials: VALIDATION_SPECIAL[],
     fieldOptions?: FieldOptions
@@ -613,7 +613,7 @@ export class DynamicFieldHelper {
   public static createFieldDAInputStringVSHeqF(
     dataType: DataType,
     fieldName: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     validationSpecials: VALIDATION_SPECIAL[],
     fieldOptions?: FieldOptions
@@ -648,7 +648,7 @@ export class DynamicFieldHelper {
     dataType: DataType,
     fieldName: string,
     labelKey: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     validationSpecials: (VALIDATION_SPECIAL | string)[],
     fieldOptions?: FieldOptions
@@ -671,7 +671,7 @@ export class DynamicFieldHelper {
    */
   public static createFieldInputStringHeqF(
     fieldName: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     fieldOptions?: FieldOptions
   ): FieldConfig {
@@ -760,7 +760,7 @@ export class DynamicFieldHelper {
   public static createFieldInputString(
     fieldName: string,
     labelKey: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     fieldOptions?: FieldOptions
   ): FieldConfig {
@@ -788,7 +788,7 @@ export class DynamicFieldHelper {
   public static createFieldDAInputStringHeqF(
     dataType: DataType,
     fieldName: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     fieldOptions?: FieldOptions
   ): FieldConfig {
@@ -818,11 +818,12 @@ export class DynamicFieldHelper {
     dataType: DataType,
     fieldName: string,
     labelKey: string,
-    maxLength: number,
+    maxLength: number | null,
     required: boolean,
     fieldOptions?: FieldOptions
   ): FieldConfig {
     if (
+      maxLength != null &&
       maxLength < DynamicFieldHelper.ADJUST_INPUT_WITH_UNTIL_MAX_LENGTH &&
       (!fieldOptions || !fieldOptions.inputWidth)
     ) {
@@ -1179,10 +1180,10 @@ export class DynamicFieldHelper {
    * @param fieldConfig Field configuration to update
    * @param currency Currency code to display as prefix (gets space appended)
    */
-  public static setCurrency(fieldConfig: FieldConfig, currency: string): void {
+  public static setCurrency(fieldConfig: FieldConfig, currency: string | null | undefined): void {
     const settings = fieldConfig.inputNumberSettings;
     if (!settings) throw new Error(`Field "${fieldConfig.field}" is not configured as a number input.`);
-    settings.currency = currency;
+    settings.currency = currency ?? undefined;
     FormNotifier.notifyOf(fieldConfig);
   }
 
@@ -1311,8 +1312,8 @@ export class DynamicFieldHelper {
     dataType: DataType.Numeric | DataType.NumericInteger,
     fieldName: string,
     required: boolean,
-    min: number,
-    max: number,
+    min: number | null,
+    max: number | null,
     fieldOptions?: FieldOptions
   ): FieldConfig {
     return this.createFieldMinMaxNumber(
@@ -1344,8 +1345,8 @@ export class DynamicFieldHelper {
     fieldName: string,
     labelKey: string,
     required: boolean,
-    min: number,
-    max: number,
+    min: number | null,
+    max: number | null,
     fieldOptions?: FieldOptions
   ): FieldConfig {
     const validations: ValidatorFn[] = required ? [Validators.required] : [];

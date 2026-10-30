@@ -14,7 +14,7 @@ export class HistoryquoteLegacySecurityCurrency {
     public securitycurrency: Securitycurrency
   ) {}
 
-  get showName(): string {
+  get showName(): string | null {
     return this.securitycurrency.hasOwnProperty('name')
       ? (<Security>this.securitycurrency).name
       : (<Currencypair>this.securitycurrency).fromCurrency + '/' + (<Currencypair>this.securitycurrency).toCurrency;

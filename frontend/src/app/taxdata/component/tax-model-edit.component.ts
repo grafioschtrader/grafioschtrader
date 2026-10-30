@@ -82,9 +82,9 @@ export class TaxModelEditComponent extends SimpleFormEditBase implements OnInit 
   private http: HttpClient = inject(HttpClient);
 
   readonly yamlEditor = viewChild.required(YamlEditorComponent);
-  readonly country = input<TaxCountry>(undefined);
+  readonly country = input.required<TaxCountry>();
   readonly yaml = signal('');
-  readonly schema = signal<object>(undefined);
+  readonly schema = signal<object | undefined>(undefined);
   readonly modelLoading = signal(false);
   readonly tooLarge = computed(() => new TextEncoder().encode(this.yaml()).length > 65536);
   evalExCompletions: { [fieldName: string]: YamlFieldCompletion[] };
@@ -174,7 +174,7 @@ export class TaxModelEditComponent extends SimpleFormEditBase implements OnInit 
     super.onHide(event);
   }
 
-  async save(yaml: string = this.yaml()): Promise<void> {
+  async save(yaml: string | null = this.yaml()): Promise<void> {
     const revision = ++this.validationRevision;
     if (yaml !== null && !(await this.yamlEditor().validateForSubmit())) return;
     if (this.destroyRef.destroyed || revision !== this.validationRevision) return;

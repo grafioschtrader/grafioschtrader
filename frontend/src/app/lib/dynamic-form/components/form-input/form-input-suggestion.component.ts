@@ -16,13 +16,13 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
     <ng-container [formGroup]="group">
       <p-autoComplete
         #input
-        [id]="config.field"
-        [formControlName]="config.field"
+        [id]="fieldName"
+        [formControlName]="fieldName"
         [inputStyleClass]="'form-control ' + (isRequired ? 'required-input' : '')"
         class="p-autocomplete"
         [style]="{ width: '100%' }"
         [inputStyle]="{ width: '100%' }"
-        [suggestions]="config.suggestions"
+        [suggestions]="config.suggestions ?? []"
         (completeMethod)="callSuggestionsFN($event)"
         pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}" />
     </ng-container>

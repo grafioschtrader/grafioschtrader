@@ -87,7 +87,7 @@ import { Helper } from '../../lib/helper/helper';
             <input
               pInputText
               type="text"
-              (input)="configurableTable().table().filterGlobal($any($event.target).value, 'contains')"
+              (input)="configurableTable().table()?.filterGlobal($any($event.target).value, 'contains')"
               [placeholder]="'SEARCH' | translate" />
           </span>
           <p-button [label]="'SAVE' | translate" (onClick)="saveChanges()" [disabled]="!hasUnsavedChanges()">
@@ -280,7 +280,7 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   /**
    * Wrapper for selection change to call resetMenu
    */
-  onSelectionChange(selection: Currencypair | Currencypair[]): void {
+  onSelectionChange(selection: Currencypair | Currencypair[] | null): void {
     this.resetMenu(Helper.singleSelection(selection));
   }
 
@@ -299,7 +299,8 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   }
 
   /** Only instruments with supplier details have something to expand */
-  readonly canExpand = (row: Currencypair): boolean => this.idSecuritycurreniesWithDetails.has(row.idSecuritycurrency);
+  readonly canExpand = (row: Currencypair): boolean =>
+    row.idSecuritycurrency != null && this.idSecuritycurreniesWithDetails.has(row.idSecuritycurrency);
 
   public override getHelpContextId(): string {
     return HelpIds.HELP_GT_NET_EXCHANGE;

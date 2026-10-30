@@ -60,10 +60,12 @@ import { HelpIds } from '../help/help.ids';
     </ng-template>
 
     @if (visibleDialog()) {
-      <globalsettings-edit
-        [visibleDialog]="visibleDialog()"
-        [globalparameters]="selectedEntity()"
-        (closeDialog)="handleGlobalparameterCloseDialog($event)" />
+      @if (selectedEntity(); as parameter) {
+        <globalsettings-edit
+          [visibleDialog]="visibleDialog()"
+          [globalparameters]="parameter"
+          (closeDialog)="handleGlobalparameterCloseDialog($event)" />
+      }
     }
   `,
   imports: [ConfigurableTableComponent, Textarea, TranslateModule, GlobalSettingsEditComponent]

@@ -90,7 +90,7 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
     return this.feedConnectorsKV()[valueField] ?? null;
   }
 
-  onSelectionChange(selection: Security | Security[]): void {
+  onSelectionChange(selection: Security | Security[] | null): void {
     const security = Helper.singleSelection(selection);
     this.selectedSecurity = security;
     this.changedSecurity.emit(security);

@@ -28,7 +28,7 @@ export interface PlotlyLegend {
 export interface ChartTrace {
   x: (string | number)[];
   y: number[];
-  name: string | undefined;
+  name: string | null | undefined;
   type: string;
   mode: string;
   visible: boolean | 'legendonly';
@@ -36,7 +36,7 @@ export interface ChartTrace {
 
 export class PlotlyHelper {
   public static initializeChartTrace(
-    name: string | undefined,
+    name: string | null | undefined,
     type: string,
     mode?: string
   ): Pick<ChartTrace, 'x' | 'y' | 'name' | 'type'> & Partial<ChartTrace> {
@@ -57,16 +57,8 @@ export class PlotlyHelper {
     nativeElement.on(
       'plotly_click',
       (data: { points: { pointNumber: number; curveNumber: number; x: string | number; y: number }[] }) => {
-        let point: string;
-        let traceIndex: number;
-        let dataPointIndex: number;
-
-        for (let i = 0; i < 1; i++) {
-          point = `x=  + ${data.points[i].x}; y= ${data.points[i].y.toPrecision(4)}, pn=${data.points[i].curveNumber}`;
-          traceIndex = data.points[i].curveNumber;
-          dataPointIndex = data.points[i].pointNumber;
-        }
-        callBackFN(traceIndex, dataPointIndex);
+        const point = data.points[0];
+        if (point) callBackFN(point.curveNumber, point.pointNumber);
       }
     );
   }
@@ -142,7 +134,7 @@ export class PlotlyHelper {
     if (tree !== null && typeof tree === 'object') {
       Object.entries(tree).forEach(([key, value]) => {
         // key is either an array index or object key
-        if (value.constructor === Array) {
+        if (Array.isArray(value)) {
           founds.push(value);
         } else {
           this.searchArrayInObjectTree(value, founds);

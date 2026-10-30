@@ -50,12 +50,14 @@ import { TenantTransactionCostExtendedComponent } from './tenant-transaction-cos
       customClass="datatable"
       (componentClick)="onComponentClick($event)" />
     <ng-template #expandedContent let-tcgs>
-      <tenant-transaction-cost-extended
-        [transactionCostPositions]="tcgs.transactionCostPositions"
-        [transactionCostGrandSummary]="transactionCostGrandSummary()"
-        [baseSelectedRow]="baseSelectedRow()"
-        [firstRowIndex]="firstRowIndex()"
-        (dateChanged)="transactionDataChanged($event)" />
+      @if (transactionCostGrandSummary(); as summary) {
+        <tenant-transaction-cost-extended
+          [transactionCostPositions]="tcgs.transactionCostPositions"
+          [transactionCostGrandSummary]="summary"
+          [baseSelectedRow]="baseSelectedRow()"
+          [firstRowIndex]="firstRowIndex()"
+          (dateChanged)="transactionDataChanged($event)" />
+      }
     </ng-template>
   `,
   imports: [ConfigurableTableComponent, TenantTransactionCostExtendedComponent]
@@ -74,7 +76,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   readonly refId = 'refId';
 
   chartData: (ReturnType<typeof PlotlyHelper.initializeChartTrace> & { refId: (number | undefined)[] })[] = [];
-  private chartAccountIds: (number | undefined)[] = [];
+  private chartAccountIds: (number | null | undefined)[] = [];
 
   selectedRow: TransactionCostGroupSummary;
 
@@ -175,7 +177,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
       (tcgsTemp) => tcgsTemp.securityaccount.idSecuritycashAccount === id
     );
     if (!tcgs) return;
-    this.expandedTCGSid.update((keys) => ({ ...keys, [tcgs.securityaccount.idSecuritycashAccount]: true }));
+    this.expandedTCGSid.update((keys) => ({ ...keys, [id]: true }));
     afterNextRender(
       () => {
         if (this.transactionCostGrandSummary() === summary) this.selectRowAndGoToPage(idTransaction, tcgs);

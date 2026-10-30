@@ -166,7 +166,7 @@ export interface CellMark {
         [dataKey]="dataKey()"
         [selectionMode]="selectionMode()"
         [selection]="selection()"
-        [rowSelectable]="rowSelectableFn() ? isRowSelectable : undefined"
+        [rowSelectable]="isRowSelectable"
         (selectionChange)="selection.set($event)"
         [sortMode]="sortMode()"
         [multiSortMeta]="multiSortMeta()"
@@ -216,7 +216,7 @@ export interface CellMark {
                 </th>
               }
               @for (item of headerGroupRow(); track $index) {
-                @if (item.type === 'single') {
+                @if (item.type === 'single' && item.field) {
                   @let slot = frozenSlot(item.field);
                   <th
                     [rowSpan]="2"
@@ -594,7 +594,7 @@ export interface CellMark {
 
       <!-- Context menu -->
       @if (contextMenuEnabled() && showContextMenu()) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems()" [appendTo]="contextMenuAppendTo()" />
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems() ?? undefined" [appendTo]="contextMenuAppendTo()" />
       }
     </div>
   `
@@ -908,7 +908,7 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
   /**
    * Array of menu items for the context menu. Uses Optimus MenuItem interface.
    */
-  readonly contextMenuItems = input<MenuItem[]>([]);
+  readonly contextMenuItems = input<MenuItem[] | null>([]);
 
   /**
    * Controls visibility of the context menu. Typically bound to isActivated() logic.

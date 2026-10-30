@@ -113,26 +113,28 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
     let i = 0;
 
     const data = this.yearCalendarData();
+    const dates = data.dates ?? [];
     // Rebuilding the calendar input also rebuilds its Date instances; compare the represented day.
-    for (; i < data.dates.length; i++) {
+    for (; i < dates.length; i++) {
       if (
-        data.dates[i].start.getTime() === date.getTime() &&
-        (this.markExistingColors.includes(data.dates[i].color) || data.dates[i].color === this.NEW_DATE_COLOR)
+        dates[i].start.getTime() === date.getTime() &&
+        ((dates[i].color != null && this.markExistingColors.some((color) => color === dates[i].color)) ||
+          dates[i].color === this.NEW_DATE_COLOR)
       ) {
         break;
       }
     }
-    if (i < data.dates.length) {
+    if (i < dates.length) {
       // Date was marked -> it will be removed
       this.adjustAddRemoveMap(date, false);
-      this.yearCalendarData.set({ ...data, dates: data.dates.filter((_, index) => index !== i) });
+      this.yearCalendarData.set({ ...data, dates: dates.filter((_, index) => index !== i) });
     } else {
       // Date was not marked -> it will be marked
       this.adjustAddRemoveMap(date, true);
       this.yearCalendarData.set({
         ...data,
         dates: [
-          ...data.dates,
+          ...dates,
           {
             id: date.getTime(),
             start: date,
@@ -194,7 +196,7 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
         select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
       };
     });
-    this.yearCalendarData.update((data) => ({ ...data, dates: [...data.dates, ...dates] }));
+    this.yearCalendarData.update((data) => ({ ...data, dates: [...(data.dates ?? []), ...dates] }));
   }
 
   protected getZeroTimeDate(dateToSet: Date): Date {

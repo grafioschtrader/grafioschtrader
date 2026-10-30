@@ -61,7 +61,7 @@ export class BusinessSelectOptionsHelper {
    * @param activeDateNol the reference date (e.g. transaction time) as epoch milliseconds
    */
   public static accountsEnableDisableOptionsByActiveDate(
-    accounts: { idSecuritycashAccount: number; activeToDate?: string | Date }[],
+    accounts: { idSecuritycashAccount: number | null; activeToDate?: string | Date | null }[],
     fieldConfig: FieldConfig,
     activeDateNol: number
   ): void {

@@ -108,7 +108,7 @@ export abstract class ShowRecordConfigBase {
   addColumn(
     dataType: DataType,
     field: string,
-    headerKey: string,
+    headerKey: string | null,
     visible: boolean = true,
     changeVisibility: boolean = true,
     optionalParams?: OptionalParams
@@ -163,7 +163,7 @@ export abstract class ShowRecordConfigBase {
     fields: ColumnConfig[],
     dataType: DataType,
     field: string,
-    headerKey: string,
+    headerKey: string | null,
     visible: boolean = true,
     changeVisibility: boolean = true,
     optionalParams?: OptionalParams

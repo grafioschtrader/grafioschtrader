@@ -67,7 +67,7 @@ import { TranslateModule } from '@ngx-translate/core';
 export class TenantDividendSecurityAccountSelectionDialogComponent {
   readonly portfolios = input.required<Portfolio[]>();
   readonly idsAccounts = input.required<IdsAccounts>();
-  readonly visibleDialog = input(undefined);
+  readonly visibleDialog = input(false);
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
 

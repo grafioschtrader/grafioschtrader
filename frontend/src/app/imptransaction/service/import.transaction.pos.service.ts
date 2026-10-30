@@ -114,7 +114,7 @@ export class ImportTransactionPosService
   }
 
   setIdTransactionMayBe(
-    idTransactionMayBe: number,
+    idTransactionMayBe: number | null,
     idTransactionPosList: number[]
   ): Observable<ImportTransactionPos[]> {
     return this.httpClient

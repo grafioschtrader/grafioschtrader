@@ -74,11 +74,13 @@ import { TemplateFormCheckDialogComponent } from './template-form-check-dialog.c
       <import-transaction-template-table />
     </div>
     @if (visibleEditDialog) {
-      <import-transaction-edit-platform
-        [visibleDialog]="visibleEditDialog"
-        [callParam]="callParam"
-        [platformTransactionImportHtmlOptions]="platformTransactionImportHtmlOptions()"
-        (closeDialog)="handleCloseEditDialog($event)" />
+      @if (callParam; as platformCallParam) {
+        <import-transaction-edit-platform
+          [visibleDialog]="visibleEditDialog"
+          [callParam]="platformCallParam"
+          [platformTransactionImportHtmlOptions]="platformTransactionImportHtmlOptions()"
+          (closeDialog)="handleCloseEditDialog($event)" />
+      }
     }
     @if (visibleTransformPDFToTxtDialog()) {
       <transform-pdf-to-txt-dialog
@@ -86,10 +88,12 @@ import { TemplateFormCheckDialogComponent } from './template-form-check-dialog.c
         (closeDialog)="handleCloseTransformPDFToTxtDialog()" />
     }
     @if (visibleTemplateFormCheckDialog()) {
-      <template-form-check-dialog
-        [visibleDialog]="visibleTemplateFormCheckDialog()"
-        [importTransactionPlatform]="selectedEntity"
-        (closeDialog)="handleCloseTemplateFormCheckDialog()" />
+      @if (selectedEntity; as platform) {
+        <template-form-check-dialog
+          [visibleDialog]="visibleTemplateFormCheckDialog()"
+          [importTransactionPlatform]="platform"
+          (closeDialog)="handleCloseTemplateFormCheckDialog()" />
+      }
     }
   `,
   imports: [

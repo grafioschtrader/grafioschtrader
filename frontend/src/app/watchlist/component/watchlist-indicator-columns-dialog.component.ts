@@ -116,7 +116,7 @@ export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase im
         );
       });
   }
-  edit(row: WatchlistIndicatorColumn): void {
+  edit(row: WatchlistIndicatorColumn | null): void {
     forkJoin([
       this.gps.getEntityFormDefinition('WatchlistIndicatorColumn'),
       this.watchlists.getWatchlistsByIdTenant(),

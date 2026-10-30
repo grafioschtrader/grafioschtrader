@@ -117,7 +117,7 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
   constructor() {
     super();
 
-    this.currentUserId = +sessionStorage.getItem(GlobalSessionNames.ID_USER);
+    this.currentUserId = Number(sessionStorage.getItem(GlobalSessionNames.ID_USER));
 
     // Column 1: currency dropdown — already-used filter applied per row.
     this.addEditColumnFeqH(DataType.String, 'currency', true, { width: 90 });

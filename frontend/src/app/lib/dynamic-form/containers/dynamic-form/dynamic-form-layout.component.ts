@@ -49,7 +49,7 @@ import { FormNotifier } from '../../models/form.notifier';
     @let formConfigValue = formConfig();
 
     @let rev = notifier?.revision();
-    @if (formConfigValue.fieldHeaders && formConfigValue.fieldHeaders[configValue.field]) {
+    @if (configValue.field != null && formConfigValue.fieldHeaders && formConfigValue.fieldHeaders[configValue.field]) {
       <div class="row">
         <div class="col-md-12">
           <h5 class="text-center">
@@ -72,7 +72,7 @@ import { FormNotifier } from '../../models/form.notifier';
             [for]="configValue.field"
             class="small-padding form-label dynamic-form-label">
             {{
-              configValue.labelKey.startsWith('*') ? configValue.labelKey.slice(1) : (configValue.labelKey | translate)
+              configValue.labelKey?.startsWith('*') ? configValue.labelKey.slice(1) : (configValue.labelKey | translate)
             }}
             {{ configValue.labelSuffix }}
             @if (configValue.labelHelpText && !configValue.labelHelpText.startsWith('*')) {

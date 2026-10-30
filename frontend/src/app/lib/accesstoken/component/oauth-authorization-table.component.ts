@@ -26,11 +26,11 @@ import { UserAccessTokenService } from '../service/user-access-token.service';
     @if (authorizations().length === 0) {
       <p>{{ 'ACCESS_TOKEN_OAUTH_NONE' | translate }}</p>
     } @else {
-      @if (selected()) {
+      @if (selected(); as selectedValue) {
         <p-button
           [label]="'ACCESS_TOKEN_REVOKE' | translate"
           [style]="{ 'margin-bottom': '0.5rem' }"
-          (onClick)="revoke(selected())" />
+          (onClick)="revoke(selectedValue)" />
       }
       <configurable-table
         [data]="authorizations()"

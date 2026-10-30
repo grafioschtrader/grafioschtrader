@@ -63,5 +63,5 @@ import { UDFFillTestResult } from '../model/udf.metadata.security';
 })
 export class UDFFillTestResultComponent {
   /** Result of the last test, null before the first one */
-  readonly testResult = input<UDFFillTestResult>(undefined);
+  readonly testResult = input.required<UDFFillTestResult>();
 }

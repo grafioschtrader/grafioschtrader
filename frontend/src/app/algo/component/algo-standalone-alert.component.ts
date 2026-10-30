@@ -74,10 +74,12 @@ import { AlgoHierarchyAlertOverviewComponent } from './algo-hierarchy-alert-over
     </div>
 
     @if (visibleStrategyDialog()) {
-      <algo-strategy-edit
-        [visibleDialog]="visibleStrategyDialog()"
-        [algoCallParam]="algoCallParam()"
-        (closeDialog)="onStrategyDialogClose($event)" />
+      @if (algoCallParam(); as strategyCallParam) {
+        <algo-strategy-edit
+          [visibleDialog]="visibleStrategyDialog()"
+          [algoCallParam]="strategyCallParam"
+          (closeDialog)="onStrategyDialogClose($event)" />
+      }
     }
   `,
   imports: [

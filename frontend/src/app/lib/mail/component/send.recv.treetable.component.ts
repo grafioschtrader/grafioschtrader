@@ -61,7 +61,7 @@ import { ConfigurableTreeTableComponent } from '../../datashowbase/configurable-
         <svg-icon [name]="value" [svgStyle]="{ 'width.px': 16, 'height.px': 16 }" />
       </ng-template>
     </configurable-tree-table>
-    <textarea [rows]="15" pTextarea readonly="true">{{ selectedNode() ? selectedNode().data.message : '' }}</textarea>
+    <textarea [rows]="15" pTextarea readonly="true">{{ selectedNode()?.data.message ?? '' }}</textarea>
   `,
   styles: ['textarea { width:100%; }'],
   providers: [DialogService],

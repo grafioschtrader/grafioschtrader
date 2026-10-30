@@ -105,13 +105,15 @@ import { TaskFilterDialogComponent } from './task-filter-dialog.component';
     </ng-template>
 
     @if (visibleDialog()) {
-      <task-data-change-edit
-        [visibleDialog]="visibleDialog()"
-        [callParam]="callParam"
-        [tdcFormConstraints]="tdcFormConstraints()"
-        [taskTypeEnum]="taskTypeEnum"
-        [queue]="queue()"
-        (closeDialog)="handleCloseDialog($event)" />
+      @if (tdcFormConstraints(); as constraints) {
+        <task-data-change-edit
+          [visibleDialog]="visibleDialog()"
+          [callParam]="callParam"
+          [tdcFormConstraints]="constraints"
+          [taskTypeEnum]="taskTypeEnum"
+          [queue]="queue()"
+          (closeDialog)="handleCloseDialog($event)" />
+      }
     }
 
     @if (visibleFilterDialog()) {

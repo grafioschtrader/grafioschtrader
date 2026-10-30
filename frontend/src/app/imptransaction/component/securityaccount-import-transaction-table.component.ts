@@ -82,11 +82,14 @@ import { Helper } from '../../lib/helper/helper';
     </ng-template>
 
     @if (visibleSetCashaccountDialog()) {
-      <securityaccount-import-set-cashaccount
-        [visibleDialog]="visibleSetCashaccountDialog()"
-        [combineTemplateAndImpTransPos]="selectedEntities()"
-        [idSecuritycashAccount]="selectImportTransactionHead.securityaccount.idSecuritycashAccount"
-        (closeDialog)="handleOnCloseSetDialog($event)" />
+      @let accountId = selectImportTransactionHead?.securityaccount?.idSecuritycashAccount;
+      @if (accountId != null) {
+        <securityaccount-import-set-cashaccount
+          [visibleDialog]="visibleSetCashaccountDialog()"
+          [combineTemplateAndImpTransPos]="selectedEntities()"
+          [idSecuritycashAccount]="accountId"
+          (closeDialog)="handleOnCloseSetDialog($event)" />
+      }
     }
   `,
   imports: [
@@ -253,14 +256,17 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.readTableDefinition(AppSettings.IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE);
   }
 
-  public static hasTransaction(entity: CombineTemplateAndImpTransPos, field: ColumnConfig, valueField: any): string {
-    return SecurityaccountImportTransactionTableComponent.createTypeIconMap[
-      entity.importTransactionPos.idTransaction
-        ? SecurityaccountImportTransactionTableComponent.CHECK_OK
-        : entity.importTransactionPos.transactionError
-          ? SecurityaccountImportTransactionTableComponent.TRANSACTION_ERROR
-          : null
-    ];
+  public static hasTransaction(
+    entity: CombineTemplateAndImpTransPos,
+    field: ColumnConfig,
+    valueField: any
+  ): string | undefined {
+    const icon = entity.importTransactionPos.idTransaction
+      ? SecurityaccountImportTransactionTableComponent.CHECK_OK
+      : entity.importTransactionPos.transactionError
+        ? SecurityaccountImportTransactionTableComponent.TRANSACTION_ERROR
+        : null;
+    return icon == null ? undefined : SecurityaccountImportTransactionTableComponent.createTypeIconMap[icon];
   }
 
   private static registerIcons(iconReg: SvgIconRegistryService): void {
@@ -290,9 +296,10 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
   readData(): void {
     this.readSubscription?.unsubscribe();
-    if (this.selectImportTransactionHead) {
+    const headId = this.selectImportTransactionHead?.idTransactionHead;
+    if (headId != null) {
       this.readSubscription = this.importTransactionPosService
-        .getCombineTemplateAndImpTransPosListByTransactionHead(this.selectImportTransactionHead.idTransactionHead)
+        .getCombineTemplateAndImpTransPosListByTransactionHead(headId)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos[]) => {
           this.createTranslatedValueStoreAndFilterField(combineTemplateAndImpTransPos);
@@ -316,7 +323,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
    *
    * @param selectedEntities - The rows selected now
    */
-  onSelectionChange(selection: CombineTemplateAndImpTransPos | CombineTemplateAndImpTransPos[]): void {
+  onSelectionChange(selection: CombineTemplateAndImpTransPos | CombineTemplateAndImpTransPos[] | null): void {
     this.selectedEntities.set(Helper.multipleSelection(selection));
     this.parentChildRowSelection?.rowSelectionChanged(this.entityList(), null);
   }
@@ -493,10 +500,11 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
         });
         if (!ref) return;
         ref.onClose.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe((security: Security) => {
-          if (security) {
+          const securityId = security?.idSecuritycurrency;
+          if (securityId != null) {
             this.importTransactionPosService
               .setSecurity(
-                security.idSecuritycurrency,
+                securityId,
                 this.selectedEntities().map((ctaitp) => ctaitp.importTransactionPos.idTransactionPos)
               )
               .pipe(takeUntilDestroyed(this.destroyRef))
@@ -506,7 +514,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
       });
   }
 
-  removeMayBeTransaction(idTransactionMayBe: number): void {
+  removeMayBeTransaction(idTransactionMayBe: number | null): void {
     this.importTransactionPosService
       .setIdTransactionMayBe(
         idTransactionMayBe,

@@ -56,7 +56,7 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleFormEditBase imp
   readonly suggestedHeadName = input('');
 
   /** The import transaction head ID to create positions from */
-  readonly idTransactionHead = input<number>(undefined);
+  readonly idTransactionHead = input.required<number>();
 
   existingHeads: GTNetSecurityImpHead[] = [];
   private readonly MODE_NEW = 'new';

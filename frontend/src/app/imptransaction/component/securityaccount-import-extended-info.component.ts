@@ -21,7 +21,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
   imports: [TranslateModule, AngularSvgIconModule]
 })
 export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase {
-  readonly combineTemplateAndImpTransPos = input<CombineTemplateAndImpTransPos>(undefined);
+  readonly combineTemplateAndImpTransPos = input.required<CombineTemplateAndImpTransPos>();
   private readonly IMPORT_VALUE = 'IMPORT_VALUE';
   private readonly IMPORT_ASSIGN = 'IMPORT_ASSIGN';
   private readonly IMPORT_STATE = 'IMPORT_STATE';

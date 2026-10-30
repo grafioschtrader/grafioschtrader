@@ -51,10 +51,12 @@ import { BaseSettings } from '../../base.settings';
     </div>
 
     @if (visibleDialog()) {
-      <gtnet-config-entity-edit
-        [visibleDialog]="visibleDialog()"
-        [gtNetConfigEntity]="selectedEntity()"
-        (closeDialog)="handleCloseDialog($event)" />
+      @if (selectedEntity(); as configEntity) {
+        <gtnet-config-entity-edit
+          [visibleDialog]="visibleDialog()"
+          [gtNetConfigEntity]="configEntity"
+          (closeDialog)="handleCloseDialog($event)" />
+      }
     }
   `,
   styles: [
@@ -152,7 +154,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
     };
   }
 
-  onSelectionChange(entity: GTNetConfigEntityDisplay | GTNetConfigEntityDisplay[]): void {
+  onSelectionChange(entity: GTNetConfigEntityDisplay | GTNetConfigEntityDisplay[] | null): void {
     this.selectedEntity.set((Array.isArray(entity) ? entity[0] : entity) ?? null);
     this.updateContextMenu();
   }

@@ -81,7 +81,7 @@ import { PerformanceReportDialogService } from '../service/performance-report-di
 
       <performance-period-from-to-diff [periodHoldingsAndDiff]="periodHoldingsAndDiff()" />
 
-      <performance-period-metrics [metrics]="performancePeriod()?.metrics" />
+      <performance-period-metrics [metrics]="performancePeriod()?.metrics ?? null" />
 
       <performance-period-treetable [performancePeriod]="performancePeriod()" />
     </div>

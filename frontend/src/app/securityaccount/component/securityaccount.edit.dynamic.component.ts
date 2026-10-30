@@ -118,9 +118,11 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
     if (this.callParam.thisObject != null) {
       this.form().transferBusinessObjectToForm(this.callParam.thisObject);
       const secaccount = <Securityaccount>this.callParam.thisObject;
+      const id = secaccount.idSecuritycashAccount;
+      if (id == null) throw new Error('Existing security account requires its persisted id');
       this.tradingPeriods.set([...(secaccount.tradingPeriods || [])]);
       (<SecurityaccountService>this.serviceEntityUpdate)
-        .getTransactionSummaries(secaccount.idSecuritycashAccount)
+        .getTransactionSummaries(id)
         .pipe(this.untilDialogClosed())
         .subscribe((summaries) => this.transactionSummaries.set(summaries));
     } else {

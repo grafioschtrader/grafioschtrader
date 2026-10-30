@@ -8,7 +8,7 @@ export class AlgoTop extends AlgoTopAssetSecurity implements AlgoTreeName {
   @Type(() => AlgoAssetclass)
   algoAssetclassList: AlgoAssetclass[];
   idWatchlist: number | null = null;
-  referenceDate: Date;
+  referenceDate: Date | null;
   addedPercentage: number;
   /** Derived by the backend when the strategy is read; absent where the endpoint does not evaluate it. */
   readiness?: AlgoTopReadiness;

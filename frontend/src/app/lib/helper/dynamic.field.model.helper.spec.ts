@@ -84,8 +84,8 @@ describe('DynamicFieldModelHelper enum-backed string field', () => {
       'ALGO_F_'
     );
     expect(field.inputType).toBe(InputType.Select);
-    expect(field.valueKeyHtmlOptions.map((o) => o.key)).toEqual(['ABOVE', 'BELOW']);
-    expect(field.valueKeyHtmlOptions.map((o) => o.value)).toEqual(['T_ABOVE', 'T_BELOW']);
+    expect(field.valueKeyHtmlOptions?.map((o) => o.key)).toEqual(['ABOVE', 'BELOW']);
+    expect(field.valueKeyHtmlOptions?.map((o) => o.value)).toEqual(['T_ABOVE', 'T_BELOW']);
   });
 
   it('offers an empty entry only for an optional field', () => {
@@ -94,7 +94,7 @@ describe('DynamicFieldModelHelper enum-backed string field', () => {
       [enumDescriptor(false)],
       ''
     );
-    expect(field.valueKeyHtmlOptions.map((o) => o.key)).toEqual(['', 'ABOVE', 'BELOW']);
+    expect(field.valueKeyHtmlOptions?.map((o) => o.key)).toEqual(['', 'ABOVE', 'BELOW']);
   });
 });
 
@@ -188,7 +188,7 @@ describe('DynamicFieldModelHelper numeric bounds', () => {
     const count = fields[3];
     expect(count.maxLength).toBeUndefined();
     expect(Number.isFinite(count.inputWidth)).toBe(true);
-    const control = new FormControl(null, count.validation);
+    const control = new FormControl<number | null>(null, count.validation);
     expect(control.hasError('required')).toBe(true);
     control.setValue(0);
     expect(control.hasError('min')).toBe(true);
@@ -204,7 +204,7 @@ describe('DynamicFieldModelHelper numeric bounds', () => {
       [numericDescriptor('maxTradedSecuritiesPerAssetclass', 1, null, false)],
       ''
     );
-    const control = new FormControl(null, field.validation);
+    const control = new FormControl<number | null>(null, field.validation);
     expect(control.valid).toBe(true);
     control.setValue(0);
     expect(control.hasError('min')).toBe(true);
@@ -273,7 +273,7 @@ describe('DynamicFieldModelHelper class-level constraints', () => {
       'lowerValue'
     ]);
     expect(group.validation).toHaveLength(2);
-    expect(group.errors.map((e) => e.keyi18n)).toEqual(expect.arrayContaining(['atLeastOneNotNull', 'numberRange']));
+    expect(group.errors?.map((e) => e.keyi18n)).toEqual(expect.arrayContaining(['atLeastOneNotNull', 'numberRange']));
   });
 
   it('keeps unconstrained fields at their position around the group', () => {
@@ -300,7 +300,7 @@ describe('DynamicFieldModelHelper class-level constraints', () => {
       ''
     )[0] as FormGroupDefinition;
     const formGroup = new FormGroup(
-      Object.fromEntries(group.fieldConfig.map((f) => [f.field, new FormControl(null, f.validation)])),
+      Object.fromEntries(group.fieldConfig.map((f) => [f.field, new FormControl<number | null>(null, f.validation)])),
       group.validation
     );
     expect(formGroup.hasError('atLeastOneNotNull')).toBe(true);

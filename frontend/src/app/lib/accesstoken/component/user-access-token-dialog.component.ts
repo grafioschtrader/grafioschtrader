@@ -30,10 +30,10 @@ export interface UserAccessTokenDialogData {
       <li>{{ 'ACCESS_TOKEN_NOTICE_SHARED' | translate }}</li>
       <li>{{ 'ACCESS_TOKEN_NOTICE_HOME_TENANT' | translate }}</li>
     </ul>
-    @if (clientInfo()) {
-      @if (clientInfo().endpointUrl) {
+    @if (clientInfo(); as clientInfoValue) {
+      @if (clientInfoValue.endpointUrl) {
         <p>
-          <b>{{ 'ACCESS_TOKEN_ENDPOINT' | translate }}:</b> <code>{{ clientInfo().endpointUrl }}</code>
+          <b>{{ 'ACCESS_TOKEN_ENDPOINT' | translate }}:</b> <code>{{ clientInfoValue.endpointUrl }}</code>
         </p>
         @if (configSnippet()) {
           <p>{{ 'ACCESS_TOKEN_CONFIG_EXAMPLE' | translate }}</p>

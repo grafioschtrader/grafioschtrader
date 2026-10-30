@@ -67,7 +67,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
   // InputMask from parent view
-  readonly visibleCashaccountTransactionDoubleDialog = input<boolean>();
+  readonly visibleCashaccountTransactionDoubleDialog = input(false);
   // @Input() transactionCallParam: TransactionCallParam;
 
   // Access the form
@@ -178,7 +178,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   calcDebitAmount(values: any): number | null {
-    if (!this.debitCashaccount || !this.creditCashaccount || values.creditAmount == null) return null;
+    if (!this.debitCashaccount?.currency || !this.creditCashaccount?.currency || values.creditAmount == null)
+      return null;
     if (!this.currencypair && this.debitCashaccount.currency !== this.creditCashaccount.currency) return null;
     if (this.currencypair && values.currencyExRate == null) return null;
     return (
@@ -334,10 +335,12 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   private getCurrencypair() {
     const pair = this.currencypair;
-    if (!pair) return;
+    const fromCurrency = pair?.fromCurrency;
+    const toCurrency = pair?.toCurrency;
+    if (!fromCurrency || !toCurrency) return;
     this.replaceDialogRequest('currencypair', () =>
       this.currencypairService
-        .findOrCreateCurrencypairByFromAndToCurrency(pair.fromCurrency, pair.toCurrency)
+        .findOrCreateCurrencypairByFromAndToCurrency(fromCurrency, toCurrency)
         .pipe(this.untilDialogClosed())
         .subscribe((currencypair) => {
           this.currencypair = currencypair;
@@ -431,14 +434,14 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   private changeCurrencyExRateState(): void {
     this.cancelDialogRequest('currencypair');
     this.cancelDialogRequest('exchangeRate');
-    if (this.debitCashaccount && this.creditCashaccount) {
+    if (this.debitCashaccount?.currency && this.creditCashaccount?.currency) {
       this.setCurrencypair();
       if (this.debitCashaccount.currency === this.creditCashaccount.currency) {
         requireFormControl(this.configObject.currencyExRate).setValue(1);
         this.disableCurrencyExRateState();
       } else {
         // this.configObject.currencyExRate.labelSuffix = this.currencypair.toStringFN();
-        this.configObject.currencyExRate.labelSuffix = this.currencypair?.name;
+        this.configObject.currencyExRate.labelSuffix = this.currencypair?.name ?? undefined;
         requireFormControl(this.configObject.currencyExRate).enable();
         this.getCurrencypair();
       }

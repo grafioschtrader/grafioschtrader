@@ -17,7 +17,7 @@
       [(selection)]="selectedAccountPositionSummary"
       [columns]="fields"
       [multiSortMeta]="multiSortMeta"
-      [value]="$safeNavigationMigration(accountPositionGroupSummary?.accountPositionSummaryList)"
+      [value]="accountPositionGroupSummary ? accountPositionGroupSummary.accountPositionSummaryList : []"
       dataKey="cashaccount.idSecuritycashAccount"
       selectionMode="single"
       sortMode="multiple"
@@ -26,7 +26,9 @@
       <ng-template #caption>
         <div class="flex-two-columns">
           <div class=".left-half">
-            <h4>{{'PORTFOLIO' | translate}}: {{accountPositionGroupSummary?.groupName}}</h4>
+            <h4>
+              {{'PORTFOLIO' | translate}}: {{accountPositionGroupSummary && accountPositionGroupSummary.groupName}}
+            </h4>
           </div>
           <div class="right-half">
             <label for="untilDate" style="margin-right: 5px; margin-top: 5px">{{'UNTIL_DATE' | translate}}</label>

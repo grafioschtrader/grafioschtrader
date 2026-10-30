@@ -57,7 +57,7 @@ export class TemplateFormCheckDialogComponent extends SimpleFormEditBase impleme
   private importTransactionTemplateService: ImportTransactionTemplateService = inject(ImportTransactionTemplateService);
   public translateService: TranslateService = inject(TranslateService);
 
-  readonly importTransactionPlatform = input<ImportTransactionPlatform>(undefined);
+  readonly importTransactionPlatform = input.required<ImportTransactionPlatform>();
 
   readonly formTemplateCheck = signal<FormTemplateCheck | null>(null);
   private checkSubscription?: Subscription;

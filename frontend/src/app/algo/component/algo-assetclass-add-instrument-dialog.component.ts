@@ -38,7 +38,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
 })
 export class AlgoAssetclassAddInstrumentDialogComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility of the dialog. */
-  readonly visibleDialog = input<boolean>();
+  readonly visibleDialog = input(false);
 
   /** The custom category the selected instruments are added to. */
   readonly idAlgoAssetclassSecurity = input.required<number>();

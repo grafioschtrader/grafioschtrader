@@ -5,6 +5,11 @@ import { FormNotifier } from './form.notifier';
 import { InputType } from './input.type';
 import { DataType } from './data.type';
 
+function field<T extends Partial<FieldConfig>>(
+  name: string,
+  extra: T
+): FieldConfig & Required<Pick<FieldConfig, Extract<keyof T, keyof FieldConfig>>>;
+function field(name: string): FieldConfig;
 function field(name: string, extra: Partial<FieldConfig> = {}): FieldConfig {
   return { field: name, inputType: InputType.Input, dataType: DataType.String, ...extra };
 }

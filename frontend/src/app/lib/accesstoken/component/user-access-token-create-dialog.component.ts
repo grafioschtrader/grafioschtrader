@@ -48,7 +48,7 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
         <input
           type="text"
           readonly
-          [value]="created().plainToken"
+          [value]="created()?.plainToken"
           style="flex: 1; font-family: monospace"
           aria-label="token" />
         <p-button [label]="'ACCESS_TOKEN_COPY' | translate" (onClick)="copyToken()" />

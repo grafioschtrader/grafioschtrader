@@ -37,16 +37,16 @@ import { UpperCaseDirective } from './upper-case.directive';
                     : 'text'
           "
           [attr.placeholder]="config.placeholder"
-          [formControlName]="config.field"
+          [formControlName]="fieldName"
           readonly
-          [id]="config.field"
+          [id]="fieldName"
           [min]="config.min"
           [max]="config.max"
           [upperCase]="config.upperCase" />
         @if (config.fieldSuffix) {
           <p-inputgroup-addon>{{ config.fieldSuffix | translate }}</p-inputgroup-addon>
         }
-        <button pButton type="button" [attr.disabled]="config.disabled" (click)="config.buttonFN(config)">
+        <button pButton type="button" [attr.disabled]="config.disabled" (click)="config.buttonFN?.(config)">
           <i [class]="config.icon || 'pi pi-search'" pButtonIcon></i>
         </button>
       </p-inputgroup>

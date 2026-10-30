@@ -45,7 +45,7 @@ export class GrafioschTenantEditComponent implements OnInit {
   private messageToastService = inject(MessageToastService);
   private tenantService = inject(GrafioschTenantService);
 
-  readonly form = viewChild<DynamicFormComponent>('form');
+  readonly form = viewChild.required<DynamicFormComponent>('form');
 
   config: FieldConfig[] = [];
   configObject: { [name: string]: FieldConfig };

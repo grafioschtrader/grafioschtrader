@@ -43,10 +43,12 @@ export class DashboardConfigDialogComponent extends SimpleFormEditBase implement
   }
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
+    const definition = this.descriptor().formDefinition;
+    if (!definition) throw new Error('Dashboard configuration requires a form definition');
     this.config = [
       ...DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
         this.translateService,
-        this.descriptor().formDefinition,
+        definition,
         '',
         false
       ),

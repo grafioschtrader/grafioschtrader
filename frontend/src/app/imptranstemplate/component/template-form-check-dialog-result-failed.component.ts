@@ -63,7 +63,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   imports: [TranslateModule, TableModule, TooltipModule]
 })
 export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBase implements OnInit {
-  readonly failedParsedTemplateStateList = input<FailedParsedTemplateState[]>(undefined);
+  readonly failedParsedTemplateStateList = input.required<FailedParsedTemplateState[]>();
 
   constructor() {
     super();

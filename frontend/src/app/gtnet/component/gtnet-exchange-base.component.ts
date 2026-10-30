@@ -100,7 +100,8 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Tracks by idSecuritycurrency directly on the entity.
    */
   onCheckboxChange(item: T): void {
-    this.markModified([item.idSecuritycurrency]);
+    const id = item.idSecuritycurrency;
+    if (id != null) this.markModified([id]);
   }
 
   /** Adds instruments to the modified set with a single new set. */
@@ -137,7 +138,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    */
   protected getModifiedList(): T[] {
     const modified = this.modifiedItems();
-    return this.entityList().filter((item) => modified.has(item.idSecuritycurrency));
+    return this.entityList().filter((item) => item.idSecuritycurrency != null && modified.has(item.idSecuritycurrency));
   }
 
   /**
@@ -176,9 +177,12 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Custom sort handler for multi-column sorting.
    */
   doCustomSort(event: SortEvent): void {
-    event.data.sort((data1, data2) => {
-      for (const sortMeta of event.multiSortMeta) {
+    const sortMetaList = event.multiSortMeta;
+    if (!sortMetaList) return;
+    event.data?.sort((data1, data2) => {
+      for (const sortMeta of sortMetaList) {
         const field = this.fields.find((f) => f.field === sortMeta.field);
+        if (!field) continue;
         const value1 = this.getValueByPath(data1, field);
         const value2 = this.getValueByPath(data2, field);
 

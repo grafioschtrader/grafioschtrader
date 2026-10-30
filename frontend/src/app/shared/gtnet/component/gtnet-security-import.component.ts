@@ -86,7 +86,7 @@ export class GTNetSecurityImportComponent
   readonly tableComponent = viewChild(GTNetSecurityImportTableComponent);
 
   /** Import transaction head ID passed from transaction import context */
-  private idTransactionHead: number = null;
+  private idTransactionHead: number | null = null;
   private readonly injector = inject(Injector);
 
   constructor() {
@@ -221,13 +221,12 @@ export class GTNetSecurityImportComponent
    * to matching ImportTransactionPos entries after successful import.
    */
   private triggerImportJob(): void {
-    if (!this.selectedEntity) {
-      return;
-    }
+    const id = this.selectedEntity?.idGtNetSecurityImpHead;
+    if (id == null) return;
 
     this.gtNetSecurityImpHeadService
       .queueImportJob(
-        this.selectedEntity.idGtNetSecurityImpHead,
+        id,
         this.idTransactionHead // Pass context if available
       )
       .subscribe({

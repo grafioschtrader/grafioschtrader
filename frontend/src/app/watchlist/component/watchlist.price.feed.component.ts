@@ -285,13 +285,15 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     propName: 'retryHistoryLoad' | 'retryIntraLoad',
     untilDate: Date | null
   ): boolean {
-    return this.securityPositionList().every(
-      (sp) =>
+    return this.securityPositionList().every((sp) => {
+      const activeToDate = (<Security>sp.securitycurrency).activeToDate;
+      return (
         sp.securitycurrency[propName] === 0 ||
         (!(sp.securitycurrency instanceof CurrencypairWatchlist) &&
-          new Date((<Security>sp.securitycurrency).activeToDate) <=
-            (untilDate === null ? sp.youngestHistoryDate : untilDate))
-    );
+          activeToDate != null &&
+          new Date(activeToDate) <= (untilDate === null ? sp.youngestHistoryDate : untilDate))
+      );
+    });
   }
 
   /**

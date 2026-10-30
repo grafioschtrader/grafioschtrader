@@ -32,20 +32,23 @@ import { TaxYearCorrectionTableComponent } from './tax-year-correction-table.com
           <div>{{ security().name }}{{ security().isin ? ' / ' + security().isin : '' }}</div>
         </div>
       </ng-template>
-      <tax-year-correction-table
-        [idSecuritycurrency]="security().idSecuritycurrency"
-        [yearOptions]="yearOptions()"
-        [suggestedYear]="suggestedYear()" />
+      @let securityId = security().idSecuritycurrency;
+      @if (securityId != null) {
+        <tax-year-correction-table
+          [idSecuritycurrency]="securityId"
+          [yearOptions]="yearOptions()"
+          [suggestedYear]="suggestedYear()" />
+      }
     </p-dialog>
   `,
   imports: [DialogModule, TranslateModule, TaxYearCorrectionTableComponent]
 })
 export class TaxYearCorrectionDialogComponent {
-  readonly security = input<Security>(undefined);
+  readonly security = input.required<Security>();
   readonly yearOptions = input<number[]>([]);
   /** Tax year preselected for new rows, typically the year the dialog was opened from. */
-  readonly suggestedYear = input<number>(undefined);
-  readonly visibleDialog = input<boolean>();
+  readonly suggestedYear = input.required<number>();
+  readonly visibleDialog = input(false);
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
 

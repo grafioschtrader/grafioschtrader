@@ -4,6 +4,7 @@ import { FieldConfig } from '../models/field.config';
 import { FormConfig } from '../models/form.config';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import { DataType } from '../models/data.type';
+import { requireFieldName } from '../models/form-control-access';
 import { FormNotifier } from '../models/form.notifier';
 
 @Directive()
@@ -19,6 +20,10 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
   readonly group = input.required<UntypedFormGroup>();
 
   isRequired = false;
+
+  get fieldName(): string {
+    return requireFieldName(this.config());
+  }
 
   /** Change notification of the form this field belongs to; the template reads its revision. */
   get notifier(): FormNotifier | undefined {

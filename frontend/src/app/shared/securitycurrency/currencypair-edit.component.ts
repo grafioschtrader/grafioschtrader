@@ -52,7 +52,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   private currencypairService: CurrencypairService = inject(CurrencypairService);
 
   // Input from parent component
-  readonly visibleEditCurrencypairDialog = input<boolean>();
+  readonly visibleEditCurrencypairDialog = input(false);
 
   existingCurrencypairs: Currencypair[];
 

@@ -9,7 +9,7 @@ export class SecurityTransactionSummary implements INameSecuritycurrency {
     public securityPositionSummary: SecurityPositionSummary
   ) {}
 
-  public getName(): string {
+  public getName(): string | null {
     return this.securityPositionSummary.security.name;
   }
 

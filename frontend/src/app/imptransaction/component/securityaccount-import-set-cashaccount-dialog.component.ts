@@ -42,8 +42,8 @@ export class SecurityaccountImportSetCashaccountDialogComponent extends SimpleFo
   private importTransactionPosService: ImportTransactionPosService = inject(ImportTransactionPosService);
   public translateService: TranslateService = inject(TranslateService);
 
-  readonly idSecuritycashAccount = input<number>(undefined);
-  readonly combineTemplateAndImpTransPos = input<CombineTemplateAndImpTransPos[]>(undefined);
+  readonly idSecuritycashAccount = input.required<number>();
+  readonly combineTemplateAndImpTransPos = input.required<CombineTemplateAndImpTransPos[]>();
 
   constructor() {
     super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT);
@@ -81,7 +81,7 @@ export class SecurityaccountImportSetCashaccountDialogComponent extends SimpleFo
           SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
             'idSecuritycashAccount',
             'name',
-            portfolio.cashaccountList,
+            portfolio.cashaccountList ?? [],
             false
           );
       });

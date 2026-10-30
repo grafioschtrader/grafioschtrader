@@ -87,8 +87,8 @@ const TABLE_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reaso
     reason: 'The view chooses the entity, deletion strategy and permitted menu operations.'
   },
   'app/lib/datashowbase/table.crud.support.menu.ts': {
-    parameters: ['entityName:string', 'deleteService:DeleteService', 'crudMenuOptions:CrudMenuOptions[]'],
-    reason: 'DeleteService is an interface implemented by the concrete entity service, not an injectable token.'
+    parameters: ['entityName:string', 'deleteService:DeleteService|null', 'crudMenuOptions:CrudMenuOptions[]'],
+    reason: 'The concrete entity service implements the deletion strategy; views without deletion supply null.'
   },
   'app/lib/udfmeta/components/udf.metadata.table.ts': {
     parameters: [
@@ -437,6 +437,16 @@ function inlineTemplates(source: string): string[] {
   return result;
 }
 
+/** Compiler options of a project file of the workspace, with everything it extends resolved. */
+function compilerOptionsOf(project: string): ts.CompilerOptions {
+  const filename = path.resolve(SRC, '..', project);
+  const config = ts.readConfigFile(filename, ts.sys.readFile);
+  expect(config.error).toBeUndefined();
+  const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, path.dirname(filename));
+  expect(parsed.errors).toEqual([]);
+  return parsed.options;
+}
+
 /** Collects source files of both hosts and the shared library, excluding this guard's examples. */
 function collectSources(dir: string, extensions = ['.ts'], out: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -454,11 +464,7 @@ describe('Angular API ratchet', () => {
   it.each(['tsconfig.app.json', 'tsconfig.grafiosch-host.json', 'tsconfig.spec.json'])(
     'keeps the strict typing baseline enabled in %s',
     (project) => {
-      const filename = path.resolve(SRC, '..', project);
-      const config = ts.readConfigFile(filename, ts.sys.readFile);
-      expect(config.error).toBeUndefined();
-      const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, path.dirname(filename));
-      expect(parsed.errors).toEqual([]);
+      const options = compilerOptionsOf(project);
       const flags = [
         'noImplicitAny',
         'strictBindCallApply',
@@ -466,11 +472,18 @@ describe('Angular API ratchet', () => {
         'noImplicitThis',
         'useUnknownInCatchVariables',
         'alwaysStrict',
-        'strictBuiltinIteratorReturn'
+        'strictBuiltinIteratorReturn',
+        'strictNullChecks'
       ] as const;
-      for (const flag of flags) expect(parsed.options[flag] ?? parsed.options.strict, flag).toBe(true);
+      for (const flag of flags) expect(options[flag] ?? options.strict, flag).toBe(true);
     }
   );
+
+  it('keeps the mobile application on full strict typing', () => {
+    const options = compilerOptionsOf('tsconfig.gt-mobile.json');
+    expect(options.strict).toBe(true);
+    expect(options.strictPropertyInitialization ?? options.strict).toBe(true);
+  });
 
   it('finds constructor parameters through the table inheritance chain and ignores unrelated classes', () => {
     expect(

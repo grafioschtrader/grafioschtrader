@@ -359,7 +359,8 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
     }
   }
 
-  getDateByFormat(date: string | number | Date): string {
+  getDateByFormat(date: string | number | Date | null): string | null {
+    if (date == null) return null;
     return AppHelper.getDateByFormat(this.gps, date);
   }
 

@@ -39,7 +39,7 @@ import { GTNetMessageCodeType } from '../model/gtnet.message';
         'active-border': isActivated(),
         'passiv-border': !isActivated()
       }"
-      [showContextMenu]="contextMenuItems()?.length > 0"
+      [showContextMenu]="(contextMenuItems()?.length ?? 0) > 0"
       [contextMenuItems]="contextMenuItems()"
       [valueGetterFn]="valueGetter"
       (componentClick)="onComponentClick($event)">

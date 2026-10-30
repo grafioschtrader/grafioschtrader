@@ -15,12 +15,12 @@ import { ReactiveFormsModule } from '@angular/forms';
         class="form-control-file-input"
         type="file"
         #input
-        [id]="config.field"
+        [id]="fieldName"
         [multiple]="config.dataType === DataType.Files"
         [class.required-input]="isRequired && !config.readonly"
         [accept]="config.acceptFileUploadType"
         (change)="handleChangeFileInput($event.target.files)"
-        [formControlName]="config.field" />
+        [formControlName]="fieldName" />
     </ng-container>
   `,
   imports: [ReactiveFormsModule]
@@ -28,7 +28,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 export class FormFileUploadComponent extends BaseInputComponent {
   fileToUpload: File | null = null;
 
-  handleChangeFileInput(files: FileList) {
+  handleChangeFileInput(files: FileList | null) {
+    if (!files) return;
     this.config().handleChangeFileInputFN?.(files);
   }
 

@@ -56,10 +56,12 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
     </configurable-table>
 
     @if (visibleDialog()) {
-      <bankrupt-security-edit
-        [visibleDialog]="visibleDialog()"
-        [callParam]="callParam()"
-        (closeDialog)="handleCloseDialog($event)" />
+      @if (callParam(); as editCallParam) {
+        <bankrupt-security-edit
+          [visibleDialog]="visibleDialog()"
+          [callParam]="editCallParam"
+          (closeDialog)="handleCloseDialog($event)" />
+      }
     }
   `,
   providers: [DialogService],

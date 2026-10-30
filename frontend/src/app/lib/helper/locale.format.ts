@@ -14,7 +14,7 @@ import { GlobalSessionNames } from '../global.session.names';
 export interface ValueFormatSettings {
   getLocale(): string;
   getDecimalSymbol(): string;
-  getCurrencyPrecision(currency: string): number;
+  getCurrencyPrecision(currency: string | null | undefined): number;
   getNumberFormat(): Intl.NumberFormat;
   getNumberFormatForPrecision(precision: number): Intl.NumberFormat;
   getNumberFormatRaw(): Intl.NumberFormat;
@@ -64,10 +64,10 @@ export class LocaleFormat implements ValueFormatSettings {
    * @param currency ISO 4217 or crypto currency code
    * @returns Number of decimal places for amounts in this currency
    */
-  public getCurrencyPrecision(currency: string): number {
+  public getCurrencyPrecision(currency: string | null | undefined): number {
     const precisionMap: { [currency: string]: number } = (this.currencyPrecisionMap ??=
       JSON.parse(sessionStorage.getItem(GlobalSessionNames.CURRENCY_PRECISION) ?? '{}') ?? {});
-    const precision = precisionMap[currency];
+    const precision = currency == null ? undefined : precisionMap[currency];
     return precision != null ? precision : BaseSettings.FID_STANDARD_FRACTION_DIGITS;
   }
 

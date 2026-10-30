@@ -18,7 +18,7 @@ import { AppSettings } from '../../shared/app.settings';
   imports: [TranslateModule, AngularSvgIconModule]
 })
 export class SecurityaccountImportExtendedInfoFilenameComponent extends SingleRecordConfigBase implements OnInit {
-  readonly combineTemplateAndImpTransPos = input<CombineTemplateAndImpTransPos>(undefined);
+  readonly combineTemplateAndImpTransPos = input.required<CombineTemplateAndImpTransPos>();
 
   constructor() {
     super();

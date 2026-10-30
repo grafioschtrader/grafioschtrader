@@ -5,7 +5,7 @@ import { AssetclassType } from '../../shared/types/assetclass.type';
 export class CurrencypairWatchlist extends Currencypair {
   assetClass: Assetclass;
 
-  public constructor(fromCurrency: string, toCurrency: string) {
+  public constructor(fromCurrency: string | undefined, toCurrency: string | undefined) {
     super(fromCurrency, toCurrency);
     this.assetClass = new Assetclass();
     this.assetClass.categoryType = AssetclassType[AssetclassType.CURRENCY_PAIR];

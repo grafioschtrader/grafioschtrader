@@ -1,3 +1,3 @@
 export interface ParentChildRowSelection<T> {
-  rowSelectionChanged(childEntityList: T[], childSelectedEntity: T): void;
+  rowSelectionChanged(childEntityList: T[], childSelectedEntity: T | null): void;
 }

@@ -4,9 +4,9 @@ import { Securitycashaccount } from './securitycashaccount';
 import { TenantBaseId } from '../lib/entities/tenant.base.id';
 
 export class Portfolio extends TenantBaseId {
-  name: string = null;
-  currency: string = null;
-  closedUntil: string = null;
+  name: string | null = null;
+  currency: string | null = null;
+  closedUntil: string | null = null;
   idPortfolio?: number;
 
   securitycashaccountList?: Securitycashaccount;

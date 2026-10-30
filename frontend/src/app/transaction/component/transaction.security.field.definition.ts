@@ -95,9 +95,9 @@ export class TransactionSecurityFieldDefinition {
    * @param fields The column definitions created by {@link getFieldDefinition}
    * @param securityCurrency The currency of the security whose transactions are shown
    */
-  static applySecurityCurrency(fields: ColumnConfig[], securityCurrency: string | undefined): void {
+  static applySecurityCurrency(fields: ColumnConfig[], securityCurrency: string | null | undefined): void {
     fields
       .filter((cc) => cc.currencyPrecisionField === TransactionSecurityFieldDefinition.SECURITY_CURRENCY_PATH)
-      .forEach((cc) => (cc.fixedCurrency = securityCurrency));
+      .forEach((cc) => (cc.fixedCurrency = securityCurrency ?? undefined));
   }
 }

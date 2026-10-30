@@ -37,7 +37,7 @@ export class GrafioschDialogHandler implements DialogHandler {
           closable: true,
           closeOnEscape: true,
           width: '50vw'
-        }).onClose,
+        })?.onClose ?? of(null),
       () => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MSG_LOAD_NEW_VERSION')
     );
   }

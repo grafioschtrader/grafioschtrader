@@ -112,7 +112,7 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase {
   readonly candidateSelected = output<SecurityLookupCandidate | null>();
 
   /** The chosen listing; the dialog preselects it when only one exists */
-  readonly selectedCandidateInput = input<SecurityLookupCandidate | null>(undefined, { alias: 'selectedCandidate' });
+  readonly selectedCandidateInput = input<SecurityLookupCandidate | null>(null, { alias: 'selectedCandidate' });
   readonly selectedCandidate = linkedSignal(() => this.selectedCandidateInput());
 
   /**
@@ -185,7 +185,7 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase {
    *
    * @param candidate - The chosen listing, or null when the selection is removed
    */
-  onSelectionChange(selection: SecurityLookupCandidate | SecurityLookupCandidate[]): void {
+  onSelectionChange(selection: SecurityLookupCandidate | SecurityLookupCandidate[] | null): void {
     const candidate = Helper.singleSelection(selection);
     this.selectedCandidate.set(candidate);
     this.candidateSelected.emit(candidate);

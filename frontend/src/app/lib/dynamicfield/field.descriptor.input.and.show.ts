@@ -49,7 +49,7 @@ export enum ConstraintValidatorType {
  * // descriptor.fieldDescriptorInputAndShows contains metadata for each field
  * // descriptor.constraintValidatorMap may contain {DateRange: {startField: 'fromDateTime', endField: 'toDateTime'}}
  */
-export class ClassDescriptorInputAndShow {
+export interface ClassDescriptorInputAndShow {
   /**
    * Array of field descriptors defining the individual input elements and their properties.
    * Each descriptor specifies field access, data type, validation constraints, and UI hints.
@@ -91,7 +91,7 @@ export interface FieldDescriptorInputAndShow {
    * Array of specialized UI hints that modify input behavior. May be string values when received
    * from JSON deserialization, or DynamicFormPropertyHelps enum values after processing.
    */
-  dynamicFormPropertyHelps: string[] | DynamicFormPropertyHelps[];
+  dynamicFormPropertyHelps: string[] | DynamicFormPropertyHelps[] | null;
 
   /**
    * The data type that determines the input component type and validation rules.
@@ -100,19 +100,19 @@ export interface FieldDescriptorInputAndShow {
   dataType: string | DataType;
 
   /** The simple name of the enum class if this field represents an enum type. Null for non-enum fields. */
-  enumType: string;
+  enumType: string | null;
 
   /** Whether this field is required and must have a value before form submission. */
   required: boolean;
 
   /** The minimum value for numeric types or minimum length for string types. Null if no minimum constraint. */
-  min: number;
+  min: number | null;
 
   /** The maximum value for numeric types or maximum length for string types. Null if no maximum constraint. */
-  max: number;
+  max: number | null;
 
   /** Available enum constant names when dataType is EnumSet. Used to populate multi-select options. */
-  enumValues: string[];
+  enumValues: string[] | null;
 
   /** Regular expression the input must match (from a backend @Pattern annotation). Null if unconstrained. */
   pattern?: string;

@@ -56,7 +56,8 @@ export abstract class GrafioschTreeContributorBase extends MainTreeContributor {
    */
   protected translateNodes(treeNodes: TreeNode[]): void {
     treeNodes.forEach((treeNode) => {
-      this.translateService.get(treeNode.label).subscribe((translated) => (treeNode.label = translated));
+      const label = treeNode.label;
+      if (label != null) this.translateService.get(label).subscribe((translated) => (treeNode.label = translated));
       if (treeNode.children) {
         this.translateNodes(treeNode.children);
       }

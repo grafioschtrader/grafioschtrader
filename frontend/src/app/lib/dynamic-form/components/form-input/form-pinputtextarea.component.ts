@@ -19,12 +19,12 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
       <textarea
         pTextarea
         [rows]="config.textareaRows"
-        [formControlName]="config.field"
-        [id]="config.field"
+        [formControlName]="fieldName"
+        [id]="fieldName"
         [class.required-input]="isRequired && !config.readonly"
         [readonly]="config.readonly"
-        [disabled]="config.disabled"
-        [maxlength]="config.maxLength"
+        [disabled]="config.disabled ?? false"
+        [maxlength]="config.maxLength ?? null"
         pTooltip="{{
           config.labelHelpText?.startsWith('*')
             ? config.labelHelpText.slice(1)

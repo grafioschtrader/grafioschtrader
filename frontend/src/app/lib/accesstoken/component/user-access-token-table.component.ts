@@ -29,8 +29,8 @@ import { UserAccessTokenCreateDialogComponent } from './user-access-token-create
         [label]="'ACCESS_TOKEN_CREATE' | translate"
         [disabled]="!formDefinition()"
         (onClick)="handleEditEntity(null)" />
-      @if (selectedEntity()) {
-        <p-button [label]="'ACCESS_TOKEN_REVOKE' | translate" (onClick)="handleDeleteEntity(selectedEntity())" />
+      @if (selectedEntity(); as selectedEntityValue) {
+        <p-button [label]="'ACCESS_TOKEN_REVOKE' | translate" (onClick)="handleDeleteEntity(selectedEntityValue)" />
       }
     </div>
     <configurable-table
@@ -50,11 +50,13 @@ import { UserAccessTokenCreateDialogComponent } from './user-access-token-create
       [contextMenuAppendTo]="'body'"
       (componentClick)="onComponentClick($event)" />
     @if (visibleDialog()) {
-      <user-access-token-create-dialog
-        [visibleDialog]="visibleDialog()"
-        [formDefinition]="formDefinition()"
-        (tokenCreated)="readData()"
-        (closeDialog)="handleCloseDialog($event)" />
+      @if (formDefinition(); as definition) {
+        <user-access-token-create-dialog
+          [visibleDialog]="visibleDialog()"
+          [formDefinition]="definition"
+          (tokenCreated)="readData()"
+          (closeDialog)="handleCloseDialog($event)" />
+      }
     }
   `
 })

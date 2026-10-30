@@ -44,7 +44,7 @@ export function buildCorrelationFigure(input: CorrelationChartInput, type: Corre
           return;
         }
         const label = name(sc);
-        legendTooltipMap.set(label, sc.name);
+        if (label != null && sc.name != null) legendTooltipMap.set(label, sc.name);
         data.push({
           type: 'scatter',
           mode: 'lines',

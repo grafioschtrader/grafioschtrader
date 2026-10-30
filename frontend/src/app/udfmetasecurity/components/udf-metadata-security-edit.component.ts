@@ -56,8 +56,8 @@ import { UDFFillSuggestTestResultComponent } from './udf-fill-suggest-test-resul
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">
-      @if (fillStatusText()) {
-        <p class="bg-info">{{ fillStatusText() }}</p>
+      @if (fillStatusText(); as fillStatusTextValue) {
+        <p class="bg-info">{{ fillStatusTextValue }}</p>
       }
       @if (isLLMWithoutKeys()) {
         <p-message severity="warn" [text]="'UDF_FILL_LLM_NO_KEYS' | translate" />
@@ -71,18 +71,25 @@ import { UDFFillSuggestTestResultComponent } from './udf-fill-suggest-test-resul
       <!-- The content is a flex column so the test result takes only the height the form leaves within the dialog
            and scrolls there; the global overflow:visible of the dialog content keeps form overlays unclipped. -->
       @if (isAutomaticFill() && testResult()) {
-        <udf-fill-test-result [testResult]="testResult()" />
+        @if (testResult(); as result) {
+          <udf-fill-test-result [testResult]="result" />
+        }
       }
       @if (isAutomaticFill() && suggestTestRequest()) {
-        <udf-fill-suggest-test-result [request]="suggestTestRequest()" />
+        @if (suggestTestRequest(); as request) {
+          <udf-fill-suggest-test-result [request]="request" />
+        }
       }
     </p-dialog>
     @if (visibleProposalDialog()) {
-      <udf-fill-rule-proposal-dialog
-        [idUDFMetadata]="callParam().uDFMetadataSecurity?.idUDFMetadata"
-        [visibleDialog]="visibleProposalDialog()"
-        (ruleAccepted)="acceptProposedRule($event)"
-        (closeDialog)="visibleProposalDialog.set(false)" />
+      @let fieldId = callParam().uDFMetadataSecurity?.idUDFMetadata;
+      @if (fieldId != null) {
+        <udf-fill-rule-proposal-dialog
+          [idUDFMetadata]="fieldId"
+          [visibleDialog]="visibleProposalDialog()"
+          (ruleAccepted)="acceptProposedRule($event)"
+          (closeDialog)="visibleProposalDialog.set(false)" />
+      }
     }
   `,
   imports: [
@@ -128,7 +135,7 @@ export class UDFMetadataSecurityEditComponent
   readonly suggestTestRequest = signal<UDFFillTestRequest | null>(null);
 
   /** Parameters containing security UDF metadata to edit and validation exclusion lists */
-  readonly callParam = input<UDFMetadataSecurityParam>(undefined);
+  readonly callParam = input.required<UDFMetadataSecurityParam>();
 
   /** Result of the last test of the fill rule, shown below the form */
   readonly testResult = signal<UDFFillTestResult | null>(null);
@@ -346,7 +353,7 @@ export class UDFMetadataSecurityEditComponent
    * Fills the argument with the default of a newly selected resolver when it is still empty.
    */
   private setDefaultArgument(resolverId: string): void {
-    const argument = this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT].formControl;
+    const argument = requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT]);
     const resolver = this.resolverOptions.find((r) => r.resolverId === resolverId);
     if (resolver && !argument.value) {
       argument.setValue(resolver.defaultArgument);
@@ -498,7 +505,9 @@ export class UDFMetadataSecurityEditComponent
    * Returns a control of the form group that holds the data type and the field size.
    */
   private groupControl(field: string): AbstractControl {
-    return requireFormControl(this.configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP]).get([field]);
+    const control = requireFormControl(this.configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP]).get([field]);
+    if (!control) throw new Error(`Missing UDF data type control: ${field}`);
+    return control;
   }
 
   /**

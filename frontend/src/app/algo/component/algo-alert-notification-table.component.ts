@@ -95,7 +95,7 @@ export class AlgoAlertNotificationTableComponent extends TableConfigBase {
     });
   }
 
-  onSelectionChange(selection: AlertNotification | AlertNotification[]): void {
+  onSelectionChange(selection: AlertNotification | AlertNotification[] | null): void {
     this.selectedNotifications = Helper.multipleSelection(selection);
     this.resetMenu();
   }

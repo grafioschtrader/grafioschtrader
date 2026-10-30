@@ -10,12 +10,12 @@ import { LocaleSettings } from '../Interface/locale.settings';
     @if (month(); as month) {
       <div class="calcontainer">
         <div style="text-align: center;">
-          <b>{{ locale().monthNames[month.index] }}</b>
+          <b>{{ locale()?.monthNames?.[month.index] }}</b>
         </div>
         <table style="margin: 0px auto;">
           <thead>
             <tr>
-              @for (wd of locale().dayNamesMin; track wd) {
+              @for (wd of locale()?.dayNamesMin ?? []; track wd) {
                 <th>
                   <div [className]="disabledDaysOfWeek()?.includes(wd) ? 'disabledHeaderDay' : ''">
                     <b>{{ wd }}</b>

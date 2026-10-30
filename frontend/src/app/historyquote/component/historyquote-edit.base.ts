@@ -81,7 +81,9 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): T {
     const entity = this.createEntityInstance();
     this.copyFormToPublicBusinessObject(entity, this.getExistingEntity(), this.proposeChangeEntityWithEntity());
-    entity.idSecuritycurrency = this.getSecuritycurrency().idSecuritycurrency;
+    const id = this.getSecuritycurrency().idSecuritycurrency;
+    if (id == null) throw new Error('A history quote requires a persisted instrument');
+    entity.idSecuritycurrency = id;
     return entity;
   }
 

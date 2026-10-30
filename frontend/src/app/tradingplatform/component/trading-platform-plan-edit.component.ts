@@ -44,7 +44,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
   readonly callParam = input<TradingPlatformPlan | null>();
-  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>(undefined);
+  readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
 
   private importTransactionPlatformList: ImportTransactionPlatform[] = [];
 

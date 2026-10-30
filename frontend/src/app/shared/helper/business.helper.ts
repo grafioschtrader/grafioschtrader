@@ -44,7 +44,7 @@ export class BusinessHelper {
    * // Returns: "ACCUMULATE"
    * ```
    */
-  public static getTransactionTypeAsName(transactionType: TransactionType): string {
+  public static getTransactionTypeAsName(transactionType: TransactionType): string | null {
     for (const n in TransactionType) {
       if (typeof TransactionType[n] === 'number' && transactionType === +TransactionType[n]) {
         return n;
@@ -84,9 +84,12 @@ export class BusinessHelper {
    * @param targetCurrency The target currency code (e.g., 'EUR')
    * @returns A new Currencypair object, or null if currencies are the same or source is null
    */
-  public static getCurrencypairWithSetOfFromAndTo(sourceCurrency: string, targetCurrency: string): Currencypair {
-    let currencypair: Currencypair = null;
-    if (sourceCurrency != null && targetCurrency !== sourceCurrency) {
+  public static getCurrencypairWithSetOfFromAndTo(
+    sourceCurrency: string | null | undefined,
+    targetCurrency: string | null | undefined
+  ): Currencypair | null {
+    let currencypair: Currencypair | null = null;
+    if (sourceCurrency != null && targetCurrency != null && targetCurrency !== sourceCurrency) {
       currencypair = new Currencypair(targetCurrency, sourceCurrency);
     }
     return currencypair;
@@ -106,7 +109,7 @@ export class BusinessHelper {
   public static divideMultiplyExchangeRate(
     value: number,
     currencyExRate: number,
-    sourceCurrency: string,
+    sourceCurrency: string | null | undefined,
     currencypair: Currencypair | null | undefined
   ): number {
     if (sourceCurrency && currencypair) {
@@ -355,11 +358,11 @@ export class BusinessHelper {
    * @param security The security object containing asset class information
    * @returns True if the security is a margin product (CFD or FOREX), false otherwise
    */
-  public static isMarginProduct(security: Security): boolean {
+  public static isMarginProduct(security: Security | null | undefined): boolean {
     return (
-      security.assetClass?.specialInvestmentInstrument ===
+      security?.assetClass?.specialInvestmentInstrument ===
         SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD] ||
-      security.assetClass?.specialInvestmentInstrument ===
+      security?.assetClass?.specialInvestmentInstrument ===
         SpecialInvestmentInstruments[SpecialInvestmentInstruments.FOREX]
     );
   }

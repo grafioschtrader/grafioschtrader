@@ -138,10 +138,12 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
       <gtnet-edit [visibleDialog]="visibleDialog()" [callParam]="callParam" (closeDialog)="handleCloseDialog($event)" />
     }
     @if (visibleDialogConfig()) {
-      <gtnet-config-edit
-        [visibleDialog]="visibleDialogConfig()"
-        [gtNetConfig]="selectedEntity()?.gtNetConfig"
-        (closeDialog)="handleCloseDialogConfig($event)" />
+      @if (selectedEntity()?.gtNetConfig; as config) {
+        <gtnet-config-edit
+          [visibleDialog]="visibleDialogConfig()"
+          [gtNetConfig]="config"
+          (closeDialog)="handleCloseDialogConfig($event)" />
+      }
     }
     @if (visibleDialogMsg()) {
       <gtnet-message-edit

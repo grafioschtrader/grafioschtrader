@@ -255,7 +255,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
     (rootNode.children ??= []).splice(0);
     for (const watchlist of watchlists) {
       const treeNode = {
-        label: watchlist.name,
+        label: watchlist.name ?? undefined,
         icon: 'pi ' + (watchlist.idWatchlist === this.tenant.idWatchlistPerformance ? 'pi-chart-line' : null),
         data: new TypeNodeData(
           TreeNodeType.Watchlist,

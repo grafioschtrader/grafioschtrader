@@ -3,16 +3,16 @@ import { Auditable } from '../lib/entities/auditable';
 
 export class Securitycurrency extends Auditable {
   dtype?: string;
-  idSecuritycurrency?: number = null;
-  note?: string = null;
+  idSecuritycurrency?: number | null = null;
+  note?: string | null = null;
   fullLoadTimestamp: string;
-  retryHistoryLoad?: number = null;
-  idConnectorHistory?: string = null;
-  urlHistoryExtend?: string = null;
-  idConnectorIntra?: string = null;
-  urlIntraExtend?: string = null;
-  retryIntraLoad?: number = null;
-  stockexchangeLink?: string = null;
+  retryHistoryLoad?: number | null = null;
+  idConnectorHistory?: string | null = null;
+  urlHistoryExtend?: string | null = null;
+  idConnectorIntra?: string | null = null;
+  urlIntraExtend?: string | null = null;
+  retryIntraLoad?: number | null = null;
+  stockexchangeLink?: string | null = null;
   sPrevClose?: number;
   sChangePercentage?: number;
   sOpen?: number;
@@ -25,9 +25,9 @@ export class Securitycurrency extends Auditable {
    */
   priceFractionDigits?: number;
   historyquoteList?: Historyquote[];
-  name: string = null;
+  name: string | null = null;
 
-  sTimestamp?: string = null;
+  sTimestamp?: string | null = null;
 
   /** Receive intraday prices for this instrument via GTNet. */
   gtNetLastpriceRecv?: boolean = false;

@@ -327,7 +327,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
     const securitycashaccountNode: TreeNode[] = [];
     for (const securityaccount of securityaccountList) {
       const treeNode = {
-        label: securityaccount.name,
+        label: securityaccount.name ?? undefined,
         styleClass: this.isAccountTerminated(securityaccount) ? 'gt-account-terminated' : undefined,
         data: new TypeNodeData(
           TreeNodeType.SecurityAccount,
@@ -351,7 +351,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
    * @param account the cash or security account to check
    * @returns true when the account has an active-until date in the past
    */
-  private isAccountTerminated(account: { activeToDate?: string | Date }): boolean {
+  private isAccountTerminated(account: { activeToDate?: string | Date | null }): boolean {
     return (
       account.activeToDate != null && moment(account.activeToDate).format('YYYYMMDD') < moment().format('YYYYMMDD')
     );

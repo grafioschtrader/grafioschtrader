@@ -18,7 +18,7 @@ export interface ConnectorAlternative {
   sampleValue: number;
   sampleCount: number;
   /** Distribution frequency derived from the delivered dividends; only set for a dividend connector */
-  distributionFrequency: string;
+  distributionFrequency: string | null;
   probeDetail: string;
 }
 
@@ -52,7 +52,7 @@ export interface SecurityLookupCandidate {
   issuerCountry: string;
   activeFromDate: string;
   activeToDate: string;
-  distributionFrequency: string;
+  distributionFrequency: string | null;
   denomination: number;
   /** Product page of the issuer, only derived for funds from an issuer template */
   productLink: string;

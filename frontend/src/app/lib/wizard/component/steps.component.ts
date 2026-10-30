@@ -41,8 +41,8 @@ import { StepComponent } from './step.component';
 })
 export class StepsComponent {
   readonly activeIndex = model(0);
-  readonly styleClass = input<string>(undefined);
-  readonly stepClass = input<string>(undefined);
+  readonly styleClass = input<string>();
+  readonly stepClass = input<string>();
   readonly activeLabelChange = output<string>();
 
   readonly steps = contentChildren(StepComponent);
@@ -67,7 +67,8 @@ export class StepsComponent {
       step.active.set(index === this.activeIndex());
 
       if (step.active()) {
-        this.activeLabelChange.emit(step.label());
+        const label = step.label();
+        if (label != null) this.activeLabelChange.emit(label);
       }
     });
   }

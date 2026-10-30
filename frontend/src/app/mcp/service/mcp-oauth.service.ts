@@ -6,14 +6,14 @@ import { BaseSettings } from '../../lib/base.settings';
 
 /** The OAuth parameters a client sends to the authorization endpoint, in their wire names. */
 export interface OAuthAuthorizationRequest {
-  response_type: string;
-  client_id: string;
-  redirect_uri: string;
-  state: string;
-  code_challenge: string;
-  code_challenge_method: string;
-  scope: string;
-  resource: string;
+  response_type: string | null;
+  client_id: string | null;
+  redirect_uri: string | null;
+  state: string | null;
+  code_challenge: string | null;
+  code_challenge_method: string | null;
+  scope: string | null;
+  resource: string | null;
 }
 
 /** Outcome of the server-side validation of an authorization request. */

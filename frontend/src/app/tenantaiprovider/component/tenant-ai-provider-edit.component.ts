@@ -37,9 +37,9 @@ import { TenantAIProviderService } from '../service/tenant-ai-provider.service';
 })
 export class TenantAIProviderEditComponent extends SimpleEntityEditBase<TenantAIProvider> implements OnInit {
   readonly entity = input<TenantAIProvider | null>();
-  readonly options = input<TenantAIProviderOptions>(undefined);
-  readonly formDefinition = input<ClassDescriptorInputAndShow>(undefined);
-  readonly existingProviders = input<string[]>(undefined);
+  readonly options = input.required<TenantAIProviderOptions>();
+  readonly formDefinition = input.required<ClassDescriptorInputAndShow>();
+  readonly existingProviders = input.required<string[]>();
 
   constructor() {
     super(HelpIds.HELP_INTRO_SETTINGS, 'TENANT_AI_PROVIDER', inject(TenantAIProviderService));

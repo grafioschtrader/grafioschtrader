@@ -149,7 +149,7 @@ export class AppComponent implements OnDestroy {
     LoginService.setGlobalLang(translateService, optimusConfig);
     this.initializeOptimusStyles(optimusConfig);
     AuditHelper.setCustomOwnershipCheck((entity: any, userId: number) => {
-      return entity instanceof Security && entity.idTenantPrivate && entity.idTenantPrivate === userId;
+      return entity instanceof Security && entity.idTenantPrivate != null && entity.idTenantPrivate === userId;
     });
 
     DynamicFieldHelper.registerCustomValidation({
