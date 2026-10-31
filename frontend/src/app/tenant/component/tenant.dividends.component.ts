@@ -3,9 +3,9 @@ import { Subscription } from 'rxjs';
 import { computed, DestroyRef, inject, signal, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
-import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
+import type { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SecurityDividendsYearGroup } from '../../entities/view/securitydividends/security.dividends.year.group';
+import type { SecurityDividendsYearGroup } from '../../entities/view/securitydividends/security.dividends.year.group';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -64,7 +64,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     () => this.securityDividendsGrandTotal()?.securityDividendsYearGroup ?? []
   );
 
-  securityDividendsGrandTotalSelected: SecurityDividendsYearGroup;
+  securityDividendsGrandTotalSelected: SecurityDividendsYearGroup | null = null;
   readonly visibleSecurityaccountDialog = signal(false);
   readonly visibleExportDialog = signal(false);
   readonly idsAccounts = signal<IdsAccounts | null>(null);
@@ -85,9 +85,9 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
   securityExpandedKeysByYear: { [year: string]: { [id: string]: boolean } } = {};
 
   private readonly destroyRef = inject(DestroyRef);
-  private readRequest: Subscription;
-  private menuRequest: Subscription;
-  private contextMenuRequest: Subscription;
+  private readRequest?: Subscription;
+  private menuRequest?: Subscription;
+  private contextMenuRequest?: Subscription;
 
   private columnConfigs: ColumnConfig[] = [];
 

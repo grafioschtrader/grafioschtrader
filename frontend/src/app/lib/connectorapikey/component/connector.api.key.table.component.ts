@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../helper/required-state';
 import { Component, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map, of, Subscription, switchMap } from 'rxjs';
@@ -60,7 +61,15 @@ export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<Connecto
   connectorApiKey: ConnectorApiKey | null = null;
 
   readonly strn = signal<Record<string, SubscriptionTypeReadableName>>({});
-  existingProviders: string[];
+  private initializedExistingProviders?: string[];
+
+  get existingProviders(): string[] {
+    return requireInitialized(this.initializedExistingProviders, 'ConnectorApiKeyTableComponent.existingProviders');
+  }
+
+  set existingProviders(value: string[]) {
+    this.initializedExistingProviders = value;
+  }
   readonly subscriptionTypeOptionsMap = signal<Record<string, ValueKeyHtmlSelectOptions[]>>({});
   private readDataSub?: Subscription;
 

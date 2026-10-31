@@ -1,5 +1,5 @@
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { AlgoSecurity, AlgoSecurityStrategyImplType } from '../model/algo.security';
+import { AlgoSecurity, type AlgoSecurityStrategyImplType } from '../model/algo.security';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { Observable } from 'rxjs';

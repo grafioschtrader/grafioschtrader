@@ -9,38 +9,38 @@ export class MailSettingForwardVar {
 }
 
 export class MailSendRecv implements BaseID {
-  idMailSendRecv: number;
-  sendRecv: SendRecvType | string;
-  idUserFrom: number;
-  idUserTo: number;
-  idRoleTo: number;
-  idGtNet: number;
-  subject: string;
-  message: string;
+  idMailSendRecv?: number;
+  sendRecv?: SendRecvType | string;
+  idUserFrom?: number;
+  idUserTo?: number | null;
+  idRoleTo?: number | null;
+  idGtNet?: number | null;
+  subject?: string | null;
+  message?: string;
   idReplyToLocal?: number | null;
-  idReplyToRemote: number;
-  replyToRolePrivate: ReplyToRolePrivateType | string | number;
-  sendRecvTime: Date;
-  roleNameTo: string;
-  hasBeenRead: boolean;
+  idReplyToRemote?: number | null;
+  replyToRolePrivate?: ReplyToRolePrivateType | string | number;
+  sendRecvTime?: string | Date | null;
+  roleNameTo?: string | null;
+  hasBeenRead?: boolean;
   contextEntity?: string | null;
   idEntityContext?: number | null;
 
   @Exclude()
-  getId(): number {
+  getId(): number | undefined {
     return this.idMailSendRecv;
   }
 }
 
 export class MailSettingForward implements BaseID {
-  idMailSettingForward: number;
-  idUser: number;
+  idMailSettingForward?: number;
+  idUser?: number;
   messageComType: MessageComType | null = null;
   messageTargetType: MessageTargetType | null = null;
   idUserRedirect: number | null = null;
 
   @Exclude()
-  getId(): number {
+  getId(): number | undefined {
     return this.idMailSettingForward;
   }
 }

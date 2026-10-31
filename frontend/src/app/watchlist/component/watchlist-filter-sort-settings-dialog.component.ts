@@ -183,7 +183,10 @@ export class WatchlistFilterSortSettingsDialogComponent {
         label: translateService.instant('SCOPE_ALL_WATCHLISTS')
       }
     ];
-    this.readState();
+    this.filterScope = this.filterSortStateService.getFilterScope();
+    this.sortScope = this.filterSortStateService.getSortScope();
+    this.filters = this.filterSortStateService.listFilters(this.idWatchlist);
+    this.sorts = this.filterSortStateService.listSorts(this.idWatchlist);
   }
 
   /**

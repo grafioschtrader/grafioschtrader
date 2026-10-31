@@ -34,9 +34,6 @@ import { TransactionTable } from '../../transaction/component/transaction.table'
 export class PortfolioTransactionTableComponent extends TransactionTable implements OnInit, OnDestroy {
   readonly id = input.required({ transform: numberAttribute });
 
-  /** Identifier of the currently selected portfolio */
-  private idPortfolio: number;
-
   /** The current portfolio's transactions and the currency pairs needed to display them, cancelled together. */
   readonly transactionResource = rxResource({
     params: () => this.id(),
@@ -48,13 +45,6 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
   });
   constructor() {
     super();
-
-    effect(() => {
-      const id = this.id();
-      untracked(() => {
-        this.idPortfolio = id;
-      });
-    });
 
     reportResourceErrors(this.transactionResource, this.transactionService);
     effect(() => {
@@ -92,7 +82,7 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
    * @returns The ID of the portfolio shown in this table
    */
   protected override getExportIdPortfolio(): number {
-    return this.idPortfolio;
+    return this.id();
   }
 
   /**

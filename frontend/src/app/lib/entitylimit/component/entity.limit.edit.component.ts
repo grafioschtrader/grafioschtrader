@@ -18,7 +18,7 @@ import { GroupItem, ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/
 import { EntityLimit } from '../../entities/entity.limit';
 import { EntityLimitService } from '../service/entity.limit.service';
 import { LimitKeyDefinition } from '../model/limit.key.definition';
-import { ProposeChangeEntityWithEntity } from '../../proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../proposechange/model/propose.change.entity.whit.entity';
 import { BaseSettings } from '../../base.settings';
 
 /**

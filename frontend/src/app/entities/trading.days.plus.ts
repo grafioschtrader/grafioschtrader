@@ -1,3 +1,3 @@
-export class TradingDaysPlus {
+export interface TradingDaysPlus {
   tradingDate: string | Date;
 }

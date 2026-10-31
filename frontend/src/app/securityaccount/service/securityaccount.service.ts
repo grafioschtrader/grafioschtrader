@@ -6,12 +6,12 @@ import { FeeModelComparisonResponse } from '../../entities/fee.model.comparison'
 import { FxMarkupPreviewRequest, FxQuote } from '../../entities/fx.markup';
 import { FxObservationReport } from '../../entities/fx.observation';
 import { Securityaccount } from '../../entities/securityaccount';
-import { TradingPeriodTransactionSummary } from '../../entities/trading.period.transaction.summary';
+import type { TradingPeriodTransactionSummary } from '../../entities/trading.period.transaction.summary';
 import {
   TransactionCostEstimateRequest,
   TransactionCostEstimateResult
 } from '../../entities/transaction.cost.estimate';
-import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import type { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { BaseSettings } from '../../lib/base.settings';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';

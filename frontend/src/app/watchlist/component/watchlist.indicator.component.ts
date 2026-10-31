@@ -34,7 +34,7 @@ import { WatchlistIndicatorColumnsDialogComponent } from './watchlist-indicator-
 import { SecuritycurrencyIndicatorGroup, WatchlistIndicatorColumn } from '../model/watchlist-indicator';
 import { Currencypair } from '../../entities/currencypair';
 import { Security } from '../../entities/security';
-import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
+import type { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 @Component({
   templateUrl: '../view/watchlist.indicator.html',
   styles: [

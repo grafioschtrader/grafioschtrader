@@ -7,7 +7,7 @@ export abstract class AlgoTopAssetSecurity extends TenantBaseId {
   public percentage: number | null = null;
 
   @Type(() => AlgoStrategy)
-  public algoStrategyList: AlgoStrategy[];
+  public algoStrategyList: AlgoStrategy[] = [];
 
   @Exclude()
   get idTree(): string {

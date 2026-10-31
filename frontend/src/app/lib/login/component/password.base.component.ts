@@ -1,6 +1,7 @@
 import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { FieldConfig } from '../../dynamic-form/models/field.config';
-import { FormConfig } from '../../dynamic-form/models/form.config';
+import { FormBase } from '../../edit/form.base';
+import { requireInitialized } from '../../helper/required-state';
 import { TranslateService } from '@ngx-translate/core';
 import { ErrorMessageRules, RuleEvent } from '../../dynamic-form/error/error.message.rules';
 import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
@@ -18,7 +19,7 @@ import { GlobalparameterService, PasswordRegexProperties } from '../../services/
  * This could be the base class for these forms.
  */
 @Directive()
-export abstract class PasswordBaseComponent {
+export abstract class PasswordBaseComponent extends FormBase<FieldFormGroup> {
   protected gps: GlobalparameterService = inject(GlobalparameterService);
   protected translateService: TranslateService = inject(TranslateService);
 
@@ -29,11 +30,24 @@ export abstract class PasswordBaseComponent {
   private static readonly password = 'password';
 
   // Form configuration
-  formConfig: FormConfig;
-  config: FieldFormGroup[] = [];
-  configPassword: FieldConfig[];
-  configObject: { [name: string]: FieldConfig };
-  protected passwordRegexProperties: PasswordRegexProperties;
+  private initializedConfigPassword?: FieldConfig[];
+  private initializedPasswordRegexProperties?: PasswordRegexProperties;
+
+  get configPassword(): FieldConfig[] {
+    return requireInitialized(this.initializedConfigPassword, 'PasswordBaseComponent.configPassword');
+  }
+
+  set configPassword(value: FieldConfig[]) {
+    this.initializedConfigPassword = value;
+  }
+
+  protected get passwordRegexProperties(): PasswordRegexProperties {
+    return requireInitialized(this.initializedPasswordRegexProperties, 'PasswordBaseComponent.passwordRegexProperties');
+  }
+
+  protected set passwordRegexProperties(value: PasswordRegexProperties) {
+    this.initializedPasswordRegexProperties = value;
+  }
 
   /** Lifetime of the component, for subscriptions created outside an injection context */
   protected readonly destroyRef = inject(DestroyRef);
@@ -45,8 +59,6 @@ export abstract class PasswordBaseComponent {
 
   /** Validator added by {@link setValidators} per field, so a repeated call replaces it instead of adding another */
   private addedValidators: { [field: string]: ValidatorFn } = {};
-
-  constructor() {}
 
   protected preparePasswordFields(): void {
     this.setValidators(PasswordBaseComponent.password, Validators.pattern(this.passwordRegexProperties.regex), {

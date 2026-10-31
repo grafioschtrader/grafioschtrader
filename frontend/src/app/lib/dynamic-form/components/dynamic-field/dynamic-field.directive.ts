@@ -48,7 +48,7 @@ export class DynamicFieldDirective {
   readonly formConfig = input.required<FormConfig>();
   readonly group = input.required<UntypedFormGroup>();
 
-  component: ComponentRef<FieldFormFormGroupConfig>;
+  component?: ComponentRef<FieldFormFormGroupConfig>;
 
   constructor() {
     effect(() => {

@@ -1,13 +1,13 @@
 import { Service } from '@angular/core';
 import { Portfolio } from '../../entities/portfolio';
 import { AppSettings } from '../../shared/app.settings';
-import { AccountPositionGrandSummary } from '../../entities/view/account.position.grand.summary';
-import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
+import type { AccountPositionGrandSummary } from '../../entities/view/account.position.grand.summary';
+import type { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
 import { SecurityDividendsChart } from '../../entities/view/securitydividends/security.dividends.chart';
 import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { TransactionCostGrandSummary } from '../../entities/view/transactioncost/transaction.cost.grand.summary';
+import type { TransactionCostGrandSummary } from '../../entities/view/transactioncost/transaction.cost.grand.summary';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { catchError } from 'rxjs/operators';
 import { AppHelper } from '../../lib/helper/app.helper';

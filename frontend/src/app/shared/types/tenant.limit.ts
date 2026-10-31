@@ -1,4 +1,4 @@
-export class TenantLimit {
+export interface TenantLimit {
   limit: number;
   actual: number;
   msgKey: string;

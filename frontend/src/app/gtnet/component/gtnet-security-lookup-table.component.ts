@@ -174,7 +174,7 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
 
   readonly securitySelected = output<SecurityGtnetLookupDTO>();
 
-  selectedSecurity: SecurityGtnetLookupDTO;
+  selectedSecurity: SecurityGtnetLookupDTO | null = null;
 
   readonly connectorConfigs: ConnectorDisplayConfig[] = [
     {

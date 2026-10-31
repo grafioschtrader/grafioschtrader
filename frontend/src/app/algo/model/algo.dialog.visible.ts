@@ -2,7 +2,7 @@ import { AlgoTop } from './algo.top';
 import { AlgoAssetclass } from './algo.assetclass';
 import { AlgoSecurity } from './algo.security';
 import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';
-import { InputAndShowDefinitionStrategy } from './input.and.show.definition.strategy';
+import type { InputAndShowDefinitionStrategy } from './input.and.show.definition.strategy';
 import { AlgoStrategy } from './algo.strategy';
 import {
   ClassDescriptorInputAndShow,

@@ -7,7 +7,7 @@ import { BaseAuthService } from '../../../app/lib/login/service/base.auth.servic
 import { MobileWatchlist, MobileWatchlistGroup } from '../watchlist/mobile.watchlist.rows';
 import { MobileLoginService } from './mobile.login.service';
 
-/** Length of the custom time frame the price update asks for; the mobile application shows none of its figures. */
+/** Length of the custom time frame the price update asks for; the instrument page shows it as the change over one year. */
 const DAYS_TIME_FRAME = 365;
 
 /** Reads the watchlists of the tenant and their content, read only. */

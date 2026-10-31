@@ -248,24 +248,22 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
       return;
     }
     const strategy: AlgoStrategy = rowData;
+    const idAlgoRuleStrategy = strategy.idAlgoRuleStrategy;
+    if (idAlgoRuleStrategy == null) return;
     const previous = strategy.alertEnabled;
     this.patchAlert(strategy, value);
-    this.savingAlerts.update((pending) => new Set([...pending, strategy.idAlgoRuleStrategy]));
+    this.savingAlerts.update((pending) => new Set([...pending, idAlgoRuleStrategy]));
     this.algoStrategyService
-      .setAlertEnabled(strategy.idAlgoRuleStrategy, value)
+      .setAlertEnabled(idAlgoRuleStrategy, value)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (saved) => {
           this.patchAlert(strategy, saved.alertEnabled);
-          this.savingAlerts.update(
-            (pending) => new Set([...pending].filter((id) => id !== strategy.idAlgoRuleStrategy))
-          );
+          this.savingAlerts.update((pending) => new Set([...pending].filter((id) => id !== idAlgoRuleStrategy)));
         },
         error: () => {
           this.patchAlert(strategy, previous);
-          this.savingAlerts.update(
-            (pending) => new Set([...pending].filter((id) => id !== strategy.idAlgoRuleStrategy))
-          );
+          this.savingAlerts.update((pending) => new Set([...pending].filter((id) => id !== idAlgoRuleStrategy)));
         }
       });
   }
@@ -369,19 +367,22 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
   }
 
   private handleDeleteStrategy(algoStrategy: AlgoStrategy): void {
+    const id = algoStrategy.idAlgoRuleStrategy;
+    const parentId = algoStrategy.idAlgoAssetclassSecurity;
+    if (id == null || parentId == null) return;
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|ALGO_STRATEGY',
       () => {
         this.algoStrategyService
-          .deleteEntity(algoStrategy.idAlgoRuleStrategy)
+          .deleteEntity(id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(() => {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.ALGO_STRATEGY)
             });
-            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.delete(algoStrategy.idAlgoAssetclassSecurity);
+            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.delete(parentId);
             this.loadData();
           });
       }

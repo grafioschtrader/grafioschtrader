@@ -12,8 +12,8 @@ import {
   linkedSignal
 } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { FormConfig } from '../../lib/dynamic-form/models/form.config';
-import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { FormBase } from '../../lib/edit/form.base';
+import type { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -39,7 +39,7 @@ import {
  * Base class for a search dialog for security or currency pair.
  */
 @Directive()
-export abstract class SecuritycurrencySearchBase implements OnInit {
+export abstract class SecuritycurrencySearchBase extends FormBase implements OnInit {
   protected gps: GlobalparameterService = inject(GlobalparameterService);
   protected multipleRequestToOneService: MultipleRequestToOneService = inject(MultipleRequestToOneService);
   public translateService: TranslateService = inject(TranslateService);
@@ -59,15 +59,13 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   readonly firstGroup = 'G1';
   readonly secondGroup = 'G2';
 
-  config: FieldConfig[] = [];
-  configObject: { [nameKey: string]: FieldConfig };
-  formConfig: FormConfig;
-  private monitor: boolean;
+  private monitor = false;
   private readonly injector = inject(Injector);
   /** Value subscription of the current opening; a new opening replaces it, so openings do not accumulate. */
-  private formValueSubscription: Subscription;
+  private formValueSubscription?: Subscription;
 
   protected constructor(protected multiplyAddClose: boolean) {
+    super();
     inject(DestroyRef).onDestroy(() => this.formValueSubscription?.unsubscribe());
   }
 

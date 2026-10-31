@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
  */
 @Service()
 export class ViewSizeChangedService {
-  private splitTreeMain: import('split.js').Instance;
+  private splitTreeMain?: import('split.js').Instance;
   /** Sizes restored by the collapse entry; the initial split also covers a tree collapsed by dragging the gutter */
   private lastSplitSize: number[] = [20, 80];
 
@@ -22,17 +22,19 @@ export class ViewSizeChangedService {
   }
 
   toggleMainTree(): void {
+    const split = this.splitTreeMain;
+    if (!split) return;
     if (this.isMainTreeVisible()) {
-      this.lastSplitSize = this.splitTreeMain.getSizes();
-      this.splitTreeMain.collapse(0);
+      this.lastSplitSize = split.getSizes();
+      split.collapse(0);
     } else {
-      this.splitTreeMain.setSizes(this.lastSplitSize);
+      split.setSizes(this.lastSplitSize);
     }
     this.viewPanelChanged(ChangedViewSizeType.ALL_VIEWS);
   }
 
   isMainTreeVisible(): boolean {
-    return this.splitTreeMain.getSizes()[0] > 1;
+    return (this.splitTreeMain?.getSizes()[0] ?? 0) > 1;
   }
 }
 

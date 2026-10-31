@@ -19,7 +19,7 @@ export class GTNetProtocolService extends AuthServiceWithLogout<any> {
   private byName = new Map<string, GTNetProtocolDescriptor>();
 
   /** The in-flight or completed request, shared so that several components cause one call. */
-  private loaded$: Observable<GTNetProtocolDescriptor[]>;
+  private loaded$?: Observable<GTNetProtocolDescriptor[]>;
 
   /**
    * Loads the protocol once and caches it.

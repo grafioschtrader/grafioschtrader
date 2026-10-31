@@ -1,7 +1,7 @@
 import { Portfolio } from './portfolio';
 
 export class Securitycashaccount {
-  portfolio: Portfolio;
+  portfolio?: Portfolio;
 
   idSecuritycashAccount: number | null = null;
   name?: string | null = null;
@@ -11,5 +11,5 @@ export class Securitycashaccount {
   activeToDate?: string | Date | null = null;
 
   // TODO It does not match with server entity
-  idPortfolio: number;
+  idPortfolio?: number;
 }

@@ -14,9 +14,20 @@ export const MOBILE_ROUTES: Routes = [
     loadComponent: () => import('./page/tabs.page').then((m) => m.TabsPage),
     children: [
       { path: 'dashboard', loadComponent: () => import('./page/dashboard.page').then((m) => m.DashboardPage) },
+      { path: 'portfolios', loadComponent: () => import('./portfolio/portfolio.page').then((m) => m.PortfolioPage) },
       { path: 'watchlists', loadComponent: () => import('./watchlist/watchlist.page').then((m) => m.WatchlistPage) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
+  },
+  {
+    path: 'portfolios/:grouping/:groupName',
+    canActivate: [mobileAuthGuard],
+    loadComponent: () => import('./portfolio/portfolio-group.page').then((m) => m.PortfolioGroupPage)
+  },
+  {
+    path: 'watchlist/:idWatchlist/instrument/:idSecuritycurrency',
+    canActivate: [mobileAuthGuard],
+    loadComponent: () => import('./instrument/instrument.page').then((m) => m.InstrumentPage)
   },
   {
     path: 'widget/:instanceId',

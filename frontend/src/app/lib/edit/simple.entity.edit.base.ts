@@ -5,7 +5,7 @@ import { ProcessedAction } from '../types/processed.action';
 import { InfoLevelType } from '../message/info.leve.type';
 import { ServiceEntityUpdate } from './service.entity.update';
 import { SimpleFormEditBase } from './simple.form.edit.base';
-import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
 import { AuditHelper } from '../helper/audit.helper';
 import { ProposeTransientTransfer } from '../entities/propose.transient.transfer';
 import { TransformedError } from '../login/service/transformed.error';

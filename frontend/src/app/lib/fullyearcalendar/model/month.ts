@@ -2,13 +2,14 @@ import { Week } from './week';
 import { Day } from './day';
 
 export class Month {
-  index: number;
-  monthValue: number;
-  description: string;
   days: Day[] = [];
   weeks: Week[] = [];
 
-  constructor(daysOfmonth: Day[] = []) {
+  constructor(
+    public index: number,
+    daysOfmonth: Day[] = []
+  ) {
+    this.days = daysOfmonth;
     for (let i = 0; i < 6; i++) {
       this.weeks.push(new Week());
     }

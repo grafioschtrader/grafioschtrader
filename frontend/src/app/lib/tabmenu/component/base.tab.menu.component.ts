@@ -43,7 +43,7 @@ export abstract class BaseTabMenuComponent implements OnInit, OnDestroy {
   activeRoute: string = '';
 
   // Private subscription for cleanup
-  private routerSubscription: Subscription;
+  private routerSubscription?: Subscription;
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 

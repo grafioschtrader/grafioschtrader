@@ -9,7 +9,7 @@ import { AppSettings } from '../../shared/app.settings';
 import { WatchlistTable, WatchListType } from './watchlist.table';
 import { combineLatest, Observable } from 'rxjs';
 import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
-import { TenantLimit } from '../../shared/types/tenant.limit';
+import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { HelpIds } from '../../lib/help/help.ids';

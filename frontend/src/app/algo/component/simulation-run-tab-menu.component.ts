@@ -31,7 +31,7 @@ export class SimulationRunTabMenuComponent extends BaseTabMenuComponent implemen
   readonly id = input.required({ transform: numberAttribute });
 
   /** Tenant id of the simulation environment the tabs belong to. */
-  private idTenant: number;
+  private idTenant?: number;
   constructor() {
     super();
     effect(() => {

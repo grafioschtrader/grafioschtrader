@@ -8,7 +8,10 @@ import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlis
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AppSettings } from '../../shared/app.settings';
 import { BusinessHelper } from '../../shared/helper/business.helper';
-import { SecurityCurrencypairDerivedLinks } from '../../securitycurrency/model/security.currencypair.derived.links';
+import {
+  SecurityDerivedLinksHelper,
+  type SecurityCurrencypairDerivedLinks
+} from '../../securitycurrency/model/security.currencypair.derived.links';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { Currencypair } from '../../entities/currencypair';
 import { Securitycurrency } from '../../entities/securitycurrency';
@@ -43,8 +46,8 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
   /** Additional instruments mapped by field name for derived securities */
   protected readonly additionalInstruments = signal<{ [fieldName: string]: Security | CurrencypairWatchlist }>({});
   /** Content object containing the security currency data for display */
-  content: ContentBase;
-  private derivedLinks: Subscription;
+  content: ContentBase | null = null;
+  private derivedLinks?: Subscription;
 
   /**
    * Handles lazy loading of external data provider links.
@@ -54,7 +57,8 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
    * @param content Content object containing the security currency data
    * @param field Column configuration containing field information
    */
-  public handleLazyClick(event: Event, targetPage: string, content: ContentBase, field: ColumnConfig): void {
+  public handleLazyClick(event: Event, targetPage: string, content: ContentBase | null, field: ColumnConfig): void {
+    if (!content) return;
     event.preventDefault();
     const url = this.getValueByPath(content, field);
     WatchlistHelper.getDownloadLinkHistoricalIntra(
@@ -205,27 +209,25 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
       });
 
       const formula = security.formulaPrices;
-      let match = formula == null ? null : SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formula);
+      let match = formula == null ? null : SecurityDerivedLinksHelper.VAR_NAME_REGEX.exec(formula);
       while (match != null) {
-        if (match[1] !== SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES.charAt(0)) {
+        if (match[1] !== SecurityDerivedLinksHelper.ALLOWED_VAR_NAMES.charAt(0)) {
           const varName = match[1];
-          const fieldName = SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_' + varName;
+          const fieldName = SecurityDerivedLinksHelper.ADDITIONAL_INSTRUMENT_NAME + '_' + varName;
           this.addFieldProperty(DataType.String, fieldName, 'ADDITIONAL_INSTRUMENT_NAME', {
             fieldValueFN: this.getDerivedValues.bind(this),
             fieldsetName: this.DERIVED_DATA,
             headerSuffix: `(${varName})`
           });
         }
-        match = formula == null ? null : SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formula);
+        match = formula == null ? null : SecurityDerivedLinksHelper.VAR_NAME_REGEX.exec(formula);
       }
       this.derivedLinks = this.securityService
         .getDerivedInstrumentsLinksForSecurity(id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((scdl: SecurityCurrencypairDerivedLinks) => {
-          this.baseInstrument.set(SecurityCurrencypairDerivedLinks.getBaseInstrument(scdl, idLink));
-          this.additionalInstruments.set(
-            SecurityCurrencypairDerivedLinks.getAdditionalInstrumentsForExistingSecurity(scdl)
-          );
+          this.baseInstrument.set(SecurityDerivedLinksHelper.getBaseInstrument(scdl, idLink));
+          this.additionalInstruments.set(SecurityDerivedLinksHelper.getAdditionalInstrumentsForExistingSecurity(scdl));
         });
     }
   }

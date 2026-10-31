@@ -92,10 +92,10 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
 
   readonly form = viewChild.required(DynamicFormComponent);
   data: PerformanceReportDialogData;
-  reportDate: string;
-  dateFrom: string;
-  dateTo: string;
-  bookingFrom: string;
+  reportDate?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  bookingFrom?: string;
   readonly downloading = signal(false);
   droppedSections = false;
   private readonly selectedSections = signal<string[]>([]);
@@ -228,9 +228,11 @@ export class PerformanceReportDialogComponent extends FormBase implements OnInit
     if (this.downloading()) {
       return;
     }
-    const request = { ...this.data.window } as PerformanceReportRequest;
+    const request = {
+      ...this.data.window,
+      idPortfolio: this.data.window.idPortfolio ?? null
+    } as PerformanceReportRequest;
     this.form().cleanMaskAndTransferValuesToBusinessObject(request, true);
-    request.idPortfolio = this.data.window.idPortfolio || null;
     this.downloading.set(true);
     this.subscriptions.add(
       this.holdingService.downloadPeriodPerformancePdf(request).subscribe({

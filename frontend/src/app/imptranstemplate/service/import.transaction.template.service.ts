@@ -6,10 +6,10 @@ import { AppSettings } from '../../shared/app.settings';
 import { lastValueFrom, Observable } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
-import { FormTemplateCheck } from '../component/form.template.check';
+import type { FormTemplateCheck, FormTemplateCheckResult } from '../component/form.template.check';
 import { catchError } from 'rxjs/operators';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { ImportTransactionPos } from '../../entities/import.transaction.pos';
+import type { ImportTransactionPos } from '../../entities/import.transaction.pos';
 import { BaseSettings } from '../../lib/base.settings';
 
 @Service()
@@ -94,9 +94,9 @@ export class ImportTransactionTemplateService
     );
   }
 
-  checkFormAgainstTemplate(formTemplateCheck: FormTemplateCheck): Observable<FormTemplateCheck> {
+  checkFormAgainstTemplate(formTemplateCheck: FormTemplateCheck): Observable<FormTemplateCheckResult> {
     return this.httpClient
-      .post<FormTemplateCheck>(
+      .post<FormTemplateCheckResult>(
         `${BaseSettings.API_ENDPOINT}` + `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/checkformagainsttemplate`,
         formTemplateCheck,
         this.getHeaders()

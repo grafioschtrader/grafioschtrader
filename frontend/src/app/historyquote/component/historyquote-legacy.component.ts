@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { Component, effect, inject, input, OnDestroy, output, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
@@ -130,13 +131,29 @@ export class HistoryquoteLegacyComponent extends HistoryquoteTableBase<Historyqu
   readonly idSecuritycurrency = input.required<number>();
   readonly showLiveRequested = output<void>();
 
-  callParam: HistoryquoteLegacySecurityCurrency;
+  private initializedCallParam?: HistoryquoteLegacySecurityCurrency;
+
+  get callParam(): HistoryquoteLegacySecurityCurrency {
+    return requireInitialized(this.initializedCallParam, 'HistoryquoteLegacyComponent.callParam');
+  }
+
+  set callParam(value: HistoryquoteLegacySecurityCurrency) {
+    this.initializedCallParam = value;
+  }
   readonly visibleApplySplitDialog = signal(false);
   readonly visibleUploadFileDialog = signal(false);
-  fileUploadParam: FileUploadParam;
+  private initializedFileUploadParam?: FileUploadParam;
 
-  private securitycurrency: Securitycurrency;
-  private supportedCSVFormats: SupportedCSVFormats;
+  get fileUploadParam(): FileUploadParam {
+    return requireInitialized(this.initializedFileUploadParam, 'HistoryquoteLegacyComponent.fileUploadParam');
+  }
+
+  set fileUploadParam(value: FileUploadParam) {
+    this.initializedFileUploadParam = value;
+  }
+
+  private securitycurrency?: Securitycurrency;
+  private supportedCSVFormats?: SupportedCSVFormats;
   private readonly legacyUploadAdapter: UploadServiceFunction = {
     uploadFiles: (id, fd) => this.historyquoteLegacyService.uploadFilesLegacy(id, fd)
   };
@@ -268,7 +285,7 @@ export class HistoryquoteLegacyComponent extends HistoryquoteTableBase<Historyqu
       false,
       this.legacyUploadAdapter,
       this.idSecuritycurrency(),
-      this.supportedCSVFormats,
+      requireInitialized(this.supportedCSVFormats, 'HistoryquoteLegacyComponent.supportedCSVFormats'),
       BaseSettings.CSV_EXPORT_FORMAT
     );
     this.visibleUploadFileDialog.set(true);
@@ -277,7 +294,7 @@ export class HistoryquoteLegacyComponent extends HistoryquoteTableBase<Historyqu
   protected prepareCallParam(entity: HistoryquoteLegacy | null): void {
     this.callParam = new HistoryquoteLegacySecurityCurrency(
       plainToClass(HistoryquoteLegacy, entity),
-      this.securitycurrency
+      requireInitialized(this.securitycurrency, 'HistoryquoteLegacyComponent.securitycurrency')
     );
   }
 
@@ -293,7 +310,9 @@ export class HistoryquoteLegacyComponent extends HistoryquoteTableBase<Historyqu
   // the Edit menu item stays reachable for propose-change users so they can submit a change request through
   // the edit dialog (configured by AuditHelper.configureFormFromAuditableRights). Only Delete is guarded.
   protected override hasRightsForDeleteEntity(entity: HistoryquoteLegacy): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securitycurrency);
+    return (
+      this.securitycurrency != null && AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securitycurrency)
+    );
   }
 
   private confirmDeleteAll(): void {

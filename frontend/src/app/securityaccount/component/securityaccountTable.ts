@@ -1,6 +1,6 @@
 import { Directive, signal } from '@angular/core';
-import { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
-import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import type { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
+import type { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 import { SecurityAccountGroup } from '../model/security.account.group';
@@ -67,7 +67,7 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
   }
 
   protected override getTitleChart(): string | undefined {
-    return this.groupOptions.find((item) => item.value === this.selectedGroup)?.label;
+    return this.groupOptions?.find((item) => item.value === this.selectedGroup)?.label;
   }
 
   private changeGroupToView(

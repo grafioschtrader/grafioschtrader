@@ -1,6 +1,6 @@
 import { SecuritycurrencySearchBase } from '../../securitycurrency/component/securitycurrency.search.base';
 import { Component, output, viewChild, input } from '@angular/core';
-import { TenantLimit } from '../../shared/types/tenant.limit';
+import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProcessedAction } from '../../lib/types/processed.action';

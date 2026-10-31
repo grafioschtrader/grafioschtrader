@@ -6,10 +6,10 @@ import { AlgoTreeName } from '../../entities/view/algo.tree.name';
 export class AlgoTop extends AlgoTopAssetSecurity implements AlgoTreeName {
   name: string | null = null;
   @Type(() => AlgoAssetclass)
-  algoAssetclassList: AlgoAssetclass[];
+  algoAssetclassList: AlgoAssetclass[] = [];
   idWatchlist: number | null = null;
-  referenceDate: Date | null;
-  addedPercentage: number;
+  referenceDate?: Date | string | null;
+  addedPercentage?: number;
   /** Derived by the backend when the strategy is read; absent where the endpoint does not evaluate it. */
   readiness?: AlgoTopReadiness;
 

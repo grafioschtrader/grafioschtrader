@@ -19,11 +19,11 @@ import {
   HisotryqouteLinearFilledSummary,
   HistoryquoteFillGapsBounds,
   HistoryquoteFillGapsParam,
-  HistoryquoteQualityHead,
-  HistoryquoteQualityIds,
+  type HistoryquoteQualityHead,
+  type HistoryquoteQualityIds,
   IHistoryquoteQualityWithSecurityProp
 } from '../model/historyquote.quality.group';
-import { SecurityCurrencypairDerivedLinks } from '../model/security.currencypair.derived.links';
+import type { SecurityCurrencypairDerivedLinks } from '../model/security.currencypair.derived.links';
 import { SecurityDataProviderUrls } from '../model/security.data.provider.urls';
 import { SecurityCurrencyService } from './security.currency.service';
 

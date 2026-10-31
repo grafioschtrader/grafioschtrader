@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Subscription } from 'rxjs';
 import {
@@ -170,7 +171,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
-  private formRender: ReturnType<typeof afterNextRender>;
+  private formRender?: ReturnType<typeof afterNextRender>;
   readonly yamlEditor = viewChild(YamlEditorComponent);
   readonly algoCallParam = input.required<AlgoCallParam>();
 
@@ -181,14 +182,24 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   }
 
   dynamicModel: any = {};
-  algoStrategyImplementationsChangedSub: Subscription;
+  algoStrategyImplementationsChangedSub?: Subscription;
   ignoreValueChanged = false;
   readonly isComplexStrategy = signal(false);
 
-  fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[];
+  get fieldDescriptorInputAndShows(): FieldDescriptorInputAndShow[] {
+    return this.formDefinition.fieldDescriptorInputAndShows;
+  }
 
   /** Fields and cross-field constraints of the selected simple strategy on the level of the edited node. */
-  private formDefinition: ClassDescriptorInputAndShow;
+  private initializedFormDefinition?: ClassDescriptorInputAndShow;
+
+  private get formDefinition(): ClassDescriptorInputAndShow {
+    return requireInitialized(this.initializedFormDefinition, 'AlgoStrategyEditComponent.formDefinition');
+  }
+
+  private set formDefinition(value: ClassDescriptorInputAndShow) {
+    this.initializedFormDefinition = value;
+  }
 
   readonly dialogWidth = signal('700px');
 
@@ -425,7 +436,6 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    */
   private setFormDefinition(formDefinition: ClassDescriptorInputAndShow): void {
     this.formDefinition = formDefinition;
-    this.fieldDescriptorInputAndShows = formDefinition.fieldDescriptorInputAndShows;
   }
 
   /**
@@ -506,7 +516,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
   override onHide(event: unknown): void {
     this.formRender?.destroy();
-    this.algoStrategyImplementationsChangedSub && this.algoStrategyImplementationsChangedSub.unsubscribe();
+    this.algoStrategyImplementationsChangedSub?.unsubscribe();
     super.onHide(event);
   }
 

@@ -1,4 +1,4 @@
-export class ImportTransactionPosFailed {
+export interface ImportTransactionPosFailed {
   idTransactionPosFailed: number;
   idTransactionImportTemplate: number;
   lastMatchingProperty: string;

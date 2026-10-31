@@ -1,9 +1,10 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { signal, inject, Service } from '@angular/core';
 import { MenuItem, MenuItemCommandEvent } from '@openng/optimus-ui/api';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { AlgoCallParam, AlgoStrategyDefinitionForm } from '../model/algo.dialog.visible';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { AlgoSecurity, AlgoSecurityStrategyImplType } from '../model/algo.security';
+import { AlgoSecurity, type AlgoSecurityStrategyImplType } from '../model/algo.security';
 import { Security } from '../../entities/security';
 import { AlgoSecurityService } from './algo.security.service';
 import { ProcessedAction } from '../../lib/types/processed.action';
@@ -24,8 +25,16 @@ export class AlarmSetupService {
   set visibleDialog(visible: boolean) {
     this.visibleDialogSignal.set(visible);
   }
-  algoCallParam: AlgoCallParam;
-  assit: AlgoSecurityStrategyImplType;
+  private initializedAlgoCallParam?: AlgoCallParam;
+
+  get algoCallParam(): AlgoCallParam {
+    return requireInitialized(this.initializedAlgoCallParam, 'AlarmSetupService.algoCallParam');
+  }
+
+  set algoCallParam(value: AlgoCallParam) {
+    this.initializedAlgoCallParam = value;
+  }
+  assit?: AlgoSecurityStrategyImplType;
 
   /**
    * The alert entry of an instrument, offered only where adding one can actually succeed.
@@ -72,8 +81,11 @@ export class AlarmSetupService {
 
   handleCloseDialog(processedActionData: ProcessedActionData): void {
     this.visibleDialog = false;
-    const id = this.assit.algoSecurity.idAlgoAssetclassSecurity;
-    if (id != null && this.assit.wasCreated && processedActionData.action !== ProcessedAction.CREATED) {
+    const assit = this.assit;
+    this.assit = undefined;
+    if (!assit) return;
+    const id = assit.algoSecurity.idAlgoAssetclassSecurity;
+    if (id != null && assit.wasCreated && processedActionData.action !== ProcessedAction.CREATED) {
       // An AlgoSecurity was specially created on the backend. As this is not used, it can be deleted again.
       this.algoSecurityService.deleteEntity(id).subscribe();
     }

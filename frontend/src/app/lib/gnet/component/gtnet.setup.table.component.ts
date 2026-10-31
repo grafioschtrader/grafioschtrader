@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../helper/required-state';
 import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { afterNextRender, Component, signal, viewChildren, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -208,10 +209,18 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   maxDate: Date = new Date('2099-12-31');
   private readonly domainRemoteName = 'domainRemoteName';
   /** Translated label of the id in the domain tooltip; resolved on first use, when the bundle is loaded. */
-  private idLabel: string;
+  private idLabel?: string;
   /** Every write on GTNet belongs to an administrator, so a non-administrator gets no context menu at all. */
   protected readonly canAdministerGTNet: boolean;
-  callParam: GTNetCallParam;
+  private initializedCallParam?: GTNetCallParam;
+
+  get callParam(): GTNetCallParam {
+    return requireInitialized(this.initializedCallParam, 'GTNetSetupTableComponent.callParam');
+  }
+
+  set callParam(value: GTNetCallParam) {
+    this.initializedCallParam = value;
+  }
   readonly gtNetMyEntryId = signal<number | null>(null);
   /** Message count per idGtNet - used to determine if expander should show */
   readonly gtNetMessageCountMap = signal<{ [key: number]: number }>({});
@@ -237,21 +246,46 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   readonly gtNetMessageAttemptCountMap = signal<{ [key: number]: number }>({});
   /** Cache for lazily loaded per-target delivery outcomes. */
   readonly gtNetMessageAttemptMap = signal<{ [key: number]: GTNetMessageAttemptView[] }>({});
-  outgoingPendingReplies: { [key: number]: number[] };
-  incomingPendingReplies: { [key: number]: number[] };
-  idOpenDiscontinuedMessage: number;
-  idOpenMaintenanceMessage: number;
+  outgoingPendingReplies?: { [key: number]: number[] };
+  incomingPendingReplies?: { [key: number]: number[] };
+  idOpenDiscontinuedMessage: number | null = null;
+  idOpenMaintenanceMessage: number | null = null;
   exchangeKindTypes: ExchangeKindTypeInfo[] = [];
   private dynamicKindFields: ColumnConfig[] = [];
-  formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
+  private initializedFormDefinitions?: { [type: string]: ClassDescriptorInputAndShow };
+
+  get formDefinitions(): { [type: string]: ClassDescriptorInputAndShow } {
+    return requireInitialized(this.initializedFormDefinitions, 'GTNetSetupTableComponent.formDefinitions');
+  }
+
+  set formDefinitions(value: { [type: string]: ClassDescriptorInputAndShow }) {
+    this.initializedFormDefinitions = value;
+  }
   readonly visibleDialogMsg = signal(false);
   readonly visibleDialogConfig = signal(false);
   readonly visibleUploadDialog = signal(false);
-  fileUploadParam: FileUploadParam;
-  msgCallParam: MsgCallParam;
+  private initializedFileUploadParam?: FileUploadParam;
+
+  get fileUploadParam(): FileUploadParam {
+    return requireInitialized(this.initializedFileUploadParam, 'GTNetSetupTableComponent.fileUploadParam');
+  }
+
+  set fileUploadParam(value: FileUploadParam) {
+    this.initializedFileUploadParam = value;
+  }
+  private initializedMsgCallParam?: MsgCallParam;
+
+  get msgCallParam(): MsgCallParam {
+    return requireInitialized(this.initializedMsgCallParam, 'GTNetSetupTableComponent.msgCallParam');
+  }
+
+  set msgCallParam(value: MsgCallParam) {
+    this.initializedMsgCallParam = value;
+  }
 
   /** A row expands when it has messages, maintenance windows, delivery attempts or an entity configuration */
   readonly canExpand = (row: GTNet): boolean => {
+    if (row.idGtNet == null) return false;
     const hasMessages = (this.gtNetMessageCountMap()[row.idGtNet] ?? 0) > 0;
     const hasWindows = (this.gtNetMaintenanceWindowCountMap()[row.idGtNet] ?? 0) > 0;
     const hasAttempts = (this.gtNetMessageAttemptCountMap()[row.idGtNet] ?? 0) > 0;
@@ -331,7 +365,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   protected override readData(): void {
     const observable = [
       this.gtNetService.getAllGTNetsWithMessages(),
-      ...(!this.formDefinitions ? [this.gtNetMessageService.getAllFormDefinitionsWithClass()] : [])
+      ...(!this.initializedFormDefinitions ? [this.gtNetMessageService.getAllFormDefinitionsWithClass()] : [])
     ];
 
     combineLatest(observable)
@@ -357,7 +391,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
         this.loadingMessageIds.set(new Set());
         this.outgoingPendingReplies = response.outgoingPendingReplies;
         this.incomingPendingReplies = response.incomingPendingReplies;
-        this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[1];
+        this.initializedFormDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[1];
         this.entityList.set(gtNetList);
         this.prepareTableAndTranslate();
         this.reloadExpandedRows();
@@ -492,6 +526,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       return;
     }
     const id = peer.idGtNet;
+    if (id == null) return;
     const domain = peer.domainRemoteName;
     this.confirmationService.confirm({
       header: this.translateService.instant('MSG_GENERAL_HEADER'),
@@ -516,6 +551,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     const selected = this.selectedEntity();
     if (!selected) return;
     const id = selected.idGtNet;
+    if (id == null) return;
     this.gtNetService.checkPeerStatus(id).subscribe({
       next: (updated) => {
         if (this.entityList().some((g) => g.idGtNet === id)) {
@@ -617,16 +653,20 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
    * holds anything.
    */
   onRowExpand(event: { data: GTNet }): void {
-    this.expandedGtNetIds.add(event.data.idGtNet);
-    this.loadExpandedRowData(event.data.idGtNet);
+    const id = event.data.idGtNet;
+    if (id == null) return;
+    this.expandedGtNetIds.add(id);
+    this.loadExpandedRowData(id);
   }
 
   /**
    * Forgets a collapsed row, so that its panels start closed again when it is expanded the next time.
    */
   onRowCollapse(event: { data: GTNet }): void {
-    this.expandedGtNetIds.delete(event.data.idGtNet);
-    delete this.openPanelsMap[event.data.idGtNet];
+    const id = event.data.idGtNet;
+    if (id == null) return;
+    this.expandedGtNetIds.delete(id);
+    delete this.openPanelsMap[id];
   }
 
   /**
@@ -722,22 +762,22 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   /** Returns count of incoming pending replies (requests I need to answer) */
   getToBeAnsweredCount(dataobject: GTNet, field: ColumnConfig, valueField: any): number {
-    return this.incomingPendingReplies?.[dataobject.idGtNet]?.length ?? 0;
+    return dataobject.idGtNet == null ? 0 : (this.incomingPendingReplies?.[dataobject.idGtNet]?.length ?? 0);
   }
 
   /** Returns count of outgoing pending replies (requests awaiting response) */
   getAnswerExpectedCount(dataobject: GTNet, field: ColumnConfig, valueField: any): number {
-    return this.outgoingPendingReplies?.[dataobject.idGtNet]?.length ?? 0;
+    return dataobject.idGtNet == null ? 0 : (this.outgoingPendingReplies?.[dataobject.idGtNet]?.length ?? 0);
   }
 
   /** Returns set of incoming pending message IDs (requests I need to answer) */
-  getIncomingPendingIds(idGtNet: number): Set<number> {
-    return new Set(this.incomingPendingReplies?.[idGtNet] ?? []);
+  getIncomingPendingIds(idGtNet: number | undefined): Set<number> {
+    return new Set(idGtNet == null ? [] : (this.incomingPendingReplies?.[idGtNet] ?? []));
   }
 
   /** Returns set of outgoing pending message IDs (requests awaiting response) */
-  getOutgoingPendingIds(idGtNet: number): Set<number> {
-    return new Set(this.outgoingPendingReplies?.[idGtNet] ?? []);
+  getOutgoingPendingIds(idGtNet: number | undefined): Set<number> {
+    return new Set(idGtNet == null ? [] : (this.outgoingPendingReplies?.[idGtNet] ?? []));
   }
 
   /** Handle data changes from the tree table (e.g., reply sent, batch deletion) */

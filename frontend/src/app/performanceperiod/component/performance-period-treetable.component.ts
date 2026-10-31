@@ -205,7 +205,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
   readonly periodWindowsNodes = computed(() => this.createPeriodNodes(this.performancePeriod()));
   selectedNodes: TreeNode[] = [];
   readonly translatedTexts = signal<{ [s: string]: string }>({});
-  lastPeriodSplit: WeekYear | string;
+  lastPeriodSplit?: WeekYear | string;
 
   constructor() {
     super();

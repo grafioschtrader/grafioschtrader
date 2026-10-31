@@ -1,16 +1,17 @@
-import { SecurityPositionGroupSummary } from './security.position.group.summary';
+import type { SecurityPositionGroupSummary } from './security.position.group.summary';
 
-export class SecurityPositionGrandSummary<S extends SecurityPositionGroupSummary = SecurityPositionGroupSummary> {
+/** Security-report totals, including nullable metrics of the rebalancing comparison. */
+export interface SecurityPositionGrandSummary<S extends SecurityPositionGroupSummary = SecurityPositionGroupSummary> {
   /**
    * Figures of the rebalancing comparison describing the book as a whole. Net equity, the cash actually held and
    * gross exposure answer different questions and are deliberately not one total.
    */
-  grandNetEquityMC: number;
-  grandActualCashMC: number;
-  grandGrossExposureMC: number;
-  grandInvestmentBudgetMC: number;
-  grandUnusedTacticalBudgetMC: number;
-  toleranceThreshold: number;
+  grandNetEquityMC: number | null;
+  grandActualCashMC: number | null;
+  grandGrossExposureMC: number | null;
+  grandInvestmentBudgetMC: number | null;
+  grandUnusedTacticalBudgetMC: number | null;
+  toleranceThreshold: number | null;
   /** Composition mismatch of security exposures, excluding cash; null without positive targets. */
   overallAllocationMismatchPercentage: number | null;
   /** AlgoTop ceiling in percentage points of net equity. */
@@ -20,9 +21,9 @@ export class SecurityPositionGrandSummary<S extends SecurityPositionGroupSummary
   /** Actual minus ceiling; positive means the gross exposure is above the ceiling. */
   topDeviationPercentage: number | null;
   exposureBreach: boolean;
-  valuationDate: string;
+  valuationDate: string | null;
   /** The valuation day is a periodic checkpoint, so deviations beyond the tolerance are traded. */
-  periodicDue: boolean;
+  periodicDue: boolean | null;
   /** Last checkpoint of the monitored hierarchy; null when none is remembered, which makes every day a checkpoint. */
   lastCheckpointDate: string | null;
   /** First valuation day on which the next checkpoint is due; null without a last checkpoint. */
@@ -30,7 +31,7 @@ export class SecurityPositionGrandSummary<S extends SecurityPositionGroupSummary
 
   grandAccountValueSecurityMC: number;
   /** 100, or null when the report total is not positive. */
-  grandShareOfTotalPercentage: number;
+  grandShareOfTotalPercentage: number | null;
   currency: string;
 
   grandGainLossSecurityMC: number;
@@ -40,6 +41,5 @@ export class SecurityPositionGrandSummary<S extends SecurityPositionGroupSummary
   grandValueAfterDisposalMC?: number;
   grandDisposalComplete?: boolean;
   grandTaxCostMC: number;
-  grandTransactionCostMC: number;
   securityPositionGroupSummaryList: S[];
 }

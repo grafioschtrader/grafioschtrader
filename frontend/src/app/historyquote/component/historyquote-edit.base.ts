@@ -12,7 +12,7 @@ import { AppSettings } from '../../shared/app.settings';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AuditHelper } from '../../lib/helper/audit.helper';
-import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 
 /**
  * Shared base for the two history-quote edit dialogs: the live {@link HistoryquoteEditComponent} and the archive

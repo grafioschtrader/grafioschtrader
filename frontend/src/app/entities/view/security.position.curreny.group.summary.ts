@@ -1,10 +1,11 @@
-import { SecurityPositionGroupSummary } from './security.position.group.summary';
+import type { SecurityPositionGroupSummary } from './security.position.group.summary';
 
-export class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSummary {
-  public currencyExchangeRate: number;
-  public currency: string;
-  public groupGainLossSecurity: number;
-  public groupTransactionCost: number;
-  public groupAccountValueSecurity: number;
-  public groupTaxCost: number;
+/** Security-position totals grouped by instrument currency. */
+export interface SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSummary {
+  currencyExchangeRate: number;
+  currency: string;
+  groupGainLossSecurity: number;
+  groupTransactionCost: number;
+  groupAccountValueSecurity: number;
+  groupTaxCost: number;
 }

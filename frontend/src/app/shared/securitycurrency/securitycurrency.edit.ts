@@ -11,7 +11,7 @@ import { untilSessionEnds } from '../../lib/edit/dialog.session';
 import { Validators } from '@angular/forms';
 import { FormBase } from '../../lib/edit/form.base';
 import { AuditHelper } from '../../lib/helper/audit.helper';
-import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { Security } from '../../entities/security';
 import { Securitycurrency } from '../../entities/securitycurrency';
@@ -19,6 +19,7 @@ import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { AppHelper } from '../../lib/helper/app.helper';
+import { requireInitialized } from '../../lib/helper/required-state';
 
 @Directive()
 export abstract class SecuritycurrencyEdit extends FormBase {
@@ -36,10 +37,29 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
   connectorSubscribe: { [fieldName: string]: Subscription | null } = {};
-  feedPriceConnectors: IFeedConnector[];
+  private initializedFeedPriceConnectors?: IFeedConnector[];
+
+  get feedPriceConnectors(): IFeedConnector[] {
+    return requireInitialized(this.initializedFeedPriceConnectors, 'SecuritycurrencyEdit.feedPriceConnectors');
+  }
+
+  set feedPriceConnectors(value: IFeedConnector[]) {
+    this.initializedFeedPriceConnectors = value;
+  }
   protected readonly ID_CONNECTOR_HISTORY = 'idConnectorHistory';
   protected readonly ID_CONNECTOR_INTRA = 'idConnectorIntra';
-  protected connectorPriceFieldConfig: FieldConfig[];
+  private initializedConnectorPriceFieldConfig?: FieldConfig[];
+
+  protected get connectorPriceFieldConfig(): FieldConfig[] {
+    return requireInitialized(
+      this.initializedConnectorPriceFieldConfig,
+      'SecuritycurrencyEdit.connectorPriceFieldConfig'
+    );
+  }
+
+  protected set connectorPriceFieldConfig(value: FieldConfig[]) {
+    this.initializedConnectorPriceFieldConfig = value;
+  }
   /**
    * Generic help text of every connector selection, captured before the first selection replaces it with the help of the
    * chosen connector. Keyed by field name, it is restored when no connector is selected or the selected one ships no help.

@@ -43,7 +43,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
   customMatchModeOptions: SelectItem[] = [];
 
   /** Names of registered custom filter functions */
-  customSearchNames: string[];
+  customSearchNames: string[] = [];
 
   /**
    * Configures columns starting from a specified index to use their field names for group display.

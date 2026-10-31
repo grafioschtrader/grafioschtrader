@@ -1,7 +1,7 @@
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
-import { InputAndShowDefinitionStrategy } from '../model/input.and.show.definition.strategy';
+import type { InputAndShowDefinitionStrategy } from '../model/input.and.show.definition.strategy';
 import { AppSettings } from '../../shared/app.settings';
 import { catchError } from 'rxjs/operators';
 import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';

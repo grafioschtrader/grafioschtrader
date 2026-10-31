@@ -8,8 +8,8 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { Security } from '../../entities/security';
 import { Transaction } from '../../entities/transaction';
-import { TransactionCostGrandSummary } from '../../entities/view/transactioncost/transaction.cost.grand.summary';
-import { TransactionCostPosition } from '../../entities/view/transactioncost/transaction.cost.position';
+import type { TransactionCostGrandSummary } from '../../entities/view/transactioncost/transaction.cost.grand.summary';
+import type { TransactionCostPosition } from '../../entities/view/transactioncost/transaction.cost.position';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { AppSettings } from '../../shared/app.settings';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
@@ -117,7 +117,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
   readonly dataTable = viewChild.required<Table>('dataTable');
 
   /** Currently selected transaction cost position for context menu operations */
-  private selectedTransactionCostPosition: TransactionCostPosition | null;
+  private selectedTransactionCostPosition: TransactionCostPosition | null = null;
 
   /**
    * Creates an instance of TenantTransactionCostExtendedComponent with all required dependencies.

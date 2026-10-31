@@ -115,7 +115,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
 
   /** Only users with entity limits or limit proposals have a nested limit table */
   readonly canExpandRow = (user: User): boolean =>
-    user.entityLimitList.length + user.userChangeLimitProposeList.length > 0;
+    (user.entityLimitList?.length ?? 0) + (user.userChangeLimitProposeList?.length ?? 0) > 0;
 
   constructor() {
     super(BaseSettings.USER, inject(UserAdminService), [CrudMenuOptions.Allow_Edit]);
@@ -163,7 +163,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
   }
 
   getLimitProposeIcon(user: User, field: ColumnConfig): string | null {
-    return user.userChangeLimitProposeList.length > 0
+    return (user.userChangeLimitProposeList?.length ?? 0) > 0
       ? UserTableComponent.createTypeIconMap[UserTaskType.LIMIT_CUD_CHANGE]
       : null;
   }

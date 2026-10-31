@@ -1,40 +1,43 @@
-import { Cashaccount } from './cashaccount';
-import { BaseID } from '../lib/entities/base.id';
-import { Security } from './security';
-import { ImportTransactionPosFailed } from './import.transaction.pos.failed';
+import type { Cashaccount } from './cashaccount';
+import type { Security } from './security';
+import type { ImportTransactionPosFailed } from './import.transaction.pos.failed';
 
-export class ImportTransactionPos implements BaseID {
+/** Parsed or persisted import data returned by the backend. */
+export interface ImportTransactionPos {
+  idTransactionPos: number | null;
+  idTransactionHead: number | null;
+  transactionType: string | null;
+  transactionTime: string | Date | null;
+  transactionTypeImp: string | null;
+  cashaccount: Cashaccount | null;
+  currencyAccount: string | null;
+  cashAccountImp: string | null;
+  currencyExRate: number | null;
+  currencySecurity: string | null;
+  isin: string | null;
+  symbolImp: string | null;
+  securityNameImp: string | null;
+  security: Security | null;
+  units: number | null;
+  quotation: number | null;
+  readyForTransaction: boolean;
+  taxCost: number | null;
+  transactionCost: number | null;
+  cashaccountAmount: number | null;
+  accruedInterest: number | null;
+  field1StringImp: string | null;
+  importTransactionPosFailedList: ImportTransactionPosFailed[] | null;
+  calcCashaccountAmount: number | null;
+  fileNameOriginal: string | null;
+  idTransaction: number | null;
+  idTransactionMaybe: number | null;
+  transactionError: string | null;
+  fileType: string | null;
+}
+
+/** Import-table rows originate from saved positions of an import head. */
+export interface PersistedImportTransactionPos extends ImportTransactionPos {
   idTransactionPos: number;
   idTransactionHead: number;
-  transactionType: string;
-  transactionTime: string | Date;
-  transactionTypeImp: string;
-  cashaccount: Cashaccount;
-  currencyAccount: string;
-  cashAccountImp: string;
-  currencyExRate: number;
-  currencySecurity: string;
-  isin: string;
-  symbolImp: string;
-  securityNameImp: string;
-  security: Security;
-  units: number;
-  quotation: number;
-  readyForTransaction: boolean;
-  taxCost: number;
-  transactionCost: number;
-  cashaccountAmount: number;
-  accruedInterest: number;
-  field1StringImp: string;
-  importTransactionPosFailedList: ImportTransactionPosFailed[];
-  calcCashaccountAmount: number;
   fileNameOriginal: string;
-  idTransaction: number;
-  idTransactionMaybe: number;
-  transactionError: string;
-  fileType: string;
-
-  public getId(): number {
-    return this.idTransactionPos;
-  }
 }

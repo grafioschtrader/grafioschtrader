@@ -26,13 +26,13 @@ import { AppHelper } from '../../lib/helper/app.helper';
 })
 export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseInfoFields {
   /** URL for intraday price data feed */
-  readonly intradayUrl = input<string>();
+  readonly intradayUrl = input<string | null>();
   /** URL for historical price data feed */
-  readonly historicalUrl = input<string>();
+  readonly historicalUrl = input<string | null>();
   /** URL for dividend data feed */
-  readonly dividendUrl = input<string>();
+  readonly dividendUrl = input<string | null>();
   /** URL for stock split data feed */
-  readonly splitUrl = input<string>();
+  readonly splitUrl = input<string | null>();
   /** Key-value mapping of feed connector IDs to human-readable names */
   readonly feedConnectorsKV = input<{ [id: string]: string }>({});
   /** Fieldset name constant for quotation data grouping */
@@ -232,10 +232,10 @@ class ContentExtendedInfo extends ContentBase {
    * @param securitycurrency The base security or currency object
    */
   constructor(
-    public intradayUrl: string | undefined,
-    public historicalUrl: string | undefined,
-    public dividendUrl: string | undefined,
-    public splitUrl: string | undefined,
+    public intradayUrl: string | null | undefined,
+    public historicalUrl: string | null | undefined,
+    public dividendUrl: string | null | undefined,
+    public splitUrl: string | null | undefined,
     securitycurrency: Securitycurrency
   ) {
     super(securitycurrency);

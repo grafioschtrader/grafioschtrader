@@ -34,8 +34,8 @@ export class IndicatorDefinitions {
  * A indicator may have one or more traces
  */
 export class IndicatorDefinition {
-  shown: boolean;
-  menuItem: MenuItem;
+  shown = false;
+  menuItem?: MenuItem;
   taTraceIndicatorDataList: TaTraceIndicatorData[] = [];
 
   /**

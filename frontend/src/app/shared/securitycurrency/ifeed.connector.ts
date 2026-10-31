@@ -8,7 +8,7 @@ export interface IFeedConnector {
   description: Description;
 }
 
-export class Description {
+export interface Description {
   historicalDescription: string;
   intraDescription: string;
 }

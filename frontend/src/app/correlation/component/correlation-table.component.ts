@@ -23,7 +23,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { AppSettings } from '../../shared/app.settings';
 import { BusinessHelper } from '../../shared/helper/business.helper';
-import { TenantLimit } from '../../shared/types/tenant.limit';
+import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { CorrelationChartService } from '../service/correlation-chart.service';
 import { CorrelationSetService } from '../service/correlation.set.service';
 
@@ -206,13 +206,13 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   private readonly correlationResult = signal<CorrelationResult | null>(null);
 
   /** Subscription for instrument addition events */
-  private subscriptionInstrumentAdded: Subscription;
+  private subscriptionInstrumentAdded?: Subscription;
 
   /** Security currency selected in column header */
   private securityCurrencyColumn: Securitycurrency | null = null;
 
   /** Cancels obsolete chart requests when the selection changes. */
-  private chartRequest: Subscription;
+  private chartRequest?: Subscription;
 
   /** Canonical instrument pairs currently selected for the chart. */
   private chartPairs: { [key: string]: number[] } = {};

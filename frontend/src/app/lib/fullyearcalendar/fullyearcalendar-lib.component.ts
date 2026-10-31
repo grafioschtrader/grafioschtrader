@@ -7,7 +7,6 @@ import { LocaleSettings } from './Interface/locale.settings';
 import { DisabledDate } from './Interface/disabled.date';
 import { DayOfWeek } from './model/day.of.week';
 import { MonthlyCalendarComponent } from './month-calendar/monthly-calendar.component';
-import { RangeSelectDays } from './Interface/range.select.days';
 
 @Component({
   selector: 'ng-fullyearcalendar-lib',
@@ -120,22 +119,18 @@ export class FullyearcalendarLibComponent {
     for (const m of year.months) {
       for (const w of m.weeks) {
         for (const day of w.daysOfWeek) {
+          const date = day.day;
+          if (!date) continue;
           if (val.dates && val.dates.length > 0) {
             for (const d of val.dates) {
-              if (day.day >= d.start && day.day <= d.end) {
-                const range = new Range();
-                range.id = d.id;
-                range.start = d.start;
-                range.end = d.end;
-                range.tooltip = d.tooltip;
-                range.backgroundColor = d.color ? d.color : 'gray';
-                range.foregroundColor = this.getForegroundColorByBackgroundColor(range.backgroundColor);
-                range.day = day.day;
-                range.select = (allRanges: RangeSelectDays[]): void => {
-                  if (typeof d.select === 'function') {
-                    d.select(range, allRanges);
-                  }
-                };
+              if (date >= d.start && date <= d.end) {
+                const backgroundColor = d.color ? d.color : 'gray';
+                const range = new Range(
+                  d,
+                  date,
+                  backgroundColor,
+                  this.getForegroundColorByBackgroundColor(backgroundColor)
+                );
                 if (!day.ranges) {
                   day.ranges = [];
                 }
@@ -144,7 +139,7 @@ export class FullyearcalendarLibComponent {
             }
           }
           day.isDisabled =
-            this.isDisabled(day.day, val.disabledDays) || this.isWeekdayDisabled(day.dayOfWeek, val.disableWeekDays);
+            this.isDisabled(date, val.disabledDays) || this.isWeekdayDisabled(day.dayOfWeek, val.disableWeekDays);
         }
       }
     }

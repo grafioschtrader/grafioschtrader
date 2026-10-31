@@ -124,13 +124,13 @@ export class PerformanceTotalChartWidgetComponent
   private readonly amountField = ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'value', '');
   private readonly plotlyConfig: any;
   private texts: { [key: string]: string } = {};
-  private settingsSubscription: Subscription;
-  private resizeObserver: ResizeObserver;
+  private settingsSubscription?: Subscription;
+  private resizeObserver?: ResizeObserver;
   private viewReady = false;
   private destroyed = false;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
   /** Set once the chart has loaded the library; cleanup never triggers the import. */
-  private plotly: PlotlyInstance;
+  private plotly?: PlotlyInstance;
 
   constructor() {
     super();

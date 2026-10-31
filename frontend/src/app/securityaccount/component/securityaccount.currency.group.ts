@@ -1,10 +1,10 @@
 import { SecurityaccountGroupBase } from './securityaccount.group.base';
 import { Security } from '../../entities/security';
-import { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
+import type { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
 import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { TranslateService } from '@ngx-translate/core';
-import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import type { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { SecurityaccountGroupBaseDynamic } from './securityaccount.group.base.dynamic';
 import { BusinessHelper } from '../../shared/helper/business.helper';

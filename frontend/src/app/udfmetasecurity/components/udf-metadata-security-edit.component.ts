@@ -144,7 +144,7 @@ export class UDFMetadataSecurityEditComponent
   readonly fillStatusText = signal<string | null>(null);
 
   /** Field configurations for data type and field size inputs */
-  private configDataTypeFields: FieldConfig[];
+  private readonly configDataTypeFields: FieldConfig[] = UDFMetadataHelper.createDataTypeFields();
 
   /** A newer draft or test supersedes an outstanding template test. */
   private testFillSubscription?: Subscription;
@@ -178,7 +178,6 @@ export class UDFMetadataSecurityEditComponent
    */
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
-    this.configDataTypeFields = UDFMetadataHelper.createDataTypeFields();
     this.config = [
       ...UDFMetadataHelper.createMetadataBaseFields(this.configDataTypeFields, this.callParam().excludeFieldNames),
       DynamicFieldHelper.createFieldMultiSelectString('categoryTypeEnums', AppSettings.ASSETCLASS.toUpperCase(), true),

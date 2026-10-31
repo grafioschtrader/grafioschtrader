@@ -55,7 +55,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
   private settingsExtensions = inject(SETTINGS_MENU_EXTENSIONS, { optional: true });
 
   menuItems: MenuItem[] = new Array<MenuItem>(4);
-  private subscriptionViewSizeChanged: Subscription;
+  private subscriptionViewSizeChanged?: Subscription;
 
   constructor() {
     this.activePanelService.topMenuItems.set(this.menuItems);
@@ -285,7 +285,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
+    this.subscriptionViewSizeChanged?.unsubscribe();
   }
 
   /**

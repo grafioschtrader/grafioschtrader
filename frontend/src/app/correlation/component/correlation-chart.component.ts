@@ -113,7 +113,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   private destroyed = false;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
   /** Set once the first chart has loaded the library; cleanup never triggers the import. */
-  private plotly: PlotlyInstance;
+  private plotly?: PlotlyInstance;
   private renderVersion = 0;
   private plotlyConfig: any;
 

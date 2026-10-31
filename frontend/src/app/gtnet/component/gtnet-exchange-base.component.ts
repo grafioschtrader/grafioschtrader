@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { computed, Directive, OnDestroy, OnInit, signal, viewChild, inject } from '@angular/core';
 import { MenuItem, SortEvent } from '@openng/optimus-ui/api';
 
@@ -50,7 +51,15 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
   readonly exchangeSorter = (event: SortEvent) => this.doCustomSort(event);
 
   /** Entity for dialog calls (required by base class) */
-  callParam: T;
+  private initializedCallParam?: T;
+
+  get callParam(): T {
+    return requireInitialized(this.initializedCallParam, 'GTNetExchangeBaseComponent.callParam');
+  }
+
+  set callParam(value: T) {
+    this.initializedCallParam = value;
+  }
 
   readonly contextMenuDiv = viewChild<any>('cmDiv');
 

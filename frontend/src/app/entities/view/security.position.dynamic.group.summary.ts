@@ -1,6 +1,7 @@
-import { SecurityPositionGroupSummary } from './security.position.group.summary';
+import type { SecurityPositionGroupSummary } from './security.position.group.summary';
 
-export class SecurityPositionDynamicGroupSummary<T> extends SecurityPositionGroupSummary {
+/** Security-position group identified by the report-specific grouping value. */
+export interface SecurityPositionDynamicGroupSummary<T> extends SecurityPositionGroupSummary {
   groupField: T;
   groupValueSecurityShort: number;
   groupSecurityRiskMC: number;

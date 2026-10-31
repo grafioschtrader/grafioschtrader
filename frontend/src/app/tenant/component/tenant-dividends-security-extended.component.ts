@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { finalize, Subscription } from 'rxjs';
 import { linkedSignal, DestroyRef, inject, signal, Component, OnInit, output, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -5,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { SecurityDividendsPosition } from '../../entities/view/securitydividends/security.dividends.position';
 import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
+import type { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
 import { Security } from '../../entities/security';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -177,7 +178,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   readonly securityDividendsPositions = linkedSignal(() => this.securityDividendsPositionsInput());
   private readonly destroyRef = inject(DestroyRef);
   readonly pendingExclusions = signal<Set<number>>(new Set());
-  private menuRequest: Subscription;
+  private menuRequest?: Subscription;
   readonly year = input.required<number>();
   readonly filterTransactionsToYearEnd = input<boolean>();
 
@@ -195,12 +196,23 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
 
   /** Dialog state for maintaining the tax year corrections of one security. */
   readonly visibleCorrectionDialog = signal(false);
-  dialogSecurity: Security;
+  private initializedDialogSecurity?: Security;
+
+  get dialogSecurity(): Security {
+    return requireInitialized(
+      this.initializedDialogSecurity,
+      'TenantDividendsSecurityExtendedComponent.dialogSecurity'
+    );
+  }
+
+  set dialogSecurity(value: Security) {
+    this.initializedDialogSecurity = value;
+  }
   correctionYearOptions: number[] = [];
 
   /** Right-click context menu of the security rows (Swiss tenants only). */
   readonly contextMenuItems = signal<MenuItem[]>([]);
-  contextMenuSelectedPosition: SecurityDividendsPosition;
+  contextMenuSelectedPosition: SecurityDividendsPosition | null = null;
 
   /** True for Swiss tenants; gates the ICTax columns and the tax year correction context menu. */
   get isSwissTenant(): boolean {
@@ -404,7 +416,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
    *
    * @param sdp the security dividends position of the right-clicked row
    */
-  openCorrectionDialog(sdp: SecurityDividendsPosition): void {
+  openCorrectionDialog(sdp: SecurityDividendsPosition | null): void {
     if (!sdp) {
       return;
     }

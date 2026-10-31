@@ -3,7 +3,7 @@ import { Observable } from 'rxjs/internal/Observable';
 import { ProposeChangeEntity } from '../../entities/propose.change.entity';
 import { catchError } from 'rxjs/operators';
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
-import { ProposeChangeEntityWithEntity } from '../model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../model/propose.change.entity.whit.entity';
 import { DeleteService } from '../../datashowbase/delete.service';
 import { BaseSettings } from '../../base.settings';
 

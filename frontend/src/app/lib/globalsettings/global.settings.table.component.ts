@@ -15,7 +15,6 @@ import { DataType } from '../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../datashowbase/column.config';
 import { AppHelper } from '../helper/app.helper';
 import { AuditHelper } from '../helper/audit.helper';
-import { User } from '../entities/user';
 import { ProcessedActionData } from '../types/processed.action.data';
 import { ProcessedAction } from '../types/processed.action';
 import { TranslateHelper } from '../helper/translate.helper';
@@ -77,7 +76,6 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
   editMenu: MenuItem;
   readonly globalparametersList = signal<Globalparameters[]>([]);
   readonly selectedEntity = signal<Globalparameters | null>(null);
-  callParam: User;
   readonly visibleDialog = signal(false);
   private readonly destroyRef = inject(DestroyRef);
 

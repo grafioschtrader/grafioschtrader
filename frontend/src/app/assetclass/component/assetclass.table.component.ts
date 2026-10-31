@@ -55,10 +55,10 @@ import { AssetclassEditComponent } from './assetclass-edit.component';
       </ng-template>
     </configurable-table>
 
-    @if (visibleDialog()) {
+    @if (visibleDialog() && callParam; as params) {
       <assetclass-edit
         [visibleDialog]="visibleDialog()"
-        [callParam]="callParam"
+        [callParam]="params"
         [proposeChangeEntityWithEntity]=""
         (closeDialog)="handleCloseDialog($event)" />
     }
@@ -70,7 +70,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
   private assetclassService: AssetclassService = inject(AssetclassService);
   private productIconService: ProductIconService = inject(ProductIconService);
 
-  callParam: AssetclassCallParam = new AssetclassCallParam();
+  callParam: AssetclassCallParam | null = null;
   readonly ownerHighlight = (entity: Assetclass, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);
 
@@ -100,8 +100,11 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
 
   override prepareCallParam(entity: Assetclass | null): void {
     const id = entity == null ? null : this.getId(entity);
-    this.callParam.hasSecurity = typeof id === 'number' && this.hasSecurityObject[id] !== 0;
-    this.callParam.assetclass = entity;
+    this.callParam = new AssetclassCallParam(
+      entity,
+      typeof id === 'number' && this.hasSecurityObject[id] !== 0,
+      this.entityList()
+    );
   }
 
   readData(): void {
@@ -113,7 +116,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
         const assetclassList = plainToInstance(Assetclass, data[0]);
-        this.callParam.setSuggestionsArrayOfAssetclassList(assetclassList);
+        this.callParam?.setSuggestionsArrayOfAssetclassList(assetclassList);
         this.createTranslatedValueStoreAndFilterField(assetclassList);
         this.hasSecurityObject = Object.fromEntries(data[1]);
         this.entityList.set(assetclassList);

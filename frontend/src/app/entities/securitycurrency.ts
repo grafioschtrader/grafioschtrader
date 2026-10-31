@@ -5,7 +5,7 @@ export class Securitycurrency extends Auditable {
   dtype?: string;
   idSecuritycurrency?: number | null = null;
   note?: string | null = null;
-  fullLoadTimestamp: string;
+  fullLoadTimestamp?: string | null;
   retryHistoryLoad?: number | null = null;
   idConnectorHistory?: string | null = null;
   urlHistoryExtend?: string | null = null;

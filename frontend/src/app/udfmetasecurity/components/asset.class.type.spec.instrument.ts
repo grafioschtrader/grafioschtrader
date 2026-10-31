@@ -8,6 +8,7 @@ import { forkJoin } from 'rxjs';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { InputType } from '../../lib/dynamic-form/models/input.type';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { requireInitialized } from '../../lib/helper/required-state';
 
 /**
  * Abstract base component for editing entities with asset class type and special investment instrument selection.
@@ -20,10 +21,32 @@ export abstract class AssetClassTypeSpecInstrument<T extends object> extends Sim
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
   /** Map of asset class types to their valid special investment instruments */
-  protected assetclassSpezInstMap: { [key in AssetclassType]: SpecialInvestmentInstruments[] };
+  private initializedAssetclassSpezInstMap?: { [key in AssetclassType]: SpecialInvestmentInstruments[] };
+
+  protected get assetclassSpezInstMap(): { [key in AssetclassType]: SpecialInvestmentInstruments[] } {
+    return requireInitialized(
+      this.initializedAssetclassSpezInstMap,
+      'AssetClassTypeSpecInstrument.assetclassSpezInstMap'
+    );
+  }
+
+  protected set assetclassSpezInstMap(value: { [key in AssetclassType]: SpecialInvestmentInstruments[] }) {
+    this.initializedAssetclassSpezInstMap = value;
+  }
 
   /** All available special investment instrument options for selection */
-  protected valueKeyHtmlOptionsSpecInvest: ValueKeyHtmlSelectOptions[];
+  private initializedValueKeyHtmlOptionsSpecInvest?: ValueKeyHtmlSelectOptions[];
+
+  protected get valueKeyHtmlOptionsSpecInvest(): ValueKeyHtmlSelectOptions[] {
+    return requireInitialized(
+      this.initializedValueKeyHtmlOptionsSpecInvest,
+      'AssetClassTypeSpecInstrument.valueKeyHtmlOptionsSpecInvest'
+    );
+  }
+
+  protected set valueKeyHtmlOptionsSpecInvest(value: ValueKeyHtmlSelectOptions[]) {
+    this.initializedValueKeyHtmlOptionsSpecInvest = value;
+  }
 
   /**
    * Subclass-specific initialization logic called after asset class mapping is loaded.

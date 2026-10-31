@@ -3,10 +3,10 @@ import { BaseParam } from '../../lib/entities/base.param';
 import { Exclude } from 'class-transformer';
 
 export abstract class AlgoRuleStrategy extends TenantBaseId {
-  idAlgoRuleStrategy: number;
-  idAlgoAssetclassSecurity: number;
+  idAlgoRuleStrategy?: number;
+  idAlgoAssetclassSecurity?: number;
 
-  algoRuleStrategyParamMap: Record<string, BaseParam>;
+  algoRuleStrategyParamMap: Record<string, BaseParam> = {};
 
   @Exclude()
   get idTree(): string {
@@ -14,7 +14,7 @@ export abstract class AlgoRuleStrategy extends TenantBaseId {
   }
 
   @Exclude()
-  public getId(): number {
+  public getId(): number | undefined {
     return this.idAlgoRuleStrategy;
   }
 }

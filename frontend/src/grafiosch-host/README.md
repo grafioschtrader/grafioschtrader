@@ -55,11 +55,37 @@ selections use `linkedSignal` to bind the selected key to refreshed rows; menu a
 Template switches declare an intentional fallback or an exhaustive `@default never;` check. These rules and the
 Angular API ratchets apply to the library and both host entry points.
 
-Both hosts share the type-checking baseline in `tsconfig.json`: `noImplicitAny`, `strictBindCallApply`, `strictFunctionTypes`, `noImplicitThis`,
-`useUnknownInCatchVariables`, `alwaysStrict`, `strictBuiltinIteratorReturn` and `strictNullChecks`. The Angular API ratchet also verifies
-that the test configuration inherits these options. Use typed callbacks and JSON dictionaries, `keyof T` for entity
+Both hosts, Mobile and the tests share full `strict: true` in `tsconfig.json`, including property initialization.
+The Angular API ratchet rejects disabled strict options in each project. Use typed callbacks and JSON dictionaries, `keyof T` for entity
 keys and `PanelClickEvent` for native panel clicks. Keep the library independent of application models when adding
 types. `npx tsc -p tsconfig.spec.json --noEmit` checks the test sources in addition to both host builds.
+Resource handles (`Subscription`, `ResizeObserver`, `MutationObserver`, `AfterRenderRef`) are optional until registered
+or definitely assigned in the constructor; cleanup checks for absence. The resource-initialization ratchet uses the
+TypeScript compiler to check every property across all applications and tests, including accesses before initialization.
+It forbids definite-assignment assertions on any property. Do not add dummy subscriptions to satisfy initialization checks.
+Padding days of the calendar have no date; rendering and
+click handlers check that state. Months receive their index at construction, and ranges receive their source/date/colors
+before selection. Range callbacks receive the selected occurrence and every overlapping range.
+Plain JSON response models without client construction, methods or class-transformer metadata use interfaces and
+type-only imports. Preserve null and omitted fields according to the backend response; constructed entities stay classes.
+The response-contract ratchet includes library transport types such as `StringResponse` and `TaskDataChangeFormConstraints`
+while leaving constructed entities in the same file available as classes.
+Response interfaces may share a file with an executable projection helper. Keep that helper separate from the transport
+shape and select only the documented query fields; preserve zero, null and omitted values.
+Shared form owners initialize `FormBase.formConfig` and `configObject` before rendering the child; their checked accessors
+report an early read. Readiness checks and control-preserving rebuilds use `configObjectIfInitialized` instead. The dynamic
+form publishes its group and fieldset state together. Dynamic-dialog context fields initialize from the injected config,
+and unloaded selections/session caches retain null.
+Grouped owners use `FormBase<FieldFormGroup>` as well. Master/detail and password forms share its checked configuration
+accessors; preserve `configObjectIfInitialized` for readiness checks when extending the hierarchy. Build a dialog context
+with its loaded validation data before showing the dialog; keep reusable table metadata outside that context.
+Required metadata and dialog contexts use checked accessors over optional backing state. Readiness checks and cache
+reuse inspect that optional state; they must not invoke the checked accessor while data is still loading. A required
+route input supplies its id directly. Tree refreshes carry their response through asynchronous translation so that the
+translated tree uses the response of that refresh.
+Draft entities can lack their server-assigned id and response-only metadata. Requests requiring an id check it and
+capture it before asynchronous callbacks. Checked lifecycle accessors belong to UI state; serialized entities must
+retain their public transport property names. The tenant registration form shares `FormBase` with the application.
 Column header tooltips are optional, and cell-tooltip callbacks can return null/undefined for no tooltip.
 `SingleRecordConfigBase` accepts null when a derived view invalidates its field-group cache and rebuilds it on demand.
 `Helper.getReferencedDataObject` accepts a null key argument when the field supplies `dataproperty`; a missing key

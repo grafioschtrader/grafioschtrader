@@ -1,15 +1,5 @@
 import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
-import {
-  afterNextRender,
-  Component,
-  DestroyRef,
-  effect,
-  inject,
-  input,
-  OnInit,
-  signal,
-  viewChild
-} from '@angular/core';
+import { afterNextRender, Component, DestroyRef, effect, inject, input, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule } from '@ngx-translate/core';
 import { forkJoin, map, Subscription, switchMap } from 'rxjs';
@@ -57,7 +47,7 @@ import { TradingPlatformPlanService } from '../service/trading.platform.plan.ser
     }
   `
 })
-export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements OnInit {
+export class FxMarkupPreviewComponent extends ShowRecordConfigBase {
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
   private plans: TradingPlatformPlanService = inject(TradingPlatformPlanService);
   private accounts: SecurityaccountService = inject(SecurityaccountService);
@@ -72,7 +62,7 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
   readonly result = signal<FxQuote | null>(null);
   readonly requestFailed = signal(false);
   private readonly destroyRef = inject(DestroyRef);
-  private previewSubscription: Subscription;
+  private previewSubscription?: Subscription;
   resultFields: ColumnConfig[] = [
     ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'percent', 'FX_MARKUP_PERCENT', true, false, {
       maxFractionDigits: 4
@@ -83,19 +73,6 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
 
   constructor() {
     super();
-    afterNextRender(() => this.loadOptions());
-    effect(() => {
-      this.yaml();
-      this.idSecurityaccount();
-      this.idTradingPlatformPlan();
-      // Results belong to the document and account for which the request was made.
-      this.previewSubscription?.unsubscribe();
-      this.result.set(null);
-      this.requestFailed.set(false);
-    });
-  }
-
-  ngOnInit(): void {
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('payCurrency', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('receiveCurrency', true),
@@ -106,6 +83,16 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
       DynamicFieldHelper.createFunctionButton('TEST_FX_MARKUP', () => this.preview())
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    afterNextRender(() => this.loadOptions());
+    effect(() => {
+      this.yaml();
+      this.idSecurityaccount();
+      this.idTradingPlatformPlan();
+      // Results belong to the document and account for which the request was made.
+      this.previewSubscription?.unsubscribe();
+      this.result.set(null);
+      this.requestFailed.set(false);
+    });
   }
 
   private loadOptions(): void {

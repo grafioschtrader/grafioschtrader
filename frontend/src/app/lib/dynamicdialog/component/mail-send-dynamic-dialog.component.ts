@@ -52,7 +52,7 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
   private readonly ID_USER_TO = 'idUserTo';
   private readonly ID_USER_FROM = 'idUserFrom';
   private readonly ROLE_NAME_TO = 'roleNameTo';
-  private mailSendParam: MailSendParam;
+  private readonly mailSendParam: MailSendParam = this.dynamicDialogConfig.data.mailSendParam;
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
 
@@ -62,7 +62,6 @@ export class MailSendDynamicDialogComponent extends FormBase implements OnInit {
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 3, this.helpLink.bind(this));
-    this.mailSendParam = this.dynamicDialogConfig.data.mailSendParam;
     // Build the form before its child renders. Only the select options depend on the asynchronous user lookup;
     // assigning those FieldConfig options notifies the existing form through FormNotifier.
     this.initializeFields();

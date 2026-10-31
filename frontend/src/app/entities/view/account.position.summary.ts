@@ -1,16 +1,28 @@
-import { Cashaccount } from '../cashaccount';
-import { DisposalCostDetail } from './disposal.cost.detail';
+import type { Cashaccount } from '../cashaccount';
+import type { DisposalCostDetail } from './disposal.cost.detail';
+import type { LastpriceOrigin } from '../types/lastprice.origin';
 
-export class AccountPositionSummary {
-  closePrice: number;
+/** Cash balance, holdings and currency results returned for one cash account. */
+export interface AccountPositionSummary {
+  closePrice: number | null;
+  closeDate: string | null;
+  closePriceOrigin: LastpriceOrigin;
   /** True when no exchange rate was available, so this account is excluded from every main currency total. */
   priceMissing: boolean;
-  balanceCalculated: number;
+  cashBalance: number;
+  cashBalanceMC: number;
   balanceCurrencyTransaction: number;
-  tragetCurrencyTransaction: number;
+  balanceCurrencyTransactionMC: number;
   externalCashTransferMC: number;
-  accountFeesMainCurrency: number;
-  accountInterestMainCurrency: number;
+  cashTransferMC: number;
+  cashAccountTransactionFeeMC: number;
+  accountFeesMC: number;
+  accountInterestMC: number;
+  valueSecurities: number;
+  valueSecuritiesMC: number;
+  gainLossSecurities: number;
+  gainLossSecuritiesMC: number;
+  valueMC: number;
   gainLossCurrencyMC: number;
   excludedDivTaxMC: number;
   cashaccount: Cashaccount;

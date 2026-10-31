@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
@@ -157,17 +158,25 @@ export class TenantDividendsChartComponent
   /** True when the shown chart refers to one year; the year is then chosen in the dividends table. */
   private readonly selectedChartType = signal(IncomeChartType.INCOME_CHART_MONTHLY);
   readonly chartNeedsYear = computed(() => CHART_NEEDS_YEAR[this.selectedChartType()]);
-  private readRequest: Subscription;
+  private readRequest?: Subscription;
 
   /** Year the year based charts refer to; set by clicking a year row of the dividends table. */
   private selectedYear: number | null = null;
-  private chartData: SecurityDividendsChart;
-  private idsAccounts: IdsAccounts;
+  private initializedChartData?: SecurityDividendsChart;
+
+  private get chartData(): SecurityDividendsChart {
+    return requireInitialized(this.initializedChartData, 'TenantDividendsChartComponent.chartData');
+  }
+
+  private set chartData(value: SecurityDividendsChart) {
+    this.initializedChartData = value;
+  }
+  private idsAccounts?: IdsAccounts;
   private formReady = false;
   private plotlyConfig: any;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
   /** Set once the first chart has loaded the library; cleanup never triggers the import. */
-  private plotly: PlotlyInstance;
+  private plotly?: PlotlyInstance;
   private destroyed = false;
   /** Raised by every draw, so a draw still waiting for the library is dropped when a newer one follows. */
   private drawVersion = 0;
@@ -274,9 +283,11 @@ export class TenantDividendsChartComponent
   }
 
   private readData(): void {
+    const accounts = this.idsAccounts;
+    if (!accounts) return;
     this.readRequest?.unsubscribe();
     this.readRequest = this.portfolioService
-      .getSecurityDividendsChartByTenant(this.idsAccounts.idsSecurityaccount, this.idsAccounts.idsCashaccount)
+      .getSecurityDividendsChartByTenant(accounts.idsSecurityaccount, accounts.idsCashaccount)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data: SecurityDividendsChart) => {
         this.chartData = data;
@@ -304,13 +315,13 @@ export class TenantDividendsChartComponent
   private selectYear(year: number): void {
     if (year !== this.selectedYear) {
       this.selectedYear = year;
-      this.chartData && this.resolveSelectedYear();
+      this.initializedChartData && this.resolveSelectedYear();
       this.drawChart();
     }
   }
 
   private drawChart(): void {
-    if (!this.formReady || !this.chartData) {
+    if (!this.formReady || !this.initializedChartData) {
       return;
     }
     const chartType: IncomeChartType = requireFormControl(this.configObject.chartType).value;

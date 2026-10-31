@@ -8,7 +8,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ImportTransactionTemplateService } from '../service/import.transaction.template.service';
-import { FormTemplateCheck } from './form.template.check';
+import { FormTemplateCheck, type FormTemplateCheckResult } from './form.template.check';
 import { ImportTransactionPlatform } from '../../entities/import.transaction.platform';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -59,7 +59,7 @@ export class TemplateFormCheckDialogComponent extends SimpleFormEditBase impleme
 
   readonly importTransactionPlatform = input.required<ImportTransactionPlatform>();
 
-  readonly formTemplateCheck = signal<FormTemplateCheck | null>(null);
+  readonly formTemplateCheck = signal<FormTemplateCheckResult | null>(null);
   private checkSubscription?: Subscription;
 
   constructor() {
@@ -80,10 +80,9 @@ export class TemplateFormCheckDialogComponent extends SimpleFormEditBase impleme
   }
 
   checkFormAgainstTemplate(event: unknown) {
-    const ftc = new FormTemplateCheck(
-      this.importTransactionPlatform().idTransactionImportPlatform,
-      requireFormControl(this.configObject.templateAsTxt).value
-    );
+    const idPlatform = this.importTransactionPlatform().idTransactionImportPlatform;
+    if (idPlatform == null) return;
+    const ftc = new FormTemplateCheck(idPlatform, requireFormControl(this.configObject.templateAsTxt).value);
     this.checkSubscription?.unsubscribe();
     this.checkSubscription = this.importTransactionTemplateService
       .checkFormAgainstTemplate(ftc)

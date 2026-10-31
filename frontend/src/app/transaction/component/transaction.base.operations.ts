@@ -14,6 +14,8 @@ import moment from 'moment';
 import { afterNextRender, AfterRenderRef, DestroyRef, Directive, inject, Injector, signal } from '@angular/core';
 import { MonoTypeOperatorFunction, Subscription } from 'rxjs';
 import { untilSessionEnds } from '../../lib/edit/dialog.session';
+import { FormBase } from '../../lib/edit/form.base';
+import type { FieldFormGroup } from '../../lib/dynamic-form/models/form.group.definition';
 
 /**
  * Abstract base class providing common operations for transaction handling, including cash account lookups,
@@ -21,7 +23,7 @@ import { untilSessionEnds } from '../../lib/edit/dialog.session';
  * transaction-related components that need standardized portfolio and currency conversion functionality.
  */
 @Directive()
-export abstract class TransactionBaseOperations {
+export abstract class TransactionBaseOperations extends FormBase<FieldFormGroup> {
   public messageToastService: MessageToastService = inject(MessageToastService);
   public currencypairService: CurrencypairService = inject(CurrencypairService);
   public historyquoteService: HistoryquoteService = inject(HistoryquoteService);
@@ -33,9 +35,6 @@ export abstract class TransactionBaseOperations {
   private dialogSession = new Subscription();
   private initializeRender?: AfterRenderRef;
   private readonly requests = new Map<string, Subscription>();
-  /** Field configurations mapped by field name for form management */
-  configObject: { [name: string]: FieldConfig };
-
   /** Current currency pair used for exchange rate calculations */
   protected currencypair?: Currencypair | null;
 
@@ -49,6 +48,7 @@ export abstract class TransactionBaseOperations {
    * Creates a new TransactionBaseOperations instance with required services.
    */
   constructor() {
+    super();
     this.destroyRef.onDestroy(() => this.endDialogSession());
   }
 
@@ -230,7 +230,7 @@ export abstract class TransactionBaseOperations {
   protected resetTransactionLocked(): void {
     this.transactionLocked.set(false);
     this.transactionLockedMessage.set('');
-    if (this.configObject?.submit) {
+    if (this.configObjectIfInitialized?.submit) {
       this.configObject.submit.invisible = false;
     }
   }

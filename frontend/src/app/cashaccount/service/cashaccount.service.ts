@@ -3,7 +3,7 @@ import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Cashaccount } from '../../entities/cashaccount';
-import { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
+import type { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
 import { BaseSettings } from '../../lib/base.settings';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { AppHelper } from '../../lib/helper/app.helper';

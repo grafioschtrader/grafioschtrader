@@ -89,7 +89,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   protected readonly canAdministerGTNet: boolean;
 
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
-  private menuSubscription: Subscription;
+  private menuSubscription?: Subscription;
 
   constructor() {
     super();

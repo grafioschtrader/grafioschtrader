@@ -1,12 +1,14 @@
-import { Stockexchange } from '../../entities/stockexchange';
-import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { StockexchangeMic } from '../model/stockexchange.base.data';
+import type { Stockexchange } from '../../entities/stockexchange';
+import type { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import type { StockexchangeMic } from '../model/stockexchange.base.data';
 
 export class StockexchangeCallParam {
-  public stockexchange: Stockexchange | null;
-  public hasSecurity: boolean;
-  public countriesAsHtmlOptions: ValueKeyHtmlSelectOptions[];
-  public stockexchangeMics: StockexchangeMic[];
-  public existingMic: Set<string>;
-  public proposeChange = false;
+  constructor(
+    public stockexchange: Stockexchange | null,
+    public hasSecurity: boolean,
+    public countriesAsHtmlOptions: ValueKeyHtmlSelectOptions[],
+    public stockexchangeMics: StockexchangeMic[],
+    public existingMic: Set<string>,
+    public proposeChange = false
+  ) {}
 }

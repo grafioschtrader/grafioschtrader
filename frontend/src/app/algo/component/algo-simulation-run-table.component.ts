@@ -23,7 +23,7 @@ import { SimulationRunEvent } from '../model/simulation.run';
     [customSortFn]="customSorter"
     [multiSortMeta]="multiSortMeta"
     [paginator]="true"
-    [rows]="rowsPerPage"
+    [rows]="rowsPerPage ?? 20"
     (pageChange)="onPage($event)"
     [scrollable]="true"
     [scrollHeight]="scrollHeight()">

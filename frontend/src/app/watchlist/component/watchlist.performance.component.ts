@@ -12,7 +12,7 @@ import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.grou
 import { HelpIds } from '../../lib/help/help.ids';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { MenuItem } from '@openng/optimus-ui/api';
-import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
+import type { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
 import { ViewSizeChangedService } from '../../lib/layout/service/view.size.changed.service';
@@ -88,6 +88,7 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
   ]
 })
 export class WatchlistPerformanceComponent extends WatchlistTable implements OnInit, OnDestroy {
+  choosenTimeFrame: TimeFrame;
   private viewSizeChangedService: ViewSizeChangedService = inject(ViewSizeChangedService);
 
   /** Adds the reinvested dividends of the securities to the daily, YTD and time frame changes (total return). */
@@ -97,7 +98,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   /** Shows the position values of the selected row in the caption of the table. */
   readonly showPositionHeader = signal(false);
   /** Currency of the tenant as delivered with the data, the suffix of the headers of the values in this currency. */
-  private mainCurrency: string;
+  private mainCurrency?: string;
 
   /**
    * Creates a new WatchlistPerformanceComponent with all required dependencies and initializes performance columns

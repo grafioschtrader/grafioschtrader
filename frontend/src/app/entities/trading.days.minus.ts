@@ -1,4 +1,4 @@
-export class TradingDaysMinus {
+export interface TradingDaysMinus {
   tradingDateMinus: string;
   idStockexchange: number;
 }

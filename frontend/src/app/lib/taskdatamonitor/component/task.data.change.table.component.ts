@@ -24,7 +24,7 @@ import {
   MAIN_TASK_QUEUE,
   ProgressStateType,
   TaskDataChange,
-  TaskDataChangeFormConstraints
+  type TaskDataChangeFormConstraints
 } from '../types/task.data.change';
 import { ITaskExtendService } from './itask.extend.service';
 import { TaskDataChangeEditComponent } from './task-data-change-edit.component';
@@ -250,6 +250,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   }
 
   canExpandRow(taskDataChange: TaskDataChange): boolean {
+    if (taskDataChange.progressStateType == null) return false;
     return (
       (ProgressStateType[taskDataChange.progressStateType] as string | number) ===
       ProgressStateType[ProgressStateType[ProgressStateType.PROG_FAILED] as keyof typeof ProgressStateType]
@@ -376,6 +377,8 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
   protected override addCustomMenusToSelectedEntity(taskDataChange: TaskDataChange, menuItems: MenuItem[]): void {
     const constraints = this.tdcFormConstraints();
+    const id = taskDataChange.idTaskDataChange;
+    const progressState = taskDataChange.progressStateType;
     if (!constraints || taskDataChange.idTask == null) return;
     if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
       menuItems.push({
@@ -386,11 +389,15 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
       menuItems.push({
         label: 'TASK_INTERRUPT|' + this.entityNameUpper,
-        command: (event) => this.interruptingRunningJob(taskDataChange.idTaskDataChange),
+        command: () => {
+          if (id != null) this.interruptingRunningJob(id);
+        },
         disabled: !(
+          id != null &&
+          progressState != null &&
           typeof taskDataChange.idTask === 'string' &&
           constraints.canBeInterruptedList.includes(taskDataChange.idTask) &&
-          (ProgressStateType[taskDataChange.progressStateType] as string | number) ===
+          (ProgressStateType[progressState] as string | number) ===
             ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING] as keyof typeof ProgressStateType]
         )
       });
@@ -438,6 +445,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   }
 
   protected override hasRightsForDeleteEntity(entity: TaskDataChange): boolean {
+    if (entity.idTaskDataChange == null || entity.progressStateType == null) return false;
     return (
       (ProgressStateType[entity.progressStateType] as string | number) !==
       ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING] as keyof typeof ProgressStateType]

@@ -16,7 +16,7 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { Security } from '../../entities/security';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { FormBase } from '../../lib/edit/form.base';
-import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { ValidatorFn } from '@angular/forms';
@@ -26,6 +26,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { UDFMetadataHelper } from '../../lib/udfmeta/components/udf.metadata.helper';
 import { BusinessSelectOptionsHelper } from './business.select.options.helper';
 import { BaseSettings } from '../../lib/base.settings';
+import { requireInitialized } from '../../lib/helper/required-state';
 
 /**
  * Some definition of fields are shared between the different edit components of instruments. Those aee
@@ -42,8 +43,24 @@ export class SecurityEditSupport {
 
   public readonly ID_CONNECTOR_DIVIDEND = 'idConnectorDividend';
 
-  public connectorDividendConfig: FieldConfig[];
-  public connectorSplitConfig: FieldConfig[];
+  private initializedConnectorDividendConfig?: FieldConfig[];
+  private initializedConnectorSplitConfig?: FieldConfig[];
+
+  get connectorDividendConfig(): FieldConfig[] {
+    return requireInitialized(this.initializedConnectorDividendConfig, 'SecurityEditSupport.connectorDividendConfig');
+  }
+
+  set connectorDividendConfig(value: FieldConfig[]) {
+    this.initializedConnectorDividendConfig = value;
+  }
+
+  get connectorSplitConfig(): FieldConfig[] {
+    return requireInitialized(this.initializedConnectorSplitConfig, 'SecurityEditSupport.connectorSplitConfig');
+  }
+
+  set connectorSplitConfig(value: FieldConfig[]) {
+    this.initializedConnectorSplitConfig = value;
+  }
 
   private readonly marketValue = signal(true);
 
@@ -55,9 +72,9 @@ export class SecurityEditSupport {
     this.marketValue.set(value);
   }
 
-  private assetClassSubscribe: Subscription;
-  private activeFromDateSubscribe: Subscription;
-  private securitySubscribe: Subscription;
+  private assetClassSubscribe?: Subscription;
+  private activeFromDateSubscribe?: Subscription;
+  private securitySubscribe?: Subscription;
 
   constructor(
     private translateService: TranslateService,
@@ -506,9 +523,9 @@ export class SecurityEditSupport {
   }
 
   destroy(): void {
-    this.assetClassSubscribe && this.assetClassSubscribe.unsubscribe();
-    this.activeFromDateSubscribe && this.activeFromDateSubscribe.unsubscribe();
-    this.securitySubscribe && this.securitySubscribe.unsubscribe();
+    this.assetClassSubscribe?.unsubscribe();
+    this.activeFromDateSubscribe?.unsubscribe();
+    this.securitySubscribe?.unsubscribe();
   }
 
   private getIsinTickerLeverageFields(

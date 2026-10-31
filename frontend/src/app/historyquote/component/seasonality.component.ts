@@ -120,7 +120,7 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
 
   readonly result = computed(() => (this.seasonalReturns.hasValue() ? this.seasonalReturns.value() : null));
 
-  private idSecuritycurrency: number;
+  private idSecuritycurrency?: number;
   private formReady = false;
   private readonly destroyRef = inject(DestroyRef);
 
@@ -214,8 +214,13 @@ export class SeasonalityComponent extends FormBase implements OnInit, IGlobalMen
 
   /** Publishes the current inputs as a new object, so even unchanged inputs request the matrix again. */
   private reload(): void {
+    const idSecuritycurrency = this.idSecuritycurrency;
+    if (idSecuritycurrency == null) {
+      this.seasonalParams.set(undefined);
+      return;
+    }
     this.seasonalParams.set({
-      idSecuritycurrency: this.idSecuritycurrency,
+      idSecuritycurrency,
       periodType: requireFormControl(this.configObject.periodType).value,
       includeDividends: !!requireFormControl(this.configObject.includeDividends).value,
       inTenantCurrency: !!requireFormControl(this.configObject.inTenantCurrency).value

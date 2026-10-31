@@ -21,7 +21,7 @@ import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.atta
 import { ProcessedActionData } from '../../types/processed.action.data';
 import { ProcessedAction } from '../../types/processed.action';
 import { EntityMapping } from './general.entity.prepare.edit';
-import { ProposeChangeEntityWithEntity } from '../model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../model/propose.change.entity.whit.entity';
 import { ProposeChangeEntityService } from '../service/propose.change.entity.service';
 import { ProposeDataChangeState } from '../../types/propose.data.change.state';
 import { InfoLevelType } from '../../message/info.leve.type';
@@ -84,7 +84,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
 
   private readonly destroyRef = inject(DestroyRef);
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
-  private menuSubscription: Subscription;
+  private menuSubscription?: Subscription;
 
   /**
    * Creates the request for you table component.
@@ -345,6 +345,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
    */
   protected getEntityMapping(proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): EntityMapping | undefined {
     const entityType = proposeChangeEntityWithEntity.proposeChangeEntity.entity;
+    if (entityType == null) return undefined;
 
     // Lazy initialization of entity mapping
     if (!this.entityMappingArr[entityType]) {

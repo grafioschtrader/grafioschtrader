@@ -84,7 +84,7 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
 
   protected readonly destroyRef = inject(DestroyRef);
   /** The current watchlist object containing ID and data. */
-  private watchlist: Watchlist | null;
+  private watchlist: Watchlist | null = null;
 
   /** The last active route to preserve tab state across watchlist changes. */
   private lastActiveRoute: string = AppSettings.WATCHLIST_PERFORMANCE_KEY;

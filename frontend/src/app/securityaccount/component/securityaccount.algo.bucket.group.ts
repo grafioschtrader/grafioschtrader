@@ -1,7 +1,7 @@
 import { TranslateService } from '@ngx-translate/core';
 import { Security } from '../../entities/security';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import type { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
 import { SecurityaccountGroupBaseDynamic } from './securityaccount.group.base.dynamic';
 
 /**

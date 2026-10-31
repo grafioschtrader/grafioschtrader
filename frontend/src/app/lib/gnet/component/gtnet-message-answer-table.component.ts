@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../helper/required-state';
 import { Component, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HelpIds } from '../../help/help.ids';
@@ -58,7 +59,15 @@ import { GTNetMessageCodeType } from '../model/gtnet.message';
 export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenu<GTNetMessageAnswer> implements OnInit {
   private gtNetMessageAnswerService: GTNetMessageAnswerService = inject(GTNetMessageAnswerService);
 
-  callParam: GTNetMessageAnswerCallParam;
+  private initializedCallParam?: GTNetMessageAnswerCallParam;
+
+  get callParam(): GTNetMessageAnswerCallParam {
+    return requireInitialized(this.initializedCallParam, 'GTNetMessageAnswerTableComponent.callParam');
+  }
+
+  set callParam(value: GTNetMessageAnswerCallParam) {
+    this.initializedCallParam = value;
+  }
 
   constructor() {
     super(

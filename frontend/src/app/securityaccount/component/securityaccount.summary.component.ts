@@ -12,8 +12,8 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { NgxFileDropEntry, NgxFileDropModule } from 'ngx-file-drop';
 import { Securityaccount } from '../../entities/securityaccount';
-import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
-import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
+import type { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import type { SecurityPositionSummary } from '../../entities/view/security.position.summary';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { OptionalParameters } from '../../historyquote/service/time.series.quotes.service';
 import {
@@ -62,8 +62,6 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
 
   protected importTransactionHeadService: ImportTransactionHeadService = inject(ImportTransactionHeadService);
 
-  private idSecurityaccount: number;
-
   private readonly summaryRequest = signal<
     ReturnType<SecurityaccountService['getPositionSummarySecurityaccountRequest']> | undefined
   >(undefined);
@@ -74,10 +72,9 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
     effect(() => {
       const id = this.id();
       untracked(() => {
-        this.idSecurityaccount = id;
         this.securityAccount = this.injector
           .get(TreeNavigationStateService)
-          .getEntity<Securityaccount>(AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY, this.idSecurityaccount);
+          .getEntity<Securityaccount>(AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY, id);
         this.readData();
       });
     });
@@ -100,7 +97,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   override readData(): void {
     this.selectedSecurityPositionSummary = null;
     const request = this.securityaccountService.getPositionSummarySecurityaccountRequest(
-      this.idSecurityaccount,
+      this.id(),
       this.securityaccountGroupBase.defaultGroup,
       this.includeClosedPosition,
       this.untilDate
@@ -182,7 +179,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   }
 
   protected getOptionalParameters(): OptionalParameters {
-    return { idSecurityaccount: this.idSecurityaccount };
+    return { idSecurityaccount: this.id() };
   }
 
   private uploadTransactionFiles(formData: FormData): void {
@@ -190,14 +187,14 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
     const useGtPlatform = !this.accountHasOwnPlatform || (this.gtPlatformConfigured && this.useGtPlatformDrop);
     formData.append('useGtPlatform', String(useGtPlatform));
     this.importTransactionHeadService
-      .uploadPdfFileSecurityAccountTransactions(this.idSecurityaccount, formData)
+      .uploadPdfFileSecurityAccountTransactions(this.id(), formData)
       .subscribe((sfdit: SuccessFailedDirectImportTransaction) => {
         const data: any = {};
         data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = JSON.stringify(sfdit);
         if (sfdit.failed) {
           this.router.navigate([
             `${BaseSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}`,
-            this.idSecurityaccount,
+            this.id(),
             data
           ]);
         } else {

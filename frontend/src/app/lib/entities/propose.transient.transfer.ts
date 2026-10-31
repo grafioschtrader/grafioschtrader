@@ -1,5 +1,5 @@
 export abstract class ProposeTransientTransfer {
-  idProposeRequest: number;
+  idProposeRequest?: number;
   noteRequestOrReject: string | null = null;
 
   public getId(): number | null | undefined {

@@ -15,7 +15,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { Security } from '../../entities/security';
-import { TenantLimit } from '../../shared/types/tenant.limit';
+import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { AssetclassType } from '../types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../types/special.investment.instruments';
 import { Assetclass } from '../../entities/assetclass';

@@ -15,7 +15,6 @@ import { Transaction } from '../../entities/transaction';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { HelpIds } from '../../lib/help/help.ids';
 import { FormDefinitionHelper } from '../../shared/edit/form.definition.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -73,8 +72,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   // Access the form
   //  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
-  formConfig: FormConfig;
-
   // The first is the withdrawal(debit) and the 2nd is the deposit(credit)
   transactions: Transaction[] = [];
 
@@ -89,9 +86,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   private creditPortfolio: Portfolio | null = null;
 
   // Observer subscribe
-  private transactionTimeChangeSub: Subscription;
-  private debitChashaccountChangedSub: Subscription;
-  private creditChashaccountChangedSub: Subscription;
+  private transactionTimeChangeSub?: Subscription;
+  private debitChashaccountChangedSub?: Subscription;
+  private creditChashaccountChangedSub?: Subscription;
 
   constructor() {
     super();
@@ -140,9 +137,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   ////////////////////////////////////////////////
   onHide(event: unknown): void {
-    this.debitChashaccountChangedSub && this.debitChashaccountChangedSub.unsubscribe();
-    this.creditChashaccountChangedSub && this.creditChashaccountChangedSub.unsubscribe();
-    this.transactionTimeChangeSub && this.transactionTimeChangeSub.unsubscribe();
+    this.debitChashaccountChangedSub?.unsubscribe();
+    this.creditChashaccountChangedSub?.unsubscribe();
+    this.transactionTimeChangeSub?.unsubscribe();
     super.close();
   }
 
@@ -207,7 +204,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
    */
   private toggleDebitCashaccountOptionsByTransactionTime(): void {
     const transactionTime = requireFormControl(this.configObject.transactionTime).value;
-    if (!transactionTime || !this.portfolios) {
+    if (!transactionTime || !this.portfoliosIfInitialized) {
       return;
     }
     BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
@@ -505,7 +502,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     );
 
     this.configObject.idCreditCashaccount.valueKeyHtmlOptions = valueKeyHtmlOptions;
-    if (this.portfolios && requireFormControl(this.configObject.transactionTime).value) {
+    if (this.portfoliosIfInitialized && requireFormControl(this.configObject.transactionTime).value) {
       BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
         this.portfolios.flatMap((p) => p.cashaccountList || []),
         this.configObject.idCreditCashaccount,

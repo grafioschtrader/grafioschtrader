@@ -14,7 +14,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { SecaccountTradingPeriod } from '../../entities/secaccount.trading.period';
 import { GlobalSessionNames } from '../../lib/global.session.names';
-import { TradingPeriodTransactionSummary } from '../../entities/trading.period.transaction.summary';
+import type { TradingPeriodTransactionSummary } from '../../entities/trading.period.transaction.summary';
 import { AssetclassType } from '../../shared/types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 import { BaseSettings } from '../../lib/base.settings';

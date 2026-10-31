@@ -10,23 +10,53 @@ export interface MobileWatchlistGroup {
 
 interface MobilePriceFields {
   idSecuritycurrency: number;
+  sTimestamp?: string | number | null;
   sLast?: number | null;
   sChangePercentage?: number | null;
+  sPrevClose?: number | null;
+  sHigh?: number | null;
+  sLow?: number | null;
+  sVolume?: number | null;
   priceFractionDigits?: number | null;
+  note?: string | null;
 }
 
-export interface MobileSecurityPosition {
-  securitycurrency: MobilePriceFields & {
-    name: string | null;
-    currency: string | null;
-    assetClass?: { categoryType?: string | null; specialInvestmentInstrument?: string | null } | null;
-  };
+/** Changes over longer periods; only the price update fills them, the stored content leaves them null. */
+interface MobilePeriodChanges {
+  ytdChangePercentage?: number | null;
+  timeFrameChangePercentage?: number | null;
+}
+
+export interface MobileSecurity extends MobilePriceFields {
+  name: string | null;
+  currency: string | null;
+  isin?: string | null;
+  tickerSymbol?: string | null;
+  /** Set for a derived instrument, whose ISIN and ticker belong to its base instrument. */
+  idLinkSecuritycurrency?: number | null;
+  activeFromDate?: string | null;
+  activeToDate?: string | null;
+  distributionFrequency?: string | null;
+  leverageFactor?: number | null;
+  stockexchange?: { name?: string | null } | null;
+  assetClass?: {
+    categoryType?: string | null;
+    specialInvestmentInstrument?: string | null;
+    subCategoryNLS?: { map?: Record<string, string> | null } | null;
+  } | null;
+}
+
+export interface MobileSecurityPosition extends MobilePeriodChanges {
+  securitycurrency: MobileSecurity;
   units?: number | null;
+  positionGainLoss?: number | null;
   positionGainLossPercentage?: number | null;
   valueSecurity?: number | null;
+  /** The tenant has open or closed transactions on this security. */
+  watchlistSecurityHasEver?: boolean;
 }
 
-export interface MobileCurrencypairPosition {
+export interface MobileCurrencypairPosition extends MobilePeriodChanges {
   securitycurrency: MobilePriceFields & { fromCurrency: string; toCurrency: string };
 }
 

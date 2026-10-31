@@ -18,7 +18,7 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
 import { BaseSettings } from '../../lib/base.settings';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { SecaccountTradingPeriod } from '../../entities/secaccount.trading.period';
-import { TradingPeriodTransactionSummary } from '../../entities/trading.period.transaction.summary';
+import type { TradingPeriodTransactionSummary } from '../../entities/trading.period.transaction.summary';
 import { AssetclassType } from '../../shared/types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 import { TradingPeriodTableComponent } from './trading-period-table.component';
@@ -49,7 +49,7 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
   static readonly DIALOG_WIDTH = 850;
-  callParam: CallParam;
+  readonly callParam: CallParam = this.dynamicDialogConfig.data.callParam;
 
   readonly tradingPeriodTable = viewChild<TradingPeriodTableComponent>('tradingPeriodTable');
 
@@ -63,7 +63,6 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
-    this.callParam = this.dynamicDialogConfig.data.callParam;
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'SECURITYACCOUNT_NAME', 25, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('tradingPlatformPlan', true, {

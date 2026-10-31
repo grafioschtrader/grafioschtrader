@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { Injectable } from '@angular/core';
 import { inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
@@ -22,7 +23,15 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
   private translateService = inject(TranslateService);
   private globalParamService = inject(GlobalparameterService);
 
-  private rootNode: TreeNode;
+  private initializedRootNode?: TreeNode;
+
+  private get rootNode(): TreeNode {
+    return requireInitialized(this.initializedRootNode, 'BaseDataMainTreeContributor.rootNode');
+  }
+
+  private set rootNode(value: TreeNode) {
+    this.initializedRootNode = value;
+  }
 
   getTreeOrder(): number {
     return 3; // BaseData comes after Watchlist

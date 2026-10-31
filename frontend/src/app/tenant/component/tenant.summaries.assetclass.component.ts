@@ -3,8 +3,8 @@ import { DestroyRef, inject } from '@angular/core';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
-import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
+import type { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import type { SecurityPositionSummary } from '../../entities/view/security.position.summary';
 import { TranslateModule } from '@ngx-translate/core';
 import { SecurityaccountAssetclassCategortypeGroup } from '../../securityaccount/component/securityaccount.assetclass.categortype.group';
 import { SecurityaccountAlgoBucketGroup } from '../../securityaccount/component/securityaccount.algo.bucket.group';
@@ -35,8 +35,8 @@ import { FeatureType } from '../../lib/login/model/configuration-with-login';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 import { BaseSettings } from '../../lib/base.settings';
 import { TenantHoldingsChartService } from '../service/tenant.holdings.chart.service';
-import { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
-import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import type { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
+import type { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { NgxFileDropModule } from 'ngx-file-drop';
 
@@ -163,6 +163,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     const style = super.getCellStyle(positionSummary, field);
     return field.field === 'parentDeviation' &&
       positionSummary?.parentDeviation != null &&
+      positionSummary.securityDeviationPercentage != null &&
       Math.abs(positionSummary.parentDeviation) > positionSummary.securityDeviationPercentage
       ? { ...style, 'font-weight': 'bold', 'background-color': 'rgba(234, 179, 8, 0.30)' }
       : style;
@@ -177,7 +178,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     }
   }
 
-  protected override getTitleChart(): string {
+  protected override getTitleChart(): string | undefined {
     return this.translatedTitle;
   }
 
@@ -198,6 +199,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
    */
   protected override changeToOpenChart(): void {
     const title = this.getTitleChart();
+    if (title == null) return;
     const summary = <SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<any>>>(
       this.securityPositionSummary
     );

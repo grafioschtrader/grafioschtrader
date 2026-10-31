@@ -6,7 +6,7 @@ import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
-import { HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp } from '../model/historyquote.quality.group';
+import { type HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp } from '../model/historyquote.quality.group';
 import { SecurityService } from '../service/security.service';
 
 /**

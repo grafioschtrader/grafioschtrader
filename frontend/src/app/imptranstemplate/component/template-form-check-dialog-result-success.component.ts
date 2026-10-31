@@ -1,6 +1,6 @@
 import { Component, computed, effect, input, untracked } from '@angular/core';
 
-import { FormTemplateCheck } from './form.template.check';
+import type { FormTemplateCheckResult } from './form.template.check';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TranslateModule } from '@ngx-translate/core';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
@@ -25,7 +25,7 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
   imports: [TranslateModule]
 })
 export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordConfigBase {
-  readonly formTemplateCheck = input<FormTemplateCheck>();
+  readonly formTemplateCheck = input<FormTemplateCheckResult>();
   readonly transactionPos = computed(() => {
     const result = this.formTemplateCheck();
     return result

@@ -105,7 +105,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   /** Row highlighted by the single-selection tree table. */
   readonly tableSelection = signal<TreeNode | null>(null);
   readonly contextMenuItems = signal<MenuItem[] | null>(null);
-  fileUploadParam: FileUploadParam | null;
+  fileUploadParam: FileUploadParam | null = null;
   readonly visibleUploadFileDialog = signal(false);
   isAdmin: boolean;
   readonly modelCountry = signal<TaxCountry | null>(null);
@@ -116,7 +116,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
     this.readData();
   }
 
-  private selectedNode: TreeNode | null;
+  private selectedNode: TreeNode | null = null;
   private countryNames: Intl.DisplayNames;
 
   constructor() {

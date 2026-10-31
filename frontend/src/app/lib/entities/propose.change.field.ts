@@ -1,6 +1,6 @@
 export class ProposeChangeField {
-  idProposeField: number;
-  idProposeEntity: number;
+  idProposeField?: number;
+  idProposeEntity?: number;
 
   constructor(
     public field: string,

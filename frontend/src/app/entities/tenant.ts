@@ -8,8 +8,8 @@ export class Tenant extends TenantBase {
   simulationStartDate: string | null = null;
   simulationInitializationMode: string | null = null;
   country: string | null = null;
-  portfolioList: Portfolio[];
-  tenantKindType: TenantKindType | string;
+  portfolioList: Portfolio[] = [];
+  tenantKindType?: TenantKindType | string;
   idWatchlistPerformance: number | null = null;
   /** Monitoring hierarchy for a main tenant, shared replay strategy for a simulation tenant. */
   idAlgoTop: number | null = null;
@@ -22,7 +22,7 @@ export class Tenant extends TenantBase {
   /** Keeps the disposal cost estimate on for this tenant; effective only while the instance switch is on too. */
   disposalCostEstimate = true;
 
-  public override getId(): number {
+  public override getId(): number | undefined {
     return this.idTenant;
   }
 }

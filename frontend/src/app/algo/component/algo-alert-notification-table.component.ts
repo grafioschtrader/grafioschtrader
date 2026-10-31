@@ -31,7 +31,7 @@ import { Helper } from '../../lib/helper/helper';
     [customSortFn]="customSorter"
     [multiSortMeta]="multiSortMeta"
     [paginator]="true"
-    [rows]="rowsPerPage"
+    [rows]="rowsPerPage ?? 20"
     (pageChange)="onPage($event)"
     [hasFilter]="hasFilter"
     [showContextMenu]="!readOnly"

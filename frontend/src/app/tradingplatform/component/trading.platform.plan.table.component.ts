@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { Component, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
@@ -67,7 +68,15 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
 
   callParam: TradingPlatformPlan | null = null;
   readonly visibleFeeModelDialog = signal(false);
-  feeModelCallParam: TradingPlatformPlan;
+  private initializedFeeModelCallParam?: TradingPlatformPlan;
+
+  get feeModelCallParam(): TradingPlatformPlan {
+    return requireInitialized(this.initializedFeeModelCallParam, 'TradingPlatformPlanTableComponent.feeModelCallParam');
+  }
+
+  set feeModelCallParam(value: TradingPlatformPlan) {
+    this.initializedFeeModelCallParam = value;
+  }
   readonly ownerHighlight = (entity: TradingPlatformPlan, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);
 

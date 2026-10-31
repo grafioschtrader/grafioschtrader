@@ -9,7 +9,7 @@ import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { Auditable } from '../../lib/entities/auditable';
-import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { DialogModule } from '@openng/optimus-ui/dialog';

@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, computed, OnInit, signal, viewChild, input, inject } from '@angular/core';
@@ -190,12 +191,19 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   // Tab management
   activeTabValue: string = 'security';
 
-  securityEditSupport: SecurityEditSupport;
-  formConfigPeriod: FormConfig;
+  readonly securityEditSupport = new SecurityEditSupport(this.translateService, this.gps, this);
+  private initializedFormConfigPeriod?: FormConfig;
+
+  get formConfigPeriod(): FormConfig {
+    return requireInitialized(this.initializedFormConfigPeriod, 'SecurityEditComponent.formConfigPeriod');
+  }
+
+  set formConfigPeriod(value: FormConfig) {
+    this.initializedFormConfigPeriod = value;
+  }
   configSplit: FieldConfig[] = [];
   periodPrices: FieldConfig[] = [];
-  configSplitObject: { [name: string]: FieldConfig };
-  configPeriodPrices: { [name: string]: FieldConfig };
+
   private readonly selectedAssetClass = signal<Assetclass | null>(null);
   readonly canHaveSplits = computed(() =>
     Security.canHaveSplitConnector(this.selectedAssetClass(), this.securityEditSupport.hasMarketValue ?? true)
@@ -211,7 +219,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   readonly visibleSecurityLookupDialog = signal(false);
 
   readonly dataLoaded = signal(false);
-  private connectorLoad: Subscription;
+  private connectorLoad?: Subscription;
 
   private applyingIssuerCountryPrefill = false;
   private issuerCountryOverridden = false;
@@ -222,7 +230,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   ngOnInit(): void {
-    this.securityEditSupport = new SecurityEditSupport(this.translateService, this.gps, this);
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.formConfigPeriod = AppHelper.getDefaultFormConfig(this.gps, 2, this.helpLinkPeriod.bind(this));
 
@@ -286,8 +293,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     ];
 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    this.configPeriodPrices = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.periodPrices);
-    this.configSplitObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.configSplit);
+    TranslateHelper.prepareFieldsAndErrors(this.translateService, this.periodPrices);
+    TranslateHelper.prepareFieldsAndErrors(this.translateService, this.configSplit);
     const frequencies = Object.keys(DistributionFrequency).filter((key) => Number.isNaN(Number(key)));
     this.translateService
       .get(frequencies)
@@ -808,16 +815,18 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     if (securityCurrencypairCallParam && id != null) {
       if (this.securityEditSupport.hasMarketValue) {
         // Only load security splits for an existing security
-        if ((<Security>securityCurrencypairCallParam).splitPropose) {
+        const splitPropose = (<Security>securityCurrencypairCallParam).splitPropose;
+        if (splitPropose) {
           // Propose change
-          this.seetc().setDataList((<Security>securityCurrencypairCallParam).splitPropose, true);
+          this.seetc().setDataList(splitPropose, true);
         } else {
           idxSplitPeriod = observables.length;
           observables.push(this.securitysplitService.getSecuritysplitsByIdSecuritycurrency(id));
         }
       } else {
-        if ((<Security>securityCurrencypairCallParam).hpPropose) {
-          this.shpetc().setDataList((<Security>securityCurrencypairCallParam).hpPropose, true);
+        const hpPropose = (<Security>securityCurrencypairCallParam).hpPropose;
+        if (hpPropose) {
+          this.shpetc().setDataList(hpPropose, true);
         } else {
           idxSplitPeriod = observables.length;
           observables.push(this.historyquotePeriodService.getHistoryquotePeriodByIdSecuritycurrency(id));

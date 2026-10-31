@@ -1,3 +1,5 @@
+import { holdingSteps, interpolatedClose, totalReturnFactorAt } from '../model/security.chart.series';
+import { requireInitialized } from '../../lib/helper/required-state';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   AfterViewInit,
@@ -209,10 +211,10 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   );
   endDate = new Date();
   fromDate: Date | null = null;
-  oldestTradeDate: number;
+  oldestTradeDate?: number;
   hasTrades = false;
   showHolding: boolean = true;
-  usePercentage: boolean;
+  usePercentage = false;
   connectGaps = true;
   /**
    * Draws every security of the chart as total return series: the gross dividends are reinvested at the ex-date.
@@ -223,8 +225,16 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   loadedData: LoadedData[] = [];
   oldestMatchDate: string | null = null;
   youngestMatchDate: string | null = null;
-  subscriptionViewSizeChanged: Subscription;
-  taEditParam: TaEditParam;
+  subscriptionViewSizeChanged?: Subscription;
+  private initializedTaEditParam?: TaEditParam;
+
+  get taEditParam(): TaEditParam {
+    return requireInitialized(this.initializedTaEditParam, 'TimeSeriesChartComponent.taEditParam');
+  }
+
+  set taEditParam(value: TaEditParam) {
+    this.initializedTaEditParam = value;
+  }
   /** Also opened from the menu bar, which is outside this view, therefore a signal. */
   readonly visibleTaDialog = signal(false);
   contextMenuItems: MenuItem[] = [];
@@ -237,9 +247,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   showVolume: boolean = false;
   // protected paramMap: ParamMap;
   protected transactionPositionList: SecurityTransactionPosition[] = [];
-  private minValueOfY: number;
-  private maxValueOfY: number;
-  private taFormDefinitions: { [key: string]: TaFormDefinition };
+  private taFormDefinitions?: { [key: string]: TaFormDefinition };
   private indicatorDefinitions: IndicatorDefinitions;
 
   private legendTooltipMap = new Map<string, string>();
@@ -252,7 +260,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   private shapeController: ChartShapeController;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
   /** Set once the first chart has loaded the library; indicator toggles and cleanup never trigger the import. */
-  private plotly: PlotlyInstance;
+  private plotly?: PlotlyInstance;
   private destroyed = false;
   /** Raised by every plot, so a plot still waiting for the library is dropped when a newer one follows. */
   private plotVersion = 0;
@@ -419,7 +427,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 
   ngOnDestroy(): void {
     this.destroyed = true;
-    this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
+    this.subscriptionViewSizeChanged?.unsubscribe();
     this.shapeController.destroy();
     this.activePanelService.destroyPanel(this);
   }
@@ -564,6 +572,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   }
 
   oldestTrade(event: unknown): void {
+    if (this.oldestTradeDate == null) return;
     this.fromDate = new Date(this.oldestTradeDate);
     this.onBlurFromDate(event);
   }
@@ -971,9 +980,14 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   }
 
   private getHoldingTraceForSecurity(securityTransactionSummary: SecurityTransactionSummary): Data {
+    const steps = holdingSteps(
+      securityTransactionSummary.transactionPositionList,
+      moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+      moment(this.endDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)
+    );
     const trace: Data = {
-      x: [],
-      y: [],
+      x: steps.x,
+      y: steps.y,
       yaxis: 'y2',
       name: 'HOLDING',
       type: 'scatter',
@@ -983,38 +997,6 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
         color: 'rgb(148, 103, 189)'
       }
     };
-    let before = 0;
-    let seeded = false;
-    const fromDateStr = moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
-    securityTransactionSummary.transactionPositionList
-      .filter(
-        (stp) =>
-          stp.transaction.transactionType === TransactionType[TransactionType.ACCUMULATE] ||
-          stp.transaction.transactionType === TransactionType[TransactionType.REDUCE]
-      )
-      .forEach((securityTransactionPosition) => {
-        if (moment(securityTransactionPosition.transaction.transactionTime).isSameOrAfter(this.fromDate)) {
-          if (!seeded) {
-            trace.x.push(fromDateStr);
-            trace.y.push(before);
-            seeded = true;
-          }
-          const transaction = securityTransactionPosition.transaction;
-          this.getDateTimeAsStringPutAsX(transaction, trace.x);
-          trace.y.push(before);
-          this.getDateTimeAsStringPutAsX(transaction, trace.x);
-          trace.y.push(securityTransactionPosition.holdingsSplitAdjusted);
-        }
-        before = securityTransactionPosition.holdingsSplitAdjusted;
-      });
-    if (before != 0) {
-      if (!seeded) {
-        trace.x.push(fromDateStr);
-        trace.y.push(before);
-      }
-      trace.y.push(before);
-      trace.x.push(moment(this.endDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
-    }
     this.translateTraceName(trace);
     return trace;
   }
@@ -1022,40 +1004,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   // Helper method to interpolate missing Y values
   // Supports both line traces (y array) and candlestick/OHLC traces (close array)
   private getInterpolatedYValue(historicalLine: any, foundIndex: number): number | null {
-    const absoluteIndex = Math.abs(foundIndex);
-    // Handle both line traces (y array) and candlestick/OHLC traces (close array)
-    const yValues = historicalLine.y || historicalLine.close;
-    if (!yValues) {
-      return null;
-    }
-    // If value exists, return it directly
-    if (yValues[absoluteIndex] != null) {
-      return yValues[absoluteIndex];
-    }
-    // Search for the next valid previous value
-    let prevIndex = absoluteIndex - 1;
-    while (prevIndex >= 0 && yValues[prevIndex] == null) {
-      prevIndex--;
-    }
-
-    // Search for the next valid following value
-    let nextIndex = absoluteIndex + 1;
-    while (nextIndex < yValues.length && yValues[nextIndex] == null) {
-      nextIndex++;
-    }
-    // Calculate the average value
-    if (prevIndex >= 0 && nextIndex < yValues.length) {
-      // Both values found - calculate average
-      return (yValues[prevIndex] + yValues[nextIndex]) / 2;
-    } else if (prevIndex >= 0) {
-      // Only previous value found
-      return yValues[prevIndex];
-    } else if (nextIndex < yValues.length) {
-      // Only following value found
-      return yValues[nextIndex];
-    }
-    // No price is a gap in the marker trace.
-    return null;
+    const yValues: (number | null)[] | undefined = historicalLine.y || historicalLine.close;
+    return yValues ? interpolatedClose(yValues, foundIndex) : null;
   }
 
   private getBuySellDivMarkForSecurity(
@@ -1169,7 +1119,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     this.visibleTaDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       const taEditReturn: TaEditReturn = processedActionData.data;
-      const taFormDefinition: TaFormDefinition = this.taFormDefinitions[taEditReturn.taIndicators];
+      const taFormDefinition = this.taFormDefinitions?.[taEditReturn.taIndicators];
+      if (!taFormDefinition) return;
       const iDef = this.indicatorDefinitions.defMap.get(
         TaIndicators[taEditReturn.taIndicators as keyof typeof TaIndicators]
       );
@@ -1280,7 +1231,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   }
 
   private editIndicatorParam(iDef: IndicatorDefinition, taIndicators: string): void {
-    const taFormDefinition: TaFormDefinition = this.taFormDefinitions[taIndicators];
+    const taFormDefinition = this.taFormDefinitions?.[taIndicators];
+    if (!taFormDefinition) return;
     const dataModel = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators);
     this.taEditParam = new TaEditParam(
       taIndicators,
@@ -1297,15 +1249,18 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   }
 
   private loadAndShowIndicatorDataWithMenu(taIndicators: string, iDef: IndicatorDefinition): void {
-    iDef.menuItem.icon = BaseSettings.ICONNAME_SQUARE_CHECK;
+    if (!this.taFormDefinitions?.[taIndicators]) return;
+    requireInitialized(iDef.menuItem, 'Indicator menu').icon = BaseSettings.ICONNAME_SQUARE_CHECK;
     iDef.shown = true;
     this.loadAndShowIndicatorData(taIndicators, iDef);
   }
 
   private loadAndShowIndicatorData(taIndicators: string, iDef: IndicatorDefinition): void {
+    const definition = this.taFormDefinitions?.[taIndicators];
+    if (!definition) return;
     const dataModel: string =
       this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators) ||
-      this.taFormDefinitions[taIndicators].defaultDataModel;
+      definition.defaultDataModel;
     this.indicatorDefinitions.idSecuritycurrency = this.loadedData[0].idSecuritycurrency;
     this.historyquoteService
       .getTaWithShortMediumLongInputPeriod(
@@ -1341,7 +1296,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 
   private deleteTaIndicator(iDef: IndicatorDefinition) {
     if (iDef.shown) {
-      iDef.menuItem.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
+      requireInitialized(iDef.menuItem, 'Indicator menu').icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
       iDef.shown = false;
       const traceIndices = iDef.taTraceIndicatorDataList
         .map((taT) => taT.traceIndex)
@@ -1493,20 +1448,13 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
         ld.historicalLine = this.getHistoricalLineTrace(ld);
       }
 
-      // Calculate Y-axis min/max from close values (for candlestick/OHLC, use high/low)
-      if (ld.historicalLine.type === 'candlestick' || ld.historicalLine.type === 'ohlc') {
-        this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.low.filter((v: number) => v != null));
-        this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.high.filter((v: number) => v != null));
-      } else {
-        this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.y);
-        this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.y);
-      }
       traces.push(ld.historicalLine);
     }
     return traces;
   }
 
   private plot(element: any, traces: any, layout: any): void {
+    const plotly = requireInitialized(this.plotly, 'Time-series renderer');
     const config = PlotlyLocales.setPlotyLocales(this.gps);
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
     config.modeBarButtonsToAdd = [
@@ -1519,15 +1467,15 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       ...this.shapeController.getModeBarButtons()
     ];
     config.displaylogo = false;
-    this.plotly.purge(this.chartElement().nativeElement);
-    this.plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
+    plotly.purge(this.chartElement().nativeElement);
+    plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
     element.on('plotly_afterplot', this.attachTooltip.bind(this));
     element.on('plotly_relayout', () => this.shapeController.onRelayout());
 
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
       this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe((changedViewSizeType) =>
-        this.plotly.Plots.resize(element)
+        plotly.Plots.resize(element)
       );
     }
   }
@@ -1597,7 +1545,6 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       },
       yaxis: {
         autorange: true,
-        range: [this.minValueOfY, this.maxValueOfY],
         ticksuffix: this.usePercentage ? '%' : '',
         fixedrange: false,
         type: 'linear'
@@ -1741,8 +1688,7 @@ class LoadedData {
    * @returns the factor, 1 when no ex-date follows or the prices are not adjusted
    */
   totalReturnFactorAt(dateStr: string): number {
-    const step = this.totalReturnFactors.find((trf) => trf.exDate > dateStr);
-    return step ? step.factor : 1;
+    return totalReturnFactorAt(this.totalReturnFactors, dateStr);
   }
 }
 

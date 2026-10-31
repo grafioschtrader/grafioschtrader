@@ -1,6 +1,6 @@
 import { Security } from '../security';
 import { Currencypair } from '../currencypair';
-import { SecuritycurrencyPosition } from './securitycurrency.position';
+import type { SecuritycurrencyPosition } from './securitycurrency.position';
 import { UDFFillInfo } from '../../udfmetasecurity/model/udf.metadata.security';
 
 export interface SecuritycurrencyGroup {

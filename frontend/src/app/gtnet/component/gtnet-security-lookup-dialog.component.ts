@@ -81,7 +81,7 @@ export class GtnetSecurityLookupDialogComponent {
   private selectionHandled = false;
 
   /** Subscription to the current lookup request, cancelled on dialog close or new search */
-  private lookupSubscription: Subscription | null;
+  private lookupSubscription?: Subscription | null;
 
   /**
    * Starts the search when the dialog has opened. Optimus UI emits onShow at the end of the enter motion; the state

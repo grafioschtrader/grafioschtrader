@@ -5,7 +5,7 @@ export { HistoryquoteCreateType } from './historyquote.base';
 
 export class Historyquote extends HistoryquoteBase {
   idHistoryQuote?: number;
-  createModifyTime: string | Date;
+  createModifyTime?: string | Date;
 
   @Exclude()
   override getId(): number | undefined {

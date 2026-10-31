@@ -24,7 +24,7 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T extends object> extends S
 
   readonly algoCallParam = input.required<AlgoCallParam>();
 
-  protected securityaccount1ChangedSub: Subscription;
+  protected securityaccount1ChangedSub?: Subscription;
   /** The security accounts allowed for the instrument type currently selected in the dialog. */
   protected accountOptions: ValueKeyHtmlSelectOptions[] = [];
 
@@ -33,7 +33,7 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T extends object> extends S
   }
 
   override onHide(event: unknown): void {
-    this.securityaccount1ChangedSub && this.securityaccount1ChangedSub.unsubscribe();
+    this.securityaccount1ChangedSub?.unsubscribe();
     super.onHide(event);
   }
 

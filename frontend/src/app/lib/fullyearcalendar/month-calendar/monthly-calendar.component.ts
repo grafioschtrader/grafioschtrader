@@ -29,7 +29,7 @@ import { LocaleSettings } from '../Interface/locale.settings';
               <tr>
                 @for (day of week.daysOfWeek; track day) {
                   <td style="text-align: center;padding: 0px;">
-                    @if (day.init) {
+                    @if (day.day; as date) {
                       <div
                         [className]="day && day.isDisabled ? 'daydisabled' : ''"
                         (click)="day && day.isDisabled ? $event.stopPropagation() : dayClick(day)">
@@ -49,7 +49,7 @@ import { LocaleSettings } from '../Interface/locale.settings';
                                   }
                               : { background: 'transparent' }
                           ">
-                          {{ day.day.getDate() }}
+                          {{ date.getDate() }}
                           @if (day.ranges) {
                             <span>
                               <span class="tooltiptext">
@@ -90,9 +90,9 @@ export class MonthlyCalendarComponent {
   dayClick(day: Day): void {
     if (day.ranges) {
       for (const r of day.ranges) {
-        r.select(day.ranges);
+        r.select(r, day.ranges);
       }
-    } else {
+    } else if (day.day) {
       this.dayClicked.emit(day.day);
     }
   }

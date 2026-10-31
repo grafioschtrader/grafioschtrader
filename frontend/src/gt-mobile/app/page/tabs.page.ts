@@ -2,9 +2,9 @@ import { Component } from '@angular/core';
 import { IonIcon, IonLabel, IonTabBar, IonTabButton, IonTabs } from '@ionic/angular';
 import { TranslatePipe } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
-import { gridOutline, listOutline } from 'ionicons/icons';
+import { briefcaseOutline, gridOutline, listOutline } from 'ionicons/icons';
 
-/** The two main views of the mobile application, switched by tabs at the bottom of the screen. */
+/** The main views of the mobile application, switched by tabs at the bottom of the screen. */
 @Component({
   selector: 'mobile-tabs-page',
   imports: [IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel, TranslatePipe],
@@ -14,6 +14,10 @@ import { gridOutline, listOutline } from 'ionicons/icons';
         <ion-tab-button tab="dashboard">
           <ion-icon name="grid-outline" />
           <ion-label>{{ 'DASHBOARD' | translate }}</ion-label>
+        </ion-tab-button>
+        <ion-tab-button tab="portfolios">
+          <ion-icon name="briefcase-outline" />
+          <ion-label>{{ 'PORTFOLIOS' | translate }}</ion-label>
         </ion-tab-button>
         <ion-tab-button tab="watchlists">
           <ion-icon name="list-outline" />
@@ -25,6 +29,6 @@ import { gridOutline, listOutline } from 'ionicons/icons';
 })
 export class TabsPage {
   constructor() {
-    addIcons({ gridOutline, listOutline });
+    addIcons({ briefcaseOutline, gridOutline, listOutline });
   }
 }

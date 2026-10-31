@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { FieldDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
 import { UserTaskType } from '../../types/user.task.type';
-import { StringResponse } from '../../types/string.response';
+import type { StringResponse } from '../../types/string.response';
 import { BaseSettings } from '../../base.settings';
 
 @Service()

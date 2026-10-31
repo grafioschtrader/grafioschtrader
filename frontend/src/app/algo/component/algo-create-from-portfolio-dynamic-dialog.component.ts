@@ -1,4 +1,4 @@
-import { afterNextRender, inject, Injector, Component, OnInit } from '@angular/core';
+import { inject, Component, OnInit } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { SimpleDynamicFormBase } from '../../lib/edit/simple.dynamic.form.base';
 import { AlgoTopService } from '../service/algo.top.service';
@@ -34,9 +34,8 @@ export class AlgoCreateFromPortfolioDynamicDialogComponent extends SimpleDynamic
   private algoTopService: AlgoTopService = inject(AlgoTopService);
 
   static readonly DIALOG_WIDTH = 500;
-  private readonly injector = inject(Injector);
-  callParam: CallParam;
-  private dto: AlgoTopCreateFromPortfolio;
+  readonly callParam: CallParam = this.dynamicDialogConfig.data.callParam;
+  private readonly dto: AlgoTopCreateFromPortfolio = this.callParam.thisObject as AlgoTopCreateFromPortfolio;
 
   constructor() {
     super(HelpIds.HELP_ALGO_TREE);
@@ -56,12 +55,6 @@ export class AlgoCreateFromPortfolioDynamicDialogComponent extends SimpleDynamic
       ...this.configObject.referenceDate.calendarConfig,
       maxDate: yesterday
     };
-    afterNextRender(() => this.initializeForm(), { injector: this.injector });
-  }
-
-  private initializeForm(): void {
-    this.callParam = this.dynamicDialogConfig.data.callParam;
-    this.dto = this.callParam.thisObject as AlgoTopCreateFromPortfolio;
   }
 
   override submit(value: { [name: string]: any }): void {

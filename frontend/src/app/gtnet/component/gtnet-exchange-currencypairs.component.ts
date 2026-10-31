@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { Component, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -61,7 +62,7 @@ import { Helper } from '../../lib/helper/helper';
       [enableCustomSort]="true"
       [customSortFn]="exchangeSorter"
       [paginator]="true"
-      [rows]="rowsPerPage"
+      [rows]="rowsPerPage ?? 20"
       [rowsPerPageOptions]="[20, 50, 100, 150]"
       [hasFilter]="true"
       (componentClick)="onComponentClick($event)"
@@ -191,7 +192,18 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   idSecuritycurreniesWithDetails: Set<number> = new Set();
 
   /** Currency pair to edit */
-  currencypairCallParam: Currencypair;
+  private initializedCurrencypairCallParam?: Currencypair;
+
+  get currencypairCallParam(): Currencypair {
+    return requireInitialized(
+      this.initializedCurrencypairCallParam,
+      'GTNetExchangeCurrencypairsComponent.currencypairCallParam'
+    );
+  }
+
+  set currencypairCallParam(value: Currencypair) {
+    this.initializedCurrencypairCallParam = value;
+  }
 
   constructor() {
     super('Currencypair');

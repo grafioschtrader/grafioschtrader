@@ -21,6 +21,7 @@ import { FormBase } from '../../lib/edit/form.base';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FirstAndMissingTradingDays, HoldingService, PerformanceWindowDef, WeekYear } from '../service/holding.service';
+import { performanceWindowFromDraft } from '../model/performance-window';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { BusinessHelper } from '../../shared/helper/business.helper';
@@ -112,8 +113,8 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     return period ? [period.firstDayTotals, period.lastDayTotals, period.difference] : [];
   });
 
-  dateFromSubscribe: Subscription;
-  dateToSubscribe: Subscription;
+  dateFromSubscribe?: Subscription;
+  dateToSubscribe?: Subscription;
   readonly firstAndMissingTradingDays = signal<FirstAndMissingTradingDays | null>(null);
   private readonly firstTradingDayField = ShowRecordConfigBase.createColumnConfig(
     DataType.DateNumeric,
@@ -131,15 +132,15 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
       ) ?? ''
   );
   private readonly renderInjector = inject(Injector);
-  private calculationRequest: Subscription;
-  private menuRequest: Subscription;
+  private calculationRequest?: Subscription;
+  private menuRequest?: Subscription;
   readonly loading = signal(false);
   readonly reportDialogService = inject(PerformanceReportDialogService);
   readonly menuItems = signal<MenuItem[]>([]);
-  chartData: ReturnType<typeof PlotlyHelper.initializeChartTrace>[];
-  private subscriptionRequestFromChart: Subscription;
-  private idPortfolio: number | null;
-  private reportWindow: PerformanceWindowDef;
+  chartData: ReturnType<typeof PlotlyHelper.initializeChartTrace>[] = [];
+  private subscriptionRequestFromChart?: Subscription;
+  private idPortfolio: number | null = null;
+  private reportWindow?: PerformanceWindowDef;
   private destroyRef = inject(DestroyRef);
 
   constructor() {
@@ -165,25 +166,32 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
       .subscribe({
         next: (famtd: FirstAndMissingTradingDays) => {
           this.loading.set(false);
-          if (famtd.firstEverTradingDay) {
+          const {
+            firstEverTradingDay,
+            secondEverTradingDay,
+            lastTradingDayOfLastYear,
+            secondLatestTradingDay,
+            latestTradingDay
+          } = famtd;
+          if (firstEverTradingDay && secondEverTradingDay && secondLatestTradingDay && latestTradingDay) {
             this.firstAndMissingTradingDays.set(famtd);
             const fromDate =
-              famtd.firstEverTradingDay > famtd.lastTradingDayOfLastYear
-                ? famtd.firstEverTradingDay
-                : famtd.lastTradingDayOfLastYear;
+              !lastTradingDayOfLastYear || firstEverTradingDay > lastTradingDayOfLastYear
+                ? firstEverTradingDay
+                : lastTradingDayOfLastYear;
             requireFormControl(this.configObject.dateFrom).setValue(
               BusinessHelper.getDateFromSessionStorage(GlobalGTSessionNames.PERFORMANCE_DATE_FROM, new Date(fromDate))
             );
-            requireFormControl(this.configObject.dateTo).setValue(new Date(famtd.latestTradingDay));
+            requireFormControl(this.configObject.dateTo).setValue(new Date(latestTradingDay));
             this.configObject.dateFrom.calendarConfig = {
-              minDate: new Date(famtd.firstEverTradingDay),
-              maxDate: new Date(famtd.secondLatestTradingDay),
+              minDate: new Date(firstEverTradingDay),
+              maxDate: new Date(secondLatestTradingDay),
               disabledDays: [Weekday.Saturday, Weekday.Sunday],
               disabledDates: famtd.holidayAndMissingQuoteDays
             };
             this.configObject.dateTo.calendarConfig = {
-              minDate: new Date(famtd.secondEverTradingDay),
-              maxDate: new Date(famtd.latestTradingDay),
+              minDate: new Date(secondEverTradingDay),
+              maxDate: new Date(latestTradingDay),
               disabledDays: [Weekday.Saturday, Weekday.Sunday],
               disabledDates: famtd.holidayAndMissingQuoteDays
             };
@@ -191,7 +199,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
             this.valueChangedOnDateFrom();
             this.setMonthWeekPeriod();
           } else {
-            // There are no trades -> performance calculation not possible
+            // A performance interval needs both selectable date boundaries.
             FormHelper.disableEnableFieldConfigs(true, this.config);
           }
         },
@@ -241,8 +249,13 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   }
 
   submit(value: { [name: string]: any }): void {
-    const pWD: PerformanceWindowDef = new PerformanceWindowDef(this.idPortfolio);
-    this.form().cleanMaskAndTransferValuesToBusinessObject(pWD, true);
+    const draft: Partial<PerformanceWindowDef> = { idPortfolio: this.idPortfolio };
+    this.form().cleanMaskAndTransferValuesToBusinessObject(draft, true);
+    const pWD = performanceWindowFromDraft(draft);
+    if (!pWD) {
+      this.configObject.submit.disabled = false;
+      return;
+    }
     this.calculationRequest?.unsubscribe();
     this.loading.set(true);
     this.calculationRequest = this.holdingService
@@ -265,9 +278,9 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   }
 
   ngOnDestroy(): void {
-    this.dateFromSubscribe && this.dateFromSubscribe.unsubscribe();
-    this.dateToSubscribe && this.dateToSubscribe.unsubscribe();
-    this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
+    this.dateFromSubscribe?.unsubscribe();
+    this.dateToSubscribe?.unsubscribe();
+    this.subscriptionRequestFromChart?.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
 
@@ -344,7 +357,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     const days = this.firstAndMissingTradingDays();
     const options = this.configObject.periodSplit.valueKeyHtmlOptions;
     if (!days || !options) return;
-    const pWD: PerformanceWindowDef = new PerformanceWindowDef(this.idPortfolio);
+    const pWD: Partial<PerformanceWindowDef> = { idPortfolio: this.idPortfolio };
     this.form().cleanMaskAndTransferValuesToBusinessObject(pWD, true);
     // const dateFrom = this.configObject.dateFrom.formControl.value;
     // const dateTo = this.configObject.dateTo.formControl.value;

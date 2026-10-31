@@ -1,8 +1,9 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { previousTreeNode } from '../../lib/maintree/types/tree-node-navigation';
 import { Injectable } from '@angular/core';
 import { inject } from '@angular/core';
 import { Observable, combineLatest, of } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import moment from 'moment';
 import { MenuItem, TreeNode, ConfirmationService } from '@openng/optimus-ui/api';
 import { TranslateService } from '@ngx-translate/core';
@@ -18,8 +19,7 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Portfolio } from '../../entities/portfolio';
 import { Cashaccount } from '../../entities/cashaccount';
 import { Securityaccount } from '../../entities/securityaccount';
-import { Tenant } from '../../entities/tenant';
-import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
+import { type TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
 import { AppSettings } from '../../shared/app.settings';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { BaseSettings } from '../../lib/base.settings';
@@ -54,9 +54,15 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
   private confirmationService = inject(ConfirmationService);
   private translateService = inject(TranslateService);
 
-  private tenant: Tenant;
-  private tenantLimits: { [key: string]: TenantLimit };
-  private rootNode: TreeNode;
+  private initializedTenantLimits?: { [key: string]: TenantLimit };
+
+  private get tenantLimits(): { [key: string]: TenantLimit } {
+    return requireInitialized(this.initializedTenantLimits, 'PortfolioMainTreeContributor.tenantLimits');
+  }
+
+  private set tenantLimits(value: { [key: string]: TenantLimit }) {
+    this.initializedTenantLimits = value;
+  }
 
   getTreeOrder(): number {
     return 0; // Portfolio is first
@@ -64,9 +70,8 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
 
   getRootNodes(): Observable<TreeNode[]> {
     return this.tenantService.getTenantAndPortfolio().pipe(
-      tap((tenant) => (this.tenant = tenant)),
       map((tenant) => {
-        this.rootNode = {
+        const rootNode: TreeNode = {
           expanded: true,
           children: [],
           data: new TypeNodeData(
@@ -76,13 +81,12 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
             null
           )
         };
-        return [this.rootNode];
+        return [rootNode];
       })
     );
   }
 
   refreshNodes(rootNode: TreeNode): Observable<void> {
-    this.rootNode = rootNode;
     const tenantObservable = this.tenantService.getTenantAndPortfolio();
     const portfolioObservable = this.portfolioService.getPortfoliosForTenantOrderByName();
     // The limits only gate the create menu entries; the backend enforces them anyway. A failure here must therefore
@@ -100,7 +104,6 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
       portfolios: portfolioObservable,
       tenantLimits: tenantLimitsObservable
     }).pipe(
-      tap(({ tenant }) => (this.tenant = tenant)),
       map(({ tenant, portfolios, tenantLimits }): void => {
         const tenantStringify = JSON.stringify(tenant);
 

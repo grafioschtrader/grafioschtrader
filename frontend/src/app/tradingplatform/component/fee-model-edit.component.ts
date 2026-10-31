@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, afterNextRender, effect, inject, Injector, signal, viewChild, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -150,10 +151,18 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
   readonly testResult = signal<TransactionCostEstimateResult | null>(null);
 
   private readonly injector = inject(Injector);
-  private estimateSubscription: Subscription;
+  private estimateSubscription?: Subscription;
   private estimateRevision = 0;
 
-  securityaccount: Securityaccount;
+  private initializedSecurityaccount?: Securityaccount;
+
+  get securityaccount(): Securityaccount {
+    return requireInitialized(this.initializedSecurityaccount, 'FeeModelEditComponent.securityaccount');
+  }
+
+  set securityaccount(value: Securityaccount) {
+    this.initializedSecurityaccount = value;
+  }
 
   constructor() {
     super(HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN);
@@ -201,7 +210,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
 
   protected override initialize(): void {
     if (this.isDynamic) {
-      this.feeModelYamlValue.set(this.securityaccount?.feeModelYaml || '');
+      this.feeModelYamlValue.set(this.initializedSecurityaccount?.feeModelYaml || '');
     } else {
       this.feeModelYamlValue.set(this.callParam()?.feeModelYaml || '');
     }
@@ -314,9 +323,9 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
     this.testResult.set(null);
 
     const request: TransactionCostEstimateRequest = {
-      idSecurityaccount: this.securityaccount?.idSecuritycashAccount,
+      idSecurityaccount: this.initializedSecurityaccount?.idSecuritycashAccount,
       idTradingPlatformPlan: this.isDynamic
-        ? this.securityaccount?.tradingPlatformPlan?.idTradingPlatformPlan
+        ? this.initializedSecurityaccount?.tradingPlatformPlan?.idTradingPlatformPlan
         : this.callParam()?.idTradingPlatformPlan,
       tradeValue: requireFormControl(this.configObject.tradeValue).value || 0,
       units: requireFormControl(this.configObject.units).value || 0,

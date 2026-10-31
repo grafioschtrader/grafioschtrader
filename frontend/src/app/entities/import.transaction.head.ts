@@ -5,7 +5,7 @@ export class ImportTransactionHead implements BaseID {
   idTransactionHead?: number;
   name: string | null = null;
   note: string | null = null;
-  securityaccount: Securityaccount;
+  securityaccount?: Securityaccount;
   /** When true, the import templates are taken from the tenant's Grafioschtrader import platform. */
   useGtPlatform = false;
 

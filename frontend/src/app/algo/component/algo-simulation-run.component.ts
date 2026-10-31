@@ -295,16 +295,15 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   readonly contextMenuItems = signal<MenuItem[]>([]);
   readonly busy = signal(false);
   readonly notFound = signal(false);
-  private idTenant: number;
   private poll?: ReturnType<typeof setTimeout>;
   /** When the current polling began; decides between the fast and the slow interval. */
   private pollStartedAt?: number;
   /** Running state of the previously applied run, undefined before the first one, to detect a start or an end. */
   private wasRunning?: boolean;
-  private dataChangedSubscribe: Subscription;
-  private anchorSubscribe: Subscription;
+  private dataChangedSubscribe?: Subscription;
+  private anchorSubscribe?: Subscription;
   /** Answers the chart outlet when it asks for the equity curve, which happens each time it is opened. */
-  private requestFromChartSubscribe: Subscription;
+  private requestFromChartSubscribe?: Subscription;
   /** The equity curve last loaded for the chart, kept so that a reopened chart can be served without a request. */
   private equityCurve: SimulationRunEquityPoint[] = [];
   /** Day in 'YYYY-MM-DD' the loaded window is centred on; undefined for the end of the run. */
@@ -327,7 +326,6 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     effect(() => {
       const id = this.id();
       untracked(() => {
-        this.idTenant = id;
         this.stopPolling();
         this.pendingReads.forEach((request) => request.unsubscribe());
         this.equityCurve = [];
@@ -445,7 +443,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   cancel(): void {
     this.busy.set(true);
     this.runService
-      .cancel(this.idTenant)
+      .cancel(this.id())
       .pipe(finalize(() => this.busy.set(false)))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.refresh());
@@ -469,7 +467,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     this.busy.set(true);
     request.add(
       this.runService
-        .status(this.idTenant)
+        .status(this.id())
         .pipe(finalize(() => this.busy.set(false)))
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
@@ -537,7 +535,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    * when it is open already, the new curve is sent to it directly.
    */
   private showEquityChart(): void {
-    const idTenant = this.idTenant;
+    const idTenant = this.id();
     this.replaceAlgoRequest('equity').add(
       this.runService
         .equitySeries(idTenant)
@@ -663,7 +661,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     );
     this.replaceAlgoRequest('events').add(
       this.runService
-        .eventWindow(this.idTenant, this.anchorDate)
+        .eventWindow(this.id(), this.anchorDate)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((window: SimulationRunEventWindow) => {
           this.events.set(window.events);

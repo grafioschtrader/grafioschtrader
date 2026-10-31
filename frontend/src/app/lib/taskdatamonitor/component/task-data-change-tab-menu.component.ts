@@ -6,7 +6,7 @@ import { filter } from 'rxjs';
 import { Tab, TabList, Tabs } from '@openng/optimus-ui/tabs';
 import { TabItem } from '../../types/tab.item';
 import { TaskDataChangeService } from '../service/task.data.change.service';
-import { MAIN_TASK_QUEUE, TaskDataChangeFormConstraints, TaskQueueInfo } from '../types/task.data.change';
+import { MAIN_TASK_QUEUE, type TaskDataChangeFormConstraints, TaskQueueInfo } from '../types/task.data.change';
 
 /**
  * One tab of the task monitor per queue of background tasks. The main queue comes first and is the default, so the

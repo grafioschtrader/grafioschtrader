@@ -3,7 +3,7 @@ import { Component, OnInit, input } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 
-import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
+import type { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ImportSettings } from './import.settings';

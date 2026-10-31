@@ -45,7 +45,6 @@ import { BaseSettings } from '../base.settings';
 export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalparameters> implements OnInit {
   readonly globalparameters = input.required<Globalparameters>();
   inputRuleDescription: string | null = null;
-  private selectedPropertyField: string;
   private inputRule: InputRule | null = null;
 
   constructor() {
@@ -76,27 +75,28 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
   }
 
   private getPropertyDefinition(globalparameters: Globalparameters): FieldConfig {
+    let selectedPropertyField: string;
     const propertyName = globalparameters.propertyName;
     if (propertyName == null) throw new Error('A global parameter requires its property name before editing.');
     let fieldConfig: FieldConfig;
 
     if (globalparameters.propertyBlobAsText) {
-      this.selectedPropertyField = 'propertyBlobAsText';
+      selectedPropertyField = 'propertyBlobAsText';
       fieldConfig = DynamicFieldHelper.createFieldTextareaInputStringHeqF(
-        this.selectedPropertyField,
+        selectedPropertyField,
         BaseSettings.FID_MAX_LETTERS,
         true,
         { textareaRows: 10 }
       );
     } else if (globalparameters.propertyDateTime) {
-      this.selectedPropertyField = 'propertyDateTime';
+      selectedPropertyField = 'propertyDateTime';
       // Use string input for datetime values (ISO 8601 format)
-      fieldConfig = DynamicFieldHelper.createFieldInputString(this.selectedPropertyField, propertyName, 30, true);
+      fieldConfig = DynamicFieldHelper.createFieldInputString(selectedPropertyField, propertyName, 30, true);
     } else if (globalparameters.propertyDate) {
-      this.selectedPropertyField = 'propertyDate';
+      selectedPropertyField = 'propertyDate';
       fieldConfig = DynamicFieldHelper.createFieldPcalendar(
         DataType.DateString,
-        this.selectedPropertyField,
+        selectedPropertyField,
         propertyName,
         true
       );
@@ -105,13 +105,13 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
       (globalparameters.propertyString == null && this.inputRule?.isNumeric())
     ) {
       // A row without any value has no type of its own; a numeric input rule makes it an integer parameter
-      this.selectedPropertyField = 'propertyInt';
+      selectedPropertyField = 'propertyInt';
       // Use inputRule min/max if available, otherwise use defaults
       const min = this.inputRule?.min ?? 0;
       const max = this.inputRule?.max ?? 9999;
       fieldConfig = DynamicFieldHelper.createFieldMinMaxNumber(
         DataType.Numeric,
-        this.selectedPropertyField,
+        selectedPropertyField,
         propertyName,
         true,
         min,
@@ -127,9 +127,9 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
         }
       }
     } else {
-      this.selectedPropertyField = 'propertyString';
+      selectedPropertyField = 'propertyString';
       // Matches the length of the column property_string
-      fieldConfig = DynamicFieldHelper.createFieldInputString(this.selectedPropertyField, propertyName, 100, true);
+      fieldConfig = DynamicFieldHelper.createFieldInputString(selectedPropertyField, propertyName, 100, true);
       // Add pattern validator from inputRule if present
       if (this.inputRule) {
         const additionalValidators = this.inputRule.getValidators();

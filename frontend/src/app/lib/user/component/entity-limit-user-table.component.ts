@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../helper/required-state';
 import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { TableConfigBase } from '../../datashowbase/table.config.base';
 import { Component, DestroyRef, inject, signal, output, input, effect, untracked } from '@angular/core';
@@ -22,7 +23,7 @@ import { EntityLimitService } from '../../entitylimit/service/entity.limit.servi
 import { MessageToastService } from '../../message/message.toast.service';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { AuditHelper } from '../../helper/audit.helper';
-import { ProposeChangeEntityWithEntity } from '../../proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../proposechange/model/propose.change.entity.whit.entity';
 import { ProposeUserTaskService } from '../../dynamicdialog/service/propose.user.task.service';
 import { BaseSettings } from '../../base.settings';
 
@@ -98,7 +99,15 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
   readonly visibleDialog = signal(false);
   entityKeyName: string;
 
-  existingEntityLimit: EntityLimit;
+  private initializedExistingEntityLimit?: EntityLimit;
+
+  get existingEntityLimit(): EntityLimit {
+    return requireInitialized(this.initializedExistingEntityLimit, 'EntityLimitUserTableComponent.existingEntityLimit');
+  }
+
+  set existingEntityLimit(value: EntityLimit) {
+    this.initializedExistingEntityLimit = value;
+  }
 
   proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | undefined;
   private proposeMap: Map<number | undefined, ProposeChangeEntityWithEntity> = new Map();
@@ -107,7 +116,7 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
   private deleteAllowed = true;
 
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
-  private menuSubscription: Subscription;
+  private menuSubscription?: Subscription;
 
   constructor() {
     super();
@@ -262,7 +271,7 @@ export class EntityLimitUserTableComponent extends TableConfigBase implements IG
    * proposal to the limit it changes. The user passed in from the master table is left unchanged.
    */
   private createProposeLimitForView(): EntityLimit[] {
-    const entityLimits = [...this.user().entityLimitList];
+    const entityLimits = [...(this.user().entityLimitList ?? [])];
     this.deleteAllowed = true;
     const user = this.user();
     if (user.userChangeLimitProposeList) {

@@ -87,9 +87,9 @@ export class HoldingMoversWidgetComponent implements AfterViewInit, OnDestroy {
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig;
 
-  private chosenDateSubscription: Subscription;
+  private chosenDateSubscription?: Subscription;
   /** Refresh for the latest chosen date; a newer date replaces a request still outstanding */
-  private refreshSubscription: Subscription;
+  private refreshSubscription?: Subscription;
 
   constructor() {
     const gps = inject(GlobalparameterService);

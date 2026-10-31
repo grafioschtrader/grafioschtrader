@@ -71,7 +71,7 @@ export class TaxExchangeRateTableComponent extends TableEditConfigBase implement
   readonly exchangeRates = linkedSignal(() =>
     this.ratesResource.hasValue() ? this.ratesResource.value().map((row) => ({ ...row })) : []
   );
-  selectedEntity: IctaxExchangeRate;
+  selectedEntity: IctaxExchangeRate | null = null;
   isAdmin: boolean;
 
   /** User locale (e.g. 'de-CH') so the correction inputs use the same decimal separator as the rest of GT. */

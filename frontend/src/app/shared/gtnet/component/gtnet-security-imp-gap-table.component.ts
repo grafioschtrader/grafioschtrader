@@ -4,7 +4,7 @@ import { ShowRecordConfigBase } from '../../../lib/datashowbase/show.record.conf
 import { ConfigurableTableComponent } from '../../../lib/datashowbase/configurable-table.component';
 import { DataType } from '../../../lib/dynamic-form/models/data.type';
 import { TranslateValue } from '../../../lib/datashowbase/column.config';
-import { GTNetSecurityImpGap } from '../model/gtnet-security-imp-gap';
+import type { GTNetSecurityImpGap } from '../model/gtnet-security-imp-gap';
 import { GTNet } from '../../../lib/gnet/model/gtnet';
 import { GapCodeType } from '../model/gap-code.type';
 

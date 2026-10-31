@@ -59,7 +59,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   selectedNode: TreeNode<TypeNodeData> | null = null;
   readonly contextMenuItems = signal<MenuItem[] | null>(null);
 
-  private subscription: Subscription;
+  private readonly subscription: Subscription;
 
   constructor() {
     // Setup component callbacks for the service
@@ -71,7 +71,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       refreshTree: () => this.refreshTree()
     });
 
-    this.refreshTreeBecauseOfParentAction();
+    this.subscription = this.refreshTreeBecauseOfParentAction();
     this.forgetNodeOnNavigationElsewhere();
   }
 
@@ -207,8 +207,8 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     );
   }
 
-  private refreshTreeBecauseOfParentAction(): void {
-    this.subscription = this.dataChangedService.dateChanged$.subscribe((processedActionData) => {
+  private refreshTreeBecauseOfParentAction(): Subscription {
+    return this.dataChangedService.dateChanged$.subscribe((processedActionData) => {
       // Delegate to the service to refresh appropriate nodes
       this.mainTreeService.refreshNodesForDataChange(processedActionData).subscribe(() => {
         this.triggerTreeUpdate();

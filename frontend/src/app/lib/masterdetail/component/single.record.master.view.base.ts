@@ -8,8 +8,7 @@ import { forkJoin, Subscription } from 'rxjs';
 import { BaseSettings } from '../../base.settings';
 import { DeleteService } from '../../datashowbase/delete.service';
 import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { FieldConfig } from '../../dynamic-form/models/field.config';
-import { FormConfig } from '../../dynamic-form/models/form.config';
+import { FormBase } from '../../edit/form.base';
 import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
 import { BaseID } from '../../entities/base.id';
 import { AppHelper } from '../../helper/app.helper';
@@ -35,7 +34,10 @@ import { ProcessedActionData } from '../../types/processed.action.data';
  * @template CP - The type of call parameters passed to edit dialogs (defaults to any for maximum flexibility)
  */
 @Directive()
-export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> implements IGlobalMenuAttach {
+export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any>
+  extends FormBase<FieldFormGroup>
+  implements IGlobalMenuAttach
+{
   protected gps: GlobalparameterService = inject(GlobalparameterService);
   protected confirmationService: ConfirmationService = inject(ConfirmationService);
   protected messageToastService: MessageToastService = inject(MessageToastService);
@@ -48,11 +50,6 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
 
   // Access child components
   readonly form = viewChild.required(DynamicFormComponent);
-
-  // Form configuration
-  formConfig: FormConfig;
-  config: FieldFormGroup[] = [];
-  configObject: { [name: string]: FieldConfig };
 
   private readonly childEntityListState = signal<S[]>([]);
 
@@ -83,7 +80,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   set entityList(value: T[]) {
     this.entityListState.set(value);
   }
-  changeOnMainFieldSub: Subscription;
+  changeOnMainFieldSub?: Subscription;
   /** Parameter object passed to edit dialog components. Type is defined by the consuming application. */
   private readonly callParamState = signal<CP | null>(null);
 
@@ -119,7 +116,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
     this.selectedEntityState.set(value ?? null);
   }
   /** Avoid looking for changes on the main select box  */
-  protected ignoreChangeOnMonitorField: boolean;
+  protected ignoreChangeOnMonitorField = false;
 
   /**
    * Shows a singe row of a array. If the value of the main field changes then others shown properties are
@@ -136,6 +133,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
     private entityName: string,
     protected deleteService: DeleteService
   ) {
+    super();
     this.destroyRef.onDestroy(() => this.activePanelService.destroyPanel(this));
   }
 
@@ -265,7 +263,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   }
 
   destroy(): void {
-    this.changeOnMainFieldSub && this.changeOnMainFieldSub.unsubscribe();
+    this.changeOnMainFieldSub?.unsubscribe();
   }
 
   /**

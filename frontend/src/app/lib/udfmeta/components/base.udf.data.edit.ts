@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../helper/required-state';
 import { requireFieldName } from '../../dynamic-form/models/form-control-access';
 import { SimpleFormEditBase } from '../../edit/simple.form.edit.base';
 import { MessageToastService } from '../../message/message.toast.service';
@@ -32,7 +33,15 @@ export abstract class BaseUDFDataEdit extends SimpleFormEditBase {
   readonly uDFGeneralCallParam = input.required<UDFGeneralCallParam>();
 
   /** Name of the primary key field for the entity being edited (e.g., 'idPortfolio', 'idWatchlist') */
-  entityKeyName: string;
+  private initializedEntityKeyName?: string;
+
+  get entityKeyName(): string {
+    return requireInitialized(this.initializedEntityKeyName, 'BaseUDFDataEdit.entityKeyName');
+  }
+
+  set entityKeyName(value: string) {
+    this.initializedEntityKeyName = value;
+  }
 
   /**
    * Creates the base UDF data edit component.

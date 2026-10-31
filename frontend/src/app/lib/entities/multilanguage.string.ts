@@ -4,7 +4,7 @@ export class MultilanguageString {
 }
 
 export class MultilanguageStrings {
-  [language: string]: string;
-  de: string;
-  en: string;
+  [language: string]: string | undefined;
+  de?: string;
+  en?: string;
 }

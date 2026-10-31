@@ -4,8 +4,8 @@ This file provides frontend-specific guidance to Claude Code when working with t
 
 ## Type checking
 
-Both hosts and the Vitest sources inherit `noImplicitAny`, `strictBindCallApply`, `strictFunctionTypes`, `noImplicitThis`, `useUnknownInCatchVariables`,
-`alwaysStrict`, `strictBuiltinIteratorReturn` and `strictNullChecks` from `tsconfig.json`. The Angular API ratchet guards these options.
+Both hosts, Mobile and the Vitest sources use full `strict: true` from `tsconfig.json`, including
+`strictPropertyInitialization`. The Angular API ratchet checks every project for disabled strict options.
 Keep callback parameters, model fields and return types explicit where TypeScript cannot infer them. Use `unknown`
 for an unused event or an opaque value; do not add `any` to silence a diagnostic. Dynamic JSON dictionaries use
 `Record` types; entity keys use `keyof T`. Numeric enum names received from JSON are indexed through
@@ -19,8 +19,41 @@ Validator callbacks accept `AbstractControl` and return `ValidationErrors | null
 generic model parameters. Handlers shared by several CDK drop lists retain the list's generic parameter.
 
 Verify both host builds and `npx tsc -p tsconfig.spec.json --noEmit`; Vitest executes tests without type checking them.
-`strictNullChecks` also checks Angular template bindings in both hosts. `strictPropertyInitialization` remains a
-separate stage. Keep required inputs non-null and render their consumers only after the context is loaded. Capture
+`strictNullChecks` also checks Angular template bindings in both hosts. Resource handles (`Subscription`,
+`ResizeObserver`, `MutationObserver`, `AfterRenderRef`, including `ReturnType<typeof afterNextRender>`) are optional
+until registered, or definitely assigned in the constructor. Cleanup checks an absent handle; do not create a dummy
+subscription or use a definite-assignment assertion to silence initialization errors. The resource-initialization
+ratchet checks every property with the TypeScript compiler across all applications and tests, including aliases,
+constructor branches and accesses before assignment, and forbids definite-assignment assertions on any property.
+Calendar models and `CurrencypairWithTransaction` initialize required state in their constructors; calendar padding keeps
+its absent date. Render and click
+handlers narrow that date before use. A `Month` receives its index at construction, and a `Range` receives its source,
+date and colors before it can be selected; `select(range, ranges)` preserves the source callback and overlapping ranges.
+Dynamic dialog parameters available from `DynamicDialogConfig.data` initialize
+readonly fields directly; they need no assignment in `ngOnInit` or a render callback. Unloaded selections, reports and
+session caches retain their explicit null state. A Plotly reference stays optional until its loader resolves; operations
+that require it use `requireInitialized`, while destruction and resize readiness retain their guards.
+`FormBase.formConfig` and `configObject` are checked accessors over uninitialized backing state. Build them before the
+child form renders. Use `configObjectIfInitialized` for a real readiness check or for retaining controls during a rebuild.
+`DynamicFormComponent` publishes its group and fieldset metadata together after construction; it creates no replacement
+empty group before its inputs are available. `requireInitialized` reports the missing lifecycle value by name and accepts
+valid falsy values such as zero and false.
+Grouped form owners use `FormBase<FieldFormGroup>`; master/detail, password, tenant, transaction and instrument-search
+forms share its checked configuration accessors. Preserve an optional readiness check with `configObjectIfInitialized`
+when adding a form owner to this hierarchy. Connector definitions and loaded asset/instrument metadata likewise use
+checked accessors until they have been prepared; a missing definition must not appear as an empty option list.
+Create `AssetclassCallParam` and `StockexchangeCallParam` with their loaded validation and suggestion data before
+showing the dialog. Table metadata belongs to the table, independently of the dialog context.
+Required dialog and report metadata use checked accessors over optional backing state. Inspect the backing state for
+readiness and cache reuse; reading a checked accessor for a boolean test would turn normal loading into an error.
+Cash-account editors use `portfoliosIfInitialized` for that readiness check. A required route input supplies its id
+directly rather than copying it into a second field in an effect. Keep report-specific portfolio/tenant ids, grouping
+options and allocation comparisons optional in the shared securities-account table; they do not exist in every report.
+An unloaded report stays null. A tree refresh carries its response through asynchronous translation instead of keeping
+it in an instance field, so data and labels belong to the same refresh.
+`rowsPerPage` stays optional until a setting or page event supplies it. Bind an absent size with `?? 20`, the shared table
+default, so rendering does not manufacture a persisted user preference.
+Keep required inputs non-null and render their consumers only after the context is loaded. Capture
 nullable signal values with `@if (value(); as loaded)` or `@let` before narrowing them; a repeated signal read is a
 separate value to the template checker. Dynamic input templates use `BaseInputComponent.fieldName`, which checks
 the required field name, and grouped layouts use `requireFormControl` after form construction.
@@ -28,6 +61,35 @@ the required field name, and grouped layouts use `requireFormControl` after form
 Represent existing empty DTO values explicitly with `| null`, retaining their initializers and optional properties.
 Keep `null` and `undefined` distinct where JSON serialization depends on them; do not replace missing values with
 empty strings, zeroes, casts or non-null assertions merely to satisfy the compiler.
+Draft entities leave server-assigned ids, timestamps and computed fields optional until forms or server responses
+supply them. Required requests narrow these values before dispatch, and asynchronous callbacks retain the captured id.
+Child collections of new hierarchy nodes start empty; computed financial values remain absent. Lifecycle accessors
+belong to UI and dialog state, not to entity serialization with private backing-field names.
+`MultilanguageStrings` allows missing language keys. Suggestion lists narrow their values before publishing options.
+`PerformanceWindowDef` contains complete serialized date strings and a period split. Build it with
+`performanceWindowFromDraft`; incomplete form values must not become REST path segments or a report scope.
+The time-series price axis uses Plotly autorange; do not accumulate bounds from uninitialized numbers.
+Report responses loaded as plain JSON use interfaces and type-only imports when they have no client constructor,
+methods or class-transformer metadata. `AccountPosition*` and `SecurityPosition*` in `entities/view` follow this rule;
+`src/report-response.ratchet.spec.ts` forbids runtime declarations in those model files and registers further named JSON
+contracts, including watchlist positions, dividend/cost reports, task-form constraints and limit/connector responses.
+Import parser results use `ImportTransactionPos`; saved import-table rows use `PersistedImportTransactionPos` with
+their required position/head ids and filename. Keep nullable parser results until that persisted boundary. History-quote
+quality responses are JSON interfaces; `pickHistoryquoteQualityIds` selects only the query dimensions and retains zero
+and null values. A derived instrument's response is `SecurityCurrencypairDerivedLinks`; executable adaptation lives in
+`SecurityDerivedLinksHelper`.
+Keep constructed entities and
+decorated models as classes. Match backend property/getter names, explicit null values and omitted `NON_NULL` fields.
+Rebalancing metrics and shares of a non-positive report total can be null; missing quotes and chart values remain
+gaps, and deviation highlighting requires both the deviation and its tolerance.
+Watchlist history dates arrive as ISO strings or null. Parse them before comparing with a `Date`; an absent history date
+cannot establish that a feed is complete. Missing feed URLs stay null through detail inputs, and download actions guard
+their presence. `CurrencypairTransactionData` describes the raw transaction response; `CurrencypairWithTransaction`
+constructs the chart adapter and preserves a null reverse pair.
+`FirstAndMissingTradingDays` is the converted date-picker model; `FirstAndMissingTradingDaysResponse` contains the raw
+ISO strings. `parseTradingDays` preserves local midnight and null date boundaries. Performance inputs require both
+selectable boundaries before they are enabled. Template checks submit `FormTemplateCheck`; only
+`FormTemplateCheckResult` contains the nullable parsing results returned by the server.
 `BaseAuthService.updateEntity` accepts a null or undefined id for creation (POST); an existing number/string id
 selects PUT. Requests that require a persisted id must first narrow it. Capture the checked id in a local constant
 before an asynchronous confirmation instead of reading a mutable entity property again inside its callback.
@@ -1440,8 +1502,18 @@ renders the server-computed results of `/api/dashboard` and never saves a layout
   keeps the option on. Check with `npx tsc -p tsconfig.gt-mobile.json --noEmit`. Many desktop entity classes
   (`src/app/entities/**`) do not compile under it yet, so the app declares the JSON fields it reads as its own
   interfaces (see `watchlist/mobile.watchlist.rows.ts`) instead of importing them.
-- Routes: `#/login`, then the tabs `#/tabs/dashboard` and `#/tabs/watchlists` (`page/tabs.page.ts`), and the
-  full-screen widget `#/widget/:instanceId` outside the tabs. A new main view is a further tab.
+- Routes: `#/login`, then the tabs `#/tabs/dashboard`, `#/tabs/portfolios` and `#/tabs/watchlists`
+  (`page/tabs.page.ts`), and outside the tabs the full-screen widget `#/widget/:instanceId`, one group of the account
+  report `#/portfolios/:grouping/:groupName` and an instrument of a watchlist
+  `#/watchlist/:idWatchlist/instrument/:idSecuritycurrency`. A new main view is a further tab; a drill-down from a
+  list is a page of its own, since the phone has no expandable rows or wide tables. The detail page reads what its
+  list just read from a `MobileSessionCache` store (`MobileWatchlistStore`, `MobilePortfolioStore`), so it opens
+  without a request of its own and reads only after a reload. Records with many figures use
+  `shared/detail-sections.component.ts` (label left, value right, lines without a value left out).
+- The price chart of the instrument page (`instrument/instrument-chart.component.ts`) is the part of the desktop
+  time-series chart that suits a finger: periods, price line, purchase/sale/dividend markers, units held and total
+  return. Its held units, marker interpolation and total return factors come from
+  `src/app/historyquote/model/security.chart.series.ts`, which `TimeSeriesChartComponent` uses as well.
 - A new widget type needs a renderer in `src/gt-mobile/app/widget/` and a `@case` in `widget-body.component.ts`;
   without one the card says the widget is only available in the desktop view.
 - Dev server: `npm run start:mobile` (port 4203, same proxy as `npm start`).

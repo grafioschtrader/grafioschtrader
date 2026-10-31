@@ -33,7 +33,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   formLocale: string;
 
   /** Number of rows displayed per page */
-  rowsPerPage: number;
+  rowsPerPage?: number;
 
   /** Index of the first row on the current page */
   firstRowIndexOnPage = 0;

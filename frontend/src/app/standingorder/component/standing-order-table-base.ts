@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { DestroyRef, Directive, inject, linkedSignal, OnDestroy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
@@ -43,7 +44,15 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   });
   readonly contextMenuItems = signal<MenuItem[]>([]);
   readonly visibleEditDialog = signal(false);
-  callParam: StandingOrderCallParam;
+  private initializedCallParam?: StandingOrderCallParam;
+
+  get callParam(): StandingOrderCallParam {
+    return requireInitialized(this.initializedCallParam, 'StandingOrderTableBase.callParam');
+  }
+
+  set callParam(value: StandingOrderCallParam) {
+    this.initializedCallParam = value;
+  }
   private readonly failuresMap = signal(new Map<number, StandingOrderFailure[]>());
   private dataSubscriptions = new Subscription();
   private menuSubscription?: Subscription;

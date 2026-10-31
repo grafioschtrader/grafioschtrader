@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { requireFieldName, requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { httpResource } from '@angular/common/http';
 import {
@@ -41,7 +42,7 @@ import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/sin
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
+import type { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import { AppSettings } from '../../shared/app.settings';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import {
@@ -135,13 +136,35 @@ export class SecurityaccountImportTransactionComponent
   // Child Dialogs
   readonly visibleUploadFileDialog = signal(false);
   readonly visibleGtnetHeadSelectDialog = signal(false);
-  fileUploadParam: FileUploadParam;
+  private initializedFileUploadParam?: FileUploadParam;
+
+  get fileUploadParam(): FileUploadParam {
+    return requireInitialized(
+      this.initializedFileUploadParam,
+      'SecurityaccountImportTransactionComponent.fileUploadParam'
+    );
+  }
+
+  set fileUploadParam(value: FileUploadParam) {
+    this.initializedFileUploadParam = value;
+  }
   // callParam: CallParam;
-  importTransactionTemplates: ImportTransactionTemplate[];
-  successFailedDirectImportTransaction: SuccessFailedDirectImportTransaction | null;
+  private initializedImportTransactionTemplates?: ImportTransactionTemplate[];
+
+  get importTransactionTemplates(): ImportTransactionTemplate[] {
+    return requireInitialized(
+      this.initializedImportTransactionTemplates,
+      'SecurityaccountImportTransactionComponent.importTransactionTemplates'
+    );
+  }
+
+  set importTransactionTemplates(value: ImportTransactionTemplate[]) {
+    this.initializedImportTransactionTemplates = value;
+  }
+  successFailedDirectImportTransaction: SuccessFailedDirectImportTransaction | null = null;
   suggestedGtnetHeadName = '';
 
-  securityAccount: Securityaccount | null;
+  securityAccount: Securityaccount | null = null;
   private readonly injector = inject(Injector);
 
   private readonly headAccountId = signal<number | undefined>(undefined);
@@ -277,7 +300,9 @@ export class SecurityaccountImportTransactionComponent
     return forkJoin([accountTemplates$, gtTemplates$]).pipe(
       map(([accountTemplates, gtTemplates]) => {
         const byId = new Map<number, ImportTransactionTemplate>();
-        [...accountTemplates, ...gtTemplates].forEach((t) => byId.set(t.idTransactionImportTemplate, t));
+        [...accountTemplates, ...gtTemplates].forEach((t) => {
+          if (t.idTransactionImportTemplate != null) byId.set(t.idTransactionImportTemplate, t);
+        });
         return [...byId.values()];
       })
     );

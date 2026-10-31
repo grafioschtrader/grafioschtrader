@@ -119,8 +119,8 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   readonly transferFxGroups = signal<FxObservationGroup[]>([]);
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderInjector = inject(Injector);
-  private comparisonRequest: Subscription;
-  private observationRequest: Subscription;
+  private comparisonRequest?: Subscription;
+  private observationRequest?: Subscription;
 
   summaryInfoFields: ColumnConfig[] = [];
   summaryStatFields: ColumnConfig[] = [];

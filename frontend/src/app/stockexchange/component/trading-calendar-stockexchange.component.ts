@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TradingCalendarBase } from '../../tradingcalendar/component/trading.calendar.base';
@@ -60,17 +61,35 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   readonly COPY_FULL_TITLE_KEY = 'TRADING_CALENDAR_FROM_OTHER_EXCHANGE_FULL';
   readonly COPY_YEAR_TITLE_KEY = 'TRADING_CALENDAR_FROM_OTHER_EXCHANGE_YEAR';
 
-  consumedDay: number;
   /**
    * Contains the difference between every day of year but minus saturday and sunday and not closed global trading days.
    */
   globalTradingMinusDaysSet: Set<number> = new Set();
-  tradingDaysPlusList: Date[];
+  private initializedTradingDaysPlusList?: Date[];
 
-  oldestYear: number;
-  youngestYear: number;
+  get tradingDaysPlusList(): Date[] {
+    return requireInitialized(
+      this.initializedTradingDaysPlusList,
+      'TradingCalendarStockexchangeComponent.tradingDaysPlusList'
+    );
+  }
 
-  private dateCreateTypes: { [key: number]: CreateType };
+  set tradingDaysPlusList(value: Date[]) {
+    this.initializedTradingDaysPlusList = value;
+  }
+
+  oldestYear?: number;
+  youngestYear?: number;
+
+  private initializedDateCreateTypes?: { [key: number]: CreateType };
+
+  private get dateCreateTypes(): { [key: number]: CreateType } {
+    return requireInitialized(this.initializedDateCreateTypes, 'TradingCalendarStockexchangeComponent.dateCreateTypes');
+  }
+
+  private set dateCreateTypes(value: { [key: number]: CreateType }) {
+    this.initializedDateCreateTypes = value;
+  }
   private readDataSub?: Subscription;
 
   constructor() {
@@ -175,6 +194,9 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   copyCalendarFromOtherExchange(fullCopy: boolean): void {
+    const oldestYear = this.oldestYear;
+    const youngestYear = this.youngestYear;
+    if (oldestYear == null || youngestYear == null) return;
     const id = this.stockexchange()?.idStockexchange;
     if (id == null) return;
     this.translateService
@@ -189,7 +211,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
               fullCopy
             ),
             sourceCopyStockexchanges: this.sourceCopyStockexchanges(),
-            calendarRange: `${this.oldestYear} - ${this.youngestYear}`
+            calendarRange: `${oldestYear} - ${youngestYear}`
           },
           modal: true,
           closable: true,

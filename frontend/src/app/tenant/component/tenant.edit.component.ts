@@ -12,7 +12,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TenantService } from '../service/tenant.service';
 import { Tenant } from '../../entities/tenant';
-import { FormConfig } from '../../lib/dynamic-form/models/form.config';
+import { FormBase } from '../../lib/edit/form.base';
 import { HelpIds } from '../../lib/help/help.ids';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
@@ -27,7 +27,7 @@ import { BaseSettings } from '../../lib/base.settings';
  * Form for editing the tenant. It also supports changing the currency of the tenant and its portfolios.
  */
 @Directive()
-export abstract class TenantEditComponent {
+export abstract class TenantEditComponent extends FormBase {
   protected gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
   protected gps: GlobalparameterService = inject(GlobalparameterService);
   protected messageToastService: MessageToastService = inject(MessageToastService);
@@ -36,21 +36,19 @@ export abstract class TenantEditComponent {
 
   protected readonly destroyRef = inject(DestroyRef);
 
-  existingTenant: Tenant;
+  existingTenant?: Tenant;
 
   readonly form = viewChild.required(DynamicFormComponent);
 
   // Output for parent view
   readonly closeDialog = output<ProcessedActionData>();
 
-  configObject: { [name: string]: FieldConfig };
-  config: FieldConfig[] = [];
-  formConfig: FormConfig;
-
   protected constructor(
     private nonModal: boolean,
     private labelColumns: number
-  ) {}
+  ) {
+    super();
+  }
 
   init(onlyCurrency: boolean, isRegistration: boolean = false): void {
     this.formConfig = AppHelper.getDefaultFormConfig(

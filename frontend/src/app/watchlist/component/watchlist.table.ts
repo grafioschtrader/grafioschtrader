@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   afterNextRender,
@@ -30,7 +31,7 @@ import { Securitycurrency } from '../../entities/securitycurrency';
 import { LastpriceOrigin } from '../../entities/types/lastprice.origin';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
-import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
+import type { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 import { Watchlist } from '../../entities/watchlist';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
@@ -61,7 +62,7 @@ import { ProductIconService } from '../../securitycurrency/service/product.icon.
 import { AppSettings } from '../../shared/app.settings';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
-import { TenantLimit } from '../../shared/types/tenant.limit';
+import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 import { WatchlistFilterSortStateService } from '../service/watchlist.filter.sort.state.service';
@@ -119,7 +120,15 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   /** Controls visibility of the security transaction dialog. */
   readonly visibleSecurityTransactionDialog = signal(false);
   /** Parameters for the transaction dialog. */
-  transactionCallParam: TransactionCallParam;
+  private initializedTransactionCallParam?: TransactionCallParam;
+
+  get transactionCallParam(): TransactionCallParam {
+    return requireInitialized(this.initializedTransactionCallParam, 'WatchlistTable.transactionCallParam');
+  }
+
+  set transactionCallParam(value: TransactionCallParam) {
+    this.initializedTransactionCallParam = value;
+  }
   /** Controls visibility of the add instrument dialog. */
   readonly visibleAddInstrumentDialog = signal(false);
   /** Controls visibility of the security edit dialog. */
@@ -142,25 +151,33 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   public readonly visibleAddPriceProblemDialog = signal(false);
 
   /** Security parameter for derived security dialogs. */
-  securityCallParam: Security | null;
+  securityCallParam: Security | null = null;
 
   /** Security or currency parameter for edit dialogs. */
-  securityCurrencypairCallParam: Security | Securitycurrency | null;
+  securityCurrencypairCallParam: Security | Securitycurrency | null = null;
 
   /** Current tenant ID. */
-  idTenant: number;
+  readonly idTenant = this.gps.requireIdTenant();
 
   /** Loading state indicator. */
   readonly loading = signal(false);
 
   /** Current watchlist ID. */
-  idWatchlist: number;
+  private initializedIdWatchlist?: number;
+
+  get idWatchlist(): number {
+    return requireInitialized(this.initializedIdWatchlist, 'WatchlistTable.idWatchlist');
+  }
+
+  set idWatchlist(value: number) {
+    this.initializedIdWatchlist = value;
+  }
 
   /** Pagination enabled flag. */
   paginator = false;
 
   /** Intraday update timeout in seconds. */
-  intraUpdateTimoutSeconds: number;
+  intraUpdateTimoutSeconds?: number;
 
   /** Current watchlist object. */
   readonly watchlist = signal<Watchlist | null | undefined>(undefined);
@@ -184,7 +201,6 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   timeFrames: TimeFrame[] = [];
 
   /** Currently selected time frame. */
-  choosenTimeFrame: TimeFrame;
 
   /** Tenant limits for securities and currencies. */
   readonly tenantLimits = signal<TenantLimit[] | undefined>(undefined);
@@ -224,26 +240,34 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   readonly positionHeaderFields = signal<ColumnConfig[] | null>(null);
 
   /** Parameters for UDF general dialogs. */
-  uDFGeneralCallParam: UDFGeneralCallParam;
+  private initializedUDFGeneralCallParam?: UDFGeneralCallParam;
+
+  get uDFGeneralCallParam(): UDFGeneralCallParam {
+    return requireInitialized(this.initializedUDFGeneralCallParam, 'WatchlistTable.uDFGeneralCallParam');
+  }
+
+  set uDFGeneralCallParam(value: UDFGeneralCallParam) {
+    this.initializedUDFGeneralCallParam = value;
+  }
 
   /** Map of UDF values by security currency ID. */
   protected udfValuesMap = new Map<number, any>();
 
   /** Subscription to watchlist modification events. */
-  private subscriptionWatchlistAdded: Subscription;
+  private subscriptionWatchlistAdded?: Subscription;
 
   /** Holds the filters and the sort order beyond the lifetime of this component, resolved in {@link init}. */
-  private filterSortState: WatchlistFilterSortStateService;
+  private readonly filterSortState = inject(WatchlistFilterSortStateService);
 
   /** Subscription to changes made in the filter and sort settings dialog. */
-  private subscriptionFilterSortChanged: Subscription;
+  private subscriptionFilterSortChanged?: Subscription;
 
   /** True as soon as the stored filters were handed to the table, guards against capturing an empty start state. */
   private storedFiltersApplied = false;
 
   protected readonly destroyRef = inject(DestroyRef);
   private readonly requests = new Map<string, Subscription>();
-  private menuTranslation: Subscription;
+  private menuTranslation?: Subscription;
 
   readonly canExpand = (row: SecuritycurrencyPosition<Security | Currencypair>) => this.canExpandRow(row);
   readonly ownerHighlight = (row: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig) =>
@@ -305,7 +329,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   protected applyStoredFilters(): void {
     const configurableTable = this.configurableTable();
     const table = configurableTable?.table();
-    if (!configurableTable || !table || !this.idWatchlist) {
+    if (!configurableTable || !table || !this.initializedIdWatchlist) {
       return;
     }
     if (this.showFilterRow) {
@@ -348,7 +372,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param event - Filter event of the table, its filters property holds the complete filter map
    */
   onFilterChanged(event: any): void {
-    if (this.showFilterRow && this.storedFiltersApplied && this.idWatchlist) {
+    if (this.showFilterRow && this.storedFiltersApplied && this.initializedIdWatchlist) {
       this.filterSortState.captureFilters(this.idWatchlist, this.fields, event?.filters);
     }
   }
@@ -361,7 +385,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    */
   override customSort(event: SortEvent): void {
     super.customSort(event);
-    if (this.idWatchlist && !this.isFallbackSort(event.multiSortMeta)) {
+    if (this.initializedIdWatchlist && !this.isFallbackSort(event.multiSortMeta)) {
       this.filterSortState.captureSorts(this.idWatchlist, this.fields, event.multiSortMeta);
     }
   }
@@ -593,10 +617,18 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       }
       return value;
     }
-    if (field.field === 'youngestHistoryDate' && position.missingEodSessions > 0) {
+    if (
+      field.field === 'youngestHistoryDate' &&
+      position.missingEodSessions != null &&
+      position.missingEodSessions > 0
+    ) {
       return this.translateService.instant('YOUNGEST_EOD_STALE_TOOLTIP', { sessions: position.missingEodSessions });
     }
-    if (field.field === 'securitycurrency.sTimestamp' && position.staleTradingSessions > 0) {
+    if (
+      field.field === 'securitycurrency.sTimestamp' &&
+      position.staleTradingSessions != null &&
+      position.staleTradingSessions > 0
+    ) {
       return this.translateService.instant('PRICE_STALE_TOOLTIP', { sessions: position.staleTradingSessions });
     }
     if (field.field === 'securitycurrency.sLast') {
@@ -1114,8 +1146,6 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
 
   /** Initializes the current route before subclasses load data, and tracks later watchlist changes. */
   protected init(): void {
-    this.idTenant = this.gps.requireIdTenant();
-    this.filterSortState = this.injector.get(WatchlistFilterSortStateService);
     this.subscriptionFilterSortChanged = this.filterSortState.changed$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
@@ -1137,7 +1167,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   }
 
   private showWatchlist(id: number): void {
-    const previousId = this.idWatchlist;
+    const previousId = this.initializedIdWatchlist;
     if (this.watchlist()) {
       // not first time
       this.writeTableDefinition(this.storeKey);
@@ -1257,11 +1287,12 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {boolean} isIntra - True for intraday data, false for historical data
    */
   private getDownloadLinkHistoricalIntra(
-    url: string,
+    url: string | null,
     targetPage: string,
     securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
     isIntra: boolean
   ): void {
+    if (!url) return;
     WatchlistHelper.getDownloadLinkHistoricalIntra(
       url,
       targetPage,
@@ -1497,10 +1528,11 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   /** Handles price update with timeout check to prevent excessive API calls. */
   private handleUpdateAllPrice() {
     const group = this.securitycurrencyGroup();
-    if (!group) return;
+    const timeout = this.intraUpdateTimoutSeconds;
+    if (!group || timeout == null) return;
     const lastTs = new Date(group.lastTimestamp).getTime();
-    if (Date.now() < lastTs + this.intraUpdateTimoutSeconds * 1000) {
-      const minutes = this.millisToMinutesAndSeconds(lastTs + this.intraUpdateTimoutSeconds * 1000 - Date.now());
+    if (Date.now() < lastTs + timeout * 1000) {
+      const minutes = this.millisToMinutesAndSeconds(lastTs + timeout * 1000 - Date.now());
       this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'UPDATE_TIMEOUT', { time: minutes });
     } else {
       this.updateAllPrice();

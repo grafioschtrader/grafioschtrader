@@ -20,7 +20,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { NgxFileDropModule } from 'ngx-file-drop';
 import { Securitycurrency } from '../../entities/securitycurrency';
-import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import type { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { OptionalParameters } from '../../historyquote/service/time.series.quotes.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
@@ -111,9 +111,11 @@ export class SecurityaccountSummariesComponent extends SecurityaccountTable impl
   }
 
   override readData(): void {
+    const idPortfolio = this.idPortfolio;
+    if (idPortfolio == null) return;
     this.selectedSecurityPositionSummary = null;
     const request = this.securityaccountService.getSecurityPositionSummaryPortfolioRequest(
-      this.idPortfolio,
+      idPortfolio,
       this.securityaccountGroupBase.defaultGroup,
       this.includeClosedPosition,
       this.untilDate

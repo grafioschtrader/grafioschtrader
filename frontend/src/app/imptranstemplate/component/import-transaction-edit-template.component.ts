@@ -10,7 +10,7 @@ import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TemplateFormatType } from '../../shared/types/template.format.type';
 import { AuditHelper } from '../../lib/helper/audit.helper';
-import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { Auditable } from '../../lib/entities/auditable';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';

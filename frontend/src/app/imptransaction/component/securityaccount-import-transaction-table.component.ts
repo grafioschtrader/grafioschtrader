@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { Component, DestroyRef, inject, OnDestroy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, take } from 'rxjs';
@@ -18,7 +19,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
+import type { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import { ImportSettings } from './import.settings';
 import { Transaction } from '../../entities/transaction';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -28,7 +29,7 @@ import { SecuritycurrencySearchAndSetDialogComponent } from '../../securitycurre
 import { SupplementCriteria } from '../../securitycurrency/model/supplement.criteria';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
-import { ImportTransactionPos } from '../../entities/import.transaction.pos';
+import type { ImportTransactionPos } from '../../entities/import.transaction.pos';
 import { BaseSettings } from '../../lib/base.settings';
 import { TemplateFormCheckDialogResultFailedComponent } from '../../imptranstemplate/component/template-form-check-dialog-result-failed.component';
 import { SecurityaccountImportExtendedInfoFilenameComponent } from './securityaccount-import-extended-info-filename.component';
@@ -51,7 +52,7 @@ import { Helper } from '../../lib/helper/helper';
       (selectionChange)="onSelectionChange($event)"
       [selectionMode]="'multiple'"
       [paginator]="true"
-      [rows]="rowsPerPage"
+      [rows]="rowsPerPage ?? 20"
       (pageChange)="onPage($event)"
       [multiSortMeta]="multiSortMeta"
       [sortMode]="'multiple'"
@@ -126,10 +127,21 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   private readonly destroyRef = inject(DestroyRef);
   private readSubscription?: Subscription;
   readonly selectedEntities = signal<CombineTemplateAndImpTransPos[]>([]);
-  selectImportTransactionHead: ImportTransactionHead | null;
-  importTransactionTemplates: ImportTransactionTemplate[];
+  selectImportTransactionHead: ImportTransactionHead | null = null;
+  private initializedImportTransactionTemplates?: ImportTransactionTemplate[];
+
+  get importTransactionTemplates(): ImportTransactionTemplate[] {
+    return requireInitialized(
+      this.initializedImportTransactionTemplates,
+      'SecurityaccountImportTransactionTableComponent.importTransactionTemplates'
+    );
+  }
+
+  set importTransactionTemplates(value: ImportTransactionTemplate[]) {
+    this.initializedImportTransactionTemplates = value;
+  }
   readonly visibleSetCashaccountDialog = signal(false);
-  parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>;
+  parentChildRowSelection?: ParentChildRowSelection<CombineTemplateAndImpTransPos>;
   private readonly ITP = 'IMPORT_TRANSACTION_POS';
 
   constructor() {
@@ -565,8 +577,9 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     }
   }
 
-  getFileTypeIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig, valueField: any): string {
-    return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.importTransactionPos.fileType];
+  getFileTypeIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig, valueField: any): string | undefined {
+    const fileType = entity.importTransactionPos.fileType;
+    return fileType == null ? undefined : SecurityaccountImportTransactionTableComponent.createTypeIconMap[fileType];
   }
 
   getMayBeHasTransactionIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig, valueField: any): string {

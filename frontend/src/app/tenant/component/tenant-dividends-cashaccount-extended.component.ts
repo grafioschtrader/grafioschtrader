@@ -1,8 +1,9 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { Component, OnInit, output, input, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { CashAccountPosition } from '../../entities/view/securitydividends/security.dividends.position';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
+import type { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import {
   CashAccountTableInputFilter,
@@ -56,7 +57,18 @@ export class TenantDividendsCashaccountExtendedComponent extends TenantDividends
 
   readonly dateChanged = output<ProcessedActionData>();
 
-  cashAccountTableInputFilter: CashAccountTableInputFilter;
+  private initializedCashAccountTableInputFilter?: CashAccountTableInputFilter;
+
+  get cashAccountTableInputFilter(): CashAccountTableInputFilter {
+    return requireInitialized(
+      this.initializedCashAccountTableInputFilter,
+      'TenantDividendsCashaccountExtendedComponent.cashAccountTableInputFilter'
+    );
+  }
+
+  set cashAccountTableInputFilter(value: CashAccountTableInputFilter) {
+    this.initializedCashAccountTableInputFilter = value;
+  }
 
   constructor() {
     super();

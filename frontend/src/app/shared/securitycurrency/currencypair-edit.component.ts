@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -54,7 +55,15 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   // Input from parent component
   readonly visibleEditCurrencypairDialog = input(false);
 
-  existingCurrencypairs: Currencypair[];
+  private initializedExistingCurrencypairs?: Currencypair[];
+
+  get existingCurrencypairs(): Currencypair[] {
+    return requireInitialized(this.initializedExistingCurrencypairs, 'CurrencypairEditComponent.existingCurrencypairs');
+  }
+
+  set existingCurrencypairs(value: Currencypair[]) {
+    this.initializedExistingCurrencypairs = value;
+  }
 
   constructor() {
     super();

@@ -64,8 +64,10 @@ export class UserChangeOwnerEntitiesDialogComponent extends SimpleFormEditBase i
   }
 
   submit(values: { [name: string]: any }): void {
+    const fromIdUser = this.fromUser().idUser;
+    if (fromIdUser == null) return;
     this.userAdminService
-      .moveCreatedByUserToOtherUser(this.fromUser().idUser, values.toIdUser)
+      .moveCreatedByUserToOtherUser(fromIdUser, values.toIdUser)
       .subscribe((numberOfChangedEntities) => {
         this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.SUCCESS, 'CHANGED_OWNER_OF_ENTITIES', {
           numberOfChangedEntities

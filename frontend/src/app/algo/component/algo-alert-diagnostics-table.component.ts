@@ -19,7 +19,7 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
     [customSortFn]="customSorter"
     [multiSortMeta]="multiSortMeta"
     [paginator]="true"
-    [rows]="rowsPerPage"
+    [rows]="rowsPerPage ?? 20"
     (pageChange)="onPage($event)"
     [hasFilter]="hasFilter" />`
 })

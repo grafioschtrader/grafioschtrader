@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { TransactionBaseOperations } from './transaction.base.operations';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
@@ -7,7 +8,6 @@ import { TransactionCallParam } from './transaction.call.parm';
 import { Portfolio } from '../../entities/portfolio';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { FieldFormGroup } from '../../lib/dynamic-form/models/form.group.definition';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { Subscription } from 'rxjs';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
@@ -31,14 +31,23 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
   /** Reference to the dynamic form component for accessing form controls and validation */
   readonly form = viewChild.required(DynamicFormComponent);
 
-  /** Array of field form groups defining the structure and configuration of the transaction form */
-  config: FieldFormGroup[] = [];
-
   /** List of portfolios available for the current tenant used for populating cash account options */
-  portfolios: Portfolio[];
+  private initializedPortfolios?: Portfolio[];
+
+  protected get portfoliosIfInitialized(): Portfolio[] | undefined {
+    return this.initializedPortfolios;
+  }
+
+  get portfolios(): Portfolio[] {
+    return requireInitialized(this.initializedPortfolios, 'TransactionCashaccountBaseOperations.portfolios');
+  }
+
+  set portfolios(value: Portfolio[]) {
+    this.initializedPortfolios = value;
+  }
 
   /** Subscription for monitoring value changes in calculation fields to trigger updates */
-  protected valueChangedOnValueCalcFieldsSub: Subscription;
+  protected valueChangedOnValueCalcFieldsSub?: Subscription;
 
   /**
    * Performs pre-initialization setup by setting default form values and triggering initialization.
@@ -86,7 +95,7 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    */
   close(): void {
     this.endDialogSession();
-    this.valueChangedOnValueCalcFieldsSub && this.valueChangedOnValueCalcFieldsSub.unsubscribe();
+    this.valueChangedOnValueCalcFieldsSub?.unsubscribe();
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 

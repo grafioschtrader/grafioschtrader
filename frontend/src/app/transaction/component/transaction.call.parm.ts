@@ -19,10 +19,10 @@ export class TransactionCallParam {
   public transaction: Transaction | null = null;
 
   /** Type of transaction being performed (buy, sell, dividend, etc.) */
-  public transactionType: TransactionType;
+  public transactionType?: TransactionType;
 
   /** Security currency identifier, mainly used for security transactions */
-  public idSecuritycurrency: number;
+  public idSecuritycurrency?: number;
 
   /** Security entity associated with the transaction */
   public security: Security | null | undefined = null;
@@ -31,13 +31,13 @@ export class TransactionCallParam {
   public securityaccount: Securityaccount | null = null;
 
   /** Cash account for cash-based transactions */
-  public cashaccount: Cashaccount;
+  public cashaccount?: Cashaccount;
 
   /** Watchlist identifier used as basis for populating security select options in transaction forms */
-  public idWatchList: number;
+  public idWatchList?: number;
 
   /** Default transaction time to be pre-filled in transaction forms */
-  public defaultTransactionTime: Date;
+  public defaultTransactionTime?: Date;
 
   /** Configuration for closing margin trades, contains position limits and constraints */
   public closeMarginPosition?: CloseMarginPosition;

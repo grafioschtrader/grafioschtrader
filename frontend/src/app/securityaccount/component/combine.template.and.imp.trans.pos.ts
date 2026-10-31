@@ -1,16 +1,9 @@
-import { ImportTransactionPos } from '../../entities/import.transaction.pos';
-import { ImportTransactionTemplate } from '../../entities/import.transaction.template';
-import { BaseID } from '../../lib/entities/base.id';
+import type { PersistedImportTransactionPos } from '../../entities/import.transaction.pos';
+import type { ImportTransactionTemplate } from '../../entities/import.transaction.template';
 
-export class CombineTemplateAndImpTransPos implements BaseID {
-  public static readonly EntityKeyName = 'importTransactionPos.idTransactionPos';
-
-  importTransactionPos: ImportTransactionPos;
-  importTransactionTemplate: ImportTransactionTemplate;
-  fileType: string;
+/** Saved import position with its matching parser template and file-path information. */
+export interface CombineTemplateAndImpTransPos {
+  importTransactionPos: PersistedImportTransactionPos;
+  importTransactionTemplate: ImportTransactionTemplate | null;
   fullPath: boolean;
-
-  public getId(): number {
-    return this.importTransactionPos.getId();
-  }
 }

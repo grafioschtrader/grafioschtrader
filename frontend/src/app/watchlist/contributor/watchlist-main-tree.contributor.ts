@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { previousTreeNode } from '../../lib/maintree/types/tree-node-navigation';
 import { Injectable } from '@angular/core';
 import { inject } from '@angular/core';
@@ -15,7 +16,7 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { Watchlist } from '../../entities/watchlist';
 import { Tenant } from '../../entities/tenant';
-import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
+import { type TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
 import { WatchlistSecurityExists } from '../../entities/dnd/watchlist.security.exists';
 import { AppSettings } from '../../shared/app.settings';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -45,15 +46,22 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
   private translateService = inject(TranslateService);
   private dataChangedService = inject(DataChangedService);
 
-  private tenant: Tenant;
+  private initializedTenant?: Tenant;
+
+  private get tenant(): Tenant {
+    return requireInitialized(this.initializedTenant, 'WatchlistMainTreeContributor.tenant');
+  }
+
+  private set tenant(value: Tenant) {
+    this.initializedTenant = value;
+  }
   private hasSecurityObject: { [key: number]: number } = {};
-  private rootNode: TreeNode;
   private tenantLimits: any;
   /**
    * Watchlists of the last full refresh. Cached so that a pure content change (an instrument added, removed or moved)
    * can rebuild the nodes without reloading the watchlist names and the tenant limits again.
    */
-  private watchlists: Watchlist[];
+  private watchlists?: Watchlist[];
 
   getTreeOrder(): number {
     return 1; // Watchlist comes after Portfolio
@@ -63,7 +71,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
     return this.tenantService.getTenantAndPortfolio().pipe(
       tap((tenant) => (this.tenant = tenant)),
       map((tenant) => {
-        this.rootNode = {
+        const rootNode: TreeNode = {
           expanded: true,
           children: [],
           data: new TypeNodeData(
@@ -73,15 +81,13 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
             null
           )
         };
-        this.setLangTrans('WATCHLIST_CORRELATION_MATRIX', this.rootNode);
-        return [this.rootNode];
+        this.setLangTrans('WATCHLIST_CORRELATION_MATRIX', rootNode);
+        return [rootNode];
       })
     );
   }
 
   refreshNodes(rootNode: TreeNode): Observable<void> {
-    this.rootNode = rootNode;
-
     return combineLatest([
       this.watchlistService.getWatchlistsByIdTenant(),
       this.watchlistService.getWatchlistsOfTenantHasSecurity(),
@@ -115,14 +121,14 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
    * @returns Observable that completes when the refresh is done
    */
   override refreshNodesForDataChange(rootNode: TreeNode, processedActionData: ProcessedActionData): Observable<void> {
-    if (!this.watchlists || !this.tenantLimits) {
+    const watchlists = this.watchlists;
+    if (!watchlists || !this.tenantLimits) {
       return super.refreshNodesForDataChange(rootNode, processedActionData);
     }
-    this.rootNode = rootNode;
     return this.watchlistService.getWatchlistsOfTenantHasSecurity().pipe(
       map((hasSecurityData) => {
         hasSecurityData.forEach((item) => (this.hasSecurityObject[item.idWatchlist] = item.hasSecurity));
-        this.buildWatchlistNodes(rootNode, this.watchlists);
+        this.buildWatchlistNodes(rootNode, watchlists);
       })
     );
   }

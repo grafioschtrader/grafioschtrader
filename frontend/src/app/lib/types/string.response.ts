@@ -1,3 +1,3 @@
-export class StringResponse {
-  public response: string;
+export interface StringResponse {
+  response: string;
 }

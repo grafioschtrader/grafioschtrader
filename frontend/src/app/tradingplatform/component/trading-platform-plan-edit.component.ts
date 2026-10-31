@@ -11,7 +11,7 @@ import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { ImportTransactionPlatform } from '../../entities/import.transaction.platform';
 import { ImportTransactionPlatformService } from '../../imptranstemplate/service/import.transaction.platform.service';
 import { AuditHelper } from '../../lib/helper/audit.helper';
-import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';

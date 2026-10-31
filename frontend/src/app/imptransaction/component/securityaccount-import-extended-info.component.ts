@@ -4,7 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
-import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
+import type { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ImportSettings } from './import.settings';
 import { TranslateValue } from '../../lib/datashowbase/column.config';

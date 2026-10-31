@@ -1,12 +1,12 @@
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import { AccountPositionSummary } from '../../entities/view/account.position.summary';
+import type { AccountPositionSummary } from '../../entities/view/account.position.summary';
 import { computed, signal, DestroyRef, inject, Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
-import { AccountPositionGrandSummary } from '../../entities/view/account.position.grand.summary';
+import type { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
+import type { AccountPositionGrandSummary } from '../../entities/view/account.position.grand.summary';
 import { Subscription } from 'rxjs';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -72,14 +72,13 @@ export class TenantSummariesCashaccountComponent
       ) ?? []
   );
   readonly groupOptions = signal<SelectItem[]>([]);
-  private readRequest: Subscription;
-  private menuRequest: Subscription;
+  private readRequest?: Subscription;
+  private menuRequest?: Subscription;
   selectedGroup: string = TenantPortfolioSummary[TenantPortfolioSummary.GROUP_BY_CURRENCY];
-  private idTenant: number;
-  private routeSubscribe: Subscription;
+  private routeSubscribe?: Subscription;
   private columnConfigs: ColumnConfig[] = [];
   private excludedDivTaxColumn: ColumnConfig;
-  private subscriptionRequestFromChart: Subscription;
+  private subscriptionRequestFromChart?: Subscription;
   private CHART_TITLE = 'CASH_BALANCE_SECURITIES';
 
   private statementReports = inject(PerformanceReportDialogService);
@@ -223,7 +222,7 @@ export class TenantSummariesCashaccountComponent
       .get(this.CHART_TITLE)
       .pipe(takeUntilDestroyed(this.reportDestroyRef))
       .subscribe((translated) => (this.CHART_TITLE = translated));
-    this.idTenant = this.gps.requireIdTenant();
+    this.gps.requireIdTenant();
     this.onComponentClick(null);
     this.readData();
   }
@@ -301,8 +300,8 @@ export class TenantSummariesCashaccountComponent
     BusinessHelper.saveUntilDateInSessionStorage(this.untilDate);
     this.readRequest?.unsubscribe();
     this.activePanelService.destroyPanel(this);
-    this.routeSubscribe && this.routeSubscribe.unsubscribe();
-    this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
+    this.routeSubscribe?.unsubscribe();
+    this.subscriptionRequestFromChart?.unsubscribe();
   }
 
   /**

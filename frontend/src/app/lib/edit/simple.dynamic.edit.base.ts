@@ -6,7 +6,7 @@ import { AuditHelper } from '../helper/audit.helper';
 import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
 import { TransformedError } from '../login/service/transformed.error';
 import { InfoLevelType } from '../message/info.leve.type';
-import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
 import { ProcessedAction } from '../types/processed.action';
 import { ProcessedActionData } from '../types/processed.action.data';
 import { EditHelper } from './edit.helper';

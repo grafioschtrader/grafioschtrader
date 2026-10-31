@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { inject, Service } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { MenuItem } from '@openng/optimus-ui/api';
@@ -14,8 +15,16 @@ export class TimeSeriesQuotesService {
   private router = inject(Router);
   private transactionReceiptService = inject(TransactionReceiptService);
 
-  private idSecuritycurrency: number;
-  private currencySecurity: string | null;
+  private initializedIdSecuritycurrency?: number;
+
+  private get idSecuritycurrency(): number {
+    return requireInitialized(this.initializedIdSecuritycurrency, 'TimeSeriesQuotesService.idSecuritycurrency');
+  }
+
+  private set idSecuritycurrency(value: number) {
+    this.initializedIdSecuritycurrency = value;
+  }
+  private currencySecurity: string | null = null;
   private optionalParameters: OptionalParameters = { idPortfolio: null, idSecurityaccount: null, noMarketValue: false };
   private timeSeriesParams: TimeSeriesParam[] = [];
 

@@ -12,6 +12,7 @@ export function buildGTNetMessageTree(messages: readonly GTNetMessage[]): {
   }
   const roots: TreeNode<GTNetMessage>[] = [];
   for (const message of messages) {
+    if (message.idGtNetMessage == null) continue;
     const node = nodeMap.get(message.idGtNetMessage);
     if (!node) continue;
     const parent = message.replyTo == null ? undefined : nodeMap.get(message.replyTo);

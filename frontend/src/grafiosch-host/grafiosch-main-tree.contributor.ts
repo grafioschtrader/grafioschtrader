@@ -25,38 +25,36 @@ import { GrafioschTreeContributorBase } from './grafiosch-tree-contributor.base'
 export class GrafioschMainTreeContributor extends GrafioschTreeContributorBase {
   private gps = inject(GlobalparameterService);
 
-  private rootNode: TreeNode;
-
   getTreeOrder(): number {
     return 2;
   }
 
   getRootNodes(): Observable<TreeNode[]> {
-    this.rootNode = {
+    const rootNode: TreeNode = {
       label: 'ADMIN_DATA',
       expanded: true,
       children: [],
       data: new TypeNodeData(LibTreeNodeType.NO_MENU, this.addMainRoute(GrafioschSettings.USER_MESSAGE_KEY), null, null)
     };
-    this.addChildren();
-    this.translateNodes([this.rootNode]);
-    return of([this.rootNode]);
+    this.addChildren(rootNode);
+    this.translateNodes([rootNode]);
+    return of([rootNode]);
   }
 
-  private addChildren(): void {
-    this.rootNode.children = [
+  private addChildren(rootNode: TreeNode): void {
+    rootNode.children = [
       this.navigationNode('MAIL_TO_FROM', GrafioschSettings.USER_MESSAGE_KEY + '/' + BaseSettings.MAIL_SEND_RECV_KEY),
       LibDataMainTreeContributor.createGlobalSettingsNode()
     ];
 
-    this.addGTNetToTree();
+    this.addGTNetToTree(rootNode);
 
-    this.rootNode.children.push(LibDataMainTreeContributor.createTaskDataMonitorNode());
+    rootNode.children.push(LibDataMainTreeContributor.createTaskDataMonitorNode());
 
     if (AuditHelper.hasAdminRole(this.gps)) {
-      this.rootNode.children.push(LibDataMainTreeContributor.createConnectorApiKeyNode());
-      this.rootNode.children.push(LibDataMainTreeContributor.createUserSettingsNode());
-      this.rootNode.children.push(LibDataMainTreeContributor.createEntityLimitNode());
+      rootNode.children.push(LibDataMainTreeContributor.createConnectorApiKeyNode());
+      rootNode.children.push(LibDataMainTreeContributor.createUserSettingsNode());
+      rootNode.children.push(LibDataMainTreeContributor.createEntityLimitNode());
     }
   }
 
@@ -69,7 +67,7 @@ export class GrafioschMainTreeContributor extends GrafioschTreeContributorBase {
    * shape when logging is switched on. The parent node targets the setup table, which is where this instance's own
    * GTNet entry is created in the first place — the feature flag therefore must not depend on that entry existing.</p>
    */
-  private addGTNetToTree(): void {
+  private addGTNetToTree(rootNode: TreeNode): void {
     if (!this.gps.useGtnet()) {
       return;
     }
@@ -96,6 +94,6 @@ export class GrafioschMainTreeContributor extends GrafioschTreeContributorBase {
         null
       )
     };
-    (this.rootNode.children ??= []).push(gtNetNode);
+    (rootNode.children ??= []).push(gtNetNode);
   }
 }

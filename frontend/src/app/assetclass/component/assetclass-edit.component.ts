@@ -6,7 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { AssetclassCallParam } from './assetclass.call.param';
-import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';

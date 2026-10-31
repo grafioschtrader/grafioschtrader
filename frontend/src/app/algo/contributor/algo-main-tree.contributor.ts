@@ -76,7 +76,6 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
   private translateService = inject(TranslateService);
   private dataChangedService = inject(DataChangedService);
 
-  private rootNode: TreeNode;
   private simulationTenants: SimulationTenantInfo[] = [];
   private monitoringId: number | null = null;
 
@@ -102,18 +101,16 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
   }
 
   getRootNodes(): Observable<TreeNode[]> {
-    this.rootNode = {
+    const rootNode: TreeNode = {
       expanded: true,
       children: [],
       data: new TypeNodeData(TreeNodeType.AlgoRoot, this.addMainRoute(AppSettings.ALGO_OVERVIEW_KEY), null, null)
     };
-    this.setLangTrans('ALGO_OVERVIEW', this.rootNode);
-    return of([this.rootNode]);
+    this.setLangTrans('ALGO_OVERVIEW', rootNode);
+    return of([rootNode]);
   }
 
   refreshNodes(rootNode: TreeNode): Observable<void> {
-    this.rootNode = rootNode;
-
     // With alerts only, the root node carries no strategies and nothing of them is requested.
     if (!this.useAlgo()) {
       (rootNode.children ??= []).splice(0);

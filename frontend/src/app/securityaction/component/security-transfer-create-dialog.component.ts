@@ -35,9 +35,9 @@ export class SecurityTransferCreateDialogComponent extends SimpleDynamicFormBase
   private securityActionService: SecurityActionService = inject(SecurityActionService);
   private portfolioService: PortfolioService = inject(PortfolioService);
 
-  private idSecurity: number;
-  private idSecurityaccountSource: number;
-  private units: number;
+  private readonly idSecurity: number = this.dynamicDialogConfig.data.idSecurity;
+  private readonly idSecurityaccountSource: number = this.dynamicDialogConfig.data.idSecurityaccountSource;
+  private readonly units: number = this.dynamicDialogConfig.data.units;
   private portfolios: Portfolio[] = [];
 
   constructor() {
@@ -45,11 +45,6 @@ export class SecurityTransferCreateDialogComponent extends SimpleDynamicFormBase
   }
 
   ngOnInit(): void {
-    const data = this.dynamicDialogConfig.data;
-    this.idSecurity = data.idSecurity;
-    this.idSecurityaccountSource = data.idSecurityaccountSource;
-    this.units = data.units;
-
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldInputStringHeqF('securityName', 80, false, {

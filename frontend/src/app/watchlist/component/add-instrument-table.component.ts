@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { computed, DestroyRef, Directive, inject, signal, input } from '@angular/core';
 import { Subscription } from 'rxjs';
@@ -9,7 +10,7 @@ import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlis
 import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
-import { TenantLimit } from '../../shared/types/tenant.limit';
+import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { SecuritycurrencySearchTableBase } from '../../securitycurrency/component/securitycurrency.search.table.base';
 import { Observable } from 'rxjs';
 
@@ -32,14 +33,30 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
 
   private readonly selectedSecuritycurrenciesSignal = signal<(Security | Currencypair)[]>([]);
   /** Search of the current criteria; a newer search replaces one that is still pending. */
-  private searchSubscription: Subscription;
+  private searchSubscription?: Subscription;
   protected readonly destroyRef = inject(DestroyRef);
 
   /** ID of the target entity to add instruments to */
-  id: number;
+  private initializedId?: number;
+
+  get id(): number {
+    return requireInitialized(this.initializedId, 'AddInstrumentTable.id');
+  }
+
+  set id(value: number) {
+    this.initializedId = value;
+  }
 
   /** Current search criteria for finding instruments */
-  securitycurrencySearch: SecuritycurrencySearch;
+  private initializedSecuritycurrencySearch?: SecuritycurrencySearch;
+
+  get securitycurrencySearch(): SecuritycurrencySearch {
+    return requireInitialized(this.initializedSecuritycurrencySearch, 'AddInstrumentTable.securitycurrencySearch');
+  }
+
+  set securitycurrencySearch(value: SecuritycurrencySearch) {
+    this.initializedSecuritycurrencySearch = value;
+  }
 
   /**
    * Creates a new AddInstrumentTable instance.

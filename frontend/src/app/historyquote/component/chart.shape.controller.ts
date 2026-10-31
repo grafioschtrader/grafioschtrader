@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { Observable, of, Subject, Subscription } from 'rxjs';
 import { catchError, debounceTime, map } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
@@ -32,10 +33,10 @@ export class ChartShapeController {
   /** True while a relayout caused by undo or redo is still expected, so it is not recorded as a user change. */
   private isProgrammaticRelayout = false;
   private shapeSave$ = new Subject<{ idSecuritycurrency: number; shapes: any[] }>();
-  private shapeSaveSubscription: Subscription;
+  private shapeSaveSubscription?: Subscription;
   private chartNativeElement: any;
   /** The loaded Plotly library, handed over by the chart before it builds the mode bar. */
-  private plotly: PlotlyInstance;
+  private plotly?: PlotlyInstance;
   /** Instrument the shapes belong to, null while more than one instrument is charted. */
   private idSecuritycurrency: number | null = null;
 
@@ -67,7 +68,7 @@ export class ChartShapeController {
    * Releases the save subscription. Must be called from the ngOnDestroy of the chart component.
    */
   public destroy(): void {
-    this.shapeSaveSubscription && this.shapeSaveSubscription.unsubscribe();
+    this.shapeSaveSubscription?.unsubscribe();
   }
 
   /**
@@ -159,11 +160,12 @@ export class ChartShapeController {
   }
 
   public getModeBarButtons(): any[] {
+    const plotly = requireInitialized(this.plotly, 'Chart shape renderer');
     return [
       {
         name: 'undo',
         title: 'Undo',
-        icon: this.plotly.Icons.undo,
+        icon: plotly.Icons.undo,
         click: () => this.undoShapes()
       },
       {
@@ -234,9 +236,10 @@ export class ChartShapeController {
    * that the resulting event is not recorded as a new user change.
    */
   private applyShapesFromHistory(): void {
+    const plotly = requireInitialized(this.plotly, 'Chart shape renderer');
     this.isProgrammaticRelayout = true;
     const shapes = JSON.parse(JSON.stringify(this.shapeHistory[this.shapeHistoryIndex]));
-    this.plotly.relayout(this.chartNativeElement, { shapes });
+    plotly.relayout(this.chartNativeElement, { shapes });
   }
 
   /**
@@ -253,7 +256,7 @@ export class ChartShapeController {
         header: translations['DELETE_ALL_SHAPES'],
         message: translations['DELETE_ALL_SHAPES_CONFIRM'],
         accept: () => {
-          this.plotly.relayout(this.chartNativeElement, { shapes: [] });
+          requireInitialized(this.plotly, 'Chart shape renderer').relayout(this.chartNativeElement, { shapes: [] });
         }
       });
     });

@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../helper/required-state';
 import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { afterNextRender, Component, computed, signal, viewChildren, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -119,12 +120,29 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   readonly gtNetMessageMap = signal<{ [key: number]: GTNetMessage[] }>({});
   outgoingPendingReplies: { [key: number]: number[] } = {};
   incomingPendingReplies: { [key: number]: number[] } = {};
-  formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
+  private initializedFormDefinitions?: { [type: string]: ClassDescriptorInputAndShow };
+
+  get formDefinitions(): { [type: string]: ClassDescriptorInputAndShow } {
+    return requireInitialized(this.initializedFormDefinitions, 'GTNetAdminMessagesComponent.formDefinitions');
+  }
+
+  set formDefinitions(value: { [type: string]: ClassDescriptorInputAndShow }) {
+    this.initializedFormDefinitions = value;
+  }
   readonly visibleDialogMsg = signal(false);
-  msgCallParam: MsgCallParam;
+  private initializedMsgCallParam?: MsgCallParam;
+
+  get msgCallParam(): MsgCallParam {
+    return requireInitialized(this.initializedMsgCallParam, 'GTNetAdminMessagesComponent.msgCallParam');
+  }
+
+  set msgCallParam(value: MsgCallParam) {
+    this.initializedMsgCallParam = value;
+  }
 
   /** Only rows with admin messages have something to expand */
-  readonly canExpand = (row: GTNet): boolean => (this.gtNetMessageCountMap[row.idGtNet] ?? 0) > 0;
+  readonly canExpand = (row: GTNet): boolean =>
+    row.idGtNet != null && (this.gtNetMessageCountMap[row.idGtNet] ?? 0) > 0;
 
   /** Highlights the own entry */
   readonly isMyEntry = (row: GTNet, field: ColumnConfig): boolean => row.idGtNet === this.gtNetMyEntryId();
@@ -170,7 +188,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
       this.gtNetService.getAllGTNetsWithMessages(),
       this.gtNetMessageService.getAdminMessages(),
       this.gtNetMessageService.getAdminMessageCounts(),
-      ...(!this.formDefinitions ? [this.gtNetMessageService.getAllFormDefinitionsWithClass()] : [])
+      ...(!this.initializedFormDefinitions ? [this.gtNetMessageService.getAllFormDefinitionsWithClass()] : [])
     ];
 
     combineLatest(observable)
@@ -179,7 +197,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
         const gtNetWithMessages = <GTNetWithMessages>data[1];
         this.allAdminMessages = <GTNetMessage[]>data[2];
         this.gtNetMessageCountMap = <{ [key: number]: number }>data[3];
-        this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[4];
+        this.initializedFormDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[4];
 
         // Calculate pending replies from admin messages only
         this.calculatePendingReplies();
@@ -223,6 +241,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
     this.allAdminMessages.forEach((msg) => {
       // Check if this message type supports replies
+      if (msg.idGtNetMessage == null) return;
       const validResponses = this.gtNetProtocolService.getValidResponseCodes(msg.messageCode);
       if (validResponses.length === 0) {
         return;
@@ -270,7 +289,10 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     if (!this.isUserAdmin) {
       return;
     }
-    const targetIds = this.selectedEntities().map((e) => e.idGtNet);
+    const targetIds = this.selectedEntities()
+      .map((e) => e.idGtNet)
+      .filter((id): id is number => id != null);
+    if (targetIds.length === 0) return;
     this.msgCallParam = new MsgCallParam(this.formDefinitions, null, null, null, false, null, null);
     this.msgCallParam.targetIds = targetIds;
     this.msgCallParam.preselectedMessageCode = GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C;
@@ -293,6 +315,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
    */
   onRowExpand(event: { data: GTNet }): void {
     const idGtNet = event.data.idGtNet;
+    if (idGtNet == null) return;
     const hasMessages = (this.gtNetMessageCountMap[idGtNet] ?? 0) > 0;
     if (hasMessages && !this.gtNetMessageMap()[idGtNet]) {
       this.gtNetMessageMap.update((map) => ({
@@ -318,27 +341,27 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
   /** Returns admin message count for this GTNet */
   getAdminMessageCount(dataobject: GTNet, field: ColumnConfig, valueField: any): number {
-    return this.gtNetMessageCountMap[dataobject.idGtNet] ?? 0;
+    return dataobject.idGtNet == null ? 0 : (this.gtNetMessageCountMap[dataobject.idGtNet] ?? 0);
   }
 
   /** Returns count of incoming pending replies (requests I need to answer) */
   getToBeAnsweredCount(dataobject: GTNet, field: ColumnConfig, valueField: any): number {
-    return this.incomingPendingReplies?.[dataobject.idGtNet]?.length ?? 0;
+    return dataobject.idGtNet == null ? 0 : (this.incomingPendingReplies?.[dataobject.idGtNet]?.length ?? 0);
   }
 
   /** Returns count of outgoing pending replies (requests awaiting response) */
   getAnswerExpectedCount(dataobject: GTNet, field: ColumnConfig, valueField: any): number {
-    return this.outgoingPendingReplies?.[dataobject.idGtNet]?.length ?? 0;
+    return dataobject.idGtNet == null ? 0 : (this.outgoingPendingReplies?.[dataobject.idGtNet]?.length ?? 0);
   }
 
   /** Returns set of incoming pending message IDs (requests I need to answer) */
-  getIncomingPendingIds(idGtNet: number): Set<number> {
-    return new Set(this.incomingPendingReplies?.[idGtNet] ?? []);
+  getIncomingPendingIds(idGtNet: number | undefined): Set<number> {
+    return new Set(idGtNet == null ? [] : (this.incomingPendingReplies?.[idGtNet] ?? []));
   }
 
   /** Returns set of outgoing pending message IDs (requests awaiting response) */
-  getOutgoingPendingIds(idGtNet: number): Set<number> {
-    return new Set(this.outgoingPendingReplies?.[idGtNet] ?? []);
+  getOutgoingPendingIds(idGtNet: number | undefined): Set<number> {
+    return new Set(idGtNet == null ? [] : (this.outgoingPendingReplies?.[idGtNet] ?? []));
   }
 
   /** Handle data changes from the tree table (e.g., reply sent, batch deletion) */

@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { Component, inject } from '@angular/core';
 
 import { ImportTransactionTemplate } from '../../entities/import.transaction.template';
@@ -59,15 +60,23 @@ import { ImportTransactionEditTemplateComponent } from './import-transaction-edi
 export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenu<ImportTransactionTemplate> {
   private importTransactionTemplateService: ImportTransactionTemplateService = inject(ImportTransactionTemplateService);
 
-  callParam: CallParam;
+  private initializedCallParam?: CallParam;
+
+  get callParam(): CallParam {
+    return requireInitialized(this.initializedCallParam, 'ImportTransactionTemplateTableComponent.callParam');
+  }
+
+  set callParam(value: CallParam) {
+    this.initializedCallParam = value;
+  }
   readonly ownerHighlight = (entity: ImportTransactionTemplate, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);
   private readSubscription?: Subscription;
 
   // Parent selected entity
-  selectImportTransactionPlatform: ImportTransactionPlatform | null;
+  selectImportTransactionPlatform: ImportTransactionPlatform | null = null;
 
-  parentChildRowSelection: ParentChildRowSelection<ImportTransactionTemplate>;
+  parentChildRowSelection?: ParentChildRowSelection<ImportTransactionTemplate>;
   private languageAsKeyValue: { [key: string]: string } = {};
 
   constructor() {
@@ -116,12 +125,10 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
 
   override readData(): void {
     this.readSubscription?.unsubscribe();
-    if (this.selectImportTransactionPlatform) {
+    const idPlatform = this.selectImportTransactionPlatform?.idTransactionImportPlatform;
+    if (idPlatform != null) {
       this.readSubscription = combineLatest([
-        this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(
-          this.selectImportTransactionPlatform.idTransactionImportPlatform,
-          false
-        ),
+        this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(idPlatform, false),
         this.importTransactionTemplateService.getPossibleLanguagesForTemplate()
       ])
         .pipe(takeUntilDestroyed(this.destroyRef))

@@ -87,7 +87,8 @@ export class TaxModelEditComponent extends SimpleFormEditBase implements OnInit 
   readonly schema = signal<object | undefined>(undefined);
   readonly modelLoading = signal(false);
   readonly tooLarge = computed(() => new TextEncoder().encode(this.yaml()).length > 65536);
-  evalExCompletions: { [fieldName: string]: YamlFieldCompletion[] };
+  readonly evalExCompletions: { [fieldName: string]: YamlFieldCompletion[] } =
+    TaxModelEditComponent.buildEvalExCompletions();
   readonly result = signal<any>(null);
   private yamlEdited = false;
   private validationRevision = 0;
@@ -116,7 +117,6 @@ export class TaxModelEditComponent extends SimpleFormEditBase implements OnInit 
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    this.evalExCompletions = TaxModelEditComponent.buildEvalExCompletions();
     this.http
       .get('assets/schemas/tax-model-schema.json')
       .pipe(takeUntilDestroyed(this.destroyRef))

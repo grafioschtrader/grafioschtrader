@@ -2,7 +2,7 @@ import { SecurityaccountGroupBaseDynamic } from './securityaccount.group.base.dy
 import { TranslateService } from '@ngx-translate/core';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { Security } from '../../entities/security';
-import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import type { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
 import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 

@@ -1,9 +1,9 @@
 import { Security } from '../../entities/security';
-import { SecurityPositionGroupSummary } from '../../entities/view/security.position.group.summary';
+import type { SecurityPositionGroupSummary } from '../../entities/view/security.position.group.summary';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { TranslateService } from '@ngx-translate/core';
-import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import type { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 
 export abstract class SecurityaccountGroupBase<
   T extends SecurityPositionGroupSummary,

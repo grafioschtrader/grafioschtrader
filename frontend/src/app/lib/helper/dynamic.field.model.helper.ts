@@ -652,7 +652,7 @@ export class DynamicFieldModelHelper {
   public static createAndSetValuesInDynamicModel(
     e: any,
     targetSelectionField: string,
-    paramMap: Record<string, BaseParam>,
+    paramMap: Record<string, BaseParam> | undefined,
     fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
     addStrategyImplField = false
   ): any {
@@ -679,13 +679,13 @@ export class DynamicFieldModelHelper {
    */
   public static setValuesOfMapModelToDynamicModel(
     fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-    paramMap: Record<string, BaseParam>,
+    paramMap: Record<string, BaseParam> | undefined,
     dynamicModel: any = {}
   ): any {
     fieldDescriptorInputAndShows.forEach((fieldDescriptorInputAndShow) => {
       // An optional field left empty is not stored at all, so its parameter may be missing.
       let value: string | number | string[] | null =
-        paramMap[fieldDescriptorInputAndShow.fieldName]?.paramValue ?? null;
+        paramMap?.[fieldDescriptorInputAndShow.fieldName]?.paramValue ?? null;
       switch (DataType[fieldDescriptorInputAndShow.dataType as keyof typeof DataType]) {
         case DataType.Numeric:
         case DataType.NumericInteger:

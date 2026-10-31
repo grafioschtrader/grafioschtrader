@@ -48,7 +48,7 @@ export class WatchlistIndicatorColumnEditComponent
   private dialogs: DialogService = inject(DialogService);
 
   readonly callParam = input<any>(undefined);
-  private benchmark: number | null;
+  private benchmark: number | null = null;
   constructor() {
     super(HelpIds.HELP_WATCHLIST_INDICATOR, 'WATCHLIST_INDICATOR_COLUMN', inject(WatchlistIndicatorService));
   }

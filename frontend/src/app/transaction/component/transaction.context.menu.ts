@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { Transaction } from '../../entities/transaction';
 import { CloseMarginPosition, TransactionCallParam } from './transaction.call.parm';
@@ -80,10 +81,26 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   readonly visibleStandingOrderSecurityDialog = signal(false);
 
   /** Parameters passed to transaction editing dialogs */
-  transactionCallParam: TransactionCallParam;
+  private initializedTransactionCallParam?: TransactionCallParam;
+
+  get transactionCallParam(): TransactionCallParam {
+    return requireInitialized(this.initializedTransactionCallParam, 'TransactionContextMenu.transactionCallParam');
+  }
+
+  set transactionCallParam(value: TransactionCallParam) {
+    this.initializedTransactionCallParam = value;
+  }
 
   /** Parameters passed to standing order creation dialog */
-  standingOrderCallParam: StandingOrderCallParam;
+  private initializedStandingOrderCallParam?: StandingOrderCallParam;
+
+  get standingOrderCallParam(): StandingOrderCallParam {
+    return requireInitialized(this.initializedStandingOrderCallParam, 'TransactionContextMenu.standingOrderCallParam');
+  }
+
+  set standingOrderCallParam(value: StandingOrderCallParam) {
+    this.initializedStandingOrderCallParam = value;
+  }
 
   /** Maintains page position and selected row state for table navigation */
   readonly pageFirstRowSelectedRow = signal<PageFirstRowSelectedRow>(new PageFirstRowSelectedRow(0, null));

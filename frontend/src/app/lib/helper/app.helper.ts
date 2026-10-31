@@ -1,5 +1,6 @@
 import moment from 'moment';
 import { combineLatest } from 'rxjs';
+import { requireInitialized } from './required-state';
 import { TranslateService } from '@ngx-translate/core';
 import { ColumnConfig } from '../datashowbase/column.config';
 import { ParamMap } from '@angular/router';
@@ -498,7 +499,7 @@ export class AppHelper {
  */
 export class TranslateParam {
   /** The translated value (set after translation occurs) */
-  translatedValue: string;
+  translatedValue?: string;
 
   /**
    * Creates a new translation parameter.
@@ -521,7 +522,9 @@ export class TranslateParam {
    */
   getInterpolateParam(): { [key: string]: any } {
     const interpolateParam: Record<string, string> = {};
-    interpolateParam[this.paramName] = this.translate ? this.translatedValue : this.paramValue;
+    interpolateParam[this.paramName] = this.translate
+      ? requireInitialized(this.translatedValue, 'TranslateParam.translatedValue')
+      : this.paramValue;
     return interpolateParam;
   }
 }

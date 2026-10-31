@@ -14,6 +14,8 @@ export class Week {
   }
 
   add(day: Day): void {
-    this.daysOfWeek[day.day.getDay()] = day;
+    const date = day.day;
+    if (!date) throw new Error('A calendar week can only receive a dated day');
+    this.daysOfWeek[date.getDay()] = day;
   }
 }

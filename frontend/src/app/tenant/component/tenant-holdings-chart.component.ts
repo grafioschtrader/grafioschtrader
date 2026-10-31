@@ -108,7 +108,7 @@ export class TenantHoldingsChartComponent
   private plotlyConfig: any;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
   /** Set once the first chart has loaded the library; cleanup never triggers the import. */
-  private plotly: PlotlyInstance;
+  private plotly?: PlotlyInstance;
   private destroyed = false;
   /** Raised by every draw, so a draw still waiting for the library is dropped when a newer one follows. */
   private drawVersion = 0;

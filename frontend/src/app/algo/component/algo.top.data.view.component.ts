@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { httpResource } from '@angular/common/http';
 import { Component, effect, inject, input, numberAttribute, OnDestroy, OnInit, signal, untracked } from '@angular/core';
@@ -202,12 +203,23 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   // For modal dialogs
   readonly visibleDialogs = signal<boolean[]>([]);
   /** The custom category the instrument search dialog adds to. */
-  idAlgoAssetclassAddInstrument: number;
+  private initializedIdAlgoAssetclassAddInstrument?: number;
+
+  get idAlgoAssetclassAddInstrument(): number {
+    return requireInitialized(
+      this.initializedIdAlgoAssetclassAddInstrument,
+      'AlgoTopDataViewComponent.idAlgoAssetclassAddInstrument'
+    );
+  }
+
+  set idAlgoAssetclassAddInstrument(value: number) {
+    this.initializedIdAlgoAssetclassAddInstrument = value;
+  }
 
   readonly algoCallParam = signal<AlgoCallParam | undefined>(undefined);
 
   readonly contextMenuItems = signal<MenuItem[]>([]);
-  private monitoringSubscription: Subscription;
+  private monitoringSubscription?: Subscription;
   private readonly alertEditable = signal(false);
   private readonly savingAlerts = signal(new Set<number>());
   /** True when no create, update or delete action on the hierarchy may be offered. */
@@ -408,24 +420,22 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
         return;
       }
       const strategy: AlgoStrategy = event.rowData;
+      const idAlgoRuleStrategy = strategy.idAlgoRuleStrategy;
+      if (idAlgoRuleStrategy == null) return;
       const previous = strategy.alertEnabled;
       this.patchHierarchyRow(strategy, { alertEnabled: event.value });
-      this.savingAlerts.update((pending) => new Set([...pending, strategy.idAlgoRuleStrategy]));
+      this.savingAlerts.update((pending) => new Set([...pending, idAlgoRuleStrategy]));
       this.algoStrategyService
-        .setAlertEnabled(strategy.idAlgoRuleStrategy, event.value)
+        .setAlertEnabled(idAlgoRuleStrategy, event.value)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (saved) => {
             this.patchHierarchyRow(strategy, { alertEnabled: saved.alertEnabled });
-            this.savingAlerts.update(
-              (pending) => new Set([...pending].filter((id) => id !== strategy.idAlgoRuleStrategy))
-            );
+            this.savingAlerts.update((pending) => new Set([...pending].filter((id) => id !== idAlgoRuleStrategy)));
           },
           error: () => {
             this.patchHierarchyRow(strategy, { alertEnabled: previous });
-            this.savingAlerts.update(
-              (pending) => new Set([...pending].filter((id) => id !== strategy.idAlgoRuleStrategy))
-            );
+            this.savingAlerts.update((pending) => new Set([...pending].filter((id) => id !== idAlgoRuleStrategy)));
             this.readDataWithoutTopLevel();
           }
         });
@@ -557,7 +567,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
   }
 
   ngOnDestroy(): void {
-    this.monitoringSubscription.unsubscribe();
+    this.monitoringSubscription?.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
 

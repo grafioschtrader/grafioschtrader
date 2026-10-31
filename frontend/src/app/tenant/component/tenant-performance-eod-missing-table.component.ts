@@ -50,7 +50,7 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   readonly selectedDayIdSecurities = input.required<number[]>();
   readonly changedSecurity = output<Security | null>();
 
-  selectedSecurity: Security | null;
+  selectedSecurity: Security | null = null;
   private readonly feedConnectorsKV = signal<{ [id: string]: string }>({});
   private readonly destroyRef = inject(DestroyRef);
   readonly rowHighlightClass = (row: Security) => this.getRowHighlightClass(row);

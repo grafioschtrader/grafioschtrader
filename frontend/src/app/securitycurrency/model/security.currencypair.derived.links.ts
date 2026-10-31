@@ -1,25 +1,26 @@
-import { Currencypair } from '../../entities/currencypair';
-import { Security } from '../../entities/security';
-import { SecurityDerivedLink } from '../../entities/security.derived.link';
+import type { Currencypair } from '../../entities/currencypair';
+import type { Security } from '../../entities/security';
+import type { SecurityDerivedLink } from '../../entities/security.derived.link';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 
-export class SecurityCurrencypairDerivedLinks {
+/** Instruments and links returned for a derived security. */
+export interface SecurityCurrencypairDerivedLinks {
+  securityDerivedLinks: SecurityDerivedLink[];
+  securities: Security[];
+  currencypairs: Currencypair[];
+}
+
+export class SecurityDerivedLinksHelper {
   public static readonly ADDITIONAL_INSTRUMENT_NAME = 'additionalInstrumentName';
   public static readonly ALLOWED_VAR_NAMES = 'opqrs';
   public static readonly VAR_NAME_REGEX = new RegExp(
     '(?:^|[^A-Za-z0-9])([' +
-      SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES[0] +
+      SecurityDerivedLinksHelper.ALLOWED_VAR_NAMES[0] +
       '-' +
-      SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES[
-        SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES.length - 1
-      ] +
+      SecurityDerivedLinksHelper.ALLOWED_VAR_NAMES[SecurityDerivedLinksHelper.ALLOWED_VAR_NAMES.length - 1] +
       '])(?![A-Za-z0-9])',
     'g'
   );
-
-  securityDerivedLinks: SecurityDerivedLink[];
-  securities: Security[];
-  currencypairs: Currencypair[];
 
   public static getBaseInstrument(
     scdl: SecurityCurrencypairDerivedLinks,
@@ -30,9 +31,7 @@ export class SecurityCurrencypairDerivedLinks {
     );
     if (!baseInstrument) {
       const currencypair = scdl.currencypairs.find((c) => c.idSecuritycurrency === idLinkSecuritycurrency);
-      baseInstrument = currencypair
-        ? SecurityCurrencypairDerivedLinks.createCurrencypairWatchlist(currencypair)
-        : undefined;
+      baseInstrument = currencypair ? SecurityDerivedLinksHelper.createCurrencypairWatchlist(currencypair) : undefined;
     }
     return baseInstrument;
   }
@@ -48,7 +47,7 @@ export class SecurityCurrencypairDerivedLinks {
   } {
     const additionalInstruments: { [fieldName: string]: Security | CurrencypairWatchlist } = {};
     scdl.securityDerivedLinks.forEach((securityDerivedLink) => {
-      const fieldName = SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_' + securityDerivedLink.varName;
+      const fieldName = SecurityDerivedLinksHelper.ADDITIONAL_INSTRUMENT_NAME + '_' + securityDerivedLink.varName;
       const security = scdl.securities.find((s) => s.idSecuritycurrency === securityDerivedLink.idLinkSecuritycurrency);
       if (security) {
         additionalInstruments[fieldName] = security;
@@ -57,7 +56,7 @@ export class SecurityCurrencypairDerivedLinks {
           (c) => c.idSecuritycurrency === securityDerivedLink.idLinkSecuritycurrency
         );
         if (currencypair)
-          additionalInstruments[fieldName] = SecurityCurrencypairDerivedLinks.createCurrencypairWatchlist(currencypair);
+          additionalInstruments[fieldName] = SecurityDerivedLinksHelper.createCurrencypairWatchlist(currencypair);
       }
     });
     return additionalInstruments;

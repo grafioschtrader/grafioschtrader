@@ -14,7 +14,7 @@ import Base = moment.unitOfTime.Base;
  */
 export class CorrelationEditingSupport {
   /** Subscription for sampling period form control value changes */
-  private changeOnSamplingPeriodSub: Subscription;
+  private changeOnSamplingPeriodSub?: Subscription;
 
   /** Field name constant for sampling period control */
   private readonly samplingPeriod = 'samplingPeriod';
@@ -23,7 +23,7 @@ export class CorrelationEditingSupport {
   private readonly rolling = 'rolling';
 
   /** Subscription for date from form control value changes */
-  private changeOnDateFromSub: Subscription;
+  private changeOnDateFromSub?: Subscription;
 
   /** Moment.js time unit for period calculations, defaults to months */
   private periodMoment: Base = 'M';
@@ -191,7 +191,7 @@ export class CorrelationEditingSupport {
 
   /** Unsubscribes from all form control value change subscriptions to prevent memory leaks */
   destroy(): void {
-    this.changeOnSamplingPeriodSub && this.changeOnSamplingPeriodSub.unsubscribe();
-    this.changeOnDateFromSub && this.changeOnDateFromSub.unsubscribe();
+    this.changeOnSamplingPeriodSub?.unsubscribe();
+    this.changeOnDateFromSub?.unsubscribe();
   }
 }

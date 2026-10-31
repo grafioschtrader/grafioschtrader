@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { afterNextRender, AfterRenderRef, Component, inject, Injector, OnInit, signal } from '@angular/core';
 
 import { TranslateModule } from '@ngx-translate/core';
@@ -147,7 +148,15 @@ export class GenericConnectorComponent
   readonly visibleEndpointDialog = signal(false);
   readonly visibleTestDialog = signal(false);
   readonly selectedEndpoint = signal<GenericConnectorEndpoint | null>(null);
-  endpointToEdit: GenericConnectorEndpoint;
+  private initializedEndpointToEdit?: GenericConnectorEndpoint;
+
+  get endpointToEdit(): GenericConnectorEndpoint {
+    return requireInitialized(this.initializedEndpointToEdit, 'GenericConnectorComponent.endpointToEdit');
+  }
+
+  set endpointToEdit(value: GenericConnectorEndpoint) {
+    this.initializedEndpointToEdit = value;
+  }
   private readonly injector = inject(Injector);
   private readSubscription?: Subscription;
   private formRender?: AfterRenderRef;

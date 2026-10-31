@@ -85,7 +85,7 @@ export class LastSessionsPerformanceWidgetComponent
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig = { labelColumns: 3, nonModal: true };
 
-  private idPortfolioSubscription: Subscription;
+  private idPortfolioSubscription?: Subscription;
 
   constructor() {
     super();

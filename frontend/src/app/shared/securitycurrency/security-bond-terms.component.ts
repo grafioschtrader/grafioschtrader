@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import {
   afterNextRender,
@@ -95,14 +96,25 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
   readonly ready = signal(false);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
-  private initializeAfterRender: AfterRenderRef;
+  private initializeAfterRender?: AfterRenderRef;
   readonly form = viewChild(DynamicFormComponent);
-  private couponRateSubscribe: Subscription;
+  private couponRateSubscribe?: Subscription;
   private applyingCouponRatePrefill = false;
   private couponRateOverridden = false;
   private lastCouponRatePrefill: number | null = null;
-  private couponDayCountDefaults: CouponDayCountDefaults;
-  private couponDayCountSubscribe: Subscription;
+  private initializedCouponDayCountDefaults?: CouponDayCountDefaults;
+
+  private get couponDayCountDefaults(): CouponDayCountDefaults {
+    return requireInitialized(
+      this.initializedCouponDayCountDefaults,
+      'SecurityBondTermsComponent.couponDayCountDefaults'
+    );
+  }
+
+  private set couponDayCountDefaults(value: CouponDayCountDefaults) {
+    this.initializedCouponDayCountDefaults = value;
+  }
+  private couponDayCountSubscribe?: Subscription;
   private applyingCouponDayCountPrefill = false;
   private couponDayCountOverridden = false;
   private lastCouponDayCountPrefill: string | null = null;
@@ -205,7 +217,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
 
   private initializeForm(): void {
     const form = this.form();
-    if (!form || !this.configObject) {
+    if (!form || !this.configObjectIfInitialized) {
       return;
     }
     this.couponRateSubscribe?.unsubscribe();
@@ -236,7 +248,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
   }
 
   private prefillCouponRate(): void {
-    const couponRateControl = this.configObject?.couponRate?.formControl;
+    const couponRateControl = this.configObjectIfInitialized?.couponRate?.formControl;
     if (!couponRateControl || this.couponRateOverridden) {
       return;
     }
@@ -253,7 +265,7 @@ export class SecurityBondTermsComponent extends FormBase implements OnInit, OnDe
   }
 
   private prefillCouponDayCount(): void {
-    const couponDayCountControl = this.configObject?.couponDayCount?.formControl;
+    const couponDayCountControl = this.configObjectIfInitialized?.couponDayCount?.formControl;
     if (!couponDayCountControl || this.couponDayCountOverridden) {
       return;
     }

@@ -13,7 +13,7 @@ import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { AuditHelper } from '../../helper/audit.helper';
-import { ProposeChangeEntityWithEntity } from '../../proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../proposechange/model/propose.change.entity.whit.entity';
 import { BaseSettings } from '../../base.settings';
 
 /**

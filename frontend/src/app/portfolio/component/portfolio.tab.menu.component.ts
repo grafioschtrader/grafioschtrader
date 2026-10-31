@@ -55,7 +55,7 @@ export class PortfolioTabMenuComponent {
   defaultRoute: string = AppSettings.PORTFOLIO_SUMMARY_KEY;
   sessionStorageKey: string = GlobalGTSessionNames.TAB_MENU_PORTFOLIO;
 
-  private portfolio: Portfolio | null;
+  private portfolio: Portfolio | null = null;
 
   navigateWithPortfolio = (route: string): void => {
     if (!this.portfolio || this.portfolio.idPortfolio == null) {

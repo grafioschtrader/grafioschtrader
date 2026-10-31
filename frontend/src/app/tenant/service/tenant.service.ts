@@ -14,7 +14,7 @@ import { Tenant } from '../../entities/tenant';
 import { BaseSettings } from '../../lib/base.settings';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { PerformanceReportSettings } from '../../performanceperiod/model/performance-report';
-import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
+import { type TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
 import { TaxStatementExportRequest } from '../../taxdata/service/tax-data.service';
 
 @Service()

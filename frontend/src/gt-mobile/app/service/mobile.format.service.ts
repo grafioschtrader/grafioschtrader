@@ -33,12 +33,22 @@ export class MobileFormatService {
 
   /** Formats an amount with the precision of its currency, followed by the currency code. */
   amount(value: number | null | undefined, currency: string): string {
-    return value == null ? '' : this.format({ value }, 'value', DataType.NumericShowZero, currency) + ' ' + currency;
+    const figure = this.amountFigure(value, currency);
+    return figure && figure + ' ' + currency;
+  }
+
+  /** Formats an amount with the precision of its currency, without the code, where the line names the currency. */
+  amountFigure(value: number | null | undefined, currency: string): string {
+    return value == null ? '' : this.format({ value }, 'value', DataType.NumericShowZero, currency);
   }
 
   /** Formats a percentage with two fraction digits and the percent sign. */
   percentage(value: number | null | undefined): string {
-    return value == null ? '' : this.format({ value }, 'value', DataType.NumericShowZero, null) + ' %';
+    if (value == null) {
+      return '';
+    }
+    const field: ValueFormatField = { dataType: DataType.NumericShowZero, fixedFractionDigits: 2 };
+    return ValueFormatHelper.getValueByPathWithField(this.localeFormat, { value }, field, 'value') + ' %';
   }
 
   /**
@@ -65,6 +75,16 @@ export class MobileFormatService {
   /** Formats a date given as ISO string in the short date format of the user. */
   date(value: string | null | undefined): string {
     return value ? this.format({ value }, 'value', DataType.DateString) : '';
+  }
+
+  /** Formats a point in time, given as ISO string or epoch milliseconds, with date and time of the user's locale. */
+  dateTime(value: string | number | null | undefined): string {
+    return value == null || value === '' ? '' : this.format({ value }, 'value', DataType.DateTimeString);
+  }
+
+  /** Formats a whole number with the thousands separator of the user's locale, such as a trading volume. */
+  integer(value: number | null | undefined): string {
+    return value == null ? '' : this.format({ value }, 'value', DataType.NumericInteger);
   }
 
   /** Decimal symbol followed by the thousands separator, as Plotly expects it. */

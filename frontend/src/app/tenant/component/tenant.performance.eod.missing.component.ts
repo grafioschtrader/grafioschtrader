@@ -109,10 +109,10 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
   });
   allMissingDays: Date[] = [];
   securityMissingDays: Date[] = [];
-  selectedDayByUser: Date | null;
+  selectedDayByUser: Date | null = null;
   readonly selectedDayIdSecurities = signal<number[]>([]);
-  foundDayMarkedRange: boolean;
-  selectedSecurity: Security | null;
+  foundDayMarkedRange = false;
+  selectedSecurity: Security | null = null;
 
   private readDataSub?: Subscription;
 

@@ -101,10 +101,28 @@ export class DynamicFormComponent implements OnDestroy {
 
   readonly submitBt = output<any>();
 
-  form: UntypedFormGroup;
+  private formState?: {
+    form: UntypedFormGroup;
+    fieldsetConfigs: FieldsetConfig[];
+    showWithFieldset: boolean;
+  };
 
-  fieldsetConfigs: FieldsetConfig[];
-  showWithFieldset: boolean;
+  get form(): UntypedFormGroup {
+    return this.requireFormState().form;
+  }
+
+  get fieldsetConfigs(): FieldsetConfig[] {
+    return this.requireFormState().fieldsetConfigs;
+  }
+
+  get showWithFieldset(): boolean {
+    return this.requireFormState().showWithFieldset;
+  }
+
+  private requireFormState() {
+    if (!this.formState) throw new Error('DynamicFormComponent form has not been initialized');
+    return this.formState;
+  }
 
   /**
    * Change notification of this form, shared with every FieldConfig of its configuration. Every template of the form
@@ -113,7 +131,7 @@ export class DynamicFormComponent implements OnDestroy {
   notifier = new FormNotifier();
 
   /** Events of the current group and its controls; replaced whenever a new group is built. */
-  private controlEventsSubscription: Subscription;
+  private controlEventsSubscription?: Subscription;
 
   constructor() {
     effect(() => {
@@ -188,9 +206,11 @@ export class DynamicFormComponent implements OnDestroy {
    * every transition of its children, for example a second child becoming touched.
    */
   private buildForm(): void {
-    this.form = this.createGroupAndControl();
-    this.fieldsetConfigs = this.createFieldsetConfigs();
-    this.showWithFieldset = this.hasFieldset();
+    this.formState = {
+      form: this.createGroupAndControl(),
+      fieldsetConfigs: this.createFieldsetConfigs(),
+      showWithFieldset: this.hasFieldset()
+    };
     this.controlEventsSubscription?.unsubscribe();
     const controls: AbstractControl[] = [
       this.form,

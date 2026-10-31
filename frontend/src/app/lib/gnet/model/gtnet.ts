@@ -96,7 +96,7 @@ export interface GTNetConfig {
 }
 
 export class GTNet implements BaseID {
-  idGtNet: number;
+  idGtNet?: number;
   domainRemoteName: string | null = null;
   timeZone: string | null = null;
   spreadCapability = true;
@@ -111,13 +111,13 @@ export class GTNet implements BaseID {
   // Connection configuration with token presence indicators
   gtNetConfig: GTNetConfig | null = null;
 
-  getId(): number {
+  getId(): number | undefined {
     return this.idGtNet;
   }
 }
 
 export class MsgRequest {
-  public gtNetMessageParamMap: Record<string, BaseParam>;
+  public gtNetMessageParamMap?: Record<string, BaseParam>;
   public waitDaysApply: number | null = null;
   /**
    * ID of the original message being cancelled. Only used for cancellation messages

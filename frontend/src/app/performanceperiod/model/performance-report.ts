@@ -1,5 +1,5 @@
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { PerformanceWindowDef } from '../service/holding.service';
+import type { PerformanceWindowDef } from './performance-window';
 
 /** Remembered presentation only; dates and comment are deliberately outside this contract. */
 export interface PerformanceReportSettings {

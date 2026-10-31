@@ -1,7 +1,7 @@
 # Angular 22: Modernisierung des Frontends
 
 **Code baseline:** backend 0.39.2, highest Flyway script `V0_39_2__typed_null_globalparameters.sql`; frontend
-0.39.2 mit `@angular/core` 22.2.4, TypeScript 6.0.3, `@openng/optimus-ui` 2.0.2; Arbeitsbaum vom 30.10.2026.
+0.39.2 mit `@angular/core` 22.2.4, TypeScript 6.0.3, `@openng/optimus-ui` 2.0.2; Arbeitsbaum vom 31.10.2026.
 
 ## 1. Ziel
 
@@ -9,7 +9,7 @@ Beide Hosts (`frontend` und `grafiosch-host`) laufen zoneless, jede Komponente n
 Komponenten sind standalone und alle Templates verwenden die eingebaute Ablaufsteuerung (`@if`, `@for`, `@switch`).
 Komponenten verwenden Signal-Eingaben und -Queries, Abhängigkeiten kommen aus `inject()`, Root-Services aus
 `@Service()`. Beide Router binden Parameter an Eingaben; gemeinsam genutzter Chart- und Tab-Zustand liegt in Signalen.
-Diese Spezifikation plant die strikte Typisierung sowie die Prüfung von `@defer` und Signal Forms.
+Diese Spezifikation plant die Prüfung von `@defer` und Signal Forms.
 
 Leitlinien:
 
@@ -25,22 +25,15 @@ Leitlinien:
 
 ## 2. Bestandsaufnahme
 
-Erhoben über `src/**/*.ts` und `src/**/*.html` (961 TypeScript-Dateien einschließlich Tests).
+Erhoben über `src/**/*.ts` und `src/**/*.html` (993 TypeScript-Dateien einschließlich Tests).
 
 | Bereich | Heute | Angular-22-Ziel |
 | --- | --- | --- |
 | Verzögertes Rendern | 0 × `@defer` | `@defer` nach Messung |
 | Formulare | `dynamic-form` auf `UntypedFormGroup` (10 Dateien in `lib/dynamic-form` und `lib/validator`), 107 Verwender | Signal Forms nach Prototyp |
-| Typisierung | `strict: false`, `strictTemplates: true`; `noImplicitAny`, `strictBindCallApply`, `strictFunctionTypes`, `noImplicitThis`, `useUnknownInCatchVariables`, `alwaysStrict`, `strictBuiltinIteratorReturn`, `strictNullChecks` aktiv | `strict: true` |
 
-Fehlerzahlen von `npx tsc -p tsconfig.app.json --noEmit` mit zusätzlichen Compiler-Optionen (nur TypeScript-Code,
-Templates nicht mitgezählt):
-
-| Option | Fehler |
-| --- | --- |
-| Ohne zusätzliche Option | 0 |
-| `--strictPropertyInitialization` | 757 |
-| `--strict` | 757 |
+Anwendung, Bibliothekshost, Mobile und Tests verwenden die gemeinsame TypeScript-Konfiguration mit `strict: true`
+und Angular-Templates mit `strictTemplates: true`.
 
 ## 3. Querschnittsregeln
 
@@ -62,7 +55,10 @@ Konstruktorinjektion, nicht begründete `@Injectable()`-Deklarationen, `new Beha
 Parameter-Observables injizierter `ActivatedRoute`-Instanzen sowie `ngOnChanges` und `fieldsInitialized`.
 Template-Switches deklarieren einen Standardfall oder eine Vollständigkeitsprüfung. Ausnahmen stehen als Liste
 `Datei → Begründung` im Test selbst.
-Der Test sichert außerdem die aktiven strikten TypeScript-Optionen in beiden Hosts und der Testkonfiguration ab.
+Der Test sichert außerdem die vollständige strikte TypeScript-Konfiguration aller Projekte ab.
+`src/resource-initialization.ratchet.spec.ts` prüft sämtliche Anwendungs- und Testfelder mit dem TypeScript-Compiler
+und verbietet Definite-Assignment-Assertions. `src/report-response.ratchet.spec.ts` sichert die registrierten
+JSON-Datenverträge gegen Laufzeitdeklarationen ab.
 
 Neue Muster erhalten jeweils Positiv- und Negativbeispiele. Das Frontend hat keine ESLint-Konfiguration; die Ratchets
 sind die Absicherung gegen abgelöste APIs.
@@ -74,14 +70,7 @@ Regeln, die beide Hosts betreffen, gelten ebenso für `src/grafiosch-host/README
 
 ## 4. Stufen
 
-§4.5 wird in prüfbaren Teilstufen bearbeitet. §4.6 und §4.7 sind Prüfaufträge mit eigener Entscheidung.
-
-### 4.5 Strikte Typisierung
-
-1. **`strictPropertyInitialization`.** Eingaben, Queries und Abhängigkeiten sind initialisierte Felder; die
-   verbleibenden Fehler betreffen fachliche Felder. Ihre Initialwerte und Lebenszyklen werden ausdrücklich modelliert.
-   Benötigte Werte werden vor dem Zugriff geprüft; fehlende Daten erhalten keine erfundenen Standardwerte.
-2. Am Ende steht `"strict": true` in `tsconfig.json`, die Einzeloptionen entfallen.
+§4.6 und §4.7 sind Prüfaufträge mit eigener Entscheidung.
 
 ### 4.6 `@defer` nach Messung
 

@@ -19,7 +19,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
       [multiSortMeta]="multiSortMeta"
       [baseLocale]="baseLocale"
       [paginator]="true"
-      [rows]="rowsPerPage"
+      [rows]="rowsPerPage ?? 20"
       (pageChange)="onPage($event)"
       customClass="datatable" />
   `,

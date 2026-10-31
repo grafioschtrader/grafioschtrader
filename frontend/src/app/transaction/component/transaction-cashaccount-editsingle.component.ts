@@ -17,7 +17,6 @@ import { RuleEvent } from '../../lib/dynamic-form/error/error.message.rules';
 import { TransactionCashaccountBaseOperations } from './transaction.cashaccount.base.operations';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { HelpIds } from '../../lib/help/help.ids';
 import { FormDefinitionHelper } from '../../shared/edit/form.definition.helper';
@@ -71,7 +70,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   readonly visibleCashaccountTransactionSingleDialog = input(false);
 
   /** Form configuration object containing locale and validation settings */
-  formConfig: FormConfig;
 
   /** Minimum allowed transaction amount */
   readonly minAmount = 0.00000001;
@@ -80,13 +78,13 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   cashaccountCurrency: string | null = ' ';
 
   /** Subscription for transaction type changes */
-  private transactionTypeChangedSub: Subscription;
+  private transactionTypeChangedSub?: Subscription;
 
   /** Subscription for cash account changes */
-  private chashaccountChangedSub: Subscription;
+  private chashaccountChangedSub?: Subscription;
 
   /** Subscription for transaction time changes, used to re-evaluate which accounts are active */
-  private transactionTimeChangedSub: Subscription;
+  private transactionTimeChangedSub?: Subscription;
 
   /** Standard required field error configuration */
   private errorRequired = {
@@ -279,9 +277,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * @param event Dialog hide event
    */
   onHide(event: unknown) {
-    this.transactionTypeChangedSub && this.transactionTypeChangedSub.unsubscribe();
-    this.chashaccountChangedSub && this.chashaccountChangedSub.unsubscribe();
-    this.transactionTimeChangedSub && this.transactionTimeChangedSub.unsubscribe();
+    this.transactionTypeChangedSub?.unsubscribe();
+    this.chashaccountChangedSub?.unsubscribe();
+    this.transactionTimeChangedSub?.unsubscribe();
     super.close();
   }
 
@@ -372,7 +370,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    */
   private toggleAccountOptionsByTransactionTime(): void {
     const transactionTime = requireFormControl(this.configObject.transactionTime).value;
-    if (!transactionTime || !this.portfolios) {
+    if (!transactionTime || !this.portfoliosIfInitialized) {
       return;
     }
     const time = +transactionTime;
@@ -433,7 +431,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     const transactionCallParam = this.transactionCallParam();
     if (transactionCallParam.transaction === null) {
       requireFormControl(this.configObject.idCashaccount).setValue(
-        transactionCallParam.cashaccount.idSecuritycashAccount
+        transactionCallParam.cashaccount?.idSecuritycashAccount ?? null
       );
       this.changeTransactionType(requireFormControl(this.configObject.transactionType).value);
     } else {

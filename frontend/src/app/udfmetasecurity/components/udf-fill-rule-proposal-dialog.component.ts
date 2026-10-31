@@ -109,7 +109,7 @@ export class UDFFillRuleProposalDialogComponent implements OnDestroy {
   /** Examples ticked for sending; every change publishes a new set */
   readonly selected = signal<ReadonlySet<number>>(new Set());
   readonly loading = signal(false);
-  private pendingRequest: Subscription | null;
+  private pendingRequest?: Subscription | null;
 
   /**
    * Loads what would be sent; nothing leaves the instance yet.

@@ -3,8 +3,8 @@ import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.c
 import { TranslateService } from '@ngx-translate/core';
 import { SecurityaccountGroupBase } from './securityaccount.group.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
-import { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
+import type { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import type { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
 import { AssetclassType } from '../../shared/types/assetclass.type';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 
@@ -89,7 +89,7 @@ export abstract class SecurityaccountGroupBaseDynamic<S extends string | number>
     spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<S>>
   ): any {
     const valuesNet: number[] = [];
-    const valuesGross: number[] = [];
+    const valuesGross: (number | null)[] = [];
 
     const labels: string[] = [];
 

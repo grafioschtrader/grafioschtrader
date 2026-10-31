@@ -5,9 +5,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { Subscription } from 'rxjs';
-import { TransactionCostGrandSummary } from '../../entities/view/transactioncost/transaction.cost.grand.summary';
-import { TransactionCostGroupSummary } from '../../entities/view/transactioncost/transaction.cost.group.summary';
-import { TransactionCostPosition } from '../../entities/view/transactioncost/transaction.cost.position';
+import type { TransactionCostGrandSummary } from '../../entities/view/transactioncost/transaction.cost.grand.summary';
+import type { TransactionCostGroupSummary } from '../../entities/view/transactioncost/transaction.cost.group.summary';
+import type { TransactionCostPosition } from '../../entities/view/transactioncost/transaction.cost.position';
 import { BaseSettings } from '../../lib/base.settings';
 import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -78,7 +78,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   chartData: (ReturnType<typeof PlotlyHelper.initializeChartTrace> & { refId: (number | undefined)[] })[] = [];
   private chartAccountIds: (number | null | undefined)[] = [];
 
-  selectedRow: TransactionCostGroupSummary;
+  selectedRow: TransactionCostGroupSummary | null = null;
 
   readonly transactionCostGrandSummary = signal<TransactionCostGrandSummary | null>(null);
   readonly transactionCostGroupSummaries = computed(
@@ -93,13 +93,12 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   };
 
   private readonly destroyRef = inject(DestroyRef);
-  private readRequest: Subscription;
-  private menuRequest: Subscription;
+  private readRequest?: Subscription;
+  private menuRequest?: Subscription;
 
-  private chartIdNumberToTransactionCostPosition: TransactionCostPosition[];
   private columnConfigs: ColumnConfig[] = [];
 
-  private subscriptionRequestFromChart: Subscription;
+  private subscriptionRequestFromChart?: Subscription;
 
   constructor() {
     super();
@@ -244,7 +243,6 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
     if (!summary) return;
     this.chartData = [];
     this.chartAccountIds = [];
-    this.chartIdNumberToTransactionCostPosition = [];
     summary.transactionCostGroupSummaries.forEach((tcgs) => {
       const transactionIds: (number | undefined)[] = [];
       const traceSecurityaccount = {
@@ -259,7 +257,6 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
         traceSecurityaccount.x.push(tcp.basePriceForTransactionCostMC);
         traceSecurityaccount.y.push(tcp.transactionCostMC);
         transactionIds.push(tcp.transaction.idTransaction);
-        this.chartIdNumberToTransactionCostPosition.push(tcp);
       });
     });
 

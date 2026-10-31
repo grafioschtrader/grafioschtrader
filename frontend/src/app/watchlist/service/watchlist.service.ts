@@ -14,7 +14,7 @@ import { Securitycurrency } from '../../entities/securitycurrency';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { catchError } from 'rxjs/operators';
-import { TenantLimit } from '../../shared/types/tenant.limit';
+import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { AddSearchToListService } from '../component/add-instrument-table.component';
 import { IntraHistoricalWatchlistProblem } from '../model/intra.historical.watchlist.problem';
 import { WatchlistMoveStatus } from '../model/watchlist.move.status';

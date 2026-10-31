@@ -34,7 +34,8 @@ export class TradingCalendarOtherExchangeDynamicDialogComponent extends FormBase
   private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
 
   private readonly destroyRef = inject(DestroyRef);
-  copyTradingDaysFromSourceToTarget: CopyTradingDaysFromSourceToTarget;
+  readonly copyTradingDaysFromSourceToTarget: CopyTradingDaysFromSourceToTarget =
+    this.dynamicDialogConfig.data.copyTradingDaysFromSourceToTarget;
 
   readonly YEAR_OR_FULL_PROP = 'copyYearOrFull';
   readonly NAME = 'name';
@@ -53,7 +54,6 @@ export class TradingCalendarOtherExchangeDynamicDialogComponent extends FormBase
 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.configObject[this.NAME].valueKeyHtmlOptions = this.dynamicDialogConfig.data.sourceCopyStockexchanges;
-    this.copyTradingDaysFromSourceToTarget = this.dynamicDialogConfig.data.copyTradingDaysFromSourceToTarget;
     this.configObject[this.YEAR_OR_FULL_PROP].defaultValue = this.copyTradingDaysFromSourceToTarget.fullCopy
       ? this.dynamicDialogConfig.data.calendarRange
       : this.copyTradingDaysFromSourceToTarget.returnOrCopyYear;

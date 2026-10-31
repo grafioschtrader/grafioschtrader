@@ -1,7 +1,7 @@
 import { Component, OnInit, input, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { AccordionModule } from '@openng/optimus-ui/accordion';
-import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
+import type { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
 import { SecuritycurrencyExtendedInfoComponent } from './securitycurrency-extended-info.component';

@@ -3,19 +3,24 @@ import { BaseParam } from '../../entities/base.param';
 import { AcceptRequestTypes, ExchangeKindTypeInfo, GTNet, GTNetEntity } from './gtnet';
 
 export class GTNetMessage {
-  idGtNetMessage: number;
+  idGtNetMessage?: number;
   idGtNet: number | null = null;
-  timestamp: number;
+  timestamp?: number;
   sendRecv: SendReceivedType | string | null = null;
   replyTo: number | null = null;
   messageCode: GTNetMessageCodeType | string | null = null;
-  gtNetMessageParamMap: Record<string, BaseParam>;
+  gtNetMessageParamMap?: Record<string, BaseParam>;
   message: string | null = null;
   visibility: MessageVisibility | string = MessageVisibility.ALL_USERS;
   hasBeenRead: boolean = false;
   deliveryStatus: DeliveryStatus | string = DeliveryStatus.PENDING;
   waitDaysApply: number = 0;
   canDelete: boolean = false;
+}
+
+/** Narrows a stored message before reply, acknowledgement or deletion requests. */
+export function hasGTNetMessageId(message: GTNetMessage): message is GTNetMessage & { idGtNetMessage: number } {
+  return message.idGtNetMessage != null;
 }
 
 /**

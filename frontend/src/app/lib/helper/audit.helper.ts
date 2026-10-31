@@ -6,7 +6,7 @@ import { FormHelper } from '../dynamic-form/components/FormHelper';
 import { TranslateService } from '@ngx-translate/core';
 import { ProcessedAction } from '../types/processed.action';
 import { ProcessedActionData } from '../types/processed.action.data';
-import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
 import { FormBase } from '../edit/form.base';
 import { ProposeTransientTransfer } from '../entities/propose.transient.transfer';
 import { DynamicFieldHelper } from './dynamic.field.helper';
@@ -123,11 +123,12 @@ export class AuditHelper {
     proposeUserTask: ProposeUserTask | null | undefined
   ): ProposeChangeEntityWithEntity | undefined {
     if (proposeUserTask) {
-      const pewe = new ProposeChangeEntityWithEntity();
-      pewe.entity = entity;
-      pewe.proposedEntity = JSON.parse(JSON.stringify(entity));
+      const pewe: ProposeChangeEntityWithEntity = {
+        entity,
+        proposedEntity: JSON.parse(JSON.stringify(entity)),
+        proposeChangeEntity: proposeUserTask
+      };
       proposeUserTask.proposeChangeFieldList.forEach((put) => (pewe.proposedEntity[put.field] = put.valueDesarialized));
-      pewe.proposeChangeEntity = proposeUserTask;
       (<Auditable>pewe.entity).idProposeRequest = proposeUserTask.idProposeRequest;
       return pewe;
     }

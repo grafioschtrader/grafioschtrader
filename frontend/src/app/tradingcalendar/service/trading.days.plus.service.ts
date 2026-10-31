@@ -2,7 +2,7 @@ import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppSettings } from '../../shared/app.settings';
 import { catchError } from 'rxjs/operators';
-import { TradingDaysPlus } from '../../entities/trading.days.plus';
+import type { TradingDaysPlus } from '../../entities/trading.days.plus';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { TradingDaysWithDateBoundaries } from '../model/trading.days.with.date.boundaries';
 import { BaseSettings } from '../../lib/base.settings';

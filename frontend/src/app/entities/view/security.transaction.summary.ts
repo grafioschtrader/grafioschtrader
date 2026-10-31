@@ -1,5 +1,5 @@
 import { SecurityTransactionPosition } from './security.transaction.position';
-import { SecurityPositionSummary } from './security.position.summary';
+import type { SecurityPositionSummary } from './security.position.summary';
 import { INameSecuritycurrency } from './iname.securitycurrency';
 import { Securitycurrency } from '../securitycurrency';
 

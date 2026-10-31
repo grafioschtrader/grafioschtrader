@@ -28,7 +28,7 @@ import { AppSettings } from '../../shared/app.settings';
       [cellStyleFn]="getCellStyle"
       [hasFilter]="true"
       [paginator]="true"
-      [rows]="rowsPerPage"
+      [rows]="rowsPerPage ?? 20"
       (pageChange)="onPage($event)"
       customClass="datatable" />
   `,
@@ -37,7 +37,7 @@ import { AppSettings } from '../../shared/app.settings';
 })
 export class FeeModelComparisonTableComponent extends TableConfigBase implements OnDestroy {
   readonly details = input<FeeModelComparisonDetail[]>([]);
-  selectedRow: FeeModelComparisonDetail;
+  selectedRow: FeeModelComparisonDetail | null = null;
 
   constructor() {
     super();

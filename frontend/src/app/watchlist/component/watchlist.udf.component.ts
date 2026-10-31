@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -8,7 +9,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AppSettings } from '../../shared/app.settings';
 import { combineLatest, Observable } from 'rxjs';
 import { SecuritycurrencyUDFGroup } from '../../entities/view/securitycurrency.group';
-import { TenantLimit } from '../../shared/types/tenant.limit';
+import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { UDFMetadataSecurityService } from '../../udfmetasecurity/service/udf.metadata.security.service';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -27,7 +28,7 @@ import {
 } from '../../udfmetasecurity/model/udf.metadata.security';
 import { CellMark } from '../../lib/datashowbase/configurable-table.component';
 import { MenuItem } from '@openng/optimus-ui/api';
-import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
+import type { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
@@ -100,7 +101,15 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
   private static readonly LINK_ICON = 'link';
 
   /** Map of security currency IDs to their UDF values as JSON strings */
-  private udfEntityValues: { [idSecuritycurrency: number]: string };
+  private initializedUdfEntityValues?: { [idSecuritycurrency: number]: string };
+
+  private get udfEntityValues(): { [idSecuritycurrency: number]: string } {
+    return requireInitialized(this.initializedUdfEntityValues, 'WatchlistUdfComponent.udfEntityValues');
+  }
+
+  private set udfEntityValues(value: { [idSecuritycurrency: number]: string }) {
+    this.initializedUdfEntityValues = value;
+  }
 
   /** Fill marks of the automatically filled and the locked cells, by security and field key */
   private udfFillInfo: { [idSecuritycurrency: number]: { [fieldKey: string]: UDFFillInfo } } = {};

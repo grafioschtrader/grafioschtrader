@@ -6,10 +6,11 @@ import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.ba
 import { TranslatePipe } from '@ngx-translate/core';
 import { SecurityService } from '../service/security.service';
 import {
-  HistoryquoteQualityGroup,
+  type HistoryquoteQualityGroup,
   HistoryquoteQualityGrouped,
-  HistoryquoteQualityHead,
-  HistoryquoteQualityIds
+  type HistoryquoteQualityHead,
+  type HistoryquoteQualityIds,
+  pickHistoryquoteQualityIds
 } from '../model/historyquote.quality.group';
 import { MenuItem, SelectItem, TreeNode } from '@openng/optimus-ui/api';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -18,7 +19,6 @@ import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.
 import { HelpIds } from '../../lib/help/help.ids';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { plainToInstance } from 'class-transformer';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
@@ -110,12 +110,12 @@ export class SecurityHistoryquoteQualityTreetableComponent
   readonly historyquoteQualityIds = signal<HistoryquoteQualityIds | null>(null);
   readonly groupTitle = signal<string | null>(null);
   readonly contextMenuItems = signal<MenuItem[] | null>(null);
-  securityIdWithCurrency: SecurityIdWithCurrency | null;
+  securityIdWithCurrency: SecurityIdWithCurrency | null = null;
 
   readonly qualityNode = signal<TreeNode[]>([]);
   readonly historyquoteQualityHead = signal<HistoryquoteQualityHead | null>(null);
   readonly selectedNode = signal<TreeNode | null>(null);
-  selectedGroup: string;
+  selectedGroup: string = HistoryquoteQualityGrouped[HistoryquoteQualityGrouped.STOCKEXCHANGE_GROUPED];
   readonly lastUpdate = signal<string | null>(null);
 
   groups: SelectItem[] = [];
@@ -123,7 +123,7 @@ export class SecurityHistoryquoteQualityTreetableComponent
   private readonly destroyRef = inject(DestroyRef);
   /** A newer group selection supersedes the request of the previous one. */
   private readonly groupRequests = new Subject<string>();
-  private menuSubscription: Subscription;
+  private menuSubscription?: Subscription;
 
   constructor() {
     super();
@@ -157,7 +157,6 @@ export class SecurityHistoryquoteQualityTreetableComponent
   }
 
   ngOnInit(): void {
-    this.selectedGroup = HistoryquoteQualityGrouped[HistoryquoteQualityGrouped.STOCKEXCHANGE_GROUPED];
     this.readData(this.selectedGroup);
   }
 
@@ -194,13 +193,9 @@ export class SecurityHistoryquoteQualityTreetableComponent
     node: { data: HistoryquoteQualityGroup; parent: { parent: { data: { name: string } }; data: { name: string } } };
   }): void {
     const hqg: HistoryquoteQualityGroup = event.node.data;
-    if (hqg.categoryType !== null) {
+    if (hqg.categoryType != null) {
       this.groupTitle.set(event.node.parent.parent.data.name + ' / ' + event.node.parent.data.name + ' / ' + hqg.name);
-      this.historyquoteQualityIds.set(
-        plainToInstance(HistoryquoteQualityIds, event.node.data, {
-          excludeExtraneousValues: true
-        }) as HistoryquoteQualityIds
-      );
+      this.historyquoteQualityIds.set(pickHistoryquoteQualityIds(hqg));
     }
   }
 
@@ -230,7 +225,7 @@ export class SecurityHistoryquoteQualityTreetableComponent
     const tn: TreeNode[] = [];
     this.addTreeNode(tn, hqg);
     this.historyquoteQualityHead.set(hqg);
-    this.lastUpdate.set(AppHelper.getDateByFormat(this.gps, hqg.lastUpdate));
+    this.lastUpdate.set(hqg.lastUpdate == null ? null : AppHelper.getDateByFormat(this.gps, hqg.lastUpdate));
     this.selectedNode.set(null);
     this.qualityNode.set(tn[0].children ?? []);
   }

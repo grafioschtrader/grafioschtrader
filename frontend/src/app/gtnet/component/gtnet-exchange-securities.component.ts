@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { Component, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -62,7 +63,7 @@ import { HelpIds } from '../../lib/help/help.ids';
       [enableCustomSort]="true"
       [customSortFn]="exchangeSorter"
       [paginator]="true"
-      [rows]="rowsPerPage"
+      [rows]="rowsPerPage ?? 20"
       [rowsPerPageOptions]="[20, 50, 100, 150]"
       [hasFilter]="true"
       (componentClick)="onComponentClick($event)"
@@ -148,7 +149,15 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   readonly visibleEditSecurityDialog = signal(false);
 
   /** Security to edit */
-  securityCallParam: Security;
+  private initializedSecurityCallParam?: Security;
+
+  get securityCallParam(): Security {
+    return requireInitialized(this.initializedSecurityCallParam, 'GTNetExchangeSecuritiesComponent.securityCallParam');
+  }
+
+  set securityCallParam(value: Security) {
+    this.initializedSecurityCallParam = value;
+  }
 
   constructor() {
     super('Security');

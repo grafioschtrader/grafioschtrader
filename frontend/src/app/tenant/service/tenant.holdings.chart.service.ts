@@ -1,6 +1,6 @@
 import { Service, signal } from '@angular/core';
-import { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
-import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import type { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
+import type { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
 
 /**
  * What the report "security asset classes with cash" hands to its charts after every load.

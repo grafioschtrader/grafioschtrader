@@ -32,7 +32,7 @@ import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
 import { StockexchangeService } from '../../stockexchange/service/stockexchange.service';
 import { AssetclassService } from '../../assetclass/service/assetclass.service';
 import { DistributionFrequency } from '../../shared/types/distribution.frequency';
-import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
@@ -41,7 +41,10 @@ import { AssetclassType } from '../../shared/types/assetclass.type';
 import { SupplementCriteria } from '../model/supplement.criteria';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { SecurityDerivedLink } from '../../entities/security.derived.link';
-import { SecurityCurrencypairDerivedLinks } from '../model/security.currencypair.derived.links';
+import {
+  SecurityDerivedLinksHelper,
+  type SecurityCurrencypairDerivedLinks
+} from '../model/security.currencypair.derived.links';
 import { AppSettings } from '../../shared/app.settings';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -94,19 +97,19 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
   supplementCriteria: SupplementCriteria;
   readonly formFields = signal<FieldConfig[]>([]);
   private readonly injector = inject(Injector);
-  private pendingRender: AfterRenderRef;
-  private instrumentDialog: DynamicDialogRef | null;
+  private pendingRender?: AfterRenderRef;
+  private instrumentDialog: DynamicDialogRef | null = null;
 
-  private baseInstrument: Security | CurrencypairWatchlist | null;
+  private baseInstrument: Security | CurrencypairWatchlist | null = null;
   private additionalInstruments: {
     [fieldName: string]: Security | CurrencypairWatchlist;
   } = {};
-  private securityEditSupport: SecurityEditSupport;
+  private readonly securityEditSupport = new SecurityEditSupport(this.translateService, this.gps, null);
 
   private readonly BASE_PRODUCT_NAME = 'baseProductName';
 
   private readonly FORMULA_PRICES = 'formulaPrices';
-  private usedFormulaVars: string[];
+  private usedFormulaVars: string[] = [];
 
   constructor() {
     super(HelpIds.HELP_WATCHLIST_DERIVED_INSTRUMENT);
@@ -114,12 +117,11 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
     this.destroyRef.onDestroy(() => {
       this.pendingRender?.destroy();
       this.instrumentDialog?.close();
-      this.securityEditSupport?.destroy();
+      this.securityEditSupport.destroy();
     });
   }
 
   ngOnInit(): void {
-    this.securityEditSupport = new SecurityEditSupport(this.translateService, this.gps, null);
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
 
     const fields = [
@@ -185,10 +187,10 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
         if (!requireFormControl(this.configObject[this.FORMULA_PRICES]).disabled) {
           this.usedFormulaVars = [];
           if (formulaPrices) {
-            let match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
+            let match = SecurityDerivedLinksHelper.VAR_NAME_REGEX.exec(formulaPrices);
             while (match != null) {
               this.usedFormulaVars.push(match[1]);
-              match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
+              match = SecurityDerivedLinksHelper.VAR_NAME_REGEX.exec(formulaPrices);
             }
           }
           this.usedFormulaVars = [...new Set(this.usedFormulaVars)];
@@ -328,10 +330,10 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
     const fieldConfig: FieldConfig[] = [];
     this.usedFormulaVars.forEach((ufv: string) => {
       if (
-        SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES.indexOf(ufv) >= 0 &&
-        ufv !== SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES[0]
+        SecurityDerivedLinksHelper.ALLOWED_VAR_NAMES.indexOf(ufv) >= 0 &&
+        ufv !== SecurityDerivedLinksHelper.ALLOWED_VAR_NAMES[0]
       ) {
-        const fieldName = SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_' + ufv;
+        const fieldName = SecurityDerivedLinksHelper.ADDITIONAL_INSTRUMENT_NAME + '_' + ufv;
 
         if (!this.configObject[fieldName]) {
           fieldConfig.push(
@@ -350,7 +352,7 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
 
     const retained = this.formFields().filter(
       (field) =>
-        !field.field?.startsWith(SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_') ||
+        !field.field?.startsWith(SecurityDerivedLinksHelper.ADDITIONAL_INSTRUMENT_NAME + '_') ||
         this.usedFormulaVars.includes(field.field.slice(-1))
     );
     if (fieldConfig.length || retained.length !== this.formFields().length) {
@@ -369,7 +371,7 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
     this.configObject[this.BASE_PRODUCT_NAME].disabled = true;
     const idLink = this.securityCallParam()?.idLinkSecuritycurrency;
     if (idLink == null) return;
-    const baseInstrument = SecurityCurrencypairDerivedLinks.getBaseInstrument(scdl, idLink);
+    const baseInstrument = SecurityDerivedLinksHelper.getBaseInstrument(scdl, idLink);
     if (!baseInstrument) {
       requireFormControl(this.configObject[this.BASE_PRODUCT_NAME]).setValue(null);
       return;
@@ -380,7 +382,7 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
   }
 
   private setAdditionalInstrumentsForExistingSecurity(scdl: SecurityCurrencypairDerivedLinks): void {
-    this.additionalInstruments = SecurityCurrencypairDerivedLinks.getAdditionalInstrumentsForExistingSecurity(scdl);
+    this.additionalInstruments = SecurityDerivedLinksHelper.getAdditionalInstrumentsForExistingSecurity(scdl);
     for (const [fieldName, securitycurrency] of Object.entries(this.additionalInstruments)) {
       requireFormControl(this.configObject[fieldName]).setValue(securitycurrency.name);
     }
@@ -425,10 +427,10 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
     if (this.usedFormulaVars) {
       this.usedFormulaVars.forEach((ufv: string) => {
         if (
-          SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES.indexOf(ufv) >= 0 &&
-          ufv !== SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES[0]
+          SecurityDerivedLinksHelper.ALLOWED_VAR_NAMES.indexOf(ufv) >= 0 &&
+          ufv !== SecurityDerivedLinksHelper.ALLOWED_VAR_NAMES[0]
         ) {
-          const fieldName = SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_' + ufv;
+          const fieldName = SecurityDerivedLinksHelper.ADDITIONAL_INSTRUMENT_NAME + '_' + ufv;
           const securityCallParam = this.securityCallParam();
           const idLink = this.additionalInstruments[fieldName]?.idSecuritycurrency;
           if (idLink == null) throw new Error(`Derived instrument variable "${ufv}" requires its instrument.`);

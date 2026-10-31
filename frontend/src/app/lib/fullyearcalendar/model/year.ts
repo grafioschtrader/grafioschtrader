@@ -69,9 +69,7 @@ export class Year {
   private _initYear(): void {
     for (let i = 0; i < 12; i++) {
       const days: Day[] = this.getMonthDays(i);
-      const month = new Month(days);
-      month.index = i;
-      month.days = days;
+      const month = new Month(i, days);
       this.months.push(month);
     }
   }

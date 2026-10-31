@@ -2,7 +2,7 @@ import { UserTaskType } from '../types/user.task.type';
 import { ProposeRequest } from './propose.request';
 
 export class ProposeUserTask extends ProposeRequest {
-  idRoleTo: number;
+  idRoleTo?: number;
 
   constructor(public userTaskType: UserTaskType) {
     super();

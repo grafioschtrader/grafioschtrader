@@ -6,7 +6,7 @@ import { AlgoTopAssetSecurity } from './algo.top.asset.security';
 import { AlgoTreeName } from '../../entities/view/algo.tree.name';
 
 export class AlgoAssetclass extends AlgoAssetclassSecurity implements AlgoTreeName {
-  idAlgoAssetclassParent: number;
+  idAlgoAssetclassParent?: number;
 
   name: string | null = null;
   securityDeviationPercentage: number | null = null;
@@ -15,9 +15,9 @@ export class AlgoAssetclass extends AlgoAssetclassSecurity implements AlgoTreeNa
   assetclass: Assetclass | null = null;
 
   @Type(() => AlgoSecurity)
-  algoSecurityList: AlgoSecurity[];
+  algoSecurityList: AlgoSecurity[] = [];
 
-  addedPercentage: number;
+  addedPercentage?: number;
 
   @Exclude()
   isCustomCategory(): boolean {

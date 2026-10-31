@@ -64,7 +64,7 @@ export class AlgoSimulationRunStartDynamicDialogComponent extends SimpleDynamicF
   readonly custodyYaml = signal('');
   readonly custodySchema = signal<object | undefined>(undefined);
 
-  private simulation: SimulationTenantInfo;
+  private readonly simulation: SimulationTenantInfo = this.dynamicDialogConfig.data.callParam.thisObject;
 
   constructor() {
     super(HelpIds.HELP_ALGO_HISTORICAL_RUN);
@@ -72,7 +72,6 @@ export class AlgoSimulationRunStartDynamicDialogComponent extends SimpleDynamicF
 
   ngOnInit(): void {
     const callParam: CallParam = this.dynamicDialogConfig.data.callParam;
-    this.simulation = callParam.thisObject as any as SimulationTenantInfo;
     // The locale of the form makes the calendar read in the user's date format.
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(

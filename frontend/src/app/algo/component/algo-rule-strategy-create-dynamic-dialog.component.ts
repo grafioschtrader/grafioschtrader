@@ -45,7 +45,7 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent extends SimpleDynamicF
 
   static readonly DIALOG_WIDTH = 700;
   private readonly injector = inject(Injector);
-  callParam: CallParam;
+  readonly callParam: CallParam = this.dynamicDialogConfig.data.callParam;
   private static readonly ASSETCLASS_FIELD = 'idAssetclass';
   private static readonly PERCENTAGE_FIELD = 'percentage';
   private static readonly maxAssetclassRows = 9;
@@ -53,8 +53,8 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent extends SimpleDynamicF
 
   assetclassCounter = 0;
   valueKeyHtmlOptionsAssetclasses: ValueKeyHtmlSelectOptions[] = [];
-  algoTopCreate: AlgoTopCreate;
-  protected watchlistChangedSub: Subscription;
+  readonly algoTopCreate: AlgoTopCreate = this.callParam.thisObject as AlgoTopCreate;
+  protected watchlistChangedSub?: Subscription;
   protected assetclassChangeSubList: (Subscription | null | undefined)[] = new Array(
     AlgoRuleStrategyCreateDynamicDialogComponent.maxAssetclassRows
   );
@@ -66,7 +66,6 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent extends SimpleDynamicF
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, this.helpLink.bind(this));
-    this.callParam = this.dynamicDialogConfig.data.callParam;
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'NAME', 40, true),
       DynamicFieldHelper.createFieldMinMaxNumber(
@@ -89,7 +88,6 @@ export class AlgoRuleStrategyCreateDynamicDialogComponent extends SimpleDynamicF
   }
 
   private initializeForm(): void {
-    this.algoTopCreate = <AlgoTopCreate>this.callParam.thisObject;
     this.helpId = HelpIds.HELP_ALGO_TREE;
     this.assetsclasses = [];
     this.valueChangedOnWatchlist();

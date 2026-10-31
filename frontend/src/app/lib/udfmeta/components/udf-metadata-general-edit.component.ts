@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../helper/required-state';
 import { requireFormControl } from '../../dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
@@ -49,10 +50,18 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
   readonly callParam = input.required<UDFMetadataGeneralParam>();
 
   /** Field configurations for data type and field size inputs */
-  private configDataTypeFields: FieldConfig[];
+  private readonly configDataTypeFields: FieldConfig[] = UDFMetadataHelper.createDataTypeFields();
 
   /** UDF configuration settings loaded from session storage */
-  private udfConfig: UDFConfig;
+  private initializedUdfConfig?: UDFConfig;
+
+  private get udfConfig(): UDFConfig {
+    return requireInitialized(this.initializedUdfConfig, 'UDFMetadataGeneralEditComponent.udfConfig');
+  }
+
+  private set udfConfig(value: UDFConfig) {
+    this.initializedUdfConfig = value;
+  }
 
   /**
    * Creates the UDF metadata general edit component.
@@ -72,7 +81,6 @@ export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMet
    */
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
-    this.configDataTypeFields = UDFMetadataHelper.createDataTypeFields();
     const stored = sessionStorage.getItem(GlobalSessionNames.UDF_CONFIG);
     if (stored == null) throw new Error('UDF configuration has not been loaded for this session.');
     this.udfConfig = JSON.parse(stored);

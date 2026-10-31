@@ -1,5 +1,5 @@
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
-import { TaskDataChange, TaskDataChangeFormConstraints } from '../types/task.data.change';
+import { TaskDataChange, type TaskDataChangeFormConstraints } from '../types/task.data.change';
 import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs/internal/Observable';
 import { catchError } from 'rxjs/operators';

@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../../lib/helper/required-state';
 import { Component, DestroyRef, inject, OnInit, signal, output, viewChild, input, linkedSignal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
@@ -137,12 +138,31 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   /** Controls visibility of the security edit dialog */
   readonly visibleEditSecurityDialog = signal(false);
   /** Security parameter for the edit dialog */
-  securityCurrencypairCallParam: Security;
+  private initializedSecurityCurrencypairCallParam?: Security;
+
+  get securityCurrencypairCallParam(): Security {
+    return requireInitialized(
+      this.initializedSecurityCurrencypairCallParam,
+      'GTNetSecurityImportTableComponent.securityCurrencypairCallParam'
+    );
+  }
+
+  set securityCurrencypairCallParam(value: Security) {
+    this.initializedSecurityCurrencypairCallParam = value;
+  }
 
   /** Controls visibility of the CSV upload dialog */
   readonly visibleUploadDialog = signal(false);
   /** Configuration for the file upload dialog */
-  fileUploadParam: FileUploadParam;
+  private initializedFileUploadParam?: FileUploadParam;
+
+  get fileUploadParam(): FileUploadParam {
+    return requireInitialized(this.initializedFileUploadParam, 'GTNetSecurityImportTableComponent.fileUploadParam');
+  }
+
+  set fileUploadParam(value: FileUploadParam) {
+    this.initializedFileUploadParam = value;
+  }
 
   private readonly ENTITY_NAME = 'GTNET_SECURITY_IMP_POS';
 
@@ -157,9 +177,9 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
 
   private readonly destroyRef = inject(DestroyRef);
   /** Positions of the latest head; a newer head replaces a request still outstanding */
-  private positionsSubscription: Subscription;
+  private positionsSubscription?: Subscription;
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
-  private menuSubscription: Subscription;
+  private menuSubscription?: Subscription;
 
   /** Cache of data provider URLs keyed by security ID */
   private dataProviderUrlsCache: {
@@ -226,7 +246,11 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     this.gtNetService
       .getAllGTNetsWithMessages()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((result) => this.gtNetsMap.set(new Map(result.gtNetList.map((gtNet) => [gtNet.idGtNet, gtNet]))));
+      .subscribe((result) =>
+        this.gtNetsMap.set(
+          new Map(result.gtNetList.flatMap((gtNet) => (gtNet.idGtNet == null ? [] : [[gtNet.idGtNet, gtNet] as const])))
+        )
+      );
 
     // Load currency options
     this.globalparameterGTService.getCurrencies().subscribe((currencies: ValueKeyHtmlSelectOptions[]) => {

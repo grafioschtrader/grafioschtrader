@@ -3,7 +3,7 @@ import { Expose } from 'class-transformer';
 export class DividendSplit {
   @Expose() idSecuritycurrency?: number;
   @Expose() createType?: string | CreateType;
-  @Expose() createModifyTime: string | Date;
+  @Expose() createModifyTime?: string | Date;
 }
 
 export class Dividend extends DividendSplit {

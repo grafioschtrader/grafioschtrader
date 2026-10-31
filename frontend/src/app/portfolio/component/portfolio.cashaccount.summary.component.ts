@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { httpResource } from '@angular/common/http';
 import {
@@ -23,8 +24,8 @@ import { CashaccountEditComponent } from '../../cashaccount/component/cashaccoun
 import { CashaccountService } from '../../cashaccount/service/cashaccount.service';
 import { Cashaccount } from '../../entities/cashaccount';
 import { Portfolio } from '../../entities/portfolio';
-import { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
-import { AccountPositionSummary } from '../../entities/view/account.position.summary';
+import type { AccountPositionGroupSummary } from '../../entities/view/account.position.group.summary';
+import type { AccountPositionSummary } from '../../entities/view/account.position.summary';
 import { BaseSettings } from '../../lib/base.settings';
 import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
@@ -46,7 +47,7 @@ import { AppSettings } from '../../shared/app.settings';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
-import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
+import { type TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { TenantService } from '../../tenant/service/tenant.service';
 import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
@@ -91,24 +92,51 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   // For  transaction dialog
   visibleCashaccountTransactionSingleDialog = false;
   visibleCashaccountTransactionDoubleDialog = false;
-  transactionCallParam: TransactionCallParam;
+  private initializedTransactionCallParam?: TransactionCallParam;
+
+  get transactionCallParam(): TransactionCallParam {
+    return requireInitialized(
+      this.initializedTransactionCallParam,
+      'PortfolioCashaccountSummaryComponent.transactionCallParam'
+    );
+  }
+
+  set transactionCallParam(value: TransactionCallParam) {
+    this.initializedTransactionCallParam = value;
+  }
 
   // For edit Account dialog
-  callParam: CallParam;
+  private initializedCallParam?: CallParam;
+
+  get callParam(): CallParam {
+    return requireInitialized(this.initializedCallParam, 'PortfolioCashaccountSummaryComponent.callParam');
+  }
+
+  set callParam(value: CallParam) {
+    this.initializedCallParam = value;
+  }
   visibleCashaccountDialog = false;
 
-  public portfolio: Portfolio;
-  accountPositionGroupSummary: AccountPositionGroupSummary;
+  private initializedPortfolio?: Portfolio;
+
+  public get portfolio(): Portfolio {
+    return requireInitialized(this.initializedPortfolio, 'PortfolioCashaccountSummaryComponent.portfolio');
+  }
+
+  public set portfolio(value: Portfolio) {
+    this.initializedPortfolio = value;
+  }
+  accountPositionGroupSummary: AccountPositionGroupSummary | null = null;
   // private idPortfolio: number;
   // For row expansion, used when a transaction was changed
   expandedAccountPositionSummary: AccountPositionSummary[] = [];
   expandedIdCashaccount: number[] = [];
   // For the component Edit-Menu, it shows the same menu items as the context menu
-  selectedAccountPositionSummary: AccountPositionSummary | null;
+  selectedAccountPositionSummary: AccountPositionSummary | null = null;
   contextMenuItems: MenuItem[] = [];
   private columnConfigs: ColumnConfig[] = [];
   private excludedDivTaxColumn: ColumnConfig;
-  private tenantLimit: TenantLimit | null;
+  private tenantLimit: TenantLimit | null = null;
 
   private statementReports = inject(PerformanceReportDialogService);
   private reportDestroyRef = inject(DestroyRef);
@@ -118,7 +146,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
       ...(super.getMenuShowOptions() || []),
       this.statementReports.menu(
         () => this.untilDate,
-        () => this.portfolio?.idPortfolio,
+        () => this.initializedPortfolio?.idPortfolio,
         this.reportDestroyRef
       )
     ];
@@ -248,8 +276,8 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
             this.expandedIdCashaccount.indexOf(accountPositionSummary.cashaccount.idSecuritycashAccount) >= 0
         );
         this.columnConfigs.forEach((columnConfig) => {
-          columnConfig.headerSuffix = this.accountPositionGroupSummary.currency;
-          columnConfig.fixedCurrency = this.accountPositionGroupSummary.currency;
+          columnConfig.headerSuffix = data.currency;
+          columnConfig.fixedCurrency = data.currency;
         });
         this.prepareTableAndTranslate();
         this.isActivated() && this.resetMenu(null);
@@ -264,7 +292,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   }
 
   readData(): void {
-    const id = this.portfolio?.idPortfolio;
+    const id = this.initializedPortfolio?.idPortfolio;
     if (id == null) return;
     const request = this.cashaccountService.getCashaccountPositionGroupSummaryRequest(id, this.untilDate);
     const current = this.summaryRequest();

@@ -5,8 +5,8 @@ import { Auditable } from '../lib/entities/auditable';
 export class ImportTransactionTemplate extends Auditable implements BaseID {
   public static readonly KEY_NAME = 'idAssetClass';
 
-  idTransactionImportTemplate: number;
-  idTransactionImportPlatform: number;
+  idTransactionImportTemplate?: number;
+  idTransactionImportPlatform?: number;
   templateFormatType: TemplateFormatType | string | null = null;
   templatePurpose: string | null = null;
   templateCategory?: TemplateCategory | string | null = null;

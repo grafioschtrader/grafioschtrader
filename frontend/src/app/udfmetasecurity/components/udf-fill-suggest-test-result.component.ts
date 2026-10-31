@@ -127,7 +127,7 @@ export class UDFFillSuggestTestResultComponent implements OnDestroy {
   /** True while securities are still being asked */
   readonly running = signal(false);
 
-  private subscription: Subscription;
+  private subscription?: Subscription;
 
   /**
    * Loads the securities and asks them one after the other; a failing request, such as an exhausted budget, ends the

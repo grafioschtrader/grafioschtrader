@@ -9,7 +9,7 @@ import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { FilterType } from '../../lib/datashowbase/filter.type';
 import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
-import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
+import type { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 import { HelpIds } from '../../lib/help/help.ids';
 import { combineLatest, Observable } from 'rxjs';
 import { Security } from '../../entities/security';
@@ -18,7 +18,7 @@ import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { AuditHelper } from '../../lib/helper/audit.helper';
-import { TenantLimit } from '../../shared/types/tenant.limit';
+import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { BaseSettings } from '../../lib/base.settings';
 import { DatePipe } from '@angular/common';
@@ -287,11 +287,13 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
   ): boolean {
     return this.securityPositionList().every((sp) => {
       const activeToDate = (<Security>sp.securitycurrency).activeToDate;
+      const cutoffDate = untilDate ?? (sp.youngestHistoryDate ? new Date(sp.youngestHistoryDate) : null);
       return (
         sp.securitycurrency[propName] === 0 ||
         (!(sp.securitycurrency instanceof CurrencypairWatchlist) &&
           activeToDate != null &&
-          new Date(activeToDate) <= (untilDate === null ? sp.youngestHistoryDate : untilDate))
+          cutoffDate != null &&
+          new Date(activeToDate) <= cutoffDate)
       );
     });
   }

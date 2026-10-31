@@ -231,7 +231,7 @@ export interface UDFFillProposalDecisionResult {
  */
 export class UDFMetadataSecurityParam extends UDFMetadataParam {
   /** The security UDF metadata entity being edited, or null when creating a new entry */
-  uDFMetadataSecurity: UDFMetadataSecurity | null;
+  uDFMetadataSecurity: UDFMetadataSecurity | null = null;
 }
 
 /**

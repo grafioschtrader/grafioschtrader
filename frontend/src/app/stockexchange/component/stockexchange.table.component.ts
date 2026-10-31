@@ -19,6 +19,7 @@ import { TableCrudSupportMenuSecurity } from '../../lib/datashowbase/table.crud.
 import { StockexchangeBaseData, StockexchangeMic } from '../model/stockexchange.base.data';
 import { StockexchangeHasSecurity } from '../model/stockexchange.has.security';
 import { StockexchangeHelper } from './stockexchange.helper';
+import { requireInitialized } from '../../lib/helper/required-state';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { BaseSettings } from '../../lib/base.settings';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -77,10 +78,10 @@ import { TradingCalendarStockexchangeComponent } from './trading-calendar-stocke
         [sourceCopyStockexchanges]="getCopySourceStockexchanges(stockexchange.idStockexchange)" />
     </ng-template>
 
-    @if (visibleDialog()) {
+    @if (visibleDialog() && callParam; as params) {
       <stockexchange-edit
         [visibleDialog]="visibleDialog()"
-        [callParam]="callParam"
+        [callParam]="params"
         (closeDialog)="handleCloseDialog($event)" />
     }
   `,
@@ -96,13 +97,14 @@ import { TradingCalendarStockexchangeComponent } from './trading-calendar-stocke
 export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<Stockexchange> {
   private stockexchangeService: StockexchangeService = inject(StockexchangeService);
 
-  callParam: StockexchangeCallParam = new StockexchangeCallParam();
+  callParam: StockexchangeCallParam | null = null;
   readonly ownerHighlight = (entity: Stockexchange, field: ColumnConfig): boolean =>
     this.isNotSingleModeAndOwner(entity, field);
   readonly canExpandRow = (stockexchange: Stockexchange): boolean => !stockexchange.noMarketValue;
 
   private countriesAsKeyValue: { [cc: string]: string } = {};
-  private stockexchangeMics: StockexchangeMic[];
+  private stockexchangeMics?: StockexchangeMic[];
+  private countriesAsHtmlOptions?: ValueKeyHtmlSelectOptions[];
   private readDataSub?: Subscription;
 
   constructor() {
@@ -173,7 +175,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
 
   protected override readData(): void {
     this.readDataSub?.unsubscribe();
-    if (this.callParam.countriesAsHtmlOptions) {
+    if (this.countriesAsHtmlOptions) {
       this.readDataSub = forkJoin([
         this.stockexchangeService.getAllStockexchanges(true),
         this.stockexchangeService.stockexchangesHasSecurity()
@@ -201,7 +203,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
   }
 
   private prepareCountiesSelect(vkhso: ValueKeyHtmlSelectOptions[]): void {
-    this.callParam.countriesAsHtmlOptions = vkhso;
+    this.countriesAsHtmlOptions = vkhso;
     this.countriesAsKeyValue = StockexchangeHelper.transform(vkhso);
   }
 
@@ -220,13 +222,17 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
 
   protected override prepareCallParam(entity: Stockexchange | null) {
     const id = entity == null ? null : this.getId(entity);
-    this.callParam.hasSecurity = typeof id === 'number' && this.hasSecurityObject[id] !== 0;
-    this.callParam.stockexchange = entity;
-    this.callParam.stockexchangeMics = this.stockexchangeMics;
-    this.callParam.existingMic = new Set(
+    const existingMic = new Set(
       this.entityList()
         .map((se) => se.mic)
         .filter((mic) => mic != null)
+    );
+    this.callParam = new StockexchangeCallParam(
+      entity,
+      typeof id === 'number' && this.hasSecurityObject[id] !== 0,
+      requireInitialized(this.countriesAsHtmlOptions, 'StockexchangeTableComponent.countriesAsHtmlOptions'),
+      requireInitialized(this.stockexchangeMics, 'StockexchangeTableComponent.stockexchangeMics'),
+      existingMic
     );
   }
 }

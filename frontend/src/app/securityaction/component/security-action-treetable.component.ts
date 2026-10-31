@@ -1,7 +1,7 @@
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subscription, switchMap } from 'rxjs';
+import { Subscription, switchMap, map } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
@@ -89,13 +89,12 @@ export class SecurityActionTreetableComponent
   isAdmin: boolean;
   readonly visibleCreateDialog = signal(false);
 
-  private selectedNode: TreeNode | null;
-  private treeData: SecurityActionTreeData;
+  private selectedNode: TreeNode | null = null;
   private readonly destroyRef = inject(DestroyRef);
   /** Latest tree request; a reload replaces one still outstanding */
-  private loadSubscription: Subscription;
+  private loadSubscription?: Subscription;
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
-  private menuSubscription: Subscription;
+  private menuSubscription?: Subscription;
 
   constructor() {
     super();
@@ -169,14 +168,15 @@ export class SecurityActionTreetableComponent
     this.loadSubscription = this.securityActionService
       .getTree()
       .pipe(
-        switchMap((data: SecurityActionTreeData) => {
-          this.treeData = data;
-          return this.translateService.get(['SYSTEM_ACTIONS', 'CLIENT_TRANSFERS']);
-        }),
+        switchMap((data: SecurityActionTreeData) =>
+          this.translateService
+            .get(['SYSTEM_ACTIONS', 'CLIENT_TRANSFERS'])
+            .pipe(map((translations) => ({ data, translations })))
+        ),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe((t) => {
-        const treeNodes = this.buildTree(this.treeData, t);
+      .subscribe(({ data, translations }) => {
+        const treeNodes = this.buildTree(data, translations);
         this.createTranslateValuesStoreForTranslation(treeNodes);
         this.treeNodes.set(treeNodes);
       });

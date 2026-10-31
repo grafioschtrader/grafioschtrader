@@ -47,7 +47,7 @@ export class GeneralEntityPrepareEdit<T extends BaseID> extends BasePrepareEdit<
  */
 export class EntityMapping {
   /** Whether the edit dialog should be visible */
-  visibleDialog: boolean;
+  visibleDialog = false;
 
   /** Entity-specific parameters passed to the edit dialog */
   callParam: any = {};

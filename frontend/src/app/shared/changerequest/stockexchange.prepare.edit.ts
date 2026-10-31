@@ -42,16 +42,14 @@ export class StockexchangePrepareEdit
   prepareForEditEntity(entity: Stockexchange, entityMapping: EntityMapping): Observable<void> {
     return this.stockexchangeService.getAllStockexchangesBaseData().pipe(
       map((sbd: StockexchangeBaseData) => {
-        entityMapping.callParam = new StockexchangeCallParam();
-        entityMapping.callParam.stockexchange = new Stockexchange();
-        Object.assign(entityMapping.callParam.stockexchange, entity);
-        entityMapping.callParam.hasSecurity = sbd.hasSecurity.some(
-          (hs) => hs.id === entity.idStockexchange && hs.s !== 0
+        entityMapping.callParam = new StockexchangeCallParam(
+          Object.assign(new Stockexchange(), entity),
+          sbd.hasSecurity.some((hs) => hs.id === entity.idStockexchange && hs.s !== 0),
+          sbd.countries,
+          sbd.stockexchangeMics,
+          new Set(sbd.stockexchanges.map((se) => se.mic).filter((mic) => mic != null)),
+          true
         );
-        entityMapping.callParam.countriesAsHtmlOptions = sbd.countries;
-        entityMapping.callParam.stockexchangeMics = sbd.stockexchangeMics;
-        entityMapping.callParam.existingMic = new Set(sbd.stockexchanges.map((se) => se.mic));
-        entityMapping.callParam.proposeChange = true;
         entityMapping.visibleDialog = true;
       })
     );

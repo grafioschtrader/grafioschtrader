@@ -8,7 +8,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { HelpIds } from '../../lib/help/help.ids';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { AuditHelper } from '../../lib/helper/audit.helper';
-import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { StockexchangeCallParam } from './stockexchange.call.param';

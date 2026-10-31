@@ -113,8 +113,8 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicFor
   static readonly DIALOG_WIDTH = 600;
   private readonly injector = inject(Injector);
 
-  callParam: CallParam;
-  private algoTop: AlgoTop;
+  readonly callParam: CallParam = this.dynamicDialogConfig.data.callParam;
+  private readonly algoTop: AlgoTop = this.callParam.thisObject as AlgoTop;
   cashAccounts: Cashaccount[] = [];
   readonly preview = signal<SimulationPreviewDto | undefined>(undefined);
   assignments: { [key: string]: number } = {};
@@ -140,8 +140,6 @@ export class AlgoSimulationCreateDynamicDialogComponent extends SimpleDynamicFor
   }
 
   ngOnInit(): void {
-    this.callParam = this.dynamicDialogConfig.data.callParam;
-    this.algoTop = this.callParam.thisObject as AlgoTop;
     this.cashAccounts = (this.callParam.parentObject as any)?.cashAccounts || [];
 
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));

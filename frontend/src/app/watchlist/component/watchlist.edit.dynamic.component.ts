@@ -38,7 +38,7 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
   /**
    * Call parameters containing the watchlist entity to be edited and operation context.
    */
-  callParam: CallParam;
+  readonly callParam: CallParam = this.dynamicDialogConfig.data.callParam;
   private readonly injector = inject(Injector);
 
   /**
@@ -55,7 +55,6 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
    */
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
-    this.callParam = this.dynamicDialogConfig.data.callParam;
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'WATCHLIST_NAME', 25, true),
       DynamicFieldHelper.createSubmitButton()

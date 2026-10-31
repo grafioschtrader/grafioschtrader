@@ -1,11 +1,11 @@
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
-import { ImportTransactionPos } from '../../entities/import.transaction.pos';
+import type { ImportTransactionPos } from '../../entities/import.transaction.pos';
 import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppSettings } from '../../shared/app.settings';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
-import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
+import type { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import { catchError } from 'rxjs/operators';
 import { BaseSettings } from '../../lib/base.settings';
 

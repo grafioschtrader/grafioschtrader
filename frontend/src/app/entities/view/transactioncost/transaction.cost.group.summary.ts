@@ -1,11 +1,11 @@
-import { TransactionCostPosition } from './transaction.cost.position';
-import { Securityaccount } from '../../securityaccount';
+import type { TransactionCostPosition } from './transaction.cost.position';
+import type { Securityaccount } from '../../securityaccount';
 
-export class TransactionCostGroupSummary {
-  public securityaccount: Securityaccount;
-  public groupTotalTransactionCostMC: number;
-  public groupTotalTaxCostMc: number;
-  public groupTotalAverageTransactionCostMC: number;
-  public groupCountPaidTransaction: number;
-  public transactionCostPositions: TransactionCostPosition[];
+export interface TransactionCostGroupSummary {
+  securityaccount: Securityaccount;
+  groupTotalTransactionCostMC: number;
+  groupTotalTaxCostMc: number;
+  groupTotalAverageTransactionCostMC: number;
+  groupCountPaidTransaction: number;
+  transactionCostPositions: TransactionCostPosition[];
 }

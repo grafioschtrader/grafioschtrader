@@ -14,11 +14,13 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/angular';
+import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { concat, Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { MobileFormatService } from '../service/mobile.format.service';
 import { MobileWatchlistService } from '../service/mobile.watchlist.service';
+import { MobileWatchlistStore } from '../service/mobile.watchlist.store';
 import {
   MobileWatchlist,
   MobileWatchlistRow,
@@ -43,7 +45,7 @@ interface SegmentChangeEvent {
  * The instruments of one watchlist as a price list: name and price, the kind of instrument with its currency and the
  * change against the previous day, and for a held position a third line with units, price gain and total position.
  * The prices last stored are shown at once; the server then updates them, which can take a few seconds. The lines can
- * be ordered by name or by the change against the previous day.
+ * be ordered by name or by the change against the previous day. A tap on a line opens the instrument.
  */
 @Component({
   selector: 'mobile-watchlist-page',
@@ -73,7 +75,7 @@ interface SegmentChangeEvent {
       </ion-toolbar>
       @if (watchlists().length > 1) {
         <ion-toolbar>
-          <ion-segment [scrollable]="true" [value]="selectedId()" (ionChange)="onSelect($event)">
+          <ion-segment [scrollable]="true" [value]="selectedId() ?? undefined" (ionChange)="onSelect($event)">
             @for (watchlist of watchlists(); track watchlist.idWatchlist) {
               <ion-segment-button [value]="watchlist.idWatchlist">
                 <ion-label>{{ watchlist.name }}</ion-label>
@@ -106,7 +108,7 @@ interface SegmentChangeEvent {
       } @else if (shownRows(); as rows) {
         <ion-list lines="full">
           @for (row of rows; track row.idSecuritycurrency) {
-            <ion-item>
+            <ion-item [button]="true" [detail]="true" (click)="open(row)">
               <ion-label class="watchlist-row">
                 <div class="watchlist-line">
                   <span class="watchlist-name">{{ row.name }}</span>
@@ -192,6 +194,8 @@ export class WatchlistPage implements OnInit {
   protected readonly format = inject(MobileFormatService);
   private readonly watchlistService = inject(MobileWatchlistService);
   private readonly translateService = inject(TranslateService);
+  private readonly store = inject(MobileWatchlistStore);
+  private readonly router = inject(Router);
 
   protected readonly watchlists = signal<MobileWatchlist[]>([]);
   protected readonly watchlistsLoaded = signal(false);
@@ -270,6 +274,14 @@ export class WatchlistPage implements OnInit {
     return [...row.kindKeys.map((key) => texts.get(key) ?? key), row.currency].filter((part) => !!part).join(' · ');
   }
 
+  /** Opens the details and transactions of an instrument. */
+  protected open(row: MobileWatchlistRow): void {
+    const idWatchlist = this.selectedId();
+    if (idWatchlist != null) {
+      this.router.navigate(['/watchlist', idWatchlist, 'instrument', row.idSecuritycurrency]);
+    }
+  }
+
   protected onSort(key: MobileWatchlistSortKey): void {
     const sort = nextMobileWatchlistSort(this.sort(), key);
     this.sort.set(sort);
@@ -314,7 +326,10 @@ export class WatchlistPage implements OnInit {
         })
       )
       .subscribe({
-        next: (group) => this.rows.set(mobileWatchlistRows(group)),
+        next: (group) => {
+          this.store.put(idWatchlist, group);
+          this.rows.set(mobileWatchlistRows(group));
+        },
         // A failed price update keeps the stored prices on screen; the toast of the shell reports it.
         error: () => this.loadFailed.set(this.rows() === null)
       });

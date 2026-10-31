@@ -6,7 +6,7 @@ import { AlgoTreeName } from '../../entities/view/algo.tree.name';
 import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';
 
 export class AlgoSecurity extends AlgoAssetclassSecurity implements AlgoTreeName {
-  idAlgoSecurityParent: number;
+  idAlgoSecurityParent?: number;
   security: Security | null = null;
   /** Units the tenant holds today; only delivered for the assigned monitoring hierarchy, null without a position. */
   holdings: number | null = null;
@@ -22,7 +22,7 @@ export class AlgoSecurity extends AlgoAssetclassSecurity implements AlgoTreeName
   }
 }
 
-export class AlgoSecurityStrategyImplType {
+export interface AlgoSecurityStrategyImplType {
   algoSecurity: AlgoSecurity;
   possibleStrategyImplSet: AlgoStrategyImplementationType[];
   wasCreated: boolean;

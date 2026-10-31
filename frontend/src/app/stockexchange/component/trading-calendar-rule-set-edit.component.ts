@@ -12,7 +12,7 @@ import { AuditHelper } from '../../lib/helper/audit.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
 import { HelpIds } from '../../lib/help/help.ids';
-import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
@@ -101,7 +101,8 @@ export class TradingCalendarRuleSetEditComponent
 
   readonly ruleYamlValue = signal('');
   readonly ruleSchema = signal<any>(null);
-  ruleCompletions: { [fieldName: string]: YamlFieldCompletion[] };
+  readonly ruleCompletions: { [fieldName: string]: YamlFieldCompletion[] } =
+    TradingCalendarRuleSetEditComponent.buildRuleCompletions();
 
   readonly previewYear = signal(new Date().getFullYear());
   readonly previewClosures = signal<{ [date: string]: string }>({});
@@ -141,7 +142,6 @@ export class TradingCalendarRuleSetEditComponent
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    this.ruleCompletions = TradingCalendarRuleSetEditComponent.buildRuleCompletions();
   }
 
   protected override initialize(): void {

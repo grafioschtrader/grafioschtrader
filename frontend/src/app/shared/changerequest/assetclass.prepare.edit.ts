@@ -37,11 +37,8 @@ export class AssetclassPrepareEdit extends BasePrepareEdit<Assetclass> implement
 
     return combineLatest([observableAllAssetclasses, observableAssetclassHasSecurity]).pipe(
       map((data) => {
-        entityMapping.callParam = new AssetclassCallParam();
-        entityMapping.callParam.assetclass = new Assetclass();
-        Object.assign(entityMapping.callParam.assetclass, entity);
-        entityMapping.callParam.setSuggestionsArrayOfAssetclassList(data[0]);
-        entityMapping.callParam.hasSecurity = data[1];
+        const assetclass = Object.assign(new Assetclass(), entity);
+        entityMapping.callParam = new AssetclassCallParam(assetclass, data[1], data[0]);
         entityMapping.visibleDialog = true;
       })
     );

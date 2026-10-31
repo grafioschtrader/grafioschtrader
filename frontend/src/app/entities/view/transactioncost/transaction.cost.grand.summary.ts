@@ -1,7 +1,7 @@
-import { TransactionCostGroupSummary } from './transaction.cost.group.summary';
+import type { TransactionCostGroupSummary } from './transaction.cost.group.summary';
 
-export class TransactionCostGrandSummary {
-  public transactionCostGroupSummaries: TransactionCostGroupSummary[];
-  public mainCurrency: string;
-  public grandTotalTransactionCostMC: number;
+export interface TransactionCostGrandSummary {
+  transactionCostGroupSummaries: TransactionCostGroupSummary[];
+  mainCurrency: string;
+  grandTotalTransactionCostMC: number;
 }

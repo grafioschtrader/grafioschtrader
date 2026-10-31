@@ -1,4 +1,4 @@
-import { ClassDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
+import type { ClassDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
 
 /**
  * Edit form of a simple strategy for each level of the algo hierarchy. Each level carries the fields of its model
@@ -6,7 +6,7 @@ import { ClassDescriptorInputAndShow } from '../../lib/dynamicfield/field.descri
  *
  * Counterpart of backend `grafioschtrader.algo.strategy.model.InputAndShowDefinitionStrategy`.
  */
-export class InputAndShowDefinitionStrategy {
+export interface InputAndShowDefinitionStrategy {
   topFormDefinition: ClassDescriptorInputAndShow;
   assetclassFormDefinition: ClassDescriptorInputAndShow;
   securityFormDefinition: ClassDescriptorInputAndShow;

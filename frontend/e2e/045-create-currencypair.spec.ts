@@ -148,6 +148,11 @@ test.describe.serial('Seed currency pairs in the currencypair watchlist', () => 
 
       // Creation must succeed before the UI associates the pair with the watchlist. Surface a failed
       // POST immediately; otherwise its server error is hidden behind a dialog-close timeout.
+      // The PUT can wait for the asynchronous history load of the new pair: that load updates the
+      // securitycurrency row first and holds its lock across all data provider calls, while the
+      // watchlist insert needs that row for its foreign key check. Wait beyond MariaDB's default
+      // innodb_lock_wait_timeout (50 s), so a lock timeout arrives as a failed PUT instead of a timeout.
+      test.setTimeout(180_000);
       const [saveResponse] = await Promise.all([
         page.waitForResponse(
           (response) => {
@@ -158,7 +163,7 @@ test.describe.serial('Seed currency pairs in the currencypair watchlist', () => 
               (method === 'PUT' && /\/api\/watchlist\/\d+\/addSecuritycurrency$/.test(pathname))
             );
           },
-          { timeout: 30_000 }
+          { timeout: 70_000 }
         ),
         dialog.locator('button[type="submit"]').click()
       ]);

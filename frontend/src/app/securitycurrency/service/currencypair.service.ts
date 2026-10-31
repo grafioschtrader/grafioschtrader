@@ -2,7 +2,7 @@ import { Service } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
 import { Currencypair } from '../../entities/currencypair';
 import { CurrencypairWithHistoryquote } from '../../entities/view/currencypair.with.historyquote';
-import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
+import type { CurrencypairTransactionData } from '../../entities/view/currencypair.with.transaction';
 import { Observable } from 'rxjs';
 import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
 import { HttpParams } from '@angular/common/http';
@@ -70,9 +70,9 @@ export class CurrencypairService extends SecurityCurrencyService<Currencypair> {
       .pipe(catchError(this.handleError.bind(this)));
   }
 
-  getTransactionForCurrencyPair(idCurrencypair: number, forChart: boolean): Observable<CurrencypairWithTransaction> {
+  getTransactionForCurrencyPair(idCurrencypair: number, forChart: boolean): Observable<CurrencypairTransactionData> {
     return this.httpClient
-      .get<CurrencypairWithTransaction>(
+      .get<CurrencypairTransactionData>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/tenant/${idCurrencypair}`,
         this.getOptionsWithIncludeForChart(forChart)
       )

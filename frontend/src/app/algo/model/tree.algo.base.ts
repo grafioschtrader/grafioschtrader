@@ -30,7 +30,7 @@ export abstract class TreeAlgoTopAssetSecurityBase<T extends AlgoTopAssetSecurit
    * Only for tree support
    */
   public expanded = true;
-  treeNodes: TreeNode[];
+  treeNodes?: TreeNode[];
 
   protected constructor(public data: T) {
     super();
@@ -56,10 +56,11 @@ export class TreeAlgoTop extends TreeAlgoTopAssetSecurityBase<AlgoTop> {
 
   override get children(): TreeNode[] {
     if (!this.treeNodes) {
-      this.treeNodes = super.getStrategyNodes();
+      const treeNodes = super.getStrategyNodes();
       this.data.algoAssetclassList.forEach((algoAssetclass) => {
-        this.treeNodes.push(new TreeAlgoAssetclass(algoAssetclass));
+        treeNodes.push(new TreeAlgoAssetclass(algoAssetclass));
       });
+      this.treeNodes = treeNodes;
     }
     return this.treeNodes;
   }
@@ -85,10 +86,11 @@ export class TreeAlgoAssetclass extends TreeAlgoTopAssetSecurityBase<AlgoAssetcl
 
   override get children(): TreeNode[] {
     if (!this.treeNodes) {
-      this.treeNodes = super.getStrategyNodes();
+      const treeNodes = super.getStrategyNodes();
       this.data.algoSecurityList.forEach((algoSecurity) => {
-        this.treeNodes.push(new TreeAlgoSecurity(algoSecurity));
+        treeNodes.push(new TreeAlgoSecurity(algoSecurity));
       });
+      this.treeNodes = treeNodes;
     }
     return this.treeNodes;
   }

@@ -43,8 +43,8 @@ export class DashboardMasonryDirective implements AfterViewInit, OnDestroy {
   readonly dashboardMasonry = input(true);
 
   private readonly grid: HTMLElement;
-  private sizes: ResizeObserver;
-  private cards: MutationObserver;
+  private sizes?: ResizeObserver;
+  private cards?: MutationObserver;
   private frame = 0;
 
   constructor() {
@@ -79,9 +79,11 @@ export class DashboardMasonryDirective implements AfterViewInit, OnDestroy {
 
   /** Re-subscribes to the cards after the grid gained or lost one; the observer holds no stale elements. */
   private observeCards(): void {
-    this.sizes.disconnect();
+    const sizes = this.sizes;
+    if (!sizes) return;
+    sizes.disconnect();
     for (const card of this.cardElements()) {
-      this.sizes.observe(card);
+      sizes.observe(card);
     }
     this.schedule();
   }

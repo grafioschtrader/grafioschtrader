@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../helper/required-state';
 import { BaseID } from '../../entities/base.id';
 import { Exclude } from 'class-transformer';
 import { FieldDescriptorInputAndShowExtended } from '../../dynamicfield/field.descriptor.input.and.show';
@@ -20,7 +21,7 @@ export abstract class UDFMetadata implements BaseID {
    * Numeric value corresponding to registered IUDFSpecialType entries in UDFSpecialTypeRegistry.
    * Use UDFSpecialTypeRegistry.getByValue() to resolve the full special type object.
    */
-  udfSpecialType: number;
+  udfSpecialType?: number | null;
 
   /** User-visible field label or name */
   description: string | null = null;
@@ -65,10 +66,26 @@ export class UDFMetadataGeneral extends UDFMetadata {
  */
 export class UDFMetadataParam {
   /** List of existing field names that should not be reused to prevent duplicates */
-  excludeFieldNames: string[];
+  private initializedExcludeFieldNames?: string[];
+
+  get excludeFieldNames(): string[] {
+    return requireInitialized(this.initializedExcludeFieldNames, 'UDFMetadataParam.excludeFieldNames');
+  }
+
+  set excludeFieldNames(value: string[]) {
+    this.initializedExcludeFieldNames = value;
+  }
 
   /** List of existing UI order positions that should not be reused to prevent display conflicts */
-  excludeUiOrders: number[];
+  private initializedExcludeUiOrders?: number[];
+
+  get excludeUiOrders(): number[] {
+    return requireInitialized(this.initializedExcludeUiOrders, 'UDFMetadataParam.excludeUiOrders');
+  }
+
+  set excludeUiOrders(value: number[]) {
+    this.initializedExcludeUiOrders = value;
+  }
 }
 
 /**
@@ -77,7 +94,7 @@ export class UDFMetadataParam {
  */
 export class UDFMetadataGeneralParam extends UDFMetadataParam {
   /** The UDF metadata entity being edited, or null when creating a new entry */
-  uDFMetadataGeneral: UDFMetadataGeneral | null;
+  uDFMetadataGeneral: UDFMetadataGeneral | null = null;
 }
 
 /**
@@ -151,7 +168,7 @@ export class UDFGeneralCallParam {
  * Composite identifier for user-specific UDF special type disabling.
  * Used as the primary key for tracking which special UDF types a user has disabled.
  */
-export class UDFSpecialTypeDisableUserId {
+export interface UDFSpecialTypeDisableUserId {
   /** User ID who disabled this UDF special type */
   idUser: number;
 
@@ -166,7 +183,7 @@ export class UDFSpecialTypeDisableUserId {
  * Entity representing a user's disabled UDF special type.
  * Allows users to hide predefined UDF fields that they don't need in their workflow.
  */
-export class UDFSpecialTypeDisableUser {
+export interface UDFSpecialTypeDisableUser {
   /** Composite key identifying the user and disabled UDF special type */
   id: UDFSpecialTypeDisableUserId;
 }

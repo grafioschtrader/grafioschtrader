@@ -6,7 +6,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { SecuritycurrencySearchBase } from '../../securitycurrency/component/securitycurrency.search.base';
-import { TenantLimit } from '../../shared/types/tenant.limit';
+import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { MultipleRequestToOneService } from '../../shared/service/multiple.request.to.one.service';
 import { WatchlistAddInstrumentTableComponent } from './watchlist-add-instrument-table.component';
 import { DialogModule } from '@openng/optimus-ui/dialog';

@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../helper/required-state';
 import { buildGTNetMessageTree } from '../model/gtnet-message-tree';
 import type { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { Component, DestroyRef, inject, OnInit, signal, output, viewChild, input } from '@angular/core';
@@ -10,6 +11,7 @@ import {
   DeliveryStatus,
   getReverseCode,
   GTNetMessage,
+  hasGTNetMessageId,
   GTNetMessageCodeType,
   MessageVisibility,
   MsgCallParam,
@@ -242,18 +244,26 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   private static iconLoadDone = false;
 
   rootNode: TreeNode & { children: TreeNode[] } = { children: [] };
-  selectedNode: TreeNode;
+  selectedNode: TreeNode | null = null;
   /** Translated menu of the selection, shown as context menu and in the menu bar */
   readonly contextMenuItems = signal<MenuItem[]>([]);
   readonly visibleDialogMsg = signal(false);
-  msgCallParam: MsgCallParam;
+  private initializedMsgCallParam?: MsgCallParam;
+
+  get msgCallParam(): MsgCallParam {
+    return requireInitialized(this.initializedMsgCallParam, 'GTNetMessageTreeTableComponent.msgCallParam');
+  }
+
+  set msgCallParam(value: MsgCallParam) {
+    this.initializedMsgCallParam = value;
+  }
   protected readonly canAdministerGTNet: boolean;
 
   /** IDs of the messages selected for batch deletion; every change publishes a new set */
   readonly selectedDeletableIds = signal<ReadonlySet<number>>(new Set());
 
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
-  private menuSubscription: Subscription;
+  private menuSubscription?: Subscription;
 
   constructor() {
     super();
@@ -385,7 +395,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     // so setting it is an administrative act and the endpoint requires ROLE_ADMIN. This tree table is also embedded in
     // the admin-message feed, which every authenticated user may open, so a non-admin selecting a row would otherwise
     // fire a request that can only come back 403.
-    if (isReceived && !msg.hasBeenRead && this.canAdministerGTNet) {
+    if (isReceived && !msg.hasBeenRead && this.canAdministerGTNet && hasGTNetMessageId(msg)) {
       this.gtNetMessageService.markAsRead(msg.idGtNetMessage).subscribe(() => {
         // Update local state immediately
         msg.hasBeenRead = true;
@@ -465,7 +475,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       return false;
     }
     const msg: GTNetMessage = this.selectedNode?.data;
-    if (!msg) {
+    if (!msg || !hasGTNetMessageId(msg)) {
       return false;
     }
     const isIncoming =
@@ -488,7 +498,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     if (!this.canAdministerGTNet) {
       return;
     }
-    const msg: GTNetMessage = this.selectedNode.data;
+    const msg: GTNetMessage | undefined = this.selectedNode?.data;
+    if (!msg || !hasGTNetMessageId(msg)) return;
     const validResponses = this.gtNetProtocolService.getValidResponseCodes(msg.messageCode);
     // Get parent's visibility for inheritance rules
     const parentVisibility = this.getParentVisibility(msg);
@@ -578,7 +589,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     if (!this.canAdministerGTNet) {
       return;
     }
-    const msg: GTNetMessage = this.selectedNode.data;
+    const msg: GTNetMessage | undefined = this.selectedNode?.data;
+    if (!msg || !hasGTNetMessageId(msg)) return;
     const reverseCode = getReverseCode(msg.messageCode);
     if (!reverseCode) {
       return;
@@ -610,10 +622,10 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     if (rowData.deliveryStatus === DeliveryStatus.FAILED || rowData.deliveryStatus === 'FAILED') {
       return 'red';
     }
-    if (this.incomingPendingIds()?.has(rowData.idGtNetMessage)) {
+    if (hasGTNetMessageId(rowData) && this.incomingPendingIds()?.has(rowData.idGtNetMessage)) {
       return 'greenyellow';
     }
-    if (this.outgoingPendingIds()?.has(rowData.idGtNetMessage)) {
+    if (hasGTNetMessageId(rowData) && this.outgoingPendingIds()?.has(rowData.idGtNetMessage)) {
       return 'yellow';
     }
     return null;
@@ -626,7 +638,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * @param rowData the message being selected/deselected
    */
   onDeleteCheckChange(event: any, rowData: GTNetMessage): void {
-    if (!this.canAdministerGTNet) {
+    if (!this.canAdministerGTNet || !hasGTNetMessageId(rowData)) {
       return;
     }
     const selected = new Set(this.selectedDeletableIds());
@@ -644,14 +656,14 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * Returns all deletable messages from the current tree, respecting the filter.
    * A message is deletable if canDelete=true and replyTo=null (request level only).
    */
-  private getFilteredDeletableMessages(): GTNetMessage[] {
-    const deletable: GTNetMessage[] = [];
+  private getFilteredDeletableMessages(): (GTNetMessage & { idGtNetMessage: number })[] {
+    const deletable: (GTNetMessage & { idGtNetMessage: number })[] = [];
     const filteredNodes = this.treeTable()?.filteredNodes ?? this.rootNode.children;
 
     const traverse = (nodes: TreeNode[]) => {
       nodes?.forEach((node) => {
         const msg: GTNetMessage = node.data;
-        if (msg?.canDelete && !msg.replyTo) {
+        if (msg?.canDelete && !msg.replyTo && hasGTNetMessageId(msg)) {
           deletable.push(msg);
         }
         if (node.children) {

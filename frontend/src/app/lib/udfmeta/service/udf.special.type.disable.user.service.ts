@@ -1,6 +1,6 @@
 import { Service } from '@angular/core';
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
-import { UDFSpecialTypeDisableUser } from '../model/udf.metadata';
+import type { UDFSpecialTypeDisableUser } from '../model/udf.metadata';
 import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { BaseSettings } from '../../base.settings';

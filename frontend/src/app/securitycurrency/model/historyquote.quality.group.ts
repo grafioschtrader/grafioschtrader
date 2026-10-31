@@ -1,15 +1,20 @@
-import { IHistoryquoteQuality } from '../../entities/view/ihistoryquote.quality';
-import { Expose } from 'class-transformer';
+import type { IHistoryquoteQuality } from '../../entities/view/ihistoryquote.quality';
 
-export class HistoryquoteQualityIds {
-  @Expose() idConnectorHistory: string;
-  @Expose() idStockexchange: number;
-  @Expose() categoryType: number;
-  @Expose() specialInvestmentInstrument: number;
-  @Expose() uniqueKey?: number;
+export interface HistoryquoteQualityIds {
+  idConnectorHistory: string | null;
+  idStockexchange: number | null;
+  categoryType: number | null;
+  specialInvestmentInstrument: number | null;
+  uniqueKey?: number;
 }
 
-export class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
+/** Selects exactly the query fields from a displayed group, retaining valid zero-valued dimensions. */
+export function pickHistoryquoteQualityIds(source: HistoryquoteQualityIds): HistoryquoteQualityIds {
+  const { idConnectorHistory, idStockexchange, categoryType, specialInvestmentInstrument, uniqueKey } = source;
+  return { idConnectorHistory, idStockexchange, categoryType, specialInvestmentInstrument, uniqueKey };
+}
+
+export interface HistoryquoteQualityGroup extends HistoryquoteQualityIds {
   name: string;
   numberOfSecurities: number;
   activeNowSecurities: number;
@@ -21,8 +26,8 @@ export class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
   childrendHqg: HistoryquoteQualityGroup[];
 }
 
-export class HistoryquoteQualityHead extends HistoryquoteQualityGroup {
-  lastUpdate: string;
+export interface HistoryquoteQualityHead extends HistoryquoteQualityGroup {
+  lastUpdate: string | null;
 }
 
 export enum HistoryquoteQualityGrouped {

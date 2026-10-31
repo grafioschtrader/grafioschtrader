@@ -3,7 +3,7 @@ import { DestroyRef, inject } from '@angular/core';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { SecurityaccountTable } from '../../securityaccount/component/securityaccountTable';
-import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import type { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 import { TranslateModule } from '@ngx-translate/core';

@@ -1,16 +1,22 @@
 import { Service } from '@angular/core';
+import type { PerformanceWindowDef } from '../model/performance-window';
+export { PerformanceWindowDef, WeekYear } from '../model/performance-window';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { Tenant } from '../../entities/tenant';
 import { Observable, from, switchMap } from 'rxjs';
 import { AppSettings } from '../../shared/app.settings';
 import { catchError, map } from 'rxjs/operators';
-import { plainToClass } from 'class-transformer';
-import moment from 'moment';
 import { HttpParams, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { PerformancePeriod } from '../model/performance.period';
 import { MissingQuotesWithSecurities } from '../../tenant/model/missing.quotes.with.securities';
 import { BaseSettings } from '../../lib/base.settings';
 import { PerformanceReportOptions, PerformanceReportRequest } from '../model/performance-report';
+import {
+  parseTradingDays,
+  type FirstAndMissingTradingDays,
+  type FirstAndMissingTradingDaysResponse
+} from '../model/trading-days';
+export type { FirstAndMissingTradingDays } from '../model/trading-days';
 
 @Service()
 export class HoldingService extends AuthServiceWithLogout<Tenant> {
@@ -68,35 +74,12 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
   }
 
   getFirstAndMissingTradingDays(idPortfolio: number | null | undefined): Observable<FirstAndMissingTradingDays> {
-    return <Observable<FirstAndMissingTradingDays>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/getdatesforform`,
-          this.getOptionsWithIdPortfolio(idPortfolio)
-        )
-        .pipe(
-          map((response) => this.toFirstAndMissingTradingDays(response)),
-          catchError(this.handleError.bind(this))
-        )
-    );
-  }
-
-  /**
-   * The server delivers the trading days as ISO date strings ("2006-02-20"). new Date() would read them as UTC
-   * midnight, which is 01:00 or 02:00 in Central Europe. The date picker compares its input, taken as local
-   * midnight, against such a bound and clears the first allowed day as being below minDate. Every day is therefore
-   * parsed as local midnight.
-   */
-  private toFirstAndMissingTradingDays(response: any): FirstAndMissingTradingDays {
-    const famtd = plainToClass(FirstAndMissingTradingDays, response);
-    const toLocalDate = (day: any): Date => (day ? moment(day, BaseSettings.FORMAT_DATE_SHORT_NATIVE).toDate() : day);
-    famtd.firstEverTradingDay = toLocalDate(response.firstEverTradingDay);
-    famtd.secondEverTradingDay = toLocalDate(response.secondEverTradingDay);
-    famtd.lastTradingDayOfLastYear = toLocalDate(response.lastTradingDayOfLastYear);
-    famtd.secondLatestTradingDay = toLocalDate(response.secondLatestTradingDay);
-    famtd.latestTradingDay = toLocalDate(response.latestTradingDay);
-    famtd.holidayAndMissingQuoteDays = (response.holidayAndMissingQuoteDays ?? []).map(toLocalDate);
-    return famtd;
+    return this.httpClient
+      .get<FirstAndMissingTradingDaysResponse>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/getdatesforform`,
+        this.getOptionsWithIdPortfolio(idPortfolio)
+      )
+      .pipe(map(parseTradingDays), catchError(this.handleError.bind(this)));
   }
 
   getPeriodPerformance(performanceWindowDef: PerformanceWindowDef): Observable<PerformancePeriod> {
@@ -122,29 +105,4 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
     const httpParams = new HttpParams().set('idPortfolio', '' + (idPortfolio ? idPortfolio : ''));
     return { headers: this.prepareHeaders(), params: httpParams };
   }
-}
-
-export class PerformanceWindowDef {
-  dateFrom: Date;
-  dateTo: Date;
-  /** Name of a {@link WeekYear} constant, as the period-split select delivers it and the REST path expects it. */
-  periodSplit: string;
-
-  constructor(public idPortfolio: number | null | undefined) {}
-}
-
-export class FirstAndMissingTradingDays {
-  maxWeekLimit: number;
-  minIncludeMonthLimit: number;
-  firstEverTradingDay: Date;
-  secondEverTradingDay: Date;
-  lastTradingDayOfLastYear: Date;
-  secondLatestTradingDay: Date;
-  latestTradingDay: Date;
-  holidayAndMissingQuoteDays: Date[];
-}
-
-export enum WeekYear {
-  WM_WEEK = 0,
-  WM_YEAR = 1
 }

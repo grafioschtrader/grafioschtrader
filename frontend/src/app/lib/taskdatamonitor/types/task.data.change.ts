@@ -1,24 +1,24 @@
-import { BaseID } from '../../entities/base.id';
-import { TaskTypeBase } from './task.type.base';
+import type { BaseID } from '../../entities/base.id';
+import type { TaskTypeBase } from './task.type.base';
 
 export class TaskDataChange implements BaseID {
-  idTaskDataChange: number;
+  idTaskDataChange?: number;
   idTask: TaskTypeBase | number | string | null = null;
-  executionPriority: number;
+  executionPriority?: number;
   entity: string | null = null;
   idEntity: number | null = null;
-  creationTime: number;
+  creationTime?: number;
   earliestStartTime: Date | string | null = null;
-  oldValueString: string;
-  oldValueNumber: number;
-  progressStateType: number;
-  execStartTime: string;
-  execEndTime: string;
-  failedMessageCode: string;
-  failedStackTrace: string;
-  taskAsId: number;
+  oldValueString?: string | null;
+  oldValueNumber?: number | null;
+  progressStateType?: number;
+  execStartTime?: string | null;
+  execEndTime?: string | null;
+  failedMessageCode?: string | null;
+  failedStackTrace?: string | null;
+  taskAsId?: number;
 
-  getId(): number {
+  getId(): number | undefined {
     return this.idTaskDataChange;
   }
 }
@@ -59,7 +59,7 @@ export interface TaskQueueInfo {
 /** Name of the main queue, which holds every task type no other queue claims. */
 export const MAIN_TASK_QUEUE = 'MAIN';
 
-export class TaskDataChangeFormConstraints {
+export interface TaskDataChangeFormConstraints {
   taskTypeConfig: { [key: string]: string[] };
   canBeInterruptedList: string[];
   /** The queues, the main queue first */

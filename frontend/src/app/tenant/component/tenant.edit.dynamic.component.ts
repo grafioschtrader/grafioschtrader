@@ -27,7 +27,7 @@ export class TenantEditDynamicComponent extends TenantEditComponent implements O
   private dynamicDialogConfig = inject(DynamicDialogConfig);
   private dynamicDialogRef = inject(DynamicDialogRef);
 
-  onlyCurrency: boolean;
+  readonly onlyCurrency: boolean = this.dynamicDialogConfig.data.onlyCurrency;
   private readonly renderInjector = inject(Injector);
 
   constructor() {
@@ -35,7 +35,6 @@ export class TenantEditDynamicComponent extends TenantEditComponent implements O
   }
 
   ngOnInit(): void {
-    this.onlyCurrency = this.dynamicDialogConfig.data.onlyCurrency;
     this.existingTenant = this.dynamicDialogConfig.data.tenant;
     super.init(this.onlyCurrency);
     afterNextRender(() => this.loadData(), { injector: this.renderInjector });

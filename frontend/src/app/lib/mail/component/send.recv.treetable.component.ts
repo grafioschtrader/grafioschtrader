@@ -189,11 +189,12 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   }
 
   private hasBeenRead(mailSendRecv: MailSendRecv): boolean {
-    return mailSendRecv.hasBeenRead || mailSendRecv.idUserFrom === this.gps.getIdUser();
+    return mailSendRecv.hasBeenRead === true || mailSendRecv.idUserFrom === this.gps.getIdUser();
   }
 
   private createParentNode(tn: TreeNode[], miws: MailInboxWithSend, mailSendRecv: MailSendRecv): void {
     const parentId = mailSendRecv.idReplyToLocal ? mailSendRecv.idReplyToLocal : mailSendRecv.idMailSendRecv;
+    if (parentId == null) return;
     const numberOfAnswer = miws.countMsgMap[parentId];
     const tnParent: TreeNode<MailSendRecv> = {
       data: Object.assign(mailSendRecv, { numberOfAnswer }),
@@ -208,8 +209,9 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
 
   nodeSelect(event: { node: { data: MailSendRecv } }): void {
     const mailSendRecv: MailSendRecv = event.node.data;
-    if (!this.hasBeenRead(mailSendRecv)) {
-      this.sendRecvService.markForRead(mailSendRecv.idMailSendRecv).subscribe((mailSendRecvRc) => {
+    const id = mailSendRecv.idMailSendRecv;
+    if (id != null && !this.hasBeenRead(mailSendRecv)) {
+      this.sendRecvService.markForRead(id).subscribe((mailSendRecvRc) => {
         event.node.data = mailSendRecvRc;
         this.notifyViewChanged();
       });
@@ -225,7 +227,9 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
       ((entity.idUserTo !== this.gps.getIdUser() && entity.sendRecv === SendRecvType.RECEIVE) ||
         (entity.idUserFrom !== this.gps.getIdUser() && entity.sendRecv === SendRecvType.SEND))
       ? SendRecvTreetableComponent.createSendRecvIconMap['C']
-      : SendRecvTreetableComponent.createSendRecvIconMap[entity.sendRecv];
+      : entity.sendRecv == null
+        ? ''
+        : SendRecvTreetableComponent.createSendRecvIconMap[entity.sendRecv];
   }
 
   getRollOrUser(entity: MailSendRecv, field: ColumnConfig, valueField: any): string {

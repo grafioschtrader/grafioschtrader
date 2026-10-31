@@ -151,6 +151,18 @@ const FORM_CONSTRUCTOR_PARAMETERS: Record<string, { parameters: string[]; reason
     parameters: ['helpId:string'],
     reason: 'The application chooses the help page of its custom-field editor.'
   },
+  'app/lib/masterdetail/component/single.record.master.view.base.ts': {
+    parameters: ['helpId:string', 'mainFieldId:keyofT&string', 'entityName:string', 'deleteService:DeleteService'],
+    reason: 'The concrete view chooses its help, master field, entity label and entity-specific deletion strategy.'
+  },
+  'app/securitycurrency/component/securitycurrency.search.base.ts': {
+    parameters: ['multiplyAddClose:boolean'],
+    reason: 'The concrete search dialog chooses whether adding an instrument closes it.'
+  },
+  'app/tenant/component/tenant.edit.component.ts': {
+    parameters: ['nonModal:boolean', 'labelColumns:number'],
+    reason: 'Embedded and modal tenant editors choose their layout and modality.'
+  },
   'app/standingorder/component/standing-order-edit-base.ts': {
     parameters: ['helpId:string'],
     reason: 'Cash and security standing-order editors have different help pages.'
@@ -461,10 +473,11 @@ function collectSources(dir: string, extensions = ['.ts'], out: string[] = []): 
 }
 
 describe('Angular API ratchet', () => {
-  it.each(['tsconfig.app.json', 'tsconfig.grafiosch-host.json', 'tsconfig.spec.json'])(
+  it.each(['tsconfig.app.json', 'tsconfig.grafiosch-host.json', 'tsconfig.spec.json', 'tsconfig.gt-mobile.json'])(
     'keeps the strict typing baseline enabled in %s',
     (project) => {
       const options = compilerOptionsOf(project);
+      expect(options.strict).toBe(true);
       const flags = [
         'noImplicitAny',
         'strictBindCallApply',
@@ -473,7 +486,8 @@ describe('Angular API ratchet', () => {
         'useUnknownInCatchVariables',
         'alwaysStrict',
         'strictBuiltinIteratorReturn',
-        'strictNullChecks'
+        'strictNullChecks',
+        'strictPropertyInitialization'
       ] as const;
       for (const flag of flags) expect(options[flag] ?? options.strict, flag).toBe(true);
     }

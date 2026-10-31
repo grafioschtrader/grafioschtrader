@@ -1,11 +1,11 @@
-import { GapCodeType } from './gap-code.type';
+import type { GapCodeType } from './gap-code.type';
 
 /**
  * Model representing a gap (mismatch) identified during GTNet security import.
  * When a security from a GTNet peer cannot be fully matched to local configuration,
  * gap records document what specifically didn't match.
  */
-export class GTNetSecurityImpGap {
+export interface GTNetSecurityImpGap {
   /**
    * Unique identifier for the gap record.
    */

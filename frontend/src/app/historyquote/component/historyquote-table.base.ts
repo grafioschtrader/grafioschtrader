@@ -47,7 +47,7 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
   private static iconLoadDone = false;
 
   /** Translation of the latest table menu; a newer menu replaces one that is still being translated. */
-  private tableMenuSubscription: Subscription;
+  private tableMenuSubscription?: Subscription;
 
   /**
    * Registers the create_type SVG icons exactly once per browser session. Safe to call from
@@ -79,7 +79,7 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
   ): void {
     this.selectedEntity.set(entity ?? null);
     if (!this.tableMenuSubscription) {
-      this.destroyRef.onDestroy(() => this.tableMenuSubscription.unsubscribe());
+      this.destroyRef.onDestroy(() => this.tableMenuSubscription?.unsubscribe());
     }
     this.tableMenuSubscription?.unsubscribe();
     this.tableMenuSubscription = TranslateHelper.translateMenuItems$(menuItems, this.translateService).subscribe(

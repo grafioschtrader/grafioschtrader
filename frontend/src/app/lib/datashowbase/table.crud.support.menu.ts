@@ -83,7 +83,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
   protected readonly destroyRef = inject(DestroyRef);
 
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
-  private menuSubscription: Subscription;
+  private menuSubscription?: Subscription;
 
   /**
    * Creates a new table with CRUD support and menu integration.

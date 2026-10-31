@@ -32,7 +32,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
 export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfolio> implements OnInit {
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
-  callParam: CallParam;
+  readonly callParam: CallParam = this.dynamicDialogConfig.data.callParam;
 
   constructor() {
     super(HelpIds.HELP_PORTFOLIO, inject(PortfolioService));
@@ -41,7 +41,6 @@ export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfol
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 6, this.helpLink.bind(this));
-    this.callParam = this.dynamicDialogConfig.data.callParam;
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'PORTFOLIO_NAME', 25, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('currency', true),

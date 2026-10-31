@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
@@ -45,7 +46,15 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
 
   readonly callParam = input.required<CallParam>();
 
-  portfolio: Portfolio;
+  private initializedPortfolio?: Portfolio;
+
+  get portfolio(): Portfolio {
+    return requireInitialized(this.initializedPortfolio, 'CashaccountEditComponent.portfolio');
+  }
+
+  set portfolio(value: Portfolio) {
+    this.initializedPortfolio = value;
+  }
 
   constructor() {
     super(

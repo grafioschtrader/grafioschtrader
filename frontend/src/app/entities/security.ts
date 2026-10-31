@@ -36,13 +36,13 @@ export class Security extends Securitycurrency implements BaseID {
   idConnectorSplit?: string | null = null;
   urlSplitExtend?: string | null = null;
   retrySplitLoad?: number | null = null;
-  dividendEarliestNextCheck: number;
+  dividendEarliestNextCheck?: number | null;
 
-  calculatedPrice: boolean;
-  securityDerivedLinks: SecurityDerivedLink[];
+  calculatedPrice?: boolean;
+  securityDerivedLinks: SecurityDerivedLink[] = [];
   // Use it only for propose changes otherwise it is not set
-  splitPropose: Securitysplit[];
-  hpPropose: HistoryquotePeriod[];
+  splitPropose?: Securitysplit[];
+  hpPropose?: HistoryquotePeriod[];
 
   public static canHaveSplitConnector(assetClass: Assetclass | null | undefined, hasMarketValue: boolean): boolean {
     return hasMarketValue && assetClass

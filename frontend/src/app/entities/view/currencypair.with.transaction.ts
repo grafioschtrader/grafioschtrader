@@ -3,18 +3,34 @@ import { Transaction } from '../transaction';
 import { INameSecuritycurrency } from './iname.securitycurrency';
 import { Securitycurrency } from '../securitycurrency';
 
-export class CurrencypairWithTransaction implements INameSecuritycurrency {
+/** JSON returned by the currency-pair transaction report, before the chart adapter adds its methods. */
+export interface CurrencypairTransactionData {
+  currencypair: Currencypair;
+  transactionList: Transaction[];
+  sumAmountFrom: number;
+  sumAmountTo: number;
+  gainTo: number;
+  gainFrom: number;
+  cwtReverse: CurrencypairTransactionData | null;
+}
+
+export class CurrencypairWithTransaction implements INameSecuritycurrency, CurrencypairTransactionData {
   public currencypair: Currencypair;
   public transactionList: Transaction[];
   public sumAmountFrom: number;
   public sumAmountTo: number;
   public gainTo: number;
   public gainFrom: number;
-  public cwtReverse: CurrencypairWithTransaction;
+  public cwtReverse: CurrencypairTransactionData | null;
 
-  constructor(notRealCwt: CurrencypairWithTransaction) {
-    Object.assign(this as any, notRealCwt);
-    this.currencypair = new Currencypair(this.currencypair.fromCurrency, this.currencypair.toCurrency);
+  constructor(notRealCwt: CurrencypairTransactionData) {
+    Object.assign(this, notRealCwt);
+    this.transactionList = notRealCwt.transactionList;
+    this.sumAmountFrom = notRealCwt.sumAmountFrom;
+    this.sumAmountTo = notRealCwt.sumAmountTo;
+    this.gainTo = notRealCwt.gainTo;
+    this.gainFrom = notRealCwt.gainFrom;
+    this.currencypair = new Currencypair(notRealCwt.currencypair.fromCurrency, notRealCwt.currencypair.toCurrency);
     this.currencypair.sLast = notRealCwt.currencypair.sLast;
     this.currencypair.sTimestamp = notRealCwt.currencypair.sTimestamp;
     this.currencypair.idSecuritycurrency = notRealCwt.currencypair.idSecuritycurrency;

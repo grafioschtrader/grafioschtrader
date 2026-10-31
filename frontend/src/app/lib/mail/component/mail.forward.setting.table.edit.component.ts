@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../helper/required-state';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
@@ -73,9 +74,20 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
 
   private readonly destroyRef = inject(DestroyRef);
   /** Translation of the latest menu; a newer menu replaces one that is still being translated */
-  private menuSubscription: Subscription;
+  private menuSubscription?: Subscription;
 
-  private mailSendForwardDefault: MailSendForwardDefault;
+  private initializedMailSendForwardDefault?: MailSendForwardDefault;
+
+  private get mailSendForwardDefault(): MailSendForwardDefault {
+    return requireInitialized(
+      this.initializedMailSendForwardDefault,
+      'MailForwardSettingTableEditComponent.mailSendForwardDefault'
+    );
+  }
+
+  private set mailSendForwardDefault(value: MailSendForwardDefault) {
+    this.initializedMailSendForwardDefault = value;
+  }
   private newRowCounter = 0;
 
   private readonly MAIL_SETTING_FORWARD = 'MAIL_SETTING_FORWARD';
@@ -169,7 +181,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
 
   /** Provides options for MESSAGE_TARGET_TYPE based on selected MESSAGE_COM_TYPE */
   private getTargetTypeOptions(row: MailSettingForward): any[] {
-    if (row.messageComType != null && this.mailSendForwardDefault) {
+    if (row.messageComType != null && this.initializedMailSendForwardDefault) {
       const msfdc = this.mailSendForwardDefault.mailSendForwardDefaultMapForUser[row.messageComType];
       if (msfdc) {
         // Set default value if not already set
@@ -210,7 +222,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
   private canRedirect(row: MailSettingForward): boolean {
     return (
       row.messageComType != null &&
-      this.mailSendForwardDefault?.canRedirectToUsers?.length > 0 &&
+      (this.initializedMailSendForwardDefault?.canRedirectToUsers?.length ?? 0) > 0 &&
       this.mailSendForwardDefault.mailSendForwardDefaultMapForUser[row.messageComType]?.canRedirect === true
     );
   }
@@ -228,7 +240,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
 
   /** Non-edit display: maps the redirect target user id to the admin's nickname served by the backend. */
   private getRedirectNickname(dataobject: MailSettingForward, field: ColumnConfig, value: any): string {
-    if (value == null || !this.mailSendForwardDefault?.canRedirectToUsers) {
+    if (value == null || !this.initializedMailSendForwardDefault?.canRedirectToUsers) {
       return '';
     }
     const option = this.mailSendForwardDefault.canRedirectToUsers.find((o) => o.key === String(value));
@@ -332,7 +344,8 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
   // ============================================================================
 
   private handleDeleteEntity(entity: MailSettingForward): void {
-    if (!entity?.idMailSettingForward) {
+    const id = entity?.idMailSettingForward;
+    if (id == null) {
       return;
     }
 
@@ -341,7 +354,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
       this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + this.MAIL_SETTING_FORWARD,
       () => {
-        this.mailSettingForwardService.deleteEntity(entity.idMailSettingForward).subscribe(() => {
+        this.mailSettingForwardService.deleteEntity(id).subscribe(() => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
             i18nRecord: this.MAIL_SETTING_FORWARD
           });

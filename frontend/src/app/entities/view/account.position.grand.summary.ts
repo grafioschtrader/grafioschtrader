@@ -1,11 +1,13 @@
-import { AccountPositionGroupSummary } from './account.position.group.summary';
-import { MissingExchangeRate } from './missing.exchange.rate';
+import type { AccountPositionGroupSummary } from './account.position.group.summary';
+import type { MissingExchangeRate } from './missing.exchange.rate';
 
-export class AccountPositionGrandSummary {
+/** Portfolio totals returned by the cash-account report. */
+export interface AccountPositionGrandSummary {
   mainCurrency: string;
-  grandBalance: number;
+  grandCashBalanceMC: number;
   grandValueMC: number;
-  grandBalanceMainCurrency: number;
+  grandCashTransferMC: number;
+  grandCashAccountTransactionFeeMC: number;
   grandExternalCashTransferMC: number;
   grandValueSecuritiesMC: number;
   grandGainLossSecuritiesMC: number;

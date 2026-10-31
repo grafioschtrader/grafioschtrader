@@ -6,7 +6,7 @@ import { HelpIds } from '../../help/help.ids';
 import { TaskDataChangeService } from '../service/task.data.change.service';
 import {
   TaskDataChange,
-  TaskDataChangeFormConstraints,
+  type TaskDataChangeFormConstraints,
   EntityIdOption,
   MAIN_TASK_QUEUE
 } from '../types/task.data.change';

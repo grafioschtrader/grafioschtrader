@@ -26,9 +26,9 @@ export class GlobalparameterService
 {
   /** Number and date formats of the session; replaced on every login by {@link clearValues}. */
   private localeFormat = new LocaleFormat();
-  private entityKeyMapping: { [entityName: string]: string } | null;
+  private entityKeyMapping: { [entityName: string]: string } | null = null;
 
-  private fieldSizeMap: { [fieldNameOrKey: string]: number } | null;
+  private fieldSizeMap: { [fieldNameOrKey: string]: number } | null = null;
   private featureCache = new Map<FeatureType, boolean>();
 
   useDashboard(): boolean {

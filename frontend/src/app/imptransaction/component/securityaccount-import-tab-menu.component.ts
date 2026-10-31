@@ -43,7 +43,7 @@ export class SecurityaccountImportTabMenuComponent implements OnInit {
   tabs: TabItem[] = [];
   readonly activeIndex = signal(0);
 
-  private securityaccount: Securityaccount | null;
+  private securityaccount: Securityaccount | null = null;
   private successFailedImportTransParam: any = null;
   private initialized = false;
   constructor() {

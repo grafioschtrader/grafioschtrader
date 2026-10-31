@@ -1,20 +1,21 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
-import { SecurityPositionGroupSummary } from '../../entities/view/security.position.group.summary';
+import type { SecurityPositionGroupSummary } from '../../entities/view/security.position.group.summary';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
-import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import type { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
 import { Directive, ElementRef, viewChild, inject, signal } from '@angular/core';
 import { SecurityaccountGroupBase } from './securityaccount.group.base';
-import { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
+import type { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
 import { Subscription } from 'rxjs';
 import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
-import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
+import type { SecurityPositionSummary } from '../../entities/view/security.position.summary';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 import { MenuItem, MenuItemCommandEvent, SelectItem } from '@openng/optimus-ui/api';
 import { Portfolio } from '../../entities/portfolio';
-import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import type { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { SecurityaccountService } from '../service/securityaccount.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -56,7 +57,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   readonly contextMenu = viewChild<any>('cm');
   readonly titleElementRef = viewChild<ElementRef>('title');
 
-  translatedTitle: string;
+  translatedTitle?: string;
 
   /**
    * Optional comparison of the report against the allocation of one rule based trading strategy. Declared here rather
@@ -64,9 +65,9 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
    * template names has to exist on every one of them. Only the asset class report fills these; everywhere else they
    * stay undefined and the corresponding blocks of the template are not rendered.
    */
-  algoTopOptions: SelectItem[];
+  algoTopOptions?: SelectItem[];
   selectedIdAlgoTop: number | null = null;
-  rebalancingSummaryFields: ColumnConfig[] | null;
+  rebalancingSummaryFields: ColumnConfig[] | null = null;
   /** Summary figures whose header key has a {@code _TOOLTIP} companion explaining how the figure is measured. */
   readonly summaryFieldsWithTooltip: string[] = [
     'overallAllocationMismatchPercentage',
@@ -79,11 +80,11 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
    * Selection of the grouping offered by the reports on {@link SecurityaccountTable}. Declared here for the same reason
    * as {@link algoTopOptions}; the asset class report leaves groupOptions undefined and shows no selection.
    */
-  idTenant: number;
-  idPortfolio: number;
-  groupOptions: SelectItem[];
-  selectedGroup: string;
-  protected securityAccount: Securityaccount | null;
+  idTenant?: number;
+  idPortfolio?: number;
+  groupOptions?: SelectItem[];
+  selectedGroup?: string;
+  protected securityAccount: Securityaccount | null = null;
 
   /**
    * PDF drop zone of the report of a single securities account. Declared here for the same reason as
@@ -94,26 +95,50 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   showTable = true;
   untilDate: Date;
 
-  securityaccountGroupBase: SecurityaccountGroupBase<
+  private initializedSecurityaccountGroupBase?: SecurityaccountGroupBase<
     SecurityPositionDynamicGroupSummary<any> | SecurityPositionCurrenyGroupSummary,
     any
   >;
-  securityPositionAll: SecurityPositionSummary[] | null;
-  securityPositionSummary: SecurityPositionGrandSummary | null;
-  groupMap: Map<any, SecurityaccountGroupBase<any, any>>;
-  groupChangeIndexMap: Map<number, SecurityPositionGroupSummary>;
+
+  get securityaccountGroupBase(): SecurityaccountGroupBase<
+    SecurityPositionDynamicGroupSummary<any> | SecurityPositionCurrenyGroupSummary,
+    any
+  > {
+    return requireInitialized(
+      this.initializedSecurityaccountGroupBase,
+      'SecurityaccountBaseTable.securityaccountGroupBase'
+    );
+  }
+
+  set securityaccountGroupBase(
+    value: SecurityaccountGroupBase<SecurityPositionDynamicGroupSummary<any> | SecurityPositionCurrenyGroupSummary, any>
+  ) {
+    this.initializedSecurityaccountGroupBase = value;
+  }
+  securityPositionAll: SecurityPositionSummary[] | null = null;
+  securityPositionSummary: SecurityPositionGrandSummary | null = null;
+  groupMap: Map<any, SecurityaccountGroupBase<any, any>> = new Map();
+  groupChangeIndexMap: Map<number, SecurityPositionGroupSummary> = new Map();
   // For child transaction dialog
-  transactionCallParam: TransactionCallParam;
+  private initializedTransactionCallParam?: TransactionCallParam;
+
+  get transactionCallParam(): TransactionCallParam {
+    return requireInitialized(this.initializedTransactionCallParam, 'SecurityaccountBaseTable.transactionCallParam');
+  }
+
+  set transactionCallParam(value: TransactionCallParam) {
+    this.initializedTransactionCallParam = value;
+  }
   visibleSecurityTransactionDialog = false;
   // For row expansion, used when a transaction was changed
   expandedSecurityPositionSummary: SecurityPositionSummary[] = [];
   expandedIdSecuritycurrency: number[] = [];
   contextMenuItems: MenuItem[] | null = [];
-  selectedSecurityPositionSummary: SecurityPositionSummary | null;
-  portfolio: Portfolio;
+  selectedSecurityPositionSummary: SecurityPositionSummary | null = null;
+  portfolio?: Portfolio;
   protected includeClosedPosition = false;
-  protected internalColumnConfigs: ColumnConfig[];
-  private subscriptionRequestFromChart: Subscription;
+  protected internalColumnConfigs: ColumnConfig[] = [];
+  private subscriptionRequestFromChart?: Subscription;
 
   readonly dataLoading = signal(false);
   constructor() {
@@ -316,7 +341,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   destroy(): void {
     BusinessHelper.saveUntilDateInSessionStorage(this.untilDate);
     this.activePanelService.destroyPanel(this);
-    this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
+    this.subscriptionRequestFromChart?.unsubscribe();
   }
 
   /**

@@ -1,3 +1,4 @@
+import { requireInitialized } from '../../lib/helper/required-state';
 import { afterNextRender, Component, effect, inject, input, OnDestroy, output, signal, untracked } from '@angular/core';
 import { reportResourceErrors } from '../../lib/login/service/resource.error.report';
 
@@ -10,7 +11,10 @@ import { plainToClass } from 'class-transformer';
 import { combineLatest, map } from 'rxjs';
 import { Historyquote } from '../../entities/historyquote';
 import { Security } from '../../entities/security';
-import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
+import {
+  CurrencypairWithTransaction,
+  type CurrencypairTransactionData
+} from '../../entities/view/currencypair.with.transaction';
 import { INameSecuritycurrency } from '../../entities/view/iname.securitycurrency';
 import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
@@ -176,7 +180,15 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   /** Id of the legacy menu item, whose translated label receives the number of archived rows. */
   private static readonly SHOW_LEGACY_MENU_ID = 'showLegacy';
 
-  callParam: HistoryquoteSecurityCurrency;
+  private initializedCallParam?: HistoryquoteSecurityCurrency;
+
+  get callParam(): HistoryquoteSecurityCurrency {
+    return requireInitialized(this.initializedCallParam, 'HistoryquoteTableComponent.callParam');
+  }
+
+  set callParam(value: HistoryquoteSecurityCurrency) {
+    this.initializedCallParam = value;
+  }
   readonly firstRow = signal(0);
 
   readonly nameSecuritycurrency = signal<INameSecuritycurrency | null>(null);
@@ -184,13 +196,37 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   /** The instrument when it is a security, null for a currency pair and undefined until the first response. */
   readonly security = signal<Security | null | undefined>(undefined);
   readonly visibleUploadFileDialog = signal(false);
-  fileUploadParam: FileUploadParam;
+  private initializedFileUploadParam?: FileUploadParam;
+
+  get fileUploadParam(): FileUploadParam {
+    return requireInitialized(this.initializedFileUploadParam, 'HistoryquoteTableComponent.fileUploadParam');
+  }
+
+  set fileUploadParam(value: FileUploadParam) {
+    this.initializedFileUploadParam = value;
+  }
   readonly visibleFillGapsDialog = signal(false);
   /** Date boundaries of the fill gaps dialog, loaded before it is shown so its date field can be built at once. */
-  fillGapsBounds: HistoryquoteFillGapsBounds;
+  private initializedFillGapsBounds?: HistoryquoteFillGapsBounds;
+
+  get fillGapsBounds(): HistoryquoteFillGapsBounds {
+    return requireInitialized(this.initializedFillGapsBounds, 'HistoryquoteTableComponent.fillGapsBounds');
+  }
+
+  set fillGapsBounds(value: HistoryquoteFillGapsBounds) {
+    this.initializedFillGapsBounds = value;
+  }
   readonly visibleDeleteHistoryquotes = signal(false);
   /** Oldest and most recent stored price, loaded before the delete dialog is shown. */
-  deleteBounds: HistoryquoteDeleteBounds;
+  private initializedDeleteBounds?: HistoryquoteDeleteBounds;
+
+  get deleteBounds(): HistoryquoteDeleteBounds {
+    return requireInitialized(this.initializedDeleteBounds, 'HistoryquoteTableComponent.deleteBounds');
+  }
+
+  set deleteBounds(value: HistoryquoteDeleteBounds) {
+    this.initializedDeleteBounds = value;
+  }
   protected transactionPositionList: SecurityTransactionPosition[] = [];
 
   readonly quotesResource = rxResource({
@@ -239,7 +275,7 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
         this.nameSecuritycurrency.set(
           result.params.currencySecurity
             ? new SecurityTransactionSummary(summary.transactionPositionList, summary.securityPositionSummary)
-            : new CurrencypairWithTransaction(result.summary as CurrencypairWithTransaction)
+            : new CurrencypairWithTransaction(result.summary as CurrencypairTransactionData)
         );
         this.historyquotesWithMissings.set(result.quotes);
         this.applyPriceFractionDigits(result.quotes.securitycurrency.priceFractionDigits);

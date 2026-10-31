@@ -64,10 +64,10 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   private host: ElementRef<HTMLElement> = inject(ElementRef);
   private zone: NgZone = inject(NgZone);
 
-  document: DashboardDocument | null;
+  document: DashboardDocument | null = null;
   draft: DashboardWidget[] = [];
   results: Record<string, DashboardResult> = {};
-  catalogue: DashboardCatalogue | null;
+  catalogue: DashboardCatalogue | null = null;
   editing = false;
   loading = false;
   /** The slower load groups are still being fetched, so a card without a result is waiting rather than empty. */

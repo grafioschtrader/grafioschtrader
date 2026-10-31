@@ -127,7 +127,7 @@ export class ImportTransactionTemplateComponent
   readonly visibleTemplateFormCheckDialog = signal(false);
   readonly platformTransactionImportHtmlOptions = signal<ValueKeyHtmlSelectOptions[]>([]);
   /** The platform of this instance holding the Grafioschtrader authored import templates, null when unset. */
-  gtImportPlatformId: number | null;
+  gtImportPlatformId: number | null = null;
 
   constructor() {
     super(
@@ -274,8 +274,10 @@ export class ImportTransactionTemplateComponent
 
   private setAsGtImportPlatform(itp: ImportTransactionPlatform | null): void {
     if (!itp) return;
+    const idPlatform = itp?.idTransactionImportPlatform;
+    if (idPlatform == null) return;
     this.importTransactionPlatformService
-      .setGtImportPlatform(itp.idTransactionImportPlatform)
+      .setGtImportPlatform(idPlatform)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((idTransactionImportPlatform: number | null) => {
         this.gtImportPlatformId = idTransactionImportPlatform;
@@ -288,7 +290,7 @@ export class ImportTransactionTemplateComponent
   }
 
   private async exportAllTemplates(itp: ImportTransactionPlatform | null): Promise<void> {
-    if (!itp) return;
+    if (!itp || itp.idTransactionImportPlatform == null) return;
     const blob = await this.importTransactionTemplateService
       .getTemplatesByPlatformPlanAsZip(itp.idTransactionImportPlatform)
       .catch((error) => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'DOWNLOAD_TEMPLATE_DATA_FAILED'));
@@ -300,7 +302,7 @@ export class ImportTransactionTemplateComponent
 
   private uploadTemplateFiles(formData: FormData): void {
     const platform = this.selectedEntity;
-    if (!platform) return;
+    if (!platform || platform.idTransactionImportPlatform == null) return;
     this.importTransactionTemplateService
       .uploadImportTemplateFiles(platform.idTransactionImportPlatform, formData)
       .pipe(takeUntilDestroyed(this.destroyRef))
