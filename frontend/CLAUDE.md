@@ -1711,7 +1711,8 @@ renders the server-computed results of `/api/dashboard` and never saves a layout
   so desktop and phone format identically. Chart traces of a widget belong in a pure function under
   `src/app/dashboard/model/` (see `performance.total.chart.plot.ts`) that both renderers call.
 - **Build location.** The app builds into `dist/browser/m` with base href `/grafioschtrader/m/`, inside the desktop
-  output, so Caddy, nginx, Apache, the installer and the Docker image serve it without change. `npm run buildprod`
+  output. Caddy has a separate mobile route so a directory request serves the mobile entry point instead of the
+  desktop SPA fallback. nginx and Apache must also serve that entry point for `/grafioschtrader/m/`. `npm run buildprod`
   builds the desktop first, because that build empties `dist/`. Routing uses `withHashLocation()`, so no deep link ever
   reaches the web server's fallback to the desktop `index.html`. Classic hosts and the installer do not run
   `buildprod`: `util/shellscripts/gtupfrontend.sh` calls `ng build` for both projects itself, so a change to how
