@@ -98,7 +98,7 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
       ...(this.scopedIdUser == null ? [DynamicFieldHelper.createFieldSelectNumberHeqF('idRole', false)] : []),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'limitValue', true, 1, 1000000),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'validUntil', false),
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this, true)
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.form, true)
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -140,11 +140,9 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
         // included, is reset to its default, so they may only be filled afterwards.
         const proposeChangeEntityWithEntity = this.proposeChangeEntityWithEntity();
         AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-          this.translateService,
           this.gps,
           proposeChangeEntityWithEntity ? proposeChangeEntityWithEntity.proposedEntity : existingEntityLimitValue,
           this.form(),
-          this.configObject,
           this.proposeChangeEntityWithEntity()
         );
         if (existingEntityLimitValue) {

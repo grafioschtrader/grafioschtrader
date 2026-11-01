@@ -760,7 +760,7 @@ function transactionTimestamp(transaction: ApiTransaction): number {
 
 async function authHeaders(page: Page): Promise<Record<string, string>> {
   const token = await page.evaluate(() => sessionStorage.getItem('jwt'));
-  expect(token, 'JWT in sessionStorage after login').toBeTruthy();
+  if (!token) throw new Error('JWT missing in sessionStorage after login');
   return { 'x-auth-token': token, Accept: 'application/json' };
 }
 

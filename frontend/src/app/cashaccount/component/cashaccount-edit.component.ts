@@ -1,6 +1,6 @@
 import { requireInitialized } from '../../lib/helper/required-state';
-import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
-import { Component, OnInit, input, inject } from '@angular/core';
+import { Component, OnInit, computed, input, inject, signal } from '@angular/core';
+import { disabled, hidden, metadata, SchemaPathTree } from '@angular/forms/signals';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { CashaccountService } from '../service/cashaccount.service';
@@ -17,10 +17,21 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppSettings } from '../../shared/app.settings';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
+import { SignalDynamicFormComponent } from '../../lib/dynamic-form/signal/signal-dynamic-form.component';
+import { FIELD_DISPLAY } from '../../lib/dynamic-form/signal/signal-form.model';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+
+/** The fields of the cash account form its dependency rules refer to. */
+interface CashaccountFormModel {
+  currency: string | null;
+  connectIdSecurityaccount: number | string | null;
+}
 
 /**
  * Edit a cash account the currency of a cash account can only be changed when there is no transaction for it.
+ *
+ * Prototype dialog of the signal dynamic form: the currency is disabled and the security account connection is
+ * hidden through schema rules, and both option lists reach their selects through FIELD_DISPLAY.
  */
 @Component({
   selector: 'cashaccount-edit',
@@ -31,22 +42,48 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
     [modal]="true">
-    <dynamic-form
+    <signal-dynamic-form
       [config]="config"
       [formConfig]="formConfig"
-      [translateService]="translateService"
-      #form="dynamicForm"
+      [rules]="rules"
+      [source]="callParam().thisObject"
+      #form="signalDynamicForm"
       (submitBt)="submit($event)" />
   </p-dialog>`,
-  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
+  imports: [DialogModule, SignalDynamicFormComponent, TranslateModule]
 })
-export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> implements OnInit {
+export class CashaccountEditComponent
+  extends SimpleEntityEditBase<Cashaccount, SignalDynamicFormComponent<CashaccountFormModel>>
+  implements OnInit
+{
   private portfolioService: PortfolioService = inject(PortfolioService);
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
   readonly callParam = input.required<CallParam>();
 
   private initializedPortfolio?: Portfolio;
+
+  /** Currencies, loaded asynchronously; the currency select shows them as soon as they arrive. */
+  private readonly currencies = signal<ValueKeyHtmlSelectOptions[]>([]);
+  /** The currency can only be changed while the cash account has no transaction. */
+  private readonly hasTransaction = computed(() => !!this.callParam().optParam?.hasTransaction);
+  /** Security accounts of the portfolio; a connection is only offered when there are at least two. */
+  private readonly securityaccountOptions = computed(() => {
+    const accounts = (<Portfolio>this.callParam().parentObject).securityaccountList;
+    return accounts && accounts.length >= 2
+      ? SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idSecuritycashAccount', 'name', accounts, true)
+      : null;
+  });
+
+  /** Dependency rules of the form; they replace the imperative disable/hide calls of the reactive form. */
+  readonly rules = (p: SchemaPathTree<CashaccountFormModel>): void => {
+    disabled(p.currency, { when: () => this.hasTransaction() });
+    metadata(p.currency, FIELD_DISPLAY, () => ({ valueKeyHtmlOptions: this.currencies() }));
+    hidden(p.connectIdSecurityaccount, { when: () => !this.securityaccountOptions() });
+    metadata(p.connectIdSecurityaccount, FIELD_DISPLAY, () => ({
+      valueKeyHtmlOptions: this.securityaccountOptions() ?? []
+    }));
+  };
 
   get portfolio(): Portfolio {
     return requireInitialized(this.initializedPortfolio, 'CashaccountEditComponent.portfolio');
@@ -81,32 +118,19 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
         true
       )
     );
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
+    this.configObject.currency.inputWidth = 5;
   }
 
   protected override initialize(): void {
     this.portfolio = <Portfolio>this.callParam().parentObject;
-    // Initialise and transfer synchronously (config is ready from ngOnInit). Doing this inside the async
-    // getCurrencies() subscription would let a later form.reset() wipe fields the user already entered
-    // before the currency dropdown was populated (e.g. activeToDate).
-    this.configObject.currency.inputWidth = 5;
-    const callParam = this.callParam();
-    if (callParam.optParam && callParam.optParam.hasTransaction) {
-      requireFormControl(this.configObject.currency).disable();
-    }
-    this.prepareSecurityaccountOption();
-    this.form().setDefaultValuesAndEnableSubmit();
-    if (callParam.thisObject != null) {
-      this.form().transferBusinessObjectToForm(callParam.thisObject);
-    }
+    // The form shows the edited account from its first rendering ([source]); nothing is reset here.
     this.configObject.name.elementRef?.nativeElement.focus();
-    // Currency options load asynchronously and only populate the dropdown; they must not reset the form.
+    // Currency options load asynchronously and only populate the dropdown.
     this.gpsGT
       .getCurrencies()
       .pipe(this.untilDialogClosed())
-      .subscribe((data) => {
-        this.configObject.currency.valueKeyHtmlOptions = data;
-      });
+      .subscribe((data) => this.currencies.set(data));
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Cashaccount {
@@ -116,16 +140,5 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     );
     cashaccount.portfolio = this.portfolio;
     return cashaccount;
-  }
-
-  private prepareSecurityaccountOption() {
-    const accounts = this.portfolio.securityaccountList;
-    if (accounts && accounts.length >= 2) {
-      AppHelper.enableAndVisibleInput(this.configObject.connectIdSecurityaccount);
-      this.configObject.connectIdSecurityaccount.valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idSecuritycashAccount', 'name', accounts, true);
-    } else {
-      AppHelper.disableAndHideInput(this.configObject.connectIdSecurityaccount);
-    }
   }
 }

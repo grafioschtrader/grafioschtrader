@@ -15,14 +15,18 @@ import {
 } from '@angular/core';
 import { MonoTypeOperatorFunction, Subscription } from 'rxjs';
 import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { DynamicFormApi, dynamicFormToken } from '../dynamic-form/models/dynamic-form-api';
 import { FormBase } from './form.base';
 import { untilSessionEnds } from './dialog.session';
 
 /**
  * Base class for simple editing fields of object in a dialog.
+ *
+ * @template F - Form component the dialog renders; the reactive DynamicFormComponent unless the dialog uses the
+ *   signal dynamic form
  */
 @Directive()
-export abstract class SimpleEditBase extends FormBase {
+export abstract class SimpleEditBase<F extends DynamicFormApi = DynamicFormComponent> extends FormBase {
   public gps: GlobalparameterService = inject(GlobalparameterService);
 
   // Input from parent view
@@ -32,7 +36,7 @@ export abstract class SimpleEditBase extends FormBase {
   readonly closeDialog = output<ProcessedActionData>();
 
   // Access child components
-  readonly form = viewChild(DynamicFormComponent);
+  readonly form = viewChild(dynamicFormToken<F>());
 
   /** Lifetime of the component, for subscriptions created outside an injection context */
   protected readonly destroyRef = inject(DestroyRef);

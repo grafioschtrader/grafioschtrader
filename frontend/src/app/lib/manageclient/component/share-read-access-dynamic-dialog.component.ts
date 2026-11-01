@@ -31,7 +31,7 @@ import { ManageClientService } from '../service/manage-client.service';
  */
 @Component({
   template: `
-    @if (formConfig) {
+    @if (configObjectIfInitialized) {
       <dynamic-form
         [config]="config"
         [formConfig]="formConfig"
@@ -56,7 +56,7 @@ export class ShareReadAccessDynamicDialogComponent extends PasswordBaseComponent
       .subscribe((data: [FieldDescriptorInputAndShow[], PasswordRegexProperties]) => {
         this.passwordRegexProperties = data[1];
         this.buildForm(data[0]);
-        // The form appears with formConfig; its controls and inputs exist after that render
+        // The form appears once its configuration is ready; controls and inputs exist after that render.
         this.viewChanged();
         afterNextRender(
           () => {

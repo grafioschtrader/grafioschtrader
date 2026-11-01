@@ -139,7 +139,7 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
 
     fields.push(...SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Derived, this.gps));
     fields.push(...SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Derived, this.gps));
-    fields.push(...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this));
+    fields.push(...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.dynamicForm));
 
     this.formFields.set(fields);
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, fields);
@@ -232,7 +232,6 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
 
   submit(value: { [name: string]: any }): void {
     const security = this.securityEditSupport.prepareForSave(
-      this,
       this.proposeChangeEntityWithEntity(),
       this.securityCallParam(),
       this.dynamicForm(),
@@ -313,11 +312,9 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
         );
         this.form().setDefaultValuesAndEnableSubmit();
         AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-          this.translateService,
           this.gps,
           securityCallParamValue,
           this.form(),
-          this.configObject,
           this.proposeChangeEntityWithEntity()
         );
         securityCallParamValue &&

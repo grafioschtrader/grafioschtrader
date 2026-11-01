@@ -15,7 +15,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { Security } from '../../entities/security';
 import { AuditHelper } from '../../lib/helper/audit.helper';
-import { FormBase } from '../../lib/edit/form.base';
 import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { BusinessHelper } from '../../shared/helper/business.helper';
@@ -504,7 +503,6 @@ export class SecurityEditSupport {
   }
 
   prepareForSave(
-    formBase: FormBase,
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined,
     existingSecurity: Security | null | undefined,
     dynamicForm: DynamicFormComponent,
@@ -515,7 +513,7 @@ export class SecurityEditSupport {
       Object.assign(security, existingSecurity);
     }
     UDFMetadataHelper.removeUDFPropertiesFromObject(security);
-    AuditHelper.copyProposeChangeEntityToEntityAfterEdit(formBase, security, proposeChangeEntityWithEntity);
+    AuditHelper.copyProposeChangeEntityToEntityAfterEdit(dynamicForm, security, proposeChangeEntityWithEntity);
     dynamicForm.cleanMaskAndTransferValuesToBusinessObject(security);
 
     security.idTenantPrivate = value.isTenantPrivate ? this.gps.getIdTenant() : null;

@@ -132,7 +132,6 @@ const STOCKEXCHANGE_RULE_SET_REFRESH_TASK = 53;
 const RUNNING_TASK_STATE = 4;
 
 const RX = {
-  baseData: /(Base Data|Basisdaten)/i,
   stockexchange: /^\s*(Stock\s*exchange|Handelsplatz)\s*$/i,
   edit: /^(Bearbeiten|Edit)\b/i,
   editInstrument: /^(Bearbeiten Instrument|Edit instrument)\b/i,
@@ -523,12 +522,15 @@ async function openSecurityDialog(page: Page, scenario: SecurityFixture): Promis
 }
 
 async function openStockexchangeView(page: Page): Promise<void> {
-  const baseDataNode = page.locator('.p-tree-node-content', { hasText: RX.baseData }).first();
+  const baseDataNode = page.getByRole('treeitem', { name: /^(Base Data|Basisdaten).*$/ }).first();
   await baseDataNode.waitFor({ state: 'visible', timeout: 15_000 });
-  await baseDataNode.dblclick();
+  // Expanding must not select the root, which opens the proposal tab host and starts another navigation.
+  if ((await baseDataNode.getAttribute('aria-expanded')) !== 'true')
+    await baseDataNode.locator(':scope > .p-tree-node-content > button').click();
   const stockexchangeNode = page.locator('.p-tree-node-content', { hasText: RX.stockexchange }).first();
   await stockexchangeNode.waitFor({ state: 'visible', timeout: 15_000 });
   await stockexchangeNode.click();
+  await expect(page).toHaveURL(/\/mainview\/stockexchange\/exchanges$/);
   await page.locator('configurable-table tbody tr').first().waitFor({ state: 'visible', timeout: 15_000 });
 }
 

@@ -228,7 +228,9 @@ key argument when `dataproperty` supplies the key; without either it raises a na
 callbacks include the cleared selection. Statistics requests omit absent date bounds. Proposal handlers return null
 for no entity redirection; quote proposals require a persisted instrument id.
 Generic connector edit forms accept an absent draft, while endpoint/detail/test panels require their inputs. The
-constructed geography tree has required keys/labels; project only defined keys from generic TreeSelect selections.
+constructed geography tree has required keys/labels. Signal TreeSelect fields store `string[] | null` of node keys,
+and the input resolves them to the current option nodes. Never store the widget's TreeNode objects in a signal form:
+Optimus adds cyclic parent references, which recurse indefinitely when form fields are touched or validated.
 Capture connector ids before asynchronous activation/deactivation. Quality-table selection and its published menu
 include null, and tree construction owns initialized child arrays.
 
@@ -374,11 +376,14 @@ periodic `ApplicationRef.tick()`.
   use `computed` for derived state and an `effect`/`untracked` for chart drawing or storage. Publish a new object when
   object state changes. Event streams such as dividend transaction changes remain `Subject` observables. Do not add
   `BehaviorSubject`; the Angular API ratchet forbids it. Tab navigation event subscriptions end with their scoped service.
+  `TabMenuService` selects a default child only after `NavigationEnd`, while its owning route remains active and has
+  no child. Preserve explicit child URLs, including reloads and browser history; navigating during tab-host activation
+  can cancel a newer selection in the main tree.
 - **Signal APIs only in new and reworked code.** Use `input()`, `output()`, `model()`, `viewChild()` and
   `contentChild()`; the Angular API ratchet forbids the corresponding legacy decorators and `EventEmitter`.
-  `dynamic-form` stays on
-  reactive forms, because its fields are built at runtime from `ClassDescriptorInputAndShow`; a new form whose fields
-  are known statically may use Signal Forms.
+  **A new dialog uses `<signal-dynamic-form>`** (see "Signal Dynamic Form for New Dialogs"). Existing dialogs stay on
+  the reactive `<dynamic-form>` until they are reworked. Do not build a form with `form()` and `[formField]` by hand: the contract
+  between signal forms and the Optimus inputs lives in `lib/dynamic-form/signal`.
 - **Services use `@Service()` and `inject()`.** `@Service()` is the Angular 22 shorthand for a root-provided,
   tree-shakable singleton and supports `inject()` only, no constructor injection. Such a service needs no entry in
   `app.config.ts` or `src/grafiosch-host/main.ts`. Keep `@Injectable()` only for a class a host replaces through a
@@ -406,9 +411,10 @@ periodic `ApplicationRef.tick()`.
   created and updated through `ComponentRef.setInput()` from their input effect. Do not add `fieldsInitialized` flags
   or `ngOnChanges`; `src/angular-api.ratchet.spec.ts` forbids both. Computed display rows copy their input objects
   before adding keys or labels.
-- **`FieldConfig` display properties may be assigned freely** (`invisible`, `disabled`, `placeholder`,
-  `valueKeyHtmlOptions`, `labelKey`, `errors`, …). `TranslateHelper.prepareFieldsAndErrors` and `DynamicFormComponent`
-  instrument every field through `FormNotifier`, so an assignment notifies the form. Arrays are replaced, not mutated:
+- **In a reactive `<dynamic-form>`, `FieldConfig` display properties may be assigned freely** (`invisible`,
+  `disabled`, `placeholder`, `valueKeyHtmlOptions`, `labelKey`, `errors`, …). `TranslateHelper.prepareFieldsAndErrors`
+  and `DynamicFormComponent` instrument every field through `FormNotifier`, so an assignment notifies the form. A
+  `<signal-dynamic-form>` reads them once; it changes them at runtime only through `FIELD_DISPLAY` rules. Arrays are replaced, not mutated:
   `fc.valueKeyHtmlOptions = [...options, extra]`, never `push`/`splice`. An error rule is added with
   `DynamicFieldHelper.addErrorRule(translateService, fieldConfig, rule)`, which also shows a late-arriving text.
   Changing controls with `emitEvent: false` from application code needs a `viewChanged()`.
@@ -480,7 +486,8 @@ periodic `ApplicationRef.tick()`.
 - **Dynamically created form fields** inherit `config`, `formConfig` and `group` as required signal inputs from
   `BaseInputComponent`; button fields declare the same inputs. `DynamicFieldDirective` passes them through
   `ComponentRef.setInput()`. A field template reads its form's `notifier.revision()` as well, because display
-  properties of `FieldConfig` change in place.
+  properties of `FieldConfig` change in place. The fields of the signal form inherit `config`, `formConfig` and
+  `field` (its `FieldTree`) from `SignalBaseInputComponent` and read display state from its `view()`.
 
 ## Component Separation: Form Inputs + Table
 
@@ -859,6 +866,11 @@ FormBase (abstract)
 | Programmatically opened action dialog with custom submit | **SimpleDynamicFormBase**    | `AlgoSimulationRunStartDynamicDialogComponent`                   |
 | Dialog displaying a table (read-only)                    | **ShowRecordConfigBase**     | Table display dialogs                                            |
 
+Every form base takes the form component as its last type parameter (`SimpleEditBase<F>`, `SimpleFormEditBase<F>`,
+`SimpleEntityEditBase<T, F>`, `SimpleDynamicFormBase<F>`, `SimpleDynamicEditBase<T, F>`). It defaults to the reactive
+`DynamicFormComponent`; a dialog on the signal form passes `SignalDynamicFormComponent<Model>`. The bases query the form
+through the `DYNAMIC_FORM` token, which both form components provide.
+
 ### SimpleEditBase - Standard Modal Dialog
 
 **Use when**: Dialog has custom submit logic without automatic entity persistence.
@@ -1064,7 +1076,193 @@ export class MyTableDialogComponent extends ShowRecordConfigBase {
 }
 ```
 
+## Signal Dynamic Form for New Dialogs
+
+`<signal-dynamic-form>` (`lib/dynamic-form/signal/signal-dynamic-form.component.ts`) renders the same `FieldConfig`
+configuration with the same layout as `<dynamic-form>`, on Signal Forms (`@angular/forms/signals`). The values live in
+a model signal; validation, enabled and visible state come from a schema built at runtime. **New dialogs use it.**
+
+Library code that serves dialogs on both forms takes the form as `DynamicFormApi`
+(`lib/dynamic-form/models/dynamic-form-api.ts`) and never touches a `formControl`: `value(name)`,
+`setValue(name, value)` and `isFieldActive(name)` reach fields inside a group too, and `setButtonState(name, state)`
+changes `disabled`, `loading`, `invisible` and `labelKey` of a button, merged with the state set before; a name
+without a button in that form is ignored. Field state the reactive form sets imperatively is a schema rule on the
+signal form, which such code offers as a rules function.
+
+### The dialog
+
+The edit base classes take the form type as a type parameter. A dialog on the signal form passes
+`SignalDynamicFormComponent<Model>`, where `Model` is an interface of the fields its rules refer to:
+
+```typescript
+interface MyFormModel {
+  mode: string | null;
+  pattern: string | null;
+}
+
+@Component({
+  template: `
+    <p-dialog [visible]="visibleDialog()" (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+      <signal-dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [rules]="rules"
+        [source]="callParam().thisObject"
+        #form="signalDynamicForm"
+        (submitBt)="submit($event)" />
+    </p-dialog>
+  `,
+  imports: [DialogModule, SignalDynamicFormComponent, TranslateModule]
+})
+export class MyEditComponent
+  extends SimpleEntityEditBase<MyEntity, SignalDynamicFormComponent<MyFormModel>>
+  implements OnInit
+{
+  readonly callParam = input.required<CallParam>();
+  private readonly myService = inject(MyService);
+  private readonly modes = signal<ValueKeyHtmlSelectOptions[]>([]);
+
+  constructor() {
+    super(HelpIds.HELP_MY_FEATURE, 'MY_ENTITY', inject(MyEntityService));
+  }
+
+  readonly rules = (p: SchemaPathTree<MyFormModel>): void => {
+    metadata(p.mode, FIELD_DISPLAY, () => ({ valueKeyHtmlOptions: this.modes() }));
+    disabled(p.pattern, { when: ({ valueOf }) => valueOf(p.mode) !== 'PATTERN' });
+    required(p.pattern);
+  };
+
+  ngOnInit(): void {
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
+    this.config = [
+      DynamicFieldHelper.createFieldSelectStringHeqF('mode', true),
+      DynamicFieldHelper.createFieldInputStringHeqF('pattern', 64, false),
+      DynamicFieldHelper.createSubmitButton()
+    ];
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
+  }
+
+  protected override initialize(): void {
+    this.myService
+      .getModes()
+      .pipe(this.untilDialogClosed())
+      .subscribe((modes) => this.modes.set(modes));
+  }
+
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): MyEntity {
+    return this.copyFormToPrivateBusinessObject(new MyEntity(), <MyEntity>this.callParam().thisObject);
+  }
+}
+```
+
+- **Start values are inputs.** `[source]` is the business object, `[values]` holds further start values by field name
+  (e.g. a combined key the object has no property for). They are in place when the form first renders. Do not call
+  `setDefaultValuesAndEnableSubmit()` or `transferBusinessObjectToForm()` in `initialize()`: it runs only after the
+  dialog's show animation and would discard what the user entered meanwhile.
+- **Dependencies are schema rules** in `rules`, not `valueChanges` subscriptions: `disabled(p.x, { when })`,
+  `hidden(p.x, { when })`, `required(p.x, { when })`, `minDate`/`maxDate`. A disabled, hidden or readonly field is not
+  validated, so `required` needs no condition of its own when the field is disabled otherwise.
+- **Display state that changes at runtime** is a `FIELD_DISPLAY` rule: select options, `groupItem`, `treeNodes`,
+  `suggestions`, `calendarConfig`, labels and help texts. Rules on the same field are merged. Keep the source in a
+  signal of the dialog. Static display properties (`inputWidth`, …) are set on the `FieldConfig` in `ngOnInit`.
+- **A value that follows another field** is a `[valueLinks]` entry (`sources`, `target`, `derive`), because a rule
+  cannot change a value. Derivation runs when a source value changes, not when only its touched/dirty state changes.
+  `skipInitial: true` preserves the loaded target and applies defaults only after the user changes a source; the
+  stock-exchange MIC defaults and country-dependent index use this. The guard resets when the form is rebuilt.
+  Reference: the endpoint options of `GenericConnectorEndpointEditComponent`.
+- **Buttons** are no schema fields: change them at runtime with
+  `this.form().setButtonState(name, { disabled, loading, invisible, labelKey })`. The submit button disables itself while the form is invalid and from the submit until `this.form().enableSubmit()`;
+  the entity edit bases call it after a failed save. A dialog with its own submit calls it in its error handler.
+- **Disabled fields keep their value.** `cleanMaskAndTransferValuesToBusinessObject` transfers it as the reactive form
+  does; `[transferDisabledAsNull]="true"` transfers null instead, which matches a reactive dialog that cleared a field
+  with `setValue(null)` when disabling it.
+- **Hidden fields have no input view.** The shared signal form guards field creation with `@if`; binding a hidden
+  field with `[formField]` causes NG01916. Its model and draft value survive hiding, and the view is recreated on
+  showing it. Destroyed input components clear their focus references. Disabled fields remain rendered.
+- **Read and write values** through `this.form().value(name)` and `this.form().setValue(name, value)`.
+- **Focus a field** with `configObject.x.baseInputComponent?.focus()` in an `afterNextRender`; the input components of
+  both forms register themselves there. `reEvaluateRequired` exists only on the reactive form, which marks a required
+  field from its validators; the signal form derives the marker from the `required` rule.
+  A dialog owning its initial focus sets `[focusOnShow]="false"` on `p-dialog`: Optimus otherwise schedules another
+  focus after the animation and can redirect keystrokes already entered in a different field.
+- **Server validation errors** (`ValidationError` of the backend) appear at their field through the entity edit bases.
+  The field stays invalid, which keeps the submit button disabled, until the user changes the rejected value
+  (`e2e/027-cashaccount-server-validation.spec.ts`).
+
+`src/signal-form.ratchet.spec.ts` checks every component rendering `<signal-dynamic-form>`: its edit base must declare
+`SignalDynamicFormComponent` as the form type, it must not use reactive-forms members (`formControl`, `valueChanges`,
+`requireFormControl`, `resetValidator`, `enable`/`disable`, `enableAndVisibleInput`, …), and it prepares its fields
+with `prepareFieldsAndErrors(…, false)`, which leaves them without `FormNotifier` instrumentation.
+The same ratchet contains the fixed `REACTIVE_FORM_FILES` inventory of existing component owners. A new component
+rendering `<dynamic-form>` fails it, including one with an external template. Remove an owner from the inventory when
+converting it; do not regenerate or expand the inventory. Converted owners remaining in the list also fail the test.
+Once that inventory is empty, remove `DynamicFormComponent`, `DynamicFieldDirective`, the reactive field components,
+`ErrorMessageComponent` with `NgxErrorsDirective`/`NgxErrorDirective`, `DisableControlDirective`, `FormNotifier`,
+`requireFormControl`, `DYNAMIC_FORM_IMPORTS` and the reactive branch of `DynamicFormLayoutComponent`. Existing dialogs
+convert when they are otherwise revised; completing the signal-form framework does not require converting them all.
+
+`e2e/151-signal-form-dialogs.spec.ts` covers grouped validation and fixed UDF sizes, all three audit modes, suggestions,
+fieldsets and range/length constraints, file upload/retry, calendar parsing, instrument lookup, geographic trees and
+the three-state checkbox through real application dialogs. The shared UDF editor is additionally exercised by
+`e2e/lib/039-udf-metadata-notification.spec.ts` in the library host. A locked signal-form field retains its draft value;
+the UDF editor clears a fixed field size only when transferring the entity for saving.
+
+### Proposal/audit flow and UDF metadata on the signal form
+
+A shared entity's dialog adds the note fields with `AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog,
+this.form)` as on the reactive form, but configures them without `transferToFormAndChangeButtonForProposaleEdit`,
+which serves the reactive form only:
+
+- keep the edit mode in a `computed`:
+  `AuditHelper.auditEditMode(this.gps, entity, proposeChangeEntityWithEntity)` gives `DIRECT_EDIT`, `CHANGE_REQUEST`
+  or `PROPOSAL_REVIEW`;
+- call `AuditHelper.auditRules(p, this.config, () => ({ mode: this.auditMode(), proposeChangeEntityWithEntity }))` in
+  the rules; it hides and locks the note fields, shows the change request header (`FieldConfig.fieldHeader`) and the
+  old values of a reviewed proposal as label titles. Extend the model interface with `AuditNoteModel`;
+- bind `AuditHelper.noteStartValues(proposeChangeEntityWithEntity)` into `[values]` and call
+  `AuditHelper.applyAuditButtons(this.form(), mode)` in `initialize()` for the submit label and the reject button;
+- the entity edit bases copy the notes through `DynamicFormApi`, which works on both forms.
+
+A UDF metadata dialog builds its fields with `UDFMetadataHelper.createMetadataBaseFields`, extends its model with
+`UDFDataTypeModel` and calls `UDFMetadataHelper.dataTypeRules(p, () => existing)`: the field size is locked for a
+fixed-size data type and the data type of a saved definition. A locked field keeps its value on the signal form, so
+`getNewOrExistingInstanceBeforeSave` calls `UDFMetadataHelper.clearFixedFieldSize(entity)`.
+`UDFMetadataHelper.prepareDataTypeFields` remains the reactive variant.
+
+### Behaviour that differs from the reactive form
+
+- A `readonly` field is not validated.
+- An empty native text/time input holds `''` in the model: Signal Forms parse null as a number for text and as a Date
+  for time, whereas the backend's `TimeString` contract expects a clock string. The
+  transfer turns an untouched empty text field into null and keeps `''` for one the user cleared, as reactive forms do.
+- `submitBt` emits the values of the enabled and visible fields; the business object transfer covers all fields.
+
+### Inside the field components (`lib/dynamic-form/signal/components`)
+
+- Native inputs, selects and checkboxes bind `[formField]` directly. Optimus inputs (`p-inputNumber`, `p-select`,
+  `p-multiSelect`, `p-autoComplete`, `p-datepicker`) and the `pTextarea` directive go through
+  `SignalValueBridgeDirective`: Optimus' `BaseInput` declares `pattern` as a string, which conflicts with the
+  `RegExp[]` of `[formField]` under strict templates, and `pTextarea` subscribes to `valueChanges` of an `NgControl`
+  that `[formField]` does not provide.
+- Do not bind `disabled`, `readonly`, `required`, `min`, `max`, `maxLength` or `name` on an element carrying
+  `[formField]`; the directive owns them and the compiler rejects the binding. They come from schema rules, which
+  `applyFieldConfigRules` derives from the `FieldConfig`.
+- Track select options by key (`track s.key`): a native select bound with `[formField]` loses its value when all of
+  its option elements are replaced.
+- Buttons use `InputType.Pbutton`; the input with an embedded action uses `InputType.InputButton`.
+
+Reference implementations: `CashaccountEditComponent` (form generated from the backend entity, options and hidden
+state as rules), `GenericConnectorEndpointEditComponent` (cascading dependencies, start values, value link), and
+`StockexchangeEditComponent` (grouped/filterable `InputDropdown`, MIC defaults, audit fields and mutually exclusive
+calendar sources). Stock-exchange country changes cancel obsolete index reads. Option loading preserves the draft;
+existing MICs and fields of referenced exchanges retain their locks. `e2e/037-master-data-dialog-notification.spec.ts`
+checks grouped flags, filter reset, main/secondary MIC choices, defaults, disabled-value transfer and existing values
+through delayed options and repeated opening.
+
 ## Conditional Field Dependencies (Required + Enable/Disable)
+
+This section applies to dialogs on the reactive `<dynamic-form>`. A `<signal-dynamic-form>` expresses the same
+dependencies as schema rules (see "Signal Dynamic Form for New Dialogs").
 
 When form fields only make sense given specific values in other fields, use `DynamicFieldHelper.resetValidator()` combined with `formControl.enable()/disable()` to dynamically toggle field state.
 
@@ -1265,6 +1463,7 @@ this.config = [
 **IMPORTANT**: Before creating a new dialog component, follow this checklist to ensure consistency with existing patterns.
 
 - [ ] Use `*DialogComponent` / `*-dialog.component.ts` unless the component name already contains `Edit`.
+- [ ] Use `<signal-dynamic-form>` and pass `SignalDynamicFormComponent<Model>` as the form type of the base class.
 
 ### 1. Choose the Correct Base Class
 
@@ -1280,9 +1479,11 @@ this.config = [
 
 Before writing code, find and read an existing dialog that matches your use case:
 
-- `HistoryquoteDeleteDialogComponent` - Simple dialog with custom logic
-- `HistoryquoteEditComponent` - Entity CRUD dialog
-- `PortfolioEditDynamicComponent` - Programmatic dialog
+- `CashaccountEditComponent` - Entity CRUD dialog on the signal form, generated from the backend entity
+- `GenericConnectorEndpointEditComponent` - Signal form dialog with cascading field dependencies
+- `HistoryquoteDeleteDialogComponent` - Simple dialog with custom logic (reactive form)
+- `HistoryquoteEditComponent` - Entity CRUD dialog (reactive form)
+- `PortfolioEditDynamicComponent` - Programmatic dialog (reactive form)
 
 ### 3. Field Configuration Checklist
 
@@ -1294,18 +1495,26 @@ Before writing code, find and read an existing dialog that matches your use case
 ### 4. Template Checklist
 
 - [ ] Pass `$event` to lifecycle handlers: `(onShow)="onShow($event)" (onHide)="onHide($event)"`
-- [ ] Bind `translateService`: `[translateService]="translateService"`
-- [ ] Use `#form="dynamicForm"` for form reference
+- [ ] Bind `[rules]`, and `[source]` (and `[values]`) for the start values; use `#form="signalDynamicForm"`
+- [ ] Reactive form only: bind `[translateService]="translateService"` and use `#form="dynamicForm"`
 
 ### 5. Constructor and Initialization
 
 - [ ] Call `super()` with appropriate parameters (help ID, etc.)
 - [ ] Set up `formConfig` using `AppHelper.getDefaultFormConfig()` with `this.helpLink.bind(this)`
-- [ ] Use `TranslateHelper.prepareFieldsAndErrors()` to initialize `configObject`
+- [ ] Use `TranslateHelper.prepareFieldsAndErrors(translateService, config, false)` to initialize `configObject`
+      (signal form; the reactive form omits `false`)
+- [ ] Express field dependencies and runtime display changes as rules, not in `initialize()`
 
 ### Example Template for SimpleEditBase Dialog
 
+The example uses the signal form; the section "Signal Dynamic Form for New Dialogs" explains its inputs and rules.
+
 ```typescript
+interface MyDialogModel {
+  idEntity: number | null;
+}
+
 @Component({
   template: `
     <p-dialog
@@ -1315,20 +1524,25 @@ Before writing code, find and read an existing dialog that matches your use case
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">
-      <dynamic-form
+      <signal-dynamic-form
         [config]="config"
         [formConfig]="formConfig"
-        [translateService]="translateService"
-        #form="dynamicForm"
+        [rules]="rules"
+        #form="signalDynamicForm"
         (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS]
+  imports: [DialogModule, SignalDynamicFormComponent, TranslateModule]
 })
-export class MyDialogComponent extends SimpleEditBase implements OnInit {
+export class MyDialogComponent extends SimpleFormEditBase<SignalDynamicFormComponent<MyDialogModel>> implements OnInit {
   readonly myInput = input<SomeType>();
   readonly translateService = inject(TranslateService);
   private readonly myService = inject(MyService);
+  private readonly entities = signal<ValueKeyHtmlSelectOptions[]>([]);
+
+  readonly rules = (p: SchemaPathTree<MyDialogModel>): void => {
+    metadata(p.idEntity, FIELD_DISPLAY, () => ({ valueKeyHtmlOptions: this.entities() }));
+  };
 
   constructor() {
     super(HelpIds.HELP_MY_FEATURE);
@@ -1341,17 +1555,20 @@ export class MyDialogComponent extends SimpleEditBase implements OnInit {
       DynamicFieldHelper.createFieldSelectNumberHeqF('idEntity', false),
       DynamicFieldHelper.createSubmitButton()
     ];
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
   }
 
   protected override initialize(): void {
-    // Load data or initialize form state
+    this.myService
+      .getEntityOptions()
+      .pipe(this.untilDialogClosed())
+      .subscribe((options) => this.entities.set(options));
   }
 
-  submit(value: any): void {
+  submit(value: { [name: string]: any }): void {
     this.myService.doSomething(value).subscribe({
       next: () => this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)),
-      error: () => (this.configObject.submit.disabled = false)
+      error: () => this.form().enableSubmit()
     });
   }
 }
@@ -1442,6 +1659,13 @@ The application bootstraps standalone (`src/main.ts` → `bootstrapApplication(A
   and drop a draw whose data was replaced while the library loaded.
 - **The `initial` budget in `angular.json` is the regression guard** (2.75 MB warning, 3.25 MB error). When a build
   exceeds it, find the new static import edge with `ng build --stats-json` instead of raising the budget.
+- **Use `@defer` only after measuring the production build and Chrome rendering.** Defer an initially hidden
+  section only when it produces a separate chunk of at least 50 kB or measurably improves first rendering. Keep
+  visible tables, routed tabs, lazy dialogs and Plotly on their existing loading boundaries. A dependency referenced
+  outside a defer block or through a class-token view query stays eager. The alarm-diagnostics dialog defers its
+  trading and notification tables with `on viewport`: hidden tab panels trigger only when activated. Each block has
+  a single-root loading placeholder and a translated load-error message. Keep its data reads and refresh actions
+  owned by the dialog so a tab sees current data when first opened and after refreshing while hidden.
 
 ## The standalone Grafiosch host (`src/grafiosch-host`)
 
@@ -1778,10 +2002,11 @@ this.config = <FieldConfig[]>(
 this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
 ```
 
-`initialize()` (on dialog show) then keeps the original flow — runtime option injection, conditional
-enable/disable, `setDefaultValuesAndEnableSubmit()`, `transferBusinessObjectToForm()`. See
-`PortfolioCashaccountSummaryComponent.handleEditAccount` + `CashaccountEditComponent` for the
-reference pattern.
+On the reactive form, `initialize()` (on dialog show) then keeps the original flow — runtime option injection,
+conditional enable/disable, `setDefaultValuesAndEnableSubmit()`, `transferBusinessObjectToForm()`. On the signal form
+the edited entity is bound with `[source]`, options and conditional state are rules, and `initialize()` only loads
+data. See `PortfolioCashaccountSummaryComponent.handleEditAccount` + `CashaccountEditComponent` (signal form) for the
+reference pattern; build the signal form's `configObject` with `prepareFieldsAndErrors(…, false)`.
 
 ### What propagates from the backend
 

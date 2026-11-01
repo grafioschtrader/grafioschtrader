@@ -29,6 +29,30 @@ test('the application runs without zone.js and a reload of the main view renders
   expect(errors).toEqual([]);
 });
 
+test('tab defaults preserve direct child routes and the last tree selection wins', async ({ page }) => {
+  await loginAsFixtureUser(page, 'limit2');
+  const root = page.getByRole('treeitem', { name: /^(Base Data|Basisdaten).*$/ }).first();
+  const exchange = page.getByRole('treeitem', { name: /^(Stock\s*exchange|Handelsplatz)$/ }).first();
+  // Selecting the root starts its proposal tab host; immediately choose a different tab host from its children.
+  for (let visit = 0; visit < 4; visit++) {
+    await root.locator(':scope > .p-tree-node-content').click();
+    if ((await root.getAttribute('aria-expanded')) !== 'true')
+      await root.locator(':scope > .p-tree-node-content > button').click();
+    await exchange.locator(':scope > .p-tree-node-content').click();
+    await expect(page).toHaveURL(/\/mainview\/stockexchange\/exchanges$/);
+    await expect(page.locator('configurable-table tbody tr').first()).toBeVisible();
+  }
+  await page.goto('/mainview/stockexchange/rulesets');
+  const ruleTab = page.getByRole('tab', { name: /Trading calendar rules|Handelskalender-Regeln/i });
+  await expect(ruleTab).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('configurable-table tbody tr').first()).toBeVisible();
+  await expect(page).toHaveURL(/\/mainview\/stockexchange\/rulesets$/);
+  await page.reload();
+  await expect(ruleTab).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('configurable-table tbody tr').first()).toBeVisible();
+  await expect(page).toHaveURL(/\/mainview\/stockexchange\/rulesets$/);
+});
+
 test('unreachable translations block the bootstrap and a retry recovers', async ({ page }) => {
   await page.route('**/api/**', (route) => route.abort('connectionrefused'));
   await page.goto('/login');

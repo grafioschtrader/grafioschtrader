@@ -24,7 +24,7 @@ export class TabMenuService {
 
   /**
    * Initialize tabs with translation and router tracking.
-   * Sets up automatic route tracking and navigates to the default route.
+   * Sets up route tracking and selects the default only after the tab host's navigation has completed without a child.
    *
    * @param tabs Array of tab items to initialize
    * @param defaultRoute The default route to navigate to
@@ -36,18 +36,27 @@ export class TabMenuService {
     TranslateHelper.translateMenuItems(tabs, this.translateService);
     // Set initial active route
     this.activeRouteState.set(defaultRoute);
-    // Subscribe to router events to update active route
+    // A redirect during activation can cancel a newer tree selection. Wait until this host is committed first.
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
-        this.updateActiveRoute(tabs);
+        this.synchronizeRoute(tabs, defaultRoute, activatedRoute);
       });
-    // Navigate to default route
-    this.navigateTo(defaultRoute, activatedRoute);
+    // A tab component can also be created inside a route that has already completed navigation.
+    if (!this.router.currentNavigation()) this.synchronizeRoute(tabs, defaultRoute, activatedRoute);
     return tabs;
+  }
+
+  /** Leaves an explicit child URL intact and ignores a host that is no longer in the active router tree. */
+  private synchronizeRoute(tabs: TabItem[], defaultRoute: string, activatedRoute: ActivatedRoute): void {
+    const containsHost = (route: ActivatedRoute): boolean =>
+      route === activatedRoute || route.children.some(containsHost);
+    if (!containsHost(this.router.routerState.root)) return;
+    if (activatedRoute.firstChild) this.updateActiveRoute(tabs);
+    else this.navigateTo(defaultRoute, activatedRoute);
   }
 
   /**

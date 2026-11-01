@@ -1,5 +1,6 @@
-import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
-import { afterNextRender, Component, inject, Injector, OnInit, input } from '@angular/core';
+import { afterNextRender, Component, computed, inject, Injector, OnInit, input, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { disabled, metadata, SchemaPathTree } from '@angular/forms/signals';
 import { Stockexchange } from '../../entities/stockexchange';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TranslateModule } from '@ngx-translate/core';
@@ -7,18 +8,16 @@ import { StockexchangeService } from '../service/stockexchange.service';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { HelpIds } from '../../lib/help/help.ids';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
-import { AuditHelper } from '../../lib/helper/audit.helper';
+import { AuditHelper, AuditNoteModel } from '../../lib/helper/audit.helper';
 import type { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { StockexchangeCallParam } from './stockexchange.call.param';
-import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
-import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { AssetclassType } from '../../shared/types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
-import { distinctUntilChanged, forkJoin, Observable, of, startWith, switchMap } from 'rxjs';
+import { distinctUntilChanged, forkJoin, Observable, of, switchMap } from 'rxjs';
 import { Security } from '../../entities/security';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import moment from 'moment';
@@ -28,8 +27,21 @@ import { StockexchangeMic } from '../model/stockexchange.base.data';
 import { StockexchangeHelper } from './stockexchange.helper';
 import { BaseSettings } from '../../lib/base.settings';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
+import { SignalDynamicFormComponent } from '../../lib/dynamic-form/signal/signal-dynamic-form.component';
+import { FIELD_DISPLAY, SignalValueLink } from '../../lib/dynamic-form/signal/signal-form.model';
 import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.set.service';
+
+interface StockexchangeFormModel extends AuditNoteModel {
+  onlyMainStockexchange: boolean;
+  mic: string | null;
+  name: string | null;
+  countryCode: string | null;
+  website: string | null;
+  timeZone: string | null;
+  noMarketValue: boolean;
+  idTradingCalendarRuleSet: number | string | null;
+  idIndexUpdCalendar: number | string | null;
+}
 
 /**
  * Edits a stock exchange and its calendar source, with country-dependent reference indices.
@@ -43,25 +55,103 @@ import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
     [modal]="true">
-    <dynamic-form
+    <signal-dynamic-form
       [config]="config"
       [formConfig]="formConfig"
-      [translateService]="translateService"
-      #form="dynamicForm"
+      [source]="callParam().stockexchange"
+      [values]="startValues()"
+      [rules]="rules"
+      [valueLinks]="valueLinks"
+      #form="signalDynamicForm"
       (submitBt)="submit($event)" />
   </p-dialog>`,
-  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
+  imports: [DialogModule, SignalDynamicFormComponent, TranslateModule]
 })
-export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchange> implements OnInit {
+export class StockexchangeEditComponent
+  extends SimpleEntityEditBase<Stockexchange, SignalDynamicFormComponent<StockexchangeFormModel>>
+  implements OnInit
+{
   private tradingCalendarRuleSetService: TradingCalendarRuleSetService = inject(TradingCalendarRuleSetService);
   private securityService: SecurityService = inject(SecurityService);
 
   readonly callParam = input.required<StockexchangeCallParam>();
   readonly proposeChangeEntityWithEntity = input<ProposeChangeEntityWithEntity>();
   private readonly nameMaxLength = 32;
-  private countriesAsKeyValue: { [cc: string]: string } = {};
-  private ruleSetIdByMic: { [mic: string]: number } = {};
+  private readonly countriesAsKeyValue = computed(() =>
+    StockexchangeHelper.transform(this.callParam().countriesAsHtmlOptions)
+  );
+  private readonly options = signal<{
+    timezones: ValueKeyHtmlSelectOptions[];
+    ruleSets: ValueKeyHtmlSelectOptions[];
+    mapping: Record<string, number>;
+  } | null>(null);
+  private readonly indices = signal<ValueKeyHtmlSelectOptions[]>([]);
   private readonly injector = inject(Injector);
+  readonly auditMode = computed(() =>
+    AuditHelper.auditEditMode(this.gps, this.callParam().stockexchange, this.proposeChangeEntityWithEntity())
+  );
+  readonly startValues = computed(() => ({
+    ...AuditHelper.noteStartValues(this.proposeChangeEntityWithEntity()),
+    mic: this.callParam().stockexchange?.mic ?? ''
+  }));
+  readonly rules = (p: SchemaPathTree<StockexchangeFormModel>): void => {
+    AuditHelper.auditRules(p, this.config, () => ({
+      mode: this.auditMode(),
+      proposeChangeEntityWithEntity: this.proposeChangeEntityWithEntity()
+    }));
+    disabled(p.onlyMainStockexchange, { when: () => !this.canAssignMic() });
+    disabled(p.mic, { when: () => !this.canAssignMic() || !this.options() });
+    disabled(p.countryCode, { when: ({ valueOf }) => !!valueOf(p.mic) });
+    disabled(p.noMarketValue, { when: () => this.callParam().hasSecurity });
+    disabled(p.timeZone, { when: () => this.callParam().hasSecurity });
+    disabled(p.idIndexUpdCalendar, { when: ({ valueOf }) => !!valueOf(p.idTradingCalendarRuleSet) });
+    disabled(p.idTradingCalendarRuleSet, { when: ({ valueOf }) => !!valueOf(p.idIndexUpdCalendar) });
+    metadata(p.mic, FIELD_DISPLAY, ({ valueOf }) => ({
+      groupItem: this.createMicOptions(valueOf(p.onlyMainStockexchange))
+    }));
+    metadata(p.countryCode, FIELD_DISPLAY, () => ({ valueKeyHtmlOptions: this.callParam().countriesAsHtmlOptions }));
+    metadata(p.timeZone, FIELD_DISPLAY, () => ({ valueKeyHtmlOptions: this.options()?.timezones ?? [] }));
+    metadata(p.idTradingCalendarRuleSet, FIELD_DISPLAY, () => ({
+      valueKeyHtmlOptions: this.options()?.ruleSets ?? []
+    }));
+    metadata(p.idIndexUpdCalendar, FIELD_DISPLAY, () => ({ valueKeyHtmlOptions: this.indices() }));
+  };
+  readonly valueLinks: SignalValueLink<StockexchangeFormModel>[] = [
+    ...(['name', 'countryCode', 'website', 'timeZone'] as const).map(
+      (target): SignalValueLink<StockexchangeFormModel> => ({
+        sources: ['mic'],
+        target,
+        skipInitial: true,
+        derive: (values, current) => {
+          const mic = this.callParam().stockexchangeMics.find((entry) => entry.mic === values.mic);
+          if (!this.canAssignMic() || !mic) return current;
+          return target === 'name' ? mic.name.toLowerCase().substring(0, this.nameMaxLength) : (mic[target] ?? null);
+        }
+      })
+    ),
+    {
+      sources: ['mic'],
+      target: 'idTradingCalendarRuleSet',
+      skipInitial: true,
+      derive: (values, current) => (this.canAssignMic() ? (this.options()?.mapping[values.mic ?? ''] ?? null) : current)
+    },
+    {
+      sources: ['countryCode'],
+      target: 'idIndexUpdCalendar',
+      skipInitial: true,
+      derive: () => null
+    },
+    {
+      sources: ['idTradingCalendarRuleSet'],
+      target: 'idIndexUpdCalendar',
+      derive: (values, current) => (values.idTradingCalendarRuleSet ? null : current)
+    },
+    {
+      sources: ['idIndexUpdCalendar'],
+      target: 'idTradingCalendarRuleSet',
+      derive: (values, current) => (values.idIndexUpdCalendar ? null : current)
+    }
+  ];
 
   constructor() {
     super(
@@ -76,12 +166,10 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
 
     this.config = [
       DynamicFieldHelper.createFieldCheckboxHeqF('onlyMainStockexchange', {
-        defaultValue: true,
-        disabled: !this.canAssignMic()
+        defaultValue: true
       }),
       DynamicFieldHelper.createFieldDropdownStringHeqF('mic', false, {
         groupItemUseOrLoading: true,
-        disabled: !this.canAssignMic(),
         filter: true
       }),
       DynamicFieldHelper.createFieldInputStringHeqF('name', this.nameMaxLength, true, { minLength: 2 }),
@@ -100,13 +188,9 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
         this.gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Stockexchange_Website),
         false
       ),
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.form)
     ];
-    const callParam = this.callParam();
-    if (callParam.stockexchange && !callParam.stockexchange.mic) {
-      callParam.stockexchange.mic = '';
-    }
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
   }
 
   private canAssignMic(): boolean {
@@ -117,38 +201,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   protected override initialize(): void {
-    this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam().countriesAsHtmlOptions);
-    this.configObject.mic.groupItem = this.createMicOptions(true);
-    this.configObject.countryCode.valueKeyHtmlOptions = this.callParam().countriesAsHtmlOptions;
-    this.form().setDefaultValuesAndEnableSubmit();
-    const callParam = this.callParam();
-    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-      this.translateService,
-      this.gps,
-      callParam.stockexchange,
-      this.form(),
-      this.configObject,
-      this.proposeChangeEntityWithEntity()
-    );
-    FormHelper.disableEnableFieldConfigs(callParam.hasSecurity, [
-      this.configObject.noMarketValue,
-      this.configObject.timeZone
-    ]);
-    this.disableEnableCountry();
-    this.valueChangedOnCountryCode();
-    this.watchCalendarSource();
-    this.applyCalendarSourceExclusion();
-    if (this.canAssignMic()) {
-      this.valueChangedOnOnlyMainStockexchange();
-    }
-    this.loadOptions();
-  }
-
-  /** Loads the calendar and time-zone choices once per session, preserving edits made while they are pending. */
-  private loadOptions(): void {
-    // A MIC needs its rule-set mapping before it can supply defaults. Loading options never resets the form.
-    requireFormControl(this.configObject.mic).disable();
-    this.configObject.submit.disabled = true;
+    AuditHelper.applyAuditButtons(this.form(), this.auditMode());
+    this.form().setButtonState('submit', { disabled: true });
     forkJoin({
       timezones: this.gps.getTimezones(),
       ruleSets: this.tradingCalendarRuleSetService.getRuleSetOptions(),
@@ -156,123 +210,34 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     })
       .pipe(this.untilDialogClosed())
       .subscribe(({ timezones, ruleSets, mapping }) => {
-        this.configObject.timeZone.valueKeyHtmlOptions = timezones;
-        this.configObject.idTradingCalendarRuleSet.valueKeyHtmlOptions = [
-          new ValueKeyHtmlSelectOptions('', ''),
-          ...ruleSets
-        ];
-        this.ruleSetIdByMic = mapping;
-        this.configObject.submit.disabled = false;
-        if (this.canAssignMic()) {
-          requireFormControl(this.configObject.mic).enable();
-          this.valueChangedOnMic();
-        }
+        this.options.set({ timezones, ruleSets: [new ValueKeyHtmlSelectOptions('', ''), ...ruleSets], mapping });
+        this.form().setButtonState('submit', { disabled: false });
         afterNextRender(
           () => {
-            if (this.canAssignMic()) {
-              this.configObject.mic.baseInputComponent?.focus();
-            } else {
-              this.configObject.name.baseInputComponent?.focus();
-            }
+            const focus = this.canAssignMic() ? this.configObject.mic : this.configObject.name;
+            focus.baseInputComponent?.focus();
           },
           { injector: this.injector }
         );
       });
-  }
-
-  private valueChangedOnOnlyMainStockexchange(): void {
-    requireFormControl(this.configObject.onlyMainStockexchange)
-      .valueChanges.pipe(this.untilDialogClosed())
-      .subscribe((oms: boolean) => {
-        this.configObject.mic.groupItem = this.createMicOptions(oms);
-      });
-  }
-
-  private valueChangedOnMic(): void {
-    requireFormControl(this.configObject.mic)
-      .valueChanges.pipe(this.untilDialogClosed())
-      .subscribe((mic) => {
-        const sm = this.callParam().stockexchangeMics.find((smf) => smf.mic === mic);
-        if (sm) {
-          requireFormControl(this.configObject.name).setValue(sm.name.toLowerCase().substring(0, this.nameMaxLength));
-          requireFormControl(this.configObject.countryCode).setValue(sm.countryCode);
-          requireFormControl(this.configObject.website).setValue(sm.website);
-          requireFormControl(this.configObject.timeZone).setValue(sm.timeZone);
-        }
-        this.disableEnableCountry();
-        // The MIC drives the defaults of this dialog, so it also decides the calendar source: the rule set written for
-        // that MIC is preselected, and a MIC without one leaves the field empty rather than keeping the rule set of the
-        // MIC chosen before. Setting it disables the index, which applyCalendarSourceExclusion takes care of.
-        requireFormControl(this.configObject.idTradingCalendarRuleSet).setValue(this.ruleSetIdByMic[mic] ?? null);
-      });
-  }
-
-  /**
-   * The trading calendar is updated either from the quotes of a reference index or from a rule set. Selecting one of
-   * the two therefore clears and disables the other, mirroring the check the backend enforces on save.
-   */
-  private watchCalendarSource(): void {
-    for (const field of ['idIndexUpdCalendar', 'idTradingCalendarRuleSet']) {
-      requireFormControl(this.configObject[field])
-        .valueChanges.pipe(this.untilDialogClosed())
-        .subscribe(() => this.applyCalendarSourceExclusion());
-    }
-  }
-
-  /**
-   * Clears and disables whichever of the two calendar sources was not chosen. The rule set wins if both should ever
-   * carry a value, which the backend prevents but an older record could still show.
-   *
-   * Every change here is made with {@code emitEvent: false}: Angular fires valueChanges on enable() and disable() as
-   * well as on setValue(), so emitting would make the two subscriptions above trigger each other endlessly and freeze
-   * the dialog. Clearing the value matters because a disabled control is still copied to the business object on save.
-   */
-  private applyCalendarSourceExclusion(): void {
-    const ruleSetSelected = !!requireFormControl(this.configObject.idTradingCalendarRuleSet).value;
-    const indexSelected = !ruleSetSelected && !!requireFormControl(this.configObject.idIndexUpdCalendar).value;
-    this.setCalendarSourceState(this.configObject.idIndexUpdCalendar, ruleSetSelected);
-    this.setCalendarSourceState(this.configObject.idTradingCalendarRuleSet, indexSelected);
-    this.viewChanged();
-  }
-
-  private setCalendarSourceState(fieldConfig: FieldConfig, disable: boolean): void {
-    if (disable) {
-      if (requireFormControl(fieldConfig).value != null) {
-        requireFormControl(fieldConfig).setValue(null, { emitEvent: false });
-      }
-      if (requireFormControl(fieldConfig).enabled) {
-        requireFormControl(fieldConfig).disable({ emitEvent: false });
-      }
-    } else if (requireFormControl(fieldConfig).disabled) {
-      requireFormControl(fieldConfig).enable({ emitEvent: false });
-    }
-  }
-
-  private valueChangedOnCountryCode(): void {
-    const country = requireFormControl(this.configObject.countryCode);
-    country.valueChanges
+    // The form is ready at onShow. Country changes cancel the previous HTTP read; loading never resets a draft.
+    toObservable(
+      computed(() => this.form().value('countryCode') as string | null),
+      { injector: this.injector }
+    )
       .pipe(
-        startWith(country.value),
         distinctUntilChanged(),
-        switchMap((countryCode, index) => {
-          if (index > 0) {
-            requireFormControl(this.configObject.idIndexUpdCalendar).setValue(null);
-          }
-          this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = [];
-          return countryCode ? this.getSecurityObservable(countryCode) : of<Security[]>([]);
+        switchMap((country) => {
+          this.indices.set([]);
+          return country ? this.getSecurityObservable(country) : of<Security[]>([]);
         }),
         this.untilDialogClosed()
       )
-      .subscribe((securities) => {
-        this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions =
-          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idSecuritycurrency', 'name', securities, true);
-      });
-  }
-
-  private disableEnableCountry(): void {
-    FormHelper.disableEnableFieldConfigs(!!requireFormControl(this.configObject.mic).value, [
-      this.configObject.countryCode
-    ]);
+      .subscribe((securities) =>
+        this.indices.set(
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idSecuritycurrency', 'name', securities, true)
+        )
+      );
   }
 
   private createMicOptions(onlyMainStockexchange: boolean): GroupItem[] {
@@ -300,7 +265,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
         if (existingGroup) {
           this.addEntry(existingGroup, sm);
         } else {
-          const country = this.countriesAsKeyValue[sm.countryCode];
+          const country = this.countriesAsKeyValue()[sm.countryCode];
           if (country) {
             this.createGreopAndFristEntry(countryMap, sm, country);
           }

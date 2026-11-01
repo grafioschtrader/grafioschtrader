@@ -38,7 +38,7 @@ import { PasswordEditComponent } from './password-edit.component';
           </div>
         }
         <application-info [applicationInfo]="applicationInfo()" />
-        @if (formConfig) {
+        @if (configObjectIfInitialized) {
           <h2>{{ 'SIGN_IN' | translate }}</h2>
           <dynamic-form
             [config]="config"

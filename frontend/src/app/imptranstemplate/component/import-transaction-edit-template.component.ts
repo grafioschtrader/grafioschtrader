@@ -70,7 +70,7 @@ export class ImportTransactionEditTemplateComponent
       DynamicFieldHelper.createFieldTextareaInputString('templateAsTxt', 'PDF_TEMPLATE_AS_TXT', 4096, true, {
         textareaRows: 30
       }),
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.form)
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -78,11 +78,9 @@ export class ImportTransactionEditTemplateComponent
   protected override initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-      this.translateService,
       this.gps,
       <Auditable>this.callParam().thisObject,
       this.form(),
-      this.configObject,
       this.proposeChangeEntityWithEntity()
     );
     this.importTransactionTemplateService
@@ -113,7 +111,7 @@ export class ImportTransactionEditTemplateComponent
       )).idTransactionImportPlatform;
     }
     AuditHelper.copyProposeChangeEntityToEntityAfterEdit(
-      this,
+      this.form(),
       importTransactionTemplate,
       this.proposeChangeEntityWithEntity()
     );

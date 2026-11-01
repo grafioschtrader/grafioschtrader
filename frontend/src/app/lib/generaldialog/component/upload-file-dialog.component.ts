@@ -1,5 +1,4 @@
-import { requireFormControl } from '../../dynamic-form/models/form-control-access';
-import { Component, OnInit, input, inject } from '@angular/core';
+import { Component, OnInit, input, inject, computed } from '@angular/core';
 
 import { ProcessedActionData } from '../../types/processed.action.data';
 import { ProcessedAction } from '../../types/processed.action';
@@ -9,7 +8,10 @@ import { DataType } from '../../dynamic-form/models/data.type';
 import { AppHelper } from '../../helper/app.helper';
 import { SimpleFormEditBase } from '../../edit/simple.form.edit.base';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
-import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
+import { SignalDynamicFormComponent } from '../../dynamic-form/signal/signal-dynamic-form.component';
+import { metadata, SchemaPathTree } from '@angular/forms/signals';
+import { FIELD_DISPLAY } from '../../dynamic-form/signal/signal-form.model';
+
 import { TranslateHelper } from '../../helper/translate.helper';
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { SelectOptionsHelper } from '../../helper/select.options.helper';
@@ -18,6 +20,11 @@ import { MessageToastService } from '../../message/message.toast.service';
 import { UserSettingsService } from '../../services/user.settings.service';
 import { FileUploadParam, SupportedCSVFormat, UploadHistoryquotesSuccess } from '../model/file.upload.param';
 import { BaseSettings } from '../../base.settings';
+
+interface UploadFormModel {
+  decimalSeparator: string | null;
+  thousandSeparator: string | null;
+}
 
 /**
  * Generic file upload dialog component for importing single or multiple files with optional CSV format
@@ -44,19 +51,37 @@ import { BaseSettings } from '../../base.settings';
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
     [modal]="true">
-    <dynamic-form
+    <signal-dynamic-form
       [config]="config"
       [formConfig]="formConfig"
-      [translateService]="translateService"
-      #form="dynamicForm"
+      [source]="savedFormat()"
+      [rules]="rules"
+      #form="signalDynamicForm"
       (submitBt)="submit($event)" />
   </p-dialog>`,
-  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
+  imports: [DialogModule, SignalDynamicFormComponent, TranslateModule]
 })
-export class UploadFileDialogComponent extends SimpleFormEditBase implements OnInit {
+export class UploadFileDialogComponent
+  extends SimpleFormEditBase<SignalDynamicFormComponent<UploadFormModel>>
+  implements OnInit
+{
   public translateService: TranslateService = inject(TranslateService);
   private messageToastService: MessageToastService = inject(MessageToastService);
   private userSettingsService: UserSettingsService = inject(UserSettingsService);
+
+  readonly savedFormat = computed(() => {
+    const key = this.fileUploadParam().persistenceCSVKey;
+    return key ? (this.userSettingsService.retrieveObject(key) as SupportedCSVFormat | null) : null;
+  });
+  readonly rules = (p: SchemaPathTree<UploadFormModel>): void => {
+    const formats = this.fileUploadParam().supportedCSVFormats;
+    if (formats)
+      metadata(p.thousandSeparator, FIELD_DISPLAY, ({ valueOf }) => ({
+        valueKeyHtmlOptions: SelectOptionsHelper.createHtmlOptionsFromStringArray(
+          formats.thousandSeparators.filter((separator) => separator !== valueOf(p.decimalSeparator))
+        )
+      }));
+  };
 
   /** Configuration parameters passed from parent component defining dialog behavior and upload settings */
   readonly fileUploadParam = input.required<FileUploadParam>();
@@ -93,7 +118,8 @@ export class UploadFileDialogComponent extends SimpleFormEditBase implements OnI
       ),
       DynamicFieldHelper.createSubmitButton('UPLOAD')
     ];
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
+    this.prepareCSVOptions();
   }
 
   /**
@@ -143,9 +169,11 @@ export class UploadFileDialogComponent extends SimpleFormEditBase implements OnI
       });
     }
 
+    const uploadValues: Record<string, unknown> = {};
+    this.form().cleanMaskAndTransferValuesToBusinessObject(uploadValues, true);
     fileUploadParam.additionalFieldConfig &&
       fileUploadParam.additionalFieldConfig.submitPrepareFN(
-        value,
+        uploadValues,
         formData,
         fileUploadParam.additionalFieldConfig.fieldConfig
       );
@@ -170,65 +198,22 @@ export class UploadFileDialogComponent extends SimpleFormEditBase implements OnI
         }
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
       },
-      error: () => (this.configObject.submit.disabled = false)
+      error: () => this.form().enableSubmit()
     });
   }
 
-  /**
-   * Sets up reactive listener for decimal separator changes to dynamically update thousand separator options.
-   * This ensures that decimal and thousand separators cannot use the same character, preventing ambiguous
-   * CSV parsing. When the user changes the decimal separator, the thousand separator dropdown is filtered
-   * to exclude the chosen decimal separator.
-   */
-  valueChangedOnDecimalSeparator(): void {
+  protected override initialize(): void {}
+
+  /** Static CSV options are in place before the form renders; dependent options come from the schema. */
+  private prepareCSVOptions(): void {
     const formats = this.fileUploadParam().supportedCSVFormats;
     if (!formats) return;
-    requireFormControl(this.configObject.decimalSeparator)
-      .valueChanges.pipe(this.untilDialogClosed())
-      .subscribe((data: string) => {
-        const thousandSeparators: string[] = formats.thousandSeparators.filter(
-          (separator) => separator !== requireFormControl(this.configObject.decimalSeparator).value
-        );
-
-        this.configObject.thousandSeparator.valueKeyHtmlOptions =
-          SelectOptionsHelper.createHtmlOptionsFromStringArray(thousandSeparators);
-      });
-  }
-
-  /**
-   * Lifecycle hook called when the dialog is closed. Cleans up the decimal separator change subscription
-   * to prevent memory leaks. Delegates to parent class for standard cleanup operations.
-   *
-   * @param event - Optimus dialog hide event
-   */
-  /**
-   * Initializes dialog state when shown. For dialogs with CSV format support, this method:
-   * - Populates dropdown options for decimal separators, thousand separators, and date formats
-   * - Retrieves previously saved format preferences from browser storage
-   * - Pre-fills format fields with saved values if available
-   * - Sets up decimal/thousand separator interdependency handling
-   *
-   * This provides a better user experience by remembering format preferences across sessions.
-   *
-   * @protected
-   */
-  protected override initialize(): void {
-    const fileUploadParam = this.fileUploadParam();
-    if (fileUploadParam.supportedCSVFormats) {
-      this.configObject.decimalSeparator.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
-        fileUploadParam.supportedCSVFormats.decimalSeparators
-      );
-      this.configObject.dateFormat.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
-        fileUploadParam.supportedCSVFormats.dateFormats
-      );
-      const supportedCSVFormat: SupportedCSVFormat | null = fileUploadParam.persistenceCSVKey
-        ? this.userSettingsService.retrieveObject(fileUploadParam.persistenceCSVKey)
-        : null;
-      this.valueChangedOnDecimalSeparator();
-      if (supportedCSVFormat) {
-        this.form().transferBusinessObjectToForm(supportedCSVFormat);
-      }
-    }
+    this.configObject.decimalSeparator.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
+      formats.decimalSeparators
+    );
+    this.configObject.dateFormat.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
+      formats.dateFormats
+    );
   }
 
   /**

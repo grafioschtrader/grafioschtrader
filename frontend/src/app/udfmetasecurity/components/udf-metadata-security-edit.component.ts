@@ -253,12 +253,10 @@ export class UDFMetadataSecurityEditComponent
     this.offerLoaded.set(false);
     const callParam = this.callParam();
     UDFMetadataHelper.prepareDataTypeFields(
-      this.translateService,
       this.form(),
       this.configObject,
       callParam.excludeUiOrders,
       callParam.uDFMetadataSecurity,
-      this.configDataTypeFields,
       this.untilDialogClosed()
     );
     const existing = callParam.uDFMetadataSecurity;

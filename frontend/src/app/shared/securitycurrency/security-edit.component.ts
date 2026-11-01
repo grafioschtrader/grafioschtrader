@@ -277,7 +277,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       ...this.securityEditSupport.connectorDividendConfig,
       ...this.securityEditSupport.connectorSplitConfig
     );
-    this.config.push(...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this));
+    this.config.push(...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.dynamicForm));
 
     this.configSplit = [
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'splitDate', true),
@@ -408,7 +408,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
   submit(value: { [name: string]: any }): void {
     const security = this.securityEditSupport.prepareForSave(
-      this,
       this.proposeChangeEntityWithEntity(),
       <Security>this.securityCurrencypairCallParam(),
       this.dynamicForm(),

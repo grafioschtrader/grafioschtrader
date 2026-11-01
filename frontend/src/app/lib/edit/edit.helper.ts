@@ -1,8 +1,7 @@
 import { ProposeTransientTransfer } from '../entities/propose.transient.transfer';
 import type { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
 import { AuditHelper } from '../helper/audit.helper';
-import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { FormBase } from './form.base';
+import { DynamicFormApi } from '../dynamic-form/models/dynamic-form-api';
 
 /**
  * Static helper class for copying form data to business objects.
@@ -16,13 +15,13 @@ export abstract class EditHelper {
    * @static
    * @param {T} targetEntity - The target entity to receive form data
    * @param {T} existingEntity - The existing entity data to merge (optional)
-   * @param {DynamicFormComponent} form - The form component containing user input
+   * @param {DynamicFormApi} form - The form component containing user input
    * @returns {T} The updated target entity with form data applied
    */
   public static copyFormToPrivateBusinessObject<T extends object>(
     targetEntity: T,
     existingEntity: T | null | undefined,
-    form: DynamicFormComponent
+    form: DynamicFormApi
   ): T {
     if (existingEntity) {
       Object.assign(targetEntity, existingEntity);
@@ -39,21 +38,19 @@ export abstract class EditHelper {
    * @param {ProposeTransientTransfer} targetEntity - The target propose transient transfer entity
    * @param {T} existingEntity - The existing entity data to merge (optional)
    * @param {ProposeChangeEntityWithEntity} proposeChangeEntityWithEntity - The propose change entity wrapper
-   * @param {DynamicFormComponent} form - The form component containing user input
-   * @param {FormBase} formBase - The form base instance for audit operations
+   * @param {DynamicFormApi} form - The form component containing user input and the audit notes
    * @returns {void}
    */
   public static copyFormToPublicBusinessObject<T>(
     targetEntity: ProposeTransientTransfer,
     existingEntity: T | null | undefined,
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined,
-    form: DynamicFormComponent,
-    formBase: FormBase
+    form: DynamicFormApi
   ): void {
     if (existingEntity) {
       Object.assign(targetEntity, existingEntity);
     }
-    AuditHelper.copyProposeChangeEntityToEntityAfterEdit(formBase, targetEntity, proposeChangeEntityWithEntity);
+    AuditHelper.copyProposeChangeEntityToEntityAfterEdit(form, targetEntity, proposeChangeEntityWithEntity);
     form.cleanMaskAndTransferValuesToBusinessObject(targetEntity);
   }
 }

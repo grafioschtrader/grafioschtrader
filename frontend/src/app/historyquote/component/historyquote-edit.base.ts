@@ -50,7 +50,7 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
       }),
       ...this.getAdditionalLeadingFields(),
       ...this.createOhlcvFields(),
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.form)
     ];
     this.configObject = this.config.reduce(
       (acc, d) =>
@@ -68,11 +68,9 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
   protected override initialize(): void {
     this.transferAndToggleImmutableFields();
     AuditHelper.configureFormFromAuditableRights(
-      this.translateService,
       this.gps,
       this.getSecuritycurrency(),
       this.form(),
-      this.configObject,
       this.proposeChangeEntityWithEntity(),
       false
     );

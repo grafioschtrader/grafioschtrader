@@ -6,6 +6,8 @@ export default defineConfig({
   oxc: { decorator: { legacy: true } },
   test: {
     globals: true,
+    // Compiler-based ratchets scan all sources. Running them together exceeds their per-test timeout on this host.
+    maxWorkers: 1,
     environment: 'node',
     include: ['src/**/*.spec.ts'],
     setupFiles: ['src/test-setup.ts']

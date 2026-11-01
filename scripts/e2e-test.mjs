@@ -93,11 +93,11 @@ const BACKEND_READY_MS = 300_000;
 const FRONTEND_READY_MS = 300_000;
 
 /**
- * Both Playwright configs leave `outputDir` at its default, so the artifacts of the main and the lib
- * suite end up in the same directory. See clearPlaywrightOutputDir() for why the runner clears it
- * instead of leaving that to Playwright.
+ * Each host owns its artifacts, so a library run cannot delete traces of an application run.
+ * See clearPlaywrightOutputDir() for why the runner clears them instead of leaving that to Playwright.
  */
 const PLAYWRIGHT_OUTPUT_DIR = path.join(FRONTEND_DIR, 'test-results');
+const LIB_PLAYWRIGHT_OUTPUT_DIR = path.join(FRONTEND_DIR, 'test-results-lib');
 /** Time the runner is willing to spend on clearing the output directory before it degrades. */
 const OUTPUT_CLEAR_BUDGET_MS = 20_000;
 
@@ -204,7 +204,7 @@ const SUITES = {
           `-DargLine="${E2E_JVM_ARGS}"`] },
       { name: 'lib-playwright-e2e', cwd: FRONTEND_DIR,
         cmd: 'npx', args: ['playwright', 'test', '--config=playwright.lib.config.ts'],
-        clearOutputDir: PLAYWRIGHT_OUTPUT_DIR,
+        clearOutputDir: LIB_PLAYWRIGHT_OUTPUT_DIR,
         timingJson: path.join(FRONTEND_DIR, 'e2e', 'lib', 'test-results', 'e2e-timing.json') },
     ],
   },

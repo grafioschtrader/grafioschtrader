@@ -7,10 +7,10 @@ import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { FormHelper } from '../../dynamic-form/components/FormHelper';
 import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { dataTypeFieldSizeGroup } from '../../validator/validator';
-import { TranslateService } from '@ngx-translate/core';
 import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
 import { GlobalSessionNames } from '../../global.session.names';
 import { FieldDescriptorInputAndShowExtended } from '../../dynamicfield/field.descriptor.input.and.show';
+import { disabled, SchemaPathTree } from '@angular/forms/signals';
 
 /**
  * Utility class providing static helper methods for UDF metadata management and dynamic form generation.
@@ -101,29 +101,72 @@ export class UDFMetadataHelper {
     return JSON.parse(stored).filter((fd: { entity: string }) => fd.entity === entityName);
   }
 
+  /** Data types whose size is fixed, so the user specifies no field size for them. */
+  private static readonly FIXED_SIZE_DATA_TYPES: readonly string[] = [
+    UDFDataType[UDFDataType.UDF_DateTimeNumeric],
+    UDFDataType[UDFDataType.UDF_DateString],
+    UDFDataType[UDFDataType.UDF_Boolean],
+    UDFDataType[UDFDataType.UDF_URLString]
+  ];
+
+  /**
+   * Tells whether a data type has a fixed size (date, boolean, URL), so its field size input is cleared and locked.
+   *
+   * @param udt - The data type as the form holds it (enum name) or as the entity holds it (enum value)
+   * @returns True for a fixed-size type, false for any other or an absent type
+   */
+  public static hasFixedFieldSize(udt: UDFDataType | string | null | undefined): boolean {
+    const name = typeof udt === 'number' ? UDFDataType[udt] : udt;
+    return name != null && UDFMetadataHelper.FIXED_SIZE_DATA_TYPES.includes(name);
+  }
+
+  /**
+   * Schema rules of a signal form dialog with the fields of {@link createMetadataBaseFields}: the field size is
+   * locked for a fixed-size data type, and the data type of an existing definition can no longer be changed. A
+   * locked field keeps its value in the signal form, so the dialog clears the field size of a fixed-size type with
+   * {@link clearFixedFieldSize} before saving.
+   *
+   * @param p - Root path of the dialog's schema
+   * @param existing - True while the dialog edits a saved definition
+   */
+  public static dataTypeRules(p: SchemaPathTree<UDFDataTypeModel>, existing: () => boolean): void {
+    const group = p.dataTypeFieldSizeGroup;
+    disabled(group.fieldSize, {
+      when: ({ valueOf }) => UDFMetadataHelper.hasFixedFieldSize(valueOf(group.udfDataType))
+    });
+    disabled(group.udfDataType, { when: () => existing() });
+  }
+
+  /**
+   * Removes the field size of a fixed-size data type, as the reactive form does when the type is selected.
+   *
+   * @param uDFMetadata - The definition about to be saved
+   */
+  public static clearFixedFieldSize(uDFMetadata: UDFMetadata): void {
+    if (UDFMetadataHelper.hasFixedFieldSize(uDFMetadata.udfDataType)) {
+      uDFMetadata.fieldSize = null;
+    }
+  }
+
   /**
    * Prepares and configures data type fields with dynamic behavior and validation.
    * Sets up UI order options, data type change listeners, and conditional field size enabling/disabling.
    * Also transfers existing business object data to the form if provided.
    *
-   * @param translateService - Angular translation service for i18n support
    * @param form - Dynamic form component to populate with data
    * @param configObject - Map of field configurations by field name
    * @param excludeUiOrders - List of UI orders to exclude from selection (prevents duplicates)
    * @param businessObject - Existing UDF metadata to edit, or null for new entry
-   * @param configDataTypeFields - Data type and field size field configurations
    * @param lifetime - Operator binding data type changes to the owning dialog session
    * @static
    */
   public static prepareDataTypeFields(
-    translateService: TranslateService,
     form: DynamicFormComponent,
     configObject: {
       [name: string]: FieldConfig;
     },
     excludeUiOrders: number[],
     businessObject: UDFMetadata | null,
-    configDataTypeFields: FieldConfig[],
     lifetime: MonoTypeOperatorFunction<any>
   ): void {
     configObject.uiOrder.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsForNumberRange(
@@ -133,9 +176,7 @@ export class UDFMetadataHelper {
     );
     requireFormControl(configObject[UDFMetadataHelper.UDF_DATA_TYPE])
       .valueChanges.pipe(lifetime)
-      .subscribe((udt) =>
-        UDFMetadataHelper.enableDisableFileSize(translateService, configObject, configDataTypeFields, udt)
-      );
+      .subscribe((udt) => UDFMetadataHelper.enableDisableFieldSize(form, configObject, udt));
     businessObject && form.transferBusinessObjectToForm(businessObject);
     FormHelper.disableEnableFieldConfigs(!!businessObject, [configObject[UDFMetadataHelper.UDF_DATA_TYPE]]);
   }
@@ -158,36 +199,36 @@ export class UDFMetadataHelper {
   }
 
   /**
-   * Conditionally enables or disables the field size input based on selected data type.
-   * Some data types (date, boolean, URL) have fixed sizes and don't require user-specified field size.
-   * When such types are selected, the field size control is cleared and disabled.
+   * Enables or disables the field size input of a reactive form based on the selected data type. A fixed-size type
+   * clears and locks the field size.
    *
-   * @param translateService - Translation service for i18n (currently unused but kept for consistency)
+   * @param form - The reactive dynamic form of the dialog
    * @param configObject - Map of field configurations by field name
-   * @param configDataTypeFields - Data type and field size field configurations
    * @param udt - Selected UDF data type as string
    * @private
    * @static
    */
-  private static enableDisableFileSize(
-    translateService: TranslateService,
+  private static enableDisableFieldSize(
+    form: DynamicFormComponent,
     configObject: {
       [name: string]: FieldConfig;
     },
-    configDataTypeFields: FieldConfig[],
     udt: string
   ): void {
     const controlFieldSize = requireFormControl(configObject[UDFMetadataHelper.FIELD_SIZE]);
-    if (
-      udt === UDFDataType[UDFDataType.UDF_DateTimeNumeric] ||
-      udt === UDFDataType[UDFDataType.UDF_DateString] ||
-      udt === UDFDataType[UDFDataType.UDF_Boolean] ||
-      udt === UDFDataType[UDFDataType.UDF_URLString]
-    ) {
-      controlFieldSize.setValue(null);
+    if (UDFMetadataHelper.hasFixedFieldSize(udt)) {
+      form.setValue(UDFMetadataHelper.FIELD_SIZE, null);
       controlFieldSize.disable();
     } else {
       controlFieldSize.enable();
     }
   }
+}
+
+/** The data type group of a UDF metadata dialog on the signal form, for the model interface of the dialog. */
+export interface UDFDataTypeModel {
+  dataTypeFieldSizeGroup: {
+    udfDataType: string | null;
+    fieldSize: string | null;
+  };
 }

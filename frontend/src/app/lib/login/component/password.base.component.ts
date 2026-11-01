@@ -99,7 +99,7 @@ export abstract class PasswordBaseComponent extends FormBase<FieldFormGroup> {
     fieldConfig.errors = [...(fieldConfig.errors ?? []).filter((e) => e.name !== error.name), error];
     requireFormControl(fieldConfig).setValidators(fieldConfig.validation);
     requireFormControl(fieldConfig).updateValueAndValidity();
-    fieldConfig.baseInputComponent?.reEvaluateRequired();
+    fieldConfig.baseInputComponent?.reEvaluateRequired?.();
   }
 
   protected init(fdias: FieldDescriptorInputAndShow[], newPassword: boolean): void {

@@ -471,7 +471,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     ];
     TranslateHelper.translateMessageError(this.translateService, this.configObject.cashaccountAmount);
     requireFormControl(this.configObject.cashaccountAmount).updateValueAndValidity();
-    this.configObject.cashaccountAmount.baseInputComponent?.reEvaluateRequired();
+    this.configObject.cashaccountAmount.baseInputComponent?.reEvaluateRequired?.();
   }
 
   /**

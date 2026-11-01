@@ -1,13 +1,15 @@
-import { requireFormControl } from '../dynamic-form/models/form-control-access';
+import { disabled, hidden, metadata, SchemaPathTree } from '@angular/forms/signals';
 import { Auditable } from '../entities/auditable';
 import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { DynamicFormApi } from '../dynamic-form/models/dynamic-form-api';
 import { FieldConfig } from '../dynamic-form/models/field.config';
+import { FieldFormGroup } from '../dynamic-form/models/form.group.definition';
 import { FormHelper } from '../dynamic-form/components/FormHelper';
-import { TranslateService } from '@ngx-translate/core';
+import { FIELD_DISPLAY, SignalFormModel } from '../dynamic-form/signal/signal-form.model';
+import { fieldPath, signalFieldEntries } from '../dynamic-form/signal/signal-form.schema';
 import { ProcessedAction } from '../types/processed.action';
 import { ProcessedActionData } from '../types/processed.action.data';
 import type { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
-import { FormBase } from '../edit/form.base';
 import { ProposeTransientTransfer } from '../entities/propose.transient.transfer';
 import { DynamicFieldHelper } from './dynamic.field.helper';
 import { User } from '../entities/user';
@@ -53,39 +55,24 @@ export class AuditHelper {
   public static readonly SAVE_CHANGE_REQUEST = 'SAVE_CHANGE_REQUEST';
 
   /**
-   * Configures form for proposal editing based on entity existence and user rights.
-   * For existing entities, applies audit-based configuration; for new entities, enables direct editing.
-   * Only used in proposal editing scenarios.
+   * Configures a reactive form for proposal editing based on entity existence and user rights. For an existing
+   * entity the audit edit mode decides; a new entity is always edited directly.
    *
-   * @param translateService Translation service for internationalization
    * @param gps Global parameter service for user context and permissions
    * @param entityAuditable The auditable entity being edited (null for new entities)
-   * @param form Dynamic form component to configure
-   * @param configObject Map of field configurations keyed by field name
+   * @param form The reactive dynamic form of the dialog
    * @param proposeChangeEntityWithEntity Proposal change context with original and proposed entities
    */
   public static transferToFormAndChangeButtonForProposaleEdit(
-    translateService: TranslateService,
     gps: GlobalparameterService,
     entityAuditable: Auditable | null | undefined,
     form: DynamicFormComponent,
-    configObject: { [name: string]: FieldConfig },
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined
   ): void {
     if (entityAuditable) {
-      // Existing entity
-      AuditHelper.configureFormFromAuditableRights(
-        translateService,
-        gps,
-        entityAuditable,
-        form,
-        configObject,
-        proposeChangeEntityWithEntity,
-        true
-      );
+      AuditHelper.configureFormFromAuditableRights(gps, entityAuditable, form, proposeChangeEntityWithEntity, true);
     } else {
-      // New entity
-      AuditHelper.editWithoutProposalInForm(form, configObject);
+      AuditHelper.applyReactiveAuditEditMode(form, AuditEditMode.DIRECT_EDIT, proposeChangeEntityWithEntity);
     }
   }
 
@@ -136,60 +123,157 @@ export class AuditHelper {
   }
 
   /**
-   * Configures form fields and buttons based on user rights and proposal state.
-   * Handles three scenarios: change request submission, proposal review, and direct editing.
-   * Sets field visibility, button labels, and form headers appropriately.
+   * Determines how a dialog edits a shared entity. A user without editing rights proposes a change; a user with
+   * rights reviews a pending change request or edits the entity directly.
    *
-   * @param translateService Translation service for form headers and labels
+   * @param gps Global parameter service for user permissions
+   * @param entityAuditable Auditable entity being edited, absent for a new entity
+   * @param proposeChangeEntityWithEntity Pending change request, absent when there is none
+   * @returns The edit mode the note fields and buttons of the dialog follow
+   */
+  public static auditEditMode(
+    gps: GlobalparameterService,
+    entityAuditable: Auditable | null | undefined,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined
+  ): AuditEditMode {
+    if (!entityAuditable) {
+      return AuditEditMode.DIRECT_EDIT;
+    }
+    if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(gps, entityAuditable)) {
+      return AuditEditMode.CHANGE_REQUEST;
+    }
+    return proposeChangeEntityWithEntity ? AuditEditMode.PROPOSAL_REVIEW : AuditEditMode.DIRECT_EDIT;
+  }
+
+  /**
+   * Returns the display state of the note fields and buttons for an edit mode. Both forms follow it: the reactive
+   * form through {@link configureFormFromAuditableRights}, the signal form through {@link auditRules} and
+   * {@link applyAuditButtons}.
+   *
+   * @param mode The audit edit mode of the dialog
+   * @returns Visibility and lock of the note fields, visibility of the reject button, submit label and header
+   */
+  public static auditFormState(mode: AuditEditMode): AuditFormState {
+    switch (mode) {
+      case AuditEditMode.CHANGE_REQUEST:
+        return {
+          noteRequestHidden: false,
+          noteRequestDisabled: false,
+          noteAcceptRejectHidden: true,
+          rejectButtonHidden: true,
+          submitLabelKey: AuditHelper.SAVE_CHANGE_REQUEST,
+          headerKey: 'YOUR_CHANGE_REQUEST'
+        };
+      case AuditEditMode.PROPOSAL_REVIEW:
+        return {
+          noteRequestHidden: false,
+          noteRequestDisabled: true,
+          noteAcceptRejectHidden: false,
+          rejectButtonHidden: false,
+          submitLabelKey: 'SAVE',
+          headerKey: 'CHANGE_REQUEST_FOR_YOU'
+        };
+      case AuditEditMode.DIRECT_EDIT:
+        return {
+          noteRequestHidden: true,
+          noteRequestDisabled: false,
+          noteAcceptRejectHidden: true,
+          rejectButtonHidden: true,
+          submitLabelKey: 'SAVE',
+          headerKey: null
+        };
+    }
+  }
+
+  /**
+   * Configures a reactive form from the user rights and the proposal state: field visibility, button labels and the
+   * header of the change request, and the old values of a reviewed proposal as label titles.
+   *
    * @param gps Global parameter service for user permissions
    * @param entityAuditable Auditable entity being edited
-   * @param form Dynamic form component to configure
-   * @param configObject Map of field configurations
+   * @param form The reactive dynamic form of the dialog
    * @param proposeChangeEntityWithEntity Proposal context (null for direct editing)
    * @param transferToForm Whether to populate form with entity data
    */
   public static configureFormFromAuditableRights(
-    translateService: TranslateService,
     gps: GlobalparameterService,
     entityAuditable: Auditable,
     form: DynamicFormComponent,
-    configObject: { [name: string]: FieldConfig },
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined,
     transferToForm: boolean
   ): void {
-    if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(gps, entityAuditable)) {
-      // User can not change entity directly but propose one
-      AuditHelper.setHeaderChangeRequest(translateService, form, 'YOUR_CHANGE_REQUEST');
-      FormHelper.hideVisibleFieldConfigs(true, [
-        configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT],
-        configObject[AuditHelper.REJECT_FIELD_BUTTON]
-      ]);
-      FormHelper.disableEnableFieldConfigs(false, [configObject[AuditHelper.NOTE_REQUEST_INPUT]]);
-      configObject[AuditHelper.SUBMIT_FIELD_BUTTON].labelKey = AuditHelper.SAVE_CHANGE_REQUEST;
-    } else {
-      // User can change entity
-      if (proposeChangeEntityWithEntity) {
-        // it is a proposal edit
-        AuditHelper.setHeaderChangeRequest(translateService, form, 'CHANGE_REQUEST_FOR_YOU');
-        FormHelper.disableEnableFieldConfigs(true, [configObject[AuditHelper.NOTE_REQUEST_INPUT]]);
-        FormHelper.hideVisibleFieldConfigs(false, [
-          configObject[AuditHelper.REJECT_FIELD_BUTTON],
-          configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT]
-        ]);
-        configObject[AuditHelper.SUBMIT_FIELD_BUTTON].labelKey = 'SAVE';
-        AuditHelper.createDifferenceAsLabelTitle(configObject, proposeChangeEntityWithEntity);
-      } else {
-        // User can directly edit the entity
-        AuditHelper.editWithoutProposalInForm(form, configObject);
-      }
-    }
+    const mode = AuditHelper.auditEditMode(gps, entityAuditable, proposeChangeEntityWithEntity);
+    AuditHelper.applyReactiveAuditEditMode(form, mode, proposeChangeEntityWithEntity);
     if (transferToForm) {
       form.transferBusinessObjectToForm(entityAuditable);
     }
     proposeChangeEntityWithEntity &&
-      requireFormControl(configObject[AuditHelper.NOTE_REQUEST_INPUT]).setValue(
-        proposeChangeEntityWithEntity.proposeChangeEntity.noteRequest
-      );
+      form.setValue(AuditHelper.NOTE_REQUEST_INPUT, proposeChangeEntityWithEntity.proposeChangeEntity.noteRequest);
+  }
+
+  /**
+   * Sets the submit label and the visibility of the reject button for an edit mode. A signal form dialog calls it
+   * when it initializes, because buttons are no schema fields.
+   *
+   * @param form The dynamic form of the dialog, reactive or signal
+   * @param mode The audit edit mode of the dialog
+   */
+  public static applyAuditButtons(form: DynamicFormApi, mode: AuditEditMode): void {
+    const state = AuditHelper.auditFormState(mode);
+    form.setButtonState(AuditHelper.SUBMIT_FIELD_BUTTON, { labelKey: state.submitLabelKey });
+    form.setButtonState(AuditHelper.REJECT_FIELD_BUTTON, { invisible: state.rejectButtonHidden });
+  }
+
+  /**
+   * Schema rules of a signal form dialog with the note fields of {@link getFullNoteRequestInputDefinition}: they
+   * hide and lock the note fields, show the header of the change request and, while a proposal is reviewed, the old
+   * value of every changed field as label title. A hidden field is not validated, so a required accept/reject note
+   * needs no condition of its own.
+   *
+   * @param p Root path of the dialog's schema
+   * @param config The configuration of the form, groups included
+   * @param audit The edit mode and the reviewed proposal; absent while the dialog has no context, which means
+   *   direct editing
+   */
+  public static auditRules<TModel extends object>(
+    p: SchemaPathTree<TModel>,
+    config: FieldFormGroup[],
+    audit: () => AuditContext | undefined
+  ): void {
+    const root = p as unknown as SchemaPathTree<SignalFormModel>;
+    const state = () => AuditHelper.auditFormState(audit()?.mode ?? AuditEditMode.DIRECT_EDIT);
+    for (const entry of signalFieldEntries(config)) {
+      const path = fieldPath<unknown>(root, entry);
+      if (entry.config.field === AuditHelper.NOTE_REQUEST_INPUT) {
+        hidden(path, { when: () => state().noteRequestHidden });
+        disabled(path, { when: () => state().noteRequestDisabled });
+        metadata(path, FIELD_DISPLAY, () => ({ fieldHeader: state().headerKey }));
+      } else if (entry.config.field === AuditHelper.NOTE_ACCEPT_REJECT_INPUT) {
+        hidden(path, { when: () => state().noteAcceptRejectHidden });
+      } else {
+        metadata(path, FIELD_DISPLAY, () => {
+          const context = audit();
+          const proposal =
+            context?.mode === AuditEditMode.PROPOSAL_REVIEW ? context.proposeChangeEntityWithEntity : null;
+          const labelTitle = proposal ? AuditHelper.oldValueLabel(entry.config, proposal) : undefined;
+          return labelTitle === undefined ? {} : { labelTitle };
+        });
+      }
+    }
+  }
+
+  /**
+   * Start value of the change request note of a signal form dialog, for its `[values]` input.
+   *
+   * @param proposeChangeEntityWithEntity The reviewed proposal, absent when there is none
+   * @returns The note of the proposal, or no value
+   */
+  public static noteStartValues(
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined
+  ): Partial<AuditNoteModel> {
+    return proposeChangeEntityWithEntity
+      ? { noteRequest: proposeChangeEntityWithEntity.proposeChangeEntity.noteRequest }
+      : {};
   }
 
   /**
@@ -198,13 +282,13 @@ export class AuditHelper {
    * with proper event handling for proposal workflow.
    *
    * @param closed Event emitter for workflow completion events
-   * @param formBase Form base containing configuration objects
+   * @param form The form of the dialog, read when the change request is rejected; supplies the accept/reject note
    * @param acceptRejectRequired Whether accept/reject note is mandatory
    * @returns Array of FieldConfig objects for complete note workflow
    */
   public static getFullNoteRequestInputDefinition(
     closed: { emit(value: ProcessedActionData): void },
-    formBase: FormBase,
+    form: () => DynamicFormApi | undefined,
     acceptRejectRequired = false
   ): FieldConfig[] {
     return [
@@ -220,7 +304,7 @@ export class AuditHelper {
         closed.emit(
           new ProcessedActionData(
             ProcessedAction.REJECT_DATA_CHANGE,
-            requireFormControl(formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT]).value
+            form()?.value(AuditHelper.NOTE_ACCEPT_REJECT_INPUT)
           )
         )
       )
@@ -248,18 +332,12 @@ export class AuditHelper {
    * Only copies if note request field is visible and enabled. Used for
    * transferring user-entered notes to request objects.
    *
-   * @param formBase Form base containing field configurations
+   * @param form The dynamic form of the dialog
    * @param targetEntity Target entity to receive the note value
    */
-  public static copyNoteRequestToEntity(formBase: FormBase, targetEntity: ProposeTransientTransfer): void {
-    if (
-      formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT] &&
-      !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].invisible &&
-      !requireFormControl(formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT]).disabled
-    ) {
-      targetEntity.noteRequestOrReject = requireFormControl(
-        formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT]
-      ).value;
+  public static copyNoteRequestToEntity(form: DynamicFormApi, targetEntity: ProposeTransientTransfer): void {
+    if (form.isFieldActive(AuditHelper.NOTE_REQUEST_INPUT)) {
+      targetEntity.noteRequestOrReject = <string | null>form.value(AuditHelper.NOTE_REQUEST_INPUT);
     }
   }
 
@@ -268,14 +346,12 @@ export class AuditHelper {
    * Only copies if propose fields are visible and enabled. Used for
    * transferring reviewer notes to response objects.
    *
-   * @param formBase Form base containing field configurations
+   * @param form The dynamic form of the dialog
    * @param targetEntity Target entity to receive the accept/reject note
    */
-  public static copyNoteAcceptRejectToEntity(formBase: FormBase, targetEntity: ProposeTransientTransfer): void {
-    if (this.isProposeVisible(formBase)) {
-      targetEntity.noteRequestOrReject = requireFormControl(
-        formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT]
-      ).value;
+  public static copyNoteAcceptRejectToEntity(form: DynamicFormApi, targetEntity: ProposeTransientTransfer): void {
+    if (this.isProposeVisible(form)) {
+      targetEntity.noteRequestOrReject = <string | null>form.value(AuditHelper.NOTE_ACCEPT_REJECT_INPUT);
     }
   }
 
@@ -283,28 +359,21 @@ export class AuditHelper {
    * Checks if proposal accept/reject fields are visible and enabled.
    * Used to determine if user is in proposal review mode and can provide feedback.
    *
-   * @param formBase Form base containing field configurations
+   * @param form The dynamic form of the dialog
    * @returns True if accept/reject note field is visible and enabled
    */
-  public static isProposeVisible(formBase: FormBase): boolean {
-    return (
-      !formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].invisible &&
-      !requireFormControl(formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT]).disabled
-    );
+  public static isProposeVisible(form: DynamicFormApi): boolean {
+    return form.isFieldActive(AuditHelper.NOTE_ACCEPT_REJECT_INPUT);
   }
 
   /**
-   * Enables or disables the reject field button based on form state.
-   * Only affects button if it exists and is visible. Used for controlling
-   * workflow actions during proposal review.
+   * Enables or disables the reject field button while a save runs. A form without the button ignores it.
    *
-   * @param configObject Map of field configurations
+   * @param form The dynamic form of the dialog
    * @param disable Whether to disable the reject button
    */
-  public static disableRejectFieldButton(configObject: { [name: string]: FieldConfig }, disable: boolean): void {
-    if (configObject[AuditHelper.REJECT_FIELD_BUTTON] && !configObject[AuditHelper.REJECT_FIELD_BUTTON].invisible) {
-      configObject[AuditHelper.REJECT_FIELD_BUTTON].disabled = disable;
-    }
+  public static disableRejectFieldButton(form: DynamicFormApi, disable: boolean): void {
+    form.setButtonState(AuditHelper.REJECT_FIELD_BUTTON, { disabled: disable });
   }
 
   /**
@@ -312,20 +381,20 @@ export class AuditHelper {
    * Handles both proposal ID transfer and note copying based on proposal context.
    * Consolidates proposal and request note handling.
    *
-   * @param formBase Form base containing field configurations
+   * @param form The dynamic form of the dialog
    * @param targetEntity Target entity to receive proposal data
    * @param proposeChangeEntityWithEntity Proposal context (null if no proposal)
    */
   public static copyProposeChangeEntityToEntityAfterEdit(
-    formBase: FormBase,
+    form: DynamicFormApi,
     targetEntity: ProposeTransientTransfer,
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined
   ): void {
     if (proposeChangeEntityWithEntity) {
       targetEntity.idProposeRequest = proposeChangeEntityWithEntity.proposeChangeEntity.idProposeRequest;
-      this.copyNoteAcceptRejectToEntity(formBase, targetEntity);
+      this.copyNoteAcceptRejectToEntity(form, targetEntity);
     }
-    this.copyNoteRequestToEntity(formBase, targetEntity);
+    this.copyNoteRequestToEntity(form, targetEntity);
   }
 
   /**
@@ -393,79 +462,104 @@ export class AuditHelper {
   }
 
   /**
-   * Creates visual indicators for changed fields in proposal review.
-   * Sets labelTitle with old values for fields that differ between original and proposed entities.
-   * Handles special formatting for select options to show human-readable old values.
+   * Returns the old value of a field that a reviewed proposal changes, for its label title. A select shows the
+   * label of its old option.
    *
-   * @param configObject Map of field configurations to enhance with old value tooltips
-   * @param proposeChangeEntityWithEntity Proposal context containing original and proposed entities
+   * @param fieldConfig The field
+   * @param proposeChangeEntityWithEntity The original and the proposed entity
+   * @returns The old value as text, empty for an absent old value; undefined when the proposal leaves it unchanged
    */
-  private static createDifferenceAsLabelTitle(
-    configObject: { [name: string]: FieldConfig },
+  public static oldValueLabel(
+    fieldConfig: FieldConfig,
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
-  ): void {
-    Object.keys(configObject).forEach((key) => {
-      const fieldConfig: FieldConfig = configObject[key];
-      const field = fieldConfig.dataproperty ? fieldConfig.dataproperty : key;
-      let oldValue = Helper.getValueByPath(proposeChangeEntityWithEntity.entity, field);
-      if (oldValue !== Helper.getValueByPath(proposeChangeEntityWithEntity.proposedEntity, field)) {
-        if (oldValue != null && fieldConfig.inputType === InputType.Select && fieldConfig.valueKeyHtmlOptions) {
-          oldValue = fieldConfig.valueKeyHtmlOptions.find((v) => v.key === oldValue)?.value ?? oldValue;
-        }
-        configObject[key].labelTitle = oldValue;
-      }
-    });
+  ): string | undefined {
+    const field = fieldConfig.dataproperty ? fieldConfig.dataproperty : fieldConfig.field;
+    if (!field) {
+      return undefined;
+    }
+    let oldValue = Helper.getValueByPath(proposeChangeEntityWithEntity.entity, field);
+    if (oldValue === Helper.getValueByPath(proposeChangeEntityWithEntity.proposedEntity, field)) {
+      return undefined;
+    }
+    if (oldValue != null && fieldConfig.inputType === InputType.Select && fieldConfig.valueKeyHtmlOptions) {
+      oldValue = fieldConfig.valueKeyHtmlOptions.find((v) => v.key === oldValue)?.value ?? oldValue;
+    }
+    return oldValue == null ? '' : String(oldValue);
   }
 
   /**
-   * Configures form for direct editing without proposal workflow.
-   * Hides proposal-related fields, sets save button label, removes form headers,
-   * and resets validation on accept/reject fields.
+   * Applies an edit mode to the fields and buttons of a reactive form. Its FieldConfigs are instrumented, so each
+   * assignment re-renders the form.
    *
-   * @param form Dynamic form component to configure
-   * @param configObject Map of field configurations to modify
+   * @param form The reactive dynamic form of the dialog
+   * @param mode The audit edit mode
+   * @param proposeChangeEntityWithEntity The reviewed proposal, whose old values become label titles
    */
-  private static editWithoutProposalInForm(
+  private static applyReactiveAuditEditMode(
     form: DynamicFormComponent,
-    configObject: { [name: string]: FieldConfig }
+    mode: AuditEditMode,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined
   ): void {
-    AuditHelper.setHeaderChangeRequest(null, form);
-    FormHelper.hideVisibleFieldConfigs(true, [
-      configObject[AuditHelper.NOTE_REQUEST_INPUT],
-      configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT],
-      configObject[AuditHelper.REJECT_FIELD_BUTTON]
-    ]);
-    configObject[AuditHelper.SUBMIT_FIELD_BUTTON].labelKey = 'SAVE';
-    DynamicFieldHelper.resetValidator(configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT], null, null);
-  }
-
-  /**
-   * Sets or removes form header text for change requests.
-   * When textKey provided, translates and sets header for note request field.
-   * When null, removes existing header. Used for contextual form labeling.
-   *
-   * @param translateService Translation service for header text (null to remove header)
-   * @param form Dynamic form component to configure
-   * @param textKey Translation key for header text (null to remove)
-   */
-  private static setHeaderChangeRequest(
-    translateService: TranslateService | null,
-    form: DynamicFormComponent,
-    textKey: string | null = null
-  ) {
-    if (textKey && translateService) {
-      const headers = (form.formConfig().fieldHeaders ??= {});
-      translateService.get(textKey).subscribe((text) => {
-        headers[AuditHelper.NOTE_REQUEST_INPUT] = text;
-        // The form configuration is not instrumented, so the form is notified explicitly
-        form.notifier.notify();
-      });
-    } else {
-      const formConfig = form.formConfig();
-      if (formConfig.fieldHeaders && formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT]) {
-        formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = null;
-        form.notifier.notify();
+    const state = AuditHelper.auditFormState(mode);
+    AuditHelper.applyAuditButtons(form, mode);
+    const noteRequest = form.fieldConfig(AuditHelper.NOTE_REQUEST_INPUT);
+    if (noteRequest) {
+      noteRequest.fieldHeader = state.headerKey;
+      if (state.noteRequestHidden) {
+        noteRequest.invisible = true;
+      } else {
+        FormHelper.disableEnableFieldConfigs(state.noteRequestDisabled, [noteRequest]);
       }
     }
+    const noteAcceptReject = form.fieldConfig(AuditHelper.NOTE_ACCEPT_REJECT_INPUT);
+    if (noteAcceptReject) {
+      noteAcceptReject.invisible = state.noteAcceptRejectHidden;
+      if (mode === AuditEditMode.DIRECT_EDIT) {
+        DynamicFieldHelper.resetValidator(noteAcceptReject, null, null);
+      }
+    }
+    if (mode === AuditEditMode.PROPOSAL_REVIEW && proposeChangeEntityWithEntity) {
+      FormHelper.flattenConfigMap(form.config()).forEach((fieldConfig) => {
+        const labelTitle = AuditHelper.oldValueLabel(fieldConfig, proposeChangeEntityWithEntity);
+        if (labelTitle !== undefined) {
+          fieldConfig.labelTitle = labelTitle;
+        }
+      });
+    }
   }
+}
+
+/** How a dialog of a shared entity edits it; decides the state of its note fields and buttons. */
+export enum AuditEditMode {
+  /** The user edits the entity directly, or creates a new one; the note fields are hidden. */
+  DIRECT_EDIT = 'DIRECT_EDIT',
+  /** The user lacks editing rights and proposes a change with a note. */
+  CHANGE_REQUEST = 'CHANGE_REQUEST',
+  /** The user reviews a change request of another user and accepts or rejects it with a note. */
+  PROPOSAL_REVIEW = 'PROPOSAL_REVIEW'
+}
+
+/** Display state of the note fields and buttons in one audit edit mode. */
+export interface AuditFormState {
+  noteRequestHidden: boolean;
+  noteRequestDisabled: boolean;
+  noteAcceptRejectHidden: boolean;
+  rejectButtonHidden: boolean;
+  /** Translation key of the submit button label. */
+  submitLabelKey: string;
+  /** Translation key of the header above the change request note, null for none. */
+  headerKey: string | null;
+}
+
+/** What the audit rules of a signal form dialog follow; the dialog keeps it in a signal. */
+export interface AuditContext {
+  mode: AuditEditMode;
+  /** The reviewed proposal, whose old values become label titles. */
+  proposeChangeEntityWithEntity?: ProposeChangeEntityWithEntity | null;
+}
+
+/** The note fields of a signal form dialog in the audit flow, for the model interface of the dialog. */
+export interface AuditNoteModel {
+  noteRequest: string | null;
+  noteAcceptReject: string | null;
 }

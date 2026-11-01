@@ -1,4 +1,5 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input, signal, TemplateRef } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { UntypedFormGroup } from '@angular/forms';
 
 import { FieldConfig } from '../../models/field.config';
@@ -8,6 +9,12 @@ import { TranslateModule } from '@ngx-translate/core';
 import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-field.directive';
 import { ErrorMessageComponent } from './error-message.compoent';
 import { FormNotifier } from '../../models/form.notifier';
+import { displayConfig, SignalFieldDisplay } from '../../signal/signal-form.model';
+
+/** Context of the field and error templates of a layout: the FieldConfig of the field. */
+export interface FieldTemplateContext {
+  $implicit: FieldConfig;
+}
 
 /**
  * It handles one input with its label.
@@ -45,15 +52,15 @@ import { FormNotifier } from '../../models/form.notifier';
     `
   ],
   template: `
-    @let configValue = config();
+    @let configValue = view();
     @let formConfigValue = formConfig();
 
     @let rev = notifier?.revision();
-    @if (configValue.field != null && formConfigValue.fieldHeaders && formConfigValue.fieldHeaders[configValue.field]) {
+    @if (configValue.fieldHeader) {
       <div class="row">
         <div class="col-md-12">
           <h5 class="text-center">
-            {{ formConfigValue.fieldHeaders[configValue.field] }}
+            {{ configValue.fieldHeader | translate }}
           </h5>
         </div>
       </div>
@@ -64,7 +71,7 @@ import { FormNotifier } from '../../models/form.notifier';
         class="mb-3 dynamic-form-row"
         [style.--df-label-percent]="getLabelPercent(configValue)"
         [style.--df-control-percent]="getControlPercent(configValue)"
-        [hidden]="configValue.invisible">
+        [hidden]="configValue.invisible || fieldHidden()">
         @if (hasVisibleLabel(configValue)) {
           <label
             [title]="configValue.labelTitle !== undefined ? configValue.labelTitle : ''"
@@ -85,10 +92,21 @@ import { FormNotifier } from '../../models/form.notifier';
         }
 
         <div class="small-padding dynamic-form-control">
-          <dynamicField [config]="configValue" [formConfig]="formConfigValue" [group]="group()" />
+          @if (fieldTemplate(); as fieldTemplate) {
+            <ng-container [ngTemplateOutlet]="fieldTemplate" [ngTemplateOutletContext]="{ $implicit: config() }" />
+          } @else {
+            @let group = this.group();
+            @if (group) {
+              <dynamicField [config]="config()" [formConfig]="formConfigValue" [group]="group" />
+            }
+          }
         </div>
         @if (!configValue.buttonInForm) {
-          <error-message [baseFieldFieldgroupConfig]="configValue" />
+          @if (errorTemplate(); as errorTemplate) {
+            <ng-container [ngTemplateOutlet]="errorTemplate" [ngTemplateOutletContext]="{ $implicit: config() }" />
+          } @else {
+            <error-message [baseFieldFieldgroupConfig]="config()" />
+          }
         }
         @if (configValue.labelShowText) {
           <div class="bg-info" [innerHTML]="configValue.labelShowText"></div>
@@ -96,12 +114,30 @@ import { FormNotifier } from '../../models/form.notifier';
       </div>
     </div>
   `,
-  imports: [TranslateModule, DynamicFieldDirective, ErrorMessageComponent]
+  imports: [TranslateModule, NgTemplateOutlet, DynamicFieldDirective, ErrorMessageComponent]
 })
 export class DynamicFormLayoutComponent {
   readonly config = input.required<FieldConfig>();
   readonly formConfig = input.required<FormConfig>();
-  readonly group = input.required<UntypedFormGroup>();
+  /** Group of the reactive form; absent when the form supplies its own field through {@link fieldTemplate}. */
+  readonly group = input<UntypedFormGroup>();
+  /** Renders the input of the field instead of the reactive DynamicFieldDirective, for the signal form. */
+  readonly fieldTemplate = input<TemplateRef<FieldTemplateContext>>();
+  /** Renders the error messages of the field instead of the reactive ErrorMessageComponent, for the signal form. */
+  readonly errorTemplate = input<TemplateRef<FieldTemplateContext>>();
+  /** Hides the field in addition to FieldConfig.invisible, for a hidden rule of the signal form. */
+  readonly fieldHidden = input(false);
+  /** Display properties a rule of the signal form lays over the FieldConfig, for example a changed label. */
+  readonly display = input<SignalFieldDisplay>();
+
+  /** Raised by the help toggle, so the label help text re-renders without a FormNotifier. */
+  protected readonly helpRevision = signal(0);
+
+  /** The FieldConfig the labels are read from; the field and error templates keep the FieldConfig itself. */
+  protected readonly view = computed(() => {
+    this.helpRevision();
+    return displayConfig(this.config(), this.display());
+  });
 
   /** Change notification of the form this field belongs to; the template reads its revision. */
   get notifier(): FormNotifier | undefined {
@@ -110,6 +146,7 @@ export class DynamicFormLayoutComponent {
 
   onHelpClick(event: unknown) {
     this.config().labelShowText = this.config().labelShowText ? null : this.config().labelHelpText;
+    this.helpRevision.update((revision) => revision + 1);
   }
 
   getLabelPercent(fieldConfig: FieldConfig): string {

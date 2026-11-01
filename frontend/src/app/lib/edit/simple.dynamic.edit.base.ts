@@ -12,10 +12,21 @@ import { ProcessedActionData } from '../types/processed.action.data';
 import { EditHelper } from './edit.helper';
 import { ServiceEntityUpdate } from './service.entity.update';
 import { SimpleDynamicFormBase } from './simple.dynamic.form.base';
+import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { DynamicFormApi } from '../dynamic-form/models/dynamic-form-api';
+import { ValidationError } from '../login/service/validation.error';
 
-/** Dynamic entity editor with the shared form session and the standard save/error flow. */
+/**
+ * Dynamic entity editor with the shared form session and the standard save/error flow.
+ *
+ * @template T - The type of entity being edited
+ * @template F - Form component the dialog renders
+ */
 @Directive()
-export abstract class SimpleDynamicEditBase<T extends object> extends SimpleDynamicFormBase {
+export abstract class SimpleDynamicEditBase<
+  T extends object,
+  F extends DynamicFormApi = DynamicFormComponent
+> extends SimpleDynamicFormBase<F> {
   protected constructor(
     helpId: string,
     public serviceEntityUpdate: ServiceEntityUpdate<T>
@@ -25,7 +36,7 @@ export abstract class SimpleDynamicEditBase<T extends object> extends SimpleDyna
 
   override submit(value: { [name: string]: any }): void {
     const entityNew: T = this.getNewOrExistingInstanceBeforeSave(value);
-    AuditHelper.disableRejectFieldButton(this.configObject, true);
+    AuditHelper.disableRejectFieldButton(this.form(), true);
     this.serviceEntityUpdate
       .update(entityNew)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -43,8 +54,12 @@ export abstract class SimpleDynamicEditBase<T extends object> extends SimpleDyna
           if (transformedError.errorClass && transformedError.errorClass instanceof LimitEntityTransactionError) {
             this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.NO_CHANGE, null, transformedError));
           }
+          if (transformedError.errorClass instanceof ValidationError) {
+            this.form().showServerErrors?.(transformedError.errorClass.fieldErrors ?? []);
+          }
           this.configObject.submit.disabled = false;
-          AuditHelper.disableRejectFieldButton(this.configObject, false);
+          this.form().enableSubmit?.();
+          AuditHelper.disableRejectFieldButton(this.form(), false);
           this.viewChanged();
         }
       });
@@ -75,13 +90,7 @@ export abstract class SimpleDynamicEditBase<T extends object> extends SimpleDyna
     existingEntity: T,
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
   ): void {
-    EditHelper.copyFormToPublicBusinessObject(
-      targetEntity,
-      existingEntity,
-      proposeChangeEntityWithEntity,
-      this.form(),
-      this
-    );
+    EditHelper.copyFormToPublicBusinessObject(targetEntity, existingEntity, proposeChangeEntityWithEntity, this.form());
   }
 
   /**

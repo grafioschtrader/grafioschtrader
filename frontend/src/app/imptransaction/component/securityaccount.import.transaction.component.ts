@@ -438,7 +438,8 @@ export class SecurityaccountImportTransactionComponent
   }
 
   submitPrepareFN(value: { [name: string]: any }, formData: FormData, fieldConfig: FieldConfig[]): void {
-    formData.append(requireFieldName(fieldConfig[0]), requireFormControl(fieldConfig[0]).value);
+    const name = requireFieldName(fieldConfig[0]);
+    formData.append(name, value[name]);
   }
 
   handleCloseImportUploadDialog(processedActionData: ProcessedActionData): void {

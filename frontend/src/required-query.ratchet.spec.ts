@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 
-type Query = { kind: 'selector' | 'reference'; value: string };
+/** A required query matches an element of one of the selectors, or a template reference of the name. */
+type Query = { kind: 'selector' | 'reference'; values: string[] };
 type SourceClass = {
   name: string;
   file: string;
@@ -14,6 +15,8 @@ type SourceClass = {
   bases: string[];
   template?: string;
   selector?: string;
+  /** The component provides the DYNAMIC_FORM token, which the edit base classes query. */
+  providesDynamicForm?: boolean;
 };
 
 /** A structural block can remove its descendants; an ng-template's own reference still exists. */
@@ -23,9 +26,9 @@ function hasUnconditionalTarget(template: string, query: Query): boolean {
   const visit = (nodes: TmplAstNode[]): boolean =>
     nodes.some((node) => {
       if (node instanceof TmplAstElement || node instanceof TmplAstTemplate) {
-        if (query.kind === 'reference' && node.references.some((ref) => ref.name === query.value)) return true;
+        if (query.kind === 'reference' && node.references.some((ref) => query.values.includes(ref.name))) return true;
         if (node instanceof TmplAstElement) {
-          return (query.kind === 'selector' && node.name === query.value) || visit(node.children);
+          return (query.kind === 'selector' && query.values.includes(node.name)) || visit(node.children);
         }
       }
       return false;
@@ -63,8 +66,11 @@ function sourceClasses(): Map<string, SourceClass> {
           if (!metadata || !ts.isObjectLiteralExpression(metadata))
             throw new Error(`Non-literal component metadata: ${file}`);
           for (const property of metadata.properties) {
-            if (!ts.isPropertyAssignment(property) || !ts.isStringLiteralLike(property.initializer)) continue;
+            if (!ts.isPropertyAssignment(property)) continue;
             const name = property.name.getText(source);
+            if (name === 'providers' && /provide:\s*DYNAMIC_FORM\b/.test(property.initializer.getText(source)))
+              entry.providesDynamicForm = true;
+            if (!ts.isStringLiteralLike(property.initializer)) continue;
             if (name === 'selector') entry.selector = property.initializer.text;
             if (name === 'template') entry.template = property.initializer.text;
             if (name === 'templateUrl')
@@ -82,13 +88,13 @@ function sourceClasses(): Map<string, SourceClass> {
 
 describe('required view query contracts', () => {
   it('distinguishes static elements/references from conditional and deferred children', () => {
-    const form: Query = { kind: 'selector', value: 'dynamic-form' };
+    const form: Query = { kind: 'selector', values: ['dynamic-form'] };
     expect(hasUnconditionalTarget('<p-panel><dynamic-form /></p-panel>', form)).toBe(true);
     expect(hasUnconditionalTarget('@if (ready) { <dynamic-form /> }', form)).toBe(false);
     expect(hasUnconditionalTarget('@defer { <dynamic-form /> }', form)).toBe(false);
     expect(hasUnconditionalTarget('<ng-template><dynamic-form /></ng-template>', form)).toBe(false);
     expect(
-      hasUnconditionalTarget('<ng-template #row><span></span></ng-template>', { kind: 'reference', value: 'row' })
+      hasUnconditionalTarget('<ng-template #row><span></span></ng-template>', { kind: 'reference', values: ['row'] })
     ).toBe(true);
   });
 
@@ -105,6 +111,16 @@ describe('required view query contracts', () => {
         })
       );
     };
+    /** Selectors a query matches: the class of the argument, or every form component for the DYNAMIC_FORM token. */
+    const targetSelectors = (owner: SourceClass, argument: ts.Expression): string[] => {
+      if (ts.isCallExpression(argument) && argument.expression.getText(owner.source) === 'dynamicFormToken') {
+        return [...classes.values()].flatMap((entry) =>
+          entry.providesDynamicForm && entry.selector ? [entry.selector] : []
+        );
+      }
+      const selector = classes.get(argument.getText(owner.source))?.selector;
+      return selector ? [selector] : [];
+    };
     const violations: string[] = [];
     let checked = 0;
     for (const owner of classes.values()) {
@@ -115,12 +131,10 @@ describe('required view query contracts', () => {
         if (expression.expression.getText(owner.source) !== 'viewChild.required') continue;
         const argument = expression.arguments[0];
         if (!argument) throw new Error(`Missing query target: ${owner.file}`);
-        const value = ts.isStringLiteralLike(argument)
-          ? argument.text
-          : classes.get(argument.getText(owner.source))?.selector;
-        if (!value)
+        const values = ts.isStringLiteralLike(argument) ? [argument.text] : targetSelectors(owner, argument);
+        if (values.length === 0)
           throw new Error(`Cannot resolve required query target: ${owner.name}.${member.name.getText(owner.source)}`);
-        const query: Query = { kind: ts.isStringLiteralLike(argument) ? 'reference' : 'selector', value };
+        const query: Query = { kind: ts.isStringLiteralLike(argument) ? 'reference' : 'selector', values };
         for (const editor of classes.values()) {
           if (editor.template == null || !derivesFrom(editor, owner.name)) continue;
           checked++;

@@ -8,7 +8,7 @@ const tree = (page: Page) => page.locator('configurable-tree-table').first();
 async function headers(page: Page) {
   return { 'x-auth-token': (await page.evaluate(() => sessionStorage.getItem('jwt')))! };
 }
-async function json(response: Awaited<ReturnType<Page['request']['get']>>) {
+async function json(response: { ok(): boolean; text(): Promise<string> }) {
   expect(response.ok(), await response.text()).toBeTruthy();
   const body = await response.text();
   return body ? JSON.parse(body) : null;
@@ -62,11 +62,11 @@ test.beforeEach(async ({ page }, testInfo) => {
   if (testInfo.title.startsWith('standalone')) return;
   const auth = await headers(page);
   const lists = await json(await page.request.get('/api/watchlist/tenant', { headers: auth }));
-  const spain = lists.find((list) => list.name === 'Spain');
+  const spain = lists.find((list: { name: string }) => list.name === 'Spain');
   expect(spain).toBeTruthy();
   const group = await json(await page.request.get(`/api/watchlist/${spain.idWatchlist}`, { headers: auth }));
   const security = group.securityPositionList.find(
-    (row) => row.securitycurrency.isin === 'ES0113900J37'
+    (row: { securitycurrency: { isin: string } }) => row.securitycurrency.isin === 'ES0113900J37'
   ).securitycurrency;
   const owned = await json(await page.request.post('/api/watchlist', { headers: auth, data: { name: NAME } }));
   await json(
@@ -244,4 +244,64 @@ test('standalone alerts show delayed rows and roll back a refused preference cha
   await expect.poll(() => attempts).toBe(2);
   await expect(checkbox).not.toBeChecked();
   await expect(checkbox).toBeEnabled();
+});
+
+test('standalone diagnostics defer hidden tabs and retain refreshed data on activation and reopening', async ({
+  page
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  let revision = 'First';
+  await page.route('**/api/algoalerts/evaluations', (route) => route.fulfill({ json: [] }));
+  await page.route('**/api/algoalerts/trading', (route) =>
+    route.fulfill({ json: [{ contextName: `${revision} trading`, strategyName: 'Measured strategy' }] })
+  );
+  await page.route('**/api/algoalerts/notifications', (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: 91009,
+          contextName: `${revision} notification`,
+          securityName: 'Measured security',
+          deliveryStatus: 'DELIVERED',
+          deletable: false
+        }
+      ]
+    })
+  );
+  await page.goto('/mainview/algooverview');
+  const open = page.getByRole('button', { name: /^(Alert diagnostics|Alarmdiagnose)$/ });
+  const dialog = page.locator('algo-alert-diagnostics');
+  const trading = dialog.locator('p-tabpanel[value="trading()"]');
+  const notifications = dialog.locator('p-tabpanel[value="notifications()"]');
+  const tradingTab = dialog.getByRole('tab', { name: /^(Trading decisions|Handelsentscheidungen)$/ });
+  const notificationsTab = dialog.getByRole('tab', { name: /^(Notifications|Benachrichtigungen)$/ });
+  for (let opening = 0; opening < 2; opening++) {
+    revision = 'First';
+    const loaded = page.waitForResponse((response) => response.url().endsWith('/api/algoalerts/notifications'));
+    await open.click();
+    await loaded;
+    await expect(dialog.locator('configurable-table')).toHaveCount(1);
+    await expect(trading.locator('configurable-table')).toHaveCount(0);
+    await expect(notifications.locator('configurable-table')).toHaveCount(0);
+
+    await tradingTab.focus();
+    await tradingTab.press('Enter');
+    await expect(trading).toContainText('First trading');
+    await notificationsTab.click();
+    await expect(notifications).toContainText('First notification');
+
+    await dialog.getByRole('tab', { name: /^(Evaluation|Auswertung)$/ }).click();
+    revision = 'Refreshed';
+    const refreshed = page.waitForResponse((response) => response.url().endsWith('/api/algoalerts/notifications'));
+    await dialog.getByRole('button', { name: /^(Refresh|Aktualisieren)$/ }).click();
+    await refreshed;
+    await tradingTab.click();
+    await expect(trading).toContainText('Refreshed trading');
+    await notificationsTab.click();
+    await expect(notifications).toContainText('Refreshed notification');
+    await dialog.locator('.p-dialog-header button').last().click();
+    await expect(dialog).toHaveCount(0);
+  }
+  expect(errors).toEqual([]);
 });

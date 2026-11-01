@@ -51,6 +51,8 @@ export class TranslateHelper {
    *
    * @param translateService Angular's translation service for handling error message translations
    * @param fieldFormGroup Array containing mix of FieldConfig and FormGroupDefinition objects
+   * @param instrument When false the display properties are not turned into FormNotifier accessors; the signal
+   *   dynamic form derives its runtime display state from schema rules and needs no notification
    * @returns Object map where keys are field names and values are FieldConfig objects
    *
    * @example
@@ -62,9 +64,12 @@ export class TranslateHelper {
    */
   public static prepareFieldsAndErrors(
     translateService: TranslateService,
-    fieldFormGroup: FieldFormGroup[]
+    fieldFormGroup: FieldFormGroup[],
+    instrument = true
   ): { [name: string]: FieldConfig } {
-    FormNotifier.instrument(fieldFormGroup);
+    if (instrument) {
+      FormNotifier.instrument(fieldFormGroup);
+    }
     const fieldConfigs = FormHelper.flattenConfigMap(fieldFormGroup);
 
     // Fix für Object.assign Spread-Problem

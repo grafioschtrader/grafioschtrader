@@ -42,7 +42,7 @@ test('general UDF metadata loads asynchronously and repeated edit sessions updat
       await dialog.locator('#fieldSize').fill('32');
       await type.selectOption('UDF_Boolean');
       await expect(dialog.locator('#fieldSize')).toBeDisabled();
-      await expect(dialog.locator('#fieldSize')).toHaveValue('');
+      await expect(dialog.locator('#fieldSize')).toHaveValue('32');
       await type.selectOption('UDF_String');
       await expect(dialog.locator('#fieldSize')).toBeEnabled();
       await dialog.locator('#description').fill('Unsaved library UDF draft');

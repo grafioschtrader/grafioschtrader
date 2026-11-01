@@ -125,7 +125,7 @@ export abstract class FormHelper {
    */
   public static disableEnableFieldConfigs(disable: boolean, fieldConfigs: FieldConfig[]): void {
     fieldConfigs.forEach((fieldConfig) => {
-      if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
+      if (fieldConfig.inputType !== InputType.Pbutton) {
         fieldConfig.invisible = false;
         if (disable) {
           requireFormControl(fieldConfig).disable();
@@ -146,7 +146,7 @@ export abstract class FormHelper {
    */
   public static disableEnableFieldConfigsWhenAlreadySet(disable: boolean, fieldConfigs: FieldConfig[]): void {
     fieldConfigs.forEach((fieldConfig) => {
-      if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
+      if (fieldConfig.inputType !== InputType.Pbutton) {
         const saveVisibleState = fieldConfig.invisible;
         fieldConfig.invisible = false;
         if (disable && requireFormControl(fieldConfig).value != null) {

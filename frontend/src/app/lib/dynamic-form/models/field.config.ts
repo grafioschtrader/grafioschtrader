@@ -1,6 +1,6 @@
 import { GroupItem } from './value.key.html.select.options';
 import { InputType } from './input.type';
-import { BaseInputComponent } from '../components/base.input.component';
+import type { FocusableInput } from './focusable-input';
 import { BaseFieldFieldgroupConfig } from './base.field.fieldgroup.config';
 import { BaseFieldDefinition, PropertyEditShare } from './base.field.definition';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
@@ -26,6 +26,9 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
 
   /** Contains the key for the i18n Translation No translation and output if the string begins with a "_".   */
   labelKey?: string;
+
+  /** Translation key of a heading shown above the field across the whole form width; null or absent shows none. */
+  fieldHeader?: string | null;
 
   /** Follows after the label and before the input/output field */
   labelSuffix?: string;
@@ -71,8 +74,8 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   /** Sometimes the full object is used not only the id of the object. When only the id is expected to not use this.  */
   referencedDataObject?: any;
 
-  /** It is set by the application. */
-  baseInputComponent?: BaseInputComponent;
+  /** The rendered input of the field, registered by the input component of either dynamic form. */
+  baseInputComponent?: FocusableInput;
 
   /** Defines the width of input field. */
   inputWidth?: number;

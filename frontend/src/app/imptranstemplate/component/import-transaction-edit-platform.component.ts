@@ -62,7 +62,7 @@ export class ImportTransactionEditPlatformComponent
       DynamicFieldHelper.createFieldSelectString('idCsvImportImplementation', 'TRANSACTION_IMPLEMENTATION', false, {
         valueKeyHtmlOptions: this.platformTransactionImportHtmlOptions()
       }),
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.form)
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -70,11 +70,9 @@ export class ImportTransactionEditPlatformComponent
   protected override initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-      this.translateService,
       this.gps,
       <Auditable>this.callParam().thisObject,
       this.form(),
-      this.configObject,
       this.proposeChangeEntityWithEntity()
     );
     afterNextRender(() => this.configObject.name.elementRef?.nativeElement.focus(), { injector: this.injector });

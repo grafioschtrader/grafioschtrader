@@ -14,15 +14,22 @@ import { plainToClassFromExist } from 'class-transformer';
 import { Directive, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EditHelper } from './edit.helper';
+import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { DynamicFormApi } from '../dynamic-form/models/dynamic-form-api';
+import { ValidationError } from '../login/service/validation.error';
 
 /**
  * Abstract base class for simple entity editing in dialogs with service-based updates.
  * Provides form submission, validation, error handling, and dialog management for entity editing.
  *
  * @template T - The type of entity being edited
+ * @template F - Form component the dialog renders
  */
 @Directive()
-export abstract class SimpleEntityEditBase<T extends object> extends SimpleFormEditBase {
+export abstract class SimpleEntityEditBase<
+  T extends object,
+  F extends DynamicFormApi = DynamicFormComponent
+> extends SimpleFormEditBase<F> {
   public translateService: TranslateService = inject(TranslateService);
   public messageToastService: MessageToastService = inject(MessageToastService);
 
@@ -50,7 +57,7 @@ export abstract class SimpleEntityEditBase<T extends object> extends SimpleFormE
    */
   submit(value: { [name: string]: any }): void {
     const entityNew: T = this.getNewOrExistingInstanceBeforeSave(value);
-    AuditHelper.disableRejectFieldButton(this.configObject, true);
+    AuditHelper.disableRejectFieldButton(this.form(), true);
     this.activateWaitStateInButton();
     // Bound to the component, not to the dialog session: closing the dialog does not cancel a save in progress.
     this.serviceEntityUpdate
@@ -70,8 +77,12 @@ export abstract class SimpleEntityEditBase<T extends object> extends SimpleFormE
           if (transformedError.errorClass && transformedError.errorClass instanceof LimitEntityTransactionError) {
             this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE, null, transformedError));
           }
+          if (transformedError.errorClass instanceof ValidationError) {
+            this.form().showServerErrors?.(transformedError.errorClass.fieldErrors ?? []);
+          }
           this.configObject.submit.disabled = false;
-          AuditHelper.disableRejectFieldButton(this.configObject, false);
+          this.form().enableSubmit?.();
+          AuditHelper.disableRejectFieldButton(this.form(), false);
           this.viewChanged();
         }
       });
@@ -101,13 +112,7 @@ export abstract class SimpleEntityEditBase<T extends object> extends SimpleFormE
     existingEntity: T | null | undefined,
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity | null | undefined
   ): void {
-    EditHelper.copyFormToPublicBusinessObject(
-      targetEntity,
-      existingEntity,
-      proposeChangeEntityWithEntity,
-      this.form(),
-      this
-    );
+    EditHelper.copyFormToPublicBusinessObject(targetEntity, existingEntity, proposeChangeEntityWithEntity, this.form());
   }
 
   /**

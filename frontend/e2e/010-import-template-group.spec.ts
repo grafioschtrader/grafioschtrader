@@ -109,11 +109,20 @@ async function openImportTemplateView(page: Page): Promise<void> {
     })
     .first();
   await treeNode.waitFor({ state: 'visible', timeout: 15_000 });
+  // The idempotency check of the caller counts the dropdown options without waiting, so the group list must have
+  // arrived first; a fixed delay let a slow read pass as "no group" and created a duplicate.
+  const groupsLoaded = page.waitForResponse(
+    (response) =>
+      /\/importtransactionplatform\/?$/.test(new URL(response.url()).pathname) && response.request().method() === 'GET'
+  );
   await treeNode.click();
 
   await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
-  // Let readData() populate the template group dropdown before the caller inspects it.
-  await page.waitForTimeout(800);
+  expect((await groupsLoaded).ok(), 'template group list could not be read').toBeTruthy();
+  await page
+    .locator('select#idTransactionImportPlatform option')
+    .first()
+    .waitFor({ state: 'attached', timeout: 10_000 });
 }
 
 /** Selects the template group in the master dropdown; the child template table reloads on change. */

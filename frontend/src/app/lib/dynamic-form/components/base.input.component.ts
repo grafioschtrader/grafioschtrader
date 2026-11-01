@@ -6,9 +6,10 @@ import { UntypedFormGroup, Validators } from '@angular/forms';
 import { DataType } from '../models/data.type';
 import { requireFieldName } from '../models/form-control-access';
 import { FormNotifier } from '../models/form.notifier';
+import { FocusableInput, focusInputTarget } from '../models/focusable-input';
 
 @Directive()
-export abstract class BaseInputComponent implements FieldFormFormGroupConfig, OnInit, AfterViewInit {
+export abstract class BaseInputComponent implements FieldFormFormGroupConfig, FocusableInput, OnInit, AfterViewInit {
   // Otherwise enum DataType can't be used in a html template
   DataType: typeof DataType = DataType;
 
@@ -43,20 +44,8 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
     this.isRequired = this.config().validation?.includes(Validators.required) ?? false;
   }
 
-  /**
-   * Moves the keyboard focus to this input.
-   *
-   * The '#input' view child is a native element for the plain HTML controls, but an Optimus UI component
-   * instance for the wrapped ones (p-select, ...), where 'nativeElement' does not exist and the component
-   * offers its own focus(). Both cases are handled here so that callers do not have to know which kind of
-   * control a field happens to use.
-   */
+  /** Moves the keyboard focus to this input. */
   focus(): void {
-    const target: any = this.el();
-    if (target?.nativeElement?.focus) {
-      target.nativeElement.focus();
-    } else if (typeof target?.focus === 'function') {
-      target.focus();
-    }
+    focusInputTarget(this.el());
   }
 }

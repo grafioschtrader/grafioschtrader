@@ -39,7 +39,7 @@ async function openView(page: Page, label: RegExp): Promise<Locator> {
 
 async function openDialog(page: Page, table: Locator, row?: Locator): Promise<Locator> {
   const target = row ?? table.locator('h4').first();
-  await target.click();
+  if (!row || !(await row.getAttribute('class'))?.includes('p-datatable-row-selected')) await target.click();
   await target.click({ button: 'right' });
   await page
     .locator('[role="menu"]:visible')
@@ -320,6 +320,173 @@ test('stock-exchange drafts survive delayed options and only the latest country 
   await expect(dialog.locator('select#timeZone option:checked')).not.toHaveAttribute('value', '');
   await closeDialog(dialog);
   expect(errors).toEqual([]);
+});
+
+/** Browser-local MICs and calendar choices make these selection tests independent of assigned exchange codes. */
+async function signalExchangeOptions(page: Page, exchange?: object): Promise<void> {
+  await page.route('**/api/stockexchange/basedata', async (route) => {
+    const response = await route.fetch();
+    const baseData = await response.json();
+    await route.fulfill({
+      response,
+      json: {
+        ...baseData,
+        stockexchanges: [...baseData.stockexchanges, ...(exchange ? [exchange] : [])],
+        hasSecurity: [...baseData.hasSecurity, ...(exchange ? [{ id: 990038, s: 0 }] : [])],
+        stockexchangeMics: [
+          {
+            mic: 'XQA1',
+            name: 'Signal Alpha',
+            countryCode: 'CH',
+            city: 'Zurich',
+            timeZone: 'Europe/Zurich',
+            website: 'https://alpha.invalid'
+          },
+          {
+            mic: 'XQB1',
+            name: 'Signal Beta',
+            countryCode: 'US',
+            city: 'New York',
+            timeZone: 'America/New_York',
+            website: 'https://beta.invalid'
+          },
+          { mic: 'XQC1', name: 'Signal Secondary', countryCode: 'CH', city: 'Zurich' }
+        ]
+      }
+    });
+  });
+  await page.route('**/api/tradingcalendarruleset/options', (route) =>
+    route.fulfill({ json: [{ key: 990037, value: 'Signal calendar' }] })
+  );
+  await page.route('**/api/tradingcalendarruleset/micmapping', (route) => route.fulfill({ json: { XQA1: 990037 } }));
+  await page.route('**/api/security/search?*stockexchangeCountryCode=*', (route) =>
+    route.fulfill({ json: [{ idSecuritycurrency: 990037, name: 'Signal index' }] })
+  );
+}
+
+test('signal MIC dropdown filters grouped options, applies defaults and transfers disabled country values', async ({
+  page
+}) => {
+  await signalExchangeOptions(page);
+  const table = await openView(page, views.exchange);
+  for (let opening = 0; opening < 2; opening++) {
+    const dialog = await openDialog(page, table);
+    await expect(dialog.locator('signal-dynamic-form')).toBeVisible();
+    const mic = dialog.locator('p-select#mic');
+    await expect(mic).toBeEnabled();
+    const overlay = page.locator('.p-select-overlay:visible');
+    const openMic = async () => {
+      // Optimus debounces trigger clicks; a fast repeat after typing can be ignored.
+      await expect(async () => {
+        if (!(await overlay.isVisible())) await mic.click();
+        await expect(overlay).toBeVisible({ timeout: 500 });
+      }).toPass({ timeout: 5_000 });
+    };
+    await openMic();
+    await expect(overlay.locator('.p-select-option-group img.fi-ch')).toBeVisible();
+    await expect(overlay.locator('.p-select-option-group img.fi-us')).toBeVisible();
+    await expect(overlay.getByRole('option', { name: 'XQC1', exact: true })).toHaveCount(0);
+    await overlay.getByRole('searchbox').fill('XQA1');
+    await expect(overlay.getByRole('option', { name: 'XQB1', exact: true })).toHaveCount(0);
+    await expect(overlay.getByRole('option', { name: 'XQA1', exact: true })).toContainText('Signal Alpha');
+    await overlay.getByRole('option', { name: 'XQA1', exact: true }).click();
+    await expect(overlay).toHaveCount(0);
+    await expect(dialog.locator('#name')).toHaveValue('signal alpha');
+    await expect(dialog.locator('#countryCode')).toHaveValue('CH');
+    await expect(dialog.locator('#countryCode')).toBeDisabled();
+    await expect(dialog.locator('#website')).toHaveValue('https://alpha.invalid');
+    await expect(dialog.locator('#timeZone')).toHaveValue('Europe/Zurich');
+    await expect(dialog.locator('#idTradingCalendarRuleSet')).toHaveValue('990037');
+    await expect(dialog.locator('#idIndexUpdCalendar')).toBeDisabled();
+    await dialog.locator('#onlyMainStockexchange').uncheck();
+    await expect(mic).toContainText('XQA1');
+    await openMic();
+    await expect(overlay.getByRole('searchbox')).toHaveValue('');
+    await expect(overlay.getByRole('option', { name: 'XQC1', exact: true })).toBeVisible();
+    await overlay.getByRole('searchbox').fill('XQB1');
+    await overlay.getByRole('option', { name: 'XQB1', exact: true }).click();
+    await expect(overlay).toHaveCount(0);
+    await expect(dialog.locator('#name')).toHaveValue('signal beta');
+    await expect(dialog.locator('#countryCode')).toHaveValue('US');
+    await expect(dialog.locator('#idTradingCalendarRuleSet')).toHaveValue('');
+    await expect(dialog.locator('#idIndexUpdCalendar')).toBeEnabled();
+    await dialog.locator('#name').fill('User override');
+    await openMic();
+    await overlay.getByRole('searchbox').fill('XQA1');
+    await overlay.getByRole('option', { name: 'XQA1', exact: true }).click();
+    await expect(overlay).toHaveCount(0);
+    await expect(dialog.locator('#name')).toHaveValue('signal alpha');
+    if (opening === 0) {
+      await closeDialog(dialog);
+    } else {
+      await dialog.locator('#timeOpen').fill('09:00:00');
+      await dialog.locator('#timeClose').fill('17:00:00');
+      let saved: Record<string, unknown> | undefined;
+      await page.route('**/api/stockexchange', async (route) => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        saved = route.request().postDataJSON();
+        await route.fulfill({ json: { ...saved, idStockexchange: 990037 } });
+      });
+      await expect(dialog.locator('button[type="submit"]')).toBeEnabled();
+      await dialog.locator('button[type="submit"]').click();
+      await expect(dialog).toHaveCount(0);
+      expect(saved).toMatchObject({
+        mic: 'XQA1',
+        name: 'signal alpha',
+        countryCode: 'CH',
+        timeOpen: '09:00:00',
+        timeClose: '17:00:00',
+        idTradingCalendarRuleSet: 990037,
+        idIndexUpdCalendar: null
+      });
+    }
+  }
+});
+
+test('signal exchange editing retains saved values while options arrive and on repeated opening', async ({ page }) => {
+  const exchange = {
+    idStockexchange: 990038,
+    mic: null,
+    name: 'Signal saved exchange',
+    countryCode: 'US',
+    timeOpen: '08:00:00',
+    timeClose: '16:00:00',
+    timeZone: 'America/New_York',
+    website: 'https://saved.invalid',
+    secondaryMarket: true,
+    noMarketValue: false,
+    idIndexUpdCalendar: 990037,
+    idTradingCalendarRuleSet: null
+  };
+  await signalExchangeOptions(page, exchange);
+  await page.route('**/api/stockexchange?includeNameOfCalendarIndex=true', async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({ response, json: [...(await response.json()), exchange] });
+  });
+  await page.route('**/api/stockexchange/990038/hassecurity', (route) => route.fulfill({ json: false }));
+  const table = await openView(page, views.exchange);
+  const row = table.locator('tbody tr').filter({ hasText: exchange.name });
+  for (let opening = 0; opening < 2; opening++) {
+    const timezones = await holdResponse(page, '**/api/globalparameters/timezones');
+    try {
+      const dialog = await openDialog(page, table, row);
+      await timezones.arrived;
+      await expect(dialog.locator('#name')).toHaveValue(exchange.name);
+      await dialog.locator('#name').fill('Saved draft override');
+      timezones.release();
+      await timezones.done;
+      await expect(dialog.locator('#name')).toHaveValue('Saved draft override');
+      await expect(dialog.locator('#timeZone')).toHaveValue(exchange.timeZone);
+      await expect(dialog.locator('#idIndexUpdCalendar')).toHaveValue('990037');
+      await expect(dialog.locator('#idTradingCalendarRuleSet')).toBeDisabled();
+      // Selecting the unchanged country must not count as a source value change and erase the saved index.
+      await dialog.locator('#countryCode').selectOption('US');
+      await expect(dialog.locator('#idIndexUpdCalendar')).toHaveValue('990037');
+      await closeDialog(dialog);
+    } finally {
+      timezones.release();
+    }
+  }
 });
 
 test('the shared asset-class base still filters the security-UDF multi-select on repeated opening', async ({

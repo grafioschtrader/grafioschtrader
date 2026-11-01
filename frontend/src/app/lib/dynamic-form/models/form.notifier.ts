@@ -24,6 +24,7 @@ export const FIELD_DISPLAY_PROPERTIES = [
   'groupItem',
   'groupItemUseOrLoading',
   'labelKey',
+  'fieldHeader',
   'labelTitle',
   'labelSuffix',
   'labelHelpText',

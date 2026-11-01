@@ -4,7 +4,8 @@ import {
   addEditableTableRow,
   loadGenericConnectors,
   openContextMenu,
-  openGenericConnectorView
+  openGenericConnectorView,
+  pickGeoInclusions
 } from './generic-connector.helpers';
 
 // Shared fixtures are read-only. Persistence scenarios own and clean up their dedicated connector definitions.
@@ -89,7 +90,7 @@ test('connector drafts survive delayed options, closing and reopening', async ({
       await dialog.locator('#en').fill('English description');
       await dialog.locator('#de').fill('Deutsche Beschreibung');
       await dialog.locator('#domainUrl').fill('https://example.com');
-      await expect(dialog.locator('#geoInclusions')).toBeHidden();
+      await expect(dialog.locator('#geoInclusions')).toHaveCount(0);
       pending.release();
       await pending.done;
       await expect(dialog.locator('#geoInclusions')).toBeVisible();
@@ -110,6 +111,50 @@ test('connector drafts survive delayed options, closing and reopening', async ({
       pending.release();
     }
   }
+});
+
+test('geographic selections survive closing and reopening their tree overlays', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await loginAsFixtureUser(page, 'alledit');
+  await openGenericConnectorView(page);
+  const dialog = await openDefinition(page);
+  await expect(dialog.locator('#geoInclusions')).toBeVisible();
+  await pickGeoInclusions(page, dialog, ['XBRN']);
+  const inclusions = dialog.locator('#geoInclusions');
+  await expect(inclusions).toContainText('(XBRN)');
+  const trigger = inclusions.getByRole('button', { name: 'treeselect trigger' });
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  await trigger.click();
+  const overlay = page.locator('.p-treeselect-overlay:visible');
+  const exchange = overlay.getByRole('treeitem', { name: /\(XBRN\)/ }).last();
+  await expect(exchange.getByRole('checkbox')).toBeChecked();
+  await trigger.click();
+  await expect(overlay).toHaveCount(0);
+  await expect(inclusions).toContainText('(XBRN)');
+  const exclusions = dialog.locator('#geoExclusions');
+  const exclusionTrigger = exclusions.getByRole('button', { name: 'treeselect trigger' });
+  await exclusionTrigger.click();
+  await expect(page.locator('.p-treeselect-overlay:visible')).toContainText('(XBRN)');
+  const excludedExchange = page
+    .locator('.p-treeselect-overlay:visible')
+    .getByRole('treeitem', { name: /\(XBRN\)/ })
+    .last();
+  await excludedExchange.getByRole('checkbox').first().click();
+  await exclusionTrigger.click();
+  await expect(page.locator('.p-treeselect-overlay:visible')).toHaveCount(0);
+  await exclusionTrigger.click();
+  await expect(excludedExchange.getByRole('checkbox').first()).toBeChecked();
+  await exclusionTrigger.click();
+  await expect(page.locator('.p-treeselect-overlay:visible')).toHaveCount(0);
+  await inclusions.locator('.p-treeselect-clear-icon').click();
+  await expect(inclusions).not.toContainText('(XBRN)');
+  await expect(exclusions).not.toContainText('(XBRN)');
+  await closeDialog(dialog);
+  expect(errors).toEqual([]);
 });
 
 test('YAML diagnostics arrive asynchronously and an obsolete validation cannot replace the current text', async ({

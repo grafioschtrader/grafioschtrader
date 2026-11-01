@@ -77,7 +77,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
       ...(this.gps.useAlgo() || this.gpsGT.isDisposalCostEstimateAvailable()
         ? [DynamicFieldHelper.createFieldDropdownString('countryCode', 'DEALER_COUNTRY', false, { filter: true })]
         : []),
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.form)
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -85,11 +85,9 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
   protected override initialize(): void {
     this.form().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-      this.translateService,
       this.gps,
       this.callParam(),
       this.form(),
-      this.configObject,
       this.proposeChangeEntityWithEntity()
     );
     // Options may arrive after the user starts typing. Only the options and submit state change in the callback.

@@ -20,7 +20,10 @@ import { SelectOptionsHelper } from '../../helper/select.options.helper';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
-import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { SignalDynamicFormComponent } from '../../dynamic-form/signal/signal-dynamic-form.component';
+import { metadata, SchemaPathTree } from '@angular/forms/signals';
+import { FIELD_DISPLAY } from '../../dynamic-form/signal/signal-form.model';
+
 import { FieldConfig } from '../../dynamic-form/models/field.config';
 import { EditableTableComponent } from '../../datashowbase/editable-table.component';
 import { InfoLevelType } from '../../message/info.leve.type';
@@ -30,6 +33,10 @@ import { ColumnConfig, EditInputType, TranslateValue } from '../../datashowbase/
 import { ShowRecordConfigBase } from '../../datashowbase/show.record.config.base';
 import { Helper } from '../../helper/helper';
 import { BaseSettings } from '../../base.settings';
+
+interface GTNetFormModel {
+  timeZone: string | null;
+}
 
 /**
  * Add or modify a GTNet entity with EditableTableComponent for entity configurations.
@@ -43,7 +50,7 @@ import { BaseSettings } from '../../base.settings';
  */
 @Component({
   selector: 'gtnet-edit',
-  imports: [DialogModule, ButtonModule, DynamicFormComponent, TranslateModule, EditableTableComponent],
+  imports: [DialogModule, ButtonModule, SignalDynamicFormComponent, TranslateModule, EditableTableComponent],
   template: `
     <p-dialog
       header="{{ 'GT_NET_NET_AND_MESSAGE' | translate }}"
@@ -52,11 +59,12 @@ import { BaseSettings } from '../../base.settings';
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">
-      <dynamic-form
+      <signal-dynamic-form
         [config]="config"
         [formConfig]="formConfig"
-        [translateService]="translateService"
-        #form="dynamicForm"
+        [source]="callParam().gtNet"
+        [rules]="rules"
+        #form="signalDynamicForm"
         (submitBt)="submit($event)" />
 
       @if (callParam().isMyEntry && entityFieldsReady()) {
@@ -81,7 +89,7 @@ import { BaseSettings } from '../../base.settings';
           [stripedRows]="false" />
 
         <div style="margin-top: 1rem; text-align: right;">
-          <p-button [label]="'SAVE' | translate" [disabled]="!form?.valid" (click)="submitAll()">
+          <p-button [label]="'SAVE' | translate" [disabled]="!form.valid()" (click)="submitAll()">
             <i class="pi pi-check" pButtonIcon></i>
           </p-button>
         </div>
@@ -89,11 +97,20 @@ import { BaseSettings } from '../../base.settings';
     </p-dialog>
   `
 })
-export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements OnInit {
+export class GTNetEditComponent
+  extends SimpleEntityEditBase<GTNet, SignalDynamicFormComponent<GTNetFormModel>>
+  implements OnInit
+{
   private gtNetService: GTNetService = inject(GTNetService);
 
   readonly callParam = input.required<GTNetCallParam>();
   readonly entityTable = viewChild<EditableTableComponent<GTNetEntity>>('entityTable');
+
+  private readonly timezones = signal<ValueKeyHtmlSelectOptions[]>([]);
+  readonly rules = (p: SchemaPathTree<GTNetFormModel>): void => {
+    if (this.callParam().isMyEntry)
+      metadata(p.timeZone, FIELD_DISPLAY, () => ({ valueKeyHtmlOptions: this.timezones() }));
+  };
 
   private readonly BASE_SETTING = 'BASE_SETTING';
 
@@ -144,7 +161,12 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       // Only add submit button if NOT isMyEntry (entity table has its own submit)
       ...(this.callParam().isMyEntry ? [] : [DynamicFieldHelper.createSubmitButton()])
     ];
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
+    if (this.configObject.serverOnline)
+      this.configObject.serverOnline.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+        this.translateService,
+        GTNetServerOnlineStatusTypes
+      );
 
     // Setup entity table fields if this is my entry
     if (this.callParam().isMyEntry) {
@@ -273,19 +295,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
         .getTimezones()
         .pipe(this.untilDialogClosed())
         .subscribe((timezones: ValueKeyHtmlSelectOptions[]) => {
-          this.configObject.timeZone.valueKeyHtmlOptions = timezones;
-          this.configObject.serverOnline.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-            this.translateService,
-            GTNetServerOnlineStatusTypes
-          );
-          // A new entry keeps the field defaults; transferring an empty GTNet would overwrite them with null
-          const callParam = this.callParam();
-          if (callParam.gtNet) {
-            this.form().transferBusinessObjectToForm(callParam.gtNet);
-          } else {
-            this.form().setDefaultValues();
-          }
-
+          this.timezones.set(timezones);
           // Initialize entity table data
           this.initializeEntities();
         });
@@ -392,11 +402,11 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
    */
   submitAll(): void {
     // This button is outside the dynamic form, so the form validation must be checked here
-    if (!this.form().valid) {
-      this.form().form.markAllAsTouched();
+    if (!this.form().valid()) {
       return;
     }
-    const formValue = this.form().value;
+    const formValue: Record<string, unknown> = {};
+    this.form().cleanMaskAndTransferValuesToBusinessObject(formValue, true);
 
     // Create the GTNet entity with all data
     const gtNet = this.getNewOrExistingInstanceBeforeSave(formValue);
@@ -430,13 +440,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     if (callParam.isMyEntry) {
       gtNet.timeZone = value['timeZone'];
       gtNet.spreadCapability = value['spreadCapability'];
-      // The input delivers a string; the form helper converts it according to its NumericInteger data type
-      Helper.copyFormSingleFormConfigToBusinessObject(
-        this.formConfig,
-        this.configObject.dailyRequestLimit,
-        gtNet,
-        true
-      );
+      gtNet.dailyRequestLimit = Number(this.form().value('dailyRequestLimit'));
       gtNet.serverBusy = value['serverBusy'];
       gtNet.allowServerCreation = value['allowServerCreation'];
       gtNet.serverOnline = GTNetServerOnlineStatusTypes[value['serverOnline']] as any;

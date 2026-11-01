@@ -90,7 +90,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
         fieldsetName: 'CURRENCY_BASE_DATA'
       }),
       ...this.connectorPriceFieldConfig,
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.dynamicForm)
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -117,7 +117,11 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
       Object.assign(currencypair, securityCurrencypairCallParam);
     }
     UDFMetadataHelper.removeUDFPropertiesFromObject(currencypair);
-    AuditHelper.copyProposeChangeEntityToEntityAfterEdit(this, currencypair, this.proposeChangeEntityWithEntity());
+    AuditHelper.copyProposeChangeEntityToEntityAfterEdit(
+      this.dynamicForm(),
+      currencypair,
+      this.proposeChangeEntityWithEntity()
+    );
     this.dynamicForm().cleanMaskAndTransferValuesToBusinessObject(currencypair);
 
     this.currencypairService

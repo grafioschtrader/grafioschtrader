@@ -3,6 +3,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'tri-state-checkbox',
+  host: { style: 'display: inline-block' },
   template: `
     <div
       class="tri-state-checkbox"
@@ -64,8 +65,8 @@ export class TriStateCheckboxComponent implements ControlValueAccessor {
   }
 
   // ControlValueAccessor methods to integrate with Angular forms
-  writeValue(value: 'false' | 'true' | null): void {
-    this.state.set(value ?? null);
+  writeValue(value: 'false' | 'true' | boolean | null): void {
+    this.state.set(value == null ? null : value === true || value === 'true' ? 'true' : 'false');
   }
 
   registerOnChange(fn: any): void {

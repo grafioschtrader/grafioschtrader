@@ -41,21 +41,37 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
     [style]="{ width: '95vw' }"
     (onHide)="closed.emit()">
     <p>{{ 'ALERT_DELIVERY_EXPLANATION' | translate }}</p>
-    <p-tabs value="evaluation"
-      ><p-tablist>
+    <p-tabs value="evaluation">
+      <p-tablist>
         <p-tab value="evaluation">{{ 'ALERT_EVALUATION' | translate }}</p-tab>
         <p-tab value="trading()">{{ 'TRADING_DECISIONS' | translate }}</p-tab>
-        <p-tab value="notifications()">{{ 'ALERT_NOTIFICATIONS' | translate }}</p-tab> </p-tablist
-      ><p-tabpanels>
+        <p-tab value="notifications()">{{ 'ALERT_NOTIFICATIONS' | translate }}</p-tab>
+      </p-tablist>
+      <p-tabpanels>
         <p-tabpanel value="evaluation"><algo-alert-diagnostics-table [rows]="evaluations()" /></p-tabpanel>
-        <p-tabpanel value="trading()"><algo-alert-diagnostics-table [rows]="trading()" [trading]="true" /></p-tabpanel>
+        <p-tabpanel value="trading()">
+          @defer (on viewport) {
+            <algo-alert-diagnostics-table [rows]="trading()" [trading]="true" />
+          } @placeholder {
+            <div role="status">{{ 'LOADING' | translate }}</div>
+          } @error {
+            <p role="alert">{{ 'MSG_LOAD_NEW_VERSION' | translate }}</p>
+          }
+        </p-tabpanel>
         <p-tabpanel value="notifications()">
-          <algo-alert-notification-table
-            [rows]="notifications()"
-            (retry)="retry($event)"
-            (delete)="deleteNotifications($event)" />
-        </p-tabpanel> </p-tabpanels
-    ></p-tabs>
+          @defer (on viewport) {
+            <algo-alert-notification-table
+              [rows]="notifications()"
+              (retry)="retry($event)"
+              (delete)="deleteNotifications($event)" />
+          } @placeholder {
+            <div role="status">{{ 'LOADING' | translate }}</div>
+          } @error {
+            <p role="alert">{{ 'MSG_LOAD_NEW_VERSION' | translate }}</p>
+          }
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
     <ng-template #footer>
       <div class="d-flex align-items-center w-100">
         <p-button [rounded]="true" (click)="helpLink()">

@@ -139,7 +139,7 @@ export class TradingCalendarRuleSetEditComponent
         minLength: 4
       }),
       DynamicFieldHelper.createFieldSelectNumberHeqF('idExtendsRuleSet', false),
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.form)
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -153,11 +153,9 @@ export class TradingCalendarRuleSetEditComponent
     this.optionsLoaded = false;
     this.form().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-      this.translateService,
       this.gps,
       callParam,
       this.form(),
-      this.configObject,
       this.proposeChangeEntityWithEntity()
     );
     this.updateSubmitState();

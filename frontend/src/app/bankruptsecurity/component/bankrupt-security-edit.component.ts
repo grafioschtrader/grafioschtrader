@@ -1,4 +1,3 @@
-import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
 import { Component, OnInit, input, inject } from '@angular/core';
 import { EMPTY, finalize, Subscription, switchMap, take, tap } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
@@ -8,7 +7,10 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
-import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
+import { SignalDynamicFormComponent } from '../../lib/dynamic-form/signal/signal-dynamic-form.component';
+import { disabled, SchemaPathTree } from '@angular/forms/signals';
+import { computed } from '@angular/core';
+
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
@@ -21,6 +23,10 @@ import { SecuritycurrencySearchAndSetDialogComponent } from '../../securitycurre
 import { SupplementCriteria } from '../../securitycurrency/model/supplement.criteria';
 import { BankruptSecurityService } from '../service/bankrupt.security.service';
 import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
+
+interface BankruptFormModel {
+  securityName: string | null;
+}
 
 /**
  * Marks an instrument as no longer receiving price data, or edits an existing marker.
@@ -42,21 +48,31 @@ import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
       (onHide)="onHide($event)"
       [modal]="true">
       <p class="big-size">{{ 'BANKRUPT_SECURITY_HELP' | translate }}</p>
-      <dynamic-form
+      <signal-dynamic-form
         [config]="config"
         [formConfig]="formConfig"
-        [translateService]="translateService"
-        #form="dynamicForm"
+        [source]="callParam().bankruptSecurity"
+        [values]="startValues()"
+        [rules]="rules"
+        #form="signalDynamicForm"
         (submitBt)="submit($event)" />
     </p-dialog>
   `,
   providers: [DialogService],
-  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule]
+  imports: [DialogModule, SignalDynamicFormComponent, TranslateModule]
 })
-export class BankruptSecurityEditComponent extends SimpleEntityEditBase<BankruptSecurity> implements OnInit {
+export class BankruptSecurityEditComponent
+  extends SimpleEntityEditBase<BankruptSecurity, SignalDynamicFormComponent<BankruptFormModel>>
+  implements OnInit
+{
   private dialogService: DialogService = inject(DialogService);
 
   readonly callParam = input.required<BankruptSecurityCallParam>();
+
+  readonly startValues = computed(() => ({ securityName: this.callParam().securityName ?? '' }));
+  readonly rules = (p: SchemaPathTree<BankruptFormModel>): void => {
+    disabled(p.securityName, { when: () => !!this.callParam().bankruptSecurity });
+  };
 
   private readonly supplementCriteria = new SupplementCriteria(true, true);
   private selectedSecurity: Security | null = null;
@@ -83,21 +99,11 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'note', fieldDescriptors),
       DynamicFieldHelper.createSubmitButton()
     ];
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
   }
 
   protected override initialize(): void {
     this.selectedSecurity = null;
-    // On an edit the instrument is fixed, so the search button is disabled rather than left to be pressed in vain.
-    // Undefined and not false in the create case: the button binds through [attr.disabled], which renders a present
-    // disabled="false" attribute for a false value and would take the button away exactly when it is needed.
-    this.configObject.securityName.disabled = this.callParam().bankruptSecurity ? true : undefined;
-    this.form().setDefaultValuesAndEnableSubmit();
-    const callParam = this.callParam();
-    if (callParam.bankruptSecurity) {
-      this.form().transferBusinessObjectToForm(callParam.bankruptSecurity);
-    }
-    requireFormControl(this.configObject.securityName).setValue(callParam.securityName ?? '');
   }
 
   handleSecuritySearchClick(fieldConfig: FieldConfig): void {
@@ -131,7 +137,7 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
       .subscribe((security: Security | CurrencypairWatchlist) => {
         if (security) {
           this.selectedSecurity = security as Security;
-          requireFormControl(this.configObject.securityName).setValue(this.selectedSecurity.name);
+          this.form().setValue('securityName', this.selectedSecurity.name);
         }
       });
   }

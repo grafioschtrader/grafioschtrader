@@ -1,11 +1,40 @@
 # Frontend E2E suites
 
+Application artifacts go to `frontend/test-results`, library artifacts to `frontend/test-results-lib`. Keep these
+directories distinct when running the stacks in parallel: Playwright clears its output directory before each run,
+which would otherwise delete live traces of the other stack and cause `ENOENT` errors during context cleanup.
+
+## Signal dynamic form dialogs (151-*)
+
+`151-signal-form-dialogs.spec.ts` exercises the shared signal form through application dialogs: the general UDF
+editor's grouped validation and fixed-size transfer, the asset-class editor's suggestions and three audit modes,
+GTNet fieldsets and numeric/text constraints, file selection and upload retry, invalid calendar input and instrument
+lookup in the bankrupt-security editor, connector inclusion/exclusion trees, and the securities-account tri-state
+checkbox with mouse and keyboard. Authentication, translations, option lists and form definitions use the real test
+backend; fabricated assets/proposals and every write in this spec are intercepted. No database rows are created.
+Hidden audit inputs must be absent from the DOM, and every scenario rejects the NG01916 hidden-binding warning.
+The account scenario opens a new account under an existing portfolio of `admin` and closes it without saving.
+The CSV scenario uses `limit1`'s existing Migros account with a browser-local import head, offers exactly one real
+CSV template and checks that its disabled selector still transfers the template id into the multipart upload. Its
+upload response is intercepted, so it neither deletes nor creates any existing imported transactions.
+
+Run with `npx playwright test e2e/151-signal-form-dialogs.spec.ts --project=grafioschtrader-e2e --no-deps`.
+The shared general-UDF editor also runs in `lib/039-udf-metadata-notification.spec.ts`; its locked field-size draft is
+retained until re-enabled and cleared only when a fixed-size type is saved.
+
 ## Master-data dialog notification (037-*)
 
 `037-master-data-dialog-notification.spec.ts` opens the trading-platform-plan, asset-class and stock-exchange
 dialogs as `alledit`. It holds back real option responses, checks that drafts survive loading, closes a dialog
 while a mapping is pending, repeats opening and reopens existing rows. The stock-exchange scenario delivers an
 obsolete country-index answer after the newer one, checks index/rule-set exclusion and selects then clears a MIC.
+The signal-form MIC scenarios supply browser-local grouped MICs and calendar choices, exercise flags, filtering,
+filter reset and the main/secondary toggle, and check defaults when switching away and back. A save intercepted in
+the browser verifies the disabled country's transfer and the calendar source. A browser-local existing exchange
+retains its draft and saved reference index across delayed options, unchanged country selection and repeated opening.
+These scenarios create no database rows. Wait for an option overlay to finish hiding before reopening it; its exit
+animation still reports visible briefly. An already selected table row must not be clicked again before editing,
+because that would deselect it.
 The security-UDF scenario exercises the same category/instrument base with multi-selects. The platform-plan table
 scenario creates, renames and deletes its own plan with delayed table responses; it checks retained selection,
 main-menu editing and repeated fee-model dialog opening. It deletes leftovers of its own two plan names before
@@ -245,9 +274,12 @@ instrument search, strategy schemas, manual allocation rows and portfolio genera
 the forms must render after HTTP completion. Switching back to a cached strategy while another schema is pending
 must retain the selected form. Deterministic intercepted alert responses cover delayed standalone rows, the dormant
 hierarchy overview, disabled pending checkboxes, accepted changes and rollback after a rejected change.
+The diagnostics case checks that its hidden trading and notification tables are absent initially, render on keyboard
+or pointer tab activation, receive refreshes while hidden and reset their deferred state when reopened. Its report
+responses are intercepted and it creates no records.
 
 The spec owns the `Algo signals e2e` watchlist and hierarchy and removes them before each case. It borrows Santander
-(`ES0113900J37`) from `alledit`'s `Spain` watchlist without changing the security. The standalone case creates no records.
+(`ES0113900J37`) from `alledit`'s `Spain` watchlist without changing the security. The standalone cases create no records.
 It requires `/api/gtinfo` to identify the `e2e` profile and `grafioschtrader_t`.
 
 Run against the active test services with
@@ -504,6 +536,13 @@ a forced password change must show the dialog without a close button; saving the
 the login form, so nothing changes in `grafioschtrader_t`. Run it with
 `npx playwright test e2e/003-bootstrap.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+As `limit2`, the application bootstrap spec rapidly switches from the base-data root (the proposal tab host) to its
+stock-exchange child. The last selection must win. It also opens and reloads the rule-set child URL directly, which
+must retain its selected tab instead of being replaced by the host's default. These navigation checks save no data.
+
+The library bootstrap spec also holds back the real user-form-definition request. The login form must wait for that
+response, then render its required fields without logging initialization errors from the checked `FormBase` accessors.
+
 ## Connector API key specs (005-_, 006-_ and lib/038-*)
 
 `005-connector-api-key.spec.ts` creates the connector API keys as the admin user, through the
@@ -607,7 +646,9 @@ created definition as a completed connector.
 
 `097-generic-connector-dialog-notification.spec.ts` opens the two connector edit dialogs with `OnPush`. It delays
 stock-exchange options and the token schema, checks that drafts and YAML diagnostics survive their arrival, closes
-with options pending, and repeats opening. It exercises rate-limit and JSON/CSV/HTML dependencies, Monaco EOF
+with options pending, and repeats opening. Geographic selections are checked through inclusion/exclusion overlay
+closing and reopening, category propagation and clearing the inclusion. This guards against the widget's cyclic
+parent references entering the signal form model; no connector is saved in this scenario. It exercises rate-limit and JSON/CSV/HTML dependencies, Monaco EOF
 markers and schema completion, asynchronous server validation and an obsolete validation response. Existing endpoint
 values are checked again after canceling an edit. The master-view scenario delays the initial list, saves and deletes
 an HTTP header, changes selection while a save is pending and edits an endpoint twice. It owns the two
@@ -692,6 +733,12 @@ hold back the real currency-options response, and verify that it arrives without
 The portfolio is selected before opening its context menu; clicking a node already selected by the context menu
 can deselect it without navigating to the cash-account summary.
 
+`027-cashaccount-server-validation.spec.ts` opens the first cash account of the first fixture portfolio in the
+signal-form cash account dialog and answers its save with an intercepted 400 `ValidationError` naming `name`. The
+message must appear at the name field, the submit button stays disabled while the rejected value is unchanged, and
+editing the name withdraws the message and enables saving again. The dialog is closed unsaved, so the spec changes no
+data and runs repeatedly; it needs the accounts of `025`.
+
 The fixture spans three users with different locales: `e2euser` (en-US, registered by `auth.setup.ts`)
 owns `Test Portfolio`; `alledit` and `limit2` (de-CH, seeded by `ResourceTestSuite_1`) own the remaining
 portfolios. Both `alledit` and `limit2` have a `CornèrTrader`, so all fixture resolution includes the
@@ -758,7 +805,7 @@ old dialog with only `Eager` removed: its delayed rows never reach the table.
 Authentication and translations use the real test backend. Transactions, portfolio options, receipt summaries and
 downloads are intercepted; the spec creates no database rows. It uses the Spain watchlist and Banco Santander
 instrument from 040/050 to open the receipt dialog, without requiring transactions from 122/123. It enters the
-tenant transaction view through the tab, since initialising the tab host navigates to its saved/default route.
+tenant transaction view through the tab to exercise its navigation; explicit child URLs are also retained by the host.
 Menu selection tolerates the watchlist's row-selection toggle on reopening. Download button names include the
 projected icon; date assertions use the fixture user's locale.
 
@@ -1453,6 +1500,10 @@ rule-set field; `alledit` accepts it, and the selected proposer checks the accep
 is resolved from the select options at runtime and is never stored in the fixture. The spec explicitly waits for the
 proposal note and button before editing, so an ownership regression fails as a proposal-mode precondition instead of
 timing out on a hidden textarea.
+Opening the stock-exchange view expands the base-data root through its toggler only when necessary. Selecting that
+root opens the proposal view, so a double-click would introduce a competing navigation. The helper waits for the
+exchange child URL before looking for rows. The bootstrap navigation test separately checks rapid tree selections
+and preservation of explicit tab URLs.
 
 At startup each scenario deletes only its matching leftover proposal and restores its entity as `alledit`; for XVIE,
 both possible proposer accounts are cleaned before selecting the non-owner. It also removes only non-running
@@ -1677,7 +1728,9 @@ change notification of the library building blocks: a column toggled in the colu
 reappears while the dialog is still open, the active border moves when the main tree is clicked, and the task create
 dialog shows its required messages and enables submit only for a valid form. It saves nothing; the column choice it
 toggles is restored before the test ends and repaired at the start. Library tasks carry no entity configuration, so
-the create dialog shows only the task and the start time, which is prefilled. The monitor table has no selector of its
+the create dialog shows only the task and the start time, which is prefilled. When selecting a replacement start time,
+the test picks an enabled day in the next month; a fixed mid-month date can exceed the allowed 32-day window at the start
+of the current month. The monitor table has no selector of its
 own (a routed component), the admin's locale may be German after `020-nickname-lang-edit`, and a sort badge follows
 the header text. Run with
 `npx playwright test --config=playwright.lib.config.ts e2e/lib/035-task-monitor-notification.spec.ts --project=lib-e2e --no-deps`.

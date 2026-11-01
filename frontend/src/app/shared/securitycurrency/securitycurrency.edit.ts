@@ -133,11 +133,9 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   protected prepareExistingSecuritycurrency(focusControl: FieldConfig): void {
     this.dynamicForm().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-      this.translateService,
       this.gps,
       this.securityCurrencypairCallParam(),
       this.dynamicForm(),
-      this.configObject,
       this.proposeChangeEntityWithEntity()
     );
     focusControl.elementRef?.nativeElement?.focus();

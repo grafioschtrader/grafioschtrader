@@ -277,7 +277,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     if (this.yamlContent() && this.parseYaml(this.yamlContent()) === undefined) {
       return;
     }
-    const value = { ...this.form().value };
+    const value = { ...this.form().values };
     value[AlgoStrategyEditComponent.FIELD_STRATEGY_CONFIG] = this.yamlContent();
     this.submit(value);
   }

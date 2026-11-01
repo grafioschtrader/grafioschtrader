@@ -1,6 +1,5 @@
 export enum InputType {
-  Button,
-  Pbutton,
+  Pbutton = 1,
   Checkbox,
   TriStateCheckbox,
   Input,
@@ -13,6 +12,5 @@ export enum InputType {
   Pinputtextarea,
   FileUpload,
   InputNumber,
-  InputCurrencyNumber,
   TreeSelect
 }

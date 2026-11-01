@@ -1534,7 +1534,7 @@ export class DynamicFieldHelper {
     requireFormControl(fieldConfig).setValidators(validation ?? null);
     fieldConfig.errors = errors;
     requireFormControl(fieldConfig).updateValueAndValidity();
-    fieldConfig.baseInputComponent?.reEvaluateRequired();
+    fieldConfig.baseInputComponent?.reEvaluateRequired?.();
     // The required marker lives in the input component, which no property assignment above reaches
     FormNotifier.notifyOf(fieldConfig);
   }

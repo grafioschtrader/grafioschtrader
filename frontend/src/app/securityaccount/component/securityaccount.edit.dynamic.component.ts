@@ -16,7 +16,10 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { BaseSettings } from '../../lib/base.settings';
-import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { SignalDynamicFormComponent } from '../../lib/dynamic-form/signal/signal-dynamic-form.component';
+import { metadata, SchemaPathTree } from '@angular/forms/signals';
+import { FIELD_DISPLAY } from '../../lib/dynamic-form/signal/signal-form.model';
+
 import { SecaccountTradingPeriod } from '../../entities/secaccount.trading.period';
 import type { TradingPeriodTransactionSummary } from '../../entities/trading.period.transaction.summary';
 import { AssetclassType } from '../../shared/types/assetclass.type';
@@ -24,17 +27,22 @@ import { SpecialInvestmentInstruments } from '../../shared/types/special.investm
 import { TradingPeriodTableComponent } from './trading-period-table.component';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 
+interface SecurityaccountFormModel {
+  tradingPlatformPlan: number | string | null;
+}
+
 /**
  * Edit security account with trading period table for defining which instrument types can be traded.
  */
 @Component({
   selector: 'securityaccount-edit',
   template: `
-    <dynamic-form
+    <signal-dynamic-form
       [config]="config"
       [formConfig]="formConfig"
-      [translateService]="translateService"
-      #form="dynamicForm"
+      [source]="callParam.thisObject"
+      [rules]="rules"
+      #form="signalDynamicForm"
       (submitBt)="submit($event)" />
     <trading-period-table
       #tradingPeriodTable
@@ -42,11 +50,19 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
       [transactionSummaries]="transactionSummaries()"
       [isNewSecurityAccount]="callParam.thisObject == null" />
   `,
-  imports: [DynamicFormComponent, TradingPeriodTableComponent]
+  imports: [SignalDynamicFormComponent, TradingPeriodTableComponent]
 })
-export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<Securityaccount> implements OnInit {
+export class SecurityaccountEditDynamicComponent
+  extends SimpleDynamicEditBase<Securityaccount, SignalDynamicFormComponent<SecurityaccountFormModel>>
+  implements OnInit
+{
   private tradingPlatformPlanService: TradingPlatformPlanService = inject(TradingPlatformPlanService);
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
+
+  private readonly planOptions = signal<ValueKeyHtmlSelectOptions[]>([]);
+  readonly rules = (p: SchemaPathTree<SecurityaccountFormModel>): void => {
+    metadata(p.tradingPlatformPlan, FIELD_DISPLAY, () => ({ valueKeyHtmlOptions: this.planOptions() }));
+  };
 
   static readonly DIALOG_WIDTH = 850;
   readonly callParam: CallParam = this.dynamicDialogConfig.data.callParam;
@@ -76,7 +92,7 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
   }
 
   /** Publishes a complete translated list so no asynchronous callback mutates options already shown by the form. */
@@ -113,9 +129,7 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
 
   /** Loads options and transaction constraints independently after the dynamic form has rendered. */
   private initializeForm(): void {
-    this.form().setDefaultValuesAndEnableSubmit();
     if (this.callParam.thisObject != null) {
-      this.form().transferBusinessObjectToForm(this.callParam.thisObject);
       const secaccount = <Securityaccount>this.callParam.thisObject;
       const id = secaccount.idSecuritycashAccount;
       if (id == null) throw new Error('Existing security account requires its persisted id');
@@ -134,7 +148,7 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
         switchMap((plans) => this.tradingPlatformPlanCreateValueKeyHtmlSelectOptions(plans)),
         this.untilDialogClosed()
       )
-      .subscribe((options) => (this.configObject.tradingPlatformPlan.valueKeyHtmlOptions = options));
+      .subscribe((options) => this.planOptions.set(options));
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Securityaccount {

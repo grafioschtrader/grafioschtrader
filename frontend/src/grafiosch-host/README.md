@@ -52,6 +52,8 @@ GETs use `rxResource`, and refreshes call `reload()`. Library resources report e
 and `BaseAuthService`; observable errors already reported by a service produce no second toast. Task-monitor queue
 changes cancel pending list reads, and empty queue intersections make no unfiltered request. CRUD and master/detail
 selections use `linkedSignal` to bind the selected key to refreshed rows; menu activation remains explicit.
+Shared tab hosts wait for `NavigationEnd` before selecting a default child, check that their owning route is still
+active, and retain explicit child URLs. A stale host must not redirect a newer tree selection or replace a reloaded tab.
 Template switches declare an intentional fallback or an exhaustive `@default never;` check. These rules and the
 Angular API ratchets apply to the library and both host entry points.
 
@@ -127,6 +129,20 @@ Editors with an unconditional form use `SimpleFormEditBase`; `SimpleEntityEditBa
 `SimpleDynamicFormBase` requires its form too. Dynamic actions implement its `submit` with no entity service or unused
 save hook; `SimpleDynamicEditBase<T>` adds the entity-save flow with its required service and entity construction.
 Both share the injected dialog context and session. Conditional form dialogs retain `SimpleEditBase` and optional queries.
+Every form base takes the form component as its last type parameter; new dialogs in both hosts use
+`<signal-dynamic-form>` with `SignalDynamicFormComponent<Model>` (see "Signal Dynamic Form for New Dialogs" in
+`frontend/CLAUDE.md`), checked by `src/signal-form.ratchet.spec.ts`.
+Its `REACTIVE_FORM_FILES` inventory also prevents new reactive form owners in either host. Remove a converted owner
+from the list; never regenerate or expand it. The shared general UDF editor uses signal rules for its data-type group
+and retains a disabled field-size draft until saving clears it for a fixed-size data type. Its repeated-opening and
+dependent-field coverage lives in `e2e/lib/039-udf-metadata-notification.spec.ts`.
+Hidden signal fields have no input view or `[formField]` binding; their model values survive hiding. Destroyed views
+clear their focus references, and disabled fields remain rendered. Buttons use `InputType.Pbutton`.
+Dialogs that set their initial focus themselves disable Optimus' `focusOnShow` to avoid a delayed second focus.
+Value links derive only when a source value changes. Use `skipInitial: true` to retain a loaded target until a source
+changes; a form rebuild resets that guard. Grouped/filterable `InputDropdown` fields receive their `groupItem` through
+`FIELD_DISPLAY`; the application's stock-exchange editor and `e2e/037-master-data-dialog-notification.spec.ts` exercise
+this shared input, including flags, filtering and transfer of disabled values.
 The required-query ratchet checks unconditional targets in every concrete descendant, including this host.
 Signals with a null initial/cleared state include null in their types. Guard a captured value before using a selected
 record or loaded result; master/detail child views accept a null parent to clear their rows. Confirmation callbacks
@@ -207,6 +223,12 @@ this instance's own GTNet entry is created — which is why the feature flag is 
 deadlock, no entry means no menu and no menu means no entry.
 
 ## Two traps
+
+Use `@defer` in shared views only after a production bundle and Chrome rendering measurement: a separate chunk
+of at least 50 kB or a measurable improvement to first rendering must justify it. Keep routed views, dynamically
+loaded dialogs and visible table content on their existing loading boundaries. A deferred hidden tab needs a
+single-root placeholder, a load-error state and browser coverage of activation, refresh and reopening. Data reads
+remain owned by the parent so first activation receives the current result.
 
 > **The host runs zoneless.** Angular 22's default applies: there is no `provideZoneChangeDetection()` and no zone.js
 > polyfill, the same as Grafioschtrader. Library components notify Angular through signals, input changes or

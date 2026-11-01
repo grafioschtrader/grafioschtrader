@@ -170,6 +170,10 @@ Same rules, different stack: backend `grafiosch-test-integration` on port 8081 a
 frontend `grafiosch-host` on port 4201. Both stacks can run at the same time — no port and no database
 is shared.
 
+Keep the artifact directories separate as well: the application uses `frontend/test-results`, the library
+`frontend/test-results-lib`. A parallel Playwright run clears its own output directory; sharing it deletes
+the other run's live traces and causes `ENOENT` failures during browser-context cleanup.
+
 ```bash
 cd backend && mvn -pl grafiosch-test-integration spring-boot:run -Dspring-boot.run.profiles=e2e
 cd frontend && npm run start:grafiosch     # port 4201

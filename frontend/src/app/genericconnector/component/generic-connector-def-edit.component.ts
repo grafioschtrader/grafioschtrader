@@ -1,7 +1,17 @@
-import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
-import { afterNextRender, Component, inject, Injector, OnInit, signal, viewChild, input } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  inject,
+  Injector,
+  OnInit,
+  signal,
+  viewChild,
+  input,
+  computed
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Validators } from '@angular/forms';
+import { disabled, hidden, metadata, required, SchemaPathTree } from '@angular/forms/signals';
+import { FIELD_DISPLAY, SignalValueLink } from '../../lib/dynamic-form/signal/signal-form.model';
 import { TranslateModule } from '@ngx-translate/core';
 import { GenericConnectorDefService } from '../service/generic.connector.def.service';
 import { AppHelper } from '../../lib/helper/app.helper';
@@ -10,12 +20,11 @@ import { RateLimitType } from '../../shared/types/rate.limit.type';
 import { AssetclassCategory } from '../../shared/types/assetclass.category';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
-import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppSettings } from '../../shared/app.settings';
 import { AppHelpIds } from '../../shared/help/help.ids';
 import { DialogModule } from '@openng/optimus-ui/dialog';
-import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
+import { SignalDynamicFormComponent } from '../../lib/dynamic-form/signal/signal-dynamic-form.component';
 import { FieldsetModule } from '@openng/optimus-ui/fieldset';
 import { YamlEditorComponent } from '../../algo/component/yaml-editor.component';
 import { HttpClient } from '@angular/common/http';
@@ -32,37 +41,61 @@ interface GeoTreeNode extends TreeNode {
   children?: GeoTreeNode[];
 }
 
+interface ConnectorFormModel {
+  shortId: string | null;
+  domainUrl: string | null;
+  readableName: string | null;
+  needsApiKey: boolean;
+  rateLimitType: string | null;
+  rateLimitRequests: number | null;
+  rateLimitPeriodSec: number | null;
+  rateLimitConcurrent: number | null;
+  regexUrlPattern: string | null;
+  supportsSecurity: boolean;
+  supportsCurrency: boolean;
+  supportedCategories: string[] | null;
+  geoInclusions: string[] | null;
+  geoExclusions: string[] | null;
+}
+
 @Component({
   selector: 'generic-connector-def-edit',
   template: ` <p-dialog
     styleClass="big-dialog"
     header="{{ 'GENERIC_CONNECTOR_DEF' | translate }}"
     [visible]="visibleDialog()"
+    [focusOnShow]="false"
     [style]="{ width: '900px' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
     [modal]="true">
-    <dynamic-form
+    <signal-dynamic-form
       [config]="config"
       [formConfig]="formConfig"
-      [translateService]="translateService"
-      #form="dynamicForm"
+      [source]="callParam()"
+      [values]="startValues()"
+      [rules]="rules"
+      [valueLinks]="valueLinks"
+      #form="signalDynamicForm"
       (submitBt)="submit($event)" />
 
     <p-fieldset [legend]="'TOKEN_CONFIG_YAML' | translate" [toggleable]="true" [collapsed]="true" styleClass="mt-3">
       <yaml-editor
         #yamlEditor
         format="TOKENS"
-        (syntaxValidChange)="configObject.submit.disabled = optionsLoading() || !$event || yamlEditor.validating"
-        (validationPendingChange)="configObject.submit.disabled = optionsLoading() || $event || !yamlEditor.syntaxValid"
+        (syntaxValidChange)="updateSubmitState()"
+        (validationPendingChange)="updateSubmitState()"
         [height]="'300px'"
         [(value)]="tokenConfigYamlValue"
         [schema]="tokenConfigSchema()" />
     </p-fieldset>
   </p-dialog>`,
-  imports: [DialogModule, ...DYNAMIC_FORM_IMPORTS, TranslateModule, FieldsetModule, YamlEditorComponent]
+  imports: [DialogModule, SignalDynamicFormComponent, TranslateModule, FieldsetModule, YamlEditorComponent]
 })
-export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<GenericConnectorDef> implements OnInit {
+export class GenericConnectorDefEditComponent
+  extends SimpleEntityEditBase<GenericConnectorDef, SignalDynamicFormComponent<ConnectorFormModel>>
+  implements OnInit
+{
   private genericConnectorDefService: GenericConnectorDefService = inject(GenericConnectorDefService);
   private stockexchangeService: StockexchangeService = inject(StockexchangeService);
   private httpClient: HttpClient = inject(HttpClient);
@@ -74,8 +107,67 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   readonly tokenConfigSchema = signal<any>(null);
   readonly optionsLoading = signal(true);
   private readonly injector = inject(Injector);
-  private geoTreeNodes: GeoTreeNode[] = [];
+  private readonly geoTree = signal<GeoTreeNode[]>([]);
+  private get geoTreeNodes(): GeoTreeNode[] {
+    return this.geoTree();
+  }
   private catTranslations: { [key: string]: string } = {};
+
+  private readonly choiceOptions = signal<{
+    rates: ValueKeyHtmlSelectOptions[];
+    categories: ValueKeyHtmlSelectOptions[];
+  }>({ rates: [], categories: [] });
+  private readonly fieldsLocked = computed(
+    () => !!this.callParam()?.endpoints?.some((endpoint) => endpoint.everUsedSuccessfully)
+  );
+  readonly startValues = computed(() => ({
+    supportedCategories:
+      this.callParam()
+        ?.supportedCategories?.split(',')
+        .map((value) => value.trim()) ?? null
+  }));
+  readonly rules = (p: SchemaPathTree<ConnectorFormModel>): void => {
+    disabled(p.shortId, { when: () => !!this.callParam()?.idGenericConnector });
+    disabled(p.domainUrl, { when: () => !!this.callParam()?.idGenericConnector });
+    for (const field of ['readableName', 'rateLimitType', 'regexUrlPattern'] as const)
+      disabled(p[field], { when: () => this.fieldsLocked() });
+    for (const field of ['needsApiKey', 'supportsSecurity', 'supportsCurrency'] as const)
+      disabled(p[field], { when: () => this.fieldsLocked() });
+    for (const field of ['rateLimitRequests', 'rateLimitPeriodSec', 'rateLimitConcurrent'] as const) {
+      const activeType = field === 'rateLimitConcurrent' ? 'SEMAPHORE' : 'TOKEN_BUCKET';
+      disabled(p[field], { when: ({ valueOf }) => this.fieldsLocked() || valueOf(p.rateLimitType) !== activeType });
+      required(p[field]);
+    }
+    metadata(p.rateLimitType, FIELD_DISPLAY, () => ({ valueKeyHtmlOptions: this.choiceOptions().rates }));
+    metadata(p.supportedCategories, FIELD_DISPLAY, () => ({ valueKeyHtmlOptions: this.choiceOptions().categories }));
+    for (const field of ['geoInclusions', 'geoExclusions'] as const)
+      hidden(p[field], { when: () => this.optionsLoading() });
+    metadata(p.geoInclusions, FIELD_DISPLAY, () => ({ treeNodes: this.geoTree() }));
+    metadata(p.geoExclusions, FIELD_DISPLAY, ({ valueOf }) => ({
+      treeNodes: this.exclusionTree(valueOf(p.geoInclusions))
+    }));
+  };
+  readonly valueLinks: SignalValueLink<ConnectorFormModel>[] = [
+    {
+      sources: ['geoInclusions'],
+      target: 'geoExclusions',
+      derive: (values, current) => {
+        const tree = this.exclusionTree(values.geoInclusions ?? null);
+        const keys = new Set(Array.isArray(current) ? current : []);
+        const retained = tree
+          .flatMap((node) => [node, ...(node.children ?? [])])
+          .flatMap((node) => (node.key != null && keys.has(node.key) ? [node.key] : []));
+        return retained.length ? retained : null;
+      }
+    }
+  ];
+
+  updateSubmitState(): void {
+    const editor = this.yamlEditor();
+    this.form().setButtonState('submit', {
+      disabled: this.optionsLoading() || !editor.syntaxValid || editor.validating
+    });
+  }
 
   constructor() {
     super(
@@ -88,7 +180,10 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
 
   override async submit(value: { [name: string]: any }): Promise<void> {
     if (await this.yamlEditor().validateForSubmit()) super.submit(value);
-    else this.configObject.submit.disabled = !this.yamlEditor().syntaxValid;
+    else {
+      this.form().enableSubmit();
+      this.updateSubmitState();
+    }
   }
 
   ngOnInit(): void {
@@ -124,42 +219,16 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
       DynamicFieldHelper.createFieldTreeSelectHeqF('geoExclusions', false),
       DynamicFieldHelper.createSubmitButton()
     ];
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
+    this.configObject.submit.disabled = true;
   }
 
   protected override initialize(): void {
     this.optionsLoading.set(true);
-    this.geoTreeNodes = [];
-    // FormControl.disable() emits valueChanges as well. Ignoring it keeps applyFieldLocks() from clearing the rate
-    // limit fields it has just locked, because disableAndClearField() would set them to null.
-    requireFormControl(this.configObject.rateLimitType)
-      .valueChanges.pipe(this.untilDialogClosed())
-      .subscribe((value) => {
-        if (requireFormControl(this.configObject.rateLimitType).enabled) {
-          this.updateRateLimitTypeDependencies(value);
-        }
-      });
-    const callParam = this.callParam();
-    this.updateRateLimitTypeDependencies(
-      callParam?.rateLimitType != null ? RateLimitType[callParam.rateLimitType as keyof typeof RateLimitType] : null
-    );
-
-    requireFormControl(this.configObject.geoInclusions)
-      .valueChanges.pipe(this.untilDialogClosed())
-      .subscribe(() => this.rebuildExclusionsTree());
-    this.form().setDefaultValuesAndEnableSubmit();
-    if (callParam) {
-      this.form().transferBusinessObjectToForm(callParam);
-      this.loadSupportedCategories();
-    }
-    this.tokenConfigYamlValue.set(callParam?.tokenConfigYaml || '');
-    this.applyFieldLocks();
-    // Geographic selections need the tree's actual node references. Hide only those controls while loading;
-    // the rest of the form is ready for editing and must never be reset by a late response.
-    this.configObject.geoInclusions.invisible = true;
-    this.configObject.geoExclusions.invisible = true;
-    this.configObject.submit.disabled = true;
+    this.form().setButtonState('submit', { disabled: true });
+    this.tokenConfigYamlValue.set(this.callParam()?.tokenConfigYaml || '');
     this.loadOptions();
+    // Own the initial focus; Optimus' delayed focusOnShow would otherwise interrupt an early entry in another field.
     afterNextRender(() => this.configObject.shortId.baseInputComponent?.focus(), { injector: this.injector });
   }
 
@@ -174,84 +243,20 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
       .pipe(this.untilDialogClosed())
       .subscribe(([baseData, translations]) => {
         this.catTranslations = translations;
-        this.configObject.rateLimitType.valueKeyHtmlOptions = rateLimitNames
+        const rates = rateLimitNames
           .map((name) => new ValueKeyHtmlSelectOptions(name, translations[name]))
           .sort((a, b) => a.value.localeCompare(b.value));
-        this.configObject.supportedCategories.valueKeyHtmlOptions = categoryNames
+        const categories = categoryNames
           .map((name) => new ValueKeyHtmlSelectOptions(name, translations[name]))
           .sort((a, b) => a.value.localeCompare(b.value));
-        this.geoTreeNodes = this.buildGeoTree(baseData.stockexchanges, baseData.countries);
-        this.configObject.geoInclusions.treeNodes = this.geoTreeNodes;
+        this.choiceOptions.set({ rates, categories });
+        this.geoTree.set(this.buildGeoTree(baseData.stockexchanges, baseData.countries));
         if (this.callParam()) {
           this.loadGeoRestrictions();
         }
-        this.configObject.geoInclusions.invisible = false;
-        this.configObject.geoExclusions.invisible = false;
         this.optionsLoading.set(false);
-        const yamlEditor = this.yamlEditor();
-        this.configObject.submit.disabled = !yamlEditor.syntaxValid || yamlEditor.validating;
+        this.updateSubmitState();
       });
-  }
-
-  /**
-   * Mirrors the server-side write rules on the form, so a field the backend will refuse or ignore cannot be edited in
-   * the first place. Two rules apply on an existing connector:
-   * <ul>
-   *   <li>shortId and domainUrl are immutable - shortId is persisted as gt.datafeed.&lt;shortId&gt; on every instrument
-   *       that uses the connector, and domainUrl is the base of the already stored URL extensions.</li>
-   *   <li>Every field annotated with @LockedWhenUsed on GenericConnectorDef is frozen once an endpoint has delivered
-   *       data successfully, matching GenericConnectorDefJpaRepositoryImpl.validateUsageBasedPermissions().</li>
-   * </ul>
-   * Disabled controls are still transferred to the business object, so the submitted entity keeps its original values.
-   */
-  private applyFieldLocks(): void {
-    const callParam = this.callParam();
-    if (!callParam?.idGenericConnector) {
-      return;
-    }
-    FormHelper.disableEnableFieldConfigs(true, [this.configObject.shortId, this.configObject.domainUrl]);
-    if (callParam.endpoints?.some((endpoint) => endpoint.everUsedSuccessfully)) {
-      FormHelper.disableEnableFieldConfigs(true, [
-        this.configObject.readableName,
-        this.configObject.needsApiKey,
-        this.configObject.rateLimitType,
-        this.configObject.rateLimitRequests,
-        this.configObject.rateLimitPeriodSec,
-        this.configObject.rateLimitConcurrent,
-        this.configObject.regexUrlPattern,
-        this.configObject.supportsSecurity,
-        this.configObject.supportsCurrency
-      ]);
-    }
-  }
-
-  private enableField(fieldName: string, required: boolean): void {
-    const fc = this.configObject[fieldName];
-    requireFormControl(fc).enable();
-    DynamicFieldHelper.resetValidator(fc, required ? [Validators.required] : []);
-  }
-
-  private disableAndClearField(fieldName: string): void {
-    const fc = this.configObject[fieldName];
-    requireFormControl(fc).setValue(null);
-    DynamicFieldHelper.resetValidator(fc, []);
-    requireFormControl(fc).disable();
-  }
-
-  private updateRateLimitTypeDependencies(rateLimitType: string | RateLimitType | null | undefined): void {
-    if (rateLimitType === 'TOKEN_BUCKET') {
-      this.enableField('rateLimitRequests', true);
-      this.enableField('rateLimitPeriodSec', true);
-      this.disableAndClearField('rateLimitConcurrent');
-    } else if (rateLimitType === 'SEMAPHORE') {
-      this.disableAndClearField('rateLimitRequests');
-      this.disableAndClearField('rateLimitPeriodSec');
-      this.enableField('rateLimitConcurrent', true);
-    } else {
-      this.disableAndClearField('rateLimitRequests');
-      this.disableAndClearField('rateLimitPeriodSec');
-      this.disableAndClearField('rateLimitConcurrent');
-    }
   }
 
   /**
@@ -288,17 +293,6 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   }
 
   /**
-   * Loads the supportedCategories comma-separated string into the multi-select as an array of enum name strings.
-   */
-  private loadSupportedCategories(): void {
-    const callParam = this.callParam();
-    if (callParam?.supportedCategories) {
-      const cats = callParam.supportedCategories.split(',').map((s) => s.trim());
-      requireFormControl(this.configObject.supportedCategories).setValue(cats);
-    }
-  }
-
-  /**
    * Parses geoRestrictions into geoInclusions TreeSelect (plain codes) and geoExclusions TreeSelect (:-CATEGORY
    * tokens). Since geoInclusions has no propagation, each node is checked independently.
    */
@@ -319,22 +313,21 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
         inclusions.push(token);
       }
     });
-    // Set geoInclusions as TreeNode[] — collect actual TreeNode references (no propagation)
+    // Keep only selectable keys; option nodes receive cyclic parent references in the tree widget.
     const inclusionSet = new Set(inclusions);
-    const inclusionNodes: TreeNode[] = [];
+    const inclusionKeys: string[] = [];
     this.geoTreeNodes.forEach((countryNode) => {
       if (inclusionSet.has(countryNode.key)) {
-        inclusionNodes.push(countryNode);
+        inclusionKeys.push(countryNode.key);
       }
       countryNode.children?.forEach((micNode) => {
         if (inclusionSet.has(micNode.key)) {
-          inclusionNodes.push(micNode);
+          inclusionKeys.push(micNode.key);
         }
       });
     });
-    requireFormControl(this.configObject.geoInclusions).setValue(inclusionNodes.length > 0 ? inclusionNodes : null);
+    this.form().setValue('geoInclusions', inclusionKeys.length > 0 ? inclusionKeys : null);
     // Build exclusions tree from current inclusions, then set exclusion selections
-    this.rebuildExclusionsTree();
     if (exclusionTokens.length > 0) {
       const exclKeySet = new Set(
         exclusionTokens.map((token) => {
@@ -342,38 +335,35 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
           return token.substring(0, colonIdx) + ':-' + token.substring(colonIdx + 2);
         })
       );
-      // Collect matching TreeNode references from the exclusions tree (propagation ON: add parent when all children selected)
-      const exclNodes: TreeNode[] = [];
-      const exclTreeNodes = this.configObject.geoExclusions.treeNodes || [];
+      // Include a parent key when all its category children are selected (propagation enabled).
+      const exclKeys: string[] = [];
+      const exclTreeNodes = this.exclusionTree(this.form().value('geoInclusions') as string[] | null);
       exclTreeNodes.forEach((geoNode) => {
         const childCount = geoNode.children?.length || 0;
         let checkedCount = 0;
         geoNode.children?.forEach((catNode) => {
           if (catNode.key != null && exclKeySet.has(catNode.key)) {
-            exclNodes.push(catNode);
+            exclKeys.push(catNode.key);
             checkedCount++;
           }
         });
         if (checkedCount > 0 && checkedCount === childCount) {
-          exclNodes.push(geoNode);
+          if (geoNode.key != null) exclKeys.push(geoNode.key);
         }
       });
-      requireFormControl(this.configObject.geoExclusions).setValue(exclNodes.length > 0 ? exclNodes : null);
+      this.form().setValue('geoExclusions', exclKeys.length > 0 ? exclKeys : null);
     }
   }
 
   /**
    * Rebuilds the geoExclusions tree based on currently selected geo codes in geoInclusions. Each selected geo code
-   * becomes a parent node with AssetclassCategory children (translated labels). Preserves existing exclusion
-   * selections where possible.
+   * becomes a parent node with AssetclassCategory children (translated labels). The value link retains selections
+   * whose keys still occur in this tree.
    */
-  private rebuildExclusionsTree(): void {
-    const inclusionVal: TreeNode[] = requireFormControl(this.configObject.geoInclusions).value;
-    const oldExclVal: TreeNode[] = requireFormControl(this.configObject.geoExclusions).value;
+  private exclusionTree(inclusionVal: string[] | null): TreeNode[] {
     const categoryNames = Object.keys(AssetclassCategory).filter((k) => isNaN(Number(k)));
 
-    // Collect all checked geo codes from inclusions (TreeNode[])
-    const selectedKeys = new Set<string>(inclusionVal?.map((n) => n.key).filter((key) => key != null) || []);
+    const selectedKeys = new Set(inclusionVal ?? []);
 
     const geoCodes: { key: string; label: string; icon?: string }[] = [];
     this.geoTreeNodes.forEach((countryNode) => {
@@ -405,27 +395,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
         selectable: true
       }))
     }));
-    this.configObject.geoExclusions.treeNodes = newExclusionNodes;
-
-    // Preserve old selections that still exist in the new tree (match by key, use NEW node references)
-    if (oldExclVal && oldExclVal.length > 0) {
-      const oldKeys = new Set<string>(oldExclVal.map((n) => n.key).filter((key) => key != null));
-      const newNodesByKey = new Map<string, TreeNode>();
-      newExclusionNodes.forEach((geoNode) => {
-        newNodesByKey.set(geoNode.key, geoNode);
-        geoNode.children?.forEach((catNode) => newNodesByKey.set(catNode.key, catNode));
-      });
-      const preserved: TreeNode[] = [];
-      oldKeys.forEach((key) => {
-        const newNode = newNodesByKey.get(key);
-        if (newNode) {
-          preserved.push(newNode);
-        }
-      });
-      requireFormControl(this.configObject.geoExclusions).setValue(preserved.length > 0 ? preserved : null);
-    } else {
-      requireFormControl(this.configObject.geoExclusions).setValue(null);
-    }
+    return newExclusionNodes;
   }
 
   /**
@@ -433,11 +403,11 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    * geoRestrictions string.
    */
   private mergeGeoRestrictions(entity: GenericConnectorDef): void {
-    const inclusionVal: TreeNode[] = requireFormControl(this.configObject.geoInclusions).value;
+    const inclusionVal = this.form().value('geoInclusions') as string[] | null;
     const tokens: string[] = [];
 
     if (inclusionVal) {
-      const inclusionKeys = new Set<string>(inclusionVal.map((n) => n.key).filter((key) => key != null));
+      const inclusionKeys = new Set(inclusionVal);
       this.geoTreeNodes.forEach((countryNode) => {
         if (inclusionKeys.has(countryNode.key)) {
           tokens.push(countryNode.key);
@@ -449,11 +419,11 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
         });
       });
     }
-    const exclVal: TreeNode[] = requireFormControl(this.configObject.geoExclusions).value;
+    const exclVal = this.form().value('geoExclusions') as string[] | null;
     if (exclVal) {
       // Only serialize leaf nodes (geo:-CATEGORY), skip parent geo nodes
-      const exclKeys = new Set<string>(exclVal.map((n) => n.key).filter((key) => key != null));
-      const exclNodes = this.configObject.geoExclusions.treeNodes || [];
+      const exclKeys = new Set(exclVal);
+      const exclNodes = this.exclusionTree(inclusionVal);
       exclNodes.forEach((geoNode) => {
         geoNode.children?.forEach((catNode) => {
           if (catNode.key != null && exclKeys.has(catNode.key)) {
@@ -481,9 +451,17 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     entity.tokenConfigYaml = this.tokenConfigYamlValue().trim() || null;
 
     // supportedCategories: convert array back to comma-separated string
-    const catArray = requireFormControl(this.configObject.supportedCategories).value;
+    const catArray = this.form().value('supportedCategories') as string[] | null;
     entity.supportedCategories = catArray && catArray.length > 0 ? catArray.join(',') : null;
 
+    // Inactive rate settings are cleared on save; locked existing settings retain their values.
+    if (!this.fieldsLocked()) {
+      if (this.form().value('rateLimitType') !== 'TOKEN_BUCKET') {
+        entity.rateLimitRequests = null;
+        entity.rateLimitPeriodSec = null;
+      }
+      if (this.form().value('rateLimitType') !== 'SEMAPHORE') entity.rateLimitConcurrent = null;
+    }
     // geoRestrictions: merge tree selection + exclusions
     this.mergeGeoRestrictions(entity);
 

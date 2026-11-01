@@ -3,6 +3,7 @@ import { defineConfig } from '@playwright/test';
 /** Portable browser suite for code owned by src/app/lib. */
 export default defineConfig({
   testDir: './e2e/lib',
+  outputDir: './test-results-lib',
   globalSetup: require.resolve('./e2e/lib/global.setup.ts'),
   timeout: 120_000,
   expect: {

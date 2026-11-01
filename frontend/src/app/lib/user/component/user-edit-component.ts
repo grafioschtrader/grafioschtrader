@@ -58,7 +58,7 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
       }),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'securityBreachCount', true, 0, 99),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'limitRequestExceedCount', true, 0, 99),
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this, true)
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this.form, true)
       // DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -77,29 +77,27 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
     );
     this.callParam() != null && this.form().transferBusinessObjectToForm(this.callParam());
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-      this.translateService,
       this.gps,
       proposeChangeEntityWithEntity ? proposeChangeEntityWithEntity.proposedEntity : this.callParam(),
       this.form(),
-      this.configObject,
       proposeChangeEntityWithEntity
     );
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): User {
     const user = this.copyFormToPrivateBusinessObject(new User(), this.callParam());
-    AuditHelper.copyNoteAcceptRejectToEntity(this, user);
+    AuditHelper.copyNoteAcceptRejectToEntity(this.form(), user);
     return user;
   }
 
   protected override activateWaitStateInButton(): void {
-    if (AuditHelper.isProposeVisible(this)) {
+    if (AuditHelper.isProposeVisible(this.form())) {
       this.configObject[AuditHelper.SUBMIT_FIELD_BUTTON].groupItemUseOrLoading = true;
     }
   }
 
   protected override deactivateWaitStateInButton(): void {
-    if (AuditHelper.isProposeVisible(this)) {
+    if (AuditHelper.isProposeVisible(this.form())) {
       this.configObject[AuditHelper.SUBMIT_FIELD_BUTTON].groupItemUseOrLoading = false;
     }
   }

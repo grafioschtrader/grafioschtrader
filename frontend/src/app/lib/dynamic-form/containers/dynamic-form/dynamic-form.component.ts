@@ -5,13 +5,13 @@ import { merge, Subscription } from 'rxjs';
 import { FormNotifier } from '../../models/form.notifier';
 import { FieldConfig } from '../../models/field.config';
 import { InputType } from '../../models/input.type';
-import { Helper } from '../../../helper/helper';
-import { DataType } from '../../models/data.type';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormConfig } from '../../models/form.config';
 import { FieldFormGroup, FormGroupDefinition } from '../../models/form.group.definition';
 import { FormHelper } from '../../components/FormHelper';
-import { ValueKeyHtmlSelectOptions } from '../../models/value.key.html.select.options';
+import { Helper } from '../../../helper/helper';
+import { businessObjectFieldValue } from '../../models/business-object-value';
+import { DYNAMIC_FORM, DynamicFormApi, FormButtonState } from '../../models/dynamic-form-api';
 
 import { DynamicFormLayoutComponent } from './dynamic-form-layout.component';
 import { ErrorMessageComponent } from './error-message.compoent';
@@ -24,6 +24,7 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
 @Component({
   exportAs: 'dynamicForm',
   selector: 'dynamic-form',
+  providers: [{ provide: DYNAMIC_FORM, useExisting: DynamicFormComponent }],
   template: `
     @let rev = notifier.revision();
     <div #actualTarget class="container-fluid dynamic-form-container">
@@ -90,7 +91,7 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
     DynamicFieldDirective
   ]
 })
-export class DynamicFormComponent implements OnDestroy {
+export class DynamicFormComponent implements OnDestroy, DynamicFormApi {
   protected readonly requireFormControl = requireFormControl;
   private _formBuilder = inject(UntypedFormBuilder);
 
@@ -153,34 +154,27 @@ export class DynamicFormComponent implements OnDestroy {
   get controlsWithGroups(): FieldFormGroup[] {
     return this.config().filter(
       (fieldFormGroup: any) =>
-        fieldFormGroup.formGroupName ||
-        fieldFormGroup.buttonInForm ||
-        !(fieldFormGroup.inputType === InputType.Button || fieldFormGroup.inputType === InputType.Pbutton)
+        fieldFormGroup.formGroupName || fieldFormGroup.buttonInForm || fieldFormGroup.inputType !== InputType.Pbutton
     );
   }
 
   get controlsFlatten(): FieldConfig[] {
-    return FormHelper.flattenConfigMap(this.config()).filter(
-      ({ inputType }) => inputType !== InputType.Button && inputType !== InputType.Pbutton
-    );
+    return FormHelper.flattenConfigMap(this.config()).filter(({ inputType }) => inputType !== InputType.Pbutton);
   }
 
   get controls(): FieldConfig[] {
-    return FormHelper.getFieldConfigs(this.config()).filter(
-      ({ inputType }) => inputType !== InputType.Button && inputType !== InputType.Pbutton
-    );
+    return FormHelper.getFieldConfigs(this.config()).filter(({ inputType }) => inputType !== InputType.Pbutton);
   }
 
   get buttons(): FieldConfig[] {
     return FormHelper.getFieldConfigs(this.config()).filter(
-      (config) =>
-        !config.buttonInForm && (config.inputType === InputType.Button || config.inputType === InputType.Pbutton)
+      (config) => !config.buttonInForm && config.inputType === InputType.Pbutton
     );
   }
 
   get submitButton(): FieldConfig | undefined {
     return FormHelper.getFieldConfigs(this.config()).find(
-      (config) => (config.inputType === InputType.Button || config.inputType === InputType.Pbutton) && !config.buttonFN
+      (config) => config.inputType === InputType.Pbutton && !config.buttonFN
     );
   }
 
@@ -192,7 +186,8 @@ export class DynamicFormComponent implements OnDestroy {
     return this.form.valid;
   }
 
-  get value() {
+  /** Values of the enabled controls, nested by group; disabled controls are left out as in every reactive group. */
+  get values(): { [name: string]: any } {
     return this.form.value;
   }
 
@@ -256,47 +251,9 @@ export class DynamicFormComponent implements OnDestroy {
   }
 
   transferBusinessObjectToForm(sourceObject: any): void {
-    this.controlsFlatten.forEach((config) => {
-      const field = requireFieldName(config);
-      let value = config.defaultValue;
-
-      if (config.dataproperty) {
-        // field can not be used to access the input value
-        value = Helper.getValueByPath(sourceObject, config.dataproperty);
-      } else if (field in sourceObject) {
-        if (
-          config.dataType === DataType.DateNumeric ||
-          config.dataType === DataType.DateTimeNumeric ||
-          config.dataType === DataType.DateString
-        ) {
-          if (sourceObject[field]) {
-            value = Helper.parseDateOnlyAsLocal(sourceObject[field]);
-          }
-        } else if (
-          config.inputType === InputType.InputNumber &&
-          sourceObject[field] === 0 &&
-          config.inputNumberSettings?.treatZeroAsNull
-        ) {
-          value = null;
-        } else {
-          value = sourceObject[field];
-        }
-      }
-      if (config.inputType === InputType.Input && config.valueKeyHtmlOptions) {
-        // Mapping value to a shown value, this mapping is happened with valueKeyHtmlOptions
-        let valueKeyHtmlOption: ValueKeyHtmlSelectOptions | undefined;
-        if (!value) {
-          valueKeyHtmlOption = config.valueKeyHtmlOptions.find((valueKeyHtmlOptions) => '' === valueKeyHtmlOptions.key);
-        } else {
-          valueKeyHtmlOption = config.valueKeyHtmlOptions.find(
-            (valueKeyHtmlOptions) => value === valueKeyHtmlOptions.key
-          );
-        }
-        value = valueKeyHtmlOption?.value ?? value;
-      }
-
-      requireFormControl(config).setValue(value);
-    });
+    this.controlsFlatten.forEach((config) =>
+      requireFormControl(config).setValue(businessObjectFieldValue(config, sourceObject))
+    );
     this.notifier.notify();
   }
 
@@ -338,7 +295,7 @@ export class DynamicFormComponent implements OnDestroy {
   setDisableAll(disable: boolean) {
     const method = disable ? 'disable' : 'enable';
     FormHelper.flattenConfigMap(this.config()).forEach((fieldConfig) => {
-      if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
+      if (fieldConfig.inputType !== InputType.Pbutton) {
         requireFormControl(fieldConfig)[method]();
       }
       fieldConfig.disabled = disable;
@@ -360,8 +317,49 @@ export class DynamicFormComponent implements OnDestroy {
     this.notifier.notify();
   }
 
-  setValue(name: string, value: any) {
-    this.form.controls[name].setValue(value, { emitEvent: true });
+  /**
+   * Returns the configuration of a field or button of this form, also of one inside a field group.
+   *
+   * @param name - Field name
+   * @returns The configuration, undefined when the form has no field of that name
+   */
+  fieldConfig(name: string): FieldConfig | undefined {
+    return FormHelper.flattenConfigMap(this.config()).find((fieldConfig) => fieldConfig.field === name);
+  }
+
+  value(name: string): unknown {
+    return this.dataFieldConfig(name)?.formControl?.value;
+  }
+
+  setValue(name: string, value: unknown): void {
+    const fieldConfig = this.dataFieldConfig(name);
+    if (!fieldConfig) throw new Error(`Dynamic form has no field "${name}".`);
+    requireFormControl(fieldConfig).setValue(value, { emitEvent: true });
+  }
+
+  isFieldActive(name: string): boolean {
+    const fieldConfig = this.dataFieldConfig(name);
+    return !!fieldConfig && !fieldConfig.invisible && !!fieldConfig.formControl && !fieldConfig.formControl.disabled;
+  }
+
+  /**
+   * Applies the state to the FieldConfig of the button, which the reactive button components render; the
+   * FieldConfig is instrumented, so the form re-renders.
+   */
+  setButtonState(name: string, state: FormButtonState): void {
+    const button = this.fieldConfig(name);
+    if (!button || !isButton(button)) {
+      return;
+    }
+    if (state.disabled !== undefined) button.disabled = state.disabled;
+    if (state.loading !== undefined) button.groupItemUseOrLoading = state.loading;
+    if (state.invisible !== undefined) button.invisible = state.invisible;
+    if (state.labelKey !== undefined) button.labelKey = state.labelKey;
+  }
+
+  private dataFieldConfig(name: string): FieldConfig | undefined {
+    const fieldConfig = this.fieldConfig(name);
+    return fieldConfig && !isButton(fieldConfig) ? fieldConfig : undefined;
   }
 
   hasFieldset(): boolean {
@@ -388,6 +386,10 @@ export class DynamicFormComponent implements OnDestroy {
   helpLink(event: unknown): void {
     this.formConfig().helpLinkFN?.();
   }
+}
+
+function isButton(fieldConfig: FieldConfig): boolean {
+  return fieldConfig.inputType === InputType.Pbutton;
 }
 
 class FieldsetConfig {

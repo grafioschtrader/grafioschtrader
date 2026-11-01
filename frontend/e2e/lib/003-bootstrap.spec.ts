@@ -2,6 +2,34 @@ import { expect, test } from '@playwright/test';
 import { libHelpers } from './helpers';
 import { assertUnhandledErrorsReachAngular } from './bootstrap.assertions';
 
+test('login waits for its form definitions without initialization errors', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  let releaseDefinitions!: () => void;
+  const definitionsReady = new Promise<void>((resolve) => (releaseDefinitions = resolve));
+  const definitionsRequested = page.waitForRequest('**/api/globalparameters/userformdefinition');
+  await page.route('**/api/globalparameters/userformdefinition', async (route) => {
+    await definitionsReady;
+    await route.continue();
+  });
+  try {
+    await page.goto('/login');
+    await definitionsRequested;
+    await expect(page.locator('application-info')).toBeAttached();
+    await expect(page.locator('#email')).toHaveCount(0);
+    releaseDefinitions();
+    await expect(page.locator('#email')).toBeVisible();
+    await expect(page.locator('#password')).toBeVisible();
+    await expect(page.locator('button[type="submit"]')).toBeDisabled();
+    expect(errors).toEqual([]);
+  } finally {
+    releaseDefinitions();
+  }
+});
+
 test('unhandled browser errors reach Angular ErrorHandler', async ({ page }) => {
   await assertUnhandledErrorsReachAngular(page);
 });

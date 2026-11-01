@@ -139,39 +139,65 @@ export abstract class Helper {
     targetObject: any,
     createProperty = false
   ): void {
+    this.copyFieldValueToBusinessObject(config, requireFormControl(config).value, targetObject, createProperty);
+  }
+
+  /**
+   * Copies the value of one form field to a business object, converting it according to the data and input type of
+   * the field. Shared by the reactive and the signal dynamic form, so both transfer values identically.
+   *
+   * @param config - Configuration of the field
+   * @param value - Current value of the field
+   * @param targetObject - Object receiving the value
+   * @param createProperty - When true a property missing on the target is created, otherwise it is skipped
+   */
+  public static copyFieldValueToBusinessObject(
+    config: FieldConfig,
+    value: any,
+    targetObject: any,
+    createProperty = false
+  ): void {
     const field = requireFieldName(config);
     if (createProperty || field in targetObject) {
       if (config.referencedDataObject) {
-        targetObject[field] = this.getReferencedDataObject(config, field);
+        targetObject[field] = this.getReferencedDataObjectByValue(config, field, value);
       } else if (
         (config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger) &&
         config.inputType === InputType.Select &&
-        (requireFormControl(config).value == null || requireFormControl(config).value === '')
+        (value == null || value === '')
       ) {
         targetObject[field] = null;
       } else if (config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger) {
-        targetObject[field] = requireFormControl(config).value != null ? +requireFormControl(config).value : null;
+        targetObject[field] = value != null ? +value : null;
       } else if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateString) {
-        if (requireFormControl(config).value) {
-          this.formatDateString(config, targetObject, BaseSettings.FORMAT_DATE_SHORT_NATIVE);
-        } else {
-          targetObject[field] = null;
-        }
+        targetObject[field] = value ? this.formatDateValueAsString(value, BaseSettings.FORMAT_DATE_SHORT_NATIVE) : null;
       } else if (config.dataType === DataType.DateTimeNumeric) {
-        targetObject[field] = moment(requireFormControl(config).value).format('YYYY-MM-DDTHH:mm:ss');
+        targetObject[field] = moment(value).format('YYYY-MM-DDTHH:mm:ss');
       } else if (config.dataType === DataType.DateStringShortUS) {
-        this.formatDateString(config, targetObject, BaseSettings.FORMAT_DATE_SHORT_US);
-      } else if (config.inputType === InputType.TriStateCheckbox && requireFormControl(config).value == null) {
-        targetObject[field] = requireFormControl(config).value;
-      } else if (config.inputType === InputType.Checkbox && requireFormControl(config).value == null) {
+        targetObject[field] = this.formatDateValueAsString(value, BaseSettings.FORMAT_DATE_SHORT_US);
+      } else if (config.inputType === InputType.TriStateCheckbox && value == null) {
+        targetObject[field] = value;
+      } else if (config.inputType === InputType.Checkbox && value == null) {
         targetObject[field] = false;
       } else {
-        targetObject[field] = requireFormControl(config).value;
+        targetObject[field] = value;
       }
     }
   }
 
   public static getReferencedDataObject(fieldConfig: FieldConfig, keyProperty: string | null): any {
+    return this.getReferencedDataObjectByValue(fieldConfig, keyProperty, requireFormControl(fieldConfig).value);
+  }
+
+  /**
+   * Finds the referenced object whose key equals the value of a field.
+   *
+   * @param fieldConfig - Field holding the referenced objects and optionally the `dataproperty` path of the key
+   * @param keyProperty - Key property of the referenced objects when the field has no `dataproperty`
+   * @param value - Current value of the field
+   * @returns The referenced object, undefined when no object has that key
+   */
+  public static getReferencedDataObjectByValue(fieldConfig: FieldConfig, keyProperty: string | null, value: any): any {
     if (fieldConfig.dataproperty) {
       keyProperty = fieldConfig.dataproperty.substring(fieldConfig.dataproperty.indexOf('.') + 1);
     }
@@ -179,7 +205,7 @@ export abstract class Helper {
     if (keyProperty == null) throw new Error(`Referenced data for "${fieldConfig.field}" requires a key property.`);
     const key = keyProperty;
     return fieldConfig.referencedDataObject.filter(
-      (refObject: { [x: string]: number }) => refObject[key] === +requireFormControl(fieldConfig).value
+      (refObject: { [x: string]: number }) => refObject[key] === +value
     )[0];
   }
 
@@ -188,9 +214,18 @@ export abstract class Helper {
   }
 
   public static formatDateStringAsString(fieldConfig: FieldConfig, dateFormat: string): string | null {
-    return requireFormControl(fieldConfig).value && requireFormControl(fieldConfig).value.toString().trim().length > 0
-      ? moment(requireFormControl(fieldConfig).value).format(dateFormat)
-      : null;
+    return this.formatDateValueAsString(requireFormControl(fieldConfig).value, dateFormat);
+  }
+
+  /**
+   * Formats the value of a date field, null for an empty value.
+   *
+   * @param value - Date, date string or empty value of a calendar field
+   * @param dateFormat - moment format of the result
+   * @returns The formatted date, or null
+   */
+  public static formatDateValueAsString(value: any, dateFormat: string): string | null {
+    return value && value.toString().trim().length > 0 ? moment(value).format(dateFormat) : null;
   }
 
   /**

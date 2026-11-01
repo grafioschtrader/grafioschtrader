@@ -89,7 +89,7 @@ test.describe.serial("Create stockexchanges (e2e='e' rows from shared CSV)", () 
       await dialog.waitFor({ state: 'visible', timeout: 10_000 });
 
       // Leave the MIC p-dropdown at its default empty entry — MIC is optional and empty → null on save.
-      // The countryCode field stays enabled as long as MIC is empty (see disableEnableCountry()).
+      // The countryCode field stays enabled as long as MIC is empty, as defined by the signal-form rule.
 
       // name — native text input
       const nameInput = dialog.locator('input#name');

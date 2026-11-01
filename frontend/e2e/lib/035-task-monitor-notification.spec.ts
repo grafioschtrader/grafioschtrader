@@ -168,12 +168,12 @@ test.describe.serial('table and form notification on the batch processing monito
     await expect(startTimeRow.locator('.alert-danger:visible')).toHaveText(RX.required);
     await expect(submit).toBeDisabled();
 
-    // A start time in the next month, picked in the calendar, makes it valid once more.
+    // Pick an enabled day next month: a fixed mid-month date can exceed the 32-day scheduling window.
     await dialog.locator('#earliestStartTime button').click();
     const picker = page.locator('.p-datepicker-panel:visible').first();
     await picker.waitFor({ state: 'visible', timeout: 10_000 });
     await picker.locator('.p-datepicker-next-button').click();
-    await picker.locator('td:not(.p-datepicker-other-month) span', { hasText: /^15$/ }).first().click();
+    await picker.locator('td:not(.p-datepicker-other-month) span.p-datepicker-day:not(.p-disabled)').first().click();
     await page.keyboard.press('Escape');
     await expect(startTime).not.toHaveValue('');
     await expect(startTimeRow.locator('.alert-danger:visible')).toHaveCount(0);

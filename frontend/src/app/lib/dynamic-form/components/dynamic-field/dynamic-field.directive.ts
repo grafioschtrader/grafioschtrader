@@ -1,6 +1,5 @@
 import { ComponentRef, Directive, Type, ViewContainerRef, input, effect, untracked, inject } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
-import { FormButtonComponent } from '../form-button/form-button.component';
 import { FormInputComponent } from '../form-input/form-input.component';
 import { FieldFormFormGroupConfig } from '../../models/field.form.form.group.config';
 import { FieldConfig } from '../../models/field.config';
@@ -21,7 +20,6 @@ import { FormInputMultiSelectComponent } from '../form-input/form-input-multi-se
 import { FormInputTreeSelectComponent } from '../form-input/form-input-tree-select.component';
 
 const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
-  [InputType.Button]: FormButtonComponent,
   [InputType.Pbutton]: FormPButtonComponent,
   [InputType.Checkbox]: FormCheckboxComponent,
   [InputType.TriStateCheckbox]: FormTriStateCheckboxComponent,
