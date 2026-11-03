@@ -43,7 +43,7 @@
               "src/app/lib/styles.css"
             ],
             "scripts": ["node_modules/split.js/dist/split.js", "node_modules/reflect-metadata/Reflect.js"],
-            "allowedCommonJsDependencies": ["moment", "deepmerge", "angular2-uuid", "plotly.js"],
+            "allowedCommonJsDependencies": ["moment", "angular2-uuid", "plotly.js"],
             "browser": "src/main.ts"
           },
           "configurations": {
@@ -141,7 +141,7 @@
               "src/grafiosch-host/styles.css"
             ],
             "scripts": ["node_modules/split.js/dist/split.js", "node_modules/reflect-metadata/Reflect.js"],
-            "allowedCommonJsDependencies": ["moment", "deepmerge"]
+            "allowedCommonJsDependencies": ["moment"]
           },
           "configurations": {
             "development": {

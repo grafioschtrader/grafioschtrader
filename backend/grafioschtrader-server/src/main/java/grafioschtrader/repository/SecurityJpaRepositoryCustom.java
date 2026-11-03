@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import grafiosch.entities.User;
 import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SeasonalReturnsResult;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
@@ -52,6 +54,22 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * @return The list of securities with updated last prices.
    */
   List<Security> updateLastPriceByList(List<Security> securyties);
+
+  /**
+   * Updates the last price for a given list of securities after the caller has already refreshed some instruments.
+   * Every derived security is calculated after the instruments it links to: linked instruments that are neither in the
+   * list nor among the refreshed ones are updated first, without becoming part of the result, and derived securities
+   * built on derived securities are calculated in their dependency order.
+   *
+   * @param securities           the securities to update
+   * @param refreshedInstruments securities and currency pairs updated earlier in the same price update, for example the
+   *                             currency pairs of a watchlist or the instruments filled by a GTNet peer. They are not
+   *                             requested again, and the derived calculation uses these instances instead of the
+   *                             database copy, because a GTNet price is not persisted.
+   * @return the securities of the list with updated last prices, the non-derived ones first
+   */
+  List<Security> updateLastPriceByList(List<Security> securities,
+      Collection<? extends Securitycurrency<?>> refreshedInstruments);
 
   /**
    * Finds securities that are active on or after the specified date, also includes the private instruments. They are

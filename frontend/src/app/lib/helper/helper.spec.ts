@@ -69,6 +69,20 @@ describe('Helper.setValueByPath', () => {
     expect(obj.x).toBeDefined();
     expect(obj.x.y).toBe('val');
   });
+
+  it.each(['__proto__.polluted', 'constructor.prototype.polluted', 'a.__proto__.polluted'])(
+    'ignores the prototype path %s',
+    (path) => {
+      const obj: any = { a: {} };
+      try {
+        Helper.setValueByPath(obj, path, 'yes');
+        expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
+        expect(obj).toEqual({ a: {} });
+      } finally {
+        delete (Object.prototype as Record<string, unknown>)['polluted'];
+      }
+    }
+  );
 });
 
 describe('Helper.flattenObject', () => {

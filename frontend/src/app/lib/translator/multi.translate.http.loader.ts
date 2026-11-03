@@ -3,8 +3,8 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { SKIP_AUTH_HEADERS } from '../login/service/auth.http.interceptor';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
-import deepmerge from 'deepmerge';
 import { OPTIMUS_TRANSLATIONS } from './optimus.translations';
+import { mergeTranslations } from './merge.translations';
 
 export interface ITranslationResource {
   prefix: string;
@@ -44,7 +44,7 @@ export class MultiTranslateHttpLoader implements TranslateLoader {
     // Optimus UI's own widget texts are merged last so they cannot be shadowed; optimus.translations.ts explains why
     // they are kept on the client instead of being served by the backend.
     return forkJoin(requests).pipe(
-      map((response: Record<string, any>[]) => deepmerge.all([...response, OPTIMUS_TRANSLATIONS[language] ?? {}]))
+      map((response: Record<string, any>[]) => mergeTranslations(...response, OPTIMUS_TRANSLATIONS[language]))
     );
   }
 }

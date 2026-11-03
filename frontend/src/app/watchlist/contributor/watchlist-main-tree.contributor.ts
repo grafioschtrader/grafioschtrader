@@ -182,7 +182,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
         });
         menuItems.push({ separator: true });
         menuItems.push({
-          label: 'WATCHLIST_AS_PERFORMANCE' + BaseSettings.DIALOG_MENU_SUFFIX,
+          label: 'WATCHLIST_AS_PERFORMANCE',
           command: () => this.handleWatchlistForPerformance(selectedNodeData.idWatchlist)
         });
         break;

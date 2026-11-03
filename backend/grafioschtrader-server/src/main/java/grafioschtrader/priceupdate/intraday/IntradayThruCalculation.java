@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +97,31 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
    */
   @Override
   public Security updateLastPriceSecurityCurrency(Security security, short maxIntraRetry, int scIntradayUpdateTimeout) {
+    return updateLastPriceSecurityCurrency(security, maxIntraRetry, scIntradayUpdateTimeout, Map.of());
+  }
 
+  /**
+   * Calculates the intraday prices of derived securities from instruments the caller has refreshed in the same price
+   * update. The securities of one call must not depend on each other; a caller with derived instruments built on
+   * derived instruments calls this once per dependency level and adds each result to the refreshed instruments.
+   *
+   * @param securities           derived securities whose linked instruments are all up to date
+   * @param refreshedInstruments instruments updated earlier in this price update, keyed by id. Their instances are used
+   *                             instead of a database copy, which matters for prices that were never persisted, such as
+   *                             those received from a GTNet peer.
+   * @param singleThread         true to calculate on the calling thread
+   * @return the securities after the calculation, in the input order
+   */
+  public List<Security> updateLastPriceOfSecuritycurrency(List<Security> securities,
+      Map<Integer, ? extends Securitycurrency<?>> refreshedInstruments, boolean singleThread) {
+    final short maxIntraRetry = globalparametersService.getMaxIntraRetry();
+    final int scIntradayUpdateTimeout = globalparametersService.getSecurityCurrencyIntradayUpdateTimeout();
+    return updateEach(securities, security -> updateLastPriceSecurityCurrency(security, maxIntraRetry,
+        scIntradayUpdateTimeout, refreshedInstruments), singleThread);
+  }
+
+  private Security updateLastPriceSecurityCurrency(Security security, short maxIntraRetry, int scIntradayUpdateTimeout,
+      Map<Integer, ? extends Securitycurrency<?>> refreshedInstruments) {
     LocalDateTime now = LocalDateTime.now();
     if ((security.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
         && security.isActiveForIntradayUpdate(now.toLocalDate())
@@ -105,6 +130,7 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
 
       SecurityCurrencypairDerivedLinks scdl = securityDerivedLinkJpaRepository
           .getDerivedInstrumentsLinksForSecurity(security);
+      scdl.preferRefreshedInstruments(refreshedInstruments);
       Expression expression = new Expression(security.getFormulaPrices());
       List<VarNameLastPrice> varNameLastPrices = scdl.getLastPricesByLinks(security.getIdLinkSecuritycurrency());
       security.setRetryIntraLoad((short) (security.getRetryIntraLoad() + 1));

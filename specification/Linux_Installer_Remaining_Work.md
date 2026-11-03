@@ -1,7 +1,6 @@
 # Linux Installer — Remaining Work
 
-**Code baseline:** backend 0.38.2, highest versioned Flyway script
-`V0_38_2__correlation_set_include_dividends_and_hold_portfolio_indexes.sql`.
+**Code baseline:** backend 0.39.2, highest versioned Flyway script `V0_39_2__typed_null_globalparameters.sql`.
 
 **Scope:** the bootstrap installer for the classic (non-Docker) installation of Grafioschtrader on Debian and Ubuntu,
 `util/installer/`. Its behaviour is defined by the sources in `util/installer/src/`, the generated bundle
@@ -55,27 +54,28 @@ connection, a domain whose DNS records can be set, a second host for the proxy, 
 | `TLS_SOURCE=proxy` with the proxy on another machine | local vhost on the chosen port, `X-Forwarded-For` reaches the login lockout as the client address, registration link carries the public URL |
 | secrets with shell, SQL and properties special characters, once issue #274 is resolved | no value in `/var/log/grafioschtrader.log` |
 
-## 3. Debian package from the published repository
+## 3. Debian package upgrade from the published repository
 
 The package `grafioschtrader-installer`, its build and repository scripts in `util/installer/package/`, the
-`package` job of `installer.yml` and the release workflow `.github/workflows/apt.yml` define the package; the APT
-repository appears under `https://grafioschtrader.github.io/grafioschtrader/apt` with the first release published
-after them, because `apt.yml` runs only on a published release or on a `V<version>` tag that contains it. The
-repository secret `APT_SIGNING_KEY` holds the key whose public half is
-`util/installer/package/grafioschtrader-archive-keyring.asc`.
+`package` job of `installer.yml` and the release workflow `.github/workflows/apt.yml` define the package; `apt.yml`
+publishes it with every release to `https://grafioschtrader.github.io/grafioschtrader/apt`, and the repository holds
+only the package of the latest release. `.86` (Debian 12) and `.82` (Ubuntu 24.04) have the repository enrolled as
+`util/installer/README.md` describes, each with a completed installation and package version `0.39.2` installed
+from it.
 
-With that release:
+With the next published release:
 
-- confirm the `apt.yml` run green, including its container installation, and `apt/` on `gh-pages` beside the
-  Javadoc; the next Javadoc deployment must leave `apt/` in place;
-- enroll the published repository on `.86` (Debian 12) and `.82` (Ubuntu 24.04) exactly as `util/installer/README.md`
-  describes, install the package, run `sudo gt-install --check`, remove and purge it, and record the run in
-  `util/installer/test/README.md`; the upgrade is accepted with the release after that;
-- describe enrollment and `sudo gt-install` in the wiki page *Installation with the Linux installer*, then in the
-  gt-user-manual, in the publication order of §1.
+- confirm the `apt.yml` run green and `apt/` on `gh-pages` still in place after the Javadoc deployment of that
+  release;
+- on `.86` and `.82` run `sudo apt update` and `sudo apt install --only-upgrade grafioschtrader-installer`, compare
+  `/usr/sbin/gt-install` with the bundle of the new release tag, run `sudo gt-install --check` in a German session from
+  the administrator's home, remove and purge the package, and compare journal, secrets, unit, sudoers, logrotate, web
+  server sites, scripts, properties, jar and the service's main PID before and after; record the run in
+  `util/installer/test/README.md`.
 
-**Acceptance:** the package installs and upgrades from the published repository on Debian 12 and Ubuntu 24.04,
-`sudo gt-install --check` runs, and removing the package leaves an installed Grafioschtrader untouched.
+**Acceptance:** the package upgrades from the published repository on Debian 12 and Ubuntu 24.04 without output of
+the installation hint, `sudo gt-install --check` runs, and removing the package leaves an installed Grafioschtrader
+untouched.
 
 ## 4. Order
 
@@ -83,7 +83,7 @@ With that release:
 |---|---|---|
 | 1 | §1 CI on the Ubuntu 26 runner | `master` published; 2026-10-19 |
 | 2 | §2 Acceptance matrix | rows may start whenever hosts are available; real hosts need the published `master` |
-| 3 | §3 Debian package from the published repository | the next published release |
+| 3 | §3 Debian package upgrade from the published repository | the next published release |
 
 ## 5. Decisions
 

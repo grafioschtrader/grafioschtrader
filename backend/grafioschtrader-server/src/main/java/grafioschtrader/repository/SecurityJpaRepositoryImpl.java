@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -51,6 +52,7 @@ import grafioschtrader.dto.StatisticsSummary;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
+import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.priceupdate.ThruCalculationHelper;
@@ -61,6 +63,7 @@ import grafioschtrader.priceupdate.historyquote.HistoryquoteThruGTNet;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.priceupdate.intraday.IIntradayLoad;
+import grafioschtrader.priceupdate.intraday.IntradayDerivedDependencyUpdater;
 import grafioschtrader.priceupdate.intraday.IntradayThruCalculation;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
 import grafioschtrader.reports.InstrumentStatisticsSummary;
@@ -94,6 +97,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   private IHistoryquoteLoad<Security> historyquoteThruCalculation;
   private IIntradayLoad<Security> intradayThruCalculation;
+  private IntradayDerivedDependencyUpdater intradayDerivedDependencyUpdater;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -165,8 +169,11 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         securityDerivedLinkJpaRepository, globalparametersService, this);
     intradayThruConnector = new IntradayThruConnector<>(securityJpaRepository, globalparametersService,
         feedConnectorbeans, this, genericConnectorEndpointJpaRepository);
-    intradayThruCalculation = new IntradayThruCalculation<>(globalparametersService, securityJpaRepository,
-        securityDerivedLinkJpaRepository);
+    IntradayThruCalculation<Security> calculation = new IntradayThruCalculation<>(globalparametersService,
+        securityJpaRepository, securityDerivedLinkJpaRepository);
+    intradayThruCalculation = calculation;
+    intradayDerivedDependencyUpdater = new IntradayDerivedDependencyUpdater(intradayThruConnector, calculation,
+        securityJpaRepository, currencypairJpaRepository, securityDerivedLinkJpaRepository);
   }
 
   ////////////////////////////////////////////////////////////////
@@ -497,29 +504,26 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   public void updateAllLastPrices() {
     List<Security> securities = securityJpaRepository.findAll();
     LocalDate now = LocalDate.now();
-    List<Security> updatedSecurities = intradayThruConnector.updateLastPriceOfSecuritycurrency(securities.stream()
-        .filter(s -> !s.isDerivedInstrument() && !now.isAfter(s.getActiveToDate())
+    // Every derived security is part of the list, and the currency pairs were updated just before by the monitor
+    // task, so the linked instruments need no extra update; only the order of chained derived securities matters.
+    List<Security> updatedSecurities = intradayDerivedDependencyUpdater.updateLastPrices(securities.stream()
+        .filter(s -> s.isDerivedInstrument() || !now.isAfter(s.getActiveToDate())
             && !now.isBefore(s.getActiveFromDate())
             && s.getRetryIntraLoad() < globalparametersService.getMaxIntraRetry() && s.getIdConnectorIntra() != null)
-        .collect(Collectors.toList()), true);
-    List<Security> updatedDerived = intradayThruCalculation.updateLastPriceOfSecuritycurrency(
-        securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList()), true);
-    updatedSecurities.addAll(updatedDerived);
+        .collect(Collectors.toList()), List.of(), false, true);
     // Tier 1: evaluate simple alerts on freshly updated securities
     algoAlarmEvaluationService.evaluateSimpleAlerts(updatedSecurities);
   }
 
   @Override
   public List<Security> updateLastPriceByList(List<Security> securities) {
-    return updateLastPriceByList(securities, false);
+    return updateLastPriceByList(securities, List.of());
   }
 
-  private List<Security> updateLastPriceByList(List<Security> securities, boolean singleThread) {
-    List<Security> securitiesRc = intradayThruConnector.updateLastPriceOfSecuritycurrency(
-        securities.stream().filter(s -> !s.isDerivedInstrument()).collect(Collectors.toList()), singleThread);
-    securitiesRc.addAll(intradayThruCalculation.updateLastPriceOfSecuritycurrency(
-        securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList()), singleThread));
-    return securitiesRc;
+  @Override
+  public List<Security> updateLastPriceByList(List<Security> securities,
+      Collection<? extends Securitycurrency<?>> refreshedInstruments) {
+    return intradayDerivedDependencyUpdater.updateLastPrices(securities, refreshedInstruments, true, false);
   }
 
   @Override

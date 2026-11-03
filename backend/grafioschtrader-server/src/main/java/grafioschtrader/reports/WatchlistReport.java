@@ -331,15 +331,15 @@ public class WatchlistReport {
     final int[] securitiesIsUsedElsewhere = securitiesIsUsedElsewhereCF.join();
     final int[] currencypairIsUsedElsewhere = currencypairIsUsedElsewhereCF.join();
     final int[] watchlistSecurtiesTransaction = watchlistSecurtiesTransactionCF.join();
-    // One query for the dividends of all securities; built before the persistence context is cleared.
+    // Clear persistence context to avoid stale entity conflicts after async price updates.
+    // The async operations may have modified Security/Currencypair entities in separate transactions,
+    // causing version mismatches when this transaction's context tries to flush. This must precede
+    // the dividend query as well: native queries can auto-flush the stale managed instruments.
+    entityManager.clear();
+
     final TotalReturnAdjuster totalReturnAdjuster = includeDividends
         ? TotalReturnAdjuster.load(dividendJpaRepository, securityCurrency.securities, LocalDate.now())
         : TotalReturnAdjuster.none();
-
-    // Clear persistence context to avoid stale entity conflicts after async price updates.
-    // The async operations may have modified Security/Currencypair entities in separate transactions,
-    // causing version mismatches when this transaction's context tries to flush.
-    entityManager.clear();
 
     // Reload entities after clearing context since they were detached
     final Watchlist reloadedWatchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
@@ -728,9 +728,9 @@ public class WatchlistReport {
 
   /**
    * Determines for every position how many trading sessions of its own exchange went by without the shown price being
-   * renewed, and how many sessions are missing after the youngest historical price. Securities are measured against
-   * the calendar of their stock exchange, currency pairs against the worldwide calendar, because a foreign exchange
-   * rate belongs to no exchange. Must run after the youngest history date of the positions was set.
+   * renewed, and how many sessions are missing after the youngest historical price. Securities are measured against the
+   * calendar of their stock exchange, currency pairs against the worldwide calendar, because a foreign exchange rate
+   * belongs to no exchange. Must run after the youngest history date of the positions was set.
    *
    * @param securityPositions     the securities of the watchlist
    * @param currencypairPositions the currency pairs of the watchlist
@@ -749,7 +749,8 @@ public class WatchlistReport {
       position.staleTradingSessions = priceFreshnessService.sessionsBehind(sessions, priceDate(position), today);
       if (security.getIdConnectorHistory() != null || security.isDerivedInstrument()) {
         position.missingEodSessions = priceFreshnessService.sessionsMissed(sessions, position.youngestHistoryDate,
-            priceFreshnessService.expectedEodSession(sessions, security.getStockexchange(), security.getActiveToDate()));
+            priceFreshnessService.expectedEodSession(sessions, security.getStockexchange(),
+                security.getActiveToDate()));
       }
     });
     if (!currencypairPositions.isEmpty()) {

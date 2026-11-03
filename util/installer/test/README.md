@@ -356,6 +356,21 @@ apt 2.6.1, dpkg 1.21.23). On both, `0.0.1` installed without pulling other packa
 exited 0 with `host.class=completed`, and journal, secrets, unit, sudoers, logrotate, scripts, jar, nginx sites and
 the service's main PID were unchanged after install, upgrade, check, remove and purge.
 
+Published-repository run on 2026-11-03 on the same two hosts, each with a completed installation, enrolled exactly as
+`util/installer/README.md` describes from `https://grafioschtrader.github.io/grafioschtrader/apt` (release `V0.39.2`,
+application commit `fa38e17d7a`, package `0.39.2`, bundle SHA-256
+`edd17c821340a7763c0dd125d16c8657feb181930f21f00768140b94838ad56f`): `.82` (Raspberry Pi 5, Ubuntu 24.04.5 arm64,
+kernel `6.8.0-1065-raspi`, apt 2.8.3, dpkg 1.22.6; installation behind Caddy with `WEBSERVER=none`) and `.86`
+(ROCK 5B, Debian 12 arm64, kernel `6.1.84-8-rk2410`, apt 2.6.1, dpkg 1.21.23; nginx with Let's Encrypt). On both the
+downloaded key showed fingerprint `E7CE3038730CDC85EF13851F00AC7AB82A787ABA`, `apt-get update` fetched the signed
+`InRelease`, the package installed without pulling other packages and printed the hint for a completed installation,
+`/usr/sbin/gt-install` (`root:root 755`) equalled the bundle of the release tag, and `gt-install --check` in a German
+session from the administrator's home exited 0 with `host.class=completed`. The SHA-256 of journal, secrets, unit,
+sudoers, logrotate, web server sites, scripts, properties and jar (26 files on `.82`, 33 on `.86`) and the service's
+main PID were unchanged after install, check, remove and purge; the service stayed active. The repository stays
+enrolled and package `0.39.2` installed on both hosts, so the next release is accepted as an upgrade from the
+published repository.
+
 ## nginx routing and rollback
 
 `web.bats` checks effective include handling, name/listener conflicts, target ownership, managed-file drift,

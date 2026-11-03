@@ -105,19 +105,40 @@ export abstract class Helper {
     }
   };
 
+  /**
+   * Sets a value at a dot-separated property path, creating missing intermediate objects.
+   *
+   * A path containing `__proto__`, `constructor` or `prototype` is ignored as a whole, so the assignment can never
+   * reach or replace an object's prototype.
+   *
+   * @param data - The object to write into
+   * @param path - The property path, for example `security.name`
+   * @param value - The value to assign at the last path segment
+   */
   public static setValueByPath(data: any, path: string, value: any) {
-    let schema = data;
     const pList = path.split('.');
+    for (const elem of pList) {
+      if (elem === '__proto__' || elem === 'constructor' || elem === 'prototype') {
+        return;
+      }
+    }
+    // The checks below repeat the one above at each write, where static analysis recognises them as a guard.
+    let schema = data;
     const len = pList.length;
     for (let i = 0; i < len - 1; i++) {
       const elem = pList[i];
+      if (elem === '__proto__' || elem === 'constructor' || elem === 'prototype') {
+        return;
+      }
       if (!schema[elem]) {
         schema[elem] = {};
       }
       schema = schema[elem];
     }
-
-    schema[pList[len - 1]] = value;
+    const last = pList[len - 1];
+    if (last !== '__proto__' && last !== 'constructor' && last !== 'prototype') {
+      schema[last] = value;
+    }
   }
 
   /** @see ValueFormatHelper.getValueByPath */

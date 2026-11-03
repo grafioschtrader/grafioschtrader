@@ -1,6 +1,6 @@
 {
   "name": "grafioschtrader-client",
-  "version": "0.39.2",
+  "version": "0.39.2.1",
   "license": "Apache-2.0",
   "scripts": {
     "postinstall": "node scripts/fix-optimus-menubar-tracking.mjs",
@@ -53,7 +53,6 @@
     "bootstrap": "^5.3.3",
     "class-transformer": "^0.5.1",
     "copee": "^1.0.6",
-    "deepmerge": "^4.2.2",
     "flag-icons": "^6.6.6",
     "font-awesome": "^4.7.0",
     "js-yaml": "^4.1.1",

@@ -38,6 +38,7 @@ import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
@@ -138,19 +139,28 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     if (!globalparametersJpaRepository.isGTNetOperational()
         || !gtNetJpaRepository.existsExchangePeerByEntityKind(GTNetExchangeKindType.LAST_PRICE.getValue())) {
       // GTNet unusable - fall back to connectors only
-      currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
-      return new SecurityCurrency(securityJpaRepository.updateLastPriceByList(securities),
-          currencypairJpaRepository.updateLastPriceByList(currencypairs));
+      return updateThroughConnectors(securities, currencypairs, currenciesNotInList);
     }
 
     try {
       return executeGTNetExchange(securities, currencypairs, currenciesNotInList);
     } catch (Exception e) {
       log.error("GTNet exchange failed, falling back to connectors only", e);
-      currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
-      return new SecurityCurrency(securityJpaRepository.updateLastPriceByList(securities),
-          currencypairJpaRepository.updateLastPriceByList(currencypairs));
+      return updateThroughConnectors(securities, currencypairs, currenciesNotInList);
     }
+  }
+
+  /**
+   * Updates all instruments through their connectors. The currency pairs come first, because derived securities may
+   * be calculated from them.
+   */
+  private SecurityCurrency updateThroughConnectors(List<Security> securities, List<Currencypair> currencypairs,
+      List<Currencypair> currenciesNotInList) {
+    List<Currencypair> refreshed = new ArrayList<>(
+        currencypairJpaRepository.updateLastPriceByList(currenciesNotInList));
+    List<Currencypair> updatedPairs = currencypairJpaRepository.updateLastPriceByList(currencypairs);
+    refreshed.addAll(updatedPairs);
+    return new SecurityCurrency(securityJpaRepository.updateLastPriceByList(securities, refreshed), updatedPairs);
   }
 
   private SecurityCurrency executeGTNetExchange(List<Security> securities, List<Currencypair> currencypairs,
@@ -258,11 +268,17 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     log.info("GTNet exchange complete: {} securities remaining for connector, {} currency pairs remaining",
         remainingSecurities.size(), remainingPairs.size());
 
-    // 7. Fall back to connectors for remaining instruments
+    // 7. Fall back to connectors for remaining instruments. Currency pairs come first, and every instrument refreshed
+    // so far is handed to the security update, so that derived securities are calculated from current prices. A price
+    // filled by GTNet exists only on its instance, which therefore replaces the database copy in the calculation.
     stepStart = System.nanoTime();
-    currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
-    List<Security> updatedSecurities = securityJpaRepository.updateLastPriceByList(remainingSecurities);
+    List<Securitycurrency<?>> refreshed = new ArrayList<>(
+        currencypairJpaRepository.updateLastPriceByList(currenciesNotInList));
     List<Currencypair> updatedPairs = currencypairJpaRepository.updateLastPriceByList(remainingPairs);
+    refreshed.addAll(updatedPairs);
+    refreshed.addAll(gtNetInstruments.getFilledCurrencypairs());
+    refreshed.addAll(gtNetInstruments.getFilledSecurities());
+    List<Security> updatedSecurities = securityJpaRepository.updateLastPriceByList(remainingSecurities, refreshed);
     log.debug("Step 7 - Connector fallback: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
 
     // 8. If local server is AC_PUSH_OPEN, update push pool with connector-fetched prices

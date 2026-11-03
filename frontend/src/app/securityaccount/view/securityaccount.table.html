@@ -21,6 +21,7 @@
     </div>
     }
     <p-table
+      #positionsTable
       [loading]="dataLoading()"
       [(contextMenuSelection)]="selectedSecurityPositionSummary"
       [(selection)]="selectedSecurityPositionSummary"
@@ -100,7 +101,8 @@
         </tr>
       </ng-template>
 
-      <ng-template #body let-columns="fields" let-el let-expanded="expanded" let-rowIndex="rowIndex">
+      <ng-template #body let-columns="fields" let-el let-rowIndex="rowIndex">
+        @let expanded = positionsTable.isRowExpanded(el);
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <td>
             @if (!el.comparisonOnly) {
@@ -138,7 +140,32 @@
           </td>
           } }
         </tr>
-        @if (groupChangeIndexMap.get(rowIndex)) {
+        <!-- Keep details inside the body so the group's total follows its last expanded position. -->
+        @if (expanded && !el.comparisonOnly) {
+        <tr>
+          <td [attr.colspan]="numberOfVisibleColumns + 1">
+            @if (!!el.security.stockexchange && !isMarginProduct(el.security)) {
+            <transaction-security-table
+              (dateChanged)="transactionDataChanged($event)"
+              [idPortfolio]="idPortfolio"
+              [idSecuritycurrency]="el.security.idSecuritycurrency"
+              [idTenant]="idTenant"
+              [idsSecurityaccount]="securityAccount?.idSecuritycashAccount == null ? [] : [securityAccount.idSecuritycashAccount]" />
+            } @if (!!el.security.stockexchange && isMarginProduct(el.security)) {
+            <transaction-security-margin-treetable
+              (dateChanged)="transactionDataChanged($event)"
+              [idPortfolio]="idPortfolio"
+              [idSecuritycurrency]="el.security.idSecuritycurrency"
+              [idTenant]="idTenant"
+              [idsSecurityaccount]="securityAccount?.idSecuritycashAccount == null ? [] : [securityAccount.idSecuritycashAccount]" />
+            } @if (!el.security.stockexchange) {
+            <transaction-cashaccount-table
+              (dateChanged)="transactionDataChanged($event)"
+              [idSecuritycashAccount]="el.security.idSecuritycurrency * -1" />
+            }
+          </td>
+        </tr>
+        } @if (groupChangeIndexMap.get(rowIndex)) {
         <tr class="rowgroup-total">
           <td></td>
           @for (field of groupFields; track field) { @if (field.visible) {
@@ -184,34 +211,6 @@
           </td>
           } }
         </tr>
-      </ng-template>
-
-      <ng-template #expandedrow let-columns="fields" let-securityPositionAll>
-        @if (!securityPositionAll.comparisonOnly) {
-        <tr>
-          <td [attr.colspan]="numberOfVisibleColumns + 1">
-            @if (!!securityPositionAll.security.stockexchange && !isMarginProduct(securityPositionAll.security)) {
-            <transaction-security-table
-              (dateChanged)="transactionDataChanged($event)"
-              [idPortfolio]="idPortfolio"
-              [idSecuritycurrency]="securityPositionAll.security.idSecuritycurrency"
-              [idTenant]="idTenant"
-              [idsSecurityaccount]="securityAccount?.idSecuritycashAccount == null ? [] : [securityAccount.idSecuritycashAccount]" />
-            } @if (!!securityPositionAll.security.stockexchange && isMarginProduct(securityPositionAll.security)) {
-            <transaction-security-margin-treetable
-              (dateChanged)="transactionDataChanged($event)"
-              [idPortfolio]="idPortfolio"
-              [idSecuritycurrency]="securityPositionAll.security.idSecuritycurrency"
-              [idTenant]="idTenant"
-              [idsSecurityaccount]="securityAccount?.idSecuritycashAccount == null ? [] : [securityAccount.idSecuritycashAccount]" />
-            } @if (!securityPositionAll.security.stockexchange) {
-            <transaction-cashaccount-table
-              (dateChanged)="transactionDataChanged($event)"
-              [idSecuritycashAccount]="securityPositionAll.security.idSecuritycurrency * -1" />
-            }
-          </td>
-        </tr>
-        }
       </ng-template>
     </p-table>
     @if (isActivated() && contextMenuItems) {

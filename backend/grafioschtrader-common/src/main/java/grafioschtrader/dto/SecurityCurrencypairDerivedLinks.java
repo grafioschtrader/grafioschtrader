@@ -4,12 +4,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import grafioschtrader.common.DateBusinessHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
+import grafioschtrader.entities.Securitycurrency;
 
 public class SecurityCurrencypairDerivedLinks {
 
@@ -59,6 +62,26 @@ public class SecurityCurrencypairDerivedLinks {
       }
     }
     return sLast;
+  }
+
+  /**
+   * Replaces loaded linked instruments by the instances the caller refreshed in the same price update. A price that
+   * came from a GTNet peer exists only on that instance and was never written to the database, and an instrument
+   * updated a moment ago may not be visible to the read that filled this object, so the database copy would be stale.
+   *
+   * @param refreshedInstruments the freshly updated instruments keyed by their id; an id without a loaded counterpart
+   *                             is ignored
+   */
+  public void preferRefreshedInstruments(Map<Integer, ? extends Securitycurrency<?>> refreshedInstruments) {
+    if (refreshedInstruments.isEmpty()) {
+      return;
+    }
+    securities = securities.stream().map(s -> refreshedInstruments.get(s.getIdSecuritycurrency()) instanceof Security r
+        ? r
+        : s).collect(Collectors.toList());
+    currencypairs = currencypairs.stream()
+        .map(c -> refreshedInstruments.get(c.getIdSecuritycurrency()) instanceof Currencypair r ? r : c)
+        .collect(Collectors.toList());
   }
 
   public LocalDateTime getNewestIntradayTimestamp() {

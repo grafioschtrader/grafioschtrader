@@ -2,6 +2,7 @@ package grafioschtrader.priceupdate.intraday;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import grafioschtrader.GlobalConstants;
@@ -120,27 +121,37 @@ public abstract class BaseIntradayThru<S extends Securitycurrency<S>> extends Ba
   public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, final short maxIntraRetry,
       boolean singleThread) {
     final int scIntradayUpdateTimeout = globalparametersService.getSecurityCurrencyIntradayUpdateTimeout();
+    return updateEach(securtycurrencies,
+        securitycurrency -> updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry, scIntradayUpdateTimeout),
+        singleThread);
+  }
+
+  /**
+   * Applies an update to every entity of a batch, sequentially or in the ForkJoinPool, and returns the results in the
+   * input order.
+   *
+   * @param securtycurrencies the entities to update
+   * @param update            the update of a single entity, returning the entity that replaces it
+   * @param singleThread      true to process the entities one after the other on the calling thread
+   * @return the updated entities in the order of the input list
+   */
+  protected List<S> updateEach(final List<S> securtycurrencies, final UnaryOperator<S> update,
+      final boolean singleThread) {
     final List<S> securtycurrenciesUpd = new ArrayList<>();
     if (securtycurrencies.size() > 1) {
       if (singleThread) {
-        securtycurrencies.forEach(securitycurrency -> {
-          securtycurrenciesUpd
-              .add(updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry, scIntradayUpdateTimeout));
-        });
+        securtycurrencies.forEach(securitycurrency -> securtycurrenciesUpd.add(update.apply(securitycurrency)));
       } else {
         // Collect inside the stream rather than adding to the shared list from every worker: ArrayList is not
         // thread-safe, so concurrent add() could drop entries or throw. The single addAll runs on the submitting
         // thread and executeForkJoinPool blocks on get(), which supplies the required happens-before edge.
         ThreadHelper.executeForkJoinPool(
-            () -> securtycurrenciesUpd.addAll(securtycurrencies.parallelStream()
-                .map(securitycurrency -> updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry,
-                    scIntradayUpdateTimeout))
-                .collect(Collectors.toList())),
+            () -> securtycurrenciesUpd
+                .addAll(securtycurrencies.parallelStream().map(update).collect(Collectors.toList())),
             GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
       }
     } else if (securtycurrencies.size() == 1) {
-      securtycurrenciesUpd
-          .add(updateLastPriceSecurityCurrency(securtycurrencies.getFirst(), maxIntraRetry, scIntradayUpdateTimeout));
+      securtycurrenciesUpd.add(update.apply(securtycurrencies.getFirst()));
     }
     return securtycurrenciesUpd;
   }

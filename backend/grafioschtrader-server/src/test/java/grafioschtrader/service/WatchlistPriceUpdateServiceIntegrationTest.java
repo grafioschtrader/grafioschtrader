@@ -7,6 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -24,12 +25,18 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import grafioschtrader.entities.Assetclass;
+import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reports.WatchlistReport;
 import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.rest.GTIntegrationTestContext;
 import grafioschtrader.service.GTNetLastpriceService.SecurityCurrency;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.DistributionFrequency;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.types.TenantKindType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -53,6 +60,7 @@ class WatchlistPriceUpdateServiceIntegrationTest {
 
   private Integer idTenant;
   private Integer idWatchlist;
+  private Integer idSecurity;
   private TransactionTemplate transaction;
   private final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
 
@@ -73,8 +81,13 @@ class WatchlistPriceUpdateServiceIntegrationTest {
   @AfterEach
   void removeWatchlist() {
     transaction.executeWithoutResult(_ -> {
+      em.find(Watchlist.class, idWatchlist).getSecuritycurrencyList().clear();
+      em.flush();
       em.createQuery("DELETE FROM Watchlist w WHERE w.idWatchlist = :id").setParameter("id", idWatchlist)
           .executeUpdate();
+      if (idSecurity != null) {
+        em.remove(em.find(Security.class, idSecurity));
+      }
       em.createQuery("DELETE FROM Tenant t WHERE t.idTenant = :id").setParameter("id", idTenant).executeUpdate();
     });
   }
@@ -185,5 +198,43 @@ class WatchlistPriceUpdateServiceIntegrationTest {
 
   private LocalDateTime storedTimestamp() {
     return transaction.execute(_ -> watchlists.findByIdWatchlistAndIdTenant(idWatchlist, idTenant).getLastTimestamp());
+  }
+
+  @Test
+  @DisplayName("Dividend-inclusive report does not flush instruments changed by the asynchronous price writer")
+  void dividendsAfterAsyncPriceUpdate() {
+    transaction.executeWithoutResult(_ -> {
+      Assetclass assetclass = em.createQuery("SELECT a FROM Assetclass a", Assetclass.class).getResultStream()
+          .filter(a -> a.getCategoryType() == AssetclassType.EQUITIES
+              && a.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT)
+          .findFirst().orElseThrow();
+      Stockexchange exchange = em.createQuery("SELECT s FROM Stockexchange s", Stockexchange.class).setMaxResults(1)
+          .getSingleResult();
+      Security security = new Security("Watchlist dividend flush test", "CHF", assetclass, exchange,
+          LocalDate.of(2020, 1, 1), LocalDate.of(2099, 12, 31), DistributionFrequency.DF_YEAR, null, null);
+      security.setSLast(100.0);
+      security.setLeverageFactor(1.0f);
+      em.persist(security);
+      idSecurity = security.getId();
+      em.find(Watchlist.class, idWatchlist).setSecuritycurrencyList(List.of(security));
+    });
+    when(prices.updateLastpriceIncludeSupplier(anyList(), anyList(), anyList())).thenAnswer(invocation -> {
+      List<Security> securities = invocation.getArgument(0);
+      // The provider changes the request's instrument and commits its price in a separate persistence context.
+      securities.getFirst().setSLast(110.0);
+      securities.getFirst().setSTimestamp(now);
+      transaction.executeWithoutResult(_ -> {
+        Security stored = em.find(Security.class, idSecurity);
+        stored.setSLast(110.0);
+        stored.setSTimestamp(now);
+      });
+      return new SecurityCurrency(securities, List.of());
+    });
+
+    var result = report.getWatchlistwithPeriodPerformance(idWatchlist, idTenant, 30, true);
+    assertThat(result.securityPositionList).hasSize(1);
+    assertThat(result.securityPositionList.getFirst().securitycurrency.getSLast()).isEqualTo(110.0);
+    Double storedPrice = transaction.execute(_ -> em.find(Security.class, idSecurity).getSLast());
+    assertThat(storedPrice).isEqualTo(110.0);
   }
 }
