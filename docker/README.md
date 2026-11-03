@@ -5,9 +5,12 @@ automatic HTTPS — with a few commands. No Java, Node.js, Maven or web server
 setup required. Works on x86-64 servers and on a Raspberry Pi 4/5 (64-bit OS,
 ARM64) alike.
 
+This file is the complete reference. The compact guide for installing, updating
+and removing an installation is the wiki page [Grafioschtrader with
+Docker](https://github.com/grafioschtrader/grafioschtrader/wiki/Grafioschtrader-with-Docker).
 For an overview of the containers, their communication paths and the locations
 of persistent data and configuration, see [Docker Architecture in the
-Grafioschtrader user manual](https://grafioschtrader.github.io/gt-user-manual/en/intro/installationupdate/easyinstall/dockerarchitecture/index.html).
+Grafioschtrader user manual](https://grafioschtrader.github.io/gt-user-manual/en/intro/installationupdate/easyinstall/dockerarchitecture/).
 
 ## Quickstart
 
@@ -44,9 +47,12 @@ The installer asks for:
 | Question | Meaning |
 |----------|---------|
 | Domain (optional) | With a domain you get automatic HTTPS via Let's Encrypt. Without one, GT runs on plain HTTP in your local network. |
+| LAN address (with a domain) | Adds a second, plain HTTP site at this address, see [Internet-reachable with automatic HTTPS](#internet-reachable-with-automatic-https). `-` for none. |
 | DuckDNS (optional) | For home servers: explicitly select IPv4, IPv6 or both; alternatively keep an existing updater. |
+| Host ports (only if taken) | Without a domain, alternative host ports when 80/443 are occupied; see [custom ports](#running-alongside-another-web-server-custom-ports). |
 | Admin email | The user who registers with this address receives admin rights. |
 | SMTP (recommended) | Registration sends a confirmation email — without SMTP new users cannot finish registering. |
+| Maximum number of users | `GT_ALLOWED_USERS`, default 20. |
 
 Database passwords and the JWT secret are generated automatically and stored in
 `.env` (readable only by your user). **Jasypt encryption is not needed** — the
@@ -258,7 +264,9 @@ warning, when
   RAs in userspace and leave the kernel's `accept_ra` at `0`.
 
 `GT_CONTAINER_IPV6=off` in `.env` keeps the containers IPv4-only. To undo the
-change, delete the override file and run `docker compose down && docker compose up -d`.
+change, set `GT_CONTAINER_IPV6=off` in `.env` — otherwise the next `update.sh`
+writes the file again — delete the override file and run
+`docker compose down && docker compose up -d`.
 
 Confirm that the container really has IPv6 and reaches your own domain through
 it:

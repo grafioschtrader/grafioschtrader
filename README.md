@@ -42,9 +42,9 @@ With GT version 0.36.1 we have switched to **Java 25** from **Java 21**. Please 
 For questions or suggestions please visit the [forum](//www.grafioschtrader.info/forums/), German and English language are welcome.
 
 ## Installation and Development
-The easiest way to run your own instance is the **Docker installation** — one interactive script sets up the database, backend and web server with automatic HTTPS (Let's Encrypt), including Raspberry Pi and DuckDNS support. See [docker/README.md](./docker/README.md).
+The easiest way to run your own instance is the **Docker installation** — one interactive script sets up the database, backend and web server with automatic HTTPS (Let's Encrypt), including Raspberry Pi and DuckDNS support. Start with [Grafioschtrader with Docker](//github.com/grafioschtrader/grafioschtrader/wiki/Grafioschtrader-with-Docker) in the wiki; [docker/README.md](./docker/README.md) is the complete reference.
 
-For the classic manual installation and for supporting the development go to the [wiki of GT](//github.com/grafioschtrader/grafioschtrader/wiki).
+For the Linux installer, the classic manual installation and for supporting the development go to the [wiki of GT](//github.com/grafioschtrader/grafioschtrader/wiki).
 <p align="center">
     <a href="https://grafioschtrader.github.io/gt-user-manual/de/Komponenten.svg" target="_blank">
         <img src="https://grafioschtrader.github.io/gt-user-manual/de/Komponenten.svg">
