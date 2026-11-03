@@ -1,17 +1,17 @@
 Package: grafioschtrader-installer
 Architecture: all
-Version: 0.39.2
+Version: 0.39.2.1
 Priority: optional
 Section: admin
 Maintainer: hugograf <hg@hugograf.com>
 Installed-Size: 456
 Depends: bash, curl, git, sudo, logrotate, ca-certificates
-Filename: pool/main/g/grafioschtrader-installer/grafioschtrader-installer_0.39.2_all.deb
-Size: 101396
-MD5sum: 6be54773a1a9b96132aa84e8ff289a1b
-SHA1: a898d93dba2dd8a1e82dbd16bc500a6ab282d01e
-SHA256: c07e4754a7fa3a79863d65390ab9291068de8ccd63eb14ff98847bec169ca3f3
-SHA512: 7a38dc81d89a358d83d1cef8839a66f45f88601f6b90466da6364820879358cf6da9fe0a128e21ad31ffbd3e29ee4b60d28b5dcce3e04180cb669cc52fcded58
+Filename: pool/main/g/grafioschtrader-installer/grafioschtrader-installer_0.39.2.1_all.deb
+Size: 101392
+MD5sum: 9e10177ecccf3ef794935d9bf3e96f83
+SHA1: 3a69f67e67edc40320867dc92a268bf6cd559cae
+SHA256: f941d40635a1547200693f2fef7d23d8250e399f4c2e1d74ec88736d90600c8d
+SHA512: 1ba668bef77a54a4df4bf84a615264933a9024ee51f22f283ee3df9358c94de74ffae92391dbc53c5c0d688d9c8afbb11988f2a90eb22600064616cf208a86c0
 Homepage: https://github.com/grafioschtrader/grafioschtrader
 Description: installer for a classic Grafioschtrader installation
  Provides the command gt-install, the bootstrap installer of Grafioschtrader for Debian and Ubuntu. It inventories
