@@ -19,9 +19,9 @@
 'UTF-8'
 -Xdoclint:all,-missing
 -doctitle
-'grafioschtrader 0.39.2 API'
+'grafioschtrader 0.39.2.1 API'
 -notimestamp
 -use
 -version
 -windowtitle
-'grafioschtrader 0.39.2 API'
+'grafioschtrader 0.39.2.1 API'
