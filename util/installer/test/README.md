@@ -367,9 +367,18 @@ downloaded key showed fingerprint `E7CE3038730CDC85EF13851F00AC7AB82A787ABA`, `a
 `/usr/sbin/gt-install` (`root:root 755`) equalled the bundle of the release tag, and `gt-install --check` in a German
 session from the administrator's home exited 0 with `host.class=completed`. The SHA-256 of journal, secrets, unit,
 sudoers, logrotate, web server sites, scripts, properties and jar (26 files on `.82`, 33 on `.86`) and the service's
-main PID were unchanged after install, check, remove and purge; the service stayed active. The repository stays
-enrolled and package `0.39.2` installed on both hosts, so the next release is accepted as an upgrade from the
-published repository.
+main PID were unchanged after install, check, remove and purge; the service stayed active.
+
+Published-repository upgrade on 2026-11-03 on the same two hosts after release `V0.39.2.1` (application commit
+`3141eb095d`, package `0.39.2.1`, bundle unchanged since `V0.39.2`, SHA-256
+`edd17c821340a7763c0dd125d16c8657feb181930f21f00768140b94838ad56f`): the `apt.yml` run was green, and the published
+index still served the package after the Javadoc deployment of that release. On both hosts `apt-get update` offered
+`0.39.2.1` as candidate for the installed `0.39.2`, `apt-get install --only-upgrade grafioschtrader-installer`
+upgraded only that package and printed no installation hint, `/usr/sbin/gt-install` (`root:root 755`) equalled the
+bundle of the release tag, and `gt-install --check` in a German session from the administrator's home (`/home/hugo`,
+`/home/rock`) exited 0 with `host.class=completed`. The same 26 and 33 files and the service's main PID were unchanged
+after upgrade, check, remove and purge; the service stayed active. Package `0.39.2.1` was installed again from the
+repository afterwards and stays enrolled on both hosts.
 
 ## nginx routing and rollback
 

@@ -1,14 +1,14 @@
 # Linux Installer — Remaining Work
 
-**Code baseline:** backend 0.39.2, highest versioned Flyway script `V0_39_2__typed_null_globalparameters.sql`.
+**Code baseline:** backend 0.39.2.1, highest versioned Flyway script `V0_39_2__typed_null_globalparameters.sql`.
 
 **Scope:** the bootstrap installer for the classic (non-Docker) installation of Grafioschtrader on Debian and Ubuntu,
 `util/installer/`. Its behaviour is defined by the sources in `util/installer/src/`, the generated bundle
 `util/installer/gt-install.sh` and [`util/installer/README.md`](../util/installer/README.md); the acceptance record
 lives in [`util/installer/test/README.md`](../util/installer/test/README.md), the administrator documentation in the
 wiki page *Installation with the Linux installer*, linked from the gt-user-manual page *Installation and Update*. This
-document fixes the remaining work packages and the order in which they are done (§1–§3). Each package ends with its
-acceptance; a package starts only after the one before it is committed, except where §4 allows otherwise.
+document fixes the remaining work packages and the order in which they are done (§1–§2). Each package ends with its
+acceptance; a package starts only after the one before it is committed, except where §3 allows otherwise.
 
 Supported platforms stay as the installer reports them: primary are Debian 12, Debian 13, Ubuntu 24.04 and Ubuntu
 26.04 (including Raspberry Pi OS and Armbian on these bases) on amd64 and arm64; legacy is Ubuntu 22.04 on amd64 and
@@ -54,38 +54,14 @@ connection, a domain whose DNS records can be set, a second host for the proxy, 
 | `TLS_SOURCE=proxy` with the proxy on another machine | local vhost on the chosen port, `X-Forwarded-For` reaches the login lockout as the client address, registration link carries the public URL |
 | secrets with shell, SQL and properties special characters, once issue #274 is resolved | no value in `/var/log/grafioschtrader.log` |
 
-## 3. Debian package upgrade from the published repository
-
-The package `grafioschtrader-installer`, its build and repository scripts in `util/installer/package/`, the
-`package` job of `installer.yml` and the release workflow `.github/workflows/apt.yml` define the package; `apt.yml`
-publishes it with every release to `https://grafioschtrader.github.io/grafioschtrader/apt`, and the repository holds
-only the package of the latest release. `.86` (Debian 12) and `.82` (Ubuntu 24.04) have the repository enrolled as
-`util/installer/README.md` describes, each with a completed installation and package version `0.39.2` installed
-from it.
-
-With the next published release:
-
-- confirm the `apt.yml` run green and `apt/` on `gh-pages` still in place after the Javadoc deployment of that
-  release;
-- on `.86` and `.82` run `sudo apt update` and `sudo apt install --only-upgrade grafioschtrader-installer`, compare
-  `/usr/sbin/gt-install` with the bundle of the new release tag, run `sudo gt-install --check` in a German session from
-  the administrator's home, remove and purge the package, and compare journal, secrets, unit, sudoers, logrotate, web
-  server sites, scripts, properties, jar and the service's main PID before and after; record the run in
-  `util/installer/test/README.md`.
-
-**Acceptance:** the package upgrades from the published repository on Debian 12 and Ubuntu 24.04 without output of
-the installation hint, `sudo gt-install --check` runs, and removing the package leaves an installed Grafioschtrader
-untouched.
-
-## 4. Order
+## 3. Order
 
 | Order | Package | Depends on |
 |---|---|---|
 | 1 | §1 CI on the Ubuntu 26 runner | `master` published; 2026-10-19 |
 | 2 | §2 Acceptance matrix | rows may start whenever hosts are available; real hosts need the published `master` |
-| 3 | §3 Debian package upgrade from the published repository | the next published release |
 
-## 5. Decisions
+## 4. Decisions
 
 | # | Decision | Reason |
 |---|---|---|
