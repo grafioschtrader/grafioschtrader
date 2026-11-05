@@ -95,8 +95,9 @@ renews a free Let's Encrypt certificate automatically. Requirements:
 
 With a domain alone, `http://<host-ip>/` is redirected to `https://<host-ip>/`,
 for which there is no certificate, so the LAN address stops working. `install.sh`
-therefore asks for a LAN address (default: the first address of the host's own
-interfaces, never a Docker bridge; `-` for none) and adds it as a second, plain
+therefore asks for a LAN address (default: the first private address of the host's
+own interfaces, never a Docker bridge; `-`, the default without a private address,
+for none) and adds it as a second, plain
 HTTP site, as the classic installation does:
 `GT_SITE_ADDRESS="myhost.duckdns.org, http://192.168.1.20"`. Requests to that
 address are unencrypted, including the login; the domain keeps HTTPS.

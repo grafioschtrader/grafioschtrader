@@ -172,14 +172,22 @@ valid_ipv4() {
   [[ "$1" != 127.* && "$1" != 169.254.* ]]
 }
 
+private_ipv4() {
+  [[ "$1" =~ ^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.) ]]
+}
+
 # With a domain, Caddy serves only that name over HTTPS and redirects every HTTP
 # request to it — also one addressed to the LAN IP, which has no certificate. A
 # second site http://<LAN address>/ keeps Grafioschtrader reachable inside the
-# network, as with the classic installation. That site is plain HTTP.
+# network, as with the classic installation. That site is plain HTTP, so only a
+# private address is offered: on a VPS the first address is the public one, and
+# pressing Enter would publish the login unencrypted on the internet.
 choose_lan_address() {
-  local candidates default answer
+  local candidates candidate default="" answer
   candidates="$(lan_candidates | paste -sd' ' -)"
-  default="${candidates%% *}"
+  for candidate in $candidates; do
+    if private_ipv4 "$candidate"; then default="$candidate"; break; fi
+  done
   info "Inside the local network Grafioschtrader can also be served over plain HTTP"
   info "at http://<LAN address>/ (unencrypted; the domain keeps HTTPS)."
   [ -z "$candidates" ] || info "Addresses of this host: ${candidates}"
@@ -194,6 +202,8 @@ choose_lan_address() {
     *" $answer "*) ;;
     *) warn "$answer is not assigned to an interface of this host; the LAN site answers only requests to it." ;;
   esac
+  private_ipv4 "$answer" \
+    || warn "$answer is no private address: Grafioschtrader, including the login, will be reachable over unencrypted HTTP there."
   LAN_ADDRESS="$answer"
 }
 

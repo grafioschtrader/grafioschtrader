@@ -75,6 +75,13 @@ cat > "$work/bin/ss" <<'EOF'
 #!/usr/bin/env bash
 exit 0
 EOF
+cat > "$work/bin/ip" <<'EOF'
+#!/usr/bin/env bash
+[ "$*" = '-4 -o addr show scope global' ] || exit 0
+for address in ${TEST_ADDRESSES:-}; do
+  printf '2: eth0    inet %s/24 scope global eth0\n' "$address"
+done
+EOF
 chmod +x "$work/bin/"*
 
 fail() { printf 'FAIL: %s\n' "$*" >&2; cat "$work/output" >&2; exit 1; }
@@ -196,4 +203,21 @@ assert_no_success
 reset_case duckdns-wired
 printf 'COMPOSE_PROFILES=duckdns\nDUCKDNS_UPDATE_IP=ipv6\nDB_PASSWORD=existing-secret\n' > "$install_dir/.env"
 run_existing || fail 'refused a wired DuckDNS updater'
-printf 'PASS: persistent autostart, endpoint precedence, service failures, readiness and DuckDNS wiring\n'
+
+# The LAN site is plain HTTP. Pressing Enter on a VPS, whose first address is the
+# public one, must not publish the login unencrypted on the internet.
+assert_lan_default() {
+  reset_case "lan-$RANDOM"
+  rm "$install_dir/.env"
+  export TEST_ADDRESSES="$1"
+  printf 'gt.example.org\n\n\nadmin@example.com\nn\n\n' | bash "$install_dir/install.sh" > "$work/output" 2>&1 \
+    || fail "installation with addresses '$1' failed"
+  grep -qx "GT_SITE_ADDRESS=\"$2\"" "$install_dir/.env" \
+    || { grep GT_SITE_ADDRESS "$install_dir/.env" > "$work/output"; fail "addresses '$1' must give '$2'"; }
+}
+assert_lan_default '203.0.113.7' 'gt.example.org'
+assert_lan_default '172.32.0.5' 'gt.example.org'
+assert_lan_default '203.0.113.7 192.168.1.20' 'gt.example.org, http://192.168.1.20'
+assert_lan_default '10.0.0.4' 'gt.example.org, http://10.0.0.4'
+assert_lan_default '172.31.0.5' 'gt.example.org, http://172.31.0.5'
+printf 'PASS: persistent autostart, endpoint precedence, service failures, readiness, DuckDNS wiring and LAN default\n'
