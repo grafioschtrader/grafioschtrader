@@ -18,6 +18,20 @@ Requirements: [Docker Engine](https://docs.docker.com/engine/install/) with the
 Compose plugin (both included in Docker Desktop and in the standard
 `get.docker.com` install).
 
+On a fresh Debian, Ubuntu or Raspberry Pi OS host, `bootstrap.sh` does everything
+in one step: it installs Docker from Docker's package repository, creates the user
+`grafioschtrader`, downloads the installation files and runs `install.sh` as this
+user. Only this script needs root rights, and it can be run again safely. It stops
+with an error, without removing anything, when packages that conflict with Docker
+Engine are installed.
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/grafioschtrader/grafioschtrader/master/docker/bootstrap.sh
+sudo bash bootstrap.sh
+```
+
+The remaining steps of this section apply when Docker is already installed.
+
 For a local systemd-managed Docker Engine, the installer enables boot startup and
 starts `docker.service` before checking the daemon. It uses `sudo` when needed;
 membership in the `docker` group alone cannot configure the system service.
