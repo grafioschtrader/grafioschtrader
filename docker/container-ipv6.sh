@@ -43,7 +43,9 @@ container_ipv6_local_engine() {
 # With forwarding on, a kernel that processes router advertisements itself
 # (accept_ra=1) ignores them, and the host loses the IPv6 route and address it
 # learned from them — usually noticed after the next reboot. NetworkManager and
-# systemd-networkd handle RAs in userspace and leave accept_ra at 0.
+# systemd-networkd normally handle RAs in userspace and leave accept_ra at 0, but
+# a NetworkManager connection with ipv6.method=ignore leaves them to the kernel,
+# for example the WLAN of a Raspberry Pi OS image written with Raspberry Pi Imager.
 container_ipv6_kernel_ra() {
   local routes="$1" uplink
   grep -q ' proto ra ' <<< "$routes " || return 1

@@ -259,9 +259,12 @@ warning, when
   RAs, and the host loses the route and the address it learned from them —
   usually noticed only after the next reboot. Add
   `net.ipv6.conf.<uplink>.accept_ra = 2` to a file in `/etc/sysctl.d/`, apply it
-  with `sudo sysctl --system` and rerun `./update.sh`. Raspberry Pi OS and other
-  systems with NetworkManager or systemd-networkd are not affected: they handle
-  RAs in userspace and leave the kernel's `accept_ra` at `0`.
+  with `sudo sysctl --system` and rerun `./update.sh`. NetworkManager and
+  systemd-networkd normally handle RAs in userspace and leave the kernel's
+  `accept_ra` at `0`. A NetworkManager connection with `ipv6.method=ignore` leaves
+  them to the kernel instead. Raspberry Pi OS is affected this way over WLAN when
+  the image was written with Raspberry Pi Imager, because Imager's network
+  configuration sets no IPv6 mode for `wlan0`.
 
 `GT_CONTAINER_IPV6=off` in `.env` keeps the containers IPv4-only. To undo the
 change, set `GT_CONTAINER_IPV6=off` in `.env` — otherwise the next `update.sh`
