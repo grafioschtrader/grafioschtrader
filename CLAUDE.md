@@ -27,7 +27,7 @@ cd backend
 mvn clean install -DskipTests
 
 # Build executable JAR
-mvn package -Dmaven.test.skip=true
+mvn package -DskipTests
 
 # Run all tests
 mvn test
@@ -35,11 +35,13 @@ mvn test
 # Run tests for specific module
 mvn test -pl grafioschtrader-server
 
-# IMPORTANT: use -DskipTests, not -Dmaven.test.skip=true, whenever a later "mvn test -pl <module>"
-# follows. grafiosch-server-base publishes its src/test/java as a test-jar (the shared integration
-# test fixture in grafiosch.test.rest); -Dmaven.test.skip=true skips test compilation and installs
-# an empty one, after which the test sources of grafioschtrader-server and grafiosch-test-integration
-# no longer compile. Pure production builds may keep -Dmaven.test.skip=true.
+# IMPORTANT: always use -DskipTests, never -Dmaven.test.skip=true, also for a pure production build.
+# grafiosch-server-base publishes its src/test/java as a test-jar (the shared integration test
+# fixture in grafiosch.test.rest), and grafioschtrader-server and grafiosch-test-integration depend
+# on it in test scope. -Dmaven.test.skip=true produces no test-jar while Maven still resolves the
+# test classpath, so the build stops with "Could not find artifact
+# grafioschtrader:grafiosch-server-base:jar:tests". A machine that kept the jar in ~/.m2 from an
+# earlier build does not show the error; a fresh host does.
 
 # In Eclipse, run "Maven > Update Project" on grafioschtrader-server and grafiosch-test-integration
 # after the test-jar dependency was added. Otherwise the Eclipse builder writes class files holding
@@ -219,8 +221,8 @@ gt.dividend.update.data=0 0 06 * * ?         # Dividend updates
 
 ```bash
 cd backend
-mvn clean install -Dmaven.test.skip=true
-mvn package -Dmaven.test.skip=true
+mvn clean install -DskipTests
+mvn package -DskipTests
 
 # Windows
 set JASYPT_ENCRYPTOR_PASSWORD=your_secret

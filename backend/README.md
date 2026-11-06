@@ -4,8 +4,9 @@
 GT depends heavily on other libraries, to get them. Execute the following:
 ```
 # In directory backend
-mvn clean install -Dmaven.test.skip=true
+mvn clean install -DskipTests
 ```
+Use `-DskipTests`, never `-Dmaven.test.skip=true`. `grafioschtrader-server` needs the test jar of `grafiosch-server-base`, and the second flag prevents that jar from being built, so the build stops with `Could not find artifact grafioschtrader:grafiosch-server-base:jar:tests`. With `-DskipTests` the tests are compiled but not run.
 ### Property files
 There are three [property](./grafioschtrader-server/src/main/resources) files in the backend:
 - **application.yaml**: The properties are set by the software developer. This property file is always overwritten during the update.
@@ -88,7 +89,7 @@ GT provides some shell scripts which make the following manual creation of the b
 Everytime the **application.properties** are changed the executable must be rebuild:
 ```
 # In directory backend
-mvn package -Dmaven.test.skip=true
+mvn package -DskipTests
 ```
 #### Start the backend
 Since we use **Jasypt**, the enviroment variable **JASYPT_ENCRYPTOR_PASSWORD** must be set before the backend of GT can launched properly. The first time the start of GT may take longer since the database is initialized.
