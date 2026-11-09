@@ -11,9 +11,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -74,7 +75,6 @@ public class SixFeedConnector extends BaseFeedConnector {
   private static final ObjectMapper objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
   private static final String FROM_DATE_FORMAT_SIX = GlobalConstants.SHORT_STANDARD_DATE_FORMAT;
-  private static final String DATE_FORMAT_SIX = "yyyyMMdd HH:mm:ss";
   private static final String URL_EXTENDED_REGEX = "^([A-Z]{2})([A-Z0-9]{9})([0-9]{1})[A-Za-z]{3}\\d$";
 
   public SixFeedConnector() {
@@ -132,7 +132,7 @@ public class SixFeedConnector extends BaseFeedConnector {
     parseJsonData(security, response.body());
   }
 
-  private void parseJsonData(final Security security, final String jsonData) throws JSONException {
+  void parseJsonData(final Security security, final String jsonData) throws JSONException {
     /*-
      * 0: ValorSymbol
      * 1: MarketDate,
@@ -165,12 +165,9 @@ public class SixFeedConnector extends BaseFeedConnector {
 
     final JSONObject obj = new JSONObject(jsonData);
 
-    // Set Time "delayedDateTime": "20170802T18:28:17.313",
-
-    final String dateTimeString = obj.getString("delayedDateTime").replace('T', ' ').substring(0, 17);
-    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(DATE_FORMAT_SIX)
-        .withZone(ZoneId.of("Europe/Zurich"));
-    security.setSTimestamp(LocalDateTime.parse(dateTimeString, dateFormat));
+    // "delayedMillis" is the instant of the delayed feed. "delayedDateTime" states the same instant as a wall-clock
+    // time in Zurich, which is one or two hours ahead of the UTC that sTimestamp is kept in.
+    security.setSTimestamp(LocalDateTime.ofInstant(Instant.ofEpochMilli(obj.getLong("delayedMillis")), ZoneOffset.UTC));
 
     // Set performance data
     final JSONArray rowDataJsonArrayOuter = obj.getJSONArray("rowData");

@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -151,14 +152,15 @@ public class XetraFeedConnector extends BaseFeedConnector {
   }
 
   /**
-   * Parses an ISO 8601 timestamp string to a Date object.
+   * Converts the time of the last price to UTC, the time base of {@code sTimestamp}. The API states it with the offset of
+   * Frankfurt, so the local part alone is one or two hours ahead of UTC.
    *
    * @param timestamp the ISO 8601 formatted timestamp (e.g., "2024-01-15T14:30:00+01:00")
-   * @return the parsed Date object
+   * @return the same instant as a UTC date and time
    */
-  private LocalDateTime parseIso8601Timestamp(String timestamp) {
+  static LocalDateTime parseIso8601Timestamp(String timestamp) {
     OffsetDateTime odt = OffsetDateTime.parse(timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    return odt.toLocalDateTime();
+    return odt.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
   }
 
   @Override
