@@ -66,6 +66,12 @@ export class WatchlistIndicatorColumnEditComponent
     const markColors = this.config.find((f) => f.field === 'markColors');
     if (!markColors) throw new Error('The indicator form requires its markColors field.');
     markColors.dataType = DataType.String;
+    // The watchlist set is a collection the entity descriptor does not cover; it follows the expression.
+    this.config.splice(
+      this.config.findIndex((f) => f.field === 'expression') + 1,
+      0,
+      DynamicFieldHelper.createFieldMultiSelectString('idWatchlists', 'ID_WATCHLISTS', false)
+    );
     const index = this.config.findIndex((f) => f.field === 'idBenchmark');
     this.config.splice(
       index,
@@ -81,13 +87,11 @@ export class WatchlistIndicatorColumnEditComponent
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
   protected override initialize(): void {
-    this.configObject.idWatchlist.valueKeyHtmlOptions = [
-      { key: null, value: this.translateService.instant('WIC_ALL_WATCHLISTS') },
-      ...this.callParam().optParam.watchlists.map((w: { idWatchlist: number; name: string }) => ({
-        key: w.idWatchlist,
-        value: w.name
-      }))
-    ];
+    // An empty selection means all watchlists, which the placeholder says.
+    this.configObject.idWatchlists.placeholder = this.translateService.instant('WIC_ALL_WATCHLISTS');
+    this.configObject.idWatchlists.valueKeyHtmlOptions = this.callParam().optParam.watchlists.map(
+      (w: { idWatchlist: number; name: string }) => ({ key: w.idWatchlist, value: w.name })
+    );
     this.configObject.markColors.valueKeyHtmlOptions = this.callParam().optParam.colors.map(
       (c: { key: number; value: string }) => ({
         key: c.key,

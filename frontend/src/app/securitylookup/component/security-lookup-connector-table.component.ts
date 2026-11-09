@@ -11,8 +11,8 @@ import { isUsableAlternative, LookupFeed } from '../model/security-lookup-select
 import { Helper } from '../../lib/helper/helper';
 
 /**
- * One of the four connector tables of the security lookup dialog (history, intraday, dividend, split). Each row is a
- * connector with the URL extension it derived and the outcome of the trial request, so the user sees whether the feed
+ * One of the connector tables of the security lookup dialog (history, intraday, dividend, split) or of the currency
+ * pair lookup dialog (history, intraday). Each row is a connector with the URL extension it derived and the outcome of the trial request, so the user sees whether the feed
  * actually delivers data before taking the connector over. A connector whose probe failed stays visible with its
  * reason, but cannot be selected.
  */
@@ -61,6 +61,7 @@ import { Helper } from '../../lib/helper/helper';
 })
 export class SecurityLookupConnectorTableComponent extends TableConfigBase {
   private readonly distributionFrequencyColumn: ColumnConfig;
+  private readonly oldestDateColumn: ColumnConfig;
 
   /** Translation key of the table title, e.g. ID_CONNECTOR_HISTORY */
   readonly titleKey = input<string>();
@@ -77,6 +78,9 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase {
 
   /** Shows the distribution frequency derived from the dividends; only meaningful in the dividend table */
   readonly showDistributionFrequency = input(false);
+
+  /** Shows the oldest closing price the connector delivered; only the currency pair lookup determines it */
+  readonly showOldestDate = input(false);
 
   /** Shows the table greyed out without selection, e.g. the dividend table of an instrument that pays nothing */
   readonly disabled = input(false);
@@ -99,6 +103,7 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase {
       width: 90,
       translateValues: TranslateValue.NORMAL
     });
+    this.oldestDateColumn = this.addColumnFeqH(DataType.DateString, 'oldestDate', false, false, { width: 90 });
     this.addColumnFeqH(DataType.DateString, 'sampleDate', true, false, { width: 90 });
     this.addColumnFeqH(DataType.Numeric, 'sampleValue', true, false, { width: 80 });
     this.addColumnFeqH(DataType.NumericInteger, 'sampleCount', true, false, { width: 60 });
@@ -113,6 +118,13 @@ export class SecurityLookupConnectorTableComponent extends TableConfigBase {
       this.showDistributionFrequency();
       untracked(() => {
         this.distributionFrequencyColumn.visible = this.showDistributionFrequency();
+        this.notifyViewChanged();
+      });
+    });
+    effect(() => {
+      this.showOldestDate();
+      untracked(() => {
+        this.oldestDateColumn.visible = this.showOldestDate();
         this.notifyViewChanged();
       });
     });

@@ -68,6 +68,9 @@ public interface RequestGTMappings {
   public static final String SECURITYLOOKUP = "securitylookup";
   public static final String SECURITYLOOKUP_MAP = RequestMappings.API + SECURITYLOOKUP;
 
+  public static final String CURRENCYPAIRLOOKUP = "currencypairlookup";
+  public static final String CURRENCYPAIRLOOKUP_MAP = RequestMappings.API + CURRENCYPAIRLOOKUP;
+
   public static final String GTNETSECURITYIMPHEAD = "gtnetsecurityimphead";
   public static final String GTNETSECURITYIMPHEAD_MAP = RequestMappings.API + GTNETSECURITYIMPHEAD;
 

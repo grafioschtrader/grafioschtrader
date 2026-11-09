@@ -3,7 +3,8 @@ import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.grou
 /** Stored definition, with the result type inferred by the server. */
 export class WatchlistIndicatorColumn {
   idWatchlistIndicatorColumn: number | null = null;
-  idWatchlist: number | null = null;
+  /** Watchlists showing the column; an empty list means all watchlists of the tenant. */
+  idWatchlists: number[] = [];
   label: string | null = null;
   expression: string | null = null;
   resultType: 'NUMBER' | 'BOOLEAN' = 'NUMBER';
@@ -13,7 +14,13 @@ export class WatchlistIndicatorColumn {
   upperMark: number | null = null;
   markColors = 'LOW_NEGATIVE_HIGH_POSITIVE';
   uiOrder = 0;
+  /** Shown as a table column of the indicator tab. */
+  showInTable = true;
+  /** Shown in the expanded row of the indicator tab. */
+  showInExpansion = false;
 }
+/** Group of an indicator in the expanded row, derived by the server from the data its expression reads. */
+export type IndicatorCategory = 'TECHNICAL' | 'FUNDAMENTAL';
 export interface IndicatorCell {
   value: number | boolean | null;
   status: string;
@@ -27,6 +34,8 @@ export interface SecuritycurrencyIndicatorGroup extends SecuritycurrencyGroup {
   columnFundamentalVariables: Record<string, string[]>;
   /** Per instrument and fundamental variable the origin of the bound value. */
   fundamentalInfo: Record<string, Record<string, FundamentalInfo>>;
+  /** Per column whether it is a technical or a fundamental indicator. */
+  columnCategories: Record<string, IndicatorCategory>;
   tenantHasColumns: boolean;
 }
 /** Origin of a bound fundamental value, shown in the cell tooltip of a column that reads it. */

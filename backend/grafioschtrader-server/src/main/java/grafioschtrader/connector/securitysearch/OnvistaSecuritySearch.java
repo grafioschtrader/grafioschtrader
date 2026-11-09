@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.dto.CurrencypairSearchHit;
 import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.dto.SecuritySearchCandidateDto;
 import grafioschtrader.entities.MicProviderMap;
@@ -47,11 +48,13 @@ import tools.jackson.databind.JsonNode;
  * </p>
  */
 @Component
-public class OnvistaSecuritySearch extends BaseSecuritySearchProvider {
+public class OnvistaSecuritySearch extends BaseSecuritySearchProvider implements ICurrencypairSearchProvider {
 
   public static final String PROVIDER_ID = "onvista";
 
   static final String TYPE_BOND = "BOND";
+  /** onvista type of a fiat currency pair; it is also the first part of the URL extension of such a pair. */
+  public static final String TYPE_CURRENCY = "CURRENCY";
   private static final String GERMANY = "DE";
 
   private static final String DEFAULT_BASE_URL = "https://api.onvista.de/api/v1/";
@@ -92,6 +95,71 @@ public class OnvistaSecuritySearch extends BaseSecuritySearchProvider {
   @Override
   public boolean supports(SecuritySearchQuery query) {
     return query.hasValidIsin();
+  }
+
+  /** onvista quotes a cryptocurrency as instrument of its own on crypto exchanges, without a FactSet notation. */
+  @Override
+  public boolean coversCurrencypair(boolean cryptocurrency) {
+    return !cryptocurrency;
+  }
+
+  /**
+   * Finds a fiat currency pair with two requests: {@code instruments/query?searchValue={from}{to}} names the pair as
+   * {@code CURRENCY} instrument, and its snapshot the notation of the FactSet synthetic rate ({@code @W$}), which the
+   * onvista and the Consorsbank connector request.
+   */
+  @Override
+  public CurrencypairSearchResult searchCurrencypair(String fromCurrency, String toCurrency) {
+    return runCurrencypairSearch(fromCurrency, toCurrency, () -> {
+      String pair = fromCurrency + toCurrency;
+      if (findCurrencypair(
+          sendExpectOk(HttpRequest.newBuilder(URI
+              .create(baseUrl + "instruments/query?searchValue=" + URLEncoder.encode(pair, StandardCharsets.UTF_8)))),
+          pair) == null) {
+        return List.of();
+      }
+      return parseCurrencypairSnapshot(sendExpectOk(HttpRequest.newBuilder(URI.create(baseUrl + "instruments/"
+          + TYPE_CURRENCY + "/" + URLEncoder.encode(pair, StandardCharsets.UTF_8) + "/snapshot"))), pair);
+    });
+  }
+
+  /**
+   * Picks the entry of the query answer that is the currency pair itself; the query also returns derivatives on it.
+   *
+   * @param body the answer of {@code instruments/query}
+   * @param pair the two ISO codes without separator, e.g. {@code EURCAD}
+   * @return the entry, or null when the answer has no such currency pair
+   */
+  static JsonNode findCurrencypair(String body, String pair) {
+    for (JsonNode entry : OBJECT_MAPPER.readTree(body).path("list")) {
+      if (TYPE_CURRENCY.equals(text(entry, "entityType")) && pair.equals(text(entry, "entityValue"))) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Reads the notation of the currency pair from its snapshot: the main quote, otherwise the first one of the list.
+   *
+   * @param body the snapshot of {@code instruments/CURRENCY/{pair}/snapshot}
+   * @param pair the two ISO codes without separator
+   * @return one hit, or none when the snapshot names another instrument or no notation
+   */
+  static List<CurrencypairSearchHit> parseCurrencypairSnapshot(String body, String pair) {
+    JsonNode snapshot = OBJECT_MAPPER.readTree(body);
+    JsonNode instrument = snapshot.path("instrument");
+    if (!TYPE_CURRENCY.equals(text(instrument, "entityType")) || !pair.equals(text(instrument, "entityValue"))) {
+      return List.of();
+    }
+    JsonNode market = snapshot.path("quote").path("market");
+    if (text(market, "idNotation") == null) {
+      market = snapshot.path("quoteList").path("list").path(0).path("market");
+    }
+    String notation = text(market, "idNotation");
+    return notation == null ? List.of()
+        : List.of(new CurrencypairSearchHit(PROVIDER_ID, pair, notation, text(market, "codeExchange"),
+            text(instrument, "name")));
   }
 
   @Override

@@ -504,7 +504,7 @@ class SecurityLookupServiceTest {
   }
 
   private static ConnectorAlternativeDto alternative(String id, String urlExtension, ConnectorProbeStatus status) {
-    return new ConnectorAlternativeDto(id, id, urlExtension, status, null, null, 0, null, null);
+    return new ConnectorAlternativeDto(id, id, urlExtension, status, null, null, 0, null, null, null);
   }
 
   @Test

@@ -12,12 +12,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -522,7 +518,7 @@ public class SecurityLookupService {
 
   private static ConnectorAlternativeDto asUnknownSymbol(ConnectorAlternativeDto a) {
     return new ConnectorAlternativeDto(a.idConnector(), a.readableName(), a.urlExtension(),
-        ConnectorProbeStatus.UNKNOWN_SYMBOL, a.sampleDate(), a.sampleValue(), a.sampleCount(),
+        ConnectorProbeStatus.UNKNOWN_SYMBOL, a.sampleDate(), a.sampleValue(), a.sampleCount(), a.oldestDate(),
         a.distributionFrequency(), "No prices for this URL extension either");
   }
 
@@ -594,26 +590,5 @@ public class SecurityLookupService {
             && fc.getSecuritycurrencyFeedSupport().containsKey(feedSupport)
             && fc.supports(mic, countryCode, categoryType, sii))
         .sorted(Comparator.comparing(IFeedConnector::getReadableName, String::compareToIgnoreCase)).toList();
-  }
-
-  /** A probe started on a virtual thread; a probe that misses the deadline is reported, not dropped. */
-  private record PendingProbe(IFeedConnector connector, String urlExtension, Future<ConnectorAlternativeDto> future) {
-
-    ConnectorAlternativeDto await(long deadlineNanos) {
-      try {
-        return future.get(Math.max(0, deadlineNanos - System.nanoTime()), TimeUnit.NANOSECONDS);
-      } catch (TimeoutException e) {
-        future.cancel(true);
-        return ConnectorProbe.failed(connector, urlExtension, ConnectorProbeStatus.TIMEOUT,
-            "Deadline of the lookup exceeded");
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        future.cancel(true);
-        return ConnectorProbe.failed(connector, urlExtension, ConnectorProbeStatus.REQUEST_FAILED, "Interrupted");
-      } catch (ExecutionException e) {
-        return ConnectorProbe.failed(connector, urlExtension, ConnectorProbeStatus.REQUEST_FAILED,
-            String.valueOf(e.getCause()));
-      }
-    }
   }
 }

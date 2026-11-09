@@ -31,6 +31,13 @@ public enum ConnectorProbeStatus {
    */
   UNKNOWN_SYMBOL,
 
+  /**
+   * The connector delivered prices of a currency pair, but on another scale than the other connectors, e.g. Boursorama
+   * quotes JPY/CAD for 100 yen. GT has no factor for a currency pair, so such prices would be stored a hundred times
+   * too high.
+   */
+  SCALE_MISMATCH,
+
   /** The request failed or the answer could not be read. */
   REQUEST_FAILED,
 

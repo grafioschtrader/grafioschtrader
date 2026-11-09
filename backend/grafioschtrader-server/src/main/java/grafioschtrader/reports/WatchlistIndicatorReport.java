@@ -23,6 +23,7 @@ import grafioschtrader.repository.SecurityFundamentalJpaRepository.SelectedFunda
 import grafioschtrader.types.FundamentalMetric;
 import grafioschtrader.types.FundamentalSource;
 import grafioschtrader.types.FundamentalState;
+import grafioschtrader.types.IndicatorCategory;
 import grafioschtrader.types.IndicatorCellStatus;
 
 /** Batch-loads projected inputs before sequential, isolated evaluation of every indicator cell. */
@@ -49,8 +50,8 @@ public class WatchlistIndicatorReport {
 
   public SecuritycurrencyIndicatorGroup calculate(SecuritycurrencyGroup group, Integer tenant, LocalDate today) {
     var all = columns.findByIdTenantOrderByUiOrder(tenant);
-    var selected = all.stream().filter(c -> c.getIdWatchlist() == null || c.getIdWatchlist().equals(group.idWatchlist))
-        .toList();
+    var selected = all.stream()
+        .filter(c -> c.getIdWatchlists().isEmpty() || c.getIdWatchlists().contains(group.idWatchlist)).toList();
     var result = new SecuritycurrencyIndicatorGroup(group, selected);
     result.tenantHasColumns = !all.isEmpty();
     if (selected.isEmpty())
@@ -60,6 +61,7 @@ public class WatchlistIndicatorReport {
     group.currencypairPositionList.forEach(p -> inputs.put(p.securitycurrency.getId(), input(p.securitycurrency)));
     Map<Integer, Set<IndicatorData>> requirements = new HashMap<>();
     selected.forEach(c -> requirements.put(c.getId(), AlertExpressionSupport.requiredData(c.getExpression())));
+    requirements.forEach((id, data) -> result.columnCategories.put(id, category(data)));
     var needed = EnumSet.noneOf(IndicatorData.class);
     requirements.values().forEach(needed::addAll);
     var ids = new HashSet<>(inputs.keySet());
@@ -112,6 +114,13 @@ public class WatchlistIndicatorReport {
       result.cells.put(entry.getKey(), cells);
     }
     return result;
+  }
+
+  /** Fundamental variables and dividends make a fundamental indicator, everything else a technical one. */
+  private static IndicatorCategory category(Set<IndicatorData> data) {
+    return data.contains(IndicatorData.FUNDAMENTALS) || data.contains(IndicatorData.DIVIDENDS)
+        ? IndicatorCategory.FUNDAMENTAL
+        : IndicatorCategory.TECHNICAL;
   }
 
   private LocalDate newest(List<IDateCloseHighLow> rows) {

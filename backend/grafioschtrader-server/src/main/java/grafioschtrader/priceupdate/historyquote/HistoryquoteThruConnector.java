@@ -78,7 +78,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   @Override
   public S createHistoryQuotesAndSave(final ISecuritycurrencyService<S> securitycurrencyService, S securitycurrency,
       final LocalDate fromDate, final LocalDate toDate) {
-    short restryHistoryLoad = securitycurrency.getRetryHistoryLoad();
+    final short retryBeforeLoad = securitycurrency.getRetryHistoryLoad();
+    short restryHistoryLoad = retryBeforeLoad;
 
     try {
       final IFeedConnector feedConnector = getConnectorHistoricalForSecuritycurrency(securitycurrency);
@@ -117,6 +118,24 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     if (fromDate == null && toDate == null) {
       securitycurrency.setFullLoadTimestamp(LocalDateTime.now());
     }
+    try {
+      return securitycurrencyService.getJpaRepository().save(securitycurrency);
+    } catch (final RuntimeException ex) {
+      log.error("Could not save the history quotes of " + securitycurrency, ex);
+      return saveFailedHistoryLoad(securitycurrencyService, securitycurrency.getIdSecuritycurrency(),
+          (short) (retryBeforeLoad + 1));
+    }
+  }
+
+  /**
+   * Counts a load whose quotes could not be stored, for example because of a date delivered twice. The quotes are left
+   * out by working on a freshly read entity. Without this the exception would end a parallel load of many instruments,
+   * and the instrument would stay without quotes while it did not count as failed.
+   */
+  private S saveFailedHistoryLoad(final ISecuritycurrencyService<S> securitycurrencyService, Integer idSecuritycurrency,
+      short retryHistoryLoad) {
+    S securitycurrency = securitycurrencyService.getJpaRepository().findByIdSecuritycurrency(idSecuritycurrency);
+    securitycurrency.setRetryHistoryLoad(retryHistoryLoad);
     return securitycurrencyService.getJpaRepository().save(securitycurrency);
   }
 

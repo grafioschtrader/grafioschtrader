@@ -6,11 +6,12 @@ import { catchError } from 'rxjs/operators';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { BaseSettings } from '../../lib/base.settings';
 import { AppSettings } from '../../shared/app.settings';
-import { SecurityLookupResponse } from '../model/security-lookup';
+import { CurrencypairLookupResponse, SecurityLookupResponse } from '../model/security-lookup';
 
 /**
- * Asks the backend to look up a security at the data providers by ISIN, currency, exchange and asset class. The backend
- * proposes master data and, per feed, the connectors that deliver data for the listing; nothing is saved.
+ * Asks the backend to look up a security at the data providers by ISIN, currency, exchange and asset class, or the
+ * connectors of a currency pair by its two currencies. The backend proposes master data and, per feed, the connectors
+ * that deliver data; nothing is saved.
  */
 @Service()
 export class SecurityLookupService extends AuthServiceWithLogout<any> {
@@ -41,6 +42,24 @@ export class SecurityLookupService extends AuthServiceWithLogout<any> {
     }
     return this.httpClient
       .get<SecurityLookupResponse>(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_LOOKUP_KEY}/lookup`, {
+        headers: this.prepareHeaders(),
+        params
+      })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Looks up the connectors of a currency pair. Every connector is tried with a request; the history probe loads the
+   * whole history and therefore takes a few seconds.
+   *
+   * @param fromCurrency - Base currency, e.g. EUR or BTC
+   * @param toCurrency - Quote currency
+   * @returns The probed connectors of both feeds and the status of the search providers
+   */
+  lookupCurrencypair(fromCurrency: string, toCurrency: string): Observable<CurrencypairLookupResponse> {
+    const params = new HttpParams().set('fromCurrency', fromCurrency).set('toCurrency', toCurrency);
+    return this.httpClient
+      .get<CurrencypairLookupResponse>(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_LOOKUP_KEY}/lookup`, {
         headers: this.prepareHeaders(),
         params
       })

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import grafiosch.BaseConstants;
 import grafioschtrader.entities.WatchlistIndicatorColumn;
 import grafioschtrader.types.FundamentalState;
+import grafioschtrader.types.IndicatorCategory;
 import grafioschtrader.types.IndicatorCellStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -23,6 +24,10 @@ public class SecuritycurrencyIndicatorGroup extends SecuritycurrencyGroup {
       Per instrument and fundamental variable where its bound value comes from, for the cell tooltip of a column that
       reads fundamentals. Only instruments with at least one bound value appear.""")
   public Map<Integer, Map<String, FundamentalInfo>> fundamentalInfo = new HashMap<>();
+  @Schema(description = """
+      Per column whether it is a technical or a fundamental indicator, derived from the data its expression reads. The
+      expanded row of the indicator tab groups its values by it.""")
+  public Map<Integer, IndicatorCategory> columnCategories = new HashMap<>();
   public boolean tenantHasColumns;
 
   public SecuritycurrencyIndicatorGroup(SecuritycurrencyGroup group, List<WatchlistIndicatorColumn> columns) {

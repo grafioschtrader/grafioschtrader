@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +37,10 @@ import tools.jackson.databind.json.JsonMapper;
  * also possible. The connector has not yet been checked for functioning URL extensions. The check of the connector with
  * the URL extension provides the expected response and is therefore used.
  *
- * A maximum of 10 years with historical daily rates can be read in. However, a longer period can be divided into
- * several chunks.
+ * Daily prices of instruments listed on Xetra or Frankfurt come from the date based price history endpoint, which
+ * reports how many rows belong to the period. The TradingView endpoint remains for series of other suppliers such as
+ * ARIVA, which the price history does not know. It delivers at most 10 years per request, so a longer period is divided
+ * into several chunks. It can also answer "ok" with only a part of the period, depending on the exact time stamps.
  */
 @Component
 public class XetraFeedConnector extends BaseFeedConnector {
@@ -47,6 +50,9 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   private static final String DOMAIN_VERSION = "https://api.boerse-frankfurt.de/v1/";
   private static final String DOMAIN_INTRADAY = "https://api.live.deutsche-boerse.com/v1/data/price_information/single";
+  private static final String DOMAIN_PRICE_HISTORY = "https://mobile-api.live.deutsche-boerse.com/v1/data/"
+      + "price_history";
+  private static final int PRICE_HISTORY_PAGE_SIZE = 2000;
   private static final String DAY_RESOLUTION = "1D";
   /** Status of a history answer without bars. */
   private static final String NO_DATA = "no_data";
@@ -159,13 +165,44 @@ public class XetraFeedConnector extends BaseFeedConnector {
   public String getSecurityHistoricalDownloadLink(final Security security) {
     LocalDate toDate = LocalDate.now();
     LocalDate fromDate = toDate.minusDays(7);
-    return getSecurityDownloadLink(security, fromDate, toDate, security.getUrlHistoryExtend(), DAY_RESOLUTION, null);
+    return hasPriceHistory(security.getUrlHistoryExtend()) ? getPriceHistoryLink(security, fromDate, toDate, 0)
+        : getSecurityDownloadLink(security, fromDate, toDate, security.getUrlHistoryExtend(), DAY_RESOLUTION, null);
   }
 
   /**
-   * The API stamps a daily bar at 00:00 UTC and treats {@code to} as exclusive, so {@code to} is the start of the
-   * following day; otherwise the last day - and in a chunked download the last day of every chunk - would be missing.
-   * Callers filter the bars to the requested days.
+   * Tells whether the URL extension denotes a listing of Deutsche Börse, which the price history endpoint serves.
+   *
+   * @param urlExtend the URL extension: an ISIN, or "SOURCE:ISIN" such as "XFRA:DE0008492356" or "ARIVA:US6311011026"
+   * @return true for a plain ISIN and for the sources XETR and XFRA
+   */
+  private boolean hasPriceHistory(String urlExtend) {
+    String source = getUrlExtendSource(urlExtend);
+    return source == null || STOCK_EX_MIC_XETRA.equals(source) || STOCK_EX_MIC_FRANKFURT.equals(source);
+  }
+
+  /** Returns the part before the colon of the URL extension, or null for a plain ISIN. */
+  private String getUrlExtendSource(String urlExtend) {
+    int colon = urlExtend.indexOf(':');
+    return colon < 0 ? null : urlExtend.substring(0, colon);
+  }
+
+  /**
+   * Builds the link of one page of the price history. The dates are inclusive. Prices are adjusted for splits, as those
+   * of the TradingView endpoint are, but not for payouts or subscription rights.
+   */
+  private String getPriceHistoryLink(final Security security, LocalDate from, LocalDate to, int offset) {
+    String urlExtend = security.getUrlHistoryExtend();
+    String source = getUrlExtendSource(urlExtend);
+    String mic = source == null ? security.getStockexchange().getMic() : source;
+    return DOMAIN_PRICE_HISTORY + "?isin=" + URLEncoder.encode(extractIsin(urlExtend), StandardCharsets.UTF_8) + "&mic="
+        + URLEncoder.encode(mic, StandardCharsets.UTF_8) + "&minDate=" + from + "&maxDate=" + to + "&limit="
+        + PRICE_HISTORY_PAGE_SIZE + "&offset=" + offset + "&cleanSplit=true&cleanPayout=false&cleanSubscription=false";
+  }
+
+  /**
+   * Builds the link of the TradingView endpoint. Its daily bars lie at 00:00 or 01:00 UTC. {@code to} is the start of
+   * the following day in the time zone of the system, so that the last day is included. Depending on that time zone the
+   * answer also contains the bar of the following day; callers therefore filter the bars to the requested days.
    */
   private String getSecurityDownloadLink(final Security security, LocalDate from, LocalDate to, String urlExtend,
       String resolution, Integer countback) {
@@ -174,7 +211,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   /**
    * @param toShiftSeconds seconds added to the {@code to} time stamp; a retry after a spurious {@code no_data} answer
-   *                       shifts it by one second, which adds no bar, since the bars lie at 00:00 UTC
+   *                       shifts it by one second
    */
   private String getSecurityDownloadLink(final Security security, LocalDate from, LocalDate to, String urlExtend,
       String resolution, Integer countback, int toShiftSeconds) {
@@ -185,9 +222,50 @@ public class XetraFeedConnector extends BaseFeedConnector {
         + (countback == null ? "" : "&countback=" + countback);
   }
 
-  /** Loads the daily history in chunks of up to ten years and keeps the days from {@code from} to {@code to}. */
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
+      throws Exception {
+    return hasPriceHistory(security.getUrlHistoryExtend()) ? loadPriceHistory(security, from, to)
+        : loadTradingViewHistory(security, from, to);
+  }
+
+  /**
+   * Loads the daily history page by page, ordered by date.
+   *
+   * @return the quotes of the period, empty when the period has none
+   * @throws IllegalStateException if the pages do not add up to the number of rows the API reports, so that an
+   *                               incomplete history is never stored as if it were complete
+   */
+  private List<Historyquote> loadPriceHistory(final Security security, LocalDate from, LocalDate to) throws Exception {
+    Map<LocalDate, Historyquote> quotesByDate = new TreeMap<>();
+    int offset = 0;
+    PriceHistory page;
+    do {
+      page = fetchPriceHistoryPage(getPriceHistoryLink(security, from, to, offset));
+      for (PriceBar bar : page.data) {
+        quotesByDate.put(bar.date, bar.toHistoryquote());
+      }
+      offset += page.data.length;
+    } while (page.data.length > 0 && offset < page.totalCount);
+    if (quotesByDate.size() != page.totalCount) {
+      throw new IllegalStateException("Xetra price history of " + security.getUrlHistoryExtend() + " from " + from
+          + " to " + to + " is incomplete: " + quotesByDate.size() + " of " + page.totalCount + " rows");
+    }
+    return new ArrayList<>(quotesByDate.values());
+  }
+
+  private PriceHistory fetchPriceHistoryPage(String url) throws Exception {
+    log.debug("Fetching price history using URL: {}", url);
+    final HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(url);
+    if (response.statusCode() != 200) {
+      throw new RuntimeException(
+          "Failed to fetch price history from Xetra connector. HTTP status: " + response.statusCode());
+    }
+    return objectMapper.readValue(response.body(), PriceHistory.class);
+  }
+
+  /** Loads the daily history in chunks of up to ten years and keeps the days from {@code from} to {@code to}. */
+  private List<Historyquote> loadTradingViewHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     List<Historyquote> historyquotes = new ArrayList<>();
     LocalDate currentFrom = from;
@@ -196,7 +274,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
       try {
         Quotes quotes = fetchChunk(security, currentFrom, chunkEndDate);
         if (quotes != null) {
-          addQuotes(historyquotes, quotes, from, to);
+          addQuotes(historyquotes, quotes, currentFrom, chunkEndDate);
         }
       } catch (Exception e) {
         log.error("Error fetching data for period: {} to {}", currentFrom, chunkEndDate, e);
@@ -213,8 +291,8 @@ public class XetraFeedConnector extends BaseFeedConnector {
    * Requests one chunk. In the TradingView UDF protocol {@code no_data} means that no bars exist in the period, which
    * is no error: it happens when the active from date precedes the first trading day on this exchange (e.g. a US
    * stock listed on Xetra years later). The API also answers {@code no_data} now and then for a period with data,
-   * depending on the exact time stamps - such an answer is not repeated for a {@code to} one second later. A chunk
-   * without data is therefore requested once more with that shift before it is skipped.
+   * depending on the exact time stamps - such an answer is often not repeated for a {@code to} one second later. A
+   * chunk without data is therefore requested once more with that shift before it is skipped.
    *
    * @return the bars of the chunk, or null when there are none
    */
@@ -244,7 +322,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
     throw new RuntimeException("Failed to fetch historical data from Xetra connector. Status: " + quotes.s);
   }
 
-  /** Adds the bars of a chunk that fall on the requested days. */
+  /** Adds the bars that fall on the days of this chunk, so that a day cannot be added by two neighbouring chunks. */
   private void addQuotes(List<Historyquote> historyquotes, Quotes quotes, LocalDate from, LocalDate to) {
     for (int i = 0; i < quotes.t.length; i++) {
       LocalDate quoteDate = Instant.ofEpochSecond(quotes.t[i]).atZone(ZoneId.systemDefault()).toLocalDate();
@@ -276,6 +354,34 @@ public class XetraFeedConnector extends BaseFeedConnector {
     // Volume is a nullable boxed array: the API returns null entries (and fractional turnover values)
     // for instruments/days without traded pieces, which a primitive long[] cannot represent.
     public Long[] v;
+  }
+
+  /** One page of the price history API. */
+  private static class PriceHistory {
+    public PriceBar[] data;
+    /** Number of rows of the whole period, not of this page. */
+    public int totalCount;
+  }
+
+  /** One day of the price history API. Open, high, low and the traded pieces can be null, for an index always. */
+  private static class PriceBar {
+    public LocalDate date;
+    public double close;
+    public Double open;
+    public Double high;
+    public Double low;
+    public Long turnoverPieces;
+
+    Historyquote toHistoryquote() {
+      final Historyquote historyquote = new Historyquote();
+      historyquote.setDate(date);
+      historyquote.setClose(close);
+      historyquote.setOpen(open);
+      historyquote.setHigh(high);
+      historyquote.setLow(low);
+      historyquote.setVolume(turnoverPieces);
+      return historyquote;
+    }
   }
 
   /**

@@ -144,10 +144,21 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
     }
   }
 
+  /**
+   * Returns the first date whose prices are kept. Without a requested start date this is the active-from date of a
+   * security, or for a currency pair the feed start date of the global parameters - raised to
+   * {@link GlobalConstants#OLDEST_TRADING_DAY}, because a price before that day fails the validation of the history
+   * quote. The default feed start date 2000-01-01 lies before it, and onvista delivers a currency rate for Sunday
+   * 2000-01-02, which made the whole first load of the pair fail.
+   */
   protected LocalDate getCorrectedFromDate(final S securitycurrency, final LocalDate fromDate) throws ParseException {
     if (fromDate == null) {
-      return securitycurrency instanceof Security ? ((Security) securitycurrency).getActiveFromDate()
-          : this.globalparametersService.getStartFeedDate();
+      if (securitycurrency instanceof Security security) {
+        return security.getActiveFromDate();
+      }
+      LocalDate oldestTradingDay = LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY);
+      LocalDate startFeedDate = this.globalparametersService.getStartFeedDate();
+      return startFeedDate.isBefore(oldestTradingDay) ? oldestTradingDay : startFeedDate;
     } else {
       return fromDate;
     }

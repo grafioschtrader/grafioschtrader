@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.HtmlUtils;
 
+import grafioschtrader.dto.CurrencypairSearchHit;
 import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.dto.SecuritySearchCandidateDto;
 import grafioschtrader.entities.MicProviderMap;
@@ -48,7 +49,7 @@ import io.github.bucket4j.Bandwidth;
  * </p>
  */
 @Component
-public class BoursoramaSecuritySearch extends BaseSecuritySearchProvider {
+public class BoursoramaSecuritySearch extends BaseSecuritySearchProvider implements ICurrencypairSearchProvider {
 
   public static final String PROVIDER_ID = "boursorama";
   /** Code of the unprefixed US symbols in {@code mic_provider_map}. */
@@ -65,6 +66,17 @@ public class BoursoramaSecuritySearch extends BaseSecuritySearchProvider {
   private static final Pattern HTML_TAG = Pattern.compile("<[^>]+>");
   private static final Map<String, String> US_MIC_BY_VENUE = Map.of("NASDAQ", "XNAS", "NYSE", "XNYS");
   private static final Map<String, String> CURRENCY_BY_SIGN = Map.of("€", "EUR", "$", "USD", "£", "GBP");
+  /**
+   * Link of a currency pair in the site search, e.g. {@code /bourse/devises/taux-de-change-euro-francsuisse-EUR-CHF/}.
+   */
+  private static final Pattern CURRENCY_LINK = Pattern
+      .compile("href=\"/(bourse/devises/taux-de-change-[^\"]*-([A-Z]{3})-([A-Z]{3})/)\"");
+  /**
+   * Symbol and pair of the page of a currency pair, from its tracking data; the slash of the pair is escaped there,
+   * e.g. {@code "fv_code_isin":"_EUR\/CHF"}.
+   */
+  private static final Pattern PAGE_SYMBOL = Pattern.compile("\"fv_symb_societe\":\"([^\"]+)\"");
+  private static final Pattern PAGE_PAIR = Pattern.compile("\"fv_code_isin\":\"_([A-Z]{3})\\\\?/([A-Z]{3})\"");
 
   private final MicProviderMapRepository micProviderMapRepository;
   private final String baseUrl;
@@ -102,6 +114,68 @@ public class BoursoramaSecuritySearch extends BaseSecuritySearchProvider {
   @Override
   public boolean supports(SecuritySearchQuery query) {
     return query.hasValidIsin();
+  }
+
+  /** Boursorama quotes no cryptocurrency pairs. */
+  @Override
+  public boolean coversCurrencypair(boolean cryptocurrency) {
+    return !cryptocurrency;
+  }
+
+  /**
+   * Finds the symbol of a currency pair with two requests. The site search for {@code {from}/{to}} links the page of
+   * the pair, and that page names the symbol in its tracking data. The page is needed because the symbols of the
+   * frequently traded pairs are irregular - EUR/CHF is {@code 1xCHFVS}, USD/JPY {@code 1xJPYUS} - while most others
+   * follow {@code 3f{from}_{to}}.
+   */
+  @Override
+  public CurrencypairSearchResult searchCurrencypair(String fromCurrency, String toCurrency) {
+    return runCurrencypairSearch(fromCurrency, toCurrency, () -> {
+      String pagePath = currencypairPagePath(sendExpectOk(HttpRequest
+          .newBuilder(URI.create(baseUrl + "recherche/ajax?query="
+              + URLEncoder.encode(fromCurrency + "/" + toCurrency, StandardCharsets.UTF_8)))
+          .header("X-Requested-With", "XMLHttpRequest")), fromCurrency, toCurrency);
+      return pagePath == null ? List.of()
+          : parseCurrencypairPage(sendExpectOk(HttpRequest.newBuilder(URI.create(baseUrl + pagePath))), fromCurrency,
+              toCurrency);
+    });
+  }
+
+  /**
+   * Picks the link to the page of the pair in the queried direction; the search also offers the inverse pair and pairs
+   * with only one of the two currencies.
+   *
+   * @param html         the search answer
+   * @param fromCurrency base currency
+   * @param toCurrency   quote currency
+   * @return the path of the page relative to the site, or null when the search has no such pair
+   */
+  static String currencypairPagePath(String html, String fromCurrency, String toCurrency) {
+    Matcher link = CURRENCY_LINK.matcher(html);
+    while (link.find()) {
+      if (fromCurrency.equals(link.group(2)) && toCurrency.equals(link.group(3))) {
+        return link.group(1);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Reads the symbol of the pair from its page; the pair the page names must be the queried one.
+   *
+   * @param html         the page of the pair
+   * @param fromCurrency base currency
+   * @param toCurrency   quote currency
+   * @return one hit, or none when the page names another pair or no symbol
+   */
+  static List<CurrencypairSearchHit> parseCurrencypairPage(String html, String fromCurrency, String toCurrency) {
+    Matcher pair = PAGE_PAIR.matcher(html);
+    Matcher symbol = PAGE_SYMBOL.matcher(html);
+    if (!pair.find() || !fromCurrency.equals(pair.group(1)) || !toCurrency.equals(pair.group(2)) || !symbol.find()) {
+      return List.of();
+    }
+    return List
+        .of(new CurrencypairSearchHit(PROVIDER_ID, symbol.group(1), null, null, fromCurrency + "/" + toCurrency));
   }
 
   /** The search answers only the requests of its own page script, which sends {@code X-Requested-With}. */

@@ -26,6 +26,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
         optionValue="key"
         optionLabel="value"
         [options]="config.valueKeyHtmlOptions"
+        [placeholder]="config.placeholder"
         [formControlName]="fieldName"
         pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}" />
     </ng-container>

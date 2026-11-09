@@ -89,6 +89,32 @@ class OAuthBoundariesTest {
   }
 
   @Test
+  @DisplayName("A native client may choose the port of a registered loopback redirect, and nothing else")
+  void loopbackRedirectPort() {
+    // Redirect URIs copied from https://chatgpt.com/oauth/codex/client.json on 2026-11-08
+    String id = "https://chatgpt.com/oauth/codex/client.json";
+    ClientMetadataService.ClientMetadata client = ClientMetadataService.parse(id, """
+        {"client_id":"%s","token_endpoint_auth_method":"none",
+        "redirect_uris":["http://127.0.0.1/callback","http://localhost/callback"]}""".formatted(id));
+    assertThat(client.allowsRedirectUri("http://127.0.0.1:60923/callback")).isTrue();
+    assertThat(client.allowsRedirectUri("http://localhost:4711/callback")).isTrue();
+    assertThat(client.allowsRedirectUri("http://127.0.0.1/callback")).isTrue();
+    for (String refused : new String[] { "http://127.0.0.1:60923/other", "http://127.0.0.1:60923/callback?x=1",
+        "http://127.0.0.1:60923/callback#x", "https://127.0.0.1:60923/callback", "http://[::1]:60923/callback",
+        "http://user@127.0.0.1:60923/callback", "http://127.0.0.1@evil.example:60923/callback",
+        "http://127.0.0.1.evil.example:60923/callback", "http://evil.example:60923/callback" }) {
+      assertThat(client.allowsRedirectUri(refused)).as(refused).isFalse();
+    }
+    assertThat(client.allowsRedirectUri(null)).isFalse();
+
+    String webId = "https://client.example/meta.json";
+    ClientMetadataService.ClientMetadata webClient = ClientMetadataService.parse(webId, """
+        {"client_id":"%s","redirect_uris":["https://client.example/cb"]}""".formatted(webId));
+    assertThat(webClient.allowsRedirectUri("https://client.example/cb")).isTrue();
+    assertThat(webClient.allowsRedirectUri("https://client.example:8443/cb")).isFalse();
+  }
+
+  @Test
   @DisplayName("PKCE S256 accepts only the matching verifier")
   void pkce() {
     String verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";

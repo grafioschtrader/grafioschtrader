@@ -92,6 +92,7 @@ export class AppSettings {
   public static readonly GT_NET_EXCHANGE_CURRENCYPAIRS_KEY = 'currencypairs';
   public static readonly GT_NET_SECURITY_LOOKUP_KEY = 'gtnetsecuritylookup';
   public static readonly SECURITY_LOOKUP_KEY = 'securitylookup';
+  public static readonly CURRENCYPAIR_LOOKUP_KEY = 'currencypairlookup';
   public static readonly GT_NET_SECURITY_IMP_HEAD = 'GTNetSecurityImpHead';
   public static readonly GT_NET_SECURITY_IMP_HEAD_KEY = 'gtnetsecurityimphead';
   public static readonly GT_NET_SECURITY_IMP_POS = 'GTNetSecurityImpPos';

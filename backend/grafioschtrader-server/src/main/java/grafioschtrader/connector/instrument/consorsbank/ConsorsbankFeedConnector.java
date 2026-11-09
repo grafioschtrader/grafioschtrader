@@ -26,6 +26,8 @@ import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.MinorCurrencyUnit;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.securitysearch.ConsorsbankSecuritySearch;
+import grafioschtrader.connector.securitysearch.OnvistaSecuritySearch;
+import grafioschtrader.dto.CurrencypairLookupData;
 import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -75,6 +77,17 @@ public class ConsorsbankFeedConnector extends BaseFeedConnector {
   public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
     return ConsorsbankSecuritySearch.PROVIDER_ID.equals(baseData.providerId())
         && baseData.providerInstrumentId() != null ? Optional.of(baseData.providerInstrumentId()) : Optional.empty();
+  }
+
+  /**
+   * Consorsbank quotes currencies under the FactSet notations onvista shows, so the extension
+   * {@code _notation,exchange code} of a currency pair is built from the onvista hit of the currency pair search, e.g.
+   * {@code _8361803,@W$} for EUR/CAD.
+   */
+  @Override
+  public Optional<String> deriveCurrencyUrlExtension(CurrencypairLookupData data, FeedSupport feedSupport) {
+    return data.hitOf(OnvistaSecuritySearch.PROVIDER_ID).filter(h -> h.notation() != null && h.exchangeCode() != null)
+        .map(h -> "_" + h.notation() + "," + h.exchangeCode());
   }
 
   @Override

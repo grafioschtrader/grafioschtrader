@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,6 +28,7 @@ import grafiosch.common.DataHelper;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.dto.CurrencypairLookupData;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
@@ -58,6 +60,29 @@ public class CoinMarketCapFeedConnector extends BaseFeedConnector {
   private static final Map<String, String> JSON_HEADERS = Map.of("Accept", "application/json");
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+  /**
+   * CoinMarketCap ids of the cryptocurrencies GT supports ({@code GlobalConstants.CRYPTO_CURRENCY_SUPPORTED}), taken
+   * from CoinMarketCap's own list of cryptocurrencies, where a symbol may name several coins.
+   */
+  static final Map<String, Integer> CRYPTO_IDS = Map.of("BTC", 1, "LTC", 2, "XRP", 52, "ETH", 1027, "ETC", 1321, "BNB",
+      1839);
+
+  /**
+   * CoinMarketCap ids of fiat currencies. CoinMarketCap offers no public list of them; each id was confirmed by
+   * converting Bitcoin into it and comparing the implied rate with the market rate of the currency.
+   */
+  static final Map<String, Integer> FIAT_IDS = Map.ofEntries(Map.entry("USD", 2781), Map.entry("AUD", 2782),
+      Map.entry("BRL", 2783), Map.entry("CAD", 2784), Map.entry("CHF", 2785), Map.entry("CLP", 2786),
+      Map.entry("CNY", 2787), Map.entry("CZK", 2788), Map.entry("DKK", 2789), Map.entry("EUR", 2790),
+      Map.entry("GBP", 2791), Map.entry("HKD", 2792), Map.entry("HUF", 2793), Map.entry("IDR", 2794),
+      Map.entry("ILS", 2795), Map.entry("INR", 2796), Map.entry("JPY", 2797), Map.entry("KRW", 2798),
+      Map.entry("MXN", 2799), Map.entry("MYR", 2800), Map.entry("NOK", 2801), Map.entry("NZD", 2802),
+      Map.entry("PHP", 2803), Map.entry("PKR", 2804), Map.entry("PLN", 2805), Map.entry("RUB", 2806),
+      Map.entry("SEK", 2807), Map.entry("SGD", 2808), Map.entry("THB", 2809), Map.entry("TRY", 2810),
+      Map.entry("TWD", 2811), Map.entry("ZAR", 2812), Map.entry("AED", 2813), Map.entry("BGN", 2814),
+      Map.entry("HRK", 2815), Map.entry("MUR", 2816), Map.entry("RON", 2817), Map.entry("ISK", 2818),
+      Map.entry("NGN", 2819), Map.entry("COP", 2820), Map.entry("VND", 2823));
+
   private static final Map<FeedSupport, FeedIdentifier[]> SUPPORTED_FEED = new HashMap<>();
 
   static {
@@ -69,6 +94,35 @@ public class CoinMarketCapFeedConnector extends BaseFeedConnector {
     super(SUPPORTED_FEED, SHORT_ID, "CoinMarketCap", URL_EXTENSION_REGEX,
         EnumSet.of(UrlCheck.HISTORY, UrlCheck.INTRADAY));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CRYPTOCURRENCY);
+  }
+
+  /**
+   * Builds the mapping from the ids above, without a request: the cryptocurrency of the pair is the requested coin, the
+   * other currency the conversion target - for ETH/BTC Bitcoin is the target. History and intraday use the same
+   * mapping. A currency without a known id gets no extension.
+   */
+  @Override
+  public Optional<String> deriveCurrencyUrlExtension(CurrencypairLookupData data, FeedSupport feedSupport) {
+    return currencyMapping(data.fromCurrency(), data.toCurrency());
+  }
+
+  /**
+   * The URL extension of a currency pair, e.g. {@code BTC=1,CHF=2785} for BTC/CHF as well as for CHF/BTC.
+   *
+   * @param fromCurrency base currency of the pair
+   * @param toCurrency   quote currency of the pair
+   * @return the extension, or empty when neither currency is a supported cryptocurrency or an id is unknown
+   */
+  static Optional<String> currencyMapping(String fromCurrency, String toCurrency) {
+    boolean fromIsCrypto = CRYPTO_IDS.containsKey(fromCurrency);
+    if (!fromIsCrypto && !CRYPTO_IDS.containsKey(toCurrency)) {
+      return Optional.empty();
+    }
+    String coin = fromIsCrypto ? fromCurrency : toCurrency;
+    String target = fromIsCrypto ? toCurrency : fromCurrency;
+    Integer targetId = CRYPTO_IDS.containsKey(target) ? CRYPTO_IDS.get(target) : FIAT_IDS.get(target);
+    return targetId == null ? Optional.empty()
+        : Optional.of(coin + "=" + CRYPTO_IDS.get(coin) + "," + target + "=" + targetId);
   }
 
   @Override

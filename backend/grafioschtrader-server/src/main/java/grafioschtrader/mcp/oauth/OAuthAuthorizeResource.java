@@ -105,7 +105,7 @@ public class OAuthAuthorizeResource {
     if (client == null) {
       return ResponseEntity.badRequest().body(error("invalid_client", null));
     }
-    if (request.redirectUri() == null || !client.redirectUris().contains(request.redirectUri())) {
+    if (!client.allowsRedirectUri(request.redirectUri())) {
       return ResponseEntity.badRequest().body(error("invalid_redirect_uri", null));
     }
     String refusal = refusal(request);
@@ -178,7 +178,7 @@ public class OAuthAuthorizeResource {
   }
 
   /**
-   * Appends the answer to the registered redirect URI, which is used exactly as registered. The state goes back
+   * Appends the answer to the validated redirect URI of the request, which is used unchanged. The state goes back
    * unchanged, and iss (RFC 9207) lets the client check which server answered.
    */
   private String redirect(String redirectUri, String name, String value, String state) {

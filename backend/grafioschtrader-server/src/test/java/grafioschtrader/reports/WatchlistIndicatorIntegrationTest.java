@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,8 @@ class WatchlistIndicatorIntegrationTest {
   EntityManager em;
   @Autowired
   private CopyTenantService copyTenant;
+  @Autowired
+  private WatchlistJpaRepository watchlists;
   private TransactionTemplate tx;
   private Integer tenant, other, watchlist, otherWatchlist, limitId, previousLimit;
   private User user;
@@ -166,13 +169,16 @@ class WatchlistIndicatorIntegrationTest {
   @DisplayName("Ownership, static types and field constraints are enforced in the persistence path")
   void tenantAndValidation() throws Exception {
     var own = column("SMA(2) > SMA(3)");
-    own.setIdWatchlist(watchlist);
+    own.setIdWatchlists(Set.of(watchlist));
     own.setResultType(IndicatorResultType.NUMBER);
     var saved = save(own);
     assertThat(saved.getResultType()).isEqualTo(IndicatorResultType.BOOLEAN);
     var invalid = column("CLOSE(0)");
-    invalid.setIdWatchlist(otherWatchlist);
+    invalid.setIdWatchlists(Set.of(watchlist, otherWatchlist));
     assertThatThrownBy(() -> save(invalid)).isInstanceOf(DataViolationException.class);
+    var hidden = column("PRICE");
+    hidden.setShowInTable(false);
+    assertThatThrownBy(() -> save(hidden)).isInstanceOf(DataViolationException.class);
     assertThatThrownBy(() -> save(column("RS(2)"))).isInstanceOf(DataViolationException.class);
     var marked = column("PRICE > 1");
     marked.setLowerMark(1.0);
@@ -220,7 +226,8 @@ class WatchlistIndicatorIntegrationTest {
   @DisplayName("Demo copying preserves definitions and maps watchlist ownership")
   void copyDefinitions() throws Exception {
     var definition = column("CLOSE(2)");
-    definition.setIdWatchlist(watchlist);
+    definition.setIdWatchlists(Set.of(watchlist));
+    definition.setShowInExpansion(true);
     definition.setLowerMark(5.0);
     definition.setUpperMark(10.0);
     definition.setMarkColors(IndicatorMarkColors.NEUTRAL);
@@ -234,12 +241,49 @@ class WatchlistIndicatorIntegrationTest {
     assertThat(copied).hasSize(1);
     var row = copied.getFirst();
     assertThat(row.getId()).isNotEqualTo(definition.getId());
-    assertThat(row.getIdWatchlist()).isNotEqualTo(watchlist);
+    assertThat(row.getIdWatchlists()).hasSize(1).doesNotContain(watchlist);
+    assertThat(row.isShowInExpansion()).isTrue();
     assertThat(row.getExpression()).isEqualTo(definition.getExpression());
     assertThat(row.getLowerMark()).isEqualTo(5.0);
     assertThat(row.getMarkColors()).isEqualTo(IndicatorMarkColors.NEUTRAL);
     tx.executeWithoutResult(
-        _ -> assertThat(em.find(Watchlist.class, row.getIdWatchlist()).getIdTenant()).isEqualTo(other));
+        _ -> assertThat(em.find(Watchlist.class, row.getIdWatchlists().iterator().next()).getIdTenant())
+            .isEqualTo(other));
+  }
+
+  @Test
+  @DisplayName("A column applies to its assigned watchlists or to all, survives the deletion of one of several of them "
+      + "and is grouped by the data its expression reads")
+  void multipleWatchlistsAndCategories() throws Exception {
+    var ids = tx.execute(_ -> {
+      var b = new Watchlist(tenant, "Indicator B");
+      var c = new Watchlist(tenant, "Indicator C");
+      em.persist(b);
+      em.persist(c);
+      return List.of(b.getId(), c.getId());
+    });
+    Integer b = ids.get(0), c = ids.get(1);
+    var ab = column("SMA(2)");
+    ab.setIdWatchlists(Set.of(watchlist, b));
+    ab = save(ab);
+    var all = save(column("PRICE / EPS"));
+    var onlyB = column("DIVYIELD()");
+    onlyB.setIdWatchlists(Set.of(b));
+    onlyB = save(onlyB);
+    var onlyC = column("PRICE");
+    onlyC.setIdWatchlists(Set.of(c));
+    onlyC = save(onlyC);
+
+    var group = report.getWatchlistWithIndicators(watchlist);
+    assertThat(group.columns).extracting(WatchlistIndicatorColumn::getId).containsExactly(ab.getId(), all.getId());
+    assertThat(group.columnCategories).containsEntry(ab.getId(), IndicatorCategory.TECHNICAL)
+        .containsEntry(all.getId(), IndicatorCategory.FUNDAMENTAL).hasSize(2);
+
+    watchlists.delEntityWithTenant(b, tenant);
+    var stored = columns.findByIdTenantOrderByUiOrder(tenant).stream().collect(
+        Collectors.toMap(WatchlistIndicatorColumn::getId, WatchlistIndicatorColumn::getIdWatchlists));
+    assertThat(stored).doesNotContainKey(onlyB.getId()).containsEntry(ab.getId(), Set.of(watchlist))
+        .containsEntry(all.getId(), Set.of()).containsEntry(onlyC.getId(), Set.of(c));
   }
 
   @Test

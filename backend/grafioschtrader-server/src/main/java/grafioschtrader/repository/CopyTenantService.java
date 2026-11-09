@@ -301,7 +301,10 @@ public class CopyTenantService {
     for (var source : indicatorColumns.findByIdTenantOrderByUiOrder(sourceIdTenant)) {
       var copy = new WatchlistIndicatorColumn();
       copy.setIdTenant(targetIdTenant);
-      copy.setIdWatchlist(source.getIdWatchlist() == null ? null : watchlistMap.get(source.getIdWatchlist()).getId());
+      copy.setIdWatchlists(
+          source.getIdWatchlists().stream().map(id -> watchlistMap.get(id).getId()).collect(Collectors.toSet()));
+      copy.setShowInTable(source.isShowInTable());
+      copy.setShowInExpansion(source.isShowInExpansion());
       copy.setLabel(source.getLabel());
       copy.setExpression(source.getExpression());
       copy.setResultType(source.getResultType());

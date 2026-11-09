@@ -27,7 +27,9 @@
     [showGridlines]="true"
     [loading]="loading()"
     [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
-    [expandable]="false"
+    [expandable]="hasExpansionColumns()"
+    [expandedRowTemplate]="expandedContent"
+    [canExpandFn]="canExpand"
     [showContextMenu]="contextMenuItems() && isActivated()"
     [contextMenuItems]="contextMenuItems()"
     [ownerHighlightFn]="ownerHighlight"
@@ -86,6 +88,13 @@
     </ng-template>
   </configurable-table>
 </div>
+
+<!-- Indicators shown in the expanded row, grouped into technical and fundamental ones. -->
+<ng-template #expandedContent let-row>
+  @if (indicatorGroup(); as group) {
+  <watchlist-indicator-expanded [position]="row" [group]="group" />
+  }
+</ng-template>
 
 <!-- Instrument actions shared with the other watchlist tabs. -->
 @if (visibleSecurityTransactionDialog()) {

@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -89,6 +90,16 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   @Transactional
   @Modifying
   int deleteByIdWatchlistAndIdTenant(Integer idWatchlist, Integer idTenant);
+
+  /**
+   * Counts how many of the given watchlists belong to the tenant. Equal to the number of distinct ids exactly when all
+   * of them are watchlists of that tenant.
+   *
+   * @param idTenant     the tenant that must own the watchlists
+   * @param idsWatchlist the watchlist ids to check
+   * @return the number of those watchlists owned by the tenant
+   */
+  long countByIdTenantAndIdWatchlistIn(Integer idTenant, Collection<Integer> idsWatchlist);
 
   /**
    * Retrieves each watchlist of the given tenant along with a flag indicating whether it contains any securities.

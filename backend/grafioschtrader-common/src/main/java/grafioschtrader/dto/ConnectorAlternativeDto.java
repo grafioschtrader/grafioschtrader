@@ -21,6 +21,9 @@ public record ConnectorAlternativeDto(
     @Schema(description = "Sample value delivered by the probe: closing price, last price or dividend amount") Double sampleValue,
     @Schema(description = "Number of data records the probe received, e.g. closing prices or dividends") Integer sampleCount,
     @Schema(description = """
+        Date of the oldest closing price the connector delivered; only set by the currency pair lookup, which requests
+        the whole history GT loads for a new pair""") @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT) LocalDate oldestDate,
+    @Schema(description = """
         Distribution frequency derived from the dividends this connector delivered; only set for a dividend connector.
         It is taken over into the security when the user chooses this connector and the master data has none.""") DistributionFrequency distributionFrequency,
     @Schema(description = "Short technical explanation of a failed probe; null on success") String probeDetail) {

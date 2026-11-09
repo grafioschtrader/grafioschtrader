@@ -1,10 +1,11 @@
 import { requireInitialized } from '../../lib/helper/required-state';
 import { requireFormControl } from '../../lib/dynamic-form/models/form-control-access';
-import { Component, OnInit, input, inject } from '@angular/core';
+import { Component, OnInit, input, inject, signal } from '@angular/core';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { SecuritycurrencyEdit } from './securitycurrency.edit';
 import { combineLatest, Observable } from 'rxjs';
+import { startWith } from 'rxjs/operators';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { FeedIdentifier, IFeedConnector } from './ifeed.connector';
 import { Currencypair } from '../../entities/currencypair';
@@ -25,27 +26,38 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
 import { BaseSettings } from '../../lib/base.settings';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { CurrencypairLookupDialogComponent } from '../../securitylookup/component/currencypair-lookup-dialog.component';
+import { ConnectorAlternative, CurrencypairLookupSelection } from '../../securitylookup/model/security-lookup';
 
 /**
- * Only on a new record is the source and target currency editable.
+ * Only on a new record is the source and target currency editable. Once both currencies are chosen, the connector
+ * lookup tries the connectors of the pair and takes the chosen ones over into the form, together with the URL
+ * extension each of them needs.
  */
 @Component({
   selector: 'currencypair-edit',
   template: ` <p-dialog
-    header="{{ 'CURRENCYPAIR' | translate }}"
-    [visible]="visibleEditCurrencypairDialog()"
-    [style]="{ width: '600px' }"
-    (onShow)="onShow($event)"
-    (onHide)="onHide($event)"
-    [modal]="true">
-    <dynamic-form
-      [config]="config"
-      [formConfig]="formConfig"
-      [translateService]="translateService"
-      #form="dynamicForm"
-      (submitBt)="submit($event)" />
-  </p-dialog>`,
-  imports: [TranslateModule, DialogModule, DynamicFormComponent]
+      header="{{ 'CURRENCYPAIR' | translate }}"
+      [visible]="visibleEditCurrencypairDialog()"
+      [style]="{ width: '600px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)" />
+    </p-dialog>
+    @if (visibleCurrencypairLookupDialog()) {
+      <currencypair-lookup-dialog
+        [visibleDialog]="visibleCurrencypairLookupDialog()"
+        [fromCurrency]="requireFormControl(configObject.fromCurrency).value"
+        [toCurrency]="requireFormControl(configObject.toCurrency).value"
+        (closeDialog)="handleCloseCurrencypairLookupDialog($event)" />
+    }`,
+  imports: [TranslateModule, DialogModule, DynamicFormComponent, CurrencypairLookupDialogComponent]
 })
 export class CurrencypairEditComponent extends SecuritycurrencyEdit implements OnInit {
   private messageToastService: MessageToastService = inject(MessageToastService);
@@ -54,6 +66,10 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
 
   // Input from parent component
   readonly visibleEditCurrencypairDialog = input(false);
+
+  /** Shows the connector lookup of the currency pair */
+  readonly visibleCurrencypairLookupDialog = signal(false);
+  protected readonly requireFormControl = requireFormControl;
 
   private initializedExistingCurrencypairs?: Currencypair[];
 
@@ -83,6 +99,12 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
       DynamicFieldHelper.createFieldSelectString('toCurrency', 'CURRENCY_TO', true, {
         fieldsetName: 'CURRENCY_BASE_DATA'
       }),
+      DynamicFieldHelper.createFunctionButtonFieldName(
+        'currencypairLookup',
+        'CURRENCYPAIR_LOOKUP',
+        () => this.openCurrencypairLookup(),
+        { fieldsetName: 'CURRENCY_BASE_DATA', disabled: true }
+      ),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false, {
         fieldsetName: 'CURRENCY_BASE_DATA'
       }),
@@ -143,6 +165,53 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
       });
   }
 
+  /** Opens the connector lookup of the currency pair. */
+  openCurrencypairLookup(): void {
+    this.visibleCurrencypairLookupDialog.set(true);
+  }
+
+  /**
+   * Takes the connectors chosen in the lookup over into the form. A feed without a chosen connector stays as it is.
+   *
+   * @param processedActionData - CREATED with the selection when the user applied it
+   */
+  handleCloseCurrencypairLookupDialog(processedActionData: ProcessedActionData): void {
+    this.visibleCurrencypairLookupDialog.set(false);
+    if (processedActionData.action === ProcessedAction.CREATED && processedActionData.data) {
+      const selection = processedActionData.data as CurrencypairLookupSelection;
+      this.applyConnector(this.ID_CONNECTOR_HISTORY, 'urlHistoryExtend', selection.history);
+      this.applyConnector(this.ID_CONNECTOR_INTRA, 'urlIntraExtend', selection.intra);
+    }
+  }
+
+  /**
+   * Sets connector and URL extension of one feed. The connector comes first, because choosing it shows or hides the
+   * extension field.
+   */
+  private applyConnector(connectorField: string, urlField: string, alternative: ConnectorAlternative | null): void {
+    const connectorConfig = this.configObject[connectorField];
+    if (!alternative || !connectorConfig) return;
+    requireFormControl(connectorConfig).setValue(alternative.idConnector);
+    const urlConfig = this.configObject[urlField];
+    if (urlConfig) {
+      requireFormControl(urlConfig).setValue(alternative.urlExtension ?? null);
+    }
+  }
+
+  /** Enables the connector lookup once both currencies are chosen and differ. */
+  private valueChangedOnLookupCurrencies(): void {
+    const fromControl = requireFormControl(this.configObject.fromCurrency);
+    const toControl = requireFormControl(this.configObject.toCurrency);
+    combineLatest([
+      fromControl.valueChanges.pipe(startWith(fromControl.value)),
+      toControl.valueChanges.pipe(startWith(toControl.value))
+    ])
+      .pipe(this.untilDialogClosed())
+      .subscribe(([fromCurrency, toCurrency]: [string | null, string | null]) => {
+        this.configObject.currencypairLookup.disabled = !(fromCurrency && toCurrency && fromCurrency !== toCurrency);
+      });
+  }
+
   helpLink(): void {
     this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_CURRENCYPAIR);
   }
@@ -174,6 +243,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
           this.existingCurrencypairs = allCurrencypairs;
           this.removeByUpdateFormExstingCurrency();
           this.valueChangedOnFromCurrency();
+          this.valueChangedOnLookupCurrencies();
           this.disableEnableInputForExisting(!!this.securityCurrencypairCallParam());
         }
       );

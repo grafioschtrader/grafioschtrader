@@ -25,6 +25,8 @@ import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.connector.securitysearch.BoursoramaSecuritySearch;
+import grafioschtrader.dto.CurrencypairLookupData;
+import grafioschtrader.dto.CurrencypairSearchHit;
 import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -123,6 +125,28 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     String prefix = BoursoramaSecuritySearch.CODE_US.equals(row.getCodeProvider()) ? "" : row.getCodeProvider();
     return Optional.of(prefix + baseData.tickerSymbol().trim()
         + (row.getSymbolSuffix() == null ? "" : row.getSymbolSuffix()));
+  }
+
+  /**
+   * Boursorama names most currency pairs {@code 3f{from}_{to}} ({@code 3fCHF_COP}), but the frequently traded ones
+   * irregularly: EUR/CHF is {@code 1xCHFVS}, USD/JPY {@code 1xJPYUS}. The symbol of the Boursorama hit of the currency
+   * pair search comes first; without one the regular form is offered, and the probe tells whether it exists.
+   */
+  @Override
+  public Optional<String> deriveCurrencyUrlExtension(CurrencypairLookupData data, FeedSupport feedSupport) {
+    return Optional.of(data.hitOf(BoursoramaSecuritySearch.PROVIDER_ID).map(CurrencypairSearchHit::instrumentId)
+        .orElse(regularCurrencySymbol(data.fromCurrency(), data.toCurrency())));
+  }
+
+  /**
+   * The regular Boursorama symbol of a currency pair.
+   *
+   * @param fromCurrency base currency, e.g. CHF
+   * @param toCurrency   quote currency, e.g. COP
+   * @return e.g. {@code 3fCHF_COP}
+   */
+  static String regularCurrencySymbol(String fromCurrency, String toCurrency) {
+    return "3f" + fromCurrency + "_" + toCurrency;
   }
 
   private Map<String, MicProviderMap> getMarketByMic() {

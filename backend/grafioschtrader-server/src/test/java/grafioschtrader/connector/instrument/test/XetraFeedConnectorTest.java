@@ -29,35 +29,36 @@ public class XetraFeedConnectorTest extends BaseFeedConnectorCheck {
   @Override
   protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
+    String toDate = "2026-11-06";
     try {
       hisoricalDate.add(new SecurityHistoricalDate("NORIS-FONDS", "DE0008492356",
           SpecialInvestmentInstruments.MUTUAL_FUND, AssetclassType.EQUITIES, "XFRA:DE0008492356",
-          XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 2641, "2014-11-11", "2025-05-09"));
+          XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 3022, "2014-11-11", toDate));
       hisoricalDate.add(new SecurityHistoricalDate("DAX 40", "DE0008469008",
           SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES, "DE0008469008",
-          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6483, "2000-01-03", "2025-05-09"));
+          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6831, "2000-01-03", toDate));
       hisoricalDate.add(new SecurityHistoricalDate("Beiersdorf Aktiengesellschaft", "DE0005200000",
           SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.EQUITIES, "DE0005200000",
-          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6508, "2000-01-03", "2025-05-09"));
+          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6843, "2000-01-03", toDate));
       hisoricalDate.add(new SecurityHistoricalDate("iShares Core MSCI World UCITS ETF", "IE00B4L5Y983",
           SpecialInvestmentInstruments.ETF, AssetclassType.EQUITIES, "IE00B4L5Y983",
-          XetraFeedConnector.STOCK_EX_MIC_XETRA, 3910, "2009-10-14", "2025-05-09"));
+          XetraFeedConnector.STOCK_EX_MIC_XETRA, 4292, "2009-10-14", toDate));
       if (histroricalIntra == HistoricalIntra.HISTORICAL) {
         // Bonds are only served by the historical (tradingview/history) endpoint on Frankfurt (XFRA); the
         // live intraday endpoint returns 404 for bonds, so this FIXED_INCOME case is historical-only.
         hisoricalDate.add(new SecurityHistoricalDate("Deutsche Telekom AG 1,375% 19/34", "XS2024716099",
             SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.FIXED_INCOME, "XS2024716099",
-            XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 1488, "2019-07-04", "2025-05-09"));
+            XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 1870, "2019-07-04", toDate));
         hisoricalDate.add(new SecurityHistoricalDate("Nickelpreis", "XC0005705543",
             SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.COMMODITIES, "ARIVA:XC0005705543",
-            XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 2669, "2014-09-08", "2025-05-09"));
+            XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 3051, "2014-09-08", toDate));
         hisoricalDate.add(new SecurityHistoricalDate("EURO STOXX 50", "EU0009658145",
             SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES, "ARIVA:EU0009658145",
-            XetraFeedConnector.STOCK_EX_MIC_XETRA, 2867, "2014-02-03", "2025-05-09"));
+            XetraFeedConnector.STOCK_EX_MIC_XETRA, 3249, "2014-02-03", toDate));
         // The API answers this exact period with a spurious "no_data"; the connector's retry must still load it
         hisoricalDate.add(new SecurityHistoricalDate("EURO STOXX 50 (no_data retry)", "EU0009658145",
             SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES, "ARIVA:EU0009658145",
-            XetraFeedConnector.STOCK_EX_MIC_XETRA, 594, "2023-01-03", "2025-05-06"));
+            XetraFeedConnector.STOCK_EX_MIC_XETRA, 530, "2023-01-03", toDate));
       }
     } catch (ParseException pe) {
       pe.printStackTrace();

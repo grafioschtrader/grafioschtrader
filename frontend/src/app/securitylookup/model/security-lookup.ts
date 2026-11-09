@@ -17,6 +17,8 @@ export interface ConnectorAlternative {
   sampleDate: string;
   sampleValue: number;
   sampleCount: number;
+  /** Oldest closing price the connector delivered as 'yyyy-MM-dd'; only set by the currency pair lookup */
+  oldestDate?: string | null;
   /** Distribution frequency derived from the delivered dividends; only set for a dividend connector */
   distributionFrequency: string | null;
   probeDetail: string;
@@ -102,6 +104,23 @@ export interface SecurityLookupResponse {
   splitConnectorApplicable: boolean;
   /** Failed providers and exchanges on which the instrument was found instead; also given without any candidate */
   hints: SecurityLookupHint[];
+}
+
+/**
+ * Result of the currency pair lookup: the connectors of the history and the intraday feed, those with data first.
+ * Corresponds to the backend record CurrencypairLookupResponse.
+ */
+export interface CurrencypairLookupResponse {
+  historyConnectors: ConnectorAlternative[];
+  intraConnectors: ConnectorAlternative[];
+  /** Outcome of the search providers that find the identifiers of onvista, Consorsbank and Boursorama */
+  providerStatus: LookupProviderStatus[];
+}
+
+/** The connectors the user chose in the currency pair lookup dialog; a missing one leaves the form as is. */
+export interface CurrencypairLookupSelection {
+  history: ConnectorAlternative | null;
+  intra: ConnectorAlternative | null;
 }
 
 /** The candidate and the connectors the user chose in the lookup dialog; a missing connector leaves the form as is. */

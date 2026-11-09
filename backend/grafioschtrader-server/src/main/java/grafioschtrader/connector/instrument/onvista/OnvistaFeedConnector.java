@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import grafiosch.BaseConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.securitysearch.OnvistaSecuritySearch;
+import grafioschtrader.dto.CurrencypairLookupData;
 import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -75,6 +76,17 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
     return OnvistaSecuritySearch.PROVIDER_ID.equals(baseData.providerId()) && baseData.providerInstrumentId() != null
         ? Optional.of(baseData.providerInstrumentId())
         : Optional.empty();
+  }
+
+  /**
+   * onvista quotes a currency pair as {@code CURRENCY/{from}{to}} with the notation of the FactSet synthetic rate. Both
+   * come from the onvista hit of the currency pair search; the notation cannot be derived from the currencies.
+   */
+  @Override
+  public Optional<String> deriveCurrencyUrlExtension(CurrencypairLookupData data, FeedSupport feedSupport) {
+    return data.hitOf(OnvistaSecuritySearch.PROVIDER_ID).filter(h -> h.instrumentId() != null && h.notation() != null)
+        .map(h -> OnvistaSecuritySearch.TYPE_CURRENCY + "/" + h.instrumentId() + "/eod_history?idNotation="
+            + h.notation());
   }
 
   @Override

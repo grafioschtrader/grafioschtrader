@@ -182,7 +182,7 @@ class SuccessorSecurityProposerTest {
   }
 
   private static ConnectorAlternativeDto alternative(String id, String urlExtension, ConnectorProbeStatus status) {
-    return new ConnectorAlternativeDto(id, id, urlExtension, status, null, null, null, null, null);
+    return new ConnectorAlternativeDto(id, id, urlExtension, status, null, null, null, null, null, null);
   }
 
   private static SecurityLookupCandidateDto candidate(String name, boolean distributesNothing,

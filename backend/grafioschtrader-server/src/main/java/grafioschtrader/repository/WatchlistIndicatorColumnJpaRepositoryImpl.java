@@ -84,9 +84,11 @@ public class WatchlistIndicatorColumnJpaRepositoryImpl extends BaseRepositoryImp
     if (input.getIdBenchmark() != null && !currencies.existsById(input.getIdBenchmark()) && securities
         .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(input.getIdBenchmark(), tenant) == null)
       fail("id.benchmark", "WIC_BENCHMARK_UNREADABLE");
-    if (input.getIdWatchlist() != null
-        && watchlists.findById(input.getIdWatchlist()).filter(w -> tenant.equals(w.getIdTenant())).isEmpty())
-      fail("id.watchlist", "WIC_WATCHLIST_INVALID");
+    if (!input.getIdWatchlists().isEmpty() && (input.getIdWatchlists().contains(null) || watchlists
+        .countByIdTenantAndIdWatchlistIn(tenant, input.getIdWatchlists()) != input.getIdWatchlists().size()))
+      fail("id.watchlists", "WIC_WATCHLIST_INVALID");
+    if (!input.isShowInTable() && !input.isShowInExpansion())
+      fail("show.in.table", "WIC_DISPLAY_REQUIRED");
     if (input.getLabel() == null || input.getLabel().isBlank() || input.getLabel().length() > 40)
       fail("wic.label", "WIC_LABEL_INVALID");
     if (input.getDecimals() < 0 || input.getDecimals() > 6)

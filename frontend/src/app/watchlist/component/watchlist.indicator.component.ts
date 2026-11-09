@@ -1,4 +1,4 @@
-import { signal, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { computed, signal, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CellMark } from '../../lib/datashowbase/configurable-table.component';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -32,6 +32,13 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
 import { WatchlistIndicatorService } from '../service/watchlist-indicator.service';
 import { WatchlistIndicatorColumnsDialogComponent } from './watchlist-indicator-columns-dialog.component';
 import { SecuritycurrencyIndicatorGroup, WatchlistIndicatorColumn } from '../model/watchlist-indicator';
+import {
+  indicatorField,
+  indicatorMarkStyle,
+  indicatorNeedsMark,
+  indicatorTooltip
+} from '../model/watchlist-indicator.display';
+import { WatchlistIndicatorExpandedComponent } from './watchlist-indicator-expanded.component';
 import { Currencypair } from '../../entities/currencypair';
 import { Security } from '../../entities/security';
 import type { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
@@ -59,6 +66,7 @@ import type { SecuritycurrencyPosition } from '../../entities/view/securitycurre
     AlgoStrategyEditComponent,
     TransactionSecurityEditComponent,
     UDFGeneralEditComponent,
+    WatchlistIndicatorExpandedComponent,
     DatePipe
   ]
 })
@@ -67,6 +75,8 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
   private indicatorService: WatchlistIndicatorService = inject(WatchlistIndicatorService);
 
   readonly indicatorGroup = signal<SecuritycurrencyIndicatorGroup | undefined>(undefined);
+  /** Whether any column of the report is shown in the expanded row; only then can a row be expanded. */
+  readonly hasExpansionColumns = computed(() => !!this.indicatorGroup()?.columns.some((c) => c.showInExpansion));
   private definitions = new Map<string, WatchlistIndicatorColumn>();
   constructor() {
     super(WatchListType.INDICATOR, AppSettings.WATCHLIST_INDICATOR_TABLE_SETTINGS_STORE, WatchlistTable.SINGLE);
@@ -104,8 +114,8 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
             this.fields = this.fields.filter((f) => !f.field.startsWith('ind_'));
             this.definitions.clear();
             group.columns.forEach((column) => {
-              if (column.idWatchlistIndicatorColumn == null) return;
-              const key = 'ind_' + column.idWatchlistIndicatorColumn;
+              if (column.idWatchlistIndicatorColumn == null || !column.showInTable) return;
+              const key = indicatorField(column.idWatchlistIndicatorColumn);
               this.definitions.set(key, column);
               const cc = this.addColumn(
                 column.resultType === 'BOOLEAN' ? DataType.Boolean : DataType.NumericShowZero,
@@ -142,7 +152,7 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
                 const columnId = column.idWatchlistIndicatorColumn;
                 const id = row.securitycurrency.idSecuritycurrency;
                 if (columnId == null || id == null) return;
-                row[`ind_${columnId}`] = group.cells[id]?.[columnId]?.value ?? null;
+                row[indicatorField(columnId)] = group.cells[id]?.[columnId]?.value ?? null;
               })
             );
             this.createSecurityPositionList(group);
@@ -174,57 +184,22 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
   ): MenuItem[] {
     return [...super.getEditMenuItems(position), { label: 'WIC_EDIT_COLUMNS', command: () => this.editColumns() }];
   }
+  /** A row expands only when the report has columns for the expanded row. */
+  override canExpandRow(): boolean {
+    return this.hasExpansionColumns();
+  }
   private indicatorTooltip(
     row: SecuritycurrencyPosition<Security | Currencypair>,
     column: WatchlistIndicatorColumn
   ): string {
-    const group = this.indicatorGroup();
-    const id = row.securitycurrency.idSecuritycurrency;
-    const columnId = column.idWatchlistIndicatorColumn;
-    if (!group || id == null || columnId == null) return '';
-    const cell = group.cells[id]?.[columnId];
-    if (!cell) return '';
-    if (cell.status !== 'OK') return this.translateService.instant('WIC_STATUS_' + cell.status);
-    const benchmark = column.idBenchmark == null ? undefined : group.benchmarks[column.idBenchmark];
     const currency = (row.securitycurrency as Security).currency ?? (row.securitycurrency as Currencypair).toCurrency;
-    return (
-      (cell.lastCommonDate ?? '') +
-      (benchmark && benchmark.currency !== currency ? ' ' + currency + ' / ' + benchmark.currency : '') +
-      this.fundamentalTooltip(id, column)
+    return indicatorTooltip(this.indicatorGroup(), column, row.securitycurrency.idSecuritycurrency, currency, (key) =>
+      this.translateService.instant(key)
     );
-  }
-
-  /**
-   * One line per fundamental variable the column reads: source, basis, period end, grade, fetch date and, for a
-   * converted value, the original currency and the exchange rate.
-   */
-  private fundamentalTooltip(idSecuritycurrency: number, column: WatchlistIndicatorColumn): string {
-    const group = this.indicatorGroup();
-    const columnId = column.idWatchlistIndicatorColumn;
-    if (!group || columnId == null) return '';
-    const variables = group.columnFundamentalVariables?.[columnId] ?? [];
-    const infos = group.fundamentalInfo?.[idSecuritycurrency] ?? {};
-    return variables
-      .filter((variable) => infos[variable])
-      .map((variable) => {
-        const info = infos[variable];
-        const t = (key: string) => this.translateService.instant(key);
-        const parts = [info.source];
-        if (info.basis) parts.push(t('WIC_FUNDAMENTAL_' + info.basis));
-        if (info.periodEnd) parts.push(t('WIC_FUNDAMENTAL_PERIOD') + ' ' + info.periodEnd);
-        parts.push(t('WIC_GRADE_' + info.state));
-        if (info.fetchedDate) parts.push(t('WIC_FUNDAMENTAL_FETCHED') + ' ' + info.fetchedDate);
-        if (info.rate != null) parts.push(t('WIC_FUNDAMENTAL_RATE') + ' ' + info.currency + ' × ' + info.rate);
-        return '\n' + variable + ': ' + parts.join(', ');
-      })
-      .join('');
   }
   override cellMark(position: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig): CellMark | null {
     const column = this.definitions.get(field.field);
-    const id = position.securitycurrency.idSecuritycurrency;
-    if (!column || column.idWatchlistIndicatorColumn == null || id == null) return null;
-    const cell = this.indicatorGroup()?.cells[id]?.[column.idWatchlistIndicatorColumn];
-    return cell && (cell.status !== 'OK' || (column.resultType === 'BOOLEAN' && cell.lastCommonDate))
+    return column && indicatorNeedsMark(this.indicatorGroup(), column, position.securitycurrency.idSecuritycurrency)
       ? { iconClass: 'fa fa-info-circle', tooltip: this.indicatorTooltip(position, column) }
       : null;
   }
@@ -235,12 +210,7 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
     const column = this.definitions.get(field.field);
     const value = position[field.field as keyof typeof position];
     if (!column || typeof value !== 'number') return super.priceCellStyle(position, field);
-    const low = column.lowerMark != null && value <= column.lowerMark;
-    const high = column.upperMark != null && value >= column.upperMark;
-    if (!low && !high) return null;
-    if (column.markColors === 'NEUTRAL') return { 'background-color': 'rgba(234, 179, 8, 0.30)' };
-    const positive = column.markColors === 'LOW_POSITIVE_HIGH_NEGATIVE' ? low : high;
-    return { color: positive ? 'green' : 'red' };
+    return indicatorMarkStyle(column, value);
   }
   protected override updateAllPrice(): void {
     this.loading.set(true);

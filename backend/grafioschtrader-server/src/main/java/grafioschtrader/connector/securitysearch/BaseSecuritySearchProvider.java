@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.dto.CurrencypairSearchHit;
 import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.dto.SecuritySearchCandidateDto;
 import grafioschtrader.types.SecuritySearchStatus;
@@ -86,6 +87,47 @@ public abstract class BaseSecuritySearchProvider implements ISecuritySearchProvi
       log.warn("Security search of provider {} failed for ISIN {}: {}", getProviderId(), query.isin(), e.toString());
       return SecuritySearchResult.failure(getProviderId(), SecuritySearchStatus.PROVIDER_ERROR, e.toString());
     }
+  }
+
+  /**
+   * Runs the currency pair search of an adapter that also implements {@link ICurrencypairSearchProvider}, within the
+   * same request budget and with the same status mapping as {@link #search}.
+   *
+   * @param fromCurrency base currency of the pair, for the log
+   * @param toCurrency   quote currency of the pair, for the log
+   * @param fetch        the requests and the conversion of the answer into hits
+   * @return the outcome; {@link SecuritySearchStatus#NO_MATCH} when the provider delivered no hit
+   */
+  protected final CurrencypairSearchResult runCurrencypairSearch(String fromCurrency, String toCurrency,
+      CurrencypairFetch fetch) {
+    try {
+      List<CurrencypairSearchHit> hits = fetch.fetch();
+      return hits.isEmpty()
+          ? CurrencypairSearchResult.failure(getProviderId(), SecuritySearchStatus.NO_MATCH, "Pair not found")
+          : CurrencypairSearchResult.ok(getProviderId(), hits);
+    } catch (SearchFailureException e) {
+      return CurrencypairSearchResult.failure(getProviderId(), e.getStatus(), e.getMessage());
+    } catch (HttpTimeoutException e) {
+      return CurrencypairSearchResult.failure(getProviderId(), SecuritySearchStatus.TIMEOUT, e.getMessage());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return CurrencypairSearchResult.failure(getProviderId(), SecuritySearchStatus.PROVIDER_ERROR, "Interrupted");
+    } catch (Exception e) {
+      log.warn("Currency pair search of provider {} failed for {}/{}: {}", getProviderId(), fromCurrency, toCurrency,
+          e.toString());
+      return CurrencypairSearchResult.failure(getProviderId(), SecuritySearchStatus.PROVIDER_ERROR, e.toString());
+    }
+  }
+
+  /** The requests of a currency pair search and the conversion of the answer into hits. */
+  @FunctionalInterface
+  protected interface CurrencypairFetch {
+
+    /**
+     * @return the hits, possibly empty
+     * @throws Exception any failure; it is converted into a status by {@link #runCurrencypairSearch}
+     */
+    List<CurrencypairSearchHit> fetch() throws Exception;
   }
 
   /**

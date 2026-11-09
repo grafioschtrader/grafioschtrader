@@ -9,6 +9,7 @@ import java.util.Optional;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import grafioschtrader.dto.CurrencypairLookupData;
 import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
@@ -488,6 +489,22 @@ public interface IFeedConnector {
    * @return the extension, or empty when this connector cannot derive one or needs none for the feed
    */
   default Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    return Optional.empty();
+  }
+
+  /**
+   * Derives the URL extension this connector needs for a feed of a currency pair that is being created. Like
+   * {@link #deriveUrlExtension(SecurityBaseDataDto, FeedSupport)} it makes no network request: it builds the extension
+   * from the two currencies or from a hit of the currency pair search, and a probe checks it afterwards. Only a
+   * connector registered with {@link FeedIdentifier#CURRENCY_URL} for the feed is asked; one with
+   * {@link FeedIdentifier#CURRENCY} builds its request from the currencies alone.
+   *
+   * @param data        the currencies of the pair and the hits of the currency pair search
+   * @param feedSupport the feed the extension is meant for, {@link FeedSupport#FS_HISTORY} or
+   *                    {@link FeedSupport#FS_INTRA}
+   * @return the extension, or empty when this connector cannot derive one; the connector is then not offered
+   */
+  default Optional<String> deriveCurrencyUrlExtension(CurrencypairLookupData data, FeedSupport feedSupport) {
     return Optional.empty();
   }
 

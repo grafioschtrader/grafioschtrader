@@ -54,6 +54,9 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
+  @Autowired
+  private WatchlistIndicatorColumnJpaRepository watchlistIndicatorColumnJpaRepository;
+
   /**
    * {@inheritDoc}
    *
@@ -255,7 +258,9 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   }
 
   @Override
+  @Transactional
   public int delEntityWithTenant(Integer idWatchlist, Integer idTenant) {
+    watchlistIndicatorColumnJpaRepository.deleteOnlyAssignedToWatchlist(idTenant, idWatchlist);
     int rc = watchlistJpaRepository.deleteByIdWatchlistAndIdTenant(idWatchlist, idTenant);
     removePossiblePerformanceWatchlist(idWatchlist, idTenant);
     return rc;

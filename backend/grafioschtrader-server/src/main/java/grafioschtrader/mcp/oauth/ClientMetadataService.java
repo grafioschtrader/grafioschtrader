@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -56,6 +57,16 @@ public class ClientMetadataService {
     /** The host of the client_id, shown on the consent page next to the self-declared name. */
     public String clientHost() {
       return URI.create(clientId).getHost();
+    }
+
+    /**
+     * Tells whether an authorization request may name this redirect URI. It must equal a registered one, except for the
+     * port of a loopback address: a native client such as Codex registers "http://127.0.0.1/callback" and listens on a
+     * port chosen for each login, which RFC 8252 section 7.3 requires the authorization server to accept.
+     */
+    public boolean allowsRedirectUri(String redirectUri) {
+      return redirectUri != null && (redirectUris.contains(redirectUri)
+          || redirectUris.stream().anyMatch(registered -> isSameLoopbackAddress(registered, redirectUri)));
     }
   }
 
@@ -188,11 +199,27 @@ public class ClientMetadataService {
       if (uri.getHost() == null || uri.getFragment() != null) {
         return false;
       }
-      if ("https".equals(uri.getScheme())) {
-        return true;
-      }
-      return "http".equals(uri.getScheme()) && ("localhost".equals(uri.getHost())
-          || InetAddress.ofLiteral(stripBrackets(uri.getHost())).isLoopbackAddress());
+      return "https".equals(uri.getScheme()) || isLoopbackHttp(uri);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+  }
+
+  /** @throws IllegalArgumentException if the host of an HTTP URI is neither "localhost" nor an IP address */
+  private static boolean isLoopbackHttp(URI uri) {
+    return "http".equals(uri.getScheme()) && ("localhost".equals(uri.getHost())
+        || InetAddress.ofLiteral(stripBrackets(uri.getHost())).isLoopbackAddress());
+  }
+
+  /** True when both URIs differ at most in the port and the registered one is an HTTP loopback address. */
+  private static boolean isSameLoopbackAddress(String registered, String requested) {
+    try {
+      URI registeredUri = URI.create(registered);
+      URI requestedUri = URI.create(requested);
+      return isLoopbackHttp(registeredUri) && "http".equals(requestedUri.getScheme())
+          && registeredUri.getHost().equals(requestedUri.getHost()) && requestedUri.getRawUserInfo() == null
+          && requestedUri.getFragment() == null && Objects.equals(registeredUri.getRawPath(), requestedUri.getRawPath())
+          && Objects.equals(registeredUri.getRawQuery(), requestedUri.getRawQuery());
     } catch (IllegalArgumentException e) {
       return false;
     }

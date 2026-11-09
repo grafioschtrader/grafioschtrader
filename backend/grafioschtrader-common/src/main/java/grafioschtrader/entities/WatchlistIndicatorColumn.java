@@ -1,5 +1,8 @@
 package grafioschtrader.entities;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.common.DynamicFormField;
@@ -14,9 +17,12 @@ import jakarta.validation.constraints.*;
 /** Tenant-owned expression and presentation settings; computed cell values are never persisted. */
 @Entity
 @Table(name = WatchlistIndicatorColumn.TABNAME)
-@Schema(description = "An indicator expression shown on all or one watchlist of its tenant")
+@Schema(description = """
+    An indicator expression shown on all or selected watchlists of its tenant, as a table column of the indicator tab,
+    in its expanded row, or both""")
 public class WatchlistIndicatorColumn extends TenantBaseID {
   public static final String TABNAME = "watchlist_indicator_column";
+  public static final String TABNAME_WATCHLIST = "watchlist_indicator_column_watchlist";
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_watchlist_indicator_column")
@@ -32,10 +38,14 @@ public class WatchlistIndicatorColumn extends TenantBaseID {
   @Column(name = "mark_colors")
   @DynamicFormField(uiOrder = "8", helps = DynamicFormPropertyHelps.SELECT_OPTIONS)
   private byte markColors;
+  @Schema(description = """
+      The watchlists on which the column is shown. An empty set means all watchlists of the tenant, including those
+      created later.""")
   @PropertyAlwaysUpdatable
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = TABNAME_WATCHLIST, joinColumns = @JoinColumn(name = "id_watchlist_indicator_column"))
   @Column(name = "id_watchlist")
-  @DynamicFormField(uiOrder = "3", helps = DynamicFormPropertyHelps.SELECT_OPTIONS)
-  private Integer idWatchlist;
+  private Set<Integer> idWatchlists = new HashSet<>();
   @PropertyAlwaysUpdatable
   @Column(name = "label")
   @DynamicFormField(uiOrder = "1", labelKey = "WIC_LABEL")
@@ -66,6 +76,18 @@ public class WatchlistIndicatorColumn extends TenantBaseID {
   @Column(name = "upper_mark")
   @DynamicFormField(uiOrder = "7", fractionLimit = 6)
   private Double upperMark;
+  @Schema(description = "Whether the indicator tab shows the value as a table column")
+  @PropertyAlwaysUpdatable
+  @Column(name = "show_in_table")
+  @DynamicFormField(uiOrder = "9")
+  private boolean showInTable = true;
+  @Schema(description = """
+      Whether the indicator tab shows the value in the expanded row of an instrument, grouped into technical and
+      fundamental indicators. At least one of showInTable and showInExpansion is set.""")
+  @PropertyAlwaysUpdatable
+  @Column(name = "show_in_expansion")
+  @DynamicFormField(uiOrder = "10")
+  private boolean showInExpansion;
 
   @Override
   @JsonIgnore
@@ -115,12 +137,28 @@ public class WatchlistIndicatorColumn extends TenantBaseID {
     uiOrder = order;
   }
 
-  public Integer getIdWatchlist() {
-    return idWatchlist;
+  public Set<Integer> getIdWatchlists() {
+    return idWatchlists;
   }
 
-  public void setIdWatchlist(Integer value) {
-    idWatchlist = value;
+  public void setIdWatchlists(Set<Integer> value) {
+    idWatchlists = value == null ? new HashSet<>() : new HashSet<>(value);
+  }
+
+  public boolean isShowInTable() {
+    return showInTable;
+  }
+
+  public void setShowInTable(boolean value) {
+    showInTable = value;
+  }
+
+  public boolean isShowInExpansion() {
+    return showInExpansion;
+  }
+
+  public void setShowInExpansion(boolean value) {
+    showInExpansion = value;
   }
 
   public String getLabel() {

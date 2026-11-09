@@ -1,6 +1,7 @@
 package grafioschtrader.instrument.lookup;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -18,9 +19,11 @@ import grafioschtrader.dto.ConnectorAlternativeDto;
 import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.BaseHistoryquote;
+import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.types.AssetclassType;
@@ -110,14 +113,9 @@ public class ConnectorProbe {
       String urlExtension, ProbeContext context) {
     LocalDate today = context.today();
     setUrlExtension(draft, feedSupport, urlExtension);
-    try {
-      connector.checkAndClearSecuritycurrencyUrlExtend(draft, feedSupport);
-    } catch (GeneralNotTranslatedWithArgumentsException e) {
-      ConnectorProbeStatus status = BaseFeedConnector.REGEX_URL_MESSAGE_KEY.equals(e.getMessageKey()) ? ConnectorProbeStatus.REGEX_FAILED
-          : ConnectorProbeStatus.CHECK_FAILED;
-      return failed(connector, urlExtension, status, e.getMessage());
-    } catch (Exception e) {
-      return failed(connector, urlExtension, ConnectorProbeStatus.REQUEST_FAILED, describe(connector, e));
+    ConnectorAlternativeDto checkFailure = checkUrlExtension(connector, feedSupport, draft, urlExtension);
+    if (checkFailure != null) {
+      return checkFailure;
     }
     try {
       return switch (feedSupport) {
@@ -131,6 +129,50 @@ public class ConnectorProbe {
       return failed(connector, urlExtension, ConnectorProbeStatus.REQUEST_FAILED, "Interrupted");
     } catch (Exception e) {
       log.debug("Probe of {} for {} failed: {}", connector.getID(), feedSupport, e.toString());
+      return failed(connector, urlExtension, ConnectorProbeStatus.REQUEST_FAILED, describe(connector, e));
+    }
+  }
+
+  /**
+   * Builds the transient currency pair a probe runs on. Every probe gets its own instance, because a probe sets the URL
+   * extension and, for the intraday feed, the last price.
+   *
+   * @param fromCurrency base currency of the pair
+   * @param toCurrency   quote currency of the pair
+   * @return a currency pair that is never persisted
+   */
+  public static Currencypair draftCurrencypair(String fromCurrency, String toCurrency) {
+    return new Currencypair(fromCurrency, toCurrency);
+  }
+
+  /**
+   * Probes one connector for one feed of a currency pair. The history probe requests the whole period GT loads for a
+   * new currency pair, from {@link GlobalConstants#OLDEST_TRADING_DAY} on, through the same call as that first load;
+   * the oldest closing price it delivers tells the user how far back the connector reaches. The intraday probe requests
+   * the last price.
+   *
+   * @param connector    the connector
+   * @param feedSupport  the feed, {@link FeedSupport#FS_HISTORY} or {@link FeedSupport#FS_INTRA}
+   * @param draft        transient currency pair from {@link #draftCurrencypair}; it is modified
+   * @param urlExtension URL extension derived by the connector; null when the connector needs none for the feed
+   * @param today        reference day, the end of the requested history
+   * @return the connector with its URL extension and the outcome
+   */
+  public ConnectorAlternativeDto probeCurrencypair(IFeedConnector connector, FeedSupport feedSupport,
+      Currencypair draft, String urlExtension, LocalDate today) {
+    setUrlExtension(draft, feedSupport, urlExtension);
+    ConnectorAlternativeDto checkFailure = checkUrlExtension(connector, feedSupport, draft, urlExtension);
+    if (checkFailure != null) {
+      return checkFailure;
+    }
+    try {
+      return feedSupport == FeedSupport.FS_HISTORY ? probeCurrencypairHistory(connector, draft, urlExtension, today)
+          : probeCurrencypairIntraday(connector, draft, urlExtension);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return failed(connector, urlExtension, ConnectorProbeStatus.REQUEST_FAILED, "Interrupted");
+    } catch (Exception e) {
+      log.debug("Probe of {} for {} of {} failed: {}", connector.getID(), feedSupport, draft.getName(), e.toString());
       return failed(connector, urlExtension, ConnectorProbeStatus.REQUEST_FAILED, describe(connector, e));
     }
   }
@@ -175,7 +217,48 @@ public class ConnectorProbe {
   static ConnectorAlternativeDto failed(IFeedConnector connector, String urlExtension, ConnectorProbeStatus status,
       String detail) {
     return new ConnectorAlternativeDto(connector.getID(), connector.getReadableName(), urlExtension, status, null, null,
-        null, null, truncate(detail));
+        null, null, null, truncate(detail));
+  }
+
+  /**
+   * Applies the same URL extension check as saving an instrument does.
+   *
+   * @return the failed alternative, or null when the check passed
+   */
+  private static <S extends Securitycurrency<S>> ConnectorAlternativeDto checkUrlExtension(IFeedConnector connector,
+      FeedSupport feedSupport, Securitycurrency<S> draft, String urlExtension) {
+    try {
+      connector.checkAndClearSecuritycurrencyUrlExtend(draft, feedSupport);
+      return null;
+    } catch (GeneralNotTranslatedWithArgumentsException e) {
+      ConnectorProbeStatus status = BaseFeedConnector.REGEX_URL_MESSAGE_KEY.equals(e.getMessageKey())
+          ? ConnectorProbeStatus.REGEX_FAILED
+          : ConnectorProbeStatus.CHECK_FAILED;
+      return failed(connector, urlExtension, status, describeCheckFailure(connector, e));
+    } catch (Exception e) {
+      return failed(connector, urlExtension, ConnectorProbeStatus.REQUEST_FAILED, describe(connector, e));
+    }
+  }
+
+  private ConnectorAlternativeDto probeCurrencypairHistory(IFeedConnector connector, Currencypair draft,
+      String urlExtension, LocalDate today) throws Exception {
+    List<Historyquote> quotes = connector.getEodCurrencyHistory(draft,
+        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), today);
+    if (quotes == null || quotes.isEmpty()) {
+      return empty(connector, urlExtension);
+    }
+    Historyquote first = quotes.stream().min(Comparator.comparing(BaseHistoryquote::getDate)).get();
+    Historyquote last = quotes.stream().max(Comparator.comparing(BaseHistoryquote::getDate)).get();
+    return new ConnectorAlternativeDto(connector.getID(), connector.getReadableName(), urlExtension,
+        ConnectorProbeStatus.OK, last.getDate(), last.getClose(), quotes.size(), first.getDate(), null, null);
+  }
+
+  private ConnectorAlternativeDto probeCurrencypairIntraday(IFeedConnector connector, Currencypair draft,
+      String urlExtension) throws Exception {
+    connector.updateCurrencyPairLastPrice(draft);
+    return draft.getSLast() == null ? empty(connector, urlExtension)
+        : ok(connector, urlExtension, draft.getSTimestamp() == null ? null : draft.getSTimestamp().toLocalDate(),
+            draft.getSLast(), 1);
   }
 
   private ConnectorAlternativeDto probeHistory(IFeedConnector connector, Security draft, String urlExtension,
@@ -208,12 +291,13 @@ public class ConnectorProbe {
         context.today());
     if (dividends.isEmpty()) {
       return new ConnectorAlternativeDto(connector.getID(), connector.getReadableName(), urlExtension,
-          ConnectorProbeStatus.NO_DATA, null, null, 0, frequency, null);
+          ConnectorProbeStatus.NO_DATA, null, null, 0, null, frequency, null);
     }
     Dividend last = dividends.stream().max(Comparator.comparing(Dividend::getExDate)).get();
     return new ConnectorAlternativeDto(connector.getID(), connector.getReadableName(), urlExtension,
         ConnectorProbeStatus.OK, last.getExDate(),
-        last.getAmount() != null ? last.getAmount() : last.getAmountAdjusted(), dividends.size(), frequency, null);
+        last.getAmount() != null ? last.getAmount() : last.getAmountAdjusted(), dividends.size(), null, frequency,
+        null);
   }
 
   private ConnectorAlternativeDto probeSplit(IFeedConnector connector, Security draft, String urlExtension,
@@ -233,15 +317,34 @@ public class ConnectorProbe {
     }
   }
 
+  private static void setUrlExtension(Currencypair draft, FeedSupport feedSupport, String urlExtension) {
+    if (feedSupport == FeedSupport.FS_HISTORY) {
+      draft.setUrlHistoryExtend(urlExtension);
+    } else {
+      draft.setUrlIntraExtend(urlExtension);
+    }
+  }
+
   private static ConnectorAlternativeDto ok(IFeedConnector connector, String urlExtension, LocalDate date, Double value,
       int count) {
     return new ConnectorAlternativeDto(connector.getID(), connector.getReadableName(), urlExtension,
-        ConnectorProbeStatus.OK, date, value, count, null, null);
+        ConnectorProbeStatus.OK, date, value, count, null, null, null);
   }
 
   private static ConnectorAlternativeDto empty(IFeedConnector connector, String urlExtension) {
     return new ConnectorAlternativeDto(connector.getID(), connector.getReadableName(), urlExtension,
-        ConnectorProbeStatus.NO_DATA, null, null, 0, null, null);
+        ConnectorProbeStatus.NO_DATA, null, null, 0, null, null, null);
+  }
+
+  /**
+   * The check exception carries an untranslated message key and its arguments, e.g. the URL that failed; without this
+   * the user would see no reason at all.
+   */
+  private static String describeCheckFailure(IFeedConnector connector, GeneralNotTranslatedWithArgumentsException e) {
+    String detail = e.getMessageKey()
+        + (e.getArguments() == null || e.getArguments().length == 0 ? "" : " " + Arrays.toString(e.getArguments()));
+    return connector instanceof BaseFeedConnector baseFeedConnector ? baseFeedConnector.hideApiKeyForError(detail)
+        : detail;
   }
 
   private static String describe(IFeedConnector connector, Exception e) {

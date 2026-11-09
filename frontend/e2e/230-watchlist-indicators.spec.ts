@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { loginAsFixtureUser } from './helpers';
 import { watchlistTable } from './watchlist.helpers';
+import { pickMultiSelect, setCheckbox } from './generic-connector.helpers';
 
 const fixture = JSON.parse(
   readFileSync(
@@ -45,7 +46,7 @@ async function editor(page: Page) {
   return page.getByRole('dialog', { name: /Edit indicator columns|Indikatorspalten bearbeiten/ });
 }
 
-test('indicator editor persists numeric and boolean columns, scoped headers and missing-data cells', async ({
+test('indicator editor persists columns for selected watchlists, table and expanded-row display, missing data', async ({
   page
 }) => {
   test.setTimeout(120_000);
@@ -81,14 +82,17 @@ test('indicator editor persists numeric and boolean columns, scoped headers and 
     const manage = await editor(page);
     await manage.getByRole('button', { name: /Create column|Spalte erstellen/ }).click();
     const form = page.getByRole('dialog', { name: /^(Indicator column|Indikatorspalte)$/ });
-    await expect(form.locator('select#idWatchlist option').last()).toBeAttached();
+    // The placeholder is set when the dialog initializes, after which the expression is watched for its result type.
+    await expect(form.locator('p-multiselect#idWatchlists')).toContainText(/All watchlists|Alle Beobachtungslisten/);
     await form.locator('#label').fill(column.label);
     const typed = page.waitForResponse(
       (r) => r.url().endsWith('/resulttype') && r.request().postData() === column.expression
     );
     await form.locator('#expression').fill(column.expression);
     await typed;
-    await form.locator('select#idWatchlist').selectOption(String(list.idWatchlist));
+    await pickMultiSelect(page, form, 'idWatchlists', [fixture.watchlist]);
+    if (column.showInTable === false) await setCheckbox(form, 'showInTable', false);
+    if (column.showInExpansion) await setCheckbox(form, 'showInExpansion', true);
     if (column.expression.includes('>')) await expect(form.locator('#decimals')).toBeHidden();
     else {
       await form.locator('#decimals').fill('2');
@@ -101,7 +105,9 @@ test('indicator editor persists numeric and boolean columns, scoped headers and 
     await expect(form).toHaveCount(0);
     await expect(manage.getByRole('cell', { name: column.label, exact: true })).toBeVisible();
     await manage.getByRole('button', { name: /close|schlie/i }).click();
-    await expect(table.getByRole('columnheader', { name: column.label, exact: true })).toBeVisible();
+    const header = table.getByRole('columnheader', { name: column.label, exact: true });
+    if (column.showInTable === false) await expect(header).toHaveCount(0);
+    else await expect(header).toBeVisible();
   }
   await expect(table.locator('tbody tr')).toHaveCount(2);
   const report = await ok(await page.request.get(`/api/watchlist/${list.idWatchlist}/indicator`, { headers: auth }));
@@ -117,7 +123,15 @@ test('indicator editor persists numeric and boolean columns, scoped headers and 
       .first()
       .getByRole('cell', { name: /^0([.,]0+)?$/ })
   ).toBeVisible();
-  await expect(table.locator('tbody .fa-info-circle')).toHaveCount(2);
+  // The missing-data column is shown in the expanded row only, grouped as a fundamental indicator.
+  expect(report.columnCategories[missing.idWatchlistIndicatorColumn]).toBe('FUNDAMENTAL');
+  await expect(table.locator('tbody .fa-info-circle')).toHaveCount(0);
+  await table.locator('tbody tr a .fa-chevron-circle-right').first().click();
+  const expanded = table.locator('watchlist-indicator-expanded');
+  const fundamental = expanded.locator('fieldset', { hasText: /Fundamental indicators|Fundamentale Indikatoren/ });
+  await expect(fundamental).toContainText(fixture.columns[2].label);
+  await expect(fundamental.locator('.fa-info-circle')).toHaveCount(1);
+  await expect(expanded.locator('fieldset')).toHaveCount(1);
   await table.getByRole('columnheader', { name: fixture.columns[0].label, exact: true }).click();
   await page.reload();
   await page.getByRole('tab', { name: /^(Indicators|Indikatoren)$/ }).click();
@@ -130,7 +144,7 @@ test('indicator editor persists numeric and boolean columns, scoped headers and 
     .click();
   const form = page.getByRole('dialog', { name: /^(Indicator column|Indikatorspalte)$/ });
   await expect(form.locator('#expression')).toHaveValue('0');
-  await expect(form.locator('select#idWatchlist')).toHaveValue(String(list.idWatchlist));
+  await expect(form.locator('p-multiselect#idWatchlists')).toContainText(fixture.watchlist);
   await form.locator('form-input-button').getByRole('button').click();
   const search = page.locator('securitycurrency-search-and-set');
   await expect(search.locator('select#idStockexchange option').last()).toBeAttached();

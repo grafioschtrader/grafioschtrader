@@ -302,6 +302,10 @@ public class MyDataExportDeleteDefinition {
   private static String WATCHLIST_SEC_CUR_SELDEL = String.format(
       "ws.* FROM %s w, %s ws WHERE w.id_tenant = ? AND w.id_watchlist = ws.id_watchlist", Watchlist.TABNAME,
       Watchlist.TABNAME_SEC_CUR);
+  private static String WATCHLIST_INDICATOR_COLUMN_WATCHLIST_SELDEL = String.format(
+      "cw.* FROM %s c, %s cw WHERE c.id_tenant = ? "
+          + "AND c.id_watchlist_indicator_column = cw.id_watchlist_indicator_column",
+      WatchlistIndicatorColumn.TABNAME, WatchlistIndicatorColumn.TABNAME_WATCHLIST);
   private static String IMPORT_TRANS_FAILED_SELDEL = String.format(
       "f.* FROM %s f INNER JOIN %s p ON f.id_trans_pos = p.id_trans_pos WHERE p.id_tenant = ?",
       ImportTransactionPosFailed.TABNAME, ImportTransactionPos.TABNAME);
@@ -427,6 +431,8 @@ public class MyDataExportDeleteDefinition {
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(WatchlistIndicatorColumn.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(WatchlistIndicatorColumn.TABNAME_WATCHLIST, TENANT_USER.NONE,
+          WATCHLIST_INDICATOR_COLUMN_WATCHLIST_SELDEL, ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Watchlist.TABNAME_SEC_CUR, TENANT_USER.NONE, WATCHLIST_SEC_CUR_SELDEL,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       // Standing orders — child tables before parent for delete (array runs backwards on delete)

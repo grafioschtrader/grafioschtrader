@@ -49,7 +49,11 @@ import { HelpIds } from '../../lib/help/help.ids';
         ><tr [pReorderableRow]="index">
           <td><span class="pi pi-bars" pReorderableRowHandle></span></td>
           @for (field of tableFields(); track field.field) {
-            <td>{{ getValueByPath(row, field) }}</td>
+            @if (field.templateName === 'check') {
+              <td><i [class.fa]="row[field.field]" [class.fa-check]="row[field.field]" aria-hidden="true"></i></td>
+            } @else {
+              <td>{{ getValueByPath(row, field) }}</td>
+            }
           }
           <td class="row-actions">
             <button
@@ -95,7 +99,9 @@ export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase im
     super();
     this.addColumn(DataType.String, 'label', 'WIC_LABEL', true, false);
     this.addColumnFeqH(DataType.String, 'expression', true, false);
-    this.addColumn(DataType.String, 'watchlistName', 'ID_WATCHLIST', true, false);
+    this.addColumn(DataType.String, 'watchlistName', 'ID_WATCHLISTS', true, false);
+    this.addColumn(DataType.Boolean, 'showInTable', 'SHOW_IN_TABLE', true, false, { templateName: 'check' });
+    this.addColumn(DataType.Boolean, 'showInExpansion', 'SHOW_IN_EXPANSION', true, false, { templateName: 'check' });
     this.prepareTableAndTranslate();
   }
   ngOnInit(): void {
@@ -108,9 +114,12 @@ export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase im
         this.rows.set(
           rows.map((row) =>
             Object.assign({}, row, {
-              watchlistName:
-                lists.find((w) => w.idWatchlist === row.idWatchlist)?.name ??
-                this.translateService.instant('WIC_ALL_WATCHLISTS')
+              watchlistName: row.idWatchlists.length
+                ? lists
+                    .filter((w) => w.idWatchlist != null && row.idWatchlists.includes(w.idWatchlist))
+                    .map((w) => w.name)
+                    .join(', ')
+                : this.translateService.instant('WIC_ALL_WATCHLISTS')
             })
           )
         );
