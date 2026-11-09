@@ -18,12 +18,16 @@ Requirements: [Docker Engine](https://docs.docker.com/engine/install/) with the
 Compose plugin (both included in Docker Desktop and in the standard
 `get.docker.com` install).
 
-On a fresh Debian, Ubuntu or Raspberry Pi OS host, `bootstrap.sh` does everything
-in one step: it installs Docker from Docker's package repository, creates the user
+On a fresh Debian 12 or 13, Ubuntu 22.04, 24.04 or 26.04 or Raspberry Pi OS 64-bit
+host based on Debian 12 or 13, `bootstrap.sh` does everything in one step: it
+installs Docker from Docker's package repository, creates the user
 `grafioschtrader`, downloads the installation files and runs `install.sh` as this
 user. Only this script needs root rights, and it can be run again safely. It stops
-with an error, without removing anything, when packages that conflict with Docker
-Engine are installed.
+with an error, without removing anything, on any other release, because releases
+out of support receive no security updates, and when packages that conflict with
+Docker Engine are installed. On Ubuntu 22.04 it warns that standard support ends
+in April 2027. `update.sh` keeps working on an existing installation on an older
+Debian or Ubuntu release and only warns at the end.
 
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/grafioschtrader/grafioschtrader/master/docker/bootstrap.sh

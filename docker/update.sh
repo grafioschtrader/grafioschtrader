@@ -485,3 +485,17 @@ info "Images:  $GT_VERSION"
 info "Schema:  ${schema:-unknown}"
 info "Backup:  $BACKUP"
 info "Log:     docker compose logs -f backend"
+
+# Only a warning: stopping the update would withhold GT's own fixes from such a host as well. Other distributions are
+# not judged, Docker runs GT there too.
+(
+  [ -r /etc/os-release ] || exit 0
+  # shellcheck source=/dev/null
+  . /etc/os-release
+  case "${ID:-}:${VERSION_ID:-}" in
+    debian:12|debian:13|ubuntu:22.04|ubuntu:24.04|ubuntu:26.04) ;;
+    debian:*|ubuntu:*)
+      warn "${PRETTY_NAME:-This system} is not a supported release (Debian 12 or 13, Ubuntu 22.04, 24.04 or 26.04)."
+      warn "Releases out of support receive no security updates: upgrade this host." ;;
+  esac
+)

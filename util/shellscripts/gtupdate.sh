@@ -117,3 +117,26 @@ rm -f "$builddir/${GT_PROF}.new"
 # Execute final steps
 cd ~
 ~/gtupfrontback.sh
+update_status=$?
+
+# Only a warning: stopping the update would withhold GT's own fixes from such a host as well. The check mirrors the
+# Linux installer (util/installer/src/20-compat.sh), which also treats Raspbian and Armbian like their base.
+(
+  [ -r /etc/os-release ] || exit 0
+  . /etc/os-release
+  distro=${ID:-}
+  if [ "$distro" != debian ] && [ "$distro" != ubuntu ]; then
+    case " ${ID_LIKE:-} " in
+      *' ubuntu '*) distro=ubuntu ;;
+      *' debian '*) distro=debian ;;
+      *) exit 0 ;;
+    esac
+  fi
+  case "$distro:${VERSION_ID:-}" in
+    debian:12|debian:13|ubuntu:22.04|ubuntu:24.04|ubuntu:26.04) ;;
+    *)
+      echo "WARNING: ${PRETTY_NAME:-This system} is not a supported release (Debian 12 or 13, Ubuntu 22.04, 24.04 or 26.04)."
+      echo "WARNING: Releases out of support receive no security updates: upgrade this host." ;;
+  esac
+)
+exit $update_status

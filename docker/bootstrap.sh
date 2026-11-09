@@ -18,7 +18,18 @@ DOCKER_GUIDE=https://docs.docker.com/engine/install/
 
 bold()  { printf '\033[1m%s\033[0m\n' "$*"; }
 info()  { printf '  %s\n' "$*"; }
+warn()  { printf '\033[33m  ! %s\033[0m\n' "$*"; }
 fail()  { printf '\033[31mERROR: %s\033[0m\n' "$*" >&2; exit 1; }
+
+# The releases the Linux installer accepts, see util/installer/src/20-compat.sh. The containers would start on an
+# older host as well, but its kernel and Docker Engine get no security updates while it serves ports 80 and 443.
+check_release() {
+  case "${OS_ID}:${VERSION_ID:-}" in
+    debian:12|debian:13|ubuntu:24.04|ubuntu:26.04) ;;
+    ubuntu:22.04) warn "Ubuntu 22.04 standard support ends in April 2027. Plan the upgrade to Ubuntu 24.04 or 26.04." ;;
+    *) fail "this script supports Debian 12 and 13 and Ubuntu 22.04, 24.04 and 26.04, but this host runs ${PRETTY_NAME:-${OS_ID}}. Releases out of support receive no security updates: upgrade this host first." ;;
+  esac
+}
 
 check_host() {
   [ "$(id -u)" = 0 ] || fail "run this script with root rights: sudo bash bootstrap.sh"
@@ -33,6 +44,7 @@ check_host() {
     debian|ubuntu) ;;
     *) fail "'${OS_ID}' is not supported by this script. Install Docker by hand: ${DOCKER_GUIDE}" ;;
   esac
+  check_release
   [ -n "$OS_CODENAME" ] || fail "cannot determine the release name of this system."
   ARCHITECTURE="$(dpkg --print-architecture)"
   case "$ARCHITECTURE" in
