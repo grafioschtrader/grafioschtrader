@@ -1,0 +1,18 @@
+DATUM DER TRANSAKTION : {datetime|P|N} BOERSE : XETRA
+IHR(E)  {transType|P|SL} 350
+VALOREN-NR. 001,647,069 ACT USD 0.01
+ISIN {isin|P} DELL INC
+{units|P|N} ZUM KURS VON {quotation|P|N}
+BRUTTOBETRAG {cin|SL|P} 6.275,50
+COURTAGE SCHWEIZ EUR {tc1|SL|N}
+BOERSE GEBUEHR CHF {tc2|SL|N|O}
+EIDG. STEMPEL EUR {tt1|SL|N}
+ZUM KURS VON {cex|P|N|O}
+BETRAG, DEN WIR DEM KONTO BELASTEN {cac|P|SL} {ta|SL|N}
+EUR E 4444.44.44 MUSTER HANS
+VALUTA : 04.10.2006
+[END]
+templatePurpose=Kassakauf Yellowtrade Aktie/ETF (ohne Teilkäufe)
+transType=ACCUMULATE|KASSAKAUF
+dateFormat=dd.MM.yyyy
+overRuleSeparators=All<.|,>

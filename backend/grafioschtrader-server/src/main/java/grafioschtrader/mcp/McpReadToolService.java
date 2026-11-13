@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import grafiosch.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Security;
@@ -32,6 +33,7 @@ import grafioschtrader.mcp.McpToolResults.AccountTotals;
 import grafioschtrader.mcp.McpToolResults.CashaccountItem;
 import grafioschtrader.mcp.McpToolResults.CashaccountTransactionRow;
 import grafioschtrader.mcp.McpToolResults.CashaccountTransactions;
+import grafioschtrader.mcp.McpToolResults.ConsumedLot;
 import grafioschtrader.mcp.McpToolResults.CurrencypairItem;
 import grafioschtrader.mcp.McpToolResults.DividendAssetclass;
 import grafioschtrader.mcp.McpToolResults.DividendTotals;
@@ -296,7 +298,16 @@ public class McpReadToolService {
         security.getCurrency(), groupKey, p.getUnits(), p.closePrice, p.closeDate,
         p.closePriceOrigin == null ? null : p.closePriceOrigin.name(), p.priceMissing, p.getAccountValueSecurity(),
         p.getAccountValueSecurityMC(), p.getGainLossSecurity(), p.getGainLossSecurityMC(), p.getGainLossCurrencyMC(),
-        p.getShareOfTotalPercentage());
+        p.getShareOfTotalPercentage(), costBasisMethodNames(p), p.getRealizedGainLossSecurityMC(),
+        p.getIncomeGainLossSecurityMC(), p.getUnrealizedGainLossSecurityMC());
+  }
+
+  /**
+   * The cost basis methods of the security accounts behind a position, in the order of the enum. Empty for a margin
+   * instrument, whose close refers to its own opening.
+   */
+  private static List<String> costBasisMethodNames(SecurityPositionSummary p) {
+    return p.costBasisMethods.stream().map(Enum::name).toList();
   }
 
   private static Comparator<HoldingRow> holdingComparator(OrderBy order) {
@@ -445,7 +456,9 @@ public class McpReadToolService {
     SecurityPositionSummaryRow positionSummary = p == null ? null
         : new SecurityPositionSummaryRow(p.getUnits(), p.closePrice, p.closeDate, p.priceMissing,
             p.getAccountValueSecurity(), p.getAccountValueSecurityMC(), p.getGainLossSecurity(),
-            p.getGainLossSecurityMC(), p.getGainLossCurrencyMC(), p.getTransactionCost(), p.getTaxCost());
+            p.getGainLossSecurityMC(), p.getGainLossCurrencyMC(), p.getTransactionCost(), p.getTaxCost(),
+            costBasisMethodNames(p), p.getRealizedGainLossSecurity(), p.getIncomeGainLossSecurity(),
+            p.getUnrealizedGainLossSecurity());
     return new SecurityTransactions(untilDate, caller.zoneId().getId(),
         tenantJpaRepository.getReferenceById(caller.idTenant()).getCurrency(), toInstrumentItem(caller, security),
         positionSummary, pageRequest.slice(rows), pageRequest.page(rows.size(), order.text()));
@@ -458,7 +471,11 @@ public class McpReadToolService {
         t.getUnits(), t.getQuotation(), t.getCashaccountAmount(), cashaccount == null ? null : cashaccount.getCurrency(),
         t.getCurrencyExRate(), t.getTransactionCost(), t.getTaxCost(), t.getIdSecurityaccount(),
         cashaccount == null ? null : cashaccount.getIdSecuritycashAccount(), position.transactionGainLoss,
-        position.getTransactionGainLossMC(), position.getTransactionGainLossCurrencyMC());
+        position.getTransactionGainLossMC(), position.getTransactionGainLossCurrencyMC(),
+        position.costBasisMethod == null ? null : position.costBasisMethod.name(), position.costBasisIncomplete,
+        position.consumedLots == null ? null
+            : position.consumedLots.stream().map(lot -> new ConsumedLot(lot.idTransaction, lot.transactionTime,
+                lot.units, DataBusinessHelper.roundStandard(lot.cost), lot.exchangeRate)).toList());
   }
 
   // ---------------------------------------------------------------------------------------------------------------

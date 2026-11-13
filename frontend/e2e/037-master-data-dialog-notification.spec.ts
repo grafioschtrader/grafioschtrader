@@ -7,7 +7,7 @@ const views = {
   plan: /^\s*(Trading\s*platform\s*plan|Handelsplattform\s*Plan)\s*$/i,
   asset: /^\s*(Asset\s*class|Anlageklasse)\s*$/i,
   exchange: /^\s*(Stock\s*exchange|Handelsplatz)\s*$/i,
-  udf: /^\s*(Custom field Instrument|Zusatzfeld Instrument)\s*$/i
+  udf: /^\s*(Additional fields|Zusatzfelder)\s*$/i
 };
 
 test.beforeEach(async ({ page }) => {
@@ -32,7 +32,10 @@ async function openView(page: Page, label: RegExp): Promise<Locator> {
       .dblclick();
   }
   await node.click();
-  const table = page.locator('configurable-table').first();
+  const table =
+    label === views.udf
+      ? page.locator('udf-metadata-security-table configurable-table')
+      : page.locator('configurable-table').first();
   await expect(table.locator('tbody tr').first()).toBeVisible();
   return table;
 }

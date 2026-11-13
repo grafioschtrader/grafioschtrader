@@ -16,6 +16,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import grafiosch.BaseConstants;
 import grafiosch.entities.UDFData;
 import grafiosch.entities.UDFData.UDFDataKey;
+import grafiosch.entities.UDFDataShared;
+import grafiosch.entities.UDFDataSharedKey;
+import grafiosch.types.UDFDataType;
+import grafiosch.types.UDFShareMode;
 import grafioschtrader.dto.UDFFillProposalDecision;
 import grafioschtrader.dto.UDFFillProposalDecisionResult.Outcome;
 import grafioschtrader.entities.Security;
@@ -34,9 +38,9 @@ import jakarta.persistence.PersistenceException;
 
 /**
  * The only code path that writes an automatic value or a fill row. Each call runs in its own short transaction
- * ({@code PROPAGATION_REQUIRES_NEW}) and locks the {@code udf_data} row of the owner of the field and the fill row with
- * {@code SELECT ... FOR UPDATE} before it decides, so that a user save that committed earlier is seen and a user save
- * that commits later overwrites the document with the user's values: manual values never lose.
+ * ({@code PROPAGATION_REQUIRES_NEW}). A shared field lock prevents storage transitions; the current value in
+ * {@code udf_data} or {@code udf_data_shared} and the fill row are locked for writing before deciding. Manual values
+ * that committed earlier are seen, and manual saves that commit later win.
  *
  * A write changes only the key {@code f<id>} of the field and leaves every sibling key as it was read.
  */
@@ -66,13 +70,14 @@ public class UDFFillWriter {
   }
 
   private UDFFillWriteResult writeLocked(UDFMetadataSecurity field, int idSecurity, UDFFillOutcome outcome) {
-    UDFMetadataSecurity current = em.find(UDFMetadataSecurity.class, field.getIdUDFMetadata());
-    if (current == null || current.getFillRuleVersion() != field.getFillRuleVersion()
+    int expectedVersion = field.getFillRuleVersion();
+    UDFMetadataSecurity current = lockCurrentField(field);
+    if (current == null || current.getFillRuleVersion() != expectedVersion
         || current.getFillSource() == UDFFillSource.MANUAL) {
       return UDFFillWriteResult.STALE;
     }
     String key = BaseConstants.UDF_FIELD_PREFIX + current.getIdUDFMetadata();
-    UDFData udfData = lockUdfData(current, idSecurity);
+    LockedValue udfData = lockValue(current, idSecurity);
     UDFDataFill fill = em.find(UDFDataFill.class, new UDFDataFillKey(current.getIdUDFMetadata(), idSecurity),
         LockModeType.PESSIMISTIC_WRITE);
     String cur = canonicalValue(udfData, key);
@@ -102,10 +107,16 @@ public class UDFFillWriter {
    */
   public void lock(UDFMetadataSecurity field, int idSecurity) {
     inTransactionWithRetry(() -> {
-      UDFData udfData = lockUdfData(field, idSecurity);
+      int expectedVersion = field.getFillRuleVersion();
+      UDFMetadataSecurity current = lockCurrentField(field);
+      if (current == null || current.getFillRuleVersion() != expectedVersion
+          || current.getFillSource() == UDFFillSource.MANUAL) {
+        return null;
+      }
+      LockedValue udfData = lockValue(current, idSecurity);
       UDFDataFill fill = em.find(UDFDataFill.class, new UDFDataFillKey(field.getIdUDFMetadata(), idSecurity),
           LockModeType.PESSIMISTIC_WRITE);
-      upsertFill(fill, field, idSecurity, UDFFillState.LOCKED,
+      upsertFill(fill, current, idSecurity, UDFFillState.LOCKED,
           canonicalValue(udfData, BaseConstants.UDF_FIELD_PREFIX + field.getIdUDFMetadata()), null);
       return null;
     });
@@ -119,6 +130,12 @@ public class UDFFillWriter {
    */
   public void deleteFillRow(UDFMetadataSecurity field, int idSecurity) {
     inTransactionWithRetry(() -> {
+      int expectedVersion = field.getFillRuleVersion();
+      UDFMetadataSecurity current = lockCurrentField(field);
+      if (current == null || current.getFillRuleVersion() != expectedVersion
+          || current.getFillSource() == UDFFillSource.MANUAL) {
+        return null;
+      }
       UDFDataFill fill = em.find(UDFDataFill.class, new UDFDataFillKey(field.getIdUDFMetadata(), idSecurity),
           LockModeType.PESSIMISTIC_WRITE);
       if (fill != null) {
@@ -138,13 +155,19 @@ public class UDFFillWriter {
   public void removeOutOfScope(UDFMetadataSecurity field, int idSecurity) {
     inTransactionWithRetry(() -> {
       String key = BaseConstants.UDF_FIELD_PREFIX + field.getIdUDFMetadata();
-      UDFData udfData = lockUdfData(field, idSecurity);
+      int expectedVersion = field.getFillRuleVersion();
+      UDFMetadataSecurity current = lockCurrentField(field);
+      if (current == null || current.getFillRuleVersion() != expectedVersion
+          || current.getFillSource() == UDFFillSource.MANUAL) {
+        return null;
+      }
+      LockedValue udfData = lockValue(current, idSecurity);
       UDFDataFill fill = em.find(UDFDataFill.class, new UDFDataFillKey(field.getIdUDFMetadata(), idSecurity),
           LockModeType.PESSIMISTIC_WRITE);
       if (fill != null) {
         if (fill.getFillState() == UDFFillState.APPLIED && fill.getFilledValue() != null
             && fill.getFilledValue().equals(canonicalValue(udfData, key))) {
-          changeValue(udfData, field, idSecurity, key, null);
+          changeValue(udfData, current, idSecurity, key, null);
         }
         em.remove(fill);
       }
@@ -164,12 +187,13 @@ public class UDFFillWriter {
    */
   public boolean recordProposal(UDFMetadataSecurity field, int idSecurity, ProposalRecord proposal) {
     return inTransactionWithRetry(() -> {
-      UDFMetadataSecurity current = em.find(UDFMetadataSecurity.class, field.getIdUDFMetadata());
-      if (current == null || current.getFillRuleVersion() != field.getFillRuleVersion()
+      int expectedVersion = field.getFillRuleVersion();
+      UDFMetadataSecurity current = lockCurrentField(field);
+      if (current == null || current.getFillRuleVersion() != expectedVersion
           || current.getFillSource() != UDFFillSource.LLM) {
         return false;
       }
-      UDFData udfData = lockUdfData(current, idSecurity);
+      LockedValue udfData = lockValue(current, idSecurity);
       UDFDataFill fill = em.find(UDFDataFill.class, new UDFDataFillKey(current.getIdUDFMetadata(), idSecurity),
           LockModeType.PESSIMISTIC_WRITE);
       String cur = canonicalValue(udfData, BaseConstants.UDF_FIELD_PREFIX + current.getIdUDFMetadata());
@@ -209,13 +233,14 @@ public class UDFFillWriter {
    */
   public boolean refreshApplied(UDFMetadataSecurity field, int idSecurity, ProposalRecord proposal) {
     return inTransactionWithRetry(() -> {
-      UDFMetadataSecurity current = em.find(UDFMetadataSecurity.class, field.getIdUDFMetadata());
-      if (current == null || current.getFillRuleVersion() != field.getFillRuleVersion()
+      int expectedVersion = field.getFillRuleVersion();
+      UDFMetadataSecurity current = lockCurrentField(field);
+      if (current == null || current.getFillRuleVersion() != expectedVersion
           || current.getFillSource() != UDFFillSource.LLM) {
         return false;
       }
       String key = BaseConstants.UDF_FIELD_PREFIX + current.getIdUDFMetadata();
-      UDFData udfData = lockUdfData(current, idSecurity);
+      LockedValue udfData = lockValue(current, idSecurity);
       UDFDataFill fill = em.find(UDFDataFill.class, new UDFDataFillKey(current.getIdUDFMetadata(), idSecurity),
           LockModeType.PESSIMISTIC_WRITE);
       String cur = canonicalValue(udfData, key);
@@ -255,13 +280,13 @@ public class UDFFillWriter {
    */
   public Outcome acceptProposal(UDFMetadataSecurity field, int idSecurity, UDFFillProposalDecision decision) {
     return inTransactionWithRetry(() -> {
-      UDFMetadataSecurity current = em.find(UDFMetadataSecurity.class, field.getIdUDFMetadata());
+      UDFMetadataSecurity current = lockCurrentField(field);
       if (current == null || current.getFillRuleVersion() != decision.ruleVersion()
           || current.getFillSource() != UDFFillSource.LLM) {
         return Outcome.STALE;
       }
       String key = BaseConstants.UDF_FIELD_PREFIX + current.getIdUDFMetadata();
-      UDFData udfData = lockUdfData(current, idSecurity);
+      LockedValue udfData = lockValue(current, idSecurity);
       UDFDataFill fill = em.find(UDFDataFill.class, new UDFDataFillKey(current.getIdUDFMetadata(), idSecurity),
           LockModeType.PESSIMISTIC_WRITE);
       String cur = canonicalValue(udfData, key);
@@ -300,7 +325,7 @@ public class UDFFillWriter {
    */
   public Outcome rejectProposal(UDFMetadataSecurity field, int idSecurity, UDFFillProposalDecision decision) {
     return inTransactionWithRetry(() -> {
-      UDFMetadataSecurity current = em.find(UDFMetadataSecurity.class, field.getIdUDFMetadata());
+      UDFMetadataSecurity current = lockCurrentField(field);
       UDFDataFill fill = em.find(UDFDataFill.class, new UDFDataFillKey(field.getIdUDFMetadata(), idSecurity),
           LockModeType.PESSIMISTIC_WRITE);
       if (current == null || current.getFillRuleVersion() != decision.ruleVersion() || fill == null
@@ -333,9 +358,47 @@ public class UDFFillWriter {
       String verifyNote) {
   }
 
-  private UDFData lockUdfData(UDFMetadataSecurity field, int idSecurity) {
-    return em.find(UDFData.class, new UDFDataKey(field.getIdUser(), Security.class.getSimpleName(), idSecurity),
-        LockModeType.PESSIMISTIC_WRITE);
+  private UDFMetadataSecurity lockCurrentField(UDFMetadataSecurity field) {
+    UDFMetadataSecurity current = em.find(UDFMetadataSecurity.class, field.getIdUDFMetadata(),
+        LockModeType.PESSIMISTIC_READ);
+    if (current != null) {
+      // Request threads can already have this field in the persistence context before the transaction starts.
+      em.refresh(current, LockModeType.PESSIMISTIC_READ);
+    }
+    return current == null || current.getIdUser() == null ? null : current;
+  }
+
+  private record LockedValue(UDFData privateData, UDFDataShared sharedData, boolean shared) {
+  }
+
+  private LockedValue lockValue(UDFMetadataSecurity field, int idSecurity) {
+    if (field.getShareMode() != UDFShareMode.UDF_SHARE_NONE) {
+      return new LockedValue(null, em.find(UDFDataShared.class,
+          new UDFDataSharedKey(field.getIdUDFMetadata(), idSecurity), LockModeType.PESSIMISTIC_WRITE), true);
+    }
+    return new LockedValue(em.find(UDFData.class,
+        new UDFDataKey(field.getIdUser(), Security.class.getSimpleName(), idSecurity), LockModeType.PESSIMISTIC_WRITE),
+        null, false);
+  }
+
+  private String canonicalValue(LockedValue value, String key) {
+    return value.shared() ? value.sharedData() == null ? null : value.sharedData().getFieldValue()
+        : canonicalValue(value.privateData(), key);
+  }
+
+  private void changeValue(LockedValue value, UDFMetadataSecurity field, int idSecurity, String key, String text) {
+    if (!value.shared()) {
+      changeValue(value.privateData(), field, idSecurity, key, text);
+    } else if (text == null || text.isEmpty()) {
+      if (value.sharedData() != null) {
+        em.remove(value.sharedData());
+      }
+    } else if (value.sharedData() == null) {
+      em.persist(new UDFDataShared(new UDFDataSharedKey(field.getIdUDFMetadata(), idSecurity),
+          Security.class.getSimpleName(), text));
+    } else {
+      value.sharedData().setFieldValue(text);
+    }
   }
 
   /**
@@ -353,7 +416,9 @@ public class UDFFillWriter {
    * Writes or removes one key. A new map is set, so that the JSON column is recognised as changed; every sibling key
    * stays as read under the lock. A missing row is inserted under the owner of the field.
    */
-  private void changeValue(UDFData udfData, UDFMetadataSecurity field, int idSecurity, String key, String value) {
+  private void changeValue(UDFData udfData, UDFMetadataSecurity field, int idSecurity, String key, String text) {
+    // The user interface stores a boolean as the JSON value true or false, every other type as text
+    Object value = text != null && field.getUdfDataType() == UDFDataType.UDF_Boolean ? Boolean.valueOf(text) : text;
     if (udfData == null) {
       if (value != null) {
         Map<String, Object> values = new HashMap<>();

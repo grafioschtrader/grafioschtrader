@@ -310,14 +310,13 @@ public class MyDataExportDeleteDefinition {
       "f.* FROM %s f INNER JOIN %s p ON f.id_trans_pos = p.id_trans_pos WHERE p.id_tenant = ?",
       ImportTransactionPosFailed.TABNAME, ImportTransactionPos.TABNAME);
   private static String UDF_METADATA_SECUIRTY_SELDEL = String.format(
-      " ums.* FROM %s ums JOIN %s m ON ums.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?",
+      " ums.* FROM %s ums JOIN %s m ON ums.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? AND NOT EXISTS (SELECT 1 FROM udf_metadata_subscription s WHERE s.id_udf_metadata = m.id_udf_metadata)",
       UDFMetadataSecurity.TABNAME, UDFMetadata.TABNAME);
   private static String UDF_METADATA_SECURITY_EXPORT = String.format(
-      " ums.* FROM %s ums JOIN %s m ON ums.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? OR m.id_user = 0",
+      " ums.* FROM %s ums JOIN %s m ON ums.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? OR m.id_user = 0 OR EXISTS (SELECT 1 FROM udf_metadata_subscription s WHERE s.id_udf_metadata = m.id_udf_metadata AND s.id_user = ? )",
       UDFMetadataSecurity.TABNAME, UDFMetadata.TABNAME);
-  private static String UDF_DATA_FILL_SELDEL = String.format(
-      " f.* FROM %s f JOIN %s m ON f.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?", UDFDataFill.TABNAME,
-      UDFMetadata.TABNAME);
+  private static String UDF_DATA_FILL_EXPORT = " f.* FROM udf_data_fill f JOIN udf_metadata m ON f.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? OR EXISTS (SELECT 1 FROM udf_metadata_subscription s WHERE s.id_udf_metadata = m.id_udf_metadata AND s.id_user = ? )";
+  private static String UDF_DATA_FILL_DELETE = " f.* FROM udf_data_fill f JOIN udf_metadata m ON f.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? AND NOT EXISTS (SELECT 1 FROM udf_metadata_subscription s WHERE s.id_udf_metadata = m.id_udf_metadata)";
   private static String SECACCOUNT_TRADING_PERIOD_SELDEL = String.format(
       "stp.* FROM %s stp JOIN %s sc ON stp.id_securitycash_account = sc.id_securitycash_account WHERE sc.id_tenant = ?",
       SecaccountTradingPeriod.TABNAME, Securitycashaccount.TABNAME);
@@ -491,8 +490,8 @@ public class MyDataExportDeleteDefinition {
       // Provenance of the automatically filled cells, scoped through the owner of the field. All states are exported,
       // so that a re-imported tenant keeps its automatic values and locks; securities are shared and survive the user,
       // hence the explicit delete.
-      new ExportDefinition(UDFDataFill.TABNAME, TENANT_USER.ID_USER, UDF_DATA_FILL_SELDEL,
-          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(UDFDataFill.TABNAME, TENANT_USER.ID_USER, UDF_DATA_FILL_EXPORT, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(UDFDataFill.TABNAME, TENANT_USER.ID_USER, UDF_DATA_FILL_DELETE, ExportDefinition.DELETE_USE),
       // Chart drawings of the user. No foreign key to the instrument, so the position only has to precede the user row,
       // which the library array deletes after this one; the RESTRICT key to user makes the explicit delete mandatory.
       new ExportDefinition(UserChartShape.TABNAME, TENANT_USER.ID_USER, null,

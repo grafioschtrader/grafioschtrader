@@ -22,6 +22,7 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
 import { GlobalGTSessionNames } from '../../shared/global.gt.session.names';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 import { BaseSettings } from '../../lib/base.settings';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 
 /**
  * Form for editing the tenant. It also supports changing the currency of the tenant and its portfolios.
@@ -100,10 +101,21 @@ export abstract class TenantEditComponent extends FormBase {
     // Reset and focus before the options are requested: a tenant name typed while they load must survive their arrival.
     this.form().setDefaultValuesAndEnableSubmit();
     (this.configObject.tenantName ?? this.configObject.currency).elementRef?.nativeElement.focus();
-    forkJoin([this.gpsGT.getCurrencies(), this.gps.getCountriesForSelectBox()])
+    forkJoin([
+      this.gpsGT.getCurrencies(),
+      this.gps.getCountriesForSelectBox(),
+      this.gpsGT.getCostBasisMethods(),
+      this.translateService.get('AVERAGE_COST')
+    ])
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(([currencies, countries]) => {
+      .subscribe(([currencies, countries, costBasisMethods]) => {
         this.configObject.currency.valueKeyHtmlOptions = currencies;
+        if (this.configObject.costBasisMethod) {
+          // Translated in place: the helper for translated options sorts by label, the methods keep their enum order.
+          this.configObject.costBasisMethod.valueKeyHtmlOptions = costBasisMethods.map(
+            (option) => new ValueKeyHtmlSelectOptions(option.key, this.translateService.instant(option.value))
+          );
+        }
         if (this.configObject.country) {
           this.configObject.country.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
             countries,
@@ -132,6 +144,8 @@ export abstract class TenantEditComponent extends FormBase {
       DynamicFieldHelper.createFieldDropdownStringHeqF('country', false, { filter: true }),
       DynamicFieldHelper.createFieldCheckboxHeqF('useGtImportTemplates'),
       DynamicFieldHelper.createFieldCheckboxHeqF('disposalCostEstimate'),
+      // Stays behind the fields addressed by index below.
+      DynamicFieldHelper.createFieldSelectStringHeqF('costBasisMethod', true, { defaultValue: 'AVERAGE_COST' }),
       DynamicFieldHelper.createSubmitButton()
     ];
     const submitButton = fieldConfig[fieldConfig.length - 1];

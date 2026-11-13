@@ -22,15 +22,20 @@ import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.reports.AccountPositionGroupSummaryReport;
+import grafioschtrader.reports.RealizedGainReport;
 import grafioschtrader.reports.SecurityDividendsReport;
 import grafioschtrader.reports.SecurityTransactionCostReport;
 import grafioschtrader.reportviews.account.AccountPositionGrandSummary;
+import grafioschtrader.reportviews.germantax.GermanTaxYearReport;
+import grafioschtrader.reportviews.realizedgain.RealizedGainGrandTotal;
+import grafioschtrader.tax.germany.GermanTaxReportService;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsChart;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsGrandTotal;
 import grafioschtrader.reportviews.transactioncost.TransactionCostGrandSummary;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.helper.GroupCurrency;
 import grafioschtrader.repository.helper.GroupPortfolio;
+import grafioschtrader.types.CostBasisMethod;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,6 +50,12 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
 
   @Autowired
   private SecurityDividendsReport securityDividendsReport;
+
+  @Autowired
+  private RealizedGainReport realizedGainReport;
+
+  @Autowired
+  private GermanTaxReportService germanTaxReportService;
 
   @Autowired
   private AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
@@ -126,6 +137,31 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(securityDividendsReport.getSecurityDividendsChartByTenant(user.getIdTenant(),
         idsSecurityaccount, idsCashaccount), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns the capital gains realized by sales, grouped by year", description = """
+      A neutral report without any tax calculation. The cost basis method is average cost, FIFO or LIFO. Without a
+      method, each security account calculates as tenant and portfolio have set it. The security account filter only
+      selects the sales that are listed, it does not change the gain of a sale.""", tags = { Portfolio.TABNAME })
+  @GetMapping(value = "/realizedgains", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<RealizedGainGrandTotal> getRealizedGainsByTenant(
+      @Parameter(description = "List of security accounts Ids, -1 for all", required = true) @RequestParam() final List<Integer> idsSecurityaccount,
+      @Parameter(description = "Cost basis method for all security accounts, omitted for the methods of the tenant") @RequestParam(required = false) final CostBasisMethod costBasisMethod) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return new ResponseEntity<>(
+        realizedGainReport.getRealizedGainGrandTotalByTenant(user.getIdTenant(), idsSecurityaccount, costBasisMethod),
+        HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns the starting values of a tax year for the German tax return", description = """
+      Only for a tenant that reports in euro and has the country Germany. It always covers the whole tenant: the
+      security account ledgers are calculated by FIFO and need all of them. The result is no tax calculation, a sum a gap
+      affects has no amount and a warning names the cause.""", tags = { Portfolio.TABNAME })
+  @GetMapping(value = "/taxgermany/{taxYear}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<GermanTaxYearReport> getTaxGermany(
+      @Parameter(description = "Tax year, from 2018 to the current year", required = true) @PathVariable final int taxYear) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return new ResponseEntity<>(germanTaxReportService.getReport(user.getIdTenant(), taxYear), HttpStatus.OK);
   }
 
   @Operation(summary = "Return of transaction costs including transaction tax per trading platform.", description = "In detail, the costs of each transaction are included. ", tags = {

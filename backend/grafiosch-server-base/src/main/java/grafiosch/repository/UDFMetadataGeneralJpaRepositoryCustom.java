@@ -17,6 +17,9 @@ import grafiosch.repository.UDFDataJpaRepository.IUDFRepository;
  */
 public interface UDFMetadataGeneralJpaRepositoryCustom
     extends BaseRepositoryCustom<UDFMetadataGeneral>, IUDFRepository<UDFMetadataGeneral> {
+  List<UDFMetadataGeneral> getFieldsForUser(Integer idUser);
+
+  List<UDFMetadataGeneral> getShared(Integer idUser);
 
   /**
    * Retrieves field descriptors for user-defined fields accessible to a specific user and entity type. This method

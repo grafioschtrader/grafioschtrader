@@ -68,6 +68,7 @@ import { Helper } from '../../lib/helper/helper';
       (componentClick)="onComponentClick($event)"
       [contextMenuEnabled]="true"
       [contextMenuItems]="contextMenuItems()"
+      [contextMenuAppendTo]="'body'"
       [containerClass]="{
         'data-container-full': true,
         'active-border': isActivated(),

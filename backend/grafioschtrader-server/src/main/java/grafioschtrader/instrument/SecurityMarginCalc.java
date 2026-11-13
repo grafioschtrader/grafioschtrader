@@ -89,12 +89,13 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
    * @param dateCurrencyMap         currency exchange rate data for multi-currency margin trading
    * @param negativeIdNumberCreater utility for generating IDs for derived transactions
    * @param currencyPrecisionMap    precision settings for different currencies used in calculations
+   * @param costBasisMethods        not applicable for margin instruments, whose close refers to its own opening
    */
   @Override
   void calcSingleSecurityTransaction(Transaction transaction, Map<Security, SecurityPositionSummary> summarySecurityMap,
       Map<Integer, List<Securitysplit>> securitysplitMap, boolean excludeDivTaxcost,
       DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
-      Map<String, Integer> currencyPrecisionMap) {
+      Map<String, Integer> currencyPrecisionMap, CostBasisMethods costBasisMethods) {
     SecurityPositionSummary securityPositionSummary = getSecurityPositionSummary(transaction, summarySecurityMap,
         dateCurrencyMap, currencyPrecisionMap);
     calcTransactionPosition(transaction, securityPositionSummary, excludeDivTaxcost, securitysplitMap, true,
@@ -188,13 +189,15 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
    * @param securitySplitMap           map of security splits for corporate action handling
    * @param dateCurrencyMap            currency data for multi-currency margin trading
    * @param negativeIdNumberCreater    utility for generating unique IDs
+   * @param costBasisMethods           not applicable for margin instruments, whose close refers to its own opening
    *
    * @see SecurityTransactionSummary#createAndAddPositionGainLoss(Transaction)
    */
   @Override
   void calcTransactionAndAddToPosition(Transaction transaction, SecurityTransactionSummary securityTransactionSummary,
       boolean excludeDivTaxcost, Map<Integer, List<Securitysplit>> securitySplitMap,
-      DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater) {
+      DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
+      CostBasisMethods costBasisMethods) {
     calcTransactionPosition(transaction, securityTransactionSummary.securityPositionSummary, excludeDivTaxcost,
         securitySplitMap, false, dateCurrencyMap);
     securityTransactionSummary.createAndAddPositionGainLoss(transaction);
@@ -286,6 +289,10 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
         securityPositionSummary.units += ctp.unitsSplited;
       }
       securityPositionSummary.gainLossSecurity += gainMarginTransacton;
+      if (transaction.getIdTransaction() < 0) {
+        // The close that only values the open position has realized nothing
+        securityPositionSummary.unrealizedGainLossSecurity += gainMarginTransacton;
+      }
       calcTransactionGainLossMC(ctp, securityPositionSummary, transaction, transactionsMarginOpenUnits.expenseIncome,
           0);
       transactionsMarginOpenUnits.expenseIncome -= Math

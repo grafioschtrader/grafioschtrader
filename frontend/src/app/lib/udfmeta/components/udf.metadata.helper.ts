@@ -10,6 +10,7 @@ import { dataTypeFieldSizeGroup } from '../../validator/validator';
 import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
 import { GlobalSessionNames } from '../../global.session.names';
 import { FieldDescriptorInputAndShowExtended } from '../../dynamicfield/field.descriptor.input.and.show';
+import { UDFShareMode } from '../model/udf.share.mode';
 import { disabled, SchemaPathTree } from '@angular/forms/signals';
 
 /**
@@ -60,6 +61,7 @@ export class UDFMetadataHelper {
     fdTypeSizeGroup.errors = [{ name: 'dataTypeFieldSizeGroup', keyi18n: 'dataTypeFieldSizeGroup', rules: ['dirty'] }];
     return <FieldConfig[]>[
       DynamicFieldHelper.createFieldSelectNumberHeqF('uiOrder', true),
+      DynamicFieldHelper.createFieldSelectStringHeqF('shareMode', true),
       DynamicFieldHelper.createFieldInputStringVSParam(
         this.DESCRIPTION,
         'FIELD_DESCRIPTION',
@@ -167,13 +169,19 @@ export class UDFMetadataHelper {
     },
     excludeUiOrders: number[],
     businessObject: UDFMetadata | null,
-    lifetime: MonoTypeOperatorFunction<any>
+    lifetime: MonoTypeOperatorFunction<any>,
+    translateService: import('@ngx-translate/core').TranslateService
   ): void {
     configObject.uiOrder.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsForNumberRange(
       1,
       99,
       excludeUiOrders
     );
+    configObject.shareMode.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      translateService,
+      UDFShareMode
+    ).filter((o) => !(businessObject?.subscriberCount && o.key === 'UDF_SHARE_NONE'));
+    requireFormControl(configObject.shareMode).setValue(businessObject?.shareMode ?? 'UDF_SHARE_NONE');
     requireFormControl(configObject[UDFMetadataHelper.UDF_DATA_TYPE])
       .valueChanges.pipe(lifetime)
       .subscribe((udt) => UDFMetadataHelper.enableDisableFieldSize(form, configObject, udt));

@@ -1,6 +1,7 @@
 package grafioschtrader.instrument;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -21,8 +22,9 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * It is a service that enables the calculation of returns for a security based on transactions. The calculation
- * distinguishes between margin instruments and other securities. The calculation is based on the Average Cost Method
- * and a specific position is closed for margin instruments. The calculation here is based on existing transactions,
+ * distinguishes between margin instruments and other securities. A sale of another security takes its cost by the
+ * cost basis method of its security account, which is average cost, FIFO or LIFO, and a specific position is closed for
+ * margin instruments. The calculation here is based on existing transactions,
  * users of this service may have to perform further calculations for transactions that have not yet been closed.
  */
 @Service
@@ -56,11 +58,13 @@ public class SecurityCalcService {
    * @param untilDate                  The most recent date up to which the transactions are evaluated.
    * @param dateCurrencyMap            Contains the necessary information for the calculation to work with different
    *                                   currencies.
+   * @param costBasisMethods           The cost basis methods of this report run. Mandatory, so that no caller stays on
+   *                                   average cost without noticing.
    */
   public void calcTransactions(Security security, final boolean excludeDivTaxcost,
       final SecurityTransactionSummary securityTransactionSummary,
       final Map<Integer, List<Securitysplit>> securitySplitMap, final List<Transaction> transactions,
-      final LocalDate untilDate, DateTransactionCurrencypairMap dateCurrencyMap) {
+      final LocalDate untilDate, DateTransactionCurrencypairMap dateCurrencyMap, CostBasisMethods costBasisMethods) {
 
     boolean isMarginInstrument = securityTransactionSummary.securityPositionSummary.getSecurity().isMarginInstrument();
 
@@ -68,19 +72,21 @@ public class SecurityCalcService {
       dateCurrencyMap = new DateTransactionCurrencypairMap(untilDate,
           tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate));
     }
-    for (final Transaction transaction : transactions) {
+    for (final Transaction transaction : sortForCalculation(transactions)) {
       if (transaction.getTransactionTime().toLocalDate().isAfter(untilDate)) {
         return;
       }
       if (!isMarginInstrument) {
         securityGeneralCalc.createAccruedInterestPostion(security, TransactionType.REDUCE, transaction,
-            securityTransactionSummary, excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
+            securityTransactionSummary, excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater,
+            costBasisMethods);
       }
       getSecurityCalc(security).calcTransactionAndAddToPosition(transaction, securityTransactionSummary,
-          excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
+          excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater, costBasisMethods);
       if (!isMarginInstrument) {
         securityGeneralCalc.createAccruedInterestPostion(security, TransactionType.ACCUMULATE, transaction,
-            securityTransactionSummary, excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
+            securityTransactionSummary, excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater,
+            costBasisMethods);
       }
     }
     securityTransactionSummary.securityPositionSummary.removeClosedMarginPosition();
@@ -97,14 +103,28 @@ public class SecurityCalcService {
    * @param securitysplitMap   Contains the splits. ID of the security and the list of splits.
    * @param excludeDivTaxcost  If true, tax withholdings are not taken into account.
    * @param dateCurrencyMap    Contains the necessary information for the calculation to work with different currencies.
+   * @param costBasisMethods   The cost basis methods of this report run, resolved once by the report.
    */
   public void calcSingleSecurityTransaction(final Transaction transaction,
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
-      final DateTransactionCurrencypairMap dateCurrencyMap) {
+      final DateTransactionCurrencypairMap dateCurrencyMap, final CostBasisMethods costBasisMethods) {
     getSecurityCalc(transaction.getSecurity()).calcSingleSecurityTransaction(transaction, summarySecurityMap,
         securitysplitMap, excludeDivTaxcost, dateCurrencyMap, negativeIdNumberCreater,
-        globalparametersService.getCurrencyPrecision());
+        globalparametersService.getCurrencyPrecision(), costBasisMethods);
+  }
+
+  /**
+   * Returns the transactions in the order every calculation walks them, see {@link Transaction#CALC_ORDER}. Queries
+   * order by time alone, which leaves transactions of the same minute in an undefined order.
+   *
+   * @param transactions transactions in any order, left untouched
+   * @return a sorted copy
+   */
+  public static List<Transaction> sortForCalculation(final List<Transaction> transactions) {
+    final List<Transaction> sorted = new ArrayList<>(transactions);
+    sorted.sort(Transaction.CALC_ORDER);
+    return sorted;
   }
 
   /**

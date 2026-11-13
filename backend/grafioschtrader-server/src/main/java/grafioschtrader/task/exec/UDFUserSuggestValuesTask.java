@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.UDFMetadataSubscription;
 import grafiosch.exceptions.TaskBackgroundException;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
@@ -15,17 +16,22 @@ import grafioschtrader.types.TaskTypeExtended;
 import grafioschtrader.udffill.ai.ValueSuggestService;
 
 /**
- * Lets a language model propose values of one user-defined security field with the fill source LLM. The entity ID of
- * the task is the ID of the field. The task is paid and always uses the language models of the home tenant of the
- * owner of the field. Two forms enqueue the runs of the fields:
+ * Lets a language model propose values of one user-defined security field with the fill source LLM. The task is paid.
+ * A run has one payer and asks only for the securities of the tenant scope of this payer, with the language models of
+ * the home tenant of this payer:
  * <ul>
- * <li>Without an entity, as created daily by {@code UDF_FILL_VALUES} or by the administrator, it enqueues one run per
- * language model field with a fill period of all tenants.</li>
- * <li>With a tenant as entity, created by the administrator, it does so for the fields of the users of this
- * tenant.</li>
+ * <li>With a field as entity the payer is the owner of the field.</li>
+ * <li>With an adoption ({@code UDFMetadataSubscription}) as entity the payer is the user who adopted the shared
+ * field.</li>
  * </ul>
- * The run of one field, with the field as entity, is enqueued by those two forms and when the owner asks the model for
- * values; the administrator does not create it.
+ * Two forms enqueue these runs:
+ * <ul>
+ * <li>Without an entity, as created daily by {@code UDF_FILL_VALUES} or by the administrator, it enqueues the runs of
+ * the owner and of every user who adopted it per language model field with a fill period of all tenants.</li>
+ * <li>With a tenant as entity, created by the administrator, it does so for the users of this tenant.</li>
+ * </ul>
+ * The run of one payer is enqueued by those two forms and when this participant asks the model for values; the
+ * administrator does not create it.
  */
 @Component
 public class UDFUserSuggestValuesTask implements ITask {
@@ -47,7 +53,9 @@ public class UDFUserSuggestValuesTask implements ITask {
       valueSuggestService.enqueuePeriodic(taskDataChange.getIdEntity());
       return;
     }
-    String failure = valueSuggestService.runField(taskDataChange.getIdEntity());
+    String failure = UDFMetadataSubscription.class.getSimpleName().equals(taskDataChange.getEntity())
+        ? valueSuggestService.runSubscription(taskDataChange.getIdEntity())
+        : valueSuggestService.runField(taskDataChange.getIdEntity());
     if (failure != null) {
       throw new TaskBackgroundException(failure, false);
     }

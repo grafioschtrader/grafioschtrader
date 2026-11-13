@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Component;
 
 import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.UDFMetadataSubscription;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.ProgressStateType;
 import grafiosch.types.TaskDataExecPriority;
@@ -69,8 +70,25 @@ public class UDFFillTaskQueue {
   }
 
   /**
-   * Enqueues the value proposal run over all tenants, unless one is already waiting. It enqueues one run per language
-   * model field with a fill period.
+   * Enqueues a value proposal run of a language model for a user who adopted a shared field, unless one for this
+   * adoption is already waiting. The run asks only for the securities of this user and at the cost of this user.
+   *
+   * @param idUDFMetadataSubscription the adoption of the field by the user
+   * @param priority                  the priority of the run
+   */
+  public void enqueueSuggestSubscription(Integer idUDFMetadataSubscription, TaskDataExecPriority priority) {
+    String entity = UDFMetadataSubscription.class.getSimpleName();
+    if (!taskDataChangeJpaRepository.existsByIdTaskAndEntityAndIdEntityAndProgressStateType(
+        TaskTypeExtended.UDF_USER_SUGGEST_VALUES.getValue(), entity, idUDFMetadataSubscription,
+        ProgressStateType.PROG_WAITING.getValue())) {
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.UDF_USER_SUGGEST_VALUES, priority,
+          LocalDateTime.now(), idUDFMetadataSubscription, entity));
+    }
+  }
+
+  /**
+   * Enqueues the value proposal run over all tenants, unless one is already waiting. It enqueues the runs of the owner
+   * and of the users who adopted it per language model field with a fill period.
    *
    * @param priority the priority of the run
    */

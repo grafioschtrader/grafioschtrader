@@ -1,0 +1,27 @@
+TRANSAKTIONSBELEG
+Kunde: 999999 - TRADING
+Herrn MAX MUSTER
+Musterstrasse 1
+CH-9999 Musterort
+Bern, 02.10.2017
+Börsentransaktion: Verkauf
+Unsere Referenz: 000000000
+Gemäss Ihrem Verkaufsauftrag vom 02.10.2017 haben wir folgende Transaktionen vorgenommen:
+Titel Ort der Ausführung
+UBSETF MSCI Switzerland CHF ISIN: CH0226274246 SIX Swiss Exchange
+NKN: 22627424
+Anzahl Preis Betrag
+195 16.37 CHF 3'192.15
+Total CHF 3'192.15
+Kommission CHF 5.00
+Abgabe (Eidg. Stempelsteuer) CHF 2.40
+Börsengebühren CHF 2.00
+Zu Ihren Gunsten CHF 3'182.75
+Betrag gutgeschrieben auf Ihrer Kontonummer 99999900, Valutadatum 04.10.2017
+Vielen Dank für Ihren Auftrag.
+Im Rahmen dieser Transaktion hat PostFinance als Kommissionär gehandelt.
+Bitte prüfen Sie dieses Dokument und benachrichtigen Sie uns bei Unstimmigkeiten innert Monatsfrist.
+PostFinance AG, Mingerstrasse 20, 3030 Bern
+Kontaktcenter E-Trading: 0848 800 000 (Mo-Fr: 08.00-22.00 Uhr, ab Festnetz CHF 0.08/Min.)
+Formular ohne Unterschrift S.E. & O.
+MwSt n° CHE-116.302.542

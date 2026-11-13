@@ -91,6 +91,19 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
       .pipe(catchError(this.handleError.bind(this)));
   }
 
+  /**
+   * Sets or removes the base interest rate of a tax year of Germany.
+   *
+   * @param idTaxYear - the tax year
+   * @param fundBaseRate - the rate in percent, 2.53 for 2.53 %, or null to remove it
+   * @returns the saved tax year
+   */
+  setFundBaseRate(idTaxYear: number, fundBaseRate: number | null): Observable<TaxYear> {
+    return this.httpClient
+      .put<TaxYear>(`${TaxDataService.BASE_URL}/year/${idTaxYear}/fundbaserate`, { fundBaseRate }, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   deleteYear(id: number): Observable<any> {
     return this.httpClient
       .delete(`${TaxDataService.BASE_URL}/year/${id}`, this.getHeaders())

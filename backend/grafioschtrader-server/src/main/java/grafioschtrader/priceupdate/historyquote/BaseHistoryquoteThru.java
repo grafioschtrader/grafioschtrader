@@ -169,7 +169,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
    * stockexchange's configured timezone. For currency pairs, falls back to system default timezone.
    *
    * @param securitycurrency the security or currency pair
-   * @param adjustForWeekend if true, adjusts Sunday/Monday back to previous Friday
+   * @param adjustForWeekend if true, adjusts Sunday/Monday back to the previous Saturday
    * @return the current date in the appropriate timezone
    */
   private LocalDate getCurrentLocalDateForSecurityCurrency(S securitycurrency, boolean adjustForWeekend) {
@@ -187,17 +187,24 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
     }
 
     LocalDate currentDate = LocalDate.now(zoneId);
+    return adjustForWeekend ? moveSundayMondayBackToSaturday(currentDate) : currentDate;
+  }
 
-    if (adjustForWeekend) {
-      DayOfWeek dayOfWeek = currentDate.getDayOfWeek();
-      if (dayOfWeek == DayOfWeek.SUNDAY) {
-        currentDate = currentDate.minusDays(2); // Back to Friday
-      } else if (dayOfWeek == DayOfWeek.MONDAY) {
-        currentDate = currentDate.minusDays(3); // Back to Friday
-      }
-    }
-
-    return currentDate;
+  /**
+   * Returns the target date of the global daily update for a local day. A Sunday or Monday goes back to Saturday and
+   * deliberately not to Friday: the global update loads only from a difference of two days, so against Saturday a
+   * missing Friday quote is still fetched when the Saturday run did not take place, while an existing Friday quote
+   * leaves a difference of one day and causes no request.
+   *
+   * @param date the current day in the time zone of the exchange
+   * @return the previous Saturday for a Sunday or Monday, otherwise the given day
+   */
+  static LocalDate moveSundayMondayBackToSaturday(LocalDate date) {
+    return switch (date.getDayOfWeek()) {
+      case SUNDAY -> date.minusDays(1);
+      case MONDAY -> date.minusDays(2);
+      default -> date;
+    };
   }
 
   /**

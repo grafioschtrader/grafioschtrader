@@ -51,6 +51,13 @@ public abstract class SecurityPositionGroupSummary {
   @Schema(description = "Total gains/losses for all securities in the group in main currency")
   public double groupGainLossSecurityMC = 0.0;
 
+  @Schema(description = "Realized part of groupGainLossSecurityMC, at the exchange rate of the report")
+  public double groupRealizedGainLossSecurityMC = 0.0;
+  @Schema(description = "Income part of groupGainLossSecurityMC: dividends and accrued interest")
+  public double groupIncomeGainLossSecurityMC = 0.0;
+  @Schema(description = "Unrealized part of groupGainLossSecurityMC")
+  public double groupUnrealizedGainLossSecurityMC = 0.0;
+
   @Schema(description = "Total currency exchange gains/losses for the group in main currency")
   public double groupGainLossCurrencyMC = 0.0;
 
@@ -111,6 +118,9 @@ public abstract class SecurityPositionGroupSummary {
     precisionMC = securityPositionSummary.precisionMC;
     securityPositionSummaryList.add(securityPositionSummary);
     groupGainLossSecurityMC += securityPositionSummary.gainLossSecurityMC;
+    groupRealizedGainLossSecurityMC += securityPositionSummary.realizedGainLossSecurityMC();
+    groupIncomeGainLossSecurityMC += securityPositionSummary.incomeGainLossSecurityMC;
+    groupUnrealizedGainLossSecurityMC += securityPositionSummary.unrealizedGainLossSecurityMC;
     groupGainLossCurrencyMC += securityPositionSummary.gainLossCurrencyMC;
     groupAccountValueSecurityMC += securityPositionSummary.accountValueSecurityMC;
 
@@ -161,6 +171,18 @@ public abstract class SecurityPositionGroupSummary {
 
   public double getGroupGainLossSecurityMC() {
     return DataHelper.round(groupGainLossSecurityMC, precisionMC);
+  }
+
+  public double getGroupRealizedGainLossSecurityMC() {
+    return DataHelper.round(groupRealizedGainLossSecurityMC, precisionMC);
+  }
+
+  public double getGroupIncomeGainLossSecurityMC() {
+    return DataHelper.round(groupIncomeGainLossSecurityMC, precisionMC);
+  }
+
+  public double getGroupUnrealizedGainLossSecurityMC() {
+    return DataHelper.round(groupUnrealizedGainLossSecurityMC, precisionMC);
   }
 
   public double getGroupValueSecurityShort() {

@@ -92,7 +92,8 @@ class FundamentalSourceChecksTest {
   @DisplayName("Eulerpool units: a share count off by the millions factor fails, a net income of 0 is not checked")
   void eulerpoolUnits() {
     SecurityFundamental eps = row(FundamentalSource.EULERPOOL, FundamentalMetric.EPS_FY, 2.0, "EUR", FISCAL_YEAR);
-    SecurityFundamental shares = row(FundamentalSource.EULERPOOL, FundamentalMetric.SHARES, 500e12, null, FISCAL_YEAR);
+    SecurityFundamental shares = row(FundamentalSource.EULERPOOL, FundamentalMetric.SHARES_FY, 500e12, null,
+        FISCAL_YEAR);
     List<SecurityFundamental> rows = List.of(eps, shares);
     FundamentalSourceChecks.apply(rows, rows, evidence(1.0e9), 30.0, "EUR", NO_PAIR);
     assertThat(shares.getSourceCheck()).isEqualTo(FundamentalSourceCheck.FAILED);
@@ -119,7 +120,7 @@ class FundamentalSourceChecksTest {
     usable.put(FundamentalSource.YAHOO, FundamentalAnswer.usable(List.of(newTtm, newPe), Map.of()));
 
     List<SecurityFundamental> result = FundamentalDataLoadService.combine(List.of(storedFy, storedTtm, storedBvps),
-        usable, 100.0, "USD", NO_PAIR, TODAY);
+        usable, 100.0, "USD", NO_PAIR, TODAY, null);
 
     assertThat(result).containsExactlyInAnyOrder(storedFy, newTtm, newPe);
     assertThat(newTtm.getSourceCheck()).isEqualTo(FundamentalSourceCheck.PASSED);

@@ -1,3 +1,4 @@
+import { UDFSubscriptionEditComponent } from './udf-subscription-edit.component';
 import { Component, inject } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { UDFMetadataGeneral, UDFMetadataGeneralParam } from '../model/udf.metadata';
@@ -49,6 +50,7 @@ import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.com
         [showGridlines]="true"
         [contextMenuEnabled]="true"
         [contextMenuItems]="contextMenuItems()"
+        [contextMenuAppendTo]="'body'"
         [showContextMenu]="isActivated()"
         [containerClass]="''"
         (componentClick)="onComponentClick($event)">
@@ -59,6 +61,13 @@ import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.com
         </ng-template>
       </configurable-table>
     </div>
+    @if (subscriptionField(); as field) {
+      <udf-subscription-edit
+        [visibleDialog]="true"
+        [field]="field"
+        [excludeUiOrders]="subscriptionExcludedOrders"
+        (closeDialog)="subscriptionField.set(null); handleCloseDialog($event)" />
+    }
     @if (visibleDialog()) {
       <udf-metadata-general-edit
         [visibleDialog]="visibleDialog()"
@@ -66,8 +75,21 @@ import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.com
         (closeDialog)="handleCloseDialog($event)" />
     }
   `,
+  styles: `
+    :host {
+      display: block;
+      min-height: 0;
+      overflow: auto;
+    }
+  `,
   providers: [DialogService],
-  imports: [TranslateModule, AngularSvgIconModule, ConfigurableTableComponent, UDFMetadataGeneralEditComponent]
+  imports: [
+    UDFSubscriptionEditComponent,
+    TranslateModule,
+    AngularSvgIconModule,
+    ConfigurableTableComponent,
+    UDFMetadataGeneralEditComponent
+  ]
 })
 export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGeneral> {
   /** Parameters for metadata editing operations including validation exclusions */

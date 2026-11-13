@@ -65,6 +65,8 @@ export class BaseSettings {
   public static readonly GLOBALPARAMETERS_P_KEY = BaseSettings.GLOBALPARAMETERS.toLowerCase();
 
   public static readonly UDF_METADATA_GENERAL = 'UDFMetadataGeneral';
+  public static readonly UDF_METADATA_OWN_KEY = 'udfmetadataown';
+  public static readonly UDF_METADATA_SHARED_KEY = 'udfmetadatashared';
   public static readonly UDF_METADATA_GENERAL_KEY = BaseSettings.UDF_METADATA_GENERAL.toLowerCase();
 
   public static readonly GLOBAL_SETTINGS_KEY = 'globalsettings';

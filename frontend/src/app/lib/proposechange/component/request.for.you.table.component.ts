@@ -12,7 +12,8 @@ import {
   viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subscription } from 'rxjs';
+import { map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
+import { LoginService } from '../../login/service/log-in.service';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { TranslateModule } from '@ngx-translate/core';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
@@ -74,7 +75,12 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
   private activePanelService: ActivePanelService = inject(ActivePanelService);
   private messageToastService: MessageToastService = inject(MessageToastService);
 
+  private loginService: LoginService = inject(LoginService);
+
   readonly editDialogContainer = viewChild('editDialogContainer', { read: ViewContainerRef });
+
+  /** Nicknames of the request creators by user id; stays empty while the nickname is hidden on this instance. */
+  private readonly nicknames = signal<Record<number, string>>({});
 
   /** Translated menu of the selected request, shown as context menu and in the menu bar */
   readonly contextMenuItems = signal<MenuItem[]>([]);
@@ -98,7 +104,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
       translateValues: TranslateValue.UPPER_CASE
     });
     this.addColumnFeqH(DataType.String, 'proposeChangeEntity.noteRequest', true, false);
-    this.addColumnFeqH(DataType.NumericInteger, 'proposeChangeEntity.createdBy', true, false);
+    this.addCreatedByColumn();
     this.addColumn(DataType.NumericInteger, 'proposeChangeEntity.idOwnerEntity', 'OWNER_ENTITY', true, false);
     this.addColumnFeqH(DataType.DateTimeSecondString, 'proposeChangeEntity.creationTime', true, false);
     this.prepareTableAndTranslate();
@@ -110,17 +116,54 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
   }
 
   /**
-   * Loads all propose change entities with their associated proposed entities from the backend.
+   * Adds the creator column. It shows the user id; when the administrator of this instance has made the nickname
+   * visible (g.user.nickname.visible) it shows the nickname instead, falling back to the id for an unknown user.
+   */
+  private addCreatedByColumn(): void {
+    if (this.gps.isUserNicknameVisible()) {
+      this.addColumnFeqH(DataType.String, 'proposeChangeEntity.createdBy', true, false, {
+        fieldValueFN: (_dataobject: unknown, _field: unknown, valueField: unknown) => {
+          const idUser = Number(valueField);
+          return this.nicknames()[idUser] ?? valueField;
+        }
+      });
+    } else {
+      this.addColumnFeqH(DataType.NumericInteger, 'proposeChangeEntity.createdBy', true, false);
+    }
+  }
+
+  /**
+   * Loads all propose change entities with their associated proposed entities from the backend. When nicknames are
+   * visible, the nicknames of the creators are read first, so rows and labels appear together.
    */
   readData(): void {
     this.proposeChangeEntityService
       .getProposeChangeEntityWithEntity()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        switchMap((list) => this.loadCreatorNicknames(list).pipe(map(() => list))),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe((proposeChangeEntityWithEntityList) => {
         this.prepareTableAndTranslate();
         this.createTranslatedValueStoreAndFilterField(proposeChangeEntityWithEntityList);
         this.proposeChangeEntityWithEntityList.set(proposeChangeEntityWithEntityList);
       });
+  }
+
+  /**
+   * Reads the nicknames of the request creators into {@link nicknames}. Nothing is requested while the nickname is
+   * hidden on this instance or when no request carries a creator.
+   */
+  private loadCreatorNicknames(list: ProposeChangeEntityWithEntity[]): Observable<unknown> {
+    const idUsers = [
+      ...new Set(
+        list.map((p) => p.proposeChangeEntity.createdBy).filter((id): id is number => id !== null && id !== undefined)
+      )
+    ];
+    if (!this.gps.isUserNicknameVisible() || idUsers.length === 0) {
+      return of(null);
+    }
+    return this.loginService.getNicknames(idUsers).pipe(tap((nicknames) => this.nicknames.set(nicknames)));
   }
 
   /**

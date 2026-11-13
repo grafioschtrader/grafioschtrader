@@ -163,7 +163,7 @@ public class RuleProposalService {
    * automatic, because values the rule already produces teach nothing.
    */
   private List<RuleProposalExample> selectExamples(UDFMetadataSecurity field, User user) {
-    Map<Integer, String> values = scopeService.getFieldValues(user.getIdUser(), field.getIdUDFMetadata());
+    Map<Integer, String> values = scopeService.getFieldValues(field);
     Map<Integer, UDFDataFill> fills = udfDataFillJpaRepository.findById_IdUDFMetadata(field.getIdUDFMetadata()).stream()
         .collect(Collectors.toMap(f -> f.getId().getIdEntity(), Function.identity()));
     UDFFillTemplate current = currentTemplate(field);

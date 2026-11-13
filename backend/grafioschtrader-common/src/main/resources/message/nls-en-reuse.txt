@@ -101,3 +101,5 @@ WIC_DEFAULT_8
 
 # --- Deliberate: the English loanword is the usual German term as well.
 MOBILE_WATCHLISTS
+GERMAN_TAX_COL_STATUS
+GERMAN_TAX_COL_DETAIL

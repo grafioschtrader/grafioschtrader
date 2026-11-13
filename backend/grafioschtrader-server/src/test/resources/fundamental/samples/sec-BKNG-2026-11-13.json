@@ -1,0 +1,38 @@
+{
+  "cik" : 1075531,
+  "taxonomy" : "dei",
+  "tag" : "EntityCommonStockSharesOutstanding",
+  "label" : "Entity Common Stock, Shares Outstanding",
+  "description" : "Indicate number of shares or other units outstanding of each of registrant's classes of capital or common stock or other ownership interests, if and as stated on cover of related periodic report. Where multiple classes or units exist define each class/interest by adding class of stock items such as Common Class A [Member], Common Class B [Member] or Partnership Interest [Member] onto the Instrument [Domain] of the Entity Listings, Instrument.",
+  "entityName" : "Booking Holdings Inc.",
+  "units" : {
+    "shares" : [ {
+      "end" : "2026-04-20",
+      "val" : 774878436,
+      "accn" : "0001075531-26-000025",
+      "fy" : 2026,
+      "fp" : "Q1",
+      "form" : "10-Q",
+      "filed" : "2026-04-28",
+      "frame" : "CY2026Q1I"
+    }, {
+      "end" : "2026-07-27",
+      "val" : 751380500,
+      "accn" : "0001075531-26-000037",
+      "fy" : 2026,
+      "fp" : "Q2",
+      "form" : "10-Q",
+      "filed" : "2026-08-04",
+      "frame" : "CY2026Q2I"
+    }, {
+      "end" : "2026-10-26",
+      "val" : 743701257,
+      "accn" : "0001075531-26-000045",
+      "fy" : 2026,
+      "fp" : "Q3",
+      "form" : "10-Q",
+      "filed" : "2026-11-03",
+      "frame" : "CY2026Q3I"
+    } ]
+  }
+}

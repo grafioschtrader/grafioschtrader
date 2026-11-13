@@ -36,9 +36,12 @@ export class TimeSeriesQuotesService {
   ): MenuItem[] {
     this.idSecuritycurrency = idSecuritycurrency;
     this.currencySecurity = currencySecurity;
-    if (optionalParameters) {
-      this.optionalParameters = optionalParameters;
-    }
+    // Reset for every call, so that the options of one view never leak into the menu of the next one.
+    this.optionalParameters = optionalParameters ?? {
+      idPortfolio: null,
+      idSecurityaccount: null,
+      noMarketValue: false
+    };
     const isTimeSeriesShown = this.isTimeSeriesShown();
     if (!isTimeSeriesShown) {
       this.timeSeriesParams = [];
@@ -65,7 +68,7 @@ export class TimeSeriesQuotesService {
         command: (e) => this.showEodChartTable(AppSettings.SEASONALITY, true)
       });
     }
-    if (currencySecurity) {
+    if (currencySecurity && !this.optionalParameters.noTransactionReceipts) {
       // Securities only: currency pairs pass null as currencySecurity and have no security transactions.
       menuItems.push({ separator: true });
       menuItems.push({
@@ -118,4 +121,6 @@ export interface OptionalParameters {
   idPortfolio?: number | null;
   idSecurityaccount?: number | null;
   noMarketValue?: boolean | null;
+  /** Leaves out the transaction receipts of a security, for views that offer only the price history. */
+  noTransactionReceipts?: boolean | null;
 }

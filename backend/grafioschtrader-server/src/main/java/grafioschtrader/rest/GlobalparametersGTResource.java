@@ -3,6 +3,7 @@ package grafioschtrader.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -19,6 +20,9 @@ import grafioschtrader.dto.MaxInstrumentLimits;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.CostBasisMethod;
+import grafioschtrader.types.FundTaxClass;
+import grafioschtrader.types.TaxWithholding;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,6 +53,35 @@ public class GlobalparametersGTResource {
   @GetMapping(value = "/currencies", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCurrencies() {
     return new ResponseEntity<>(globalparametersService.getCurrencies(), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns the cost basis methods as they can be used in HTML option", description = """
+      Key and value are the enum name. The client translates the value. The order is the order of the enum.""", tags = {
+      Globalparameters.TABNAME })
+  @GetMapping(value = "/costbasismethods", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCostBasisMethods() {
+    return new ResponseEntity<>(Arrays.stream(CostBasisMethod.values())
+        .map(method -> new ValueKeyHtmlSelectOptions(method.name(), method.name())).toList(), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns the fund classes for the German tax as they can be used in HTML option", description = """
+      Key and value are the enum name. The client translates the value. The order is the order of the enum.""", tags = {
+      Globalparameters.TABNAME })
+  @GetMapping(value = "/fundtaxclasses", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getFundTaxClasses() {
+    return new ResponseEntity<>(Arrays.stream(FundTaxClass.values())
+        .map(fundTaxClass -> new ValueKeyHtmlSelectOptions(fundTaxClass.name(), fundTaxClass.name())).toList(),
+        HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns the withholding assignments of a portfolio as they can be used in HTML option", description = """
+      Key and value are the enum name. The client translates the value. The order is the order of the enum.""", tags = {
+      Globalparameters.TABNAME })
+  @GetMapping(value = "/taxwithholdings", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getTaxWithholdings() {
+    return new ResponseEntity<>(Arrays.stream(TaxWithholding.values())
+        .map(withholding -> new ValueKeyHtmlSelectOptions(withholding.name(), withholding.name())).toList(),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "Return of the possible combination of asset class to financial instrument.", description = "", tags = {

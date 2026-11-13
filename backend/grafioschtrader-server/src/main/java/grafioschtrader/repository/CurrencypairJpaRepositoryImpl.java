@@ -449,7 +449,10 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Override
   public List<Currencypair> searchBuilderWithExclusion(final Integer idWatchlist, final Integer idCorrelationSet,
       final SecuritycurrencySearch securitycurrencySearch) {
-
+    if (!securitycurrencySearch.getAdvancedCriteria().isEmpty()) {
+      // User-defined fields and indicators belong to securities; a currency pair never satisfies them.
+      return Collections.emptyList();
+    }
     return (securitycurrencySearch.getIdConnectorHistory() != null
         || securitycurrencySearch.getIdConnectorIntra() != null
         || securitycurrencySearch.getAssetclassType() == AssetclassType.CURRENCY_PAIR

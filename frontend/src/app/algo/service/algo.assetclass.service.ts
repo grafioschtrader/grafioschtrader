@@ -10,7 +10,7 @@ import { BaseSettings } from '../../lib/base.settings';
 import { AddSearchToListService } from '../../watchlist/component/add-instrument-table.component';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { SecuritycurrencyLists } from '../../entities/view/securitycurrency.lists';
-import { AppHelper } from '../../lib/helper/app.helper';
+import { securitycurrencySearchParams } from '../../securitycurrency/service/securitycurrency.search.params';
 
 @Service()
 export class AlgoAssetclassService
@@ -43,7 +43,7 @@ export class AlgoAssetclassService
         `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_ASSETCLASS_KEY}/${idAlgoAssetclassSecurity}/search`,
         {
           headers: this.prepareHeaders(),
-          params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
+          params: securitycurrencySearchParams(securitycurrencySearch, ['onlyTenantPrivate'])
         }
       )
       .pipe(catchError(this.handleError.bind(this)));

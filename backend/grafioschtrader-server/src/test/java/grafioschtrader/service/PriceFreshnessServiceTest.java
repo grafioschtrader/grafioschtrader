@@ -100,6 +100,46 @@ class PriceFreshnessServiceTest {
     assertThat(service.sessionsMissed(SESSIONS, MON, expected)).isEqualTo(1);
   }
 
+  @Test
+  @DisplayName("During a session and after its close the close of that session counts")
+  void closeOfSessionInProgressOrFinished() {
+    // New York is on EDT (UTC-4): open 13:30 UTC, close 20:00 UTC.
+    Stockexchange xnys = exchange("America/New_York", null);
+    LocalDateTime closeWed = LocalDateTime.of(2026, 10, 21, 20, 0);
+    assertThat(service.closeOfNewestOpenedSession(SESSIONS, xnys, LocalDateTime.of(2026, 10, 21, 15, 0)))
+        .isEqualTo(closeWed);
+    assertThat(service.closeOfNewestOpenedSession(SESSIONS, xnys, LocalDateTime.of(2026, 10, 21, 22, 0)))
+        .isEqualTo(closeWed);
+  }
+
+  @Test
+  @DisplayName("Before the opening and on a holiday the close of the previous session counts")
+  void closeOfPreviousSessionBeforeOpeningAndOnHoliday() {
+    Stockexchange xnys = exchange("America/New_York", null);
+    assertThat(service.closeOfNewestOpenedSession(SESSIONS, xnys, LocalDateTime.of(2026, 10, 22, 12, 0)))
+        .isEqualTo(LocalDateTime.of(2026, 10, 21, 20, 0));
+    List<LocalDate> withHolidayWednesday = List.of(THU, TUE, MON);
+    assertThat(service.closeOfNewestOpenedSession(withHolidayWednesday, xnys, LocalDateTime.of(2026, 10, 21, 15, 0)))
+        .isEqualTo(LocalDateTime.of(2026, 10, 20, 20, 0));
+  }
+
+  @Test
+  @DisplayName("Sydney: a session opens on the previous UTC day")
+  void closeOfSessionOfExchangeAheadOfUtc() {
+    // AEDT is UTC+11: Thursday opens at 22:30 UTC on Wednesday and closes at 05:00 UTC on Thursday.
+    Stockexchange xasx = exchange("Australia/Sydney", null);
+    assertThat(service.closeOfNewestOpenedSession(SESSIONS, xasx, LocalDateTime.of(2026, 10, 21, 23, 0)))
+        .isEqualTo(LocalDateTime.of(2026, 10, 22, 5, 0));
+  }
+
+  @Test
+  @DisplayName("Without a calendar or a time zone no closing time can be told")
+  void noCloseWithoutCalendarOrTimeZone() {
+    LocalDateTime now = LocalDateTime.of(2026, 10, 21, 15, 0);
+    assertThat(service.closeOfNewestOpenedSession(null, exchange("America/New_York", null), now)).isNull();
+    assertThat(service.closeOfNewestOpenedSession(SESSIONS, exchange(null, null), now)).isNull();
+  }
+
   private static Stockexchange exchange(String timeZone, LocalDateTime lastDirectPriceUpdateUtc) {
     Stockexchange stockexchange = new Stockexchange("TEST", "Test exchange", "US", false, false, LocalTime.of(9, 30),
         LocalTime.of(16, 0), timeZone, null);

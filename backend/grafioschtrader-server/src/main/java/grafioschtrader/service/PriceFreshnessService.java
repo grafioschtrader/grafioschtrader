@@ -1,6 +1,10 @@
 package grafioschtrader.service;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -150,6 +154,35 @@ public class PriceFreshnessService {
       if ((activeToDate == null || !session.isAfter(activeToDate))
           && stockexchange.isSessionCoveredByLastPriceUpdate(session)) {
         return session;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Determines the closing instant of the newest session of the exchange that has already opened: the close of today
+   * during and after a session, the close of the previous session before the opening, on a weekend and on a holiday.
+   * Comparing a price time with this instant keeps the prices of a closed market current, whichever way their connector
+   * dates them.
+   *
+   * @param sessionsDesc  sessions of the exchange, newest first, as returned by {@link #loadSessions}; may be null
+   * @param stockexchange the exchange of the instrument
+   * @param nowUtc        the current time in UTC
+   * @return that instant as a UTC date and time; null when the exchange has no time zone, opening or closing time, or
+   *         when the window contains no opened session
+   */
+  public LocalDateTime closeOfNewestOpenedSession(final List<LocalDate> sessionsDesc, final Stockexchange stockexchange,
+      final LocalDateTime nowUtc) {
+    if (sessionsDesc == null || stockexchange.getTimeZone() == null || stockexchange.getTimeOpen() == null
+        || stockexchange.getTimeClose() == null) {
+      return null;
+    }
+    final ZoneId zone = ZoneId.of(stockexchange.getTimeZone());
+    final Instant now = nowUtc.toInstant(ZoneOffset.UTC);
+    for (LocalDate session : sessionsDesc) {
+      if (!session.atTime(stockexchange.getTimeOpen()).atZone(zone).toInstant().isAfter(now)) {
+        return LocalDateTime.ofInstant(session.atTime(stockexchange.getTimeClose()).atZone(zone).toInstant(),
+            ZoneOffset.UTC);
       }
     }
     return null;

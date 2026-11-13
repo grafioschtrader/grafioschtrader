@@ -110,8 +110,9 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     if (watchlist == null) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
-    return new SecuritycurrencyLists(
-        securityJpaRepository.searchBuilderWithExclusion(idWatchlist, null, securitycurrencySearch, user.getIdTenant()),
+    return SecuritycurrencyLists.of(
+        securityJpaRepository.searchWithAdvancedCriteria(idWatchlist, null, securitycurrencySearch,
+            user.getIdTenant()),
         currencypairJpaRepository.searchBuilderWithExclusion(idWatchlist, null, securitycurrencySearch));
   }
 

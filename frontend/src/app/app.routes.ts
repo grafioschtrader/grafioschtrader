@@ -91,6 +91,12 @@ export const APP_ROUTES: Routes = [
             canActivate: [authGuard]
           },
           {
+            path: AppSettings.REALIZED_GAINS_ROUTER_KEY,
+            loadComponent: () =>
+              import('./tenant/component/tenant-realized-gains.component').then((m) => m.TenantRealizedGainsComponent),
+            canActivate: [authGuard]
+          },
+          {
             path: AppSettings.TENANT_TRANSACTION,
             loadComponent: () =>
               import('./tenant/component/tenant.transaction.table.component').then(
@@ -400,6 +406,12 @@ export const APP_ROUTES: Routes = [
             canActivate: [authGuard]
           },
           {
+            path: AppSettings.WATCHLIST_TREEMAP_KEY + '/:id',
+            loadComponent: () =>
+              import('./watchlist/component/watchlist-treemap.component').then((m) => m.WatchlistTreemapComponent),
+            canActivate: [authGuard]
+          },
+          {
             path: AppSettings.WATCHLIST_UDF_KEY + '/:id',
             loadComponent: () =>
               import('./watchlist/component/watchlist.udf.component').then((m) => m.WatchlistUdfComponent),
@@ -489,18 +501,22 @@ export const APP_ROUTES: Routes = [
       {
         path: BaseSettings.UDF_METADATA_GENERAL_KEY,
         loadComponent: () =>
-          import('./lib/udfmeta/components/udf.metadata.general.table.component').then(
-            (m) => m.UDFMetadataGeneralTableComponent
-          ),
-        canActivate: [authGuard]
-      },
-      {
-        path: AppSettings.UDF_METADATA_SECURITY_KEY,
-        loadComponent: () =>
-          import('./udfmetasecurity/components/udf.metadata.security.table.component').then(
-            (m) => m.UDFMetadataSecurityTableComponent
-          ),
-        canActivate: [authGuard]
+          import('./lib/udfmeta/components/udf-metadata-tab-menu.component').then((m) => m.UDFMetadataTabMenuComponent),
+        canActivate: [authGuard],
+        children: [
+          {
+            path: BaseSettings.UDF_METADATA_OWN_KEY,
+            loadComponent: () =>
+              import('./udfmetasecurity/components/udf-metadata-own.component').then((m) => m.UDFMetadataOwnComponent)
+          },
+          {
+            path: BaseSettings.UDF_METADATA_SHARED_KEY,
+            loadComponent: () =>
+              import('./udfmetasecurity/components/udf-metadata-shared.component').then(
+                (m) => m.UDFMetadataSharedComponent
+              )
+          }
+        ]
       },
       {
         path: AppSettings.GT_NET_SECURITY_IMPORT_KEY,

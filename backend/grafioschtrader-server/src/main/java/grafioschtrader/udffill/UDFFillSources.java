@@ -48,7 +48,8 @@ public class UDFFillSources {
   public UDFFillSourcesOffer getOffer(User user) {
     return new UDFFillSourcesOffer(getOffered(),
         resolverRegistry.getResolvers().stream()
-            .map(r -> new UDFFillResolverOption(r.getResolverId(), r.getSupportedDataTypes(), r.getDefaultArgument()))
+            .map(r -> new UDFFillResolverOption(r.getResolverId(), r.getSupportedDataTypes(), r.getDefaultArgument(),
+                r.getArgumentOptions()))
             .toList(),
         aiChatModelProvider.isRuleProposalAvailable(user), aiChatModelProvider.isValueSuggestionAvailable(user),
         List.of(UDFFillPeriod.values()));
@@ -56,8 +57,8 @@ public class UDFFillSources {
 
   /**
    * Returns the offered fill sources. RESOLVER is offered for the union of the data types of the resolvers and is
-   * missing when no resolver exists. LLM is always offered: a field without a language model of the tenant of its
-   * owner keeps its values but is not processed, see {@code UDFFillService.isProcessed}.
+   * missing when no resolver exists. LLM is always offered: a field keeps its values but is not processed for a
+   * participant whose home tenant has no language model, see {@code UDFFillService.isProcessed}.
    */
   public List<UDFFillSourceOption> getOffered() {
     List<UDFFillSourceOption> offered = new ArrayList<>();

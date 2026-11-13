@@ -2,7 +2,7 @@ package grafioschtrader.types;
 
 /** External source of a fundamental base value, also its column value in {@code security_fundamental}. */
 public enum FundamentalSource {
-  YAHOO((byte) 1), FINNHUB((byte) 2), EULERPOOL((byte) 3);
+  YAHOO((byte) 1), FINNHUB((byte) 2), EULERPOOL((byte) 3), SEC((byte) 4);
 
   private final byte value;
 

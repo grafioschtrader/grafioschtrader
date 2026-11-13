@@ -106,6 +106,29 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   readonly pageFirstRowSelectedRow = signal<PageFirstRowSelectedRow>(new PageFirstRowSelectedRow(0, null));
 
   /**
+   * Hover text of the gain of a transaction row. A sale names the cost basis method its gain was calculated with and
+   * says so when its purchases did not cover it, every other row repeats its value.
+   *
+   * @param row - Row of the transaction table
+   * @param _field - Column configuration, not needed
+   * @param value - Already formatted cell value
+   * @returns Tooltip text
+   */
+  readonly gainCellTooltip = (
+    row: { costBasisMethod?: string; costBasisIncomplete?: boolean },
+    _field: ColumnConfig,
+    value: any
+  ): string => {
+    if (!row?.costBasisMethod) {
+      return value;
+    }
+    const method =
+      `${value} (${this.translateService.instant('COST_BASIS_METHOD')}: ` +
+      `${this.translateService.instant(row.costBasisMethod)})`;
+    return row.costBasisIncomplete ? `${method} ${this.translateService.instant('COST_BASIS_INCOMPLETE')}` : method;
+  };
+
+  /**
    * Creates a new TransactionContextMenu instance with required services.
    */
   constructor() {

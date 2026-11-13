@@ -60,6 +60,7 @@ SELECT 0, x.entity_name, x.relation_entity_name, x.count_scope, x.owner_scope,
         UNION ALL SELECT 'TradingPlatformPlan',       NULL,               NULL, 2, NULL,    100
         UNION ALL SELECT 'RiskFreeRateMapping',       NULL,               NULL, 2, NULL,     50
         UNION ALL SELECT 'UDFMetadataSecurity',       NULL,               NULL, 2, NULL,     50
+        UNION ALL SELECT 'UDFMetadataSubscription', NULL, NULL, 2, NULL, 50
         UNION ALL SELECT 'UDFMetadataGeneral',        NULL,               NULL, 2, NULL,     50
         UNION ALL SELECT 'MailSettingForward',        NULL,               NULL, 2, NULL,     50
         UNION ALL SELECT 'UserAccessToken',           NULL,               NULL, 2, NULL,      5

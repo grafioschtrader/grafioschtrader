@@ -2,9 +2,11 @@ package grafioschtrader.reportviews.securityaccount;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,9 +15,11 @@ import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.reportviews.TransactionsMarginOpenUnits;
 import grafioschtrader.types.AlgoRecommendationAction;
+import grafioschtrader.types.CostBasisMethod;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -86,6 +90,21 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @Schema(description = "Amount of gain or loss in the main currency.")
   public double gainLossSecurityMC;
 
+  @Schema(description = """
+      The part of gainLossSecurity that came in as income: dividends and accrued interest, gross or net of tax as the
+      tenant has chosen. Zero for a margin instrument.""")
+  public double incomeGainLossSecurity;
+  @Schema(description = "incomeGainLossSecurity at the exchange rate of the report")
+  public double incomeGainLossSecurityMC;
+
+  @Schema(description = """
+      The part of gainLossSecurity that is not realized: the value of the open position less its remaining cost, for a
+      margin instrument the result of the open positions. Zero for a closed position. The remaining cost depends on
+      the cost basis method, so this part and the realized one shift against each other when the method changes.""")
+  public double unrealizedGainLossSecurity;
+  @Schema(description = "unrealizedGainLossSecurity at the exchange rate of the report")
+  public double unrealizedGainLossSecurityMC;
+
   @Schema(description = "The value of a security need not be equal to the risk of the security if it is leveraged or inverse.")
   public double securityRiskMC;
 
@@ -111,6 +130,12 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
       valued at the rates that applied when they happened. Purchases, sales, dividends and accrued interest all
       count. Together with gainLossSecurityMC it adds up to the complete main currency result of the position.""")
   public double gainLossCurrencyMC;
+
+  @Schema(description = """
+      The cost basis methods of the security accounts whose purchases and sales went into this position. More than one
+      when the security is held in portfolios with different methods. Empty for a margin instrument, which has no
+      method.""")
+  public Set<CostBasisMethod> costBasisMethods = EnumSet.noneOf(CostBasisMethod.class);
 
   /////////////////////////////////////////////////////////////
   // Disposal cost estimate of the hypothetical sale. Every member stays null unless the global parameter
@@ -259,6 +284,33 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public Double transactionFlowSC;
 
+  /** Method by which the sale of this row was calculated, null for every other row and for the hypothetical sale. */
+  @JsonIgnore
+  public CostBasisMethod transactionCostBasisMethod;
+
+  /** The lots a FIFO or LIFO sale of this row consumed, otherwise null. */
+  @JsonIgnore
+  public List<CostLot> transactionConsumedLots;
+
+  /** True when the lots did not cover the sale of this row, otherwise null. */
+  @JsonIgnore
+  public Boolean transactionCostBasisIncomplete;
+
+  /////////////////////////////////////////////////////////////
+  // Lots of the security accounts that calculate by FIFO or LIFO. A security account on average cost has no
+  // ledger, its purchases stay in the pooled remainder of adjustedCostBase and units.
+  ////////////////////////////////////////////////////////////
+  @JsonIgnore
+  private final Map<Integer, CostLedger> costLedgers = new HashMap<>();
+
+  /** Units of all ledgers, the part of {@link #units} that does not belong to the average cost pool. */
+  @JsonIgnore
+  private double ledgerUnits;
+
+  /** Cost of all ledgers, the part of {@link #adjustedCostBase} that does not belong to the average cost pool. */
+  @JsonIgnore
+  private double ledgerCost;
+
   /** Exchange rate from security currency to main currency that {@link #calcMainCurrency(double)} was called with. */
   @JsonIgnore
   public double reportExchangeRate;
@@ -355,6 +407,49 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     return DataHelper.round(gainLossSecurity, precision);
   }
 
+  /**
+   * The realized part of {@link #gainLossSecurity}, unrounded: what income and the open position do not explain. For a
+   * security these are the gains of its sales, for a margin instrument the closed positions with all finance costs.
+   */
+  public double realizedGainLossSecurity() {
+    return gainLossSecurity - incomeGainLossSecurity - unrealizedGainLossSecurity;
+  }
+
+  /** The realized part of {@link #gainLossSecurityMC}, unrounded, at the exchange rate of the report. */
+  public double realizedGainLossSecurityMC() {
+    return gainLossSecurityMC - incomeGainLossSecurityMC - unrealizedGainLossSecurityMC;
+  }
+
+  @Schema(description = """
+      The part of gainLossSecurity realized by sales, for a margin instrument by closed positions including finance
+      costs. With incomeGainLossSecurity and unrealizedGainLossSecurity it adds up to gainLossSecurity.""")
+  public double getRealizedGainLossSecurity() {
+    return DataHelper.round(realizedGainLossSecurity(), precision);
+  }
+
+  @Schema(description = """
+      realizedGainLossSecurity at the exchange rate of the report, not the sum of the sale gains at the rates of the
+      sale days.""")
+  public double getRealizedGainLossSecurityMC() {
+    return DataHelper.round(realizedGainLossSecurityMC(), precisionMC);
+  }
+
+  public double getIncomeGainLossSecurity() {
+    return DataHelper.round(incomeGainLossSecurity, precision);
+  }
+
+  public double getIncomeGainLossSecurityMC() {
+    return DataHelper.round(incomeGainLossSecurityMC, precisionMC);
+  }
+
+  public double getUnrealizedGainLossSecurity() {
+    return DataHelper.round(unrealizedGainLossSecurity, precision);
+  }
+
+  public double getUnrealizedGainLossSecurityMC() {
+    return DataHelper.round(unrealizedGainLossSecurityMC, precisionMC);
+  }
+
   public double getValueSecurity() {
     return DataHelper.round(valueSecurity, precision);
   }
@@ -412,18 +507,99 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
    */
   public void resetForOpenMargin() {
     gainLossSecurity = 0.0;
+    incomeGainLossSecurity = 0.0;
+    unrealizedGainLossSecurity = 0.0;
     adjustedCostBase = 0.0;
     units = 0.0;
   }
 
+  /**
+   * Cost of the average cost pool: what remains of the cost of the position after the lots of the FIFO and LIFO
+   * security accounts. Equals {@link #adjustedCostBase} for a position without a ledger.
+   */
+  @JsonIgnore
+  public double averageCost() {
+    return adjustedCostBase - ledgerCost;
+  }
+
+  /**
+   * Units of the average cost pool. Equals {@link #units} for a position without a ledger, so that such a position
+   * calculates exactly as it did before ledgers existed.
+   */
+  @JsonIgnore
+  public double averageUnits() {
+    return costLedgers.isEmpty() ? units : DataBusinessHelper.round(units - ledgerUnits);
+  }
+
+  /**
+   * Books a purchase as the newest lot of its security account. Only for a security account that calculates by FIFO
+   * or LIFO; {@link #adjustedCostBase} and {@link #units} are maintained by the caller for every method.
+   *
+   * @param transaction  the purchase
+   * @param unitsSplited units of the purchase on the split basis of the report date
+   * @param cost         cost of the purchase in security currency, purchase costs included
+   * @param exchangeRate rate into the main currency at the purchase, null for a security in the main currency
+   */
+  public void addToLedger(Transaction transaction, double unitsSplited, double cost, Double exchangeRate) {
+    costLedgers.computeIfAbsent(transaction.getIdSecurityaccount(), _ -> new CostLedger()).add(new CostLot(
+        transaction.getIdTransaction(), transaction.getTransactionTime(), exchangeRate, unitsSplited, cost));
+    ledgerUnits += unitsSplited;
+    ledgerCost += cost;
+  }
+
+  /**
+   * Consumes the lots of the security account of a sale and sets the fields of the row. Units that no lot covers,
+   * which can only happen with data that predates the units check, take their proportional share of the proceeds as
+   * cost: missing purchases must not show a gain. The row is then marked as incomplete.
+   *
+   * @param transaction  the sale
+   * @param unitsSplited units of the sale on the split basis of the report date
+   * @param proceeds     proceeds of the sale in security currency, after its costs
+   * @param method       {@link CostBasisMethod#FIFO} or {@link CostBasisMethod#LIFO}
+   * @return the cost of the sold units in security currency
+   */
+  public double reduceFromLedger(Transaction transaction, double unitsSplited, double proceeds,
+      CostBasisMethod method) {
+    final CostLedger costLedger = costLedgers.get(transaction.getIdSecurityaccount());
+    final CostLedger.Reduction reduction = costLedger == null
+        ? new CostLedger.Reduction(List.of(), 0.0, unitsSplited)
+        : costLedger.reduce(unitsSplited, method);
+    double cost = reduction.cost();
+    if (reduction.uncoveredUnits() > 0.0) {
+      cost += proceeds * reduction.uncoveredUnits() / unitsSplited;
+      transactionCostBasisIncomplete = Boolean.TRUE;
+    }
+    transactionConsumedLots = reduction.consumedLots();
+    // The whole sale leaves the ledger totals, also its uncovered part, so that the average cost pool stays untouched
+    ledgerUnits -= unitsSplited;
+    ledgerCost -= cost;
+    return cost;
+  }
+
+  /** The ledger of a security account, null when it holds no lots or calculates by average cost. */
+  @JsonIgnore
+  public CostLedger getCostLedger(Integer idSecurityaccount) {
+    return costLedgers.get(idSecurityaccount);
+  }
+
+  /**
+   * Values the open position at a price and adds the unrealized result to {@link #gainLossSecurity}. For a security
+   * that is not a margin instrument the percentage becomes the open return: the unrealized result relative to the
+   * remaining cost, without realized gains and income. It is null when the remaining cost is zero.
+   *
+   * @param price the price in the currency of the security
+   */
   public void calcGainLossByPrice(final Double price) {
     valueSecurity = price * (openUnitsTimeValuePerPoint == 0 ? units : openUnitsTimeValuePerPoint);
     if (this.securitycurrency.isMarginInstrument()) {
       calcGainLossByPriceForMargin(price);
+      transactionGainLossPercentage = DataBusinessHelper.roundPercentage(gainLossSecurity * 100 / adjustedCostBase);
     } else {
       gainLossSecurity = gainLossSecurity + valueSecurity - units * adjustedCostBase / units;
+      unrealizedGainLossSecurity += units == 0.0 ? 0.0 : valueSecurity - adjustedCostBase;
+      transactionGainLossPercentage = adjustedCostBase == 0.0 ? null
+          : DataBusinessHelper.roundPercentage((valueSecurity - adjustedCostBase) * 100 / adjustedCostBase);
     }
-    transactionGainLossPercentage = DataBusinessHelper.roundPercentage(gainLossSecurity * 100 / adjustedCostBase);
   }
 
   /**
@@ -446,6 +622,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
       }
     }
     gainLossSecurity = DataBusinessHelper.roundStandard(gainLossSecurity + openWinLose);
+    unrealizedGainLossSecurity += DataBusinessHelper.roundStandard(openWinLose);
     accountValueSecurity += DataBusinessHelper.roundStandard(openWinLose);
   }
 
@@ -465,6 +642,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public void calcMainCurrency(double currencyExchangeRate) {
     reportExchangeRate = currencyExchangeRate;
     gainLossSecurityMC = gainLossSecurity * currencyExchangeRate;
+    incomeGainLossSecurityMC = incomeGainLossSecurity * currencyExchangeRate;
+    unrealizedGainLossSecurityMC = unrealizedGainLossSecurity * currencyExchangeRate;
     gainLossCurrencyMC = netInvestedSC * currencyExchangeRate - netInvestedMC;
     valueSecurityMC = valueSecurity * currencyExchangeRate;
     if (securitycurrency.isMarginInstrument()) {
@@ -501,13 +680,16 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
    * performance measurement that accounts for the different calculation methodologies required for standard instruments
    * versus margin positions.
    *
-   * @return percentage gain/loss for the position
+   * @return percentage gain/loss for the position, null for a security that is not a margin instrument when the
+   *         percentage is undefined because the position has no cost
    */
   @JsonIgnore
-  public double getPositionGainLossPercentage() {
-    return DataBusinessHelper
-        .roundPercentage(securitycurrency.isMarginInstrument() ? (this.gainLossSecurity / this.adjustedCostBase * 100)
-            : transactionGainLossPercentage);
+  public Double getPositionGainLossPercentage() {
+    if (securitycurrency.isMarginInstrument()) {
+      return DataBusinessHelper.roundPercentage(this.gainLossSecurity / this.adjustedCostBase * 100);
+    }
+    return transactionGainLossPercentage == null ? null
+        : DataBusinessHelper.roundPercentage(transactionGainLossPercentage);
   }
 
   /**

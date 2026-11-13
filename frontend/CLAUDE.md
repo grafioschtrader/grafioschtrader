@@ -625,6 +625,20 @@ table refreshes its embedded templates too.
 this.multiSortMeta.push({ field: 'myDateField', order: -1 }); // -1 = descending
 ```
 
+**CRITICAL**: A table that enables its context menu **must** bind `[contextMenuAppendTo]="'body'"`. This applies to
+`<configurable-table>`, `<editable-table>` and `<configurable-tree-table>` alike, and to a template held in a shared
+constant as much as to an inline one. Without it Optimus UI positions the menu relative to the nearest positioned
+ancestor, so it opens shifted to the right and downwards from the pointer — in a tab view, a split panel, a grid of
+several tables or a nested table. Nothing fails to compile and no test notices it.
+
+```html
+<configurable-table
+  [contextMenuEnabled]="true"
+  [contextMenuItems]="contextMenuItems()"
+  [contextMenuAppendTo]="'body'"
+  [showContextMenu]="isActivated()" />
+```
+
 ### Translation of Table Values
 
 For columns with translatable values (enums, status codes, etc.):

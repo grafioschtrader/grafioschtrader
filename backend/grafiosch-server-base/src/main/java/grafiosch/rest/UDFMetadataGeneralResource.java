@@ -37,8 +37,7 @@ public class UDFMetadataGeneralResource extends UpdateCreateDeleteWithUserIdReso
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<UDFMetadataGeneral>> getAllByIdUser() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(
-        uDFMetadataGeneralJpaRepository.getAllByIdUserInOrderByUiOrder(new int[] { user.getIdUser() }), HttpStatus.OK);
+    return new ResponseEntity<>(uDFMetadataGeneralJpaRepository.getFieldsForUser(user.getIdUser()), HttpStatus.OK);
   }
 
   @Operation(summary = "Return of the input or output field descriptions for the generall user defined fields.", description = "", tags = {
@@ -50,6 +49,12 @@ public class UDFMetadataGeneralResource extends UpdateCreateDeleteWithUserIdReso
     return new ResponseEntity<>(
         uDFMetadataGeneralJpaRepository.getFieldDescriptorByIdUserAndEveryUserForEntity(user.getIdUser(), entity),
         HttpStatus.OK);
+  }
+
+  @GetMapping(value = "/shared", produces = APPLICATION_JSON_VALUE)
+  public List<UDFMetadataGeneral> getShared() {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return uDFMetadataGeneralJpaRepository.getShared(user.getIdUser());
   }
 
   @Override

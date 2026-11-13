@@ -11,6 +11,7 @@ import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.repository.AssetclassJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
+import grafioschtrader.search.AdvancedSearchField;
 
 @Service
 public class MultipleRequestToOneService {
@@ -27,12 +28,15 @@ public class MultipleRequestToOneService {
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
+  @Autowired
+  private AdvancedSearchFieldService advancedSearchFieldService;
+
   public DataForCurrencySecuritySearch getDataForCurrencySecuritySearch() {
     return new DataForCurrencySecuritySearch(globalparametersService.getCurrencies(),
         assetclassJpaRepository.getSubcategoryForLanguage(),
         securityJpaRepository.getAllFeedConnectorsAsKeyValue(FeedSupport.FS_HISTORY),
         securityJpaRepository.getAllFeedConnectorsAsKeyValue(FeedSupport.FS_INTRA),
-        stockexchangeJpaRepository.getAllStockExchanges(false));
+        stockexchangeJpaRepository.getAllStockExchanges(false), advancedSearchFieldService.getFields());
   }
 
   public static class DataForCurrencySecuritySearch {
@@ -41,10 +45,14 @@ public class MultipleRequestToOneService {
     public final List<ValueKeyHtmlSelectOptions> feedConnectorsHistory;
     public final List<ValueKeyHtmlSelectOptions> feedConnectorsIntra;
     public final List<Stockexchange> stockexchanges;
+    /** Fields the user can choose in a criterion of the advanced search. */
+    public final List<AdvancedSearchField> advancedSearchFields;
 
     public DataForCurrencySecuritySearch(List<ValueKeyHtmlSelectOptions> currencies,
         List<ValueKeyHtmlSelectOptions> assetclasses, List<ValueKeyHtmlSelectOptions> feedConnectorsHistory,
-        List<ValueKeyHtmlSelectOptions> feedConnectorsIntra, List<Stockexchange> stockexchanges) {
+        List<ValueKeyHtmlSelectOptions> feedConnectorsIntra, List<Stockexchange> stockexchanges,
+        List<AdvancedSearchField> advancedSearchFields) {
+      this.advancedSearchFields = advancedSearchFields;
       this.currencies = currencies;
       this.assetclasses = assetclasses;
       this.feedConnectorsHistory = feedConnectorsHistory;

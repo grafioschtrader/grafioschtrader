@@ -44,6 +44,14 @@ public class GlobalParamKeyBaseDefault {
   /** Access key for global parameters. Task data preservation period in days before cleanup. */
   public static final String GLOB_KEY_TASK_DATA_DAYS_PRESERVE = BaseConstants.G_PREFIX + "task.data.days.preserve";
 
+  /**
+   * Access key for global parameters. Decides whether every user of this instance sees the nickname of another user
+   * (1) or only the user id (0). Without it a user without the admin role cannot tell who created shared data.
+   */
+  public static final String GLOB_KEY_USER_NICKNAME_VISIBLE = BaseConstants.G_PREFIX + "user.nickname.visible";
+  /** Default: the nickname stays hidden, only the user id is shown. */
+  public static final int DEFAULT_USER_NICKNAME_VISIBLE = 0;
+
   /** The idGTNet for this Server in GTNet */
   public static final String GNET = BaseConstants.G_PREFIX + "gnet.";
   public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GNET + "my.entry.id";

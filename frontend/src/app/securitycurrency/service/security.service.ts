@@ -26,6 +26,7 @@ import {
 import type { SecurityCurrencypairDerivedLinks } from '../model/security.currencypair.derived.links';
 import { SecurityDataProviderUrls } from '../model/security.data.provider.urls';
 import { SecurityCurrencyService } from './security.currency.service';
+import { securitycurrencySearchParams } from './securitycurrency.search.params';
 
 @Service()
 export class SecurityService extends SecurityCurrencyService<Security> implements ITaskExtendService {
@@ -197,7 +198,7 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     return this.httpClient
       .get<Security[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/search`, {
         headers: this.prepareHeaders(),
-        params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
+        params: securitycurrencySearchParams(securitycurrencySearch, ['onlyTenantPrivate'])
       })
       .pipe(catchError(this.handleError.bind(this)));
   }

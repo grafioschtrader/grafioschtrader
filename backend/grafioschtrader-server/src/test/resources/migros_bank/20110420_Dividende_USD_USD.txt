@@ -1,0 +1,35 @@
+BANCA BANQUE MIGROS BANK
+Migros Bank AG
+Postfach 1
+8010 Zürich-Mülligen
+Service Line 0848 845 400
+www.migrosbank.ch
+MWST-Nr.: 232 606
+P.P. CH-8010 Postfach 1
+Portfolio Anlage-Portfolio 000
+Premium-Depot 80 1.999.999.99 Herr
+Max Muster
+Musterstrasse 1
+Ihr Kundenberater Hans Beispiel 9999 Musterort
+Direktwahl +41000000000
+Unsere Referenz CA20000101/00000 / EXAMPLE Thun, 20.04.2011
+Cisco Systems Inc - Couponsabrechnung
+Am 20.04.2011 wurde die Dividende zahlbar auf
+Namen-Aktie Ex Datum: 29.03.2011
+Cisco Systems Inc Zahlbar Datum: 20.04.2011
+Valor: 918546
+ISIN: US17275R1023
+Bestand: 2'500 zu USD 0.06
+Brutto (2'500 * USD 0.06) USD 150.00
+15% Nicht rückforderbare Steuern (USD 22.50) USD 22.50-
+15% zusätzlicher Steuerrückbehalt USA (CHF 19.75) USD 22.50-
+Netto USD 105.00
+Unsere Gutschrift erfolgt auf Konto 16 1.999.999.99 mit Valuta 20.04.2011.
+Zusätzliche Angaben für Ihre Steuererklärung:
+Der zusätzliche Steuerrückbehalt USA (15%) beträgt USD 22.50 (CHF 19.75) und kann, falls
+rückforderungsberechtigt, geltend gemacht werden
+Freundliche Grüsse
+Migros Bank AG
+Anzeige ohne Unterschrift
+0000000 | 00000000000000 | 0000 Seite 1 /1
+0000000000 /00000000/000000000/000/000

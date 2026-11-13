@@ -14,6 +14,10 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
  * not truth; it is written into the field only when accepted. From here the user also starts a new paid run and asks
  * again for rejected, discarded and not found cells. It is the place that reaches securities which are in no
  * watchlist.
+ *
+ * The owner and every user who adopted the field open it. Each sees and decides the proposals for the securities of
+ * the own tenant only, and a run asks for these securities at the cost of the one who starts it. A participant whose
+ * tenant has no language model decides the proposals another participant paid for but starts no run.
  */
 @Component({
   selector: 'udf-fill-proposals-dialog',
@@ -26,10 +30,12 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
       appendTo="body"
       (onShow)="load()"
       (onHide)="closeDialog.emit()">
-      <div class="proposal-actions">
-        <p-button [label]="'UDF_FILL_SUGGEST' | translate" (onClick)="suggest()" />
-        <p-button [label]="'UDF_FILL_RETRY' | translate" severity="secondary" (onClick)="retry()" />
-      </div>
+      @if (field().ownModelUsed !== false) {
+        <div class="proposal-actions">
+          <p-button [label]="'UDF_FILL_SUGGEST' | translate" (onClick)="suggest()" />
+          <p-button [label]="'UDF_FILL_RETRY' | translate" severity="secondary" (onClick)="retry()" />
+        </div>
+      }
       @if (decisionText(); as decisionTextValue) {
         <p class="bg-info">{{ decisionTextValue }}</p>
       }
@@ -43,8 +49,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
                 type="checkbox"
                 [checked]="selected().has(p.idSecuritycurrency)"
                 (change)="toggle(p.idSecuritycurrency)" />
-              <b>{{ p.name }}</b
-              >: <i>{{ p.value }}</i>
+              <b>{{ p.name }}</b>: <i>{{ p.value }}</i>
               @if (p.asOfDate) {
                 ({{ p.asOfDate }})
               }

@@ -16,6 +16,7 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TransactionSecurityEditComponent } from './transaction-security-edit.component';
 import { StandingOrderSecurityEditComponent } from '../../standingorder/component/standing-order-security-edit.component';
+import { TransactionConsumedLotsTableComponent } from './transaction-consumed-lots-table.component';
 import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -28,7 +29,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'transaction-security-table',
   templateUrl: '../view/transaction.security.table.html',
-  imports: [ConfigurableTableComponent, TransactionSecurityEditComponent, StandingOrderSecurityEditComponent]
+  imports: [
+    ConfigurableTableComponent,
+    TransactionSecurityEditComponent,
+    StandingOrderSecurityEditComponent,
+    TransactionConsumedLotsTableComponent
+  ]
 })
 export class TransactionSecurityTableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   private securityService: SecurityService = inject(SecurityService);
@@ -59,6 +65,10 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
 
   /** List of transaction positions to be displayed in the table */
   readonly transactionPositionList = computed(() => this.securityTransactionSummary()?.transactionPositionList ?? []);
+  /** True when a sale of the list names the purchases it consumed; only then the table offers row expansion. */
+  readonly hasConsumedLots = computed(() => this.transactionPositionList().some((row) => !!row.consumedLots?.length));
+  /** A row expands when it is a FIFO or LIFO sale. */
+  readonly canExpand = (position: SecurityTransactionPosition): boolean => !!position.consumedLots?.length;
   readonly cellStyle = (position: SecurityTransactionPosition, field: ColumnConfig) =>
     this.getCellStyle(position, field);
 
@@ -119,7 +129,8 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
 
   /**
    * Highlights the estimated tax and transaction cost of the hypothetical sale when the disposal cost estimate could
-   * not price them completely, because a fee model, a tax model or a matching rule is missing.
+   * not price them completely, because a fee model, a tax model or a matching rule is missing. The gain of a FIFO or
+   * LIFO sale is highlighted the same way when its purchases did not cover it.
    *
    * @param position The row
    * @param field The column
@@ -128,7 +139,8 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   getCellStyle(position: SecurityTransactionPosition, field: ColumnConfig): { [key: string]: string } | null {
     if (
       (field.field === 'transaction.taxCost' && position.disposalTaxCostIncomplete) ||
-      (field.field === 'transaction.transactionCost' && position.disposalTransactionCostIncomplete)
+      (field.field === 'transaction.transactionCost' && position.disposalTransactionCostIncomplete) ||
+      (field.field === 'transactionGainLoss' && position.costBasisIncomplete)
     ) {
       return DisposalCostHelper.INCOMPLETE_STYLE;
     }

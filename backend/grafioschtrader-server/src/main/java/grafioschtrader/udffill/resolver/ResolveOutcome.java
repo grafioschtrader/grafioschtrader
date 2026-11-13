@@ -42,6 +42,8 @@ public sealed interface ResolveOutcome {
     /** The item has no article in any of the requested languages. */
     NO_SITELINK,
     /** The value found fails the validation of the field, for example a URL longer than 254 characters. */
-    INVALID
+    INVALID,
+    /** The source knows the instrument but gives no value for the requested figure. */
+    NO_VALUE
   }
 }

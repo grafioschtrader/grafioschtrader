@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Cashaccount;
-import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.IctaxExchangeRate;
 import grafioschtrader.entities.IctaxSecurityTaxData;
@@ -42,7 +41,6 @@ import grafioschtrader.reportviews.securitydividends.SecurityDividendsPosition;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup.MarginTracker;
 import grafioschtrader.reportviews.securitydividends.UnitsCounter;
-import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.IctaxExchangeRateJpaRepository;
 import grafioschtrader.repository.IctaxSecurityTaxDataJpaRepository;
@@ -102,7 +100,7 @@ public class SecurityDividendsReport {
   private GlobalparametersService globalparametersService;
 
   @Autowired
-  private CurrencypairJpaRepository currencypairJpaRepository;
+  private ReportCurrencyMapLoader reportCurrencyMapLoader;
 
   @Autowired
   private IctaxSecurityTaxDataJpaRepository ictaxSecurityTaxDataJpaRepository;
@@ -274,14 +272,7 @@ public class SecurityDividendsReport {
    * @return a DateTransactionCurrencypairMap containing currency conversion data and historical quotes
    */
   private DateTransactionCurrencypairMap getHistoryquoteAndCurrencypairs(final Tenant tenant) {
-    final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture.supplyAsync(
-        () -> historyquoteJpaRepository.getHistoryquoteCurrenciesForIntrFeeBuySellDivByIdTenantAndMainCurrency(
-            tenant.getIdTenant(), tenant.getCurrency()));
-    final CompletableFuture<List<Currencypair>> currencypairsFuture = CompletableFuture.supplyAsync(
-        () -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(tenant.getIdTenant()));
-
-    return new DateTransactionCurrencypairMap(tenant.getCurrency(), null, dateTransactionCurrencyFuture.join(),
-        currencypairsFuture.join(), true, false);
+    return reportCurrencyMapLoader.loadForCashaccountCurrencies(tenant);
   }
 
   /**

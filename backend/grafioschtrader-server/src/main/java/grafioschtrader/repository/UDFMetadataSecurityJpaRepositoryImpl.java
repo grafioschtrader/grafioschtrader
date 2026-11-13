@@ -70,6 +70,7 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
   }
 
   @Override
+  @Transactional
   public UDFMetadataSecurity saveOnlyAttributes(final UDFMetadataSecurity uDFMetadataSecurity,
       final UDFMetadataSecurity existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws Exception {
@@ -77,9 +78,11 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     UiOrderDescriptionCount uodc = uMetaSecurityRepository.countUiOrderAndDescription(
         new int[] { BaseConstants.UDF_ID_USER, user.getIdUser() }, uDFMetadataSecurity.getUiOrder(),
-        uDFMetadataSecurity.getDescription());
+        uDFMetadataSecurity.getDescription(), user.getIdUser());
     uniqueDescUiOrderCheck(uodc, uDFMetadataSecurity, existingEntity);
     uDFMetadataSecurity.checkFieldSize();
+    applyShareModeChange(uDFMetadataSecurity, existingEntity, "Security");
+    refuseLanguageModelForAdoptedField(uDFMetadataSecurity, existingEntity);
 
     UDFFillSource previousSource = existingEntity == null ? null : existingEntity.getFillSource();
     boolean fillChanged = existingEntity == null ? uDFMetadataSecurity.isAutomaticallyFilled()
@@ -140,6 +143,26 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
         throw new DataViolationException("fill.rule", "gt.udf.fill.llm.context.missing", null);
       }
       entity.setFillRule(entity.getFillRule().strip());
+    }
+  }
+
+  /**
+   * Refuses to switch a field to the fill source LLM while other users have adopted it. A user who adopts a language
+   * model field is told that the model of the own tenant fills the own securities at the own cost; a user who adopted
+   * the field under another fill source never saw that notice and would be charged without having agreed. A field that
+   * is already filled by a language model may be changed freely, and so may a field nobody has adopted.
+   *
+   * It runs after {@link #applyShareModeChange}, which holds the lock on the field that an adoption also takes, so no
+   * user can adopt the field between the count and the save.
+   */
+  private void refuseLanguageModelForAdoptedField(UDFMetadataSecurity entity, UDFMetadataSecurity existingEntity) {
+    if (existingEntity == null || entity.getFillSource() != UDFFillSource.LLM
+        || existingEntity.getFillSource() == UDFFillSource.LLM) {
+      return;
+    }
+    int count = subscriptions.countByIdUDFMetadata(existingEntity.getId());
+    if (count > 0) {
+      throw new DataViolationException("fill.source", "gt.udf.fill.llm.has.subscribers", new Object[] { count });
     }
   }
 
@@ -210,22 +233,23 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
   public List<FieldDescriptorInputAndShowExtendedSecurity> getFieldDescriptorByIdUserAndEveryUserExcludeDisabled(
       Integer idUser) {
     List<FieldDescriptorInputAndShowExtendedSecurity> fDiscriptor = new ArrayList<>();
-    List<UDFMetadataSecurity> udfMetaDataList = uMetaSecurityRepository
-        .getAllByIdUserInOrderByUiOrderExcludeDisabled(idUser);
+    List<UDFMetadataSecurity> udfMetaDataList = getEnabledFieldsForUser(idUser);
     udfMetaDataList.forEach(um -> {
       Double[] minMaxValue = um.getFieldLength();
-      fDiscriptor.add(new FieldDescriptorInputAndShowExtendedSecurity(um.getCategoryTypeEnums(),
+      var descriptor = new FieldDescriptorInputAndShowExtendedSecurity(um.getCategoryTypeEnums(),
           um.getSpecialInvestmentInstrumentEnums(), BaseConstants.UDF_FIELD_PREFIX + um.getIdUDFMetadata(),
           um.getDescription(), um.getDescriptionHelp(), um.getUiOrder(),
           DataType.getDataType(um.getUdfDataType().getValue()), minMaxValue[0], minMaxValue[1],
-          um.getUdfSpecialType() == null ? null : um.getUdfSpecialType().getValue(), um.getIdUser()));
+          um.getUdfSpecialType() == null ? null : um.getUdfSpecialType().getValue(), um.getIdUser());
+      descriptor.setValueEditable(Boolean.TRUE.equals(um.getValueEditable()));
+      fDiscriptor.add(descriptor);
     });
     return fDiscriptor;
   }
 
   @Transactional
   public int delEntityWithUserId(Integer id, Integer idUser) {
-    return uMetaSecurityRepository.deleteByIdUDFMetadataAndIdUser(id, idUser);
+    return deleteOrOrphan(id, idUser, () -> uMetaSecurityRepository.deleteByIdUDFMetadataAndIdUser(id, idUser));
   }
 
   @Override
@@ -235,6 +259,7 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
     Assetclass assetclass = security.getAssetClass();
     List<UDFMetadataSecurity> udfMetadata = uMetaSecurityRepository
         .getAllByIdUserInAndUiOrderLessThanOrderByUiOrder(new int[] { idUser }, BaseConstants.MAX_USER_UI_ORDER_VALUE);
+    udfMetadata = withSubscriptions(udfMetadata, idUser, UDFMetadataSecurity.class);
     return udfMetadata.stream()
         .filter(u -> u.getSpecialInvestmentInstrumentEnums().contains(assetclass.getSpecialInvestmentInstrument())
             && u.getCategoryTypeEnums().contains(assetclass.getCategoryType()))
@@ -244,5 +269,34 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
   @Override
   public List<String> getSupportedEntities() {
     return List.of(Security.class.getSimpleName());
+  }
+
+  @Override
+  public Optional<UDFMetadataSecurity> findManagedField(Integer id) {
+    return uMetaSecurityRepository.findById(id);
+  }
+
+  @Override
+  public UiOrderDescriptionCount countUiOrderAndDescriptionForUser(Integer idUser, UDFMetadataSecurity field,
+      byte order) {
+    return uMetaSecurityRepository.countUiOrderAndDescription(new int[] { 0, idUser }, order, field.getDescription(),
+        idUser);
+  }
+
+  @Override
+  public List<UDFMetadataSecurity> getFieldsForUser(Integer idUser) {
+    return withSubscriptions(uMetaSecurityRepository.getAllByIdUserInAndUiOrderLessThanOrderByUiOrder(
+        new int[] { idUser, 0 }, BaseConstants.MAX_USER_UI_ORDER_VALUE), idUser, UDFMetadataSecurity.class);
+  }
+
+  @Override
+  public List<UDFMetadataSecurity> getShared(Integer idUser) {
+    return sharedCatalog(idUser, UDFMetadataSecurity.class);
+  }
+
+  @Override
+  public List<UDFMetadataSecurity> getEnabledFieldsForUser(Integer idUser) {
+    return withSubscriptions(uMetaSecurityRepository.getAllByIdUserInOrderByUiOrderExcludeDisabled(idUser), idUser,
+        UDFMetadataSecurity.class);
   }
 }

@@ -53,6 +53,7 @@ import grafioschtrader.repository.TaxSecurityYearConfigJpaRepository;
 import grafioschtrader.repository.TaxYearJpaRepository;
 import grafioschtrader.service.IctaxImportService;
 import grafioschtrader.service.InstrumentVisibilityService;
+import grafioschtrader.tax.germany.GermanTaxReportService;
 import grafioschtrader.tax.swiss.ech0196.Ech0196BarcodeGenerator;
 import grafioschtrader.tax.swiss.ech0196.Ech0196MappingService;
 import grafioschtrader.tax.swiss.ech0196.Ech0196PdfGenerator;
@@ -234,6 +235,28 @@ public class TaxDataResource {
   public ResponseEntity<TaxYear> createYear(@RequestBody TaxYear taxYear) {
     checkAdmin();
     taxYear.setTaxCountry(taxCountryJpaRepository.getReferenceById(taxYear.getIdTaxCountry()));
+    return ResponseEntity.ok(taxYearJpaRepository.save(taxYear));
+  }
+
+  /** The base interest rate in percent of a tax year of Germany, null removes it. */
+  public record FundBaseRateDto(Double fundBaseRate) {
+  }
+
+  @Operation(summary = """
+      Set or clear the base interest rate of a tax year of Germany, in percent. The advance lump sum of the investment
+      funds needs it, and the Federal Ministry of Finance publishes it each January.""")
+  @PutMapping("/year/{id}/fundbaserate")
+  public ResponseEntity<TaxYear> setFundBaseRate(@PathVariable int id, @RequestBody FundBaseRateDto request) {
+    checkAdmin();
+    TaxYear taxYear = taxYearJpaRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Unknown tax year"));
+    if (!GermanTaxReportService.COUNTRY_GERMANY.equals(taxYear.getTaxCountry().getCountryCode())) {
+      throw new DataViolationException("tax.year", "gt.german.tax.base.rate.only.germany", null);
+    }
+    if (request.fundBaseRate() != null && (request.fundBaseRate() < -10.0 || request.fundBaseRate() > 20.0)) {
+      throw new DataViolationException("FUND_BASE_RATE", "gt.german.tax.base.rate.range", new Object[] { -10, 20 });
+    }
+    taxYear.setFundBaseRate(request.fundBaseRate());
     return ResponseEntity.ok(taxYearJpaRepository.save(taxYear));
   }
 

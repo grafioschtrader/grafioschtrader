@@ -19,6 +19,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.instrument.CostBasisMethods;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.reports.ReportHelper;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
@@ -156,7 +157,7 @@ class CurrencyGainLossAttributionTest {
         globalparametersService.getCurrencyPrecision());
 
     securityCalcService.calcTransactions(security, tenant.isExcludeDivTax(), summary, splitMap, transactions,
-        reportDate, dateCurrencyMap);
+        reportDate, dateCurrencyMap, CostBasisMethods.AVERAGE_ONLY);
     final SecurityPositionSummary sps = summary.securityPositionSummary;
     if (sps.units == 0.0 && summary.transactionPositionList.isEmpty()) {
       return;

@@ -8,7 +8,7 @@ import grafioschtrader.types.FundamentalSource;
 /**
  * A source of fundamental base values of direct equities, asked once a week by the task {@code FUNDAMENTAL_DATA_LOAD}.
  * Finnhub and Eulerpool implement it in their price connectors, because only those can read their API key; Yahoo has a
- * connector of its own.
+ * connector of its own. SEC EDGAR has its own keyless connector for dated outstanding shares.
  */
 public interface IFundamentalFeedConnector {
 

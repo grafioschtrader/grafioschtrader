@@ -70,13 +70,13 @@ public final class FundamentalSourceChecks {
         outcomes.put("shareBasis",
             checkSharesAgainstMarketCap(yahooShares, marketCap, lastPrice, securityCurrency, exchangeRate));
       }
-      if (row.getMetric() == FundamentalMetric.SHARES) {
+      if (row.getMetric() == FundamentalMetric.SHARES && row.getSource() != FundamentalSource.SEC) {
         outcomes.put("marketCap",
             checkSharesAgainstMarketCap(row, marketCap, lastPrice, securityCurrency, exchangeRate));
-        if (row.getSource() == FundamentalSource.EULERPOOL
-            && checkEulerpoolUnits(row, eulerpoolEps, netIncome) == FundamentalSourceCheck.FAILED) {
-          outcomes.put("units", FundamentalSourceCheck.FAILED);
-        }
+      }
+      if (row.getMetric() == FundamentalMetric.SHARES_FY
+          && checkEulerpoolUnits(row, eulerpoolEps, netIncome) == FundamentalSourceCheck.FAILED) {
+        outcomes.put("units", FundamentalSourceCheck.FAILED);
       }
       row.setSourceCheck(combine(outcomes.values()));
     }

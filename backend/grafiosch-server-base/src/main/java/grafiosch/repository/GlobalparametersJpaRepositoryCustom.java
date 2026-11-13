@@ -147,6 +147,14 @@ public interface GlobalparametersJpaRepositoryCustom {
   boolean isGTNetLogEnabled();
 
   /**
+   * Checks whether users of this instance may see the nickname of other users. Uses GLOB_KEY_USER_NICKNAME_VISIBLE
+   * with the default fallback 0.
+   *
+   * @return true if the nickname is visible to every user, false if only the user id is shown
+   */
+  boolean isUserNicknameVisible();
+
+  /**
    * Gets the GTNet log aggregation configuration.
    *
    * @return PropertyStringParser with D, W, M, Y aggregation threshold values

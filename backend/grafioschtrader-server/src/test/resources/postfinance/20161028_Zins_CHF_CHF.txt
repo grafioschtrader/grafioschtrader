@@ -1,0 +1,28 @@
+TRANSAKTIONSBELEG
+Kunde: 999999 - TRADING
+MAX MUSTER
+Musterstrasse 1
+CH-9999 Musterort
+Bern, 28.10.2016
+Zins
+Unsere Referenz: 000000000
+Im Hinblick auf folgenden Titel:
+Titel
+Bezeichnung Anzahl
+ISIN: CH0222948678
+1.50 KUONI 13-19 15'000
+NKN: 22294867
+haben wir Ihrem Konto den folgenden Betrag gutgeschrieben:
+Kontonummer 99999900
+Ausführungsdatum 28.10.2016
+Valutadatum 28.10.2016
+Nominal 15'000
+Zins 1.5 %
+Betrag CHF 225.00
+Verrechnungssteuer 35.00% (CH) CHF 78.75
+Total CHF 146.25
+Bitte prüfen Sie dieses Dokument und benachrichtigen Sie uns bei Unstimmigkeiten innert Monatsfrist.
+PostFinance AG, Mingerstrasse 20, 3030 Bern
+Kontaktcenter E-Trading: 0848 800 000 (Mo-Fr: 08.00-22.00 Uhr, ab Festnetz CHF 0.08/Min.)
+Formular ohne Unterschrift S.E. & O.
+MwSt n° CHE-116.302.542

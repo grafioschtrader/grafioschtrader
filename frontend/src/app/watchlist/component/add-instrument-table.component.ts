@@ -11,7 +11,11 @@ import { DataChangedService } from '../../lib/maintree/service/data.changed.serv
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import type { TenantLimit } from '../../shared/types/tenant.limit';
-import { SecuritycurrencySearchTableBase } from '../../securitycurrency/component/securitycurrency.search.table.base';
+import {
+  AdvancedResultRow,
+  SecuritycurrencySearchTableBase
+} from '../../securitycurrency/component/securitycurrency.search.table.base';
+import { AdvancedSearchField } from '../../entities/search/advanced.search';
 import { Observable } from 'rxjs';
 
 /**
@@ -24,6 +28,12 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
 
   /** Tenant limits for controlling maximum number of instruments that can be added */
   readonly tenantLimits = input<TenantLimit[]>();
+
+  /** The fields of the advanced search, which label the columns of the matched values. */
+  readonly advancedFields = input<AdvancedSearchField[]>([]);
+
+  /** Candidates of the last search for which an indicator could not be evaluated; 0 without indicator criteria. */
+  readonly advancedNotEvaluated = signal(0);
 
   /** Columns as a new reference after every change, so the header and body templates of the OnPush p-table follow. */
   readonly tableFields = computed(() => {
@@ -86,6 +96,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
     this.searchSubscription?.unsubscribe();
     this.securitycurrencyList = [];
     this.selectedSecuritycurrencies = [];
+    this.advancedNotEvaluated.set(0);
   }
 
   /**
@@ -101,6 +112,9 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
       .searchByCriteria(id, securitycurrencySearch)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((securitycurrencyLists: SecuritycurrencyLists) => {
+        this.setAdvancedColumns(securitycurrencySearch.advancedCriteria, this.advancedFields());
+        this.attachAdvancedValues(securitycurrencyLists.securityList, securitycurrencyLists.advancedValues);
+        this.advancedNotEvaluated.set(securitycurrencyLists.advancedNotEvaluated ?? 0);
         this.createTranslatedValueStoreAndFilterField(securitycurrencyLists.securityList);
         this.securitycurrencyList = securitycurrencyLists.securityList;
         this.transformCurrencypairToCurrencypairWatchlist(securitycurrencyLists.currencypairList);
@@ -116,7 +130,10 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
           Object.assign(new Currencypair(securitycurrency.fromCurrency, securitycurrency.toCurrency), securitycurrency)
         );
       } else {
-        securitycurrencyLists.securityList.push(Object.assign(new Security(), securitycurrency));
+        const security = Object.assign(new Security(), securitycurrency) as AdvancedResultRow;
+        // The matched values belong to the result table; the backend does not know this property.
+        delete security.advanced;
+        securitycurrencyLists.securityList.push(security as Security);
       }
     });
     this.addSearchToListService

@@ -182,9 +182,10 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     List<Currencypair> connectorOnlyCurrencypairs = new ArrayList<>();
 
     for (Security security : securities) {
-      if (gtNetEnabledIds.contains(security.getIdSecuritycurrency())) {
-        gtNetInstruments.addSecurity(security);
-      } else {
+      // A GTNet-enabled security without ISIN has no exchange key; it goes to the connector like the others.
+      boolean exchanged = gtNetEnabledIds.contains(security.getIdSecuritycurrency())
+          && gtNetInstruments.addSecurity(security);
+      if (!exchanged) {
         connectorOnlySecurities.add(security);
       }
     }

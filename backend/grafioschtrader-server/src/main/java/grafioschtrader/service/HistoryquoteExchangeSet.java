@@ -46,14 +46,19 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
    * @param data     the SecurityCurrencyMaxHistoryquoteData from BaseHistoryquoteThru
    * @param fromDate the start date for historyquote request
    * @param toDate   the end date for historyquote request
+   * @return true if the instrument was added; false if it has no exchange key (a security without ISIN) and therefore
+   *         cannot take part in the exchange. The caller must hand such an instrument to the connector, otherwise
+   *         nobody loads it.
    */
-  public void addInstrument(SecurityCurrencyMaxHistoryquoteData<S> data, LocalDate fromDate, LocalDate toDate) {
+  public boolean addInstrument(SecurityCurrencyMaxHistoryquoteData<S> data, LocalDate fromDate, LocalDate toDate) {
     String key = buildKey(data.getSecurityCurrency());
-    if (key != null) {
-      instruments.put(key, data);
-      fromDates.put(key, fromDate);
-      toDates.put(key, toDate);
+    if (key == null) {
+      return false;
     }
+    instruments.put(key, data);
+    fromDates.put(key, fromDate);
+    toDates.put(key, toDate);
+    return true;
   }
 
   /**

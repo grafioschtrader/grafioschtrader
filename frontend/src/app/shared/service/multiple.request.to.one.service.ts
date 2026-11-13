@@ -6,6 +6,7 @@ import { AppSettings } from '../app.settings';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { Stockexchange } from '../../entities/stockexchange';
 import { BaseSettings } from '../../lib/base.settings';
+import { AdvancedSearchField } from '../../entities/search/advanced.search';
 
 @Service()
 export class MultipleRequestToOneService extends BaseService {
@@ -27,4 +28,6 @@ export interface DataForCurrencySecuritySearch {
   feedConnectorsHistory: ValueKeyHtmlSelectOptions[];
   feedConnectorsIntra: ValueKeyHtmlSelectOptions[];
   stockexchanges: Stockexchange[];
+  /** The user-defined fields and indicators the user can choose in a criterion of the advanced search. */
+  advancedSearchFields: AdvancedSearchField[];
 }

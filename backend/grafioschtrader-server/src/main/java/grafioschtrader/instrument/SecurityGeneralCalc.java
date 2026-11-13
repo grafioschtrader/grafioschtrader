@@ -3,6 +3,9 @@ package grafioschtrader.instrument;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import grafiosch.common.DataHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.config.NegativeIdNumberCreater;
@@ -14,29 +17,32 @@ import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
 import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.CostBasisMethod;
 import grafioschtrader.types.TransactionType;
 
 /**
- * Calculator for standard investment securities using average cost accounting methodology.
+ * Calculator for standard investment securities. The cost of a sale follows the cost basis method of its security
+ * account.
  *
  * <p>
  * This class implements position tracking and gain/loss calculations for traditional investment instruments including
- * stocks, bonds, ETFs, mutual funds, and money market securities. Unlike margin instruments that require individual
- * position tracking, standard securities use the average cost method where all units are pooled together with a
- * weighted average cost basis.
+ * stocks, bonds, ETFs, mutual funds, and money market securities. Unlike margin instruments, whose close refers to its
+ * own opening, a sale of a standard security has to be told which purchases it consumes.
  * </p>
  *
- * <h3>Average Cost Accounting Method:</h3>
- * <p>
- * The calculator employs the industry-standard average cost method for position management:
- * </p>
+ * <h3>Cost Basis Methods:</h3>
  * <ul>
- * <li><strong>Cost Basis Pooling:</strong> All purchase transactions contribute to a single pooled cost basis</li>
- * <li><strong>Weighted Average:</strong> New purchases adjust the average cost per unit based on quantities and
- * prices</li>
- * <li><strong>Proportional Allocation:</strong> Sales reduce units and cost basis proportionally</li>
- * <li><strong>FIFO Alternative:</strong> Provides a simplified alternative to complex FIFO tracking</li>
+ * <li><strong>Average cost:</strong> The purchases of all security accounts on this method form one pool per position
+ * of the report, a sale takes its proportional share of the pooled cost</li>
+ * <li><strong>FIFO and LIFO:</strong> Every security account keeps its own lots in a
+ * {@link grafioschtrader.reportviews.securityaccount.CostLedger}, a sale consumes the oldest or the newest of them.
+ * Two security accounts never share lots, so a sale shows the same gain in every view</li>
  * </ul>
+ * <p>
+ * The method only moves gain between realized and unrealized. Realized gain plus market value less remaining cost
+ * equals proceeds plus market value less purchase costs, which no method can change. The hypothetical sale disposes of
+ * the whole position and therefore costs the whole remaining cost under every method.
+ * </p>
  *
  * <h3>Supported Instrument Types:</h3>
  * <dl>
@@ -66,7 +72,7 @@ import grafioschtrader.types.TransactionType;
  * Gain/loss calculations consider the full total return including:
  * </p>
  * <ul>
- * <li>Capital appreciation/depreciation based on average cost method</li>
+ * <li>Capital appreciation/depreciation based on the cost basis method of the security account</li>
  * <li>Dividend and interest income (gross or net of taxes)</li>
  * <li>Currency exchange gains/losses for foreign securities</li>
  * <li>Transaction costs and tax implications</li>
@@ -74,13 +80,15 @@ import grafioschtrader.types.TransactionType;
  */
 public class SecurityGeneralCalc extends SecurityBaseCalc {
 
+  private static final Logger log = LoggerFactory.getLogger(SecurityGeneralCalc.class);
+
   /**
-   * Processes a single transaction for standard investment securities using average cost methodology.
+   * Processes a single transaction for standard investment securities.
    *
    * <p>
-   * This method handles the complete transaction lifecycle for traditional investment instruments, applying average
-   * cost accounting principles to maintain accurate position tracking. The calculation considers corporate actions,
-   * currency conversions, and instrument-specific features such as accrued interest for bonds.
+   * This method handles the complete transaction lifecycle for traditional investment instruments, applying the cost
+   * basis method of its security account to maintain accurate position tracking. The calculation considers corporate
+   * actions, currency conversions, and instrument-specific features such as accrued interest for bonds.
    * </p>
    *
    * @param transaction             the transaction to process, containing trade details, pricing, and costs
@@ -96,12 +104,12 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
       final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
-      Map<String, Integer> currencyPrecisionMap) {
+      Map<String, Integer> currencyPrecisionMap, CostBasisMethods costBasisMethods) {
 
     SecurityPositionSummary securityPositionSummary = getSecurityPositionSummary(transaction, summarySecurityMap,
         dateCurrencyMap, currencyPrecisionMap);
     calcTransactionPosition(transaction, securityPositionSummary, excludeDivTaxcost, securitysplitMap, true,
-        dateCurrencyMap, negativeIdNumberCreater);
+        dateCurrencyMap, negativeIdNumberCreater, costBasisMethods);
   }
 
   /**
@@ -117,7 +125,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <ol>
    * <li><strong>State Preservation:</strong> Saves current unit count to restore after simulation</li>
    * <li><strong>Transaction Creation:</strong> Generates a hypothetical sell for all units at current price</li>
-   * <li><strong>Gain/Loss Calculation:</strong> Computes unrealized performance using average cost method</li>
+   * <li><strong>Gain/Loss Calculation:</strong> Computes unrealized performance on the whole remaining cost</li>
    * <li><strong>State Restoration:</strong> Returns position to original state while preserving valuation data</li>
    * <li><strong>Summary Recording:</strong> Adds transaction details to summary for reporting</li>
    * </ol>
@@ -167,8 +175,9 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
         transaction.setCashaccountAmount(
             transaction.getCashaccountAmount() - (commission == null ? 0.0 : commission) - (tax == null ? 0.0 : tax));
       }
+      // A hypothetical sale disposes of the whole position and resolves no method, the constant is never read
       calcTransactionPosition(transaction, securityPositionSummary, false, securitysplitMap, false, dateCurrencyMap,
-          negativeIdNumberCreater);
+          negativeIdNumberCreater, CostBasisMethods.AVERAGE_ONLY);
       securityPositionSummary.units = beforeUnits;
       securityPositionSummary.valueSecurity = beforeUnits * lastPrice;
       if (securityTransactionSummary != null) {
@@ -201,9 +210,9 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   void calcTransactionAndAddToPosition(final Transaction transaction,
       final SecurityTransactionSummary securityTransactionSummary, final boolean excludeDivTaxcost,
       final Map<Integer, List<Securitysplit>> securitySplitMap, final DateTransactionCurrencypairMap dateCurrencyMap,
-      NegativeIdNumberCreater negativeIdNumberCreater) {
+      NegativeIdNumberCreater negativeIdNumberCreater, CostBasisMethods costBasisMethods) {
     calcTransactionPosition(transaction, securityTransactionSummary.securityPositionSummary, excludeDivTaxcost,
-        securitySplitMap, false, dateCurrencyMap, negativeIdNumberCreater);
+        securitySplitMap, false, dateCurrencyMap, negativeIdNumberCreater, costBasisMethods);
     securityTransactionSummary.createAndAddPositionGainLoss(transaction);
   }
 
@@ -245,7 +254,8 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   void createAccruedInterestPostion(final Security security, final TransactionType requiredTransactionTypeTransaction,
       final Transaction transaction, final SecurityTransactionSummary securityTransactionSummary,
       final boolean excludeDivTaxcost, final Map<Integer, List<Securitysplit>> securitySplitMap,
-      final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater) {
+      final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
+      CostBasisMethods costBasisMethods) {
     if (security.getAssetClass().getCategoryType() == AssetclassType.FIXED_INCOME
         || security.getAssetClass().getCategoryType() == AssetclassType.CONVERTIBLE_BOND) {
 
@@ -254,7 +264,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
         final Transaction accruedInterestTransaction = createAccruedInterestTransaction(transaction,
             negativeIdNumberCreater);
         calcTransactionAndAddToPosition(accruedInterestTransaction, securityTransactionSummary, excludeDivTaxcost,
-            securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
+            securitySplitMap, dateCurrencyMap, negativeIdNumberCreater, costBasisMethods);
       }
     }
   }
@@ -304,13 +314,13 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   }
 
   /**
-   * Core calculation method that processes all transaction types for standard securities using average cost accounting.
+   * Core calculation method that processes all transaction types for standard securities.
    *
    * <p>
-   * This method implements the central calculation logic for standard investment securities, coordinating the
-   * application of average cost methodology across different transaction types. It handles the complexity of
-   * multi-currency calculations, corporate action adjustments, and instrument-specific features while maintaining the
-   * mathematical integrity of the average cost method.
+   * This method implements the central calculation logic for standard investment securities and dispatches a
+   * transaction to its purchase, sale or income calculation. It handles the complexity of multi-currency
+   * calculations, corporate action adjustments, and instrument-specific features. Which purchases a sale consumes is
+   * decided by the cost basis method of its security account.
    * </p>
    *
    * @param transaction             the transaction to process
@@ -324,7 +334,8 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   private void calcTransactionPosition(final Transaction transaction,
       final SecurityPositionSummary securityPositionSummary, final boolean excludeDivTaxcost,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean simulateAccruedRecords,
-      final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater) {
+      final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
+      CostBasisMethods costBasisMethods) {
 
     final CalcTransactionPos ctp = initTransactionCalcTransCost(transaction, securityPositionSummary, securitysplitMap,
         dateCurrencyMap, null);
@@ -332,12 +343,12 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     switch (transaction.getTransactionType()) {
     case ACCUMULATE:
       accumulate(transaction, ctp, securityPositionSummary, excludeDivTaxcost, simulateAccruedRecords,
-          negativeIdNumberCreater);
+          negativeIdNumberCreater, costBasisMethods);
       break;
     case REDUCE:
     case HYPOTHETICAL_SELL:
       reduceOrHypotheticalSell(transaction, ctp, securityPositionSummary, excludeDivTaxcost, simulateAccruedRecords,
-          negativeIdNumberCreater);
+          negativeIdNumberCreater, costBasisMethods);
       break;
     case DIVIDEND:
     case ACCRUED_INTEREST:
@@ -355,17 +366,17 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   }
 
   /**
-   * Processes purchase (accumulate) transactions using average cost methodology.
+   * Processes purchase (accumulate) transactions.
    *
    * <p>
-   * This method implements the purchase leg of average cost accounting, where new acquisitions are added to the
-   * existing position pool. The method calculates the new weighted average cost basis and updates all relevant position
-   * metrics including multi-currency tracking and instrument-specific features.
+   * A purchase adds its cost and its units to the totals of the position and updates all relevant position metrics
+   * including multi-currency tracking and instrument-specific features. Under FIFO and LIFO it additionally becomes a
+   * lot in the ledger of its security account; under average cost it joins the pool of the position.
    * </p>
    *
    * <h4>Average Cost Calculation:</h4>
    * <p>
-   * The new average cost is calculated as:
+   * The average cost of the pool is:
    * <code>(Previous Cost Basis + New Purchase Cost) / (Previous Units + New Units)</code>
    * </p>
    *
@@ -394,10 +405,18 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    */
   private void accumulate(final Transaction transaction, final CalcTransactionPos ctp,
       final SecurityPositionSummary securityPositionSummary, final boolean excludeDivTaxcost,
-      final boolean simulateAccruedRecords, final NegativeIdNumberCreater negativeIdNumberCreater) {
+      final boolean simulateAccruedRecords, final NegativeIdNumberCreater negativeIdNumberCreater,
+      final CostBasisMethods costBasisMethods) {
     final Security security = transaction.getSecurity();
-    securityPositionSummary.adjustedCostBase += ctp.securitiesNetPrice + ctp.transactionTaxCost;
+    final double cost = ctp.securitiesNetPrice + ctp.transactionTaxCost;
+    securityPositionSummary.adjustedCostBase += cost;
     securityPositionSummary.units += ctp.unitsSplited;
+    final CostBasisMethod method = costBasisMethods.forAccount(transaction.getIdSecurityaccount());
+    securityPositionSummary.costBasisMethods.add(method);
+    if (method != CostBasisMethod.AVERAGE_COST) {
+      securityPositionSummary.addToLedger(transaction, ctp.unitsSplited, cost,
+          hasCurrencyExposure(transaction, ctp, securityPositionSummary) ? ctp.exchangeRate : null);
+    }
 
     if (security.getAssetClass().getCategoryType() == AssetclassType.MONEY_MARKET
         && (security.getIdConnectorHistory() == null || security.getIdConnectorHistory().isEmpty())
@@ -438,8 +457,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    */
   private void addFlowToCurrencyPosition(final Transaction transaction, final CalcTransactionPos ctp,
       final SecurityPositionSummary securityPositionSummary, final double flowSC) {
-    if (ctp.exchangeRate == null || transaction.getTransactionType() == TransactionType.HYPOTHETICAL_SELL
-        || transaction.getSecurity().getCurrency().equals(securityPositionSummary.mainCurrency)) {
+    if (!hasCurrencyExposure(transaction, ctp, securityPositionSummary)) {
       // Leave transactionFlowSC null: a flow that carries no currency exposure must not be given a per-transaction
       // share either, or the shares stop adding up to the position total.
       return;
@@ -450,17 +468,19 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   }
 
   /**
-   * Processes sale (reduce) and hypothetical sale transactions using average cost methodology.
+   * Processes sale (reduce) and hypothetical sale transactions.
    *
    * <p>
-   * This method implements the sale leg of average cost accounting, where units are removed from the position pool
-   * proportionally. The method calculates realized gains/losses based on the difference between sale proceeds and the
-   * proportional average cost basis, including comprehensive currency gain/loss attribution for foreign securities.
+   * A sale realizes the difference between its proceeds and the cost of the units sold, including the currency
+   * gain/loss attribution for foreign securities. The cost comes from the cost basis method of the security account
+   * of the sale: the proportional share of the average pool, or the lots FIFO or LIFO consume from the ledger of that
+   * security account. The hypothetical sale disposes of the whole position and takes the whole remaining cost.
    * </p>
    *
-   * <h4>Average Cost Allocation:</h4>
+   * <h4>Cost Allocation:</h4>
    * <p>
-   * The cost basis allocated to the sale is calculated as: <code>(Units Sold / Total Units) × Total Cost Basis</code>
+   * Average cost and the hypothetical sale allocate <code>(Units Sold / Units) × Cost Basis</code> of their pool.
+   * FIFO and LIFO allocate the cost of the consumed lots, a partly consumed lot gives its proportional share.
    * </p>
    *
    * <h4>Gain/Loss Calculation:</h4>
@@ -484,22 +504,41 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * @param simulateAccruedRecords  whether to create accrued interest transactions for bonds
    * @param negativeIdNumberCreater utility for generating IDs for simulated transactions
    */
+  /**
+   * Whether a flow of this transaction is exposed to the exchange rate between the security currency and the main
+   * currency. The exchange rate of the transaction alone does not tell: for a security in the main currency it is the
+   * cross rate of the cash account.
+   */
+  private boolean hasCurrencyExposure(final Transaction transaction, final CalcTransactionPos ctp,
+      final SecurityPositionSummary securityPositionSummary) {
+    return ctp.exchangeRate != null && transaction.getTransactionType() != TransactionType.HYPOTHETICAL_SELL
+        && !transaction.getSecurity().getCurrency().equals(securityPositionSummary.mainCurrency);
+  }
+
   private void reduceOrHypotheticalSell(final Transaction transaction, final CalcTransactionPos ctp,
       final SecurityPositionSummary securityPositionSummary, final boolean excludeDivTaxcost,
-      final boolean simulateAccruedRecords, final NegativeIdNumberCreater negativeIdNumberCreater) {
+      final boolean simulateAccruedRecords, final NegativeIdNumberCreater negativeIdNumberCreater,
+      final CostBasisMethods costBasisMethods) {
     if (simulateAccruedRecords) {
       simulateAccruedInterest(transaction, securityPositionSummary, excludeDivTaxcost, ctp.exchangeRate,
           negativeIdNumberCreater);
     }
-    final double acb = ctp.unitsSplited * securityPositionSummary.adjustedCostBase / securityPositionSummary.units;
-    double balance = ctp.securitiesNetPrice - ctp.transactionTaxCost;
+    final double balance = ctp.securitiesNetPrice - ctp.transactionTaxCost;
+    final double acb = costBaseOfSale(transaction, ctp, securityPositionSummary, balance, costBasisMethods);
     securityPositionSummary.transactionGainLoss = balance - acb;
     securityPositionSummary.transactionCostBase = acb;
-    securityPositionSummary.transactionGainLossPercentage = securityPositionSummary.transactionGainLoss
-        / (ctp.unitsSplited / securityPositionSummary.units * securityPositionSummary.adjustedCostBase) * 100.0;
+    // Without a cost there is no percentage: a lot received for free can cover a FIFO or LIFO sale on its own. An
+    // uncovered sale has a cost that is partly a substitute, so its percentage would mislead.
+    securityPositionSummary.transactionGainLossPercentage = acb == 0.0
+        || securityPositionSummary.transactionCostBasisIncomplete != null ? null
+            : securityPositionSummary.transactionGainLoss / acb * 100.0;
     securityPositionSummary.adjustedCostBase -= acb;
     securityPositionSummary.units -= ctp.unitsSplited;
     securityPositionSummary.gainLossSecurity += securityPositionSummary.transactionGainLoss;
+    if (transaction.getTransactionType() == TransactionType.HYPOTHETICAL_SELL) {
+      // The sale that only values the open position has realized nothing
+      securityPositionSummary.unrealizedGainLossSecurity += securityPositionSummary.transactionGainLoss;
+    }
     if (ctp.exchangeRate != null) {
       securityPositionSummary.transactionGainLossMC = securityPositionSummary.transactionGainLoss * ctp.exchangeRate;
     }
@@ -539,6 +578,34 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * @param exchangeRate            the exchange rate for currency conversion, or null if not applicable
    * @param negativeIdNumberCreater utility for generating IDs for simulated transactions
    */
+  /**
+   * The cost of the units of a sale in security currency. A booked sale takes it from the average cost pool or from
+   * the lots of its security account, depending on the method of that account. A hypothetical sale always disposes of
+   * the whole position, so its cost is the whole remaining cost whatever the methods are, also for a position whose
+   * security accounts differ. It touches no ledger and resolves no method, because its transaction carries no security
+   * account.
+   */
+  private double costBaseOfSale(final Transaction transaction, final CalcTransactionPos ctp,
+      final SecurityPositionSummary securityPositionSummary, final double balance,
+      final CostBasisMethods costBasisMethods) {
+    if (transaction.getTransactionType() == TransactionType.HYPOTHETICAL_SELL) {
+      return ctp.unitsSplited * securityPositionSummary.adjustedCostBase / securityPositionSummary.units;
+    }
+    final CostBasisMethod method = costBasisMethods.forAccount(transaction.getIdSecurityaccount());
+    securityPositionSummary.transactionCostBasisMethod = method;
+    securityPositionSummary.costBasisMethods.add(method);
+    if (method == CostBasisMethod.AVERAGE_COST) {
+      return ctp.unitsSplited * securityPositionSummary.averageCost() / securityPositionSummary.averageUnits();
+    }
+    final double acb = securityPositionSummary.reduceFromLedger(transaction, ctp.unitsSplited, balance, method);
+    if (securityPositionSummary.transactionCostBasisIncomplete != null) {
+      log.warn("The purchases in security account {} do not cover the sale {} of security {}",
+          transaction.getIdSecurityaccount(), transaction.getIdTransaction(),
+          transaction.getSecurity().getIdSecuritycurrency());
+    }
+    return acb;
+  }
+
   private void simulateAccruedInterest(final Transaction transaction,
       final SecurityPositionSummary securityPositionSummary, final boolean excludeDivTaxcost, final Double exchangeRate,
       NegativeIdNumberCreater negativeIdNumberCreater) {
@@ -558,7 +625,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <p>
    * This method processes income-generating transactions that provide cash flow to the investor without changing the
    * fundamental position structure. Unlike buy/sell transactions, dividend and interest payments don't affect the unit
-   * count or average cost basis, but they do contribute to total return and may have tax implications.
+   * count or the cost basis under any method, but they do contribute to total return and may have tax implications.
    * </p>
    *
    * <h4>Tax Considerations:</h4>
@@ -595,13 +662,15 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     securityPositionSummary.transactionGainLoss = transaction.getSeucritiesNetPrice()
         - ((excludeDivTaxcost) ? 0.0 : taxCost) - transactionCost;
 
-    securityPositionSummary.transactionGainLossPercentage = (securityPositionSummary.units > 0)
-        ? securityPositionSummary.transactionGainLoss / securityPositionSummary.adjustedCostBase * 100.0
-        : null;
+    securityPositionSummary.transactionGainLossPercentage = securityPositionSummary.units > 0
+        && securityPositionSummary.adjustedCostBase != 0.0
+            ? securityPositionSummary.transactionGainLoss / securityPositionSummary.adjustedCostBase * 100.0
+            : null;
     if (excludeDivTaxcost) {
       securityPositionSummary.excludedDivTax += taxCost;
     }
     securityPositionSummary.gainLossSecurity += securityPositionSummary.transactionGainLoss;
+    securityPositionSummary.incomeGainLossSecurity += securityPositionSummary.transactionGainLoss;
     if (exchangeRate != null && !transaction.getSecurity().getCurrency().equals(securityPositionSummary.mainCurrency)) {
       securityPositionSummary.transactionFlowSC = -securityPositionSummary.transactionGainLoss;
       securityPositionSummary.transactionGainLossMC = securityPositionSummary.transactionGainLoss * exchangeRate;

@@ -34,12 +34,15 @@ public class InstrumentExchangeSet {
    * Adds a security to the exchange set.
    *
    * @param security the security to add
+   * @return true if the security was added; false if it has no ISIN and therefore cannot take part in the exchange.
+   *         The caller must hand such a security to the connector, otherwise nobody loads it.
    */
-  public void addSecurity(Security security) {
-    if (security.getIsin() != null) {
-      String key = buildSecurityKey(security.getIsin(), security.getCurrency());
-      securities.put(key, security);
+  public boolean addSecurity(Security security) {
+    if (security.getIsin() == null) {
+      return false;
     }
+    securities.put(buildSecurityKey(security.getIsin(), security.getCurrency()), security);
+    return true;
   }
 
   /**

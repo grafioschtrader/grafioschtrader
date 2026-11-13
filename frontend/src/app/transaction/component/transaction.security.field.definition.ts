@@ -72,7 +72,8 @@ export class TransactionSecurityFieldDefinition {
       currencyPrecisionField: 'transaction.cashaccount.currency'
     });
     tcm.addColumn(DataType.Numeric, 'transactionGainLoss', 'GAIN', true, false, {
-      currencyPrecisionField: TransactionSecurityFieldDefinition.SECURITY_CURRENCY_PATH
+      currencyPrecisionField: TransactionSecurityFieldDefinition.SECURITY_CURRENCY_PATH,
+      cellTooltipFN: tcm.gainCellTooltip
     });
     tcm.addColumn(DataType.Numeric, 'transactionGainLossPercentage', 'GAIN_PERCENTAGE', true, false);
     tcm.addColumn(DataType.Numeric, 'transactionExchangeRate', 'EXCHANGE_RATE', true, false, {

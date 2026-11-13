@@ -117,7 +117,10 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
   /** Prepared marks of the cells, keyed by security ID and field key, so no cell translates on each check */
   private cellMarks = new Map<string, CellMark>();
 
-  /** The own fields of the user whose fill source is not manual; they get the cell actions of the context menu */
+  /**
+   * The automatically filled fields that get cell actions in the context menu: those whose values the user may write,
+   * and the language model fields the user owns or has adopted, whose proposals the user decides.
+   */
   private fillFields: UDFMetadataSecurity[] = [];
 
   /** List of field descriptors for security and general UDF metadata */
@@ -183,7 +186,10 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
           this.udfFillInfo = (<SecuritycurrencyUDFGroup>result[0]).udfFillInfo ?? {};
           this.tenantLimits.set(result[1]);
           this.fillFields = result[2].filter(
-            (f) => f.idUser === this.gps.getIdUser() && f.fillSource && f.fillSource !== UDFFillSource.MANUAL
+            (f) =>
+              f.fillSource &&
+              f.fillSource !== UDFFillSource.MANUAL &&
+              (f.valueEditable === true || this.decidesProposals(f))
           );
           this.createSecurityPositionList(this.extendSecurityWithUDF(result[0]));
           this.prepareCellMarks();
@@ -218,6 +224,21 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
       securityPositionList: group.securityPositionList.map(extend),
       currencypairPositionList: group.currencypairPositionList.map(extend)
     };
+  }
+
+  /**
+   * A proposal of a language model is decided by the owner of the field and by every user who adopted it, also with
+   * the share mode read. A field without owner has no proposals to decide.
+   *
+   * @param f - A field listed for the user
+   * @returns True when the user accepts and rejects the proposals of this field
+   */
+  private decidesProposals(f: UDFMetadataSecurity): boolean {
+    return (
+      f.fillSource === UDFFillSource.LLM &&
+      f.idUser != null &&
+      (f.idUser === this.gps.getIdUser() || f.idUDFMetadataSubscription != null)
+    );
   }
 
   /**
@@ -321,7 +342,12 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
         const info = this.udfFillInfo[id]?.[fieldKey];
         const locked = info?.fillState === UDFFillState.LOCKED;
         const proposalItems: MenuItem[] =
-          info?.fillState === UDFFillState.PROPOSED ? this.getProposalMenuItems(f, id, info) : [];
+          info?.fillState === UDFFillState.PROPOSED && this.decidesProposals(f)
+            ? this.getProposalMenuItems(f, id, info)
+            : [];
+        if (f.valueEditable !== true) {
+          return proposalItems;
+        }
         const action = locked
           ? () => this.uDFMetadataSecurityService.unlockCell(fieldId, id)
           : () => this.uDFMetadataSecurityService.lockCell(fieldId, id);

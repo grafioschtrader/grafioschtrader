@@ -22,7 +22,14 @@
   [valueGetterFn]="valueGetter"
   [negativeValueFn]="negativeValue"
   [cellStyleFn]="cellStyle"
+  [expandable]="hasConsumedLots()"
+  [canExpandFn]="canExpand"
+  [expandedRowTemplate]="consumedLots"
   [contextMenuAppendTo]="'body'" />
+
+<ng-template #consumedLots let-position>
+  <transaction-consumed-lots-table [lots]="position.consumedLots" />
+</ng-template>
 
 @if (visibleSecurityTransactionDialog()) {
 <transaction-security-edit

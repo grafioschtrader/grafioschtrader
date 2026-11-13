@@ -45,6 +45,7 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
   public Cashaccount saveOnlyAttributes(final Cashaccount cashaccount, Cashaccount existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     validateActiveToDate(cashaccount, existingEntity);
+    validateSecurityaccountAssignment(cashaccount, existingEntity);
     Cashaccount createEditCashaccount = cashaccount;
     if (existingEntity != null) {
       createEditCashaccount = existingEntity;
@@ -76,6 +77,39 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
         .ifPresent(maxDate -> {
           throw new DataViolationException("active.to.date", "gt.account.active.before.transaction",
               new Object[] { maxDate });
+        });
+  }
+
+  /**
+   * Validates that a securities account is assigned to only one cash account per currency within a portfolio. The
+   * portfolio evaluation books the securities result of a currency/securities account pair on the one cash account
+   * assigned to it. A second cash account of the same currency with the same assignment would show that result a second
+   * time and count it twice in the totals. An unchanged assignment of an existing account is not checked again, so an
+   * account that already violates this stays editable for its other attributes.
+   *
+   * @param cashaccount    the account being saved, carrying the proposed assignment
+   * @param existingEntity the previously persisted account, or null when creating a new one
+   * @throws DataViolationException if another cash account of the portfolio has the same currency and assignment
+   */
+  private void validateSecurityaccountAssignment(Cashaccount cashaccount, Cashaccount existingEntity) {
+    final Integer idSecurityaccount = cashaccount.getConnectIdSecurityaccount();
+    if (idSecurityaccount == null) {
+      return;
+    }
+    final boolean unchanged = existingEntity != null
+        && idSecurityaccount.equals(existingEntity.getConnectIdSecurityaccount())
+        && cashaccount.getCurrency().equals(existingEntity.getCurrency());
+    if (unchanged) {
+      return;
+    }
+    final Cashaccount portfolioSource = existingEntity != null ? existingEntity : cashaccount;
+    final Integer idOwn = portfolioSource.getIdSecuritycashAccount();
+    cashaccountJpaRepository
+        .findByPortfolio_IdPortfolioAndCurrencyAndConnectIdSecurityaccount(
+            portfolioSource.getPortfolio().getIdPortfolio(), cashaccount.getCurrency(), idSecurityaccount)
+        .stream().filter(other -> !other.getIdSecuritycashAccount().equals(idOwn)).findFirst().ifPresent(other -> {
+          throw new DataViolationException("connect.id.securityaccount",
+              "gt.cashaccount.securityaccount.assigned.twice", new Object[] { other.getName(), other.getCurrency() });
         });
   }
 

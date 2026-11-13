@@ -34,7 +34,7 @@ public abstract class FieldDescriptorInputAndShowExtended extends FieldDescripto
   protected final Byte udfSpecialType;
 
   @Schema(description = "The ID of the user associated with this field configuration, used for user-specific customizations")
-  private final int idUser;
+  private final Integer idUser;
 
   /**
    * Creates a new extended field descriptor with enhanced metadata for dynamic form generation. All parameters are
@@ -51,13 +51,23 @@ public abstract class FieldDescriptorInputAndShowExtended extends FieldDescripto
    * @param idUser          the ID of the user associated with this field configuration for personalization
    */
   public FieldDescriptorInputAndShowExtended(String fieldName, String description, String descriptionHelp, byte uiOrder,
-      DataType dataType, Double min, Double max, Byte udfSpecialType, int idUser) {
+      DataType dataType, Double min, Double max, Byte udfSpecialType, Integer idUser) {
     super(fieldName, dataType, min, max);
     this.description = description;
     this.descriptionHelp = descriptionHelp;
     this.uiOrder = uiOrder;
     this.udfSpecialType = udfSpecialType;
     this.idUser = idUser;
+  }
+
+  private boolean valueEditable;
+
+  public boolean isValueEditable() {
+    return valueEditable;
+  }
+
+  public void setValueEditable(boolean editable) {
+    valueEditable = editable;
   }
 
   public String getDescription() {
@@ -76,7 +86,7 @@ public abstract class FieldDescriptorInputAndShowExtended extends FieldDescripto
     return udfSpecialType;
   }
 
-  public int getIdUser() {
+  public Integer getIdUser() {
     return idUser;
   }
 

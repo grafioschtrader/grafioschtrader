@@ -216,8 +216,6 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
       } else {
         this.readData();
       }
-    } else {
-      this.checkLimitError(processedActionData);
     }
   }
 

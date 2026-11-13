@@ -11,6 +11,7 @@ import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.dynamic.model.udf.UDFDataHelper;
 import grafiosch.types.IUDFSpecialType;
 import grafiosch.types.UDFDataType;
+import grafiosch.types.UDFShareMode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,6 +20,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -44,8 +46,54 @@ public abstract class UDFMetadata extends UserBaseID {
       Possibly this construct of the UDF is also used for system-wide input fields.
       In this case, the user with ID = 0 would be used.""")
   @Column(name = "id_user")
-  @NotNull
   protected Integer idUser;
+
+  @Column(name = "share_mode")
+  @PropertyAlwaysUpdatable
+  private byte shareMode;
+
+  @Transient
+  private Integer idUDFMetadataSubscription;
+  @Transient
+  private Integer subscriberCount;
+  @Transient
+  private Boolean valueEditable;
+
+  public UDFShareMode getShareMode() {
+    return UDFShareMode.getByValue(shareMode);
+  }
+
+  public void setShareMode(UDFShareMode mode) {
+    shareMode = mode.getValue();
+  }
+
+  public Integer getIdUDFMetadataSubscription() {
+    return idUDFMetadataSubscription;
+  }
+
+  public void setIdUDFMetadataSubscription(Integer id) {
+    idUDFMetadataSubscription = id;
+  }
+
+  public Integer getSubscriberCount() {
+    return subscriberCount;
+  }
+
+  public void setSubscriberCount(Integer count) {
+    subscriberCount = count;
+  }
+
+  public Boolean getValueEditable() {
+    return valueEditable;
+  }
+
+  public void setValueEditable(Boolean editable) {
+    valueEditable = editable;
+  }
+
+  public boolean isValueWritableBy(Integer user) {
+    return idUser != null && (idUser.equals(user) || getShareMode() == UDFShareMode.UDF_SHARE_READ_WRITE);
+  }
 
   @Schema(description = """
       There are also user-defined fields that are intended for all users. This prevents the database table

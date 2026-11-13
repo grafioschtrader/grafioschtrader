@@ -1,0 +1,28 @@
+TRANSAKTIONSBELEG
+Kunde: 999999 - TRADING
+Herrn MAX MUSTER
+Musterstrasse 1
+CH-9999 Musterort
+Bern, 26.02.2025
+Börsentransaktion: Verkauf
+Unsere Referenz: 000000000
+Gemäss Ihrem Verkaufsauftrag vom 26.02.2025 haben wir folgende Transaktionen vorgenommen:
+Titel Börse
+PSP 0% 06.02.2030 ISIN: CH0488506665 SIX Swiss Exchange
+NKN: 48850666
+Anzahl Preis Betrag
+5'000 95.35 % CHF 4'767.50
+Total CHF 4'767.50
+Kommission CHF 20.00
+Abgabe (Eidg. Stempelsteuer) CHF 3.60
+Börsengebühren CHF 3.50
+Benutzter Trading Credit 18.00
+Zu Ihren Gunsten CHF 4'758.40
+Betrag gutgeschrieben auf Ihrer Kontonummer 99999900, Valutadatum 28.02.2025
+Vielen Dank für Ihren Auftrag.
+Im Rahmen dieser Transaktion hat PostFinance als Kommissionär gehandelt.
+Bitte prüfen Sie dieses Dokument und benachrichtigen Sie uns bei Unstimmigkeiten innert Monatsfrist.
+PostFinance AG, Mingerstrasse 20, 3030 Bern
+Kontaktcenter E-Trading: 0848 800 000 (Mo-Fr: 08.00-18.00 Uhr, ab Festnetz CHF 0.08/Min.)
+Formular ohne Unterschrift S.E. & O.
+MwSt n° CHE-116.302.542

@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, take } from 'rxjs/operators';
 import { BaseSettings } from '../../base.settings';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { MessageToastService } from '../../message/message.toast.service';
@@ -9,6 +9,7 @@ import { BaseService } from './base.service';
 import { ErrorWrapper } from './error.wrapper';
 import { GetTransformedError } from './get.transformed.error';
 import { LimitEntityTransactionError } from './limit.entity.transaction.error';
+import { LIMIT_REQUEST_OPENER } from './limit.request.opener';
 import { SingleNativeMsgError } from './single.native.msg.error';
 import { TransformedError } from './transformed.error';
 import { ValidationError } from './validation.error';
@@ -16,6 +17,9 @@ import { ValidationError } from './validation.error';
 export abstract class BaseAuthService<T> extends BaseService {
   /** Observable reads already report their transformed errors before an rxResource receives them. */
   private static readonly reportedErrors = new WeakSet<object>();
+  /** True while the dialog for applying for a higher daily limit is open or about to open. */
+  private static limitRequestOpen = false;
+  private readonly limitRequestOpener = inject(LIMIT_REQUEST_OPENER, { optional: true });
   protected httpClient: HttpClient = inject(HttpClient);
   protected messageToastService: MessageToastService = inject(MessageToastService);
 
@@ -103,7 +107,40 @@ export abstract class BaseAuthService<T> extends BaseService {
     } else {
       this.messageToastService.showMessage(InfoLevelType.ERROR, transformedError.msg);
     }
+    this.offerLimitIncrease(transformedError);
     return transformedError;
+  }
+
+  /**
+   * Offers the user to apply for a higher daily limit when a request was refused because the daily limit of changes on
+   * an entity was reached. It is done here, where every request error is reported, because the limit is checked at
+   * many write sites - saving a dialog, a direct import, a rollback - and only the first of them reports through an edit
+   * dialog. A second dialog is not opened while the first one is still open.
+   *
+   * @param transformedError the error the toast was built from
+   */
+  private offerLimitIncrease(transformedError: TransformedError): void {
+    const errorClass = transformedError.errorClass;
+    if (
+      !this.limitRequestOpener ||
+      !(errorClass instanceof LimitEntityTransactionError) ||
+      !errorClass.entity ||
+      BaseAuthService.limitRequestOpen
+    ) {
+      return;
+    }
+    BaseAuthService.limitRequestOpen = true;
+    let opened = false;
+    this.limitRequestOpener(errorClass.entity).subscribe({
+      next: (ref) => {
+        opened = true;
+        ref.onClose.pipe(take(1)).subscribe(() => (BaseAuthService.limitRequestOpen = false));
+      },
+      complete: () => {
+        if (!opened) BaseAuthService.limitRequestOpen = false;
+      },
+      error: () => (BaseAuthService.limitRequestOpen = false)
+    });
   }
 
   /**

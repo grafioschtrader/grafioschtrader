@@ -7,6 +7,7 @@ import grafiosch.entities.OAuthAuthorization;
 import grafiosch.entities.ProposeUserTask;
 import grafiosch.entities.TenantAccess;
 import grafiosch.entities.UDFMetadataGeneral;
+import grafiosch.entities.UDFMetadataSubscription;
 import grafiosch.entities.User;
 import grafiosch.entities.UserAccessToken;
 import grafiosch.limit.LimitCounters;
@@ -86,6 +87,9 @@ public abstract class LimitKeyBaseConfig {
   public static final LimitKey KEY_OAUTH_AUTHORIZATION = LimitKey.max(OAuthAuthorization.class.getSimpleName(),
       OwnerScope.CREATOR);
 
+  public static final LimitKey KEY_UDF_METADATA_SUBSCRIPTION = LimitKey
+      .max(UDFMetadataSubscription.class.getSimpleName(), OwnerScope.CREATOR);
+
   private static final String RULE_ACCOUNT_CAP = "min:1,max:1000";
 
   private LimitKeyBaseConfig() {
@@ -120,6 +124,9 @@ public abstract class LimitKeyBaseConfig {
    * only by its {@code SEND} row, since every internal message is stored twice.
    */
   private static void registerUserOwnedCaps() {
+    LimitKeyRegistry.register(new LimitKeyRegistration(KEY_UDF_METADATA_SUBSCRIPTION, UDFMetadataSubscription.class,
+        LimitCounters.userCount(UDFMetadataSubscription.class.getSimpleName(), "idUser"), 50, null,
+        "MAX_UDF_METADATA_SUBSCRIPTION", true));
     LimitKeyRegistry.register(new LimitKeyRegistration(KEY_PROPOSE_USER_TASK, ProposeUserTask.class,
         LimitCounters.creatorCount(ProposeUserTask.class.getSimpleName()), 100, null, "MAX_PROPOSE_USER_TASK", true));
     LimitKeyRegistry.register(new LimitKeyRegistration(KEY_UDF_METADATA_GENERAL, UDFMetadataGeneral.class,

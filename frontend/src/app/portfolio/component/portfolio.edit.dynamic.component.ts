@@ -14,6 +14,8 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { forkJoin } from 'rxjs';
 
 /**
  * Component for editing the portfolio.
@@ -47,6 +49,9 @@ export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfol
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'closedUntil', false, {
         calendarConfig: { minDate: new Date(2000, 0, 1) }
       }),
+      DynamicFieldHelper.createFieldSelectStringHeqF('costBasisMethod', false),
+      // Only a client that reports in euro and has Germany as its country uses the German tax help
+      ...(this.hasGermanTaxHelp() ? [DynamicFieldHelper.createFieldSelectStringHeqF('taxWithholding', false)] : []),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -60,7 +65,24 @@ export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfol
     } else {
       requireFormControl(this.configObject.currency).setValue((<Tenant>this.callParam.parentObject).currency);
     }
+    const costBasisMethod = requireFormControl(this.configObject.costBasisMethod);
+    if (costBasisMethod.value == null) {
+      // The empty option stands for the method of the tenant
+      costBasisMethod.setValue('');
+    }
     this.configObject.name.elementRef?.nativeElement.focus();
+    this.loadTaxWithholdingOptions();
+    forkJoin([this.gpsGT.getCostBasisMethods(), this.translateService.get('COST_BASIS_METHOD_INHERIT')])
+      .pipe(this.untilDialogClosed())
+      .subscribe(([methods, inherit]) => {
+        // Translated in place: the helper for translated options sorts by label, the methods keep their enum order.
+        this.configObject.costBasisMethod.valueKeyHtmlOptions = [
+          new ValueKeyHtmlSelectOptions('', inherit),
+          ...methods.map(
+            (option) => new ValueKeyHtmlSelectOptions(option.key, this.translateService.instant(option.value))
+          )
+        ];
+      });
     this.gpsGT
       .getCurrencies()
       .pipe(this.untilDialogClosed())
@@ -74,7 +96,36 @@ export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfol
       });
   }
 
+  private hasGermanTaxHelp(): boolean {
+    const tenant = <Tenant | undefined>this.callParam.parentObject;
+    return tenant?.currency === 'EUR' && tenant.country === 'DE';
+  }
+
+  /** The empty option stands for a portfolio that is not assigned yet. */
+  private loadTaxWithholdingOptions(): void {
+    if (!this.configObject.taxWithholding) {
+      return;
+    }
+    requireFormControl(this.configObject.taxWithholding).setValue(
+      (<Portfolio | undefined>this.callParam.thisObject)?.taxWithholding ?? ''
+    );
+    forkJoin([this.gpsGT.getTaxWithholdings(), this.translateService.get('GERMAN_TAX_PORTFOLIO_NOT_ASSIGNED')])
+      .pipe(this.untilDialogClosed())
+      .subscribe(([withholdings, notAssigned]) => {
+        this.configObject.taxWithholding.valueKeyHtmlOptions = [
+          new ValueKeyHtmlSelectOptions('', notAssigned),
+          ...withholdings.map(
+            (option) => new ValueKeyHtmlSelectOptions(option.key, this.translateService.instant(option.value))
+          )
+        ];
+      });
+  }
+
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Portfolio {
-    return this.copyFormToPrivateBusinessObject(new Portfolio(), <Portfolio>this.callParam.thisObject);
+    const portfolio = this.copyFormToPrivateBusinessObject(new Portfolio(), <Portfolio>this.callParam.thisObject);
+    // The empty option is sent as null: the portfolio then follows the method of the tenant.
+    portfolio.costBasisMethod = portfolio.costBasisMethod || null;
+    portfolio.taxWithholding = portfolio.taxWithholding || null;
+    return portfolio;
   }
 }

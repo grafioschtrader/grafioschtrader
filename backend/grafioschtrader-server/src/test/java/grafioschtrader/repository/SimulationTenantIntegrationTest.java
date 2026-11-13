@@ -19,7 +19,9 @@ import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.algo.*;
 import grafioschtrader.entities.*;
+import grafioschtrader.instrument.CostBasisMethods;
 import grafioschtrader.rest.GTIntegrationTestContext;
+import grafioschtrader.service.CostBasisMethodService;
 import grafioschtrader.types.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -42,6 +44,8 @@ class SimulationTenantIntegrationTest {
   private HoldSecurityaccountSecurityJpaRepository holdings;
   @Autowired
   private AlgoTopJpaRepository tops;
+  @Autowired
+  private CostBasisMethodService costBasisMethods;
   @Autowired
   private AlgoAssetclassJpaRepository assetclasses;
   @Autowired
@@ -120,6 +124,36 @@ class SimulationTenantIntegrationTest {
       assertThat(tops.findById(topId)).isPresent();
     }
     assertThat(source.transactions(tenantId, date.plusDays(2))).hasSize(2);
+  }
+
+  @ParameterizedTest
+  @EnumSource(SimulationInitializationMode.class)
+  @DisplayName("An environment calculates with the cost basis method of its source and the override of its portfolio")
+  void environmentTakesOverTheCostBasisMethods(SimulationInitializationMode mode) throws Exception {
+    em.find(Tenant.class, tenantId).setCostBasisMethod(CostBasisMethod.LIFO);
+    Portfolio portfolio = em.find(Cashaccount.class, cashId).getPortfolio();
+    portfolio.setCostBasisMethod(CostBasisMethod.FIFO);
+    Securityaccount securityaccount = new Securityaccount("Simulation depot", portfolio);
+    securityaccount.setIdTenant(tenantId);
+    securityaccount.setTradingPlatformPlan(em.createQuery("SELECT p FROM TradingPlatformPlan p", TradingPlatformPlan.class)
+        .setMaxResults(1).getSingleResult());
+    em.persist(securityaccount);
+    em.flush();
+    em.clear();
+    SimulationTenantCreateDTO dto = request(mode);
+    if (mode == SimulationInitializationMode.MANUAL_CASH)
+      dto.setCashBalances(Map.of(cashId, 12345.67));
+
+    Integer simulationId = simulations.createSimulationTenant(dto).getId();
+    em.flush();
+    em.clear();
+
+    CostBasisMethods methods = costBasisMethods.forTenant(simulationId);
+    assertThat(methods.tenantMethod()).isEqualTo(CostBasisMethod.LIFO);
+    List<Securityaccount> copied = source.securityaccounts(simulationId);
+    assertThat(copied).hasSize(1);
+    assertThat(copied.getFirst().getId()).isNotEqualTo(securityaccount.getId());
+    assertThat(methods.forAccount(copied.getFirst().getId())).isEqualTo(CostBasisMethod.FIFO);
   }
 
   @Test

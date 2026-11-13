@@ -5,6 +5,9 @@ export interface SecurityPositionCurrenyGroupSummary extends SecurityPositionGro
   currencyExchangeRate: number;
   currency: string;
   groupGainLossSecurity: number;
+  groupRealizedGainLossSecurity: number;
+  groupIncomeGainLossSecurity: number;
+  groupUnrealizedGainLossSecurity: number;
   groupTransactionCost: number;
   groupAccountValueSecurity: number;
   groupTaxCost: number;

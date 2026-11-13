@@ -1,6 +1,5 @@
 import { TreeNode } from '@openng/optimus-ui/api';
 import { TypeNodeData } from '../types/type.node.data';
-import { AppHelper } from '../../helper/app.helper';
 import { BaseSettings } from '../../base.settings';
 import { LibTreeNodeType } from '../types/lib.tree.node.type';
 
@@ -25,7 +24,7 @@ export class LibDataMainTreeContributor {
    */
   static createUdfMetadataGeneralNode(nodeType: string): TreeNode {
     return {
-      label: AppHelper.toUpperCaseWithUnderscore(BaseSettings.UDF_METADATA_GENERAL),
+      label: 'UDF_METADATA',
       icon: 'pi pi-tags',
       children: [],
       data: new TypeNodeData(

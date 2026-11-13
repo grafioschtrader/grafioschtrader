@@ -21,7 +21,7 @@ public class FieldDescriptorInputAndShowExtendedSecurity extends FieldDescriptor
   public FieldDescriptorInputAndShowExtendedSecurity(EnumSet<AssetclassType> categoryTypeEnums,
       EnumSet<SpecialInvestmentInstruments> specialInvestmentInstrumentEnums, String fieldName, String description,
       String descriptionHelp, byte uiOrder, DataType dataType, Double min, Double max, Byte udfSpecialType,
-      int idUser) {
+      Integer idUser) {
     super(fieldName, description, descriptionHelp, uiOrder, dataType, min, max, udfSpecialType, idUser);
     this.categoryTypeEnums = categoryTypeEnums;
     this.specialInvestmentInstrumentEnums = specialInvestmentInstrumentEnums;

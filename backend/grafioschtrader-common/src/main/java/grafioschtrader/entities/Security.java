@@ -31,6 +31,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.projection.IFormulaInSecurity;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;
+import grafioschtrader.types.FundTaxClass;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.validation.NonZeroFloatConstraint;
 import grafioschtrader.validation.ValidCurrencyCode;
@@ -181,6 +182,14 @@ public class Security extends Securitycurrency<Security>
   @Column(name = "dist_frequency")
   @PropertyAlwaysUpdatable
   private byte distributionFrequency;
+
+  @Schema(description = """
+      The class of an investment fund for the German Investmentsteuergesetz, which decides the partial exemption of
+      its income for a private investor. It follows from the investment conditions of the fund. Only an ETF, a mutual
+      fund or a pension fund can have one, null means not classified.""")
+  @Column(name = "fund_tax_class")
+  @PropertyAlwaysUpdatable
+  private Byte fundTaxClass;
 
   @Schema(description = """
       Certain instruments are short and may still be leveraged, this is mapped with this.
@@ -383,6 +392,14 @@ public class Security extends Securitycurrency<Security>
   public void setDistributionFrequency(DistributionFrequency distributionFrequency) {
     this.distributionFrequency = (distributionFrequency != null ? distributionFrequency : DistributionFrequency.DF_NONE)
         .getValue();
+  }
+
+  public FundTaxClass getFundTaxClass() {
+    return fundTaxClass == null ? null : FundTaxClass.getFundTaxClassByValue(fundTaxClass);
+  }
+
+  public void setFundTaxClass(FundTaxClass fundTaxClass) {
+    this.fundTaxClass = fundTaxClass == null ? null : fundTaxClass.getValue();
   }
 
   public float getLeverageFactor() {

@@ -44,7 +44,8 @@ import grafioschtrader.types.TransactionType;
  * The class employs different calculation strategies based on instrument type:
  * </p>
  * <ul>
- * <li><strong>Standard Securities:</strong> Uses average cost method for position tracking</li>
+ * <li><strong>Standard Securities:</strong> Uses the cost basis method of the security account, which is average
+ * cost, FIFO or LIFO</li>
  * <li><strong>Margin Instruments:</strong> Employs specific position tracking for leveraged products</li>
  * <li><strong>Multi-Currency:</strong> Converts all values to a main currency for consolidated reporting</li>
  * </ul>
@@ -106,7 +107,7 @@ public abstract class SecurityBaseCalc {
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
       final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
-      Map<String, Integer> currencyPrecisionMap);
+      Map<String, Integer> currencyPrecisionMap, CostBasisMethods costBasisMethods);
 
   /**
    * Creates hypothetical sell transactions to simulate position closure for analysis purposes.
@@ -164,7 +165,7 @@ public abstract class SecurityBaseCalc {
   abstract void calcTransactionAndAddToPosition(final Transaction transaction,
       final SecurityTransactionSummary securityTransactionSummary, final boolean excludeDivTaxcost,
       final Map<Integer, List<Securitysplit>> securitySplitMap, final DateTransactionCurrencypairMap dateCurrencyMap,
-      NegativeIdNumberCreater negativeIdNumberCreater);
+      NegativeIdNumberCreater negativeIdNumberCreater, CostBasisMethods costBasisMethods);
 
   /**
    * Retrieves or creates a security position summary for the given transaction.
@@ -306,6 +307,9 @@ public abstract class SecurityBaseCalc {
     securityPositionSummary.transactionGainLossMC = null;
     securityPositionSummary.transactionCostBase = null;
     securityPositionSummary.transactionFlowSC = null;
+    securityPositionSummary.transactionCostBasisMethod = null;
+    securityPositionSummary.transactionConsumedLots = null;
+    securityPositionSummary.transactionCostBasisIncomplete = null;
     securityPositionSummary.transactionExchangeRate = ctp.exchangeRate;
 
     ctp.unitsSplited = transaction.getUnits() * splitFactorAfterBefore.fromToDateFactor;

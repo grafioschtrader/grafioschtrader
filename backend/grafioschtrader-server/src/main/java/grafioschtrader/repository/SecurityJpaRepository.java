@@ -356,6 +356,23 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<CheckSecurityTransIntegrity> getPossibleMissingDivInterestByFrequency();
 
   /**
+   * Reads the stored values of one user-defined security field for the advanced search. Only securities whose asset
+   * class and instrument type are within the current scope of the field are returned, so a value that remains from an
+   * earlier scope of the field is not found. The text is the result of {@code JSON_VALUE}: a string, number or boolean
+   * as stored. Rows without a value for the field are not returned. The visibility of private securities is not decided
+   * here.
+   *
+   * Named query: Security.findUdfValuesOfField Parameters in SQL: - ?1 - the owner of the stored values: the user for
+   * an own field, 0 for a system-wide field - ?2 - the id of the field (udf_metadata)
+   *
+   * @param idUser        the owner of the stored values
+   * @param idUDFMetadata the id of the field
+   * @return rows of security id (Number) and stored text (String), in no particular order
+   */
+  @Query(nativeQuery = true)
+  List<Object[]> findUdfValuesOfField(int idUser, int idUDFMetadata);
+
+  /**
    * Detects the overdue very first interest payment (coupon) of a held bond.
    * <p>
    * Complements {@link #getPossibleMissingDivInterestByFrequency()}: that query anchors on an existing income
@@ -776,4 +793,6 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
     LocalDate getActiveToDate();
   }
 
+  @Query(nativeQuery = true)
+  List<Object[]> findSharedUdfValuesOfField(Integer idUDFMetadata);
 }

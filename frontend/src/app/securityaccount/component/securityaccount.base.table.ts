@@ -399,6 +399,32 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
    * @param field - The column
    * @returns The tooltip text
    */
+  /**
+   * Adds the three parts of the security gain: realized, income and unrealized. The columns in the main currency are
+   * shown, because only they total over groups of different currencies; those in the currency of the security can be
+   * switched on. The main currency columns carry explicit header keys: the derived ones would drop the suffix MC and
+   * share the stored visibility of their counterparts.
+   */
+  private addGainComponentColumns(): void {
+    for (const part of ['Realized', 'Income', 'Unrealized']) {
+      const field = `${part.toLowerCase()}GainLossSecurity`;
+      this.addColumnFeqH(DataType.Numeric, field, false, true, {
+        currencyPrecisionField: 'security.currency',
+        columnGroupConfigs: [
+          new ColumnGroupConfig(`group${part}GainLossSecurity`, null, null, { currencyPrecisionField: 'currency' })
+        ]
+      });
+      this.internalColumnConfigs.push(
+        this.addColumn(DataType.Numeric, `${field}MC`, `${part.toUpperCase()}_GAIN_LOSS_SECURITY_MC`, true, true, {
+          columnGroupConfigs: [
+            new ColumnGroupConfig(`group${part}GainLossSecurityMC`),
+            new ColumnGroupConfig(`grand${part}GainLossSecurityMC`)
+          ]
+        })
+      );
+    }
+  }
+
   getCellTooltip(positionSummary: SecurityPositionSummary, field: ColumnConfig): string | null {
     if (DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && positionSummary?.disposalDetails) {
       return DisposalCostHelper.getDetailsText(positionSummary.disposalDetails, this.translateService, this.gps);
@@ -474,6 +500,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
         ]
       })
     );
+    this.addGainComponentColumns();
     this.internalColumnConfigs.push(
       this.addColumnFeqH(DataType.Numeric, 'gainLossCurrencyMC', true, true, {
         columnGroupConfigs: [

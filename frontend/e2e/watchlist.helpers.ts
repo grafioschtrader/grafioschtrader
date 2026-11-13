@@ -268,7 +268,8 @@ async function addSecuritiesThroughSearch(
   await closeAddInstrumentDialog(addDialog);
 }
 
-async function openAddInstrumentDialog(page: Page, container: Locator): Promise<Locator> {
+/** Opens the add-existing-instrument dialog of the selected watchlist and waits until its options are loaded. */
+export async function openAddInstrumentDialog(page: Page, container: Locator): Promise<Locator> {
   await container.click();
   await page.waitForTimeout(300);
   await container.click({ button: 'right' });
@@ -287,7 +288,8 @@ async function openAddInstrumentDialog(page: Page, container: Locator): Promise<
   return addDialog;
 }
 
-async function closeAddInstrumentDialog(addDialog: Locator): Promise<void> {
+/** Closes the add-existing-instrument dialog through its exit button. */
+export async function closeAddInstrumentDialog(addDialog: Locator): Promise<void> {
   await addDialog.getByRole('button', { name: /^(Beenden|Close)$/ }).click();
   await addDialog.locator('.p-dialog').waitFor({ state: 'hidden', timeout: 10_000 });
 }

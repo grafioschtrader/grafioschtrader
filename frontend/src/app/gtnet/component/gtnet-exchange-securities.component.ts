@@ -69,6 +69,7 @@ import { HelpIds } from '../../lib/help/help.ids';
       (componentClick)="onComponentClick($event)"
       [contextMenuEnabled]="true"
       [contextMenuItems]="contextMenuItems()"
+      [contextMenuAppendTo]="'body'"
       [showContextMenu]="true"
       [containerClass]="{
         'data-container-full': true,

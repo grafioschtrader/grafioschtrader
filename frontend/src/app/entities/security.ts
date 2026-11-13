@@ -22,6 +22,8 @@ export class Security extends Securitycurrency implements BaseID {
   activeFromDate: string | number | Date | null = null;
   activeToDate: string | number | Date | null = null;
   distributionFrequency: string | null = null;
+  /** Fund class for the German tax, only for an ETF, a mutual fund or a pension fund; null when not classified. */
+  fundTaxClass: string | null = null;
   issuerCountry?: string | null = null;
   simulationMetadata?: SecuritySimulationMetadata | null = null;
   leverageFactor?: number | null = null;

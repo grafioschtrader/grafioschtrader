@@ -94,12 +94,19 @@ public class UDFValueResolverRegistry {
       throw new DataViolationException("fill.source", "gt.udf.fill.source.data.type",
           new Object[] { UDFFillSource.RESOLVER.name() + " " + resolver.getResolverId(), udfDataType.name() });
     }
+    String argument;
     try {
-      return resolver.getResolverId() + " " + resolver.normalizeArgument(rule.argument());
+      argument = resolver.normalizeArgument(rule.argument());
     } catch (IllegalArgumentException e) {
       throw new DataViolationException("fill.rule", e.getMessage(),
           new Object[] { rule.argument() == null ? "" : rule.argument() });
     }
+    if (!resolver.supportsDataType(udfDataType, argument)) {
+      throw new DataViolationException("fill.source", "gt.udf.fill.source.data.type",
+          new Object[] { UDFFillSource.RESOLVER.name() + " " + resolver.getResolverId() + " " + argument,
+              udfDataType.name() });
+    }
+    return resolver.getResolverId() + " " + argument;
   }
 
   /**

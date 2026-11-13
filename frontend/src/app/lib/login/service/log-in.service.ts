@@ -77,6 +77,10 @@ export class LoginService extends BaseAuthService<User> {
       JSON.stringify(configurationWithLogin.gtNetLogEnabled)
     );
     sessionStorage.setItem(
+      GlobalSessionNames.USER_NICKNAME_VISIBLE,
+      JSON.stringify(configurationWithLogin.userNicknameVisible)
+    );
+    sessionStorage.setItem(
       GlobalSessionNames.GT_NET_HAS_HISTORICAL_PEER,
       JSON.stringify(configurationWithLogin.gtNetHasHistoricalExchangePeer)
     );
@@ -149,6 +153,22 @@ export class LoginService extends BaseAuthService<User> {
   getOwnUser(): Observable<UserOwnProjection> {
     return this.httpClient
       .get<UserOwnProjection>(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/own`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Reads the nicknames of other users. The backend answers with an empty map unless the administrator of this
+   * instance has made the nickname visible (g.user.nickname.visible), or the caller is an administrator.
+   *
+   * @param idUsers - Ids of the users whose nickname is wanted (at most 200)
+   * @returns Nicknames keyed by user id; users without an entry keep their id as display value
+   */
+  getNicknames(idUsers: number[]): Observable<Record<number, string>> {
+    return this.httpClient
+      .get<Record<number, string>>(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/nicknames`, {
+        ...this.getHeaders(),
+        params: { idUsers: idUsers.join(',') }
+      })
       .pipe(catchError(this.handleError.bind(this)));
   }
 

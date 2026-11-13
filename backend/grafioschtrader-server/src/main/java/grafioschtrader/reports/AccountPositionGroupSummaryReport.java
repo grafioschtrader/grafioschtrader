@@ -24,6 +24,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.instrument.CostBasisMethods;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.FromToCurrencyWithDate;
@@ -39,6 +40,7 @@ import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.helper.AccountGroupMap;
 import grafioschtrader.repository.helper.GroupPortfolio;
+import grafioschtrader.service.CostBasisMethodService;
 import grafioschtrader.service.DisposalCostEstimator;
 import grafioschtrader.service.DisposalPositionCollector;
 import grafioschtrader.service.GlobalparametersService;
@@ -84,6 +86,9 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   @Autowired
   protected SecurityCalcService securityCalcService;
+
+  @Autowired
+  private CostBasisMethodService costBasisMethodService;
 
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
@@ -234,6 +239,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
     final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
         .getSecuritysplitMapByIdTenant(idTenant);
 
+    // Resolved once for the whole report, the loop over the portfolios must not change the methods
+    final CostBasisMethods costBasisMethods = costBasisMethodService.forTenant(idTenant);
     for (final Portfolio portfolio : portfolioList) {
       accessCashaccountPositionSummary.preparteForNewPortfolio();
       final List<Transaction> everyKindOfTransactionsUntilDate = new ArrayList<>();
@@ -250,7 +257,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
       final DisposalPositionCollector disposalCollector = disposalCostEstimator.newCollectorIfEnabled(idTenant);
       final Map<Security, SecurityPositionSummary> securityPositionSummaryMap = calcSecurityTransaction(
-          everyKindOfTransactionsUntilDate, securitysplitMap, excludeDivTaxcost, dateCurrencyMap, disposalCollector);
+          everyKindOfTransactionsUntilDate, securitysplitMap, excludeDivTaxcost, dateCurrencyMap, disposalCollector,
+          costBasisMethods);
       final DisposalCostEstimator.Session disposalSession = disposalCostEstimator
           .newSession(dateCurrencyMap.getUntilDate(), disposalCollector);
 
@@ -383,17 +391,20 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * @param dateCurrencyMap                  currency exchange rate context for multi-currency securities
    * @param disposalCollector                collects units, settlement and trades for the disposal cost estimate,
    *                                         null when the estimate is switched off
+   * @param costBasisMethods                 the cost basis methods of this report
    * @return map of securities to their calculated position summaries
    */
   private Map<Security, SecurityPositionSummary> calcSecurityTransaction(
       final List<Transaction> everyKindOfTransactionsUntilDate,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
-      final DateTransactionCurrencypairMap dateCurrencyMap, final DisposalPositionCollector disposalCollector) {
+      final DateTransactionCurrencypairMap dateCurrencyMap, final DisposalPositionCollector disposalCollector,
+      final CostBasisMethods costBasisMethods) {
     final Map<Security, SecurityPositionSummary> securityPositionSummaryMap = new HashMap<>();
-    for (final Transaction transaction : everyKindOfTransactionsUntilDate) {
+    // A sorted copy: the cash calculation keeps the order it always had, only the securities need the unique one
+    for (final Transaction transaction : SecurityCalcService.sortForCalculation(everyKindOfTransactionsUntilDate)) {
       if (transaction.getSecurity() != null) {
         securityCalcService.calcSingleSecurityTransaction(transaction, securityPositionSummaryMap, securitysplitMap,
-            excludeDivTaxcost, dateCurrencyMap);
+            excludeDivTaxcost, dateCurrencyMap, costBasisMethods);
         if (disposalCollector != null) {
           disposalCollector.accept(transaction, securitysplitMap);
         }

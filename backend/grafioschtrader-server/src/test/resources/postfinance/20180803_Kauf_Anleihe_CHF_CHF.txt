@@ -1,0 +1,29 @@
+TRANSAKTIONSBELEG
+Kunde: 999999 - TRADING
+Herrn MAX MUSTER
+Musterstrasse 1
+CH-9999 Musterort
+Bern, 03.08.2018
+Börsentransaktion: Kauf
+Unsere Referenz: 000000000
+Gemäss Ihrem Kaufauftrag vom 03.08.2018 haben wir folgende Transaktionen vorgenommen:
+Titel Ort der Ausführung
+MESSEHCH 1.875% 16.05.2023 ISIN: CH0373476735 SIX Swiss Exchange
+NKN: 37347673
+Anzahl Preis Betrag
+10'000 92.6 % CHF 9'260.00
+CHF
+Marchzinsen 42.20
+Total CHF 9'302.20
+Kommission CHF 35.00
+Abgabe (Eidg. Stempelsteuer) CHF 7.00
+Börsengebühren CHF 3.50
+Zu Ihren Lasten CHF 9'347.70
+Betrag belastet auf Kontonummer 99999900, Valutadatum 07.08.2018
+Vielen Dank für Ihren Auftrag.
+Im Rahmen dieser Transaktion hat PostFinance als Kommissionär gehandelt.
+Bitte prüfen Sie dieses Dokument und benachrichtigen Sie uns bei Unstimmigkeiten innert Monatsfrist.
+PostFinance AG, Mingerstrasse 20, 3030 Bern
+Kontaktcenter E-Trading: 0848 800 000 (Mo-Fr: 08.00-22.00 Uhr, ab Festnetz CHF 0.08/Min.)
+Formular ohne Unterschrift S.E. & O.
+MwSt n° CHE-116.302.542

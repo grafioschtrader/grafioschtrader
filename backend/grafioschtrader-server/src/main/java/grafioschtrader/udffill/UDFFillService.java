@@ -22,6 +22,7 @@ import grafiosch.BaseConstants;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.TaskInterruptException;
+import grafiosch.repository.UDFMetadataSubscriptionJpaRepository;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.UDFDataType;
@@ -67,11 +68,12 @@ public class UDFFillService {
   private final UDFFillWriter udfFillWriter;
   private final UDFFillTaskQueue udfFillTaskQueue;
   private final GlobalparametersService globalparametersService;
+  private final UDFMetadataSubscriptionJpaRepository subscriptions;
 
   public UDFFillService(UDFMetadataSecurityJpaRepository uMetaSecurityRepository,
       UDFDataFillJpaRepository udfDataFillJpaRepository, UserJpaRepository userJpaRepository,
       UDFFillScopeService scopeService, UDFFillWriter udfFillWriter, UDFFillTaskQueue udfFillTaskQueue,
-      GlobalparametersService globalparametersService) {
+      GlobalparametersService globalparametersService, UDFMetadataSubscriptionJpaRepository subscriptions) {
     this.uMetaSecurityRepository = uMetaSecurityRepository;
     this.udfDataFillJpaRepository = udfDataFillJpaRepository;
     this.userJpaRepository = userJpaRepository;
@@ -79,6 +81,7 @@ public class UDFFillService {
     this.udfFillWriter = udfFillWriter;
     this.udfFillTaskQueue = udfFillTaskQueue;
     this.globalparametersService = globalparametersService;
+    this.subscriptions = subscriptions;
   }
 
   /**
@@ -100,7 +103,7 @@ public class UDFFillService {
     if (owner == null || !canCompute(field)) {
       return;
     }
-    List<Security> scope = scopeService.getTenantScope(field, owner.getIdTenant());
+    List<Security> scope = scopeService.getFieldScope(field);
     Map<Integer, UDFDataFill> fills = udfDataFillJpaRepository.findById_IdUDFMetadata(idUDFMetadata).stream()
         .collect(Collectors.toMap(f -> f.getId().getIdEntity(), Function.identity()));
     Map<Integer, String> yahooSymbols = scopeService.getYahooSymbols();
@@ -121,10 +124,11 @@ public class UDFFillService {
 
   /**
    * Tells whether anything fills a field: a manual field is always typed by the user, a template or a lookup needs a
-   * rule it can evaluate, a language model needs a model of the home tenant of the owner.
+   * rule it can evaluate, a language model needs a model of the home tenant of a participant who sees the field.
    *
    * @param field          the field
-   * @param tenantHasModel whether the home tenant of the owner has an active, permitted language model
+   * @param tenantHasModel whether the home tenant of the owner or, for a field of another user, the one of the caller
+   *                       has an active, permitted language model
    * @return true when the field is processed
    */
   public boolean isProcessed(UDFMetadataSecurity field, boolean tenantHasModel) {
@@ -231,8 +235,7 @@ public class UDFFillService {
   public UDFFillTestResult testFillRule(UDFFillTestRequest request, User user) {
     Map<Integer, String> existing = Map.of();
     if (request.idUDFMetadata != null) {
-      getOwnField(request.idUDFMetadata, user);
-      existing = scopeService.getFieldValues(user.getIdUser(), request.idUDFMetadata);
+      existing = scopeService.getFieldValues(getOwnField(request.idUDFMetadata, user));
     }
     if (request.fillSource != UDFFillSource.TEMPLATE) {
       throw new DataViolationException("fill.source", "gt.udf.fill.source.not.testable", null);
@@ -343,15 +346,15 @@ public class UDFFillService {
    * Summarises the fill state of a field of the caller over the tenant scope.
    *
    * @param idUDFMetadata the field
-   * @param user          the caller, who must own the field
+   * @param user          the caller, who must be a participant of a field with an owner
    * @return the counts per state, the manual values and whether a run is pending
    */
   public UDFFillStatus getFillStatus(Integer idUDFMetadata, User user) {
-    UDFMetadataSecurity field = getOwnField(idUDFMetadata, user);
+    UDFMetadataSecurity field = getParticipantField(idUDFMetadata, user, false);
     List<Security> scope = scopeService.getTenantScope(field, user.getIdTenant());
     Map<Integer, UDFDataFill> fills = udfDataFillJpaRepository.findById_IdUDFMetadata(idUDFMetadata).stream()
         .collect(Collectors.toMap(f -> f.getId().getIdEntity(), Function.identity()));
-    Map<Integer, String> values = scopeService.getFieldValues(user.getIdUser(), idUDFMetadata);
+    Map<Integer, String> values = scopeService.getFieldValues(field);
     UDFFillStatus status = new UDFFillStatus();
     status.inScope = scope.size();
     for (Security security : scope) {
@@ -378,7 +381,7 @@ public class UDFFillService {
    * @param user          the caller
    */
   public void lockCell(Integer idUDFMetadata, Integer idSecurity, User user) {
-    UDFMetadataSecurity field = getOwnFilledFieldInScope(idUDFMetadata, idSecurity, user);
+    UDFMetadataSecurity field = getWritableFilledFieldInScope(idUDFMetadata, idSecurity, user);
     udfFillWriter.lock(field, idSecurity);
   }
 
@@ -391,7 +394,7 @@ public class UDFFillService {
    * @param user          the caller
    */
   public void unlockCell(Integer idUDFMetadata, Integer idSecurity, User user) {
-    UDFMetadataSecurity field = getOwnFilledFieldInScope(idUDFMetadata, idSecurity, user);
+    UDFMetadataSecurity field = getWritableFilledFieldInScope(idUDFMetadata, idSecurity, user);
     udfFillWriter.deleteFillRow(field, idSecurity);
     if (field.getFillSource() == UDFFillSource.TEMPLATE && canCompute(field)) {
       Security security = scopeService.getTenantScope(field, user.getIdTenant()).stream()
@@ -404,14 +407,25 @@ public class UDFFillService {
     }
   }
 
-  private UDFMetadataSecurity getOwnFilledFieldInScope(Integer idUDFMetadata, Integer idSecurity, User user) {
-    UDFMetadataSecurity field = getOwnField(idUDFMetadata, user);
+  private UDFMetadataSecurity getWritableFilledFieldInScope(Integer idUDFMetadata, Integer idSecurity, User user) {
+    UDFMetadataSecurity field = getParticipantField(idUDFMetadata, user, true);
     if (!field.isAutomaticallyFilled()) {
       throw new DataViolationException("fill.source", "gt.udf.fill.source.manual", null);
     }
     boolean inScope = scopeService.getTenantScope(field, user.getIdTenant()).stream()
         .anyMatch(s -> s.getIdSecuritycurrency().equals(idSecurity));
     if (!inScope) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+    return field;
+  }
+
+  private UDFMetadataSecurity getParticipantField(Integer idUDFMetadata, User user, boolean writable) {
+    UDFMetadataSecurity field = uMetaSecurityRepository.findById(idUDFMetadata).orElse(null);
+    if (field == null || field.getIdUser() == null
+        || (!user.getIdUser().equals(field.getIdUser())
+            && subscriptions.findByIdUDFMetadataAndIdUser(idUDFMetadata, user.getIdUser()).isEmpty())
+        || writable && !field.isValueWritableBy(user.getIdUser())) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     return field;
@@ -426,7 +440,7 @@ public class UDFFillService {
   }
 
   /**
-   * Fills the template fields of the user for the securities of a watchlist, synchronously while the watchlist is
+   * Fills owned and subscribed template fields for the securities of a watchlist, synchronously while the watchlist is
    * loaded. Only in the home tenant of the user with write access; the fill rows and the Yahoo symbols are loaded once
    * for the whole watchlist, and a write transaction is opened only for a cell whose decision changes something.
    *
@@ -440,11 +454,8 @@ public class UDFFillService {
     if (!user.getIdTenant().equals(user.getActualIdTenant()) || user.isTenantAccessReadOnly() || securities.isEmpty()) {
       return;
     }
-    List<UDFMetadataSecurity> fields = uMetaSecurityRepository
-        .getAllByIdUserInAndUiOrderLessThanOrderByUiOrder(new int[] { user.getIdUser() },
-            BaseConstants.MAX_USER_UI_ORDER_VALUE)
-        .stream().filter(f -> f.getFillSource() == UDFFillSource.TEMPLATE && isUserFillable(f) && canCompute(f))
-        .toList();
+    List<UDFMetadataSecurity> fields = uMetaSecurityRepository.getFieldsForUser(user.getIdUser()).stream()
+        .filter(f -> f.getFillSource() == UDFFillSource.TEMPLATE && isUserFillable(f) && canCompute(f)).toList();
     if (fields.isEmpty()) {
       return;
     }

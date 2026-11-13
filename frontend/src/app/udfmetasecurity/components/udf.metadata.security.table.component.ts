@@ -1,3 +1,4 @@
+import { UDFSubscriptionEditComponent } from '../../lib/udfmeta/components/udf-subscription-edit.component';
 import { Component, signal, inject } from '@angular/core';
 
 import { TranslateModule } from '@ngx-translate/core';
@@ -16,6 +17,7 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
 import { UDFMetadataSecurityEditComponent } from './udf-metadata-security-edit.component';
 import { UDFFillProposalsDialogComponent } from './udf-fill-proposals-dialog.component';
 import { BaseSettings } from '../../lib/base.settings';
+import { securitySubscriptionNotice, securitySubscriptionRows } from './udf-metadata-subscription.helper';
 
 /**
  * Table component for managing security-specific UDF metadata definitions.
@@ -25,6 +27,7 @@ import { BaseSettings } from '../../lib/base.settings';
  * Supports CRUD operations, sorting, filtering, and special type toggling.
  */
 @Component({
+  selector: 'udf-metadata-security-table',
   template: `
     <div
       class="data-container-full"
@@ -51,6 +54,7 @@ import { BaseSettings } from '../../lib/base.settings';
         [showGridlines]="true"
         [contextMenuEnabled]="true"
         [contextMenuItems]="contextMenuItems()"
+        [contextMenuAppendTo]="'body'"
         [showContextMenu]="isActivated()"
         [containerClass]="''"
         (componentClick)="onComponentClick($event)">
@@ -61,6 +65,15 @@ import { BaseSettings } from '../../lib/base.settings';
         </ng-template>
       </configurable-table>
     </div>
+    @if (subscriptionField(); as field) {
+      <udf-subscription-edit
+        [visibleDialog]="true"
+        [field]="field"
+        [excludeUiOrders]="subscriptionExcludedOrders"
+        [rows]="subscriptionRows(field)"
+        [noticeKey]="subscriptionNotice(field)"
+        (closeDialog)="subscriptionField.set(null); handleCloseDialog($event)" />
+    }
     @if (visibleDialog()) {
       <udf-metadata-security-edit
         [visibleDialog]="visibleDialog()"
@@ -76,8 +89,16 @@ import { BaseSettings } from '../../lib/base.settings';
       }
     }
   `,
+  styles: `
+    :host {
+      display: block;
+      min-height: 0;
+      overflow: auto;
+    }
+  `,
   providers: [DialogService],
   imports: [
+    UDFSubscriptionEditComponent,
     TranslateModule,
     AngularSvgIconModule,
     ConfigurableTableComponent,
@@ -125,18 +146,16 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
         width: 200
       });
       // Set by the server: whether anything fills the field, e.g. not a language model field without a tenant key
+      this.addColumnFeqH(DataType.String, 'fillSource', true, false, { translateValues: TranslateValue.NORMAL });
+      this.addColumnFeqH(DataType.String, 'fillPeriod', true, false, { translateValues: TranslateValue.NORMAL });
       this.addColumnFeqH(DataType.Boolean, 'active', true, false, { templateName: 'check' });
     }
   }
 
   /**
-   * Prepares parameters for opening the security metadata edit dialog.
-   * Sets up validation exclusions and entity to edit.
-   *
-   * @param entity - Security UDF metadata entity to edit, or null for new entry
-   */
-  /**
-   * Adds the proposals of a language model for an own field with the fill source LLM.
+   * Adds the proposals of a language model for a field with the fill source LLM the user owns or has adopted. The
+   * dialog behind it also starts a run and asks again, each for the securities of the user and at the cost of the
+   * user. A field without owner gets no entry, since nothing fills it.
    *
    * @param udfMetaData - The selected field
    * @param menuItems - Menu items to extend
@@ -144,7 +163,11 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
    */
   protected override addCustomMenusToSelectedEntity(udfMetaData: UDFMetadataSecurity, menuItems: MenuItem[]): void {
     super.addCustomMenusToSelectedEntity(udfMetaData, menuItems);
-    if (udfMetaData?.fillSource === UDFFillSource.LLM && udfMetaData.idUser === this.gps.getIdUser()) {
+    if (
+      udfMetaData?.fillSource === UDFFillSource.LLM &&
+      (this.isOwn(udfMetaData) || this.isSubscribed(udfMetaData)) &&
+      !this.isOrphaned(udfMetaData)
+    ) {
       menuItems.push({
         label: 'UDF_FILL_PROPOSALS' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => {
@@ -155,9 +178,23 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
     }
   }
 
+  /**
+   * Prepares parameters for opening the security metadata edit dialog.
+   * Sets up validation exclusions and entity to edit.
+   *
+   * @param entity - Security UDF metadata entity to edit, or null for new entry
+   */
   override prepareCallParam(entity: UDFMetadataSecurity | null): void {
     this.beforeEdit(entity, this.callParam);
     this.callParam.uDFMetadataSecurity = entity;
+  }
+
+  subscriptionRows(field: UDFMetadataSecurity): { label: string; value: string | null }[] {
+    return securitySubscriptionRows(field, this.translateService);
+  }
+
+  subscriptionNotice(field: UDFMetadataSecurity): string | null {
+    return securitySubscriptionNotice(field);
   }
 
   /**

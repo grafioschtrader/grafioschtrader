@@ -1,3 +1,5 @@
+import { AdvancedSearchCriterion } from './advanced.search';
+
 export class SecuritycurrencySearch {
   isin: number | null = null;
   name: string | null = null;
@@ -16,4 +18,6 @@ export class SecuritycurrencySearch {
   idConnectorHistory: string | null = null;
   idConnectorIntra: string | null = null;
   withHoldings: boolean | null = null;
+  /** Criteria on user-defined fields and indicators of securities; combined with AND, at most 5. */
+  advancedCriteria: AdvancedSearchCriterion[] = [];
 }

@@ -1,0 +1,29 @@
+{
+  "cik" : 796343,
+  "taxonomy" : "dei",
+  "tag" : "EntityCommonStockSharesOutstanding",
+  "label" : "Entity Common Stock, Shares Outstanding",
+  "description" : "Indicate number of shares or other units outstanding of each of registrant's classes of capital or common stock or other ownership interests, if and as stated on cover of related periodic report. Where multiple classes or units exist define each class/interest by adding class of stock items such as Common Class A [Member], Common Class B [Member] or Partnership Interest [Member] onto the Instrument [Domain] of the Entity Listings, Instrument.",
+  "entityName" : "ADOBE INC.",
+  "units" : {
+    "shares" : [ {
+      "end" : "2026-06-11",
+      "val" : 397500000,
+      "accn" : "0000796343-26-000112",
+      "fy" : 2026,
+      "fp" : "Q2",
+      "form" : "10-Q",
+      "filed" : "2026-06-15",
+      "frame" : "CY2026Q2I"
+    }, {
+      "end" : "2026-09-18",
+      "val" : 389200000,
+      "accn" : "0000796343-26-000156",
+      "fy" : 2026,
+      "fp" : "Q3",
+      "form" : "10-Q",
+      "filed" : "2026-09-22",
+      "frame" : "CY2026Q3I"
+    } ]
+  }
+}

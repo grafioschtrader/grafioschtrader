@@ -94,6 +94,13 @@ public class SecurityPositionGrandSummary {
   @Schema(description = "Total gains/losses (realized and unrealized) across all security positions")
   public double grandGainLossSecurityMC = 0.0;
 
+  @Schema(description = "Realized part of grandGainLossSecurityMC, at the exchange rate of the report")
+  public double grandRealizedGainLossSecurityMC = 0.0;
+  @Schema(description = "Income part of grandGainLossSecurityMC: dividends and accrued interest")
+  public double grandIncomeGainLossSecurityMC = 0.0;
+  @Schema(description = "Unrealized part of grandGainLossSecurityMC")
+  public double grandUnrealizedGainLossSecurityMC = 0.0;
+
   @Schema(description = "Aggregated tax costs and implications across all positions")
   public double grandTaxCostMC = 0.0;
 
@@ -134,6 +141,9 @@ public class SecurityPositionGrandSummary {
     securityPositionGroupSummaryList.add(securityPositionGroupSummary);
     grandAccountValueSecurityMC += securityPositionGroupSummary.groupAccountValueSecurityMC;
     grandGainLossSecurityMC += securityPositionGroupSummary.groupGainLossSecurityMC;
+    grandRealizedGainLossSecurityMC += securityPositionGroupSummary.groupRealizedGainLossSecurityMC;
+    grandIncomeGainLossSecurityMC += securityPositionGroupSummary.groupIncomeGainLossSecurityMC;
+    grandUnrealizedGainLossSecurityMC += securityPositionGroupSummary.groupUnrealizedGainLossSecurityMC;
     grandSecurityRiskMC += securityPositionGroupSummary.groupSecurityRiskMC;
     grandGainLossCurrencyMC += securityPositionGroupSummary.groupGainLossCurrencyMC;
     if (securityPositionGroupSummary.groupDisposalCostMC != null) {
@@ -233,6 +243,18 @@ public class SecurityPositionGrandSummary {
 
   public double getGrandGainLossSecurityMC() {
     return DataHelper.round(grandGainLossSecurityMC, precision);
+  }
+
+  public double getGrandRealizedGainLossSecurityMC() {
+    return DataHelper.round(grandRealizedGainLossSecurityMC, precision);
+  }
+
+  public double getGrandIncomeGainLossSecurityMC() {
+    return DataHelper.round(grandIncomeGainLossSecurityMC, precision);
+  }
+
+  public double getGrandUnrealizedGainLossSecurityMC() {
+    return DataHelper.round(grandUnrealizedGainLossSecurityMC, precision);
   }
 
   public double getGrandTaxCostMC() {

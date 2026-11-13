@@ -22,6 +22,7 @@ import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoSecurity;
 import grafioschtrader.entities.Security;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
+import grafioschtrader.search.AdvancedSearchResult;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.service.AlgoAccountPriorityService;
 import grafioschtrader.service.AlgoSecurityEligibility;
@@ -103,11 +104,13 @@ public class AlgoAssetclassJpaRepositoryImpl extends BaseRepositoryImpl<AlgoAsse
     Integer idTenant = user.getActualIdTenant();
     getCustomCategory(idAlgoAssetclassSecurity, idTenant);
     Set<Integer> assigned = assignedSecurityIds(idAlgoAssetclassSecurity, idTenant);
-    List<Security> securities = securityJpaRepository
-        .searchBuilderWithExclusion(null, null, securitycurrencySearch, idTenant).stream()
+    AdvancedSearchResult found = securityJpaRepository.searchWithAdvancedCriteria(null, null, securitycurrencySearch,
+        idTenant);
+    List<Security> securities = found.securities().stream()
         .filter(security -> !assigned.contains(security.getIdSecuritycurrency())).toList();
-    return new SecuritycurrencyLists(
-        securityEligibility.filterCandidates(idTenant, idAlgoAssetclassSecurity, securities), List.of());
+    return SecuritycurrencyLists.of(new AdvancedSearchResult(
+        securityEligibility.filterCandidates(idTenant, idAlgoAssetclassSecurity, securities), found.values(),
+        found.notEvaluated()), List.of());
   }
 
   @Override

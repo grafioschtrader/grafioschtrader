@@ -76,6 +76,15 @@ public interface UserJpaRepository
   @Query("SELECT u.idUser AS idUser, u.localeStr AS localeStr FROM User u WHERE u.idUser IN ?1")
   List<IdUserLocale> findIdUserAndLocaleStrByIdUsers(List<Integer> idUsers);
 
+  /**
+   * Reads the nicknames of the given users. Only the requested users are returned, never the whole user table.
+   *
+   * @param idUsers the ids of the users whose nickname is wanted
+   * @return one projection per existing user
+   */
+  @Query("SELECT u.idUser AS idUser, u.nickname AS nickname FROM User u WHERE u.idUser IN ?1")
+  List<IdUserAndNickname> findIdUserAndNicknameByIdUsers(List<Integer> idUsers);
+
   @UpdateQuery(value = """
       DELETE u FROM user u JOIN verificationtoken v ON u.id_user = v.id_user
       WHERE u.id_tenant IS NULL AND v.expiry_date < NOW()""", nativeQuery = true)

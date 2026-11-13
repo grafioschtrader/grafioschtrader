@@ -1,0 +1,36 @@
+Migros Bank AG CHE-105.841.533 MWST
+Postfach BIC/Swift: MIGRCHZZXXX
+8010 Zürich migrosbank.ch/kontakt
+migrosbank.ch
+000  Portfolio Anlage-Portfolio
+Herr Depot 80 1.999.999.99 / CHF
+Max Muster
+Musterstrasse 1 Ihr Kundenberater Hans Beispiel
+9999 Musterort Direktwahl +41000000000
+Auftragsnummer AUF012345678
+Auftragsdatum 30.01.2025
+Thun, 31.01.2025 Finanzdienstleistung Depotgeschäft
+Börsenabrechnung - Verkauf  - Teilausführung
+Wir haben für Sie am 31.01.2025 verkauft.
+Wir haben für Sie nach Best Execution diesen Trade gehandelt.
+Anteile
+VanEck ETFs N.V.
+- VanEck Global Real Estate UCITS ETF
+Valor: 12740525
+ISIN: NL0009690239
+4 zu CHF 38.00  16:30:58
+4 zu CHF 38.00  16:31:34
+Total 8
+Total Kurswert CHF 304.00
+Eidg. Umsatzabgabe CHF -0.45
+Courtage CHF -40.00
+Ausführungsgebühr Börse CHF -2.00
+Netto CHF 261.55
+Unsere Gutschrift erfolgt auf das Konto 16 1.999.999.99
+Die Titel entnehmen wir dem Depot 80 1.999.999.99
+Valuta: 04.02.2025
+Diese Transaktion erfolgte auf Wunsch des Kunden und ohne Empfehlung der Migros Bank.
+Freundliche Grüsse
+Migros Bank AG
+Anzeige ohne Unterschrift
+0000000 | 00000000000000 | 0000 Seite 1 / 1

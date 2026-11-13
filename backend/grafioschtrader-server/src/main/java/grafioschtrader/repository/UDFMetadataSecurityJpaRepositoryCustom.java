@@ -19,6 +19,11 @@ import grafioschtrader.reports.udfalluserfields.IUDFForEveryUser;
  */
 public interface UDFMetadataSecurityJpaRepositoryCustom
     extends BaseRepositoryCustom<UDFMetadataSecurity>, IUDFRepository<UDFMetadataSecurity> {
+  List<UDFMetadataSecurity> getEnabledFieldsForUser(Integer idUser);
+
+  List<UDFMetadataSecurity> getFieldsForUser(Integer idUser);
+
+  List<UDFMetadataSecurity> getShared(Integer idUser);
 
   /**
    * Retrieves field descriptors for security-related user-defined fields accessible to a specific user, excluding

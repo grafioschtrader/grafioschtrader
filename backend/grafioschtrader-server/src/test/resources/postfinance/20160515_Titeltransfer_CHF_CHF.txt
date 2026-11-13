@@ -1,0 +1,22 @@
+TRANSAKTIONSBELEG
+Kunde: 999999 - TRADING
+Herrn MAX MUSTER
+Musterstrasse 1
+CH-9999 Musterort
+Bern, 15.05.2016
+Titeltransfer: Eingang
+Unsere Referenz: 000000000
+Wir haben folgenden Titel in Ihr Depot eingebucht:
+Titel
+2 FIRSTRAND 14-19 ISIN: CH02383156804
+NKN: 23831568
+Anzahl
+15'000
+Valutadatum 17.05.2016.
+Vielen Dank für Ihren Auftrag.
+Im Rahmen dieser Transaktion hat Swissquote Bank Ltd. als Kommissionär gehandelt.
+Bitte prüfen Sie dieses Dokument und benachrichtigen Sie uns bei Unstimmigkeiten innert Monatsfrist.
+PostFinance AG, Mingerstrasse 20, 3030 Bern
+Kontaktcenter E-Trading: 0848 800 000 (Mo-Fr: 08.00-22.00 Uhr, ab Festnetz CHF 0.08/Min.)
+Formular ohne Unterschrift S.E. & O.
+MwSt n° CHE-116.302.542

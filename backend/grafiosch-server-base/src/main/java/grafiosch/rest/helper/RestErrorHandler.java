@@ -16,6 +16,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -146,6 +147,20 @@ public class RestErrorHandler {
     }
     response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
     return serverException(ex);
+  }
+
+  /**
+   * Handles a request body that cannot be read into the expected type, such as malformed JSON or a value that is no
+   * constant of an enum. The request is at fault, so it is answered as a bad request and not as a server error.
+   *
+   * @param ex the HttpMessageNotReadableException that was thrown
+   * @return ErrorWrapper with BAD_REQUEST status containing the root cause message
+   */
+  @ExceptionHandler(value = { HttpMessageNotReadableException.class })
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ErrorWrapper requestBodyNotReadable(final HttpMessageNotReadableException ex) {
+    log.warn(ex.getMessage());
+    return new ErrorWrapper(new SingleNativeMsgError(ExceptionUtils.getRootCauseMessage(ex)));
   }
 
   /**

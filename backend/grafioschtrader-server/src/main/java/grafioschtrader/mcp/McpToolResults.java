@@ -97,7 +97,8 @@ public final class McpToolResults {
   public record HoldingRow(Integer idSecuritycurrency, String name, String isin, String currency, String group,
       double units, Double closePrice, LocalDate closeDate, String closePriceOrigin, boolean priceMissing,
       double valueSecurity, double valueMC, double gainLossSecurity, double gainLossSecurityMC,
-      double gainLossCurrencyMC, Double shareOfTotalPercentage) {
+      double gainLossCurrencyMC, Double shareOfTotalPercentage, List<String> costBasisMethods,
+      double realizedGainLossSecurityMC, double incomeGainLossSecurityMC, double unrealizedGainLossSecurityMC) {
   }
 
   // ---------------------------------------------------------------------------------------------------------------
@@ -162,13 +163,28 @@ public final class McpToolResults {
 
   public record SecurityPositionSummaryRow(double units, Double closePrice, LocalDate closeDate, boolean priceMissing,
       double valueSecurity, double valueMC, double gainLossSecurity, double gainLossSecurityMC,
-      double gainLossCurrencyMC, double transactionCost, double taxCost) {
+      double gainLossCurrencyMC, double transactionCost, double taxCost, List<String> costBasisMethods,
+      double realizedGainLossSecurity, double incomeGainLossSecurity, double unrealizedGainLossSecurity) {
   }
 
   public record SecurityTransactionRow(Integer idTransaction, LocalDateTime transactionTime, String transactionType,
       Double units, Double quotation, Double cashaccountAmount, String cashaccountCurrency, Double currencyExRate,
       Double transactionCost, Double taxCost, Integer idSecurityaccount, Integer idCashaccount,
-      Double transactionGainLoss, Double transactionGainLossMC, Double transactionGainLossCurrencyMC) {
+      Double transactionGainLoss, Double transactionGainLossMC, Double transactionGainLossCurrencyMC,
+      String costBasisMethod, Boolean costBasisIncomplete, List<ConsumedLot> consumedLots) {
+  }
+
+  /**
+   * A purchase a FIFO or LIFO sale consumed, in whole or in part.
+   *
+   * @param idTransaction   the purchase
+   * @param transactionTime when it was bought
+   * @param units           units taken from it, on the split basis of the report
+   * @param cost            cost assigned to these units in the currency of the security
+   * @param exchangeRate    rate to the main currency on the day of the purchase, null in the main currency
+   */
+  public record ConsumedLot(Integer idTransaction, LocalDateTime transactionTime, double units, double cost,
+      Double exchangeRate) {
   }
 
   // ---------------------------------------------------------------------------------------------------------------

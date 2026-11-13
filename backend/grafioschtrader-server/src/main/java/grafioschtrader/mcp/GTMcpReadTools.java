@@ -72,7 +72,12 @@ public class GTMcpReadTools {
       between. shareOfTotalPercentage is the share of the position in the total. priceMissing true means no price or \
       exchange rate was found and the row is valued with a substitute; totals containing such a row carry \
       valuationComplete false. groupBy adds the column group and the separate groupTotals, it does not merge \
-      positions. totalsOfAllPositions sum all positions, not the page. orderBy: valueMC, gainLossMC, \
+      positions. costBasisMethods names the cost basis methods (AVERAGE_COST, FIFO, LIFO) of the security accounts \
+      behind a position; the method decides how much of the gain of a partly sold position counts as realized, so the \
+      return on the remaining cost depends on it, the total gain does not. gainLossSecurityMC is the sum of \
+      realizedGainLossSecurityMC (sales), incomeGainLossSecurityMC (dividends, accrued interest) and \
+      unrealizedGainLossSecurityMC (open position), all at the rate of the date. totalsOfAllPositions sum all \
+      positions, not the page. orderBy: valueMC, gainLossMC, \
       gainLossCurrencyMC, shareOfTotalPercentage or name, optionally followed by :asc or :desc (default valueMC:desc). \
       """ + MC_RULE + " " + DATE_RULE + " " + PAGING_RULE, annotations = @McpAnnotations(readOnlyHint = true,
       destructiveHint = false, openWorldHint = false))
@@ -129,7 +134,13 @@ public class GTMcpReadTools {
       The transactions of the tenant in one security up to a date, with the position summary at that date: units, \
       value, gain/loss and the cumulative currency result gainLossCurrencyMC. Per transaction: type, units, \
       quotation, the amount booked on the cash account (cashaccountAmount in cashaccountCurrency), exchange rate, \
-      costs and the realized gain/loss of a sale. Works for any public security and for the tenant's own private \
+      costs and the realized gain/loss of a sale. That gain depends on costBasisMethod, the method the sale was \
+      calculated with: AVERAGE_COST pools the purchases, FIFO consumes the oldest and LIFO the newest purchases of \
+      the same security account. The method only moves gain between sales and the open position, the total over all \
+      sales plus the open position is the same under every method. costBasisIncomplete true means the purchases \
+      did not cover the units sold. consumedLots lists the purchases a FIFO or LIFO sale consumed with units and \
+      cost. The position summary splits its gain/loss into realized, income and unrealized. Works for any public \
+      security and for the tenant's own private \
       ones, also without holdings. Find the id with find_instrument or holdings. orderBy: transactionTime:asc \
       (default) or transactionTime:desc. """ + MC_RULE + " " + DATE_RULE + " " + PAGING_RULE,
       annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))

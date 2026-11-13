@@ -56,6 +56,14 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
     return watchlistReport.getWatchlistWithIndicators(idWatchlist);
   }
 
+  @Operation(summary = "Returns the market map of the stocks of a watchlist", description = """
+      The area of a tile is the market capitalisation in the main currency of the tenant, its colour the current price
+      change. Current prices are loaded first.""", tags = { Watchlist.TABNAME })
+  @GetMapping(value = "/{idWatchlist}/treemap", produces = APPLICATION_JSON_VALUE)
+  public grafioschtrader.reportviews.securitycurrency.WatchlistTreemap treemap(@PathVariable Integer idWatchlist) {
+    return watchlistReport.getWatchlistTreemap(idWatchlist);
+  }
+
   public WatchlistResource() {
     super(Watchlist.class);
   }

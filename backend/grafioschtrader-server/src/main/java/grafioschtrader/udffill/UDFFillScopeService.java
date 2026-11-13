@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -11,6 +12,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import grafiosch.BaseConstants;
+import grafiosch.repository.UDFDataSharedJpaRepository;
+import grafiosch.repository.UDFMetadataSubscriptionJpaRepository;
+import grafiosch.repository.UserJpaRepository;
+import grafiosch.types.UDFShareMode;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.reports.udfalluserfields.AllUserFieldsSecurity;
@@ -48,14 +53,21 @@ public class UDFFillScopeService {
   private final SecurityJpaRepository securityJpaRepository;
   private final UDFMetadataSecurityJpaRepository uMetaSecurityRepository;
   private final UDFValueResolverRegistry resolverRegistry;
+  private final UDFMetadataSubscriptionJpaRepository subscriptions;
+  private final UDFDataSharedJpaRepository sharedData;
+  private final UserJpaRepository users;
 
   public UDFFillScopeService(UDFValueResolverRegistry resolverRegistry,
       UDFDataFillJpaRepository udfDataFillJpaRepository, SecurityJpaRepository securityJpaRepository,
-      UDFMetadataSecurityJpaRepository uMetaSecurityRepository) {
+      UDFMetadataSecurityJpaRepository uMetaSecurityRepository, UDFMetadataSubscriptionJpaRepository subscriptions,
+      UDFDataSharedJpaRepository sharedData, UserJpaRepository users) {
     this.udfDataFillJpaRepository = udfDataFillJpaRepository;
     this.securityJpaRepository = securityJpaRepository;
     this.uMetaSecurityRepository = uMetaSecurityRepository;
     this.resolverRegistry = resolverRegistry;
+    this.subscriptions = subscriptions;
+    this.sharedData = sharedData;
+    this.users = users;
   }
 
   /**
@@ -73,6 +85,35 @@ public class UDFFillScopeService {
         .filter(s -> s.tenantHasAccess(idTenant)
             && AllUserFieldsSecurity.matchAssetclassAndSpecialInvestmentInstruments(field, s.getAssetClass()))
         .sorted(Comparator.comparing(Security::getIdSecuritycurrency)).toList();
+  }
+
+  /** The union of the home-tenant scopes of all participants, once per security and ordered by ID. */
+  public List<Security> getFieldScope(UDFMetadataSecurity field) {
+    if (field.getIdUser() == null) {
+      return List.of();
+    }
+    if (field.getShareMode() == UDFShareMode.UDF_SHARE_NONE) {
+      return users.findById(field.getIdUser()).map(user -> getTenantScope(field, user.getIdTenant())).orElse(List.of());
+    }
+    Map<Integer, Security> securities = new TreeMap<>();
+    for (Integer idTenant : subscriptions.getParticipantTenantIds(field.getId())) {
+      getTenantScope(field, idTenant).forEach(security -> securities.put(security.getIdSecuritycurrency(), security));
+    }
+    return List.copyOf(securities.values());
+  }
+
+  /** Values come from the current storage of the field, independently of the participant requesting them. */
+  public Map<Integer, String> getFieldValues(UDFMetadataSecurity field) {
+    if (field.getShareMode() == UDFShareMode.UDF_SHARE_NONE) {
+      return field.getIdUser() == null ? Map.of() : getFieldValues(field.getIdUser(), field.getId());
+    }
+    Map<Integer, String> values = new HashMap<>();
+    sharedData.findById_IdUDFMetadata(field.getId()).forEach(value -> {
+      if (!UDFFillDecision.isEmpty(value.getFieldValue())) {
+        values.put(value.getId().getIdEntity(), value.getFieldValue());
+      }
+    });
+    return values;
   }
 
   /**

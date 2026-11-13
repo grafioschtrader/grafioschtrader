@@ -1,8 +1,11 @@
 package grafiosch.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import grafiosch.entities.UDFData;
 import grafiosch.entities.UDFData.UDFDataKey;
@@ -19,6 +22,18 @@ import grafiosch.entities.UDFMetadata;
  */
 public interface UDFDataJpaRepository extends JpaRepository<UDFData, UDFDataKey>, UDFDataJpaRepositoryCustom {
 
+  @Modifying
+  @Query(nativeQuery = true)
+  void removeFieldKey(Integer idUDFMetadata, Integer idUser, String entity);
+
+  @Modifying
+  @Query(nativeQuery = true)
+  void mergeSharedTextValues(Integer idUDFMetadata, Integer idUser, String entity);
+
+  @Modifying
+  @Query(nativeQuery = true)
+  void mergeSharedBooleanValues(Integer idUDFMetadata, Integer idUser, String entity);
+
   /**
    * Generic interface contract for UDF metadata repositories that support user-defined field operations. This interface
    * defines the standard operations that any UDF metadata repository must implement to provide metadata information for
@@ -31,6 +46,10 @@ public interface UDFDataJpaRepository extends JpaRepository<UDFData, UDFDataKey>
    * @param <S> the specific UDFMetadata entity type that extends the base UDFMetadata class
    */
   public static interface IUDFRepository<S extends UDFMetadata> {
+    Optional<S> findManagedField(Integer idUDFMetadata);
+
+    UDFMetadataBase.UiOrderDescriptionCount countUiOrderAndDescriptionForUser(Integer idUser, S field, byte uiOrder);
+
     /**
      * Retrieves UDF metadata entries for a specific user, entity type, and entity instance. This method returns the
      * metadata definitions that apply to the specified combination of user, entity class, and entity instance, which

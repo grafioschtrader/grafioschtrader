@@ -23,8 +23,8 @@ public interface UDFMetadataSecurityJpaRepository extends JpaRepository<UDFMetad
   int deleteByIdUDFMetadataAndIdUser(int idUDFMetadata, int idUser);
 
   /**
-   * Returns the user fields — of a user other than 0 and without special type — whose fill source is one of the
-   * given ones, used by the daily run of the automatically filled fields.
+   * Returns the user fields — of a user other than 0 and without special type — whose fill source is one of the given
+   * ones, used by the daily run of the automatically filled fields.
    *
    * @param fillSources the byte values of the fill sources
    * @return the matching fields of all users
@@ -52,7 +52,7 @@ public interface UDFMetadataSecurityJpaRepository extends JpaRepository<UDFMetad
    *         description values
    */
   @Query(nativeQuery = true)
-  UiOrderDescriptionCount countUiOrderAndDescription(int[] users, int uiOrder, String description);
+  UiOrderDescriptionCount countUiOrderAndDescription(int[] users, int uiOrder, String description, Integer idUser);
 
   /**
    * Retrieves all UDF security metadata entries accessible to a user, excluding disabled fields and ordered by UI

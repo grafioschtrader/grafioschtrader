@@ -23,12 +23,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import grafiosch.BaseConstants;
 import grafiosch.common.ClientClock;
 import grafiosch.common.DataHelper;
+import grafiosch.common.UDFSharedValueHelper;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.UDFSpecialTypeDisableUserRepository;
+import grafiosch.types.UDFDataType;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
@@ -40,6 +44,7 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Watchlist;
+import grafioschtrader.instrument.CostBasisMethods;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.reports.udfalluserfields.IUDFForEveryUser;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
@@ -48,6 +53,7 @@ import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyGroup;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup.IUDFEntityValues;
+import grafioschtrader.reportviews.securitycurrency.WatchlistTreemap;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
@@ -58,6 +64,7 @@ import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.repository.WatchlistJpaRepository;
+import grafioschtrader.service.CostBasisMethodService;
 import grafioschtrader.service.GTNetLastpriceService;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.service.IndexPriceRoundingService;
@@ -74,6 +81,7 @@ import jakarta.persistence.PersistenceContext;
  */
 @Component
 public class WatchlistReport {
+  private static final ObjectMapper UDF_OBJECT_MAPPER = new ObjectMapper();
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -100,6 +108,9 @@ public class WatchlistReport {
 
   @Autowired
   private SecurityCalcService securityCalcService;
+
+  @Autowired
+  private CostBasisMethodService costBasisMethodService;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -244,14 +255,32 @@ public class WatchlistReport {
     final List<Security> securities = sg.securityPositionList.stream().map(p -> p.securitycurrency).toList();
     // The template fields are filled before the values are read, so that the response shows what was just written.
     // This is the one place where loading data stores data; it makes no outbound call.
-    udfFillService.fillWatchlistTemplates(user, securities, () -> UDFFillService.parseValues(
-        watchlistJpaRepository.getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, user.getIdUser(), entities)));
-    final List<IUDFEntityValues> entityValues = watchlistJpaRepository
-        .getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, user.getIdUser(), entities);
+    udfFillService.fillWatchlistTemplates(user, securities,
+        () -> UDFFillService.parseValues(getMergedUdfValues(idWatchlist, user.getIdUser(), entities)));
+    final List<IUDFEntityValues> entityValues = getMergedUdfValues(idWatchlist, user.getIdUser(), entities);
     final SecuritycurrencyUDFGroup sUDFGroup = combineWatchlistWithUDF(sg, entityValues, user);
     sUDFGroup.setUdfFillInfo(
         udfFillService.getFillInfo(user, UDFFillService.idsOf(securities), UDFFillService.parseValues(entityValues)));
     return sUDFGroup;
+  }
+
+  private List<IUDFEntityValues> getMergedUdfValues(Integer idWatchlist, Integer idUser, String[] entities) {
+    Map<Integer, Map<String, Object>> documents = UDFFillService
+        .parseValues(watchlistJpaRepository.getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, idUser, entities));
+    for (Object[] row : watchlistJpaRepository.getSharedUDFByIdWatchlistAndIdUser(idWatchlist, idUser, entities)) {
+      documents.computeIfAbsent(((Number) row[1]).intValue(), _ -> new HashMap<>()).put(
+          BaseConstants.UDF_FIELD_PREFIX + ((Number) row[0]).intValue(),
+          UDFSharedValueHelper.toJsonValue((String) row[2], UDFDataType.getUDFDataType(((Number) row[3]).byteValue())));
+    }
+    return documents.entrySet().stream().map(entry -> (IUDFEntityValues) new IUDFEntityValues() {
+      public Integer getIdSecuritycurrency() {
+        return entry.getKey();
+      }
+
+      public String getJsonValues() {
+        return UDF_OBJECT_MAPPER.valueToTree(entry.getValue()).toString();
+      }
+    }).toList();
   }
 
   private SecuritycurrencyUDFGroup combineWatchlistWithUDF(SecuritycurrencyGroup sg,
@@ -406,6 +435,31 @@ public class WatchlistReport {
     markWatchlistSecurityHasEverTransactionTenant(watchlistJpaRepository
         .watchlistSecuritiesHasOpenOrClosedTransactionForThisTenant(idWatchlist, user.getIdTenant()), securities);
     return indicatorReport.calculate(group, user.getIdTenant(), today);
+  }
+
+  @Autowired
+  private WatchlistTreemapReport treemapReport;
+
+  /**
+   * Loads the same current prices as performance, then builds the market map of the stocks of the watchlist.
+   *
+   * @param idWatchlist the ID of the watchlist
+   * @return the market map in the main currency of the tenant
+   * @throws SecurityException if the watchlist does not belong to the tenant of the user
+   */
+  @Transactional
+  public WatchlistTreemap getWatchlistTreemap(Integer idWatchlist) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    LocalDate today = ClientClock.today();
+    var updated = updateWatchlistPrices(idWatchlist, user.getIdTenant(), today);
+    var prices = updated.prices().join();
+    var closes = updated.closes().join();
+    entityManager.clear();
+    var securities = createSecuritycurrencyPositionList(prices.securities);
+    securities.forEach(p -> replaceLastPriceByHistoryquote(closes, p));
+    return treemapReport.calculate(securities.stream().map(p -> p.securitycurrency).toList(),
+        prices.currencypairs.size(), tenantJpaRepository.getReferenceById(user.getIdTenant()).getCurrency(),
+        user.getLanguage(), today);
   }
 
   private SecuritycurrencyGroup combineSecuritycurrencyGroupWithSecurtiesTransaction(
@@ -793,13 +847,16 @@ public class WatchlistReport {
       return securitycurrencyPositions;
     }
     final DateTransactionCurrencypairMap dateCurrencyMap = createDateCurrencyMap(tenant, transactions, today);
+    // Resolved here and not in calcPositions, which runs a second time after a missing exchange rate
+    final CostBasisMethods costBasisMethods = costBasisMethodService.forTenant(tenant.getIdTenant());
     try {
-      calcPositions(tenant, transactions, securitycurrencyPositions, securitysplitMap, dateCurrencyMap);
+      calcPositions(tenant, transactions, securitycurrencyPositions, securitysplitMap, dateCurrencyMap,
+          costBasisMethods);
     } catch (final DataViolationException dve) {
       log.warn("Watchlist {} is shown without values in currency {}: {}", watchlist.getName(), tenant.getCurrency(),
           dve.getMessage());
       securitycurrencyPositions.forEach(this::clearMainCurrencyValues);
-      calcPositions(tenant, transactions, securitycurrencyPositions, securitysplitMap, null);
+      calcPositions(tenant, transactions, securitycurrencyPositions, securitysplitMap, null, costBasisMethods);
     }
     return securitycurrencyPositions;
   }
@@ -807,16 +864,19 @@ public class WatchlistReport {
   /**
    * Walks all transactions of the watchlist securities and then values the open positions at their latest price.
    *
-   * @param dateCurrencyMap Exchange rates for the currency of the tenant, null to calculate in the currency of the
-   *                        security only.
+   * @param dateCurrencyMap  Exchange rates for the currency of the tenant, null to calculate in the currency of the
+   *                         security only.
+   * @param costBasisMethods The cost basis methods of this report
    */
   private void calcPositions(final Tenant tenant, final List<Transaction> transactions,
       final List<SecuritycurrencyPosition<Security>> securitycurrencyPositions,
-      final Map<Integer, List<Securitysplit>> securitysplitMap, final DateTransactionCurrencypairMap dateCurrencyMap) {
+      final Map<Integer, List<Securitysplit>> securitysplitMap, final DateTransactionCurrencypairMap dateCurrencyMap,
+      final CostBasisMethods costBasisMethods) {
     final Map<Security, SecurityPositionSummary> summarySecurityMap = new HashMap<>();
     // Calculate all positions closed or open
-    transactions.forEach(transaction -> securityCalcService.calcSingleSecurityTransaction(transaction,
-        summarySecurityMap, securitysplitMap, tenant.isExcludeDivTax(), dateCurrencyMap));
+    SecurityCalcService.sortForCalculation(transactions)
+        .forEach(transaction -> securityCalcService.calcSingleSecurityTransaction(transaction, summarySecurityMap,
+            securitysplitMap, tenant.isExcludeDivTax(), dateCurrencyMap, costBasisMethods));
     this.calcOpenSecurityPositons(securitycurrencyPositions, summarySecurityMap, securitysplitMap, dateCurrencyMap);
   }
 
@@ -890,6 +950,7 @@ public class WatchlistReport {
                   securitysplitMap, dateCurrencyMap, null);
               securitycurrencyPosition.valueSecurity = securityPositionSummary.getValueSecurity();
               securitycurrencyPosition.units = securityPositionSummary.getUnits();
+              securitycurrencyPosition.costBasisMethods = securityPositionSummary.costBasisMethods;
               securitycurrencyPosition.positionGainLossPercentage = securityPositionSummary
                   .getPositionGainLossPercentage();
               final Double positionGainLoss = securityPositionSummary.getPositionGainLoss();

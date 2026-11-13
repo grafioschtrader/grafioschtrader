@@ -23,6 +23,13 @@ public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSu
   @Schema(description = "Total Gain/Loss for all Position of a currency")
   public double groupGainLossSecurity = 0.0;
 
+  @Schema(description = "Realized part of groupGainLossSecurity")
+  public double groupRealizedGainLossSecurity = 0.0;
+  @Schema(description = "Income part of groupGainLossSecurity: dividends and accrued interest")
+  public double groupIncomeGainLossSecurity = 0.0;
+  @Schema(description = "Unrealized part of groupGainLossSecurity")
+  public double groupUnrealizedGainLossSecurity = 0.0;
+
   public double groupTransactionCost = 0.0;
 
   public double groupAccountValueSecurity;
@@ -48,12 +55,27 @@ public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSu
     groupAccountValueSecurity += securityPositionSummary.accountValueSecurity;
     groupTaxCost += securityPositionSummary.taxCost;
     groupGainLossSecurity += securityPositionSummary.gainLossSecurity;
+    groupRealizedGainLossSecurity += securityPositionSummary.realizedGainLossSecurity();
+    groupIncomeGainLossSecurity += securityPositionSummary.incomeGainLossSecurity;
+    groupUnrealizedGainLossSecurity += securityPositionSummary.unrealizedGainLossSecurity;
     groupTransactionCost += securityPositionSummary.transactionCost;
     groupDisposalSameCurrencyNet += securityPositionSummary.disposalSameCurrencyNet;
   }
 
   public double getGroupGainLossSecurity() {
     return DataHelper.round(groupGainLossSecurity, precision);
+  }
+
+  public double getGroupRealizedGainLossSecurity() {
+    return DataHelper.round(groupRealizedGainLossSecurity, precision);
+  }
+
+  public double getGroupIncomeGainLossSecurity() {
+    return DataHelper.round(groupIncomeGainLossSecurity, precision);
+  }
+
+  public double getGroupUnrealizedGainLossSecurity() {
+    return DataHelper.round(groupUnrealizedGainLossSecurity, precision);
   }
 
   public double getGroupTransactionCost() {

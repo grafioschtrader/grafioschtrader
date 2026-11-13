@@ -39,6 +39,7 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Watchlist;
+import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.service.AlgoHistoricalValuationService;
 import grafioschtrader.types.SimulationInitializationMode;
 import grafioschtrader.types.TenantKindType;
@@ -125,6 +126,8 @@ public class SimulationTenantService {
     Tenant simTenant = new Tenant(dto.getTenantName(), mainTenant.getCurrency(), user.getIdUser(),
         TenantKindType.SIMULATION_COPY, mainTenant.isExcludeDivTax());
     simTenant.setIdParentTenant(mainIdTenant);
+    // The constructor does not take it over; the overrides of the portfolios travel with the copied portfolios
+    simTenant.setCostBasisMethod(mainTenant.getCostBasisMethod());
     simTenant.setIdAlgoTop(dto.getIdAlgoTop());
     simTenant.setSimulationStartDate(dto.getSimulationStartDate());
     simTenant.setSimulationInitializationMode(dto.getInitializationMode());
@@ -596,7 +599,8 @@ public class SimulationTenantService {
   private void copyTransactionsUpToDate(List<Transaction> originals, Integer targetIdTenant,
       Map<Integer, Securityaccount> securityAccountMap, Map<Integer, Cashaccount> cashAccountMap) {
     Map<Integer, Transaction> copied = new HashMap<>();
-    for (Transaction original : originals) {
+    // Copied in the order of the calculation, so that the new ids keep it for transactions of the same minute
+    for (Transaction original : SecurityCalcService.sortForCalculation(originals)) {
       Transaction tx = new Transaction();
       BeanUtils.copyProperties(original, tx);
       // The security getter and setter have different JavaBean property names.

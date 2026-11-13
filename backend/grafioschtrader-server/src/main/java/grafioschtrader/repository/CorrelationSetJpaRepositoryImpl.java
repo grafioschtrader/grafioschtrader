@@ -88,8 +88,8 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
     setMinMaxDateForInstrumentSelection(idCorrelationSet, securitycurrencySearch,
         getCorrelationSetById(idCorrelationSet));
     securitycurrencySearch.setNoMarketValue(true);
-    return new SecuritycurrencyLists(
-        securityJpaRepository.searchBuilderWithExclusion(null, idCorrelationSet, securitycurrencySearch,
+    return SecuritycurrencyLists.of(
+        securityJpaRepository.searchWithAdvancedCriteria(null, idCorrelationSet, securitycurrencySearch,
             user.getIdTenant()),
         currencypairJpaRepository.searchBuilderWithExclusion(null, idCorrelationSet, securitycurrencySearch));
   }

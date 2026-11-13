@@ -53,13 +53,33 @@ export class UDFMetadataSecurity extends UDFMetadata {
   /** Maintained by the server, incremented whenever the fill source or the rule changes; never sent back */
   fillRuleVersion: number | null = null;
 
-  /** Set by the server when listed: whether anything fills the field; a language model needs a key of the tenant */
+  /**
+   * Set by the server when listed: whether anything fills the field. A language model field needs a language model of
+   * the tenant of its owner or of the user who lists it.
+   */
   active?: boolean;
+
+  /**
+   * Set by the server when listed, for a field with the fill source LLM only: whether the tenant of the user who lists
+   * it has a language model. With one the user pays the requests for the own securities; without one the user only
+   * sees what another participant asks for.
+   */
+  ownModelUsed?: boolean;
 }
 
 /** A fill source the instance offers, together with the data types of a field it can fill. */
 export interface UDFFillSourceOption {
   fillSource: string;
+  udfDataTypes: string[];
+}
+
+/**
+ * One argument of a resolver that accepts a fixed list of them. The translation key of its text is the resolver ID,
+ * an underscore and the argument.
+ */
+export interface UDFFillArgumentOption {
+  argument: string;
+  /** The data types of a field this argument can fill */
   udfDataTypes: string[];
 }
 
@@ -69,6 +89,8 @@ export interface UDFFillResolverOption {
   udfDataTypes: string[];
   /** Argument used when the rule names the resolver only */
   defaultArgument: string;
+  /** The arguments the resolver accepts; empty when the argument is a free text */
+  argumentOptions: UDFFillArgumentOption[];
 }
 
 /** Everything the instance offers for the automatic filling; the edit form builds its selections from it only. */

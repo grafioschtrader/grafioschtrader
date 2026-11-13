@@ -740,6 +740,12 @@ message must appear at the name field, the submit button stays disabled while th
 editing the name withdraws the message and enables saving again. The dialog is closed unsaved, so the spec changes no
 data and runs repeatedly; it needs the accounts of `025`.
 
+`028-cost-basis-method.spec.ts` sets the cost basis method of the tenant and the override of the first fixture
+portfolio through their edit dialogs: the tenant offers average cost, FIFO and LIFO in that order, the portfolio
+additionally the empty option that follows the tenant and is saved as `null`. It resets both values through REST at
+the start and leaves them on their defaults, because every later spec calculates with average cost; it needs the
+portfolio of `025`.
+
 The fixture spans three users with different locales: `e2euser` (en-US, registered by `auth.setup.ts`)
 owns `Test Portfolio`; `alledit` and `limit2` (de-CH, seeded by `ResourceTestSuite_1`) own the remaining
 portfolios. Both `alledit` and `limit2` have a `CornèrTrader`, so all fixture resolution includes the
@@ -857,6 +863,18 @@ No accrued-interest scenario is included; this fixture is an equity, not a bond.
 
 Run only this spec with
 `npx playwright test e2e/123-security-dividend.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Cost basis method of a sale (128-*)
+
+`128-cost-basis-method-sale.spec.ts` reads the Santander purchase and partial sale of `122` under FIFO. Through REST
+the sale names the purchase as its only consumed lot, with the four units sold and their share of the purchase cost
+including tax and fees; under average cost it names none. In the watchlist `Spain` only the sale row of the
+transaction table offers the expansion, and the expanded row lists that purchase. The spec owns nothing but the cost
+basis method of the tenant `alledit`: it sets it to average cost at the start and again at the end, because every
+other spec calculates with average cost. It needs the trades of `122`.
+
+Run only this spec with
+`npx playwright test e2e/128-cost-basis-method-sale.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## Account-dialog notification spec (124-*)
 
@@ -1047,6 +1065,26 @@ spec reconciles interrupted or completed runs without deleting shared instrument
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/155-udf-data.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Advanced security search spec (157-*)
+
+`157-advanced-security-search.spec.ts` drives the **Advanced search +** block of the add-existing-instrument dialog
+against the values that `150-*` and `155-*` stored for `admin`: the Yes/No field _CFD möglich_. The link field _Short
+Volume Link_ must not be offered. The expected securities are derived from `testdata/udf_data.json` (rows tagged `e`),
+not hard-coded. The
+dialog is opened on admin's `Hauptliste` of the integration suite, which holds none of those securities, because the
+dialog leaves out instruments that a watchlist already contains.
+
+Five tests cover a Yes/No criterion with its own result column, the absence of every link field from the field select, a
+criterion combined with a fixed criterion by AND, the blocked search button while a started criterion is incomplete
+together with the exclusion of the ISIN, and removing a criterion. Numeric and text criteria are covered by the backend
+test `AdvancedSecuritySearchTest`, because the Playwright fixtures hold no such values for `admin`. The spec only reads: it never presses **Add**, creates nothing and can be repeated at any
+time. Two traps: choosing a field hides the **ISIN** field like every other criterion, so an ISIN can only be typed
+while no field is chosen; and the options of the field select load with the dialog, so the spec waits for the option
+text before choosing it.
+
+With the backend and frontend still active, execute only this spec with
+`npx playwright test e2e/157-advanced-security-search.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## Security-split spec (160-*)
 
@@ -1857,3 +1895,12 @@ With the backend and frontend still active, execute only this spec with
 ## YAML validation (210-*)
 
 `210-yaml-validation.spec.ts` uses the `alledit` fixture login, creates its own plan and inactive connector, and checks invalid REST writes, editor diagnostics and previews without saves. It cleans only its named records at the start and end. Run against verified test services with `--project=grafioschtrader-e2e --no-deps`; no other data-producing specs are required beyond the registered user and tenant.
+
+## Shared additional fields (158-*)
+
+`158-udf-sharing.spec.ts` covers both general and instrument fields. An owner shares a manual field or a template field, another user
+adopts it through the shared-fields tab, and the owner deletes it. Template adoption also checks the read-only rule
+details. The subscriber sees the orphaned field and claims
+ownership. The two tabs are clicked, and each table is addressed by its component selector. Only this spec's fields
+and subscriptions are deleted, both before the scenario and in teardown, so it can be repeated against an existing
+`grafioschtrader_t`. Run only this spec with `npx playwright test e2e/158-udf-sharing.spec.ts --project=grafioschtrader-e2e --no-deps`.

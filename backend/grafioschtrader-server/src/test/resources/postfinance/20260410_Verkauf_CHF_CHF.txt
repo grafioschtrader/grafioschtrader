@@ -1,0 +1,28 @@
+TRANSAKTIONSBELEG
+Kunde: 999999 - TRADING
+Herrn MAX MUSTER
+Musterstrasse 1
+CH-9999 Musterort
+Bern, 10.04.2026
+Börsentransaktion: Verkauf
+Unsere Referenz: 000000000
+Gemäss Ihrem Verkaufsauftrag vom 10.04.2026 haben wir folgende Transaktionen vorgenommen:
+Titel Börse
+HT5 N ISIN: CH0024666528 SIX Swiss Exchange
+NKN: 2466652
+Anzahl Preis Betrag
+600 3.04 CHF 1'824.00
+Total CHF 1'824.00
+Kommission CHF 20.00
+Abgabe (Eidg. Stempelsteuer) CHF 1.37
+Börsengebühren CHF 1.00
+Benutzter Trading Credit 18.00
+Zu Ihren Gunsten CHF 1'819.63
+Betrag gutgeschrieben auf Ihrer Kontonummer 99999900, Valutadatum 14.04.2026
+Vielen Dank für Ihren Auftrag.
+Im Rahmen dieser Transaktion hat PostFinance als Kommissionär gehandelt.
+Bitte prüfen Sie dieses Dokument und benachrichtigen Sie uns bei Unstimmigkeiten innert Monatsfrist.
+PostFinance AG, Mingerstrasse 20, 3030 Bern
+Kontaktcenter E-Trading: +41 58 448 78 00 (Mo-Fr: 08.00-18.00 Uhr)
+Formular ohne Unterschrift S.E. & O.
+MwSt n° CHE-116.302.542

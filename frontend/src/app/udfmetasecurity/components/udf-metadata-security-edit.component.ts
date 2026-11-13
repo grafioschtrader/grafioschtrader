@@ -15,6 +15,7 @@ import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { Subscription } from 'rxjs';
 import { UDFMetadataHelper } from '../../lib/udfmeta/components/udf.metadata.helper';
 import {
+  UDFFillArgumentOption,
   UDFFillResolverOption,
   UDFFillSource,
   UDFFillSourceOption,
@@ -113,6 +114,7 @@ export class UDFMetadataSecurityEditComponent
   private static readonly TEST_BUTTON = 'testFillRule';
   private static readonly RESOLVER_ID = 'resolverId';
   private static readonly RESOLVER_ARGUMENT = 'resolverArgument';
+  private static readonly RESOLVER_ARGUMENT_OPTION = 'resolverArgumentOption';
   private static readonly PROPOSE_BUTTON = 'proposeFillRule';
   private static readonly FILL_CONTEXT = 'fillContext';
   private static readonly TEST_CONTEXT_BUTTON = 'testFillContext';
@@ -190,6 +192,13 @@ export class UDFMetadataSecurityEditComponent
       DynamicFieldHelper.createFieldInputStringHeqF(UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT, 64, false, {
         labelHelpText: 'RESOLVER_ARGUMENT_HELP'
       }),
+      // The argument of a resolver with a fixed list of them is selected; both fields carry the label of the argument
+      DynamicFieldHelper.createFieldSelectString(
+        UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT_OPTION,
+        'RESOLVER_ARGUMENT',
+        false,
+        { labelHelpText: 'RESOLVER_ARGUMENT_HELP' }
+      ),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF(
         UDFMetadataSecurityEditComponent.FILL_CONTEXT,
         1000,
@@ -257,7 +266,8 @@ export class UDFMetadataSecurityEditComponent
       this.configObject,
       callParam.excludeUiOrders,
       callParam.uDFMetadataSecurity,
-      this.untilDialogClosed()
+      this.untilDialogClosed(),
+      this.translateService
     );
     const existing = callParam.uDFMetadataSecurity;
     requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE]).setValue(
@@ -275,7 +285,7 @@ export class UDFMetadataSecurityEditComponent
       .subscribe((udt) => this.setFillSourceOptions(udt));
     requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID])
       .valueChanges.pipe(this.untilDialogClosed())
-      .subscribe((id) => this.setDefaultArgument(id));
+      .subscribe(() => this.setArgumentFields());
     this.form()
       .form.valueChanges.pipe(this.untilDialogClosed())
       .subscribe(() => {
@@ -328,6 +338,7 @@ export class UDFMetadataSecurityEditComponent
     if (!resolverConfig.valueKeyHtmlOptions.some((o) => o.key === requireFormControl(resolverConfig).value)) {
       requireFormControl(resolverConfig).setValue(resolverConfig.valueKeyHtmlOptions[0]?.key ?? null);
     }
+    this.setArgumentFields();
   }
 
   /**
@@ -340,20 +351,58 @@ export class UDFMetadataSecurityEditComponent
       requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID]).setValue(
         space < 0 ? rule : rule.substring(0, space)
       );
-      requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT]).setValue(
-        space < 0 ? null : rule.substring(space + 1).trim()
+      const argument = space < 0 ? null : rule.substring(space + 1).trim();
+      requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT]).setValue(argument);
+      requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT_OPTION]).setValue(
+        argument
       );
     }
   }
 
   /**
-   * Fills the argument with the default of a newly selected resolver when it is still empty.
+   * The arguments of the selected resolver that fit the selected data type, or null when the resolver takes a free
+   * text or no resolver is selected.
    */
-  private setDefaultArgument(resolverId: string): void {
-    const argument = requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT]);
+  private fittingArguments(): UDFFillArgumentOption[] | null {
+    const resolverId = requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID]).value;
     const resolver = this.resolverOptions.find((r) => r.resolverId === resolverId);
-    if (resolver && !argument.value) {
-      argument.setValue(resolver.defaultArgument);
+    if (!resolver || !(resolver.argumentOptions?.length > 0)) {
+      return null;
+    }
+    const udfDataType = this.groupControl(UDFMetadataHelper.UDF_DATA_TYPE).value;
+    return resolver.argumentOptions.filter((o) => udfDataType && o.udfDataTypes.includes(udfDataType));
+  }
+
+  /**
+   * Shows the argument as a selection when the selected resolver accepts a fixed list of arguments, as a text
+   * otherwise, and only for a lookup. A selection offers the arguments that fit the data type; a value no longer
+   * offered falls back to the default of the resolver when it fits, else to the first one. A text takes the default of
+   * a newly selected resolver while it is still empty.
+   */
+  private setArgumentFields(): void {
+    const text = this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT];
+    const select = this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT_OPTION];
+    const lookup =
+      requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.FILL_SOURCE]).value ===
+      UDFFillSource.RESOLVER;
+    const fitting = this.fittingArguments();
+    FormHelper.hideVisibleFieldConfigs(!lookup || fitting !== null, [text]);
+    FormHelper.hideVisibleFieldConfigs(!lookup || fitting === null, [select]);
+    const resolverId = requireFormControl(this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID]).value;
+    const option = this.resolverOptions.find((r) => r.resolverId === resolverId);
+    if (fitting === null) {
+      if (option && !requireFormControl(text).value) {
+        requireFormControl(text).setValue(option.defaultArgument);
+      }
+      return;
+    }
+    select.valueKeyHtmlOptions = fitting.map(
+      (o) => new ValueKeyHtmlSelectOptions(o.argument, this.translateService.instant(`${resolverId}_${o.argument}`))
+    );
+    const current = requireFormControl(select).value;
+    if (!fitting.some((o) => o.argument === current)) {
+      const preferred = fitting.find((o) => o.argument === option?.defaultArgument) ?? fitting[0];
+      requireFormControl(select).setValue(preferred?.argument ?? null);
     }
   }
 
@@ -376,10 +425,8 @@ export class UDFMetadataSecurityEditComponent
     FormHelper.hideVisibleFieldConfigs(fillSource !== UDFFillSource.LLM || !this.valueSuggestion(), [
       this.configObject[UDFMetadataSecurityEditComponent.TEST_CONTEXT_BUTTON]
     ]);
-    FormHelper.hideVisibleFieldConfigs(!resolver, [
-      this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID],
-      this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT]
-    ]);
+    FormHelper.hideVisibleFieldConfigs(!resolver, [this.configObject[UDFMetadataSecurityEditComponent.RESOLVER_ID]]);
+    this.setArgumentFields();
     this.setFillPeriodOptions(fillSource);
     // A rule is proposed from the stored values of a saved field that is filled manually or by a template
     const existing = this.callParam().uDFMetadataSecurity;
@@ -527,7 +574,9 @@ export class UDFMetadataSecurityEditComponent
       // The server stores the rule as resolver ID and normalised argument
       uDFMetadataSecurity.fillRule = [
         formValue(UDFMetadataSecurityEditComponent.RESOLVER_ID),
-        formValue(UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT)
+        this.fittingArguments() === null
+          ? formValue(UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT)
+          : formValue(UDFMetadataSecurityEditComponent.RESOLVER_ARGUMENT_OPTION)
       ]
         .filter((part) => !!part && String(part).trim().length > 0)
         .join(' ');

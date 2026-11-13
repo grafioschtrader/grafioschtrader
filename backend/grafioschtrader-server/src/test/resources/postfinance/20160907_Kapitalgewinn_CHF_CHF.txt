@@ -1,0 +1,27 @@
+TRANSAKTIONSBELEG
+Kunde: 999999 - TRADING
+MAX MUSTER
+Musterstrasse 1
+CH-9999 Musterort
+Bern, 07.09.2016
+Kapitalgewinn
+Unsere Referenz: 000000000
+Im Hinblick auf folgenden Titel:
+Titel
+Bezeichnung Anzahl
+ISIN: CH0226274246
+UBSETF MSCI Switzerland CHF 1'900
+NKN: 22627424
+haben wir Ihrem Konto den folgenden Betrag gutgeschrieben:
+Kontonummer 99999900
+Ausführungsdatum 07.09.2016
+Valutadatum 09.09.2016
+Anzahl 1'900
+Kapitalgewinn 0.12 CHF
+Betrag CHF 228.00
+Total CHF 228.00
+Bitte prüfen Sie dieses Dokument und benachrichtigen Sie uns bei Unstimmigkeiten innert Monatsfrist.
+PostFinance AG, Mingerstrasse 20, 3030 Bern
+Kontaktcenter E-Trading: 0848 800 000 (Mo-Fr: 08.00-22.00 Uhr, ab Festnetz CHF 0.08/Min.)
+Formular ohne Unterschrift S.E. & O.
+MwSt n° CHE-116.302.542

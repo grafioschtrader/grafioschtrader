@@ -1,0 +1,25 @@
+Migros Bank AG CHE-105.841.533 MWST
+Postfach BIC/Swift: MIGRCHZZXXX
+8010 Zürich
+migrosbank.ch
+000  Portfolio Anlage-Portfolio
+Herr Depot 80 1.999.999.99 / CHF
+Max Muster
+Musterstrasse 1 Ihr Kundenberater Hans Beispiel
+9999 Musterort Direktwahl +41000000000
+Thun, 30.01.2019 Unsere Referenz CA20000101/00000 / EXAMPLE
+iShares III PLC - iShares EUR Corp Bond BBB-BB UCITS ETF - Couponsabrechnung
+Am 30.01.2019 wurde die Dividende zahlbar auf
+Anteile - Exchange Traded Fund EUR Ex Datum: 17.01.2019
+iShares III PLC - iShares Zahlbar Datum: 30.01.2019
+Euro Corporate Bond BBB-BB UCITS ETF
+Valor: 27035499
+ISIN: IE00BSKRK281
+Bestand: 8'000 zu EUR 0.039
+Brutto (8'000 * EUR 0.039) EUR 312.00
+Netto EUR 312.00
+Unsere Gutschrift erfolgt auf Konto 16 1.999.999.99 mit Valuta 30.01.2019.
+Freundliche Grüsse
+Migros Bank AG
+Anzeige ohne Unterschrift
+0000000 | 00000000000000 | 0000 Seite 1 / 1

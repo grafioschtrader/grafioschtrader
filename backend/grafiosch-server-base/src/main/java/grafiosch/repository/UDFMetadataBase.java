@@ -1,7 +1,25 @@
 package grafiosch.repository;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.IntSupplier;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+
 import grafiosch.BaseConstants;
 import grafiosch.entities.UDFMetadata;
+import grafiosch.entities.UDFMetadataSubscription;
+import grafiosch.exceptions.DataViolationException;
+import grafiosch.types.UDFDataType;
+import grafiosch.types.UDFShareMode;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.PersistenceContext;
 
 /**
  * Base repository class for UDF (User-Defined Field) metadata entities. This abstract class provides common validation
@@ -16,6 +34,98 @@ import grafiosch.entities.UDFMetadata;
  * @param <T> the specific UDFMetadata entity type that extends the base UDFMetadata class
  */
 public class UDFMetadataBase<T extends UDFMetadata> extends BaseRepositoryImpl<T> {
+
+  @PersistenceContext
+  protected EntityManager entityManager;
+  @Autowired
+  @Lazy
+  protected UDFMetadataSubscriptionJpaRepository subscriptions;
+  @Autowired
+  private UDFMetadataJpaRepository metadata;
+  @Autowired
+  private UDFDataSharedJpaRepository sharedData;
+  @Autowired
+  private UDFDataJpaRepository data;
+
+  protected void applyShareModeChange(UDFMetadata entity, UDFMetadata existingEntity, String entityName) {
+    if ((Objects.equals(entity.getIdUser(), 0) || entity.getUdfSpecialType() != null)
+        && entity.getShareMode() != UDFShareMode.UDF_SHARE_NONE) {
+      throw new DataViolationException("share.mode", "g.udf.share.not.allowed", null);
+    }
+    if (existingEntity == null) {
+      return;
+    }
+    UDFMetadata current = entityManager.find(UDFMetadata.class, existingEntity.getId(), LockModeType.PESSIMISTIC_WRITE);
+    entityManager.refresh(current);
+    if (!Objects.equals(current.getIdUser(), entity.getIdUser()) || current.getIdUser() == null) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+    int count = subscriptions.countByIdUDFMetadata(current.getId());
+    if (entity.getShareMode() == UDFShareMode.UDF_SHARE_NONE && count > 0) {
+      throw new DataViolationException("share.mode", "g.udf.share.has.subscribers", new Object[] { count });
+    }
+    if (current.getShareMode() == entity.getShareMode()) {
+      return;
+    }
+    if (current.getShareMode() == UDFShareMode.UDF_SHARE_NONE) {
+      sharedData.copyOwnerValuesToShared(current.getId(), current.getIdUser(), entityName);
+      data.removeFieldKey(current.getId(), current.getIdUser(), entityName);
+    } else if (entity.getShareMode() == UDFShareMode.UDF_SHARE_NONE) {
+      if (current.getUdfDataType() == UDFDataType.UDF_Boolean) {
+        data.mergeSharedBooleanValues(current.getId(), current.getIdUser(), entityName);
+      } else {
+        data.mergeSharedTextValues(current.getId(), current.getIdUser(), entityName);
+      }
+      sharedData.deleteById_IdUDFMetadata(current.getId());
+    }
+  }
+
+  protected int deleteOrOrphan(Integer id, Integer idUser, IntSupplier physicalDelete) {
+    UDFMetadata field = entityManager.find(UDFMetadata.class, id, LockModeType.PESSIMISTIC_WRITE);
+    if (field == null || !Objects.equals(field.getIdUser(), idUser)) {
+      return 0;
+    }
+    return subscriptions.countByIdUDFMetadata(id) > 0 ? metadata.orphan(id, idUser) : physicalDelete.getAsInt();
+  }
+
+  /** Detach before replacing the owner's ordering with the subscriber's personal ordering. */
+  protected List<T> withSubscriptions(List<T> own, Integer idUser, Class<T> type) {
+    List<T> fields = new ArrayList<>(own);
+    fields.addAll(entityManager.createQuery("SELECT m FROM " + type.getSimpleName()
+        + " m WHERE EXISTS (SELECT s FROM UDFMetadataSubscription s WHERE s.idUDFMetadata = m.idUDFMetadata AND s.idUser = ?1)",
+        type).setParameter(1, idUser).getResultList());
+    Map<Integer, UDFMetadataSubscription> byField = new HashMap<>();
+    subscriptions.findByIdUser(idUser).forEach(s -> byField.put(s.getIdUDFMetadata(), s));
+    Map<Integer, Integer> counts = new HashMap<>();
+    subscriptions.countSubscribersOfOwner(idUser)
+        .forEach(r -> counts.put(((Number) r[0]).intValue(), ((Number) r[1]).intValue()));
+    for (T field : fields) {
+      entityManager.detach(field);
+      UDFMetadataSubscription subscription = byField.get(field.getId());
+      field.setIdUDFMetadataSubscription(subscription == null ? null : subscription.getId());
+      if (subscription != null) {
+        field.setUiOrder(subscription.getUiOrder());
+      }
+      field
+          .setSubscriberCount(Objects.equals(field.getIdUser(), idUser) ? counts.getOrDefault(field.getId(), 0) : null);
+      field.setValueEditable(!Objects.equals(field.getIdUser(), 0) && field.isValueWritableBy(idUser));
+    }
+    fields.sort(Comparator.comparingInt(UDFMetadata::getUiOrder));
+    return fields;
+  }
+
+  protected List<T> sharedCatalog(Integer idUser, Class<T> type) {
+    List<T> fields = entityManager.createQuery(
+        "SELECT m FROM " + type.getSimpleName()
+            + " m WHERE m.shareMode <> 0 AND m.idUser <> 0 AND m.idUser <> ?1 AND NOT EXISTS"
+            + " (SELECT s FROM UDFMetadataSubscription s WHERE s.idUDFMetadata = m.idUDFMetadata AND s.idUser = ?1)",
+        type).setParameter(1, idUser).getResultList();
+    fields.forEach(field -> {
+      entityManager.detach(field);
+      field.setValueEditable(false);
+    });
+    return fields;
+  }
 
   /**
    * Validates uniqueness constraints for UDF metadata description and UI order properties. This method ensures that

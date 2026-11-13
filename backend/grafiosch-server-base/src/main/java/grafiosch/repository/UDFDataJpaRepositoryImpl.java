@@ -1,22 +1,30 @@
 package grafiosch.repository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.UDFSharedValueHelper;
 import grafiosch.entities.UDFData;
 import grafiosch.entities.UDFData.UDFDataKey;
+import grafiosch.entities.UDFDataSharedKey;
 import grafiosch.entities.UDFMetadata;
 import grafiosch.entities.User;
 import grafiosch.entities.projection.IUDFSupport;
 import grafiosch.repository.UDFDataJpaRepository.IUDFRepository;
 import grafiosch.rest.UpdateCreate;
+import grafiosch.types.UDFDataType;
+import grafiosch.types.UDFShareMode;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
 
 /**
@@ -36,9 +44,16 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
   private UDFDataJpaRepository uDFDataJpaRepository;
 
   @Autowired
+  private UDFDataSharedJpaRepository sharedData;
+
+  @Autowired
+  private UDFMetadataSubscriptionJpaRepository subscriptions;
+
+  @Autowired
   private List<IUDFRepository<? extends UDFMetadata>> udfRepositories = new ArrayList<>();
 
   @Override
+  @Transactional(isolation = Isolation.READ_COMMITTED)
   public UDFData createUpdate(UDFData udfData) throws Exception {
     final User user = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails());
     UpdateCreate.checkAndSetUserBaseIDWithUser(udfData.getuDFDataKey(), user);
@@ -48,10 +63,34 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
     List<? extends UDFMetadata> rawMetadata = udfRepository.getMetadataByUserAndEntityAndIdEntity(user.getIdUser(),
         udfData.getuDFDataKey().getEntity(), udfData.getuDFDataKey().getIdEntity());
 
-    List<UDFMetadata> udfMetadata = new ArrayList<>(rawMetadata);
     checkEntityAndObject(udfData, user);
+    // Lock the field before choosing its storage. A share-mode transition takes an exclusive field lock.
+    List<UDFMetadata> udfMetadata = new ArrayList<>();
+    for (UDFMetadata field : rawMetadata) {
+      UDFMetadata current = entityManager.find(UDFMetadata.class, field.getId(), LockModeType.PESSIMISTIC_READ);
+      boolean participant = current != null && (user.getIdUser().equals(current.getIdUser())
+          || subscriptions.findByIdUDFMetadataAndIdUser(current.getId(), user.getIdUser()).isPresent());
+      if (participant && current.isValueWritableBy(user.getIdUser())) {
+        udfMetadata.add(current);
+      }
+    }
+    udfData.setJsonValues(new HashMap<>(udfData.getJsonValues()));
     udfData.checkDataAgainstMetadata(udfMetadata);
-    return uDFDataJpaRepository.save(udfData);
+    for (UDFMetadata field : udfMetadata) {
+      String key = BaseConstants.UDF_FIELD_PREFIX + field.getId();
+      if (field.getShareMode() != UDFShareMode.UDF_SHARE_NONE && udfData.getJsonValues().containsKey(key)) {
+        String value = UDFSharedValueHelper.toCanonical(udfData.getJsonValues().remove(key));
+        UDFDataSharedKey sharedKey = new UDFDataSharedKey(field.getId(), udfData.getuDFDataKey().getIdEntity());
+        if (value == null) {
+          sharedData.deleteById(sharedKey);
+        } else {
+          sharedData.putValue(field.getId(), sharedKey.getIdEntity(), udfData.getuDFDataKey().getEntity(), value);
+        }
+      }
+    }
+    uDFDataJpaRepository.saveAndFlush(udfData);
+    return getUDFDataByIdUserAndEntityAndIdEntity(user.getIdUser(), udfData.getuDFDataKey().getEntity(),
+        udfData.getuDFDataKey().getIdEntity()).orElseThrow();
   }
 
   /**
@@ -83,7 +122,24 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
 
   @Override
   public Optional<UDFData> getUDFDataByIdUserAndEntityAndIdEntity(Integer idUser, String entity, Integer idEntity) {
-    return uDFDataJpaRepository.findById(new UDFDataKey(idUser, entity, idEntity));
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    if (!user.getIdUser().equals(idUser)) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+    UDFDataKey key = new UDFDataKey(idUser, entity, idEntity);
+    checkEntityAndObject(new UDFData(key, null), user);
+    Optional<UDFData> own = uDFDataJpaRepository.findById(key);
+    var values = new HashMap<String, Object>();
+    own.ifPresent(d -> values.putAll(d.getJsonValues()));
+    // A stale private key must never shadow or reveal a shared field.
+    udfRepositories.stream().filter(r -> r.getSupportedEntities().contains(entity)).findFirst()
+        .ifPresent(r -> r.getMetadataByUserAndEntityAndIdEntity(idUser, entity, idEntity).stream()
+            .filter(f -> f.getShareMode() != UDFShareMode.UDF_SHARE_NONE)
+            .forEach(f -> values.remove(BaseConstants.UDF_FIELD_PREFIX + f.getId())));
+    sharedData.findValuesOfUserForEntity(idUser, entity, idEntity).forEach(row -> values.put(
+        BaseConstants.UDF_FIELD_PREFIX + ((Number) row[0]).intValue(),
+        UDFSharedValueHelper.toJsonValue((String) row[1], UDFDataType.getUDFDataType(((Number) row[2]).byteValue()))));
+    return own.isPresent() || !values.isEmpty() ? Optional.of(new UDFData(key, values)) : Optional.empty();
   }
 
   public Class<?>[] getGenericType(Class<?> classInstance, Class<?> classToGetGenerics) {

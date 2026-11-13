@@ -106,11 +106,13 @@ async function fabricateFields(page: Page): Promise<void> {
 async function openSecurityMetadata(page: Page): Promise<Locator> {
   const baseDataNode = page.locator('.p-tree-node-content', { hasText: RX.baseDataNode }).first();
   await baseDataNode.waitFor({ state: 'visible', timeout: 15_000 });
-  const treeNode = page.locator('.p-tree-node-content', { hasText: RX.securityNode }).first();
+  const treeNode = page
+    .locator('.p-tree-node-content', { hasText: /^\s*(Additional fields|Zusatzfelder)\s*$/i })
+    .first();
   if (!(await treeNode.isVisible())) await baseDataNode.dblclick();
   await treeNode.click();
-  await page.waitForURL(/\/mainview\/udfmetadatasecurity/, { timeout: 10_000 });
-  const table = page.locator('configurable-table').first();
+  await page.waitForURL(/\/mainview\/udfmetadatageneral\/udfmetadataown/, { timeout: 10_000 });
+  const table = page.locator('udf-metadata-security-table configurable-table');
   await expect(table.getByRole('cell', { name: MANUAL_FIELD, exact: true })).toBeVisible();
   return table;
 }

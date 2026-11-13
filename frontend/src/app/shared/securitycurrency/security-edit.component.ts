@@ -304,6 +304,18 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           .map((key) => new ValueKeyHtmlSelectOptions(key, texts[key]))
           .sort((a, b) => a.value.localeCompare(b.value));
       });
+    this.gpsGT
+      .getFundTaxClasses()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((classes) => {
+        // Translated in place: the classes keep their order of the enum, the first option is empty for not classified
+        this.configObject.fundTaxClass.valueKeyHtmlOptions = [
+          new ValueKeyHtmlSelectOptions('', ''),
+          ...classes.map(
+            (option) => new ValueKeyHtmlSelectOptions(option.key, this.translateService.instant(option.value))
+          )
+        ];
+      });
   }
 
   /**

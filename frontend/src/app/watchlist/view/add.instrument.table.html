@@ -57,6 +57,9 @@
       }
     </ng-template>
   </p-table>
+  @if (advancedNotEvaluated() > 0) {
+  <p>{{ 'ADVANCED_SEARCH_NOT_EVALUATED' | translate: { count: advancedNotEvaluated() } }}</p>
+  }
 </div>
 
 <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">

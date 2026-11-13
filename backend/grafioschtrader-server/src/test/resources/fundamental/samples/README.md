@@ -55,6 +55,31 @@ of an answer and were masked in the probe output in any case.
   probe is dropped because the mapping does not use it. All amounts are in `currency`, the reporting currency
   (Novo Nordisk DKK, Alibaba CNY), for the newest `historical[].period`. `other.shares` is in millions, `leverage
   .netDebt` and `historical[].netIncome` in full units. Alibaba's `perShare.eps` 42.89 CNY is per ADS (eight
-  ordinary shares) while `other.shares` 19 318 million counts ordinary shares, so the share count fails the market
-  capitalisation check against the ADR. `netIncome` includes non-controlling interests (Deutsche Telekom 14.93
+  ordinary shares) while `other.shares` 19 318 million counts ordinary shares. The fiscal-year count is stored as
+  `SHARES_FY`, never as current `SHARES`: for Adobe and Booking it matches the diluted annual EPS denominator.
+  It neither confirms nor contradicts Yahoo's outstanding stock and is not used to size market-map tiles.
+  `netIncome` includes non-controlling interests (Deutsche Telekom 14.93
   billion EUR against EPS times shares of 9.67 billion), which is why it is not used for a unit check.
+
+# SEC outstanding stock
+
+The `sec-ADBE-2026-11-13.json` and `sec-BKNG-2026-11-13.json` fixtures are original company-concept answers fetched
+on 2026-11-13, reduced to stock facts dated 2026-04-01 or later. All remaining fact values, dates and filing metadata
+are unchanged. They confirm Adobe's 389,200,000 shares on 2026-09-18 and Booking's 743,701,257 on 2026-10-26.
+
+`SecFundamentalConnector` reads the free EDGAR company-concept API's
+`dei/EntityCommonStockSharesOutstanding` in `units.shares`. It uses the newest measurement date (`end`), then the
+latest `filed` date for a correction of that measurement. `period_end` stores the measurement date, not the fetch
+date. No `WeightedAverageNumberOfDilutedSharesOutstanding` or other EPS denominator is a fallback for this stock.
+
+Only domestic US USD listings with an unambiguous ticker/CIK and a 10-K/10-Q fact are used. Known multiple-class
+issuers, foreign ADRs and missing non-dimensional stock concepts stay with Yahoo rather than guessing a share
+class or ADR ratio. The SEC contact address comes from `gt.fundamental.sec.contact`, defaulting to the instance's
+administrator email; `sec` in `gt.fundamental.sources` enables the source. The connector makes no request without a
+contact address. API contract: https://www.sec.gov/search-filings/edgar-application-programming-interfaces.
+
+A dated SEC stock takes precedence over Yahoo's checked undated stock. A stock must have been fetched in the last
+21 days; a dated stock must also be no older than six months. A split on or after the SEC measurement date invalidates
+it even if it was fetched afterwards; a post-split Yahoo stock can then be selected. The market map still multiplies
+selected `SHARES` by the listing's last price and converts to the tenant currency, with Yahoo's `MCAP_CHECK` as its
+existing fallback. The company stock is not a guarantee of today's exact count between disclosures.

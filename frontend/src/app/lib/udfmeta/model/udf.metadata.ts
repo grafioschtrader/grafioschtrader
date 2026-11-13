@@ -1,3 +1,4 @@
+import { UDFShareMode } from './udf.share.mode';
 import { requireInitialized } from '../../helper/required-state';
 import { BaseID } from '../../entities/base.id';
 import { Exclude } from 'class-transformer';
@@ -15,6 +16,10 @@ export abstract class UDFMetadata implements BaseID {
 
   /** Owner user ID. Value of 0 indicates a system-wide UDF available to all users */
   idUser: number | null = null;
+  shareMode: string = UDFShareMode[UDFShareMode.UDF_SHARE_NONE];
+  idUDFMetadataSubscription: number | null = null;
+  subscriberCount: number | null = null;
+  valueEditable: boolean | null = null;
 
   /**
    * Special type classification for UDFs with predefined purposes.

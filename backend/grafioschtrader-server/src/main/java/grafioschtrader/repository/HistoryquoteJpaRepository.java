@@ -554,6 +554,22 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
       String mainCurrency);
 
   /**
+   * Closing rates of every currency other than the main currency that a transaction of a tenant is exposed to, on the
+   * day of the transaction. A transaction is exposed to the currency of its cash account and to the currency of its
+   * security, whatever its type. The query above covers only the cash account currency of interest, fee, purchase, sale
+   * and dividend transactions, so the finance costs of a margin product are missing there.
+   *
+   * Named query: Historyquote.getHistoryquoteTransactionCurrenciesByIdTenantAndMainCurrency
+   *
+   * @param idTenant     the tenant whose transactions are examined
+   * @param mainCurrency the currency the rates convert to, a transaction in this currency needs no rate
+   * @return one row per day and currency: the date of the transaction, the currency and the closing rate of that
+   *         currency pair on the day. A day without a stored rate has no row.
+   */
+  @Query(nativeQuery = true)
+  List<Object[]> getHistoryquoteTransactionCurrenciesByIdTenantAndMainCurrency(Integer idTenant, String mainCurrency);
+
+  /**
    * For every transaction occurring in a cash account whose currency differs from the tenant's main currency, this
    * method retrieves the corresponding historical end-of-day (EOD) exchange rate. The fetched rate facilitates the
    * conversion of amounts from the cash account's currency to the tenant's main currency, reflecting values as of each

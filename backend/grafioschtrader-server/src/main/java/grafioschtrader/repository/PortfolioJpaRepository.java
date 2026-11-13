@@ -28,4 +28,18 @@ public interface PortfolioJpaRepository extends JpaRepository<Portfolio, Integer
 
   @Query(nativeQuery = true)
   List<Integer> getExistingTransactionOnSecurityaccount(Integer idTenant);
+
+  /**
+   * The accounts of every portfolio of a tenant that overrides the cost basis method of its tenant. Portfolios that
+   * follow the tenant are left out, so the result is normally empty. Cash accounts are returned as well, which does
+   * no harm because the method is only ever looked up for a security account.
+   *
+   * Named query: Portfolio.getCostBasisMethodOverrides
+   *
+   * @param idTenant the tenant whose portfolios are read
+   * @return rows of [id_securitycash_account, cost_basis_method], the method as the byte value of
+   *         {@link grafioschtrader.types.CostBasisMethod}
+   */
+  @Query(nativeQuery = true)
+  List<Object[]> getCostBasisMethodOverrides(Integer idTenant);
 }

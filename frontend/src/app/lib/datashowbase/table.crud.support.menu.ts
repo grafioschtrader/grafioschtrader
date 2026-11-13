@@ -4,13 +4,11 @@ import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { Subscription } from 'rxjs';
 import { BaseSettings } from '../base.settings';
-import { DynamicDialogs } from '../dynamicdialog/component/dynamic.dialogs';
 import { BaseID } from '../entities/base.id';
 import saveAs from '../filesaver/filesaver';
 import { AppHelper } from '../helper/app.helper';
 import { AuditHelper } from '../helper/audit.helper';
 import { TranslateHelper } from '../helper/translate.helper';
-import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
 import { IGlobalMenuAttach } from '../mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../mainmenubar/service/active.panel.service';
 import { InfoLevelType } from '../message/info.leve.type';
@@ -152,7 +150,8 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
   }
 
   /**
-   * Closes the edit dialog and reloads the data when something changed; a limit violation opens the limit request.
+   * Closes the edit dialog and reloads the data when something changed. A limit violation needs nothing here:
+   * {@link BaseAuthService} offers the limit request when it reports the error.
    *
    * @param processedActionData - Result data from dialog operations
    */
@@ -160,8 +159,6 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
     this.visibleDialog.set(false);
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
-    } else {
-      this.checkLimitError(processedActionData);
     }
   }
 
@@ -223,21 +220,6 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
 
   /** Loads entity data from the backend and sets entityList. */
   protected abstract readData(): void;
-
-  /**
-   * Opens the dialog for requesting a higher limit when the edit dialog closed because of a limit violation.
-   *
-   * @param processedActionData - Result of the closed edit dialog
-   */
-  protected checkLimitError(processedActionData: ProcessedActionData): void {
-    if (processedActionData.transformedError?.errorClass instanceof LimitEntityTransactionError) {
-      DynamicDialogs.getOpenedLimitTransactionRequestDynamicComponent(
-        this.translateService,
-        this.dialogService,
-        this.entityName
-      );
-    }
-  }
 
   /**
    * Prepares items for the show menu (view-related operations).

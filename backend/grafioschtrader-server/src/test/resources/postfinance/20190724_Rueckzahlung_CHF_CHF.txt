@@ -1,0 +1,33 @@
+TRANSAKTIONSBELEG
+Kunde: 999999 - TRADING
+Herrn MAX MUSTER
+Musterstrasse 1
+CH-9999 Musterort
+Bern, 24.07.2019
+Rückzahlung
+Unsere Referenz: 000000000
+Wir haben folgende Transaktion auf Ihrem Konto vorgenommen:
+Titel
+Original Original Anzahl
+ISIN: CH0247611236
+CITYCHAMP 3.625% 24.07.2019 10'000
+NKN: 24761123
+Verwahrungsstelle: Swissquote Bank AG
+Bewegung Ratio Anzahl
+CITYCHAMP 3.625% 24.07.2019 ISIN: CH0247611236
+- -10'000
+NKN: 24761123
+Verwahrungsstelle: Swissquote Bank AG
+haben wir Ihrem Konto den folgenden Betrag gutgeschrieben:
+Kontonummer 99999900
+Ausführungsdatum 24.07.2019
+Valutadatum 24.07.2019
+Anzahl 10'000
+Preis 100 %
+Betrag CHF 10'000.00
+Total CHF 10'000.00
+Bitte prüfen Sie dieses Dokument und benachrichtigen Sie uns bei Unstimmigkeiten innert Monatsfrist.
+PostFinance AG, Mingerstrasse 20, 3030 Bern
+Kontaktcenter E-Trading: 0848 800 000 (Mo-Fr: 08.00-18.00 Uhr, ab Festnetz CHF 0.08/Min.)
+Formular ohne Unterschrift S.E. & O.
+MwSt n° CHE-116.302.542

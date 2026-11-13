@@ -68,6 +68,7 @@ export class AppSettings {
   public static readonly WATCHLIST_PRICE_FEED_KEY = 'watchlistpricefeed';
   public static readonly WATCHLIST_DIVIDEND_SPLIT_FEED_KEY = 'watchlistdividendsplitfeed';
   public static readonly WATCHLIST_INDICATOR_KEY = 'watchlistindicator';
+  public static readonly WATCHLIST_TREEMAP_KEY = 'watchlisttreemap';
   public static readonly WATCHLIST_INDICATOR_TABLE_SETTINGS_STORE = 'u_watchlist_indicator_1';
   public static readonly WATCHLIST_UDF_KEY = 'watchlistudf';
   public static readonly TRANSACTION_KEY = AppSettings.TRANSACTION.toLowerCase();
@@ -128,6 +129,9 @@ export class AppSettings {
   public static readonly HISTORYQUOTE_P_KEY = AppSettings.HISTORYQUOTE_KEY + 's';
   public static readonly HISTORYQUOTE_PERIOD_KEY = AppSettings.HISTORYQUOTE_PERIOD.toLowerCase();
   public static readonly CURRENCIES_P_KEY = 'currencies';
+  public static readonly COST_BASIS_METHODS_P_KEY = 'costbasismethods';
+  public static readonly FUND_TAX_CLASSES_P_KEY = 'fundtaxclasses';
+  public static readonly TAX_WITHHOLDINGS_P_KEY = 'taxwithholdings';
 
   public static readonly UDF_METADATA_SECURITY_KEY = AppSettings.UDF_METADATA_SECURITY.toLowerCase();
 
@@ -152,6 +156,7 @@ export class AppSettings {
   public static readonly SECURITYACCOUNT_IMPORT_KEY = 'securityaccountImport';
   public static readonly SECURITYACCOUNT_GTNET_IMPORT_KEY = 'securityaccountGtnetImport';
   public static readonly DIVIDENDS_ROUTER_KEY = 'portfolioDividens';
+  public static readonly REALIZED_GAINS_ROUTER_KEY = 'realizedGains';
   public static readonly TRANSACTION_COST_KEY = 'portfoliotranscost';
   public static readonly TRANSACTION_COST_SUMMARY_KEY = 'transcostsummary';
   public static readonly FEE_MODEL_COMPARISON_KEY = 'feemodelcomparison';
@@ -205,6 +210,7 @@ export class AppSettings {
   public static readonly DIV_SECURITYACCOUNTS = 'div_securityaccounts';
   public static readonly DIV_CASHACCOUNTS = 'div_cashaccounts';
   public static readonly DIV_CHART_TYPE = 'div_chart_type';
+  public static readonly REALIZED_GAINS_SECURITYACCOUNTS = 'realized_gains_securityaccounts';
   public static readonly DEPOT_CASH_CHART_TYPE = 'depotcash_chart_type';
   public static readonly WATCHLIST_PERFORMANCE_TIMEFRAME_STORE = 'u_watchlist_performance_timeframe_1';
   public static readonly WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE = 'u_watchlist_performance_include_dividends';

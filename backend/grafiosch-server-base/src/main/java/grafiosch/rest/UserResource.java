@@ -3,6 +3,9 @@ package grafiosch.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,15 +22,18 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.common.PropertyChangePassword;
 import grafiosch.dto.ChangePasswordDTO;
 import grafiosch.dto.UserDTO;
+import grafiosch.entities.Role;
 import grafiosch.entities.User;
 import grafiosch.entities.VerificationToken;
 import grafiosch.entities.projection.SuccessfullyChanged;
 import grafiosch.entities.projection.UserOwnProjection;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.repository.VerificationTokenJpaRepository;
 import grafiosch.service.UserService;
@@ -41,6 +47,8 @@ public class UserResource {
   public static final String TOKEN_EXPIRED = "TOKEN_EXPIRED";
   public static final String TOKEN_SUCCESS = "TOKEN_SUCCESS";
   public static final String TOKEN_INVALID = "TOKEN_INVALID";
+  /** Upper bound of user ids per nickname lookup, so the endpoint cannot be used to dump the user table. */
+  private static final int MAX_NICKNAME_IDS = 200;
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
@@ -52,12 +60,35 @@ public class UserResource {
   @Autowired
   private UserJpaRepository userJpaRepository;
 
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+
   @Operation(summary = "Return of the own user.", description = "Return without password", tags = { User.TABNAME })
   @GetMapping(value = "/own", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<UserOwnProjection> getOwnUser() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(userJpaRepository.findByIdUserAndIdTenant(user.getIdUser(), user.getIdTenant()),
         HttpStatus.OK);
+  }
+
+  @Operation(summary = "Nicknames of other users by user id", description = """
+      Returns the nickname for each requested user id, keyed by the user id. Without the admin role the nickname is
+      only given when the administrator of this instance has set the global parameter g.user.nickname.visible to 1;
+      otherwise the result is empty. At most MAX_NICKNAME_IDS ids are served per request.""", tags = { User.TABNAME })
+  @GetMapping(value = "/nicknames", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Map<Integer, String>> getNicknames(@RequestParam final List<Integer> idUsers) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    boolean admin = Role.ROLE_ADMIN.equals(user.getMostPrivilegedRole());
+    if (!admin && !globalparametersJpaRepository.isUserNicknameVisible()) {
+      return ResponseEntity.ok(Map.of());
+    }
+    if (idUsers.size() > MAX_NICKNAME_IDS) {
+      return ResponseEntity.badRequest().build();
+    }
+    Map<Integer, String> nicknames = new HashMap<>();
+    userJpaRepository.findIdUserAndNicknameByIdUsers(idUsers)
+        .forEach(rs -> nicknames.put(rs.getIdUser(), rs.getNickname()));
+    return ResponseEntity.ok(nicknames);
   }
 
   @Operation(summary = "Creates a new user", description = "", tags = { User.TABNAME })

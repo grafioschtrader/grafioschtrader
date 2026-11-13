@@ -4,6 +4,8 @@ import grafiosch.entities.Globalparameters;
 import grafiosch.entities.User;
 
 public class RequestMappings {
+  public static final String UDFMETADATASUBSCRIPTION = "udfmetadatasubscription";
+  public static final String UDF_METADATA_SUBSCRIPTION_MAP = RequestMappings.API + UDFMETADATASUBSCRIPTION;
   public static final String M2M = "_m2m";
   public static final String M2M_API = "/m2m/";
 

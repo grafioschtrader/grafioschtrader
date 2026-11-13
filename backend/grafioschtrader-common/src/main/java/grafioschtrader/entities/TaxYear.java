@@ -38,6 +38,13 @@ public class TaxYear {
   @Column(name = "tax_year", nullable = false)
   private Short taxYear;
 
+  /**
+   * Base interest rate in percent of this year for the advance lump sum of investment funds (§ 18 InvStG), 2.53 means
+   * 2.53 %. Only the tax years of Germany carry it, the Federal Ministry of Finance publishes it each January.
+   */
+  @Column(name = "fund_base_rate")
+  private Double fundBaseRate;
+
   @OneToMany(mappedBy = "taxYear")
   @OrderBy("uploadDate DESC")
   private List<TaxUpload> taxUploads;
@@ -82,6 +89,14 @@ public class TaxYear {
 
   public void setTaxYear(Short taxYear) {
     this.taxYear = taxYear;
+  }
+
+  public Double getFundBaseRate() {
+    return fundBaseRate;
+  }
+
+  public void setFundBaseRate(Double fundBaseRate) {
+    this.fundBaseRate = fundBaseRate;
   }
 
   public List<TaxUpload> getTaxUploads() {

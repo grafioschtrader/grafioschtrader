@@ -8,10 +8,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -55,6 +58,8 @@ import grafioschtrader.entities.SecurityDerivedLink;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
+import grafioschtrader.entities.UDFMetadataSecurity;
+import grafioschtrader.entities.WatchlistIndicatorColumn;
 import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.priceupdate.historyquote.BaseHistoryquoteThru;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruCalculation;
@@ -66,23 +71,34 @@ import grafioschtrader.priceupdate.intraday.IIntradayLoad;
 import grafioschtrader.priceupdate.intraday.IntradayDerivedDependencyUpdater;
 import grafioschtrader.priceupdate.intraday.IntradayThruCalculation;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
+import grafioschtrader.reports.IndicatorBatch;
 import grafioschtrader.reports.InstrumentStatisticsSummary;
 import grafioschtrader.reports.SeasonalReturnsReport;
+import grafioschtrader.reports.WatchlistIndicatorReport;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.securitycurrency.ISecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecurityDataProviderUrls;
+import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyIndicatorGroup.IndicatorCell;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
 import grafioschtrader.rest.RequestGTMappings;
+import grafioschtrader.search.AdvancedSearchCriterion;
+import grafioschtrader.search.AdvancedSearchField;
+import grafioschtrader.search.AdvancedSearchMatcher;
+import grafioschtrader.search.AdvancedSearchResult;
+import grafioschtrader.search.AdvancedSearchValueType;
 import grafioschtrader.search.SecuritySearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
+import grafioschtrader.service.AdvancedSearchFieldService;
+import grafioschtrader.service.AdvancedSearchFieldService.ResolvedField;
 import grafioschtrader.service.GTNetHistoryquoteService;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.HistoryquoteCreateType;
 import grafioschtrader.types.HistoryquotePeriodCreateType;
+import grafioschtrader.types.IndicatorCellStatus;
 import grafioschtrader.types.SeasonalPeriodType;
 import grafioschtrader.types.TaskTypeExtended;
 import jakarta.annotation.PostConstruct;
@@ -143,6 +159,14 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Autowired
   private HistoryquoteLegacyJpaRepository historyquoteLegacyJpaRepository;
+
+  @Autowired
+  private AdvancedSearchFieldService advancedSearchFieldService;
+
+  /** Lazy, because the report reads this repository as well. */
+  @Autowired
+  @Lazy
+  private WatchlistIndicatorReport watchlistIndicatorReport;
 
   @Autowired
   private DividendJpaRepository dividendJpaRepository;
@@ -602,25 +626,192 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public List<Security> searchBuilderWithExclusion(final Integer idWatchlist, Integer idCorrelationSet,
       final SecuritycurrencySearch securitycurrencySearch, final Integer idTenant) {
+    return searchWithAdvancedCriteria(idWatchlist, idCorrelationSet, securitycurrencySearch, idTenant).securities();
+  }
+
+  @Override
+  public AdvancedSearchResult searchWithAdvancedCriteria(final Integer idWatchlist, Integer idCorrelationSet,
+      final SecuritycurrencySearch securitycurrencySearch, final Integer idTenant) {
     if (securitycurrencySearch.getAssetclassType() == AssetclassType.CURRENCY_PAIR) {
-      return Collections.emptyList();
-    } else {
-      checkNameRegex(securitycurrencySearch);
-      List<Integer> idSecurityList = null;
-      if (securitycurrencySearch.getWithHoldings()) {
-        idSecurityList = this.holdSecurityaccountSecurityRepository.getIdSecurityByIdTenantWithHoldings(idTenant);
+      return AdvancedSearchResult.of(Collections.emptyList());
+    }
+    checkNameRegex(securitycurrencySearch);
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final List<AppliedCriterion> applied = appliedCriteria(securitycurrencySearch, user);
+    final Map<Integer, Map<String, Object>> values = new HashMap<>();
+    List<Integer> idSecurityList = null;
+    if (securitycurrencySearch.getWithHoldings()) {
+      idSecurityList = this.holdSecurityaccountSecurityRepository.getIdSecurityByIdTenantWithHoldings(idTenant);
+    }
+    final List<AppliedCriterion> udfCriteria = applied.stream().filter(a -> a.resolved().udf() != null).toList();
+    if (!udfCriteria.isEmpty()) {
+      final Set<Integer> ids = udfMatches(udfCriteria, values);
+      if (idSecurityList != null) {
+        ids.retainAll(idSecurityList);
       }
-      try {
-        return this.securityJpaRepository.findAll(
-            new SecuritySearchBuilder(idWatchlist, idCorrelationSet, securitycurrencySearch, idTenant, idSecurityList));
-      } catch (InvalidDataAccessResourceUsageException | JpaSystemException ex) {
-        // The pattern compiled in Java but MariaDB's PCRE refused it. Without a regular expression the same exception
-        // means a real defect and must keep its stack trace.
-        if (!securitycurrencySearch.isNameRegex()) {
-          throw ex;
+      if (ids.isEmpty()) {
+        return AdvancedSearchResult.of(Collections.emptyList());
+      }
+      idSecurityList = new ArrayList<>(ids);
+    }
+    final SecuritySearchBuilder builder = new SecuritySearchBuilder(idWatchlist, idCorrelationSet,
+        securitycurrencySearch, idTenant, idSecurityList);
+    final List<AppliedCriterion> indicatorCriteria = applied.stream().filter(a -> a.resolved().indicator() != null)
+        .toList();
+    if (indicatorCriteria.isEmpty()) {
+      final List<Security> securities = findSecurities(builder, securitycurrencySearch);
+      return new AdvancedSearchResult(securities, valuesOf(securities, values), 0);
+    }
+    return searchWithIndicators(builder, securitycurrencySearch, indicatorCriteria, values, idTenant);
+  }
+
+  /** A criterion of a request together with the stored definition of its field. */
+  private record AppliedCriterion(AdvancedSearchCriterion criterion, ResolvedField resolved) {
+    AdvancedSearchValueType valueType() {
+      return resolved.field().getValueType();
+    }
+
+    String key() {
+      return resolved.field().getKey();
+    }
+  }
+
+  /**
+   * Validates the advanced criteria of a request and resolves them against the fields of the user. An ISIN search
+   * ignores them, as it ignores every other criterion, so nothing is read and no indicator is computed for it.
+   *
+   * @param securitycurrencySearch the request
+   * @param user                   the logged-in user whose fields may be used
+   * @return the criteria to apply, empty without criteria or with an ISIN
+   */
+  private List<AppliedCriterion> appliedCriteria(final SecuritycurrencySearch securitycurrencySearch, final User user) {
+    final List<AdvancedSearchCriterion> criteria = securitycurrencySearch.getAdvancedCriteria();
+    if (criteria.isEmpty()) {
+      return List.of();
+    }
+    final Map<String, ResolvedField> catalogue = advancedSearchFieldService.resolve(user);
+    AdvancedSearchMatcher.validate(criteria,
+        catalogue.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().field())));
+    if (securitycurrencySearch.getIsin() != null) {
+      return List.of();
+    }
+    return criteria.stream().map(c -> new AppliedCriterion(c, catalogue.get(c.getField()))).toList();
+  }
+
+  /**
+   * Finds the securities that satisfy all criteria on user-defined fields. The stored values of each field are read
+   * once and compared in Java, so that text that is not a number or a date never matches.
+   *
+   * @param udfCriteria the criteria on user-defined fields, not empty
+   * @param values      receives the matched value per security id and field key
+   * @return the ids of the securities that satisfy every criterion
+   */
+  private Set<Integer> udfMatches(final List<AppliedCriterion> udfCriteria,
+      final Map<Integer, Map<String, Object>> values) {
+    Set<Integer> ids = null;
+    for (AppliedCriterion applied : udfCriteria) {
+      final UDFMetadataSecurity udf = applied.resolved().udf();
+      final Set<Integer> matched = new HashSet<>();
+      for (Object[] row : udf.getShareMode() != grafiosch.types.UDFShareMode.UDF_SHARE_NONE
+          ? securityJpaRepository.findSharedUdfValuesOfField(udf.getIdUDFMetadata())
+          : securityJpaRepository.findUdfValuesOfField(udf.getIdUser(), udf.getIdUDFMetadata())) {
+        final Object value = AdvancedSearchMatcher.parseUdfValue((String) row[1], applied.valueType());
+        if (AdvancedSearchMatcher.matches(applied.criterion(), applied.valueType(), value)) {
+          final Integer idSecurity = ((Number) row[0]).intValue();
+          matched.add(idSecurity);
+          values.computeIfAbsent(idSecurity, _ -> new HashMap<>()).put(applied.key(),
+              AdvancedSearchMatcher.displayValue(value));
         }
-        throw invalidNameRegex(securitycurrencySearch.getName());
       }
+      ids = ids == null ? matched : ids;
+      ids.retainAll(matched);
+      if (ids.isEmpty()) {
+        break;
+      }
+    }
+    return ids;
+  }
+
+  /**
+   * Evaluates the indicator criteria on the securities that remain after all other criteria. The number of candidates
+   * is counted before any entity is loaded; more candidates than the limit abort the search, because a truncated list
+   * would look like a complete result.
+   */
+  private AdvancedSearchResult searchWithIndicators(final SecuritySearchBuilder builder,
+      final SecuritycurrencySearch securitycurrencySearch, final List<AppliedCriterion> indicatorCriteria,
+      final Map<Integer, Map<String, Object>> values, final Integer idTenant) {
+    final int limit = indicatorCriteria.stream().anyMatch(a -> a.resolved().field().isCandidateLimited())
+        ? AdvancedSearchField.MAX_INDICATOR_CANDIDATES_SERIES
+        : AdvancedSearchField.MAX_INDICATOR_CANDIDATES_LIGHT;
+    if (securityJpaRepository.count(builder) > limit) {
+      throw new DataViolationException(AdvancedSearchMatcher.VIOLATION_FIELD, "gt.advanced.search.indicator.candidates",
+          new Object[] { limit });
+    }
+    final List<Security> candidates = findSecurities(builder, securitycurrencySearch);
+    final List<WatchlistIndicatorColumn> columns = indicatorCriteria.stream().map(a -> a.resolved().indicator())
+        .toList();
+    final IndicatorBatch batch = watchlistIndicatorReport.evaluate(candidates, columns, idTenant, ClientClock.today());
+    final List<Security> matched = new ArrayList<>();
+    int notEvaluated = 0;
+    for (Security security : candidates) {
+      final Map<Integer, IndicatorCell> cells = batch.cells.getOrDefault(security.getIdSecuritycurrency(), Map.of());
+      final Map<String, Object> found = new HashMap<>();
+      final boolean allEvaluated = matchIndicators(indicatorCriteria, cells, found);
+      if (!allEvaluated) {
+        notEvaluated++;
+      } else if (found.size() == indicatorCriteria.size()) {
+        matched.add(security);
+        values.computeIfAbsent(security.getIdSecuritycurrency(), _ -> new HashMap<>()).putAll(found);
+      }
+    }
+    return new AdvancedSearchResult(matched, valuesOf(matched, values), notEvaluated);
+  }
+
+  /**
+   * Applies the indicator criteria to the cells of one security.
+   *
+   * @param criteria the indicator criteria
+   * @param cells    the cells of the security by column id
+   * @param found    receives the value of every criterion that is satisfied, by field key
+   * @return false if at least one cell could not be evaluated, true if all cells have a value
+   */
+  private boolean matchIndicators(final List<AppliedCriterion> criteria, final Map<Integer, IndicatorCell> cells,
+      final Map<String, Object> found) {
+    boolean allEvaluated = true;
+    for (AppliedCriterion applied : criteria) {
+      final IndicatorCell cell = cells.get(applied.resolved().indicator().getId());
+      if (cell == null || cell.status() != IndicatorCellStatus.OK) {
+        allEvaluated = false;
+      } else if (AdvancedSearchMatcher.matches(applied.criterion(), applied.valueType(), cell.value())) {
+        found.put(applied.key(), cell.value());
+      }
+    }
+    return allEvaluated;
+  }
+
+  private static Map<Integer, Map<String, Object>> valuesOf(final List<Security> securities,
+      final Map<Integer, Map<String, Object>> values) {
+    final Map<Integer, Map<String, Object>> result = new HashMap<>();
+    for (Security security : securities) {
+      final Map<String, Object> found = values.get(security.getIdSecuritycurrency());
+      if (found != null) {
+        result.put(security.getIdSecuritycurrency(), found);
+      }
+    }
+    return result;
+  }
+
+  private List<Security> findSecurities(final SecuritySearchBuilder builder,
+      final SecuritycurrencySearch securitycurrencySearch) {
+    try {
+      return this.securityJpaRepository.findAll(builder);
+    } catch (InvalidDataAccessResourceUsageException | JpaSystemException ex) {
+      // The pattern compiled in Java but the database refused it. Without a regular expression the same exception
+      // means a real defect and must keep its stack trace.
+      if (!securitycurrencySearch.isNameRegex()) {
+        throw ex;
+      }
+      throw invalidNameRegex(securitycurrencySearch.getName());
     }
   }
 

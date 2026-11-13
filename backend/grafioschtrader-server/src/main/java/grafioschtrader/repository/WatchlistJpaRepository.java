@@ -212,4 +212,6 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   @Query(nativeQuery = true)
   int[] watchlistSecuritiesHasOpenOrClosedTransactionForThisTenant(Integer idWatchlist, Integer idTenant);
 
+  @Query(nativeQuery = true)
+  List<Object[]> getSharedUDFByIdWatchlistAndIdUser(Integer idWatchlist, Integer idUser, String[] entities);
 }

@@ -1,11 +1,14 @@
 package grafioschtrader.reportviews.securitycurrency;
 
+import java.util.Set;
+
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.types.CostBasisMethod;
 import grafioschtrader.types.LastpriceOrigin;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -52,6 +55,12 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> implements 
       positionGainLossMC relative to the cost of the open units in the currency of the tenant, converted at the rates at
       which the money was invested. Equals positionGainLossPercentage for a security in the currency of the tenant.""")
   public Double positionGainLossPercentageMC;
+
+  @Schema(description = """
+      The cost basis methods by which the open position was calculated. Gain and percentage of the open position
+      depend on them. More than one when the security is held in portfolios with different methods, null without a
+      position.""")
+  public Set<CostBasisMethod> costBasisMethods;
 
   @Schema(description = "Intra day data html access produced from data connector of security")
   public String intradayUrl;

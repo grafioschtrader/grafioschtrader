@@ -171,6 +171,17 @@ class UDFFillTemplateTest {
     });
   }
 
+  @Test
+  @DisplayName("A boolean field accepts only true and false as a filled value")
+  void booleanValue() {
+    UDFMetadataSecurity field = field(UDFDataType.UDF_Boolean);
+
+    assertThat(UDFFillTemplate.validate("true", field)).isNull();
+    assertThat(UDFFillTemplate.validate("false", field)).isNull();
+    assertThat(UDFFillTemplate.validate("0.65", field)).isNotNull();
+    assertThat(UDFFillTemplate.validate("", field)).isNotNull();
+  }
+
   private static Security security(String name, String ticker, String mic) {
     Stockexchange stockexchange = new Stockexchange();
     stockexchange.setMic(mic);

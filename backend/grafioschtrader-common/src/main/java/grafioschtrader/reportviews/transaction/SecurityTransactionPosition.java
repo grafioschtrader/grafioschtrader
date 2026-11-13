@@ -9,8 +9,10 @@ import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.reportviews.securityaccount.CostLot;
 import grafioschtrader.reportviews.securityaccount.DisposalCostDetail;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
+import grafioschtrader.types.CostBasisMethod;
 import grafioschtrader.types.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -76,6 +78,31 @@ public class SecurityTransactionPosition {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public List<DisposalCostDetail> disposalDetails;
 
+  @Schema(description = """
+      Only on a sale of a security that is not a margin instrument: the cost basis method by which its gain was
+      calculated. The gain of a sale depends on it, the total return of the position does not.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public CostBasisMethod costBasisMethod;
+
+  @Schema(description = """
+      Only on a sale calculated by FIFO or LIFO: the purchases it consumed, each with the units and the cost that
+      went into this sale. Their costs add up to the cost basis of the sale.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public List<CostLot> consumedLots;
+
+  @Schema(description = """
+      True when the purchases did not cover the units of this sale. The uncovered units were given their share of
+      the proceeds as cost, so they show no gain, and the percentage is empty.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Boolean costBasisIncomplete;
+
+  /**
+   * Cost of the units this sale took out, in security currency, only on a sale of a security that is not a margin
+   * instrument. The realized gain report derives the proceeds from it, it is not part of the transaction list response.
+   */
+  @JsonIgnore
+  public Double transactionCostBase;
+
   /** Decimal precision for main currency formatting */
   private int precisionMC;
 
@@ -101,6 +128,10 @@ public class SecurityTransactionPosition {
     transactionGainLossMC = securityPositionSummary.transactionGainLossMC;
     flowSC = securityPositionSummary.transactionFlowSC;
     precisionMC = securityPositionSummary.precisionMC;
+    costBasisMethod = securityPositionSummary.transactionCostBasisMethod;
+    consumedLots = securityPositionSummary.transactionConsumedLots;
+    costBasisIncomplete = securityPositionSummary.transactionCostBasisIncomplete;
+    transactionCostBase = securityPositionSummary.transactionCostBase;
     holdingsSplitAdjusted = transaction.getTransactionType() == TransactionType.HYPOTHETICAL_SELL
         || transaction.getTransactionType() == TransactionType.HYPOTHETICAL_BUY ? 0.0 : securityPositionSummary.units;
   }

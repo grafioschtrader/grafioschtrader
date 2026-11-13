@@ -96,14 +96,14 @@ async function deleteOwnLeftovers(page: Page, row: UdfMetadataRow): Promise<void
 async function openMetadataView(page: Page, row: UdfMetadataRow): Promise<Locator> {
   const baseDataNode = page.locator('.p-tree-node-content', { hasText: RX.baseDataNode }).first();
   await baseDataNode.waitFor({ state: 'visible', timeout: 15_000 });
-  const nodeRx = row.kind === 'general' ? RX.generalNode : RX.securityNode;
+  const nodeRx = /^\s*(Additional fields|Zusatzfelder)\s*$/i;
   const treeNode = page.locator('.p-tree-node-content', { hasText: nodeRx }).first();
   if (!(await treeNode.isVisible())) await baseDataNode.dblclick();
   await treeNode.waitFor({ state: 'visible', timeout: 15_000 });
   await treeNode.click();
-  await page.waitForURL(new RegExp(`/mainview/udfmetadata${row.kind}`), { timeout: 10_000 });
+  await page.waitForURL(/\/mainview\/udfmetadatageneral\/udfmetadataown/, { timeout: 10_000 });
 
-  const table = page.locator('configurable-table').first();
+  const table = page.locator(`udf-metadata-${row.kind}-table configurable-table`);
   await table.waitFor({ state: 'visible', timeout: 10_000 });
   return table;
 }

@@ -158,6 +158,13 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   }
 
   @Override
+  public boolean isUserNicknameVisible() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_USER_NICKNAME_VISIBLE)
+        .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
+        .orElse(GlobalParamKeyBaseDefault.DEFAULT_USER_NICKNAME_VISIBLE) != 0;
+  }
+
+  @Override
   public PropertyStringParser getGTNetLogAggregationConfig() {
     return PropertyStringParser.parse(globalparametersJpaRepository
         .findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS).map(Globalparameters::getPropertyString)

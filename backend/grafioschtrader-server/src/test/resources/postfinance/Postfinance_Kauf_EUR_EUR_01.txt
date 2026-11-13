@@ -5,7 +5,7 @@ Strasse Hausnummer
 CH-2540 Grenchen
 Bern, 25.09.2018
 Börsentransaktion: Kauf 
-Unsere Referenz: 153557048 
+Unsere Referenz: 000000000
 Gemäss Ihrem Kaufauftrag vom 25.09.2018 haben wir folgende Transaktionen vorgenommen:
 Titel Ort der Ausführung
 UNILEVER DUTCH CERT ISIN: NL0000009355 Amsterdam Euronext

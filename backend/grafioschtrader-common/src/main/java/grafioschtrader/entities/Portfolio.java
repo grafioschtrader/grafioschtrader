@@ -16,6 +16,8 @@ import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.TenantBaseID;
 import grafiosch.validation.AfterEqual;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.types.CostBasisMethod;
+import grafioschtrader.types.TaxWithholding;
 import grafioschtrader.validation.ValidCurrencyCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -69,6 +71,21 @@ public class Portfolio extends TenantBaseID implements Serializable {
   @PropertyAlwaysUpdatable
   private LocalDate closedUntil;
 
+  @Schema(description = """
+      Cost basis method of the security accounts of this portfolio. Null follows the method of the tenant, also when
+      that one changes later. An explicit value, average cost included, stays whatever the tenant chooses.""")
+  @Column(name = "cost_basis_method")
+  @PropertyAlwaysUpdatable
+  private Byte costBasisMethod;
+
+  @Schema(description = """
+      Whether a domestic paying agent withholds the tax on the capital income of the accounts of this portfolio. The
+      German tax help needs it and assumes that a portfolio holds the accounts of a single institution. Null means
+      not assigned yet.""")
+  @Column(name = "tax_withholding")
+  @PropertyAlwaysUpdatable
+  private Byte taxWithholding;
+
   @Schema(description = "The security accounts and cash accounts in this portfolio.")
   @OneToMany(mappedBy = "portfolio", orphanRemoval = true, fetch = FetchType.EAGER)
   private List<Securitycashaccount> securitycashaccountList;
@@ -98,6 +115,22 @@ public class Portfolio extends TenantBaseID implements Serializable {
 
   public String getName() {
     return name;
+  }
+
+  public CostBasisMethod getCostBasisMethod() {
+    return costBasisMethod == null ? null : CostBasisMethod.getCostBasisMethodByValue(costBasisMethod);
+  }
+
+  public void setCostBasisMethod(CostBasisMethod costBasisMethod) {
+    this.costBasisMethod = costBasisMethod == null ? null : costBasisMethod.getValue();
+  }
+
+  public TaxWithholding getTaxWithholding() {
+    return taxWithholding == null ? null : TaxWithholding.getTaxWithholdingByValue(taxWithholding);
+  }
+
+  public void setTaxWithholding(TaxWithholding taxWithholding) {
+    this.taxWithholding = taxWithholding == null ? null : taxWithholding.getValue();
   }
 
   @Override

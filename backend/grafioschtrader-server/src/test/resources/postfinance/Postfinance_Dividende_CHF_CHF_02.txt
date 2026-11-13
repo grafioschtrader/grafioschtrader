@@ -5,7 +5,7 @@ Strasse Hausnummer
 CH-2540 Grenchen
 Bern, 06.09.2017
 Dividende 
-Unsere Referenz: 12345678 
+Unsere Referenz: 000000000
 Im Hinblick auf folgenden Titel:
 Titel
 Bezeichnung Anzahl

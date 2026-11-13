@@ -107,6 +107,12 @@ public class UDFData {
       if (udfMetadata == null) {
         it.remove();
       } else {
+        if (entry.getValue() == null || "".equals(entry.getValue())) {
+          continue;
+        }
+        if (udfMetadata.getUdfDataType() == UDFDataType.UDF_Boolean && !(entry.getValue() instanceof Boolean)) {
+          throw new IllegalArgumentException("A boolean UDF value must be true or false");
+        }
         if (udfMetadata.getUdfDataType() != UDFDataType.UDF_Boolean) {
           if (UDFDataHelper.isFieldSizeForDataType(udfMetadata.getUdfDataType())) {
             checkDataWithFiledSizeTypes(udfMetadata, (String) entry.getValue());

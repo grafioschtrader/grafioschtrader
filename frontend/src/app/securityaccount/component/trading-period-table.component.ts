@@ -78,9 +78,15 @@ export class TradingPeriodTableComponent extends TableEditConfigBase {
   readonly tradingPeriodsChange = output<SecaccountTradingPeriod[]>();
 
   private inputTempIdCounter = -1000;
+  /**
+   * Oldest selectable day at local midnight. A bare ISO date would be parsed as UTC midnight, which lies after local
+   * midnight east of Greenwich. The date picker compares whole timestamps against its minimum, so a typed date of that
+   * very day would count as too early and be cleared when the field loses focus.
+   */
   private static get MIN_DATE(): Date {
     return new Date(
-      sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+      (sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK) +
+        'T00:00:00'
     );
   }
 

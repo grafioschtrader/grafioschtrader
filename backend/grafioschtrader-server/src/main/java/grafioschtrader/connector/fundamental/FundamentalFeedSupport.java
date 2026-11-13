@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -141,7 +142,11 @@ public final class FundamentalFeedSupport {
     if (text == null || text.length() < 10 || !text.substring(0, 10).matches("\\d{4}-\\d{2}-\\d{2}")) {
       return null;
     }
-    return LocalDate.parse(text.substring(0, 10));
+    try {
+      return LocalDate.parse(text.substring(0, 10));
+    } catch (DateTimeParseException _) {
+      return null;
+    }
   }
 
   /** A date given as epoch seconds at the JSON pointer, read in UTC; null when there is none. */

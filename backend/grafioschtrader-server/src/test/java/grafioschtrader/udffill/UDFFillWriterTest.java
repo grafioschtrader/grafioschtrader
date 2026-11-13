@@ -65,6 +65,7 @@ class UDFFillWriterTest {
   private Integer idSecurity;
   private UDFMetadataSecurity field;
   private UDFMetadataSecurity sibling;
+  private UDFMetadataSecurity flag;
 
   @BeforeAll
   void createFixture() {
@@ -90,6 +91,11 @@ class UDFFillWriterTest {
       em.persist(field);
       sibling = newField("UDF fill writer sibling", (byte) 92);
       em.persist(sibling);
+      flag = new UDFMetadataSecurity(0, 0, idUser, null, "UDF fill writer flag", null, UDFDataType.UDF_Boolean, null,
+          (byte) 93);
+      flag.setFillSource(UDFFillSource.RESOLVER);
+      flag.setFillRule("JUSTETF ACTIVE");
+      em.persist(flag);
     });
   }
 
@@ -127,6 +133,31 @@ class UDFFillWriterTest {
     assertThat(writer.write(field, idSecurity, new Value(V, null))).isEqualTo(UDFFillWriteResult.WRITTEN);
     assertThat(cell()).isEqualTo(V);
     assertFill(UDFFillState.APPLIED, V);
+  }
+
+  @Test
+  @DisplayName("A boolean is stored as the JSON value true or false, as the user interface does, not as text")
+  void booleanIsStoredAsJsonBoolean() {
+    assertThat(writer.write(flag, idSecurity, new Value("true", null))).isEqualTo(UDFFillWriteResult.WRITTEN);
+    assertThat(jsonType(flag)).isEqualTo("BOOLEAN");
+    // MariaDB renders a JSON boolean as 1 or 0
+    assertThat(cell(flag)).isEqualTo("1");
+
+    assertThat(writer.write(flag, idSecurity, new Value("false", null))).isEqualTo(UDFFillWriteResult.WRITTEN);
+    assertThat(jsonType(flag)).isEqualTo("BOOLEAN");
+    assertThat(cell(flag)).isEqualTo("0");
+  }
+
+  @Test
+  @DisplayName("A boolean the user set: the same value is adopted, the opposite one stays and is not overwritten")
+  void manualBooleanWins() {
+    jdbc.update("INSERT INTO udf_data (id_user, entity, id_entity, json_values) VALUES (?, 'Security', ?, "
+        + "JSON_OBJECT(?, TRUE))", idUser, idSecurity, key(flag));
+
+    assertThat(writer.write(flag, idSecurity, new Value("true", null))).isEqualTo(UDFFillWriteResult.ADOPTED);
+    jdbc.update("DELETE FROM udf_data_fill WHERE id_entity = ?", idSecurity);
+    assertThat(writer.write(flag, idSecurity, new Value("false", null))).isEqualTo(UDFFillWriteResult.MANUAL);
+    assertThat(cell(flag)).isEqualTo("1");
   }
 
   @Test
@@ -367,6 +398,13 @@ class UDFFillWriterTest {
   private LocalDateTime checkedTime() {
     return jdbc.queryForObject("SELECT checked_time FROM udf_data_fill WHERE id_udf_metadata = ? AND id_entity = ?",
         LocalDateTime.class, field.getIdUDFMetadata(), idSecurity);
+  }
+
+  private String jsonType(UDFMetadataSecurity f) {
+    return jdbc.queryForObject(
+        "SELECT JSON_TYPE(JSON_EXTRACT(json_values, CONCAT('$.', ?))) FROM udf_data "
+            + "WHERE id_user = ? AND id_entity = ?",
+        String.class, key(f), idUser, idSecurity);
   }
 
   private static String key(UDFMetadataSecurity f) {

@@ -27,8 +27,8 @@ import grafioschtrader.udffill.UDFFillTaskQueue;
  * <li>Without an entity it is the daily run. It recreates the persistent general fields of user 0, such as the Yahoo
  * links and the next earnings date, whose content is costly to determine because data suppliers must be contacted. It
  * then enqueues one run per user field with a template or a lookup as fill source, and one value proposal run
- * ({@code UDF_USER_SUGGEST_VALUES}) without an entity, which enqueues the language model fields with a fill period of
- * all tenants.</li>
+ * ({@code UDF_USER_SUGGEST_VALUES}) without an entity, which enqueues the runs of the language model fields with a fill
+ * period of all tenants.</li>
  * <li>With the ID of a user field as entity it computes that field for every due security of the tenant scope of its
  * owner. Such a run is also enqueued when the field is saved with a changed fill configuration.</li>
  * </ul>

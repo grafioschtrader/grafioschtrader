@@ -93,6 +93,9 @@ export enum GlobalSessionNames {
   /** Whether GTNet exchange logging is globally enabled. */
   GT_NET_LOG_ENABLED = 'gtNetLogEnabled',
 
+  /** Whether this instance shows the nickname of other users to every user (g.user.nickname.visible). */
+  USER_NICKNAME_VISIBLE = 'userNicknameVisible',
+
   /** Whether at least one GTNet peer is configured to exchange historical price data. */
   GT_NET_HAS_HISTORICAL_PEER = 'gtNetHasHistoricalExchangePeer',
 

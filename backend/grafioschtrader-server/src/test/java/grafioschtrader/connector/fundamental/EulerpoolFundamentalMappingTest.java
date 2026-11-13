@@ -48,7 +48,8 @@ class EulerpoolFundamentalMappingTest {
     assertRow(answer, FundamentalMetric.EPS_FY, eps, currency);
     assertRow(answer, FundamentalMetric.BVPS, bvps, currency);
     assertRow(answer, FundamentalMetric.SPS_FY, sps, currency);
-    assertRow(answer, FundamentalMetric.SHARES, shares, null);
+    assertRow(answer, FundamentalMetric.SHARES_FY, shares, null);
+    assertThat(answer.rows()).extracting(SecurityFundamental::getMetric).doesNotContain(FundamentalMetric.SHARES);
     assertRow(answer, FundamentalMetric.NET_DEBT, netDebt, currency);
     assertThat(answer.rows()).extracting(SecurityFundamental::getPeriodEnd).containsOnly(periodEnd);
     // The net income of Eulerpool's history includes non-controlling interests (Deutsche Telekom: EPS times shares
@@ -57,25 +58,24 @@ class EulerpoolFundamentalMappingTest {
   }
 
   @Test
-  @DisplayName("Nestle: Eulerpool's share count reproduces Yahoo's market capitalisation and confirms Yahoo's count")
+  @DisplayName("Nestle: the fiscal-year denominator never confirms or contradicts Yahoo's outstanding stock")
   void sharesConfirmYahoo() throws IOException {
     List<SecurityFundamental> rows = checked("CH0038863350", "NESN.SW", 83.34, "CHF");
 
-    assertThat(row(rows, FundamentalSource.EULERPOOL, FundamentalMetric.SHARES).getSourceCheck())
-        .isEqualTo(FundamentalSourceCheck.PASSED);
+    assertThat(row(rows, FundamentalSource.EULERPOOL, FundamentalMetric.SHARES_FY).getSourceCheck())
+        .isEqualTo(FundamentalSourceCheck.NOT_CHECKED);
     Map<FundamentalMetric, SecurityFundamental> selected = FundamentalSelector.select(rows, TODAY);
     assertThat(selected.get(FundamentalMetric.SHARES).getSource()).isEqualTo(FundamentalSource.YAHOO);
-    assertThat(selected.get(FundamentalMetric.SHARES).getState()).isEqualTo(FundamentalState.CONFIRMED);
+    assertThat(selected.get(FundamentalMetric.SHARES).getState()).isEqualTo(FundamentalState.CHECKED);
   }
 
   @Test
-  @DisplayName("Alibaba ADR: Eulerpool counts ordinary shares, fails the market capitalisation and Yahoo's ADR count "
-      + "is chosen")
+  @DisplayName("Alibaba ADR: the fiscal-year count of ordinary shares is not used as current ADR equivalents")
   void adrShareCountFails() throws IOException {
     List<SecurityFundamental> rows = checked("US01609W1027", "BABA", 108.5887, "USD");
 
-    assertThat(row(rows, FundamentalSource.EULERPOOL, FundamentalMetric.SHARES).getSourceCheck())
-        .isEqualTo(FundamentalSourceCheck.FAILED);
+    assertThat(row(rows, FundamentalSource.EULERPOOL, FundamentalMetric.SHARES_FY).getState())
+        .isEqualTo(FundamentalState.CANDIDATE);
     SecurityFundamental shares = FundamentalSelector.select(rows, TODAY).get(FundamentalMetric.SHARES);
     assertThat(shares.getSource()).isEqualTo(FundamentalSource.YAHOO);
     assertThat(shares.getValue()).isCloseTo(2_487_744_939.0, within(0.5));

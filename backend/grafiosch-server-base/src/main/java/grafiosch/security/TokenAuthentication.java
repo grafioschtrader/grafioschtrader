@@ -164,6 +164,7 @@ public abstract class TokenAuthentication {
       }
       configuration.useFeatures = mergedFeatures;
       configuration.gtNetLogEnabled = globalparametersJpaRepository.isGTNetLogEnabled();
+      configuration.userNicknameVisible = globalparametersJpaRepository.isUserNicknameVisible();
       jacksonObjectMapper.writeValue(out, configuration);
     } catch (Exception e) {
       log.error("Failed to write login response for user {}",

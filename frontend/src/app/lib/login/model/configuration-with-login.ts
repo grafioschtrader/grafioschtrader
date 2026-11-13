@@ -20,6 +20,12 @@ export interface ConfigurationWithLogin {
   gtNetLogEnabled: boolean;
 
   /**
+   * Whether this instance shows the nickname of other users to every user (g.user.nickname.visible).
+   * When false only the user id is shown and no nickname is requested.
+   */
+  userNicknameVisible: boolean;
+
+  /**
    * True when at least one GTNet peer is configured to exchange historical price data.
    * Used to pre-check the historical send/receive checkboxes on the Security/Currencypair create form.
    * False when GTNet is globally disabled.

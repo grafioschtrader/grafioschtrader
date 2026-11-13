@@ -222,13 +222,18 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
     // Build the exchange set with GTNet-enabled instruments
     HistoryquoteExchangeSet<S> exchangeSet = new HistoryquoteExchangeSet<>();
+    // GTNet-enabled instruments without an exchange key (security without ISIN) cannot be exchanged. They must still
+    // reach the connector, or they would be dropped from both paths.
+    List<SecurityCurrencyMaxHistoryquoteData<S>> notExchangeable = new ArrayList<>();
 
     for (SecurityCurrencyMaxHistoryquoteData<S> data : historySecurityCurrencyList) {
       S instrument = data.getSecurityCurrency();
       if (gtNetEnabledIds.contains(instrument.getIdSecuritycurrency())) {
         // Calculate fromDate: day after most recent historyquote
         LocalDate fromDate = calculateFromDate(data.getDate());
-        exchangeSet.addInstrument(data, fromDate, untilDate);
+        if (!exchangeSet.addInstrument(data, fromDate, untilDate)) {
+          notExchangeable.add(data);
+        }
       }
     }
 
@@ -283,6 +288,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
         remainingForConnector.add(data);
       }
     }
+    remainingForConnector.addAll(notExchangeable);
     remainingForConnector.addAll(exchangeSet.getUnfilledInstruments());
 
     return new HistoryquoteExchangeResult<>(remainingForConnector, exchangeSet.getFilledInstruments(),

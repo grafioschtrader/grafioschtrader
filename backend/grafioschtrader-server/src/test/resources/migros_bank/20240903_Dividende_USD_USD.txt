@@ -1,0 +1,29 @@
+Migros Bank AG CHE-105.841.533 MWST
+Postfach BIC/Swift: MIGRCHZZXXX
+8010 Zürich migrosbank.ch/kontakt
+migrosbank.ch
+000  Portfolio Anlage-Portfolio
+Herr Depot 80 1.999.999.99 / CHF
+Max Muster
+Musterstrasse 1 Corporate Actions +41 848 806 001
+9999 Musterort Hotline
+Thun, 03.09.2024 Unsere Referenz CA20000101/00000 / EXAMPLE
+Couponsabrechnung
+Am 01.09.2024 wurde die Dividende zahlbar auf
+Namen-Aktie Ex Datum: 07.08.2024
+Intel Corp Zahlbar Datum: 01.09.2024
+Valor: 941595
+ISIN: US4581401001
+Bestand: 1'000 zu USD 0.125
+Brutto (1'000 * USD 0.125) USD 125.00
+15% Nicht rückforderbare Steuern (USD 18.75) USD -18.75
+15% zusätzlicher Steuerrückbehalt USA (CHF 15.70) USD -18.75
+Netto USD 87.50
+Unsere Gutschrift erfolgt auf Konto 16 1.999.999.99 mit Valuta 03.09.2024.
+Zusätzliche Angaben für Ihre Steuererklärung:
+Der zusätzliche Steuerrückbehalt USA (15%) beträgt USD 18.75 (CHF 15.70) und kann, falls rückforderungsberechtigt, geltend
+gemacht werden
+Freundliche Grüsse
+Migros Bank AG
+Anzeige ohne Unterschrift
+0000000 | 00000000000000 | 0000 Seite 1 / 1

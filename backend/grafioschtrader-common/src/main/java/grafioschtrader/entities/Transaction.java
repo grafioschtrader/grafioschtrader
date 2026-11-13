@@ -3,6 +3,7 @@ package grafioschtrader.entities;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -854,6 +855,40 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Override
   public int compareTo(Transaction transaction1) {
     return this.transactionTime.compareTo(transaction1.getTransactionTime());
+  }
+
+  /**
+   * The one order in which the units check and every report walk the transactions of a security: by time, then by
+   * {@link #calcRank()}, then by id. The time alone leaves transactions of the same minute in whatever order the
+   * database returned them, which a calculation that consumes individual purchases cannot tolerate. A transaction
+   * that is not saved yet has no id and comes last among its equals.
+   */
+  public static final Comparator<Transaction> CALC_ORDER = Comparator.comparing(Transaction::getTransactionTime)
+      .thenComparingInt(Transaction::calcRank)
+      .thenComparing(Transaction::getIdTransaction, Comparator.nullsLast(Comparator.naturalOrder()));
+
+  /**
+   * Rank of this transaction among transactions with the same time: purchase (0), income and every other type (1),
+   * sale (2), purchase of a security account transfer (3). A dividend therefore sees the units of a purchase of the
+   * same minute and still those of a sale of the same minute. The purchase of a transfer follows its sale, which
+   * carries the same time, so that a pooled view over both security accounts realizes the sale before the transferred
+   * units enter the pool again.
+   *
+   * <p>
+   * Transactions without a security and those of margin instruments have no rank and are ordered by id alone: the
+   * close of a margin position can be a purchase on a position opened by a sale and must stay behind it.
+   * </p>
+   *
+   * @return the rank, deliberately not a getter so that it stays out of the JSON
+   */
+  public int calcRank() {
+    if (security == null || security.isMarginInstrument()) {
+      return 0;
+    }
+    if (transactionType == TransactionType.ACCUMULATE.getValue()) {
+      return idSecurityTransfer == null ? 0 : 3;
+    }
+    return transactionType == TransactionType.REDUCE.getValue() ? 2 : 1;
   }
 
   /**

@@ -11,6 +11,8 @@ export interface TaxYear {
   idTaxCountry: number;
   taxYear: number;
   taxUploads?: TaxUpload[];
+  /** Base interest rate in percent for the advance lump sum of the funds; only the tax years of Germany carry it. */
+  fundBaseRate?: number | null;
   /** Number of official exchange rates imported for this year; 0 means there is nothing to expand. */
   exchangeRateCount?: number;
 }

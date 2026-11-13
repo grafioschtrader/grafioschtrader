@@ -25,6 +25,7 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TaxCountryCreateDialogComponent } from './tax-country-create-dialog.component';
 import { TaxYearCreateDialogComponent } from './tax-year-create-dialog.component';
+import { TaxYearFundBaseRateDialogComponent } from './tax-year-fund-base-rate-dialog.component';
 import { TaxExchangeRateTableComponent } from './tax-exchange-rate-table.component';
 import { TaxModelEditComponent } from './tax-model-edit.component';
 
@@ -129,6 +130,10 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
     this.addColumnFeqH(DataType.Boolean, 'hasTaxModel', true, false, {
       templateName: 'check'
     });
+    this.addColumnFeqH(DataType.Numeric, 'fundBaseRate', true, false, {
+      width: 150,
+      maxFractionDigits: 4
+    });
     this.addColumnFeqH(DataType.DateString, 'uploadDate', true, false, {
       width: 200
     });
@@ -225,6 +230,8 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
           name: String(year.taxYear),
           nodeLevel: NodeLevel.YEAR,
           entity: year,
+          countryCode: country.countryCode,
+          fundBaseRate: year.fundBaseRate,
           ictaxSupported: country.ictaxSupported,
           nodeKey: 'y_' + year.idTaxYear
         },
@@ -277,7 +284,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
         });
         menuItems.push({
           label: 'CREATE_TAX_YEAR' + BaseSettings.DIALOG_MENU_SUFFIX,
-          visible: !!this.selectedNode.data.ictaxSupported,
+          visible: !!this.selectedNode.data.ictaxSupported || this.selectedNode.data.entity?.countryCode === 'DE',
           command: () => this.createYear()
         });
         menuItems.push({
@@ -285,6 +292,11 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
           command: () => this.deleteCountry()
         });
       } else if (level === NodeLevel.YEAR) {
+        menuItems.push({
+          label: 'TAX_YEAR_FUND_BASE_RATE' + BaseSettings.DIALOG_MENU_SUFFIX,
+          visible: this.selectedNode.data.countryCode === 'DE',
+          command: () => this.editFundBaseRate()
+        });
         menuItems.push({
           label: 'UPLOAD_TAX_DATA' + BaseSettings.DIALOG_MENU_SUFFIX,
           visible: !!this.selectedNode.data.ictaxSupported,
@@ -357,6 +369,35 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
                 idTaxCountry: country.idTaxCountry,
                 taxYear
               })
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe(() => this.readData());
+          }
+        });
+      });
+  }
+
+  /** Opens the dialog in which the administrator sets the base interest rate of the selected tax year of Germany. */
+  private editFundBaseRate(): void {
+    const year: TaxYear | undefined = this.selectedNode?.data.entity;
+    if (!year) return;
+    const idTaxYear = year.idTaxYear;
+    this.translateService
+      .get('TAX_YEAR_FUND_BASE_RATE')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((title) => {
+        const ref = this.dialogService.open(TaxYearFundBaseRateDialogComponent, {
+          data: { fundBaseRate: year.fundBaseRate ?? null },
+          header: title,
+          width: '400px',
+          modal: true,
+          closable: true,
+          closeOnEscape: true
+        });
+        if (!ref) return;
+        ref.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result?: { fundBaseRate: number | null }) => {
+          if (result) {
+            this.taxDataService
+              .setFundBaseRate(idTaxYear, result.fundBaseRate)
               .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe(() => this.readData());
           }

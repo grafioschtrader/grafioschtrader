@@ -17,10 +17,13 @@ import { BaseSettings } from '../../base.settings';
 
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { SignalDynamicFormComponent } from '../../dynamic-form/signal/signal-dynamic-form.component';
-import { disabled, SchemaPathTree } from '@angular/forms/signals';
+import { UDFShareMode } from '../model/udf.share.mode';
+import { FIELD_DISPLAY } from '../../dynamic-form/signal/signal-form.model';
+import { disabled, metadata, SchemaPathTree } from '@angular/forms/signals';
 
 interface MetadataFormModel extends UDFDataTypeModel {
   entity: string | null;
+  shareMode: string | null;
 }
 
 /**
@@ -60,10 +63,18 @@ export class UDFMetadataGeneralEditComponent
 
   readonly startValues = computed(() => {
     const entities = this.udfConfig.udfGeneralSupportedEntities;
-    return entities.length === 1 ? { entity: entities[0] } : {};
+    return {
+      shareMode: this.callParam().uDFMetadataGeneral?.shareMode ?? 'UDF_SHARE_NONE',
+      ...(entities.length === 1 ? { entity: entities[0] } : {})
+    };
   });
 
   readonly rules = (p: SchemaPathTree<MetadataFormModel>): void => {
+    metadata(p.shareMode, FIELD_DISPLAY, () => ({
+      valueKeyHtmlOptions: SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, UDFShareMode).filter(
+        (o) => !(this.callParam().uDFMetadataGeneral?.subscriberCount && o.key === 'UDF_SHARE_NONE')
+      )
+    }));
     UDFMetadataHelper.dataTypeRules(p, () => !!this.callParam().uDFMetadataGeneral);
     disabled(p.entity, {
       when: () => !!this.callParam().uDFMetadataGeneral || this.udfConfig.udfGeneralSupportedEntities.length === 1

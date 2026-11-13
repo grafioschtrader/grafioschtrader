@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -29,13 +30,16 @@ import org.springframework.ai.tool.function.FunctionToolCallback;
 import org.springframework.stereotype.Service;
 
 import grafiosch.BaseConstants;
+import grafiosch.entities.UDFMetadataSubscription;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.LimitEntityTransactionException;
 import grafiosch.exceptions.TaskInterruptException;
+import grafiosch.repository.UDFMetadataSubscriptionJpaRepository;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.UDFDataType;
+import grafiosch.types.UDFShareMode;
 import grafioschtrader.dto.UDFFillProposal;
 import grafioschtrader.dto.UDFFillProposalDecision;
 import grafioschtrader.dto.UDFFillProposalDecisionResult;
@@ -78,6 +82,11 @@ import tools.jackson.databind.ObjectMapper;
  * budget gate, with at most 4 calls of the only tool {@code fetchPage}, which reads a public page through
  * {@link UDFFillHttp}. The tool calls are executed here, not by the chat model, so that every round is budgeted. A
  * proposal is verified before the user sees it and never written into the values before the user accepts it.
+ *
+ * A run has exactly one payer: the owner of the field or one user who adopted the shared field. It asks only for the
+ * securities of the tenant scope of this payer and calls the model with this user, so the keys of the home tenant of
+ * the payer are used and the daily limits of the payer are charged. The values and the fill rows of a shared field are
+ * common, so a cell one participant has filled is not due for the next one.
  */
 @Service
 public class ValueSuggestService {
@@ -129,12 +138,13 @@ public class ValueSuggestService {
   private final UDFFillHttp udfFillHttp;
   private final GlobalparametersService globalparametersService;
   private final UDFFillTaskQueue udfFillTaskQueue;
+  private final UDFMetadataSubscriptionJpaRepository subscriptionJpaRepository;
 
   public ValueSuggestService(AIChatModelProvider aiChatModelProvider, UDFFillScopeService scopeService,
       UDFDataFillJpaRepository udfDataFillJpaRepository, UDFMetadataSecurityJpaRepository uMetaSecurityRepository,
       SecurityJpaRepository securityJpaRepository, UserJpaRepository userJpaRepository, UDFFillWriter udfFillWriter,
       ValueProposalVerifier verifier, UDFFillHttp udfFillHttp, GlobalparametersService globalparametersService,
-      UDFFillTaskQueue udfFillTaskQueue) {
+      UDFFillTaskQueue udfFillTaskQueue, UDFMetadataSubscriptionJpaRepository subscriptionJpaRepository) {
     this.aiChatModelProvider = aiChatModelProvider;
     this.scopeService = scopeService;
     this.udfDataFillJpaRepository = udfDataFillJpaRepository;
@@ -146,43 +156,65 @@ public class ValueSuggestService {
     this.udfFillHttp = udfFillHttp;
     this.globalparametersService = globalparametersService;
     this.udfFillTaskQueue = udfFillTaskQueue;
+    this.subscriptionJpaRepository = subscriptionJpaRepository;
   }
 
   /**
-   * Enqueues a value proposal run for a field of the caller, unless one is waiting.
+   * Enqueues a value proposal run for the caller, unless one is waiting: the run of the field for its owner, the run
+   * of the own adoption for a user who adopted the field. A run started by one participant never asks at the cost of
+   * another one.
    *
-   * @param idUDFMetadata a field of the caller with the fill source LLM
+   * @param idUDFMetadata a field with the fill source LLM the caller owns or has adopted
    * @param user          the caller
    */
   public void enqueue(Integer idUDFMetadata, User user) {
-    getOwnLLMField(idUDFMetadata, user);
-    udfFillTaskQueue.enqueueSuggest(idUDFMetadata, TaskDataExecPriority.PRIO_NORMAL);
+    UDFMetadataSecurity field = getParticipantLLMField(idUDFMetadata, user);
+    if (user.getIdUser().equals(field.getIdUser())) {
+      udfFillTaskQueue.enqueueSuggest(idUDFMetadata, TaskDataExecPriority.PRIO_NORMAL);
+    } else {
+      subscriptionJpaRepository.findByIdUDFMetadataAndIdUser(idUDFMetadata, user.getIdUser())
+          .ifPresent(subscription -> udfFillTaskQueue.enqueueSuggestSubscription(subscription.getId(),
+              TaskDataExecPriority.PRIO_NORMAL));
+    }
   }
 
   /**
-   * Enqueues a value proposal run for every language model field with a fill period whose owner still has a language
-   * model of the own tenant. A run decides itself which cells are due, so a field without due cells costs nothing.
+   * Enqueues the value proposal runs of every language model field with a fill period that has an owner: first the run
+   * of the owner, then one run per adoption in the order of the adoption IDs. A participant gets a run only when the
+   * home tenant matches the filter and still has a language model. A run decides itself which cells are due, so a field
+   * without due cells costs nothing.
    *
-   * @param idTenant only the fields of users of this home tenant, or null for all tenants
+   * @param idTenant only the runs of users of this home tenant, or null for all tenants
    */
   public void enqueuePeriodic(Integer idTenant) {
     for (UDFMetadataSecurity field : uMetaSecurityRepository
         .findUserFieldsByFillSourceIn(Set.of(UDFFillSource.LLM.getValue()))) {
-      if (field.getFillPeriod() != null) {
-        User owner = userJpaRepository.findById(field.getIdUser()).orElse(null);
-        if (owner != null && (idTenant == null || idTenant.equals(owner.getIdTenant()))
-            && aiChatModelProvider.isValueSuggestionAvailable(owner)) {
-          udfFillTaskQueue.enqueueSuggest(field.getIdUDFMetadata(), TaskDataExecPriority.PRIO_VERY_LOW);
+      if (field.getFillPeriod() == null || field.getIdUser() == null) {
+        continue;
+      }
+      if (isPeriodicPayer(field.getIdUser(), idTenant)) {
+        udfFillTaskQueue.enqueueSuggest(field.getIdUDFMetadata(), TaskDataExecPriority.PRIO_VERY_LOW);
+      }
+      if (field.getShareMode() != UDFShareMode.UDF_SHARE_NONE) {
+        for (UDFMetadataSubscription subscription : subscriptionJpaRepository
+            .findByIdUDFMetadataOrderByIdUDFMetadataSubscription(field.getIdUDFMetadata())) {
+          if (isPeriodicPayer(subscription.getIdUser(), idTenant)) {
+            udfFillTaskQueue.enqueueSuggestSubscription(subscription.getId(), TaskDataExecPriority.PRIO_VERY_LOW);
+          }
         }
       }
     }
   }
 
+  private boolean isPeriodicPayer(Integer idUser, Integer idTenant) {
+    User payer = userJpaRepository.findById(idUser).orElse(null);
+    return payer != null && (idTenant == null || idTenant.equals(payer.getIdTenant()))
+        && aiChatModelProvider.isValueSuggestionAvailable(payer);
+  }
+
   /**
-   * One run, the work of the task {@code UDF_USER_SUGGEST_VALUES}: at most {@code gt.ai.suggest.max.per.run} due
-   * securities of the tenant scope, see {@link #suggestDue}. Empty cells come first, in ID order, then the values to
-   * refresh, oldest check first. An empty cell gets a proposal the user must accept; a refreshed value replaces the
-   * automatic one. When a budget refuses a round, the run stops; the remaining securities stay for the next run.
+   * The run of the owner, the work of the task {@code UDF_USER_SUGGEST_VALUES} with a field as entity. A field without
+   * owner ends it at once: nothing fills an orphaned field.
    *
    * @param idUDFMetadata the field
    * @return null, or the message key why the run stopped
@@ -190,18 +222,52 @@ public class ValueSuggestService {
   public String runField(Integer idUDFMetadata) {
     UDFMetadataSecurity field = idUDFMetadata == null ? null
         : uMetaSecurityRepository.findById(idUDFMetadata).orElse(null);
-    if (field == null || field.getFillSource() != UDFFillSource.LLM) {
+    if (field == null || field.getFillSource() != UDFFillSource.LLM || field.getIdUser() == null) {
       return null;
     }
     User owner = userJpaRepository.findById(field.getIdUser()).orElse(null);
-    if (owner == null) {
+    return owner == null ? null : runForPayer(field, owner);
+  }
+
+  /**
+   * The run of a user who adopted a shared field, the work of the task {@code UDF_USER_SUGGEST_VALUES} with an adoption
+   * as entity. It ends without a message when the adoption no longer exists, the field is orphaned or no longer filled
+   * by a language model.
+   *
+   * @param idUDFMetadataSubscription the adoption
+   * @return null, or the message key why the run stopped
+   */
+  public String runSubscription(Integer idUDFMetadataSubscription) {
+    UDFMetadataSubscription subscription = idUDFMetadataSubscription == null ? null
+        : subscriptionJpaRepository.findById(idUDFMetadataSubscription).orElse(null);
+    if (subscription == null) {
       return null;
     }
-    if (aiChatModelProvider.getProviders(owner, AIRequestPurpose.SUGGEST_VALUE).isEmpty()) {
+    UDFMetadataSecurity field = uMetaSecurityRepository.findById(subscription.getIdUDFMetadata()).orElse(null);
+    if (field == null || field.getFillSource() != UDFFillSource.LLM || field.getIdUser() == null) {
+      return null;
+    }
+    User payer = userJpaRepository.findById(subscription.getIdUser()).orElse(null);
+    return payer == null ? null : runForPayer(field, payer);
+  }
+
+  /**
+   * One run for one payer: at most {@code gt.ai.suggest.max.per.run} due securities of the tenant scope of the payer,
+   * see {@link #suggestDue}. Empty cells come first, in ID order, then the values to refresh, oldest check first. An
+   * empty cell gets a proposal a participant must accept; a refreshed value replaces the automatic one. When a budget
+   * refuses a round, the run stops; the remaining securities stay for the next run.
+   *
+   * @param field the field with the fill source LLM and an owner
+   * @param payer the owner or a user who adopted the field; the model is called with the keys and limits of this user
+   * @return null, or the message key why the run stopped
+   */
+  private String runForPayer(UDFMetadataSecurity field, User payer) {
+    Integer idUDFMetadata = field.getIdUDFMetadata();
+    if (aiChatModelProvider.getProviders(payer, AIRequestPurpose.SUGGEST_VALUE).isEmpty()) {
       return "gt.ai.tenant.not.configured";
     }
-    List<Security> scope = scopeService.getTenantScope(field, owner.getIdTenant());
-    Map<Integer, String> values = scopeService.getFieldValues(owner.getIdUser(), idUDFMetadata);
+    List<Security> scope = scopeService.getTenantScope(field, payer.getIdTenant());
+    Map<Integer, String> values = scopeService.getFieldValues(field);
     Map<Integer, UDFDataFill> fills = udfDataFillJpaRepository.findById_IdUDFMetadata(idUDFMetadata).stream()
         .collect(Collectors.toMap(f -> f.getId().getIdEntity(), Function.identity()));
     LocalDate today = LocalDate.now();
@@ -219,31 +285,38 @@ public class ValueSuggestService {
       }
     }
     refresh.sort(Comparator.comparing(s -> fills.get(s.getIdSecuritycurrency()).getCheckedTime()));
-    int max = globalparametersService.getAISuggestMaxPerRun();
     try {
-      int asked = 0;
-      for (Security security : empty) {
-        if (asked++ >= max) {
-          return null;
-        }
-        suggestOne(field, owner, security, scope, values, false);
-      }
-      for (Security security : refresh) {
-        if (asked++ >= max) {
-          return null;
-        }
-        suggestOne(field, owner, security, scope, values, true);
-      }
+      askDue(field, payer, scope, values, empty, refresh);
     } catch (RunStopped e) {
-      log.info("Value proposal run of user field {} stopped: {}", idUDFMetadata, e.getMessage());
+      log.info("Value proposal run of user field {} for user {} stopped: {}", idUDFMetadata, payer.getIdUser(),
+          e.getMessage());
       return stopReason(e.getCause());
     }
     return null;
   }
 
+  /** Asks for the empty cells and then for the values to refresh, until the maximum of one run is reached. */
+  private void askDue(UDFMetadataSecurity field, User payer, List<Security> scope, Map<Integer, String> values,
+      List<Security> empty, List<Security> refresh) {
+    int max = globalparametersService.getAISuggestMaxPerRun();
+    int asked = 0;
+    for (Security security : empty) {
+      if (asked++ >= max) {
+        return;
+      }
+      suggestOne(field, payer, security, scope, values, false);
+    }
+    for (Security security : refresh) {
+      if (asked++ >= max) {
+        return;
+      }
+      suggestOne(field, payer, security, scope, values, true);
+    }
+  }
+
   /**
-   * The message key that tells the user which limit stopped a run: the daily limit of the user set by the instance,
-   * the daily limits the tenant set for all its keys, missing keys, or providers that did not answer.
+   * The message key that tells the user which limit stopped a run: the daily limit of the user set by the instance, the
+   * daily limits the tenant set for all its keys, missing keys, or providers that did not answer.
    */
   static String stopReason(Throwable cause) {
     if (cause instanceof LimitEntityTransactionException) {
@@ -269,11 +342,11 @@ public class ValueSuggestService {
   }
 
   /**
-   * Tells whether and why a cell is asked for. Only securities that are not private and still active today are asked:
-   * a delisted security has no current figure. An empty cell is due without a fill row of the current rule version,
-   * and with a period also when it was not found or discarded before {@code refreshBefore}. A cell holding the value
-   * the user once accepted is due for a refresh when it was checked before {@code refreshBefore}. A locked cell, a
-   * manual value and a rejected proposal are never asked for; the latter only again after the user asks for it.
+   * Tells whether and why a cell is asked for. Only securities that are not private and still active today are asked: a
+   * delisted security has no current figure. An empty cell is due without a fill row of the current rule version, and
+   * with a period also when it was not found or discarded before {@code refreshBefore}. A cell holding the value the
+   * user once accepted is due for a refresh when it was checked before {@code refreshBefore}. A locked cell, a manual
+   * value and a rejected proposal are never asked for; the latter only again after the user asks for it.
    *
    * @param field         the field
    * @param security      the security
@@ -307,13 +380,13 @@ public class ValueSuggestService {
    * Asks the model for one security and records the verified outcome. The value of this security is withheld from the
    * examples, so a refresh cannot simply repeat it.
    */
-  private void suggestOne(UDFMetadataSecurity field, User owner, Security security, List<Security> scope,
+  private void suggestOne(UDFMetadataSecurity field, User payer, Security security, List<Security> scope,
       Map<Integer, String> values, boolean refresh) {
     Integer id = security.getIdSecuritycurrency();
     try {
       Map<Integer, String> others = new HashMap<>(values);
       others.remove(id);
-      ValueAnswer answer = converse(field, owner, security, examples(scope, others), new ArrayList<>());
+      ValueAnswer answer = converse(field, payer, security, examples(scope, others), new ArrayList<>());
       Verification verification = verifier.verify(field, security, answer);
       ProposalRecord record = switch (verification) {
       case Proposed p -> new ProposalRecord(UDFFillState.PROPOSED, p.value(), p.sourceUrl(), p.excerpt(), p.asOfDate(),
@@ -338,13 +411,14 @@ public class ValueSuggestService {
   }
 
   /**
-   * One conversation for one security, with the tool calls executed here. Before the last round the model is told
-   * that no page can be fetched any more, so it answers from what it read instead of losing the round on a fetch.
+   * One conversation for one security, with the tool calls executed here. Before the last round the model is told that
+   * no page can be fetched any more, so it answers from what it read instead of losing the round on a fetch.
    *
+   * @param payer    the user whose keys and limits the model rounds use
    * @param fetchLog receives one line per page fetch: the URL and how it answered
    * @return the final answer, or null when the model gave none within the rounds
    */
-  private ValueAnswer converse(UDFMetadataSecurity field, User owner, Security security,
+  private ValueAnswer converse(UDFMetadataSecurity field, User payer, Security security,
       List<Map<String, String>> examples, List<String> fetchLog) {
     BeanOutputConverter<ValueAnswer> converter = new BeanOutputConverter<>(ValueAnswer.class);
     List<Message> messages = new ArrayList<>();
@@ -353,7 +427,7 @@ public class ValueSuggestService {
     ToolCallingChatOptions options = ToolCallingChatOptions.builder().toolCallbacks(fetchPageTool()).build();
     int fetches = 0;
     for (int round = 1; round <= MAX_ROUNDS; round++) {
-      AssistantMessage output = callRound(new Prompt(messages, options), owner);
+      AssistantMessage output = callRound(new Prompt(messages, options), payer);
       if (!output.hasToolCalls()) {
         return parse(converter, output.getText());
       }
@@ -380,9 +454,9 @@ public class ValueSuggestService {
    * One round, passing the budgets and falling back to the next provider on a technical failure. When a budget refuses
    * or every provider failed, the run stops: such a failure usually concerns every further request as well.
    */
-  private AssistantMessage callRound(Prompt prompt, User owner) {
+  private AssistantMessage callRound(Prompt prompt, User payer) {
     try {
-      return aiChatModelProvider.call(prompt, owner, AIRequestPurpose.SUGGEST_VALUE).response().getResult().getOutput();
+      return aiChatModelProvider.call(prompt, payer, AIRequestPurpose.SUGGEST_VALUE).response().getResult().getOutput();
     } catch (DataViolationException | LimitEntityTransactionException e) {
       throw new RunStopped("no provider answered or a budget refuses the next request", e);
     }
@@ -497,15 +571,15 @@ public class ValueSuggestService {
   }
 
   /**
-   * Tests the description of a draft field on one security: one conversation and the verification of a run, but
-   * nothing is stored. The value of the field for this security is withheld from the examples, so the answer can be
-   * compared with it. Every model round passes the budgets.
+   * Tests the description of a draft field on one security: one conversation and the verification of a run, but nothing
+   * is stored. The value of the field for this security is withheld from the examples, so the answer can be compared
+   * with it. Every model round passes the budgets.
    *
    * @param request            the draft of the edit form; its fill rule is the description for the model
    * @param idSecuritycurrency a security of {@link #getSuggestTestCandidates}
    * @param user               the caller
    * @return the outcome of the check with the answer of the model
-   * @throws DataViolationException         when no provider answered or no provider is configured
+   * @throws DataViolationException          when no provider answered or no provider is configured
    * @throws LimitEntityTransactionException when a budget refuses the next round
    */
   public UDFSuggestTestResult testSuggestion(UDFFillTestRequest request, Integer idSecuritycurrency, User user) {
@@ -573,8 +647,7 @@ public class ValueSuggestService {
     }
     Map<Integer, String> values = Map.of();
     if (request.idUDFMetadata != null) {
-      getOwnField(request.idUDFMetadata, user);
-      values = scopeService.getFieldValues(user.getIdUser(), request.idUDFMetadata);
+      values = scopeService.getFieldValues(getOwnField(request.idUDFMetadata, user));
     }
     List<Security> scope = scopeService.getTenantScope(draft, user.getIdTenant()).stream()
         .filter(s -> s.getIdTenantPrivate() == null).toList();
@@ -582,12 +655,20 @@ public class ValueSuggestService {
   }
 
   /**
-   * Lists the proposals of the current rule version of a field of the caller, ordered by security name.
+   * Lists the proposals of the current rule version of a field for the securities in the tenant scope of the caller,
+   * ordered by security name. The restriction to the own scope keeps a participant from learning which securities
+   * another participant holds.
+   *
+   * @param idUDFMetadata a field with the fill source LLM the caller owns or has adopted
+   * @param user          the caller
+   * @return the proposals the caller may decide
    */
   public List<UDFFillProposal> getProposals(Integer idUDFMetadata, User user) {
-    UDFMetadataSecurity field = getOwnLLMField(idUDFMetadata, user);
+    UDFMetadataSecurity field = getParticipantLLMField(idUDFMetadata, user);
+    Set<Integer> scopeIds = getCallerScopeIds(field, user);
     List<UDFDataFill> rows = udfDataFillJpaRepository.findById_IdUDFMetadata(idUDFMetadata).stream()
-        .filter(f -> f.getFillState() == UDFFillState.PROPOSED && f.getRuleVersion() == field.getFillRuleVersion())
+        .filter(f -> f.getFillState() == UDFFillState.PROPOSED && f.getRuleVersion() == field.getFillRuleVersion()
+            && scopeIds.contains(f.getId().getIdEntity()))
         .toList();
     Map<Integer, String> names = securityJpaRepository
         .findAllById(rows.stream().map(f -> f.getId().getIdEntity()).toList()).stream()
@@ -600,17 +681,24 @@ public class ValueSuggestService {
   }
 
   /**
-   * Accepts or rejects proposals the user saw; idempotent.
+   * Accepts or rejects proposals the user saw; idempotent. A user who adopted the field may decide with the share mode
+   * read as well, because the value was verified against its source; typing any value stays bound to the share mode
+   * read and write.
    *
-   * @param idUDFMetadata a field of the caller
+   * @param idUDFMetadata a field the caller owns or has adopted
    * @param decisions     security, rule version and value per proposal
    * @param accept        true to accept, false to reject
    * @param user          the caller
    * @return the outcome per proposal
+   * @throws SecurityException when a decided security is outside the tenant scope of the caller; nothing is decided
    */
   public List<UDFFillProposalDecisionResult> decide(Integer idUDFMetadata, List<UDFFillProposalDecision> decisions,
       boolean accept, User user) {
-    UDFMetadataSecurity field = getOwnField(idUDFMetadata, user);
+    UDFMetadataSecurity field = getParticipantField(idUDFMetadata, user);
+    Set<Integer> scopeIds = getCallerScopeIds(field, user);
+    if (decisions.stream().anyMatch(d -> !scopeIds.contains(d.idSecuritycurrency()))) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
     List<UDFFillProposalDecisionResult> results = new ArrayList<>();
     for (UDFFillProposalDecision d : decisions) {
       UDFFillProposalDecisionResult.Outcome outcome = accept
@@ -622,20 +710,43 @@ public class ValueSuggestService {
   }
 
   /**
-   * Deletes the NOT_FOUND, REJECTED and DISCARDED rows of a field of the caller, so the next run asks for them again.
+   * Deletes the NOT_FOUND, REJECTED and DISCARDED rows of a field for the securities in the tenant scope of the caller,
+   * so the next run asks for them again.
    *
+   * @param idUDFMetadata a field with the fill source LLM the caller owns or has adopted
+   * @param user          the caller
    * @return the number of deleted rows
    */
   public int retry(Integer idUDFMetadata, User user) {
-    getOwnLLMField(idUDFMetadata, user);
-    return udfDataFillJpaRepository.deleteByIdUDFMetadataAndFillStateIn(idUDFMetadata, List
-        .of(UDFFillState.NOT_FOUND.getValue(), UDFFillState.REJECTED.getValue(), UDFFillState.DISCARDED.getValue()));
+    Collection<Integer> scopeIds = getCallerScopeIds(getParticipantLLMField(idUDFMetadata, user), user);
+    if (scopeIds.isEmpty()) {
+      return 0;
+    }
+    return udfDataFillJpaRepository.deleteByIdUDFMetadataAndFillStateInAndIdEntityIn(idUDFMetadata, List
+        .of(UDFFillState.NOT_FOUND.getValue(), UDFFillState.REJECTED.getValue(), UDFFillState.DISCARDED.getValue()),
+        scopeIds);
   }
 
-  private UDFMetadataSecurity getOwnLLMField(Integer idUDFMetadata, User user) {
-    UDFMetadataSecurity field = getOwnField(idUDFMetadata, user);
+  /** The IDs of the securities in the scope of the home tenant of the caller that match the field. */
+  private Set<Integer> getCallerScopeIds(UDFMetadataSecurity field, User user) {
+    return scopeService.getTenantScope(field, user.getIdTenant()).stream().map(Security::getIdSecuritycurrency)
+        .collect(Collectors.toSet());
+  }
+
+  private UDFMetadataSecurity getParticipantLLMField(Integer idUDFMetadata, User user) {
+    UDFMetadataSecurity field = getParticipantField(idUDFMetadata, user);
     if (field.getFillSource() != UDFFillSource.LLM) {
       throw new DataViolationException("fill.source", "gt.ai.suggest.not.llm", null);
+    }
+    return field;
+  }
+
+  /** Returns the field when it has an owner and the caller is this owner or has adopted the field. */
+  private UDFMetadataSecurity getParticipantField(Integer idUDFMetadata, User user) {
+    UDFMetadataSecurity field = uMetaSecurityRepository.findById(idUDFMetadata).orElse(null);
+    if (field == null || field.getIdUser() == null || (!user.getIdUser().equals(field.getIdUser())
+        && subscriptionJpaRepository.findByIdUDFMetadataAndIdUser(idUDFMetadata, user.getIdUser()).isEmpty())) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     return field;
   }

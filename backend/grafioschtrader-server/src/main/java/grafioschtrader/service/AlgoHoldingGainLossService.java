@@ -31,8 +31,10 @@ import grafioschtrader.repository.TransactionJpaRepository;
  *
  * <p>
  * The calculation is not reimplemented here. It walks the tenant's transactions through {@link SecurityCalcService},
- * the same average cost accounting the portfolio reports use, and asks the resulting position for the percentage it
- * would show. An alert and the report the user then opens therefore cannot disagree. Everything is in the currency of
+ * the same accounting the portfolio reports use, and asks the resulting position for the percentage it would show. An
+ * alert and the report the user then opens therefore cannot disagree. The percentage is the open return: the
+ * unrealized result relative to the remaining cost, without realized gains and income. The remaining cost depends on
+ * the cost basis method, so a change of the method can move a percentage threshold. Everything is in the currency of
  * the instrument, which is also the currency of the price the alert compares, so no exchange rate enters into it.
  * </p>
  */
@@ -53,6 +55,9 @@ public class AlgoHoldingGainLossService {
 
   @Autowired
   private GlobalparametersService globalparametersService;
+
+  @Autowired
+  private CostBasisMethodService costBasisMethodService;
 
   /**
    * Whether the tenant currently holds this instrument, and the percentage that position would show at a given price.
@@ -119,7 +124,7 @@ public class AlgoHoldingGainLossService {
     // converting both into the tenant currency would divide the exchange rate out again. Passing null lets the service
     // build the minimal map it needs for the walk itself.
     securityCalcService.calcTransactions(security, tenant.isExcludeDivTax(), summary, securitySplitMap, transactions,
-        LocalDate.now(), null);
+        LocalDate.now(), null, costBasisMethodService.forTenant(idTenant));
 
     SecurityPositionSummary position = summary.securityPositionSummary;
     if (position.units == 0.0)
@@ -127,7 +132,7 @@ public class AlgoHoldingGainLossService {
     if (position.adjustedCostBase == 0.0)
       return new HoldingObservation(true, null);
     position.calcGainLossByPrice(price);
-    double percentage = position.getPositionGainLossPercentage();
-    return new HoldingObservation(true, Double.isFinite(percentage) ? percentage : null);
+    Double percentage = position.getPositionGainLossPercentage();
+    return new HoldingObservation(true, percentage != null && Double.isFinite(percentage) ? percentage : null);
   }
 }

@@ -1,0 +1,27 @@
+TRANSAKTIONSBELEG
+Kunde: 999999 - TRADING
+MAX MUSTER
+Musterstrasse 1
+CH-9999 Musterort
+Bern, 01.11.2016
+Dividende
+Unsere Referenz: 000000000
+Im Hinblick auf folgenden Titel:
+Titel
+Bezeichnung Anzahl
+ISIN: IE00B988C465
+iShares Global HY Corp Bnd CHF 650
+NKN: 22134231
+haben wir Ihrem Konto den folgenden Betrag gutgeschrieben:
+Kontonummer 99999900
+Ausführungsdatum 13.10.2016
+Valutadatum 31.10.2016
+Anzahl 650
+Dividende 2.2698 CHF
+Betrag CHF 1'475.37
+Total CHF 1'475.37
+Bitte prüfen Sie dieses Dokument und benachrichtigen Sie uns bei Unstimmigkeiten innert Monatsfrist.
+PostFinance AG, Mingerstrasse 20, 3030 Bern
+Kontaktcenter E-Trading: 0848 800 000 (Mo-Fr: 08.00-22.00 Uhr, ab Festnetz CHF 0.08/Min.)
+Formular ohne Unterschrift S.E. & O.
+MwSt n° CHE-116.302.542

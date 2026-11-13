@@ -30,6 +30,15 @@ export interface SecurityPositionSummary {
   taxCostMC: number;
   gainLossSecurity: number;
   gainLossSecurityMC: number;
+  /** Part of gainLossSecurity realized by sales; with income and unrealized it adds up to gainLossSecurity. */
+  realizedGainLossSecurity: number;
+  realizedGainLossSecurityMC: number;
+  /** Part of gainLossSecurity from dividends and accrued interest. */
+  incomeGainLossSecurity: number;
+  incomeGainLossSecurityMC: number;
+  /** Part of gainLossSecurity of the open position: its value less its remaining cost. */
+  unrealizedGainLossSecurity: number;
+  unrealizedGainLossSecurityMC: number;
   /** Share of the result caused by exchange rate movement; together with gainLossSecurityMC the total in main currency. */
   gainLossCurrencyMC: number;
   valueSecurity: number;

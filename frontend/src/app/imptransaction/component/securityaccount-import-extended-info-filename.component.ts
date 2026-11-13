@@ -7,7 +7,6 @@ import type { CombineTemplateAndImpTransPos } from '../../securityaccount/compon
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ImportSettings } from './import.settings';
-import { AppSettings } from '../../shared/app.settings';
 
 /**
  * Show the file name of an imported transaction file.
@@ -26,7 +25,7 @@ export class SecurityaccountImportExtendedInfoFilenameComponent extends SingleRe
 
   ngOnInit(): void {
     this.addFieldPropertyFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'fileNameOriginal', {
-      fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()
+      fieldsetName: 'IMPORT_FILE'
     });
     this.translateHeadersAndColumns();
   }

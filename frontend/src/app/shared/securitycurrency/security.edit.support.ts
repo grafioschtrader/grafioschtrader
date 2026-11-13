@@ -171,6 +171,11 @@ export class SecurityEditSupport {
       DynamicFieldHelper.createFieldSelectStringHeqF('distributionFrequency', true, { fieldsetName: 'BASE_DATA' })
     );
 
+    if (securityDerived === SecurityDerived.Security) {
+      // Only an ETF, a mutual fund or a pension fund has a fund class, hideShowSomeFields decides when it shows
+      fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('fundTaxClass', false, { fieldsetName: 'BASE_DATA' }));
+    }
+
     fc.push(
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false, -9.99, 9.99, {
         fieldsetName: 'BASE_DATA',
@@ -517,6 +522,8 @@ export class SecurityEditSupport {
     dynamicForm.cleanMaskAndTransferValuesToBusinessObject(security);
 
     security.idTenantPrivate = value.isTenantPrivate ? this.gps.getIdTenant() : null;
+    // The empty option stands for not classified
+    security.fundTaxClass = security.fundTaxClass || null;
     return security;
   }
 
@@ -572,6 +579,15 @@ export class SecurityEditSupport {
           SpecialInvestmentInstruments[SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT],
       [configObject.leverageFactor]
     );
+    if (configObject.fundTaxClass) {
+      const instrument = assetClass.specialInvestmentInstrument;
+      FormHelper.hideVisibleFieldConfigs(
+        instrument !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF] &&
+          instrument !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.MUTUAL_FUND] &&
+          instrument !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.PENSION_FUNDS],
+        [configObject.fundTaxClass]
+      );
+    }
   }
 
   private isHideIsinAndTicker(configObject: { [name: string]: FieldConfig }): boolean {

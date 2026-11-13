@@ -24,6 +24,7 @@ import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.instrument.CostBasisMethods;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionGrandSummary;
@@ -37,6 +38,7 @@ import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
+import grafioschtrader.service.CostBasisMethodService;
 import grafioschtrader.service.DisposalCostEstimator;
 import grafioschtrader.service.DisposalPositionCollector;
 import grafioschtrader.service.GlobalparametersService;
@@ -68,6 +70,9 @@ public abstract class SecurityPositionSummaryReport {
 
   @Autowired
   protected SecurityCalcService securityCalcService;
+
+  @Autowired
+  private CostBasisMethodService costBasisMethodService;
 
   @Autowired
   protected PortfolioJpaRepository portfolioJpaRepository;
@@ -279,8 +284,11 @@ public abstract class SecurityPositionSummaryReport {
 
     final Map<Security, SecurityPositionSummary> securityPositionSummaryMap = new HashMap<>();
     final DisposalPositionCollector disposalCollector = disposalCostEstimator.newCollectorIfEnabled(tenant.getIdTenant());
+    // Resolved once for the whole report, the loop over the security accounts must not change the methods
+    final CostBasisMethods costBasisMethods = costBasisMethodService.forTenant(tenant.getIdTenant());
     securityaccountList.stream().forEach((securityaccount) -> createPositionSummaryForSecurityaccount(securityaccount,
-        securityPositionSummaryMap, excludeDivTaxcost, untilDatePlus, dateCurrencyMap, disposalCollector));
+        securityPositionSummaryMap, excludeDivTaxcost, untilDatePlus, dateCurrencyMap, disposalCollector,
+        costBasisMethods));
 
     final List<SecurityPositionSummary> securityPositionSummaryList = securityJpaRepository
         .processOpenPositionsWithActualPrice(dateCurrencyMap.getUntilDate(), securityPositionSummaryMap);
@@ -335,16 +343,18 @@ public abstract class SecurityPositionSummaryReport {
    * @param excludeDivTaxcost  If true, tax withholdings are not taken into account.
    * @param dateCurrencyMap    Contains the currency information
    * @param disposalCollector  Collects units, settlement and trades for the disposal cost estimate, null when it is off
+   * @param costBasisMethods   The cost basis methods of this report
    */
   private void createPositionSummaryForSecurityaccount(final Securityaccount securityaccount,
       final Map<Security, SecurityPositionSummary> summarySecurityMap, final boolean excludeDivTaxcost,
       final LocalDate untilDatePlus, final DateTransactionCurrencypairMap dateCurrencyMap,
-      final DisposalPositionCollector disposalCollector) {
+      final DisposalPositionCollector disposalCollector, final CostBasisMethods costBasisMethods) {
 
     final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
         .getSecuritysplitMapByIdSecuritycashaccount(securityaccount.getIdSecuritycashAccount());
 
-    for (final Transaction transaction : securityaccount.getSecurityTransactionList()) {
+    for (final Transaction transaction : SecurityCalcService
+        .sortForCalculation(securityaccount.getSecurityTransactionList())) {
       if (!transaction.getTransactionTime().isBefore(untilDatePlus.atStartOfDay())) {
         break;
       }
@@ -352,7 +362,7 @@ public abstract class SecurityPositionSummaryReport {
       if (transaction.getSecurity() != null) {
         // We don't want transaction without a Security, for example FEE
         securityCalcService.calcSingleSecurityTransaction(transaction, summarySecurityMap, securitysplitMap,
-            excludeDivTaxcost, dateCurrencyMap);
+            excludeDivTaxcost, dateCurrencyMap, costBasisMethods);
         if (disposalCollector != null) {
           disposalCollector.accept(transaction, securitysplitMap);
         }

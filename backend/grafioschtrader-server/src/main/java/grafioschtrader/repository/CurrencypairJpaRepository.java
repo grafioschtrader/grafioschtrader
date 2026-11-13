@@ -1,6 +1,8 @@
 package grafioschtrader.repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -382,5 +384,29 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   @Modifying
   @Query(nativeQuery = true)
   void resetRetryIntraByConnector(String connectorId);
+
+  /**
+   * Determines the newest closing rate into one currency for several currencies, independently of the accounts of a
+   * tenant, because a watchlist can hold currencies in which the tenant has no account.
+   *
+   * Named query: Currencypair.findNewestRatesToCurrency
+   *
+   * @param currencies     the source currencies (?1), must not be empty
+   * @param targetCurrency the currency to convert into (?2)
+   * @param asOfDate       the newest day of a closing rate (?3)
+   * @return per currency that has a pair with the target currency the newest close of {@code currency -> target},
+   *         otherwise the inverse of the newest close of {@code target -> currency}; the rate is null when the pair has
+   *         no quote
+   */
+  @Query(nativeQuery = true)
+  List<CurrencyRate> findNewestRatesToCurrency(Collection<String> currencies, String targetCurrency,
+      LocalDate asOfDate);
+
+  /** The rate that converts an amount of a currency into the requested target currency. */
+  interface CurrencyRate {
+    String getCurrency();
+
+    Double getRate();
+  }
 
 }

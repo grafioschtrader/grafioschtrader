@@ -81,4 +81,12 @@ export class UDFMetadataGeneralService
       )
       .pipe(catchError(this.handleError.bind(this)));
   }
+  getShared(): Observable<UDFMetadataGeneral[]> {
+    return this.httpClient
+      .get<UDFMetadataGeneral[]>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.UDF_METADATA_GENERAL_KEY}/shared`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
 }

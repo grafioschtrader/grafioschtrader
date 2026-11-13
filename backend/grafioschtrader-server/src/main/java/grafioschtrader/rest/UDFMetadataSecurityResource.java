@@ -2,7 +2,9 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafiosch.BaseConstants;
 import grafiosch.entities.User;
+import grafiosch.repository.UserJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithUserIdJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithUserIdResource;
 import grafioschtrader.dto.FieldDescriptorInputAndShowExtendedSecurity;
@@ -34,6 +36,7 @@ import grafioschtrader.dto.UDFSuggestTestCandidate;
 import grafioschtrader.dto.UDFSuggestTestResult;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.repository.UDFMetadataSecurityJpaRepository;
+import grafioschtrader.types.UDFFillSource;
 import grafioschtrader.udffill.UDFFillService;
 import grafioschtrader.udffill.UDFFillSources;
 import grafioschtrader.udffill.ai.AIChatModelProvider;
@@ -53,10 +56,12 @@ public class UDFMetadataSecurityResource extends UpdateCreateDeleteWithUserIdRes
   private final RuleProposalService ruleProposalService;
   private final AIChatModelProvider aiChatModelProvider;
   private final ValueSuggestService valueSuggestService;
+  private final UserJpaRepository userJpaRepository;
 
   public UDFMetadataSecurityResource(UDFMetadataSecurityJpaRepository uDFMetadataSecurityJpaRepository,
       UDFFillService udfFillService, UDFFillSources udfFillSources, RuleProposalService ruleProposalService,
-      AIChatModelProvider aiChatModelProvider, ValueSuggestService valueSuggestService) {
+      AIChatModelProvider aiChatModelProvider, ValueSuggestService valueSuggestService,
+      UserJpaRepository userJpaRepository) {
     super(UDFMetadataSecurity.class);
     this.uDFMetadataSecurityJpaRepository = uDFMetadataSecurityJpaRepository;
     this.udfFillService = udfFillService;
@@ -64,6 +69,7 @@ public class UDFMetadataSecurityResource extends UpdateCreateDeleteWithUserIdRes
     this.ruleProposalService = ruleProposalService;
     this.aiChatModelProvider = aiChatModelProvider;
     this.valueSuggestService = valueSuggestService;
+    this.userJpaRepository = userJpaRepository;
   }
 
   @Operation(summary = "Return all security UDF metadata for the current user", description = "This is intended for editing the metadata and contains all of them.", tags = {
@@ -71,12 +77,47 @@ public class UDFMetadataSecurityResource extends UpdateCreateDeleteWithUserIdRes
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<UDFMetadataSecurity>> getAllByIdUser() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    List<UDFMetadataSecurity> fields = uDFMetadataSecurityJpaRepository
-        .getAllByIdUserInAndUiOrderLessThanOrderByUiOrder(new int[] { user.getIdUser(), BaseConstants.UDF_ID_USER },
-            BaseConstants.MAX_USER_UI_ORDER_VALUE);
-    boolean tenantHasModel = aiChatModelProvider.isValueSuggestionAvailable(user);
-    fields.forEach(f -> f.setActive(udfFillService.isProcessed(f, tenantHasModel)));
+    List<UDFMetadataSecurity> fields = uDFMetadataSecurityJpaRepository.getFieldsForUser(user.getIdUser());
+    setCallerView(fields, user);
     return new ResponseEntity<>(fields, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Return the security UDF metadata other users share and the caller has not adopted", description = """
+      The catalogue from which a user adopts a shared field. Fields without owner and fields of the caller are not
+      contained.""", tags = { RequestGTMappings.UDFMETADATASECURITY })
+  @GetMapping(value = "/shared", produces = APPLICATION_JSON_VALUE)
+  public List<UDFMetadataSecurity> getShared() {
+    final User user = currentUser();
+    List<UDFMetadataSecurity> fields = uDFMetadataSecurityJpaRepository.getShared(user.getIdUser());
+    setCallerView(fields, user);
+    return fields;
+  }
+
+  /**
+   * Sets the transient properties that depend on the caller. A language model field is processed when the home tenant
+   * of its owner or the one of the caller has a language model, because each participant asks for the own securities
+   * with the own model. A field without owner is never processed.
+   *
+   * @param fields the listed fields
+   * @param user   the caller
+   */
+  private void setCallerView(List<UDFMetadataSecurity> fields, User user) {
+    boolean callerHasModel = aiChatModelProvider.isValueSuggestionAvailable(user);
+    Map<Integer, Boolean> ownerHasModel = new HashMap<>();
+    for (UDFMetadataSecurity field : fields) {
+      boolean llm = field.getFillSource() == UDFFillSource.LLM;
+      if (llm) {
+        field.setOwnModelUsed(callerHasModel);
+      }
+      Integer idOwner = field.getIdUser();
+      boolean hasModel = llm && idOwner != null && (callerHasModel
+          || (!idOwner.equals(user.getIdUser()) && ownerHasModel.computeIfAbsent(idOwner, this::ownerHasModel)));
+      field.setActive(idOwner != null && udfFillService.isProcessed(field, hasModel));
+    }
+  }
+
+  private boolean ownerHasModel(Integer idOwner) {
+    return userJpaRepository.findById(idOwner).map(aiChatModelProvider::isValueSuggestionAvailable).orElse(false);
   }
 
   @Operation(summary = "Return of the input or output field descriptions for the securities.", description = "The deactivated metadata is excluded here.", tags = {
@@ -190,9 +231,9 @@ public class UDFMetadataSecurityResource extends UpdateCreateDeleteWithUserIdRes
     return new ResponseEntity<>(ruleProposalService.propose(idUDFMetadata, idSecuritycurrencies, user), HttpStatus.OK);
   }
 
-  @Operation(summary = "Start a value proposal run of the language model for a field of the caller", description = """
-      Enqueues the paid run; it is skipped when one for this field is waiting. Answers 403 when no language model is
-      configured.""", tags = { RequestGTMappings.UDFMETADATASECURITY })
+  @Operation(summary = "Start a value proposal run of the language model for the caller", description = """
+      For a field the caller owns or has adopted. Enqueues the paid run over the securities of the caller, at the cost
+      of the caller; it is skipped when one is waiting. Answers 403 when no language model is configured.""", tags = { RequestGTMappings.UDFMETADATASECURITY })
   @PostMapping(value = "/{idUDFMetadata}/suggest", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> suggestValues(@PathVariable Integer idUDFMetadata) {
     if (!aiChatModelProvider.isValueSuggestionAvailable(currentUser())) {
@@ -202,47 +243,42 @@ public class UDFMetadataSecurityResource extends UpdateCreateDeleteWithUserIdRes
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  @Operation(summary = "List the verified value proposals of a field of the caller", description = """
-      Each proposal carries its value, source link, excerpt, as-of date and rule version. Answers 403 when no language
-      model is configured.""", tags = { RequestGTMappings.UDFMETADATASECURITY })
+  @Operation(summary = "List the verified value proposals of a field for the securities of the caller", description = """
+      For a field the caller owns or has adopted. Each proposal carries its value, source link, excerpt, as-of date and
+      rule version. No language model of the caller is needed: the proposal may come from the run of another
+      participant.""", tags = {
+      RequestGTMappings.UDFMETADATASECURITY })
   @GetMapping(value = "/{idUDFMetadata}/proposals", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<UDFFillProposal>> getProposals(@PathVariable Integer idUDFMetadata) {
-    if (!aiChatModelProvider.isValueSuggestionAvailable(currentUser())) {
-      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    }
     return new ResponseEntity<>(valueSuggestService.getProposals(idUDFMetadata, currentUser()), HttpStatus.OK);
   }
 
   @Operation(summary = "Accept value proposals the user saw", description = """
       Per proposal APPLIED, CONFLICT when the cell got a manual value meanwhile, or STALE when the proposal changed.
-      Idempotent. Answers 403 when no language model is configured.""", tags = {
+      Idempotent. Refused when a security is outside the tenant scope of the caller. No language model of the caller
+      is needed.""", tags = {
       RequestGTMappings.UDFMETADATASECURITY })
   @PostMapping(value = "/{idUDFMetadata}/proposals/accept", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<UDFFillProposalDecisionResult>> acceptProposals(@PathVariable Integer idUDFMetadata,
       @RequestBody List<UDFFillProposalDecision> decisions) {
-    if (!aiChatModelProvider.isValueSuggestionAvailable(currentUser())) {
-      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    }
     return new ResponseEntity<>(valueSuggestService.decide(idUDFMetadata, decisions, true, currentUser()),
         HttpStatus.OK);
   }
 
   @Operation(summary = "Reject value proposals the user saw", description = """
-      Per proposal REJECTED or STALE. Idempotent. Answers 403 when no language model is configured.""", tags = {
+      Per proposal REJECTED or STALE. Idempotent. Refused when a security is outside the tenant scope of the caller.
+      No language model of the caller is needed.""", tags = {
       RequestGTMappings.UDFMETADATASECURITY })
   @PostMapping(value = "/{idUDFMetadata}/proposals/reject", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<UDFFillProposalDecisionResult>> rejectProposals(@PathVariable Integer idUDFMetadata,
       @RequestBody List<UDFFillProposalDecision> decisions) {
-    if (!aiChatModelProvider.isValueSuggestionAvailable(currentUser())) {
-      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    }
     return new ResponseEntity<>(valueSuggestService.decide(idUDFMetadata, decisions, false, currentUser()),
         HttpStatus.OK);
   }
 
   @Operation(summary = "Ask the language model again for rejected, discarded and not found cells", description = """
-      Deletes those fill rows of the field; the next run asks for them again. Answers 403 when no language model is
-      configured.""", tags = { RequestGTMappings.UDFMETADATASECURITY })
+      Deletes those fill rows of the field for the securities of the caller; the next run asks for them again. Answers
+      403 when no language model is configured.""", tags = { RequestGTMappings.UDFMETADATASECURITY })
   @PostMapping(value = "/{idUDFMetadata}/proposals/retry", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Integer> retryProposals(@PathVariable Integer idUDFMetadata) {
     if (!aiChatModelProvider.isValueSuggestionAvailable(currentUser())) {

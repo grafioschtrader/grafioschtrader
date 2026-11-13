@@ -20,6 +20,8 @@ export interface SecuritycurrencyPosition<T extends Securitycurrency> {
   positionGainLossMC: number | null;
   /** positionGainLossMC relative to the cost of the open units in the currency of the tenant. */
   positionGainLossPercentageMC: number | null;
+  /** Names of the cost basis methods of the security accounts behind this position; empty without a position. */
+  costBasisMethods?: string[];
   historicalUrl: string | null;
   intradayUrl: string | null;
   dividendUrl: string | null;

@@ -19,8 +19,10 @@ import grafiosch.entities.ReleaseNote;
 import grafiosch.entities.Role;
 import grafiosch.entities.TenantBase;
 import grafiosch.entities.UDFData;
+import grafiosch.entities.UDFDataShared;
 import grafiosch.entities.UDFMetadata;
 import grafiosch.entities.UDFMetadataGeneral;
+import grafiosch.entities.UDFMetadataSubscription;
 import grafiosch.entities.UDFSpecialTypeDisableUser;
 import grafiosch.entities.User;
 import grafiosch.entities.UserAccessToken;
@@ -71,12 +73,12 @@ public abstract class ExportDeleteHelper {
   private static String MAIL_SEND_RECV_DEL = String.format("FROM %s WHERE id_mail_send_recv = ?", MailSendRecv.TABNAME);
   private static String USER_EXPORT = String.format(" * FROM %s WHERE id_tenant = ? OR id_user = 0", User.TABNAME);
   private static String UDF_METADATA_GENERAL_SELDEL = String.format(
-      " umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?",
+      " umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? AND NOT EXISTS (SELECT 1 FROM udf_metadata_subscription s WHERE s.id_udf_metadata = m.id_udf_metadata)",
       UDFMetadataGeneral.TABNAME, UDFMetadata.TABNAME);
-  private static String UDF_METADATA_EXPORT = String.format(" * FROM %s WHERE id_user = ? OR id_user = 0",
-      UDFMetadata.TABNAME);
+  private static String UDF_METADATA_EXPORT = " m.* FROM udf_metadata m WHERE m.id_user = ? OR m.id_user = 0 UNION ALL SELECT m.id_udf_metadata, s.id_user, m.udf_special_type, m.description, m.description_help, m.udf_data_type, m.field_size, s.ui_order, m.share_mode FROM udf_metadata m JOIN udf_metadata_subscription s ON s.id_udf_metadata = m.id_udf_metadata WHERE s.id_user = ?";
+  private static String UDF_SHARED_EXPORT = " d.* FROM udf_data_shared d JOIN udf_metadata m ON m.id_udf_metadata = d.id_udf_metadata WHERE m.id_user = ? OR EXISTS (SELECT 1 FROM udf_metadata_subscription s WHERE s.id_udf_metadata = m.id_udf_metadata AND s.id_user = ? )";
   private static String UDF_METADATA_GENERAL_EXPORT = String.format(
-      " umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? OR m.id_user = 0",
+      " umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? OR m.id_user = 0 OR EXISTS (SELECT 1 FROM udf_metadata_subscription s WHERE s.id_udf_metadata = m.id_udf_metadata AND s.id_user = ? )",
       UDFMetadataGeneral.TABNAME, UDFMetadata.TABNAME);
   private static String UDF_DATA_EXPORT = String.format(" * FROM %s WHERE id_user = ? OR id_user = 0", UDFData.TABNAME);
 
@@ -113,6 +115,7 @@ public abstract class ExportDeleteHelper {
       new ExportDefinition(UDFMetadataGeneral.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_GENERAL_EXPORT,
           ExportDefinition.EXPORT_USE),
       new ExportDefinition(UDFData.TABNAME, TENANT_USER.ID_USER, UDF_DATA_EXPORT, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(UDFDataShared.TABNAME, TENANT_USER.ID_USER, UDF_SHARED_EXPORT, ExportDefinition.EXPORT_USE),
       new ExportDefinition(UDFSpecialTypeDisableUser.TABNAME, TENANT_USER.ID_USER, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       // UDF DELETE: only user's own data (id_user=0 is preserved)
@@ -120,6 +123,13 @@ public abstract class ExportDeleteHelper {
       new ExportDefinition(UDFMetadataGeneral.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_GENERAL_SELDEL,
           ExportDefinition.DELETE_USE),
       new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.ID_USER,
+          "UPDATE udf_metadata SET id_user = NULL WHERE id_user = ? AND EXISTS (SELECT 1 FROM udf_metadata_subscription s WHERE s.id_udf_metadata = udf_metadata.id_udf_metadata)",
+          ExportDefinition.DELETE_USE),
+      new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.NONE,
+          "FROM udf_metadata WHERE id_user IS NULL AND NOT EXISTS (SELECT 1 FROM udf_metadata_subscription s WHERE s.id_udf_metadata = udf_metadata.id_udf_metadata)",
+          ExportDefinition.DELETE_USE),
+      new ExportDefinition(UDFMetadataSubscription.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       // Messages are never exported, they belong to two users at once
       new ExportDefinition(MailSendRecv.TABNAME, TENANT_USER.ID_USER, MAIL_SEND_RECV_DEL, ExportDefinition.DELETE_USE,
           MAIL_SEND_RECV_OWN_COPY_SEL),

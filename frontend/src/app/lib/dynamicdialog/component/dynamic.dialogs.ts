@@ -1,3 +1,4 @@
+import { Injector } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
@@ -11,19 +12,21 @@ import { DynamicDialogHelper } from './dynamicDialogHelper';
 import { Observable } from 'rxjs';
 
 export class DynamicDialogs extends DynamicDialogHelper {
-  public static getOpenedLimitTransactionRequestDynamicComponent(
-    translateService: TranslateService,
-    dialogService: DialogService,
-    entityName: string
-  ): DynamicDialogHelper {
-    const dynamicDialogHelper = new DynamicDialogHelper(
-      translateService,
-      dialogService,
+  /**
+   * Opens the dialog in which the user applies for a higher daily limit of changes on an entity. Opens once on
+   * subscription.
+   *
+   * @param injector - Resolves the translation and dialog services, so a caller needs no import of either
+   * @param entityName - Entity class name the limit belongs to, as the backend reports it
+   * @returns The reference of the opened dialog; it emits nothing when opening is refused
+   */
+  public static openLimitTransactionRequest(injector: Injector, entityName: string): Observable<DynamicDialogRef> {
+    return new DynamicDialogHelper(
+      injector.get(TranslateService),
+      injector.get(DialogService),
       LimitTransactionRequestDynamicDialogComponent,
       'APPLY_LIMIT_TITLE'
-    );
-    dynamicDialogHelper.openDynamicDialog(400, { entityName }).subscribe();
-    return dynamicDialogHelper;
+    ).openDynamicDialog(400, { entityName });
   }
 
   public static getOpenedAdminSelfReleaseDynamicComponent(

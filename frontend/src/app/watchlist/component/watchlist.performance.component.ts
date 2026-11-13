@@ -101,6 +101,28 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   private mainCurrency?: string;
 
   /**
+   * Hover text of the open return. It names the cost basis method behind the position, or that the security accounts
+   * use different ones; a row without a position repeats its value.
+   *
+   * @param position - Row of the watchlist
+   * @param _field - Column configuration, not needed
+   * @param value - Already formatted cell value
+   * @returns Tooltip text
+   */
+  readonly costBasisCellTooltip = (
+    position: SecuritycurrencyPosition<Security | Currencypair>,
+    _field: ColumnConfig,
+    value: any
+  ): string => {
+    const methods = position?.costBasisMethods ?? [];
+    if (methods.length === 0) {
+      return value;
+    }
+    const method = methods.length > 1 ? 'COST_BASIS_METHOD_MIXED' : methods[0];
+    return `${value} (${this.translateService.instant('COST_BASIS_METHOD')}: ${this.translateService.instant(method)})`;
+  };
+
+  /**
    * Creates a new WatchlistPerformanceComponent with all required dependencies and initializes performance columns
    * and time frames.
    */
@@ -176,7 +198,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumnFeqH(DataType.Numeric, 'positionGainLossPercentage', true, true, {
       headerSuffix: '%',
       templateName: 'greenRed',
-      filterType: FilterType.likeDataType
+      filterType: FilterType.likeDataType,
+      cellTooltipFN: this.costBasisCellTooltip
     });
     this.addColumnFeqH(DataType.Numeric, 'valueSecurity', true, true, {
       filterType: FilterType.likeDataType

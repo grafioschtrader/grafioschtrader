@@ -77,11 +77,20 @@ public class UDFMetadataSecurity extends UDFMetadata {
 
   @Schema(description = """
       Whether the field is processed: always for MANUAL; for TEMPLATE and RESOLVER when the rule can be evaluated; for
-      LLM only when the home tenant of the owner has a language model. An inactive field keeps its values and stays
-      visible; only nothing fills it. Set when the fields are listed for editing.""")
+      LLM when the home tenant of the owner or, for a field the caller does not own, the home tenant of the caller has
+      a language model. A field without owner is never active. An inactive field keeps its values and stays visible;
+      only nothing fills it. Set when the fields are listed for editing.""")
   @Transient
   @JsonProperty(access = Access.READ_ONLY)
   private Boolean active;
+
+  @Schema(description = """
+      Only for the fill source LLM: whether the home tenant of the caller has a language model for value proposals.
+      When true, the runs of the caller for this field use that model at the cost of the caller. Set when the fields
+      are listed for editing or for adoption.""")
+  @Transient
+  @JsonProperty(access = Access.READ_ONLY)
+  private Boolean ownModelUsed;
 
   public UDFMetadataSecurity() {
   }
@@ -157,6 +166,14 @@ public class UDFMetadataSecurity extends UDFMetadata {
 
   public void setActive(Boolean active) {
     this.active = active;
+  }
+
+  public Boolean getOwnModelUsed() {
+    return ownModelUsed;
+  }
+
+  public void setOwnModelUsed(Boolean ownModelUsed) {
+    this.ownModelUsed = ownModelUsed;
   }
 
   public int getFillRuleVersion() {

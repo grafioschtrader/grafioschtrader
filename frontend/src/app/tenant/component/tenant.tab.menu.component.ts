@@ -38,6 +38,7 @@ export class TenantTabMenuComponent implements OnInit {
       ['SECURITYACCOUNTS', AppSettings.DEPOT_KEY],
       ['SECURITY_ASSETCLASS_WITH_CASH', AppSettings.DEPOT_CASH_KEY],
       ['PORTFOLIO_DIVIDENDS', AppSettings.DIVIDENDS_ROUTER_KEY],
+      ['REALIZED_GAINS', AppSettings.REALIZED_GAINS_ROUTER_KEY],
       ['TRANSACTION_COST', AppSettings.TRANSACTION_COST_KEY],
       ['TRANSACTIONS', AppSettings.TENANT_TRANSACTION]
     ];

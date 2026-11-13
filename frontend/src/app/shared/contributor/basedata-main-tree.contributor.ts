@@ -78,8 +78,6 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
       TreeNodeType.UDFMetadataSecurity
     );
     // Add grafioschtrader-specific child node
-    udfMetadataGeneralNode.expanded = true;
-    udfMetadataGeneralNode.children = [this.getUDFMetadataSecurityChild()];
 
     this.rootNode.children = [
       {
@@ -179,20 +177,6 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
         )
       });
     }
-  }
-
-  private getUDFMetadataSecurityChild(): TreeNode {
-    return {
-      label: AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
-      icon: 'pi pi-tag',
-      data: new TypeNodeData(
-        TreeNodeType.UDFMetadataSecurity,
-        this.addMainRoute(AppSettings.UDF_METADATA_SECURITY_KEY),
-        null,
-        null,
-        null
-      )
-    };
   }
 
   private setLangTransNode(treeNode: TreeNode): void {

@@ -53,7 +53,8 @@ public interface UDFMetadataGeneralJpaRepository extends JpaRepository<UDFMetada
    *         description values
    */
   @Query(nativeQuery = true)
-  UiOrderDescriptionCount countUiOrderAndDescription(int[] users, String entityName, int uiOrder, String description);
+  UiOrderDescriptionCount countUiOrderAndDescription(int[] users, String entityName, int uiOrder, String description,
+      Integer idUser);
 
 //  public default List<String> getSupportedEntities() {
 //    return UDFDataJpaRepositoryImpl.UDF_GENERAL_ENTITIES.stream().map(c -> c.getSimpleName()).collect(Collectors.toList());

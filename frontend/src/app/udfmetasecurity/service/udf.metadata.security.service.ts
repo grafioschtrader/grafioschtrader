@@ -317,4 +317,12 @@ export class UDFMetadataSecurityService
       )
       .pipe(catchError(this.handleError.bind(this)));
   }
+  getShared(): Observable<UDFMetadataSecurity[]> {
+    return this.httpClient
+      .get<UDFMetadataSecurity[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/shared`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
 }

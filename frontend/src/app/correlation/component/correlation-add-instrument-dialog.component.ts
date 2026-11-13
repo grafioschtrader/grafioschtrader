@@ -34,7 +34,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
         #dynamicFormComponent="dynamicForm"
         (submitBt)="submit($event)" />
       <br />
-      <correlation-set-add-instrument-table [tenantLimits]="tenantLimits()" />
+      <correlation-set-add-instrument-table [tenantLimits]="tenantLimits()" [advancedFields]="advancedSearchFields()" />
     </p-dialog>
   `,
   imports: [TranslateModule, DialogModule, DynamicFormComponent, CorrelationSetAddInstrumentTableComponent]

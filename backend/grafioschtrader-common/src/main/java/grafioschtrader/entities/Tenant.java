@@ -21,6 +21,7 @@ import grafiosch.validation.AfterEqual;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.PerformanceReportSettings;
 import grafioschtrader.dto.TaxStatementExportRequest;
+import grafioschtrader.types.CostBasisMethod;
 import grafioschtrader.types.SimulationInitializationMode;
 import grafioschtrader.types.TenantKindType;
 import grafioschtrader.validation.ValidCurrencyCode;
@@ -117,6 +118,14 @@ public class Tenant extends TenantBase implements Serializable {
   @Enumerated(EnumType.STRING)
   @Column(name = "simulation_initialization_mode")
   private SimulationInitializationMode simulationInitializationMode;
+
+  @Schema(description = """
+      Decides which purchases a sale of a security consumes: average cost, FIFO or LIFO. It is the default for all
+      portfolios of this tenant, a portfolio can override it. The method only moves gain between realized and
+      unrealized, the total return is the same for every method. Nothing is stored per transaction, so a change applies
+      to the whole history at once.""")
+  @Column(name = "cost_basis_method")
+  private byte costBasisMethod;
 
   public LocalDate getSimulationStartDate() {
     return simulationStartDate;
@@ -309,6 +318,18 @@ public class Tenant extends TenantBase implements Serializable {
     this.disposalCostEstimate = disposalCostEstimate;
   }
 
+  public CostBasisMethod getCostBasisMethod() {
+    return CostBasisMethod.getCostBasisMethodByValue(costBasisMethod);
+  }
+
+  /**
+   * @param costBasisMethod the default method of this tenant; null stands for average cost, because an update takes
+   *                        over the whole state and a client that does not know the field must not fail
+   */
+  public void setCostBasisMethod(CostBasisMethod costBasisMethod) {
+    this.costBasisMethod = (costBasisMethod == null ? CostBasisMethod.AVERAGE_COST : costBasisMethod).getValue();
+  }
+
   public void updateThis(Tenant sourceTenant) {
     this.setTenantName(sourceTenant.getTenantName());
     this.setCurrency(sourceTenant.getCurrency());
@@ -318,6 +339,7 @@ public class Tenant extends TenantBase implements Serializable {
     this.setUseGtImportTemplates(sourceTenant.isUseGtImportTemplates());
     this.setFeeInterestFxAtCutOffDate(sourceTenant.isFeeInterestFxAtCutOffDate());
     this.setDisposalCostEstimate(sourceTenant.isDisposalCostEstimate());
+    this.setCostBasisMethod(sourceTenant.getCostBasisMethod());
   }
 
   @Override

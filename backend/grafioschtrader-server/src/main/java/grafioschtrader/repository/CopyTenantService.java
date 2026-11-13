@@ -12,8 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.UDFSharedValueHelper;
 import grafiosch.entities.UDFData;
 import grafiosch.entities.UDFData.UDFDataKey;
+import grafiosch.entities.UDFDataShared;
 import grafiosch.entities.UDFMetadata;
 import grafiosch.entities.UDFMetadataGeneral;
 import grafiosch.entities.User;
@@ -411,12 +413,30 @@ public class CopyTenantService {
     List<UDFData> udfDataList = q.setParameter(1, sourceIdUser).getResultList();
     for (UDFData u : udfDataList) {
       Map<String, Object> jvNew = u.getJsonValues().entrySet().stream()
+          .filter(e -> fieldMap.containsKey(Integer.parseInt(e.getKey().substring(1))))
           .collect(Collectors.toMap(
               e -> BaseConstants.UDF_FIELD_PREFIX + fieldMap.get(Integer.parseInt(e.getKey().substring(1))),
               e -> e.getValue()));
       UDFData uDFData = new UDFData(
           new UDFDataKey(targetIdUser, u.getuDFDataKey().getEntity(), u.getuDFDataKey().getIdEntity()), jvNew);
       em.persist(uDFData);
+    }
+    em.flush();
+    for (var field : em
+        .createQuery("SELECT m FROM UDFMetadata m WHERE m.idUser = ?1 AND m.shareMode <> 0", UDFMetadata.class)
+        .setParameter(1, sourceIdUser).getResultList()) {
+      for (var value : em
+          .createQuery("SELECT d FROM UDFDataShared d WHERE d.id.idUDFMetadata = ?1", UDFDataShared.class)
+          .setParameter(1, field.getId()).getResultList()) {
+        UDFDataKey key = new UDFDataKey(targetIdUser, value.getEntity(), value.getId().getIdEntity());
+        UDFData target = em.find(UDFData.class, key);
+        if (target == null) {
+          target = new UDFData(key, new HashMap<>());
+          em.persist(target);
+        }
+        target.getJsonValues().put(BaseConstants.UDF_FIELD_PREFIX + fieldMap.get(field.getId()),
+            UDFSharedValueHelper.toJsonValue(value.getFieldValue(), field.getUdfDataType()));
+      }
     }
     em.flush();
   }
@@ -523,12 +543,14 @@ public class CopyTenantService {
       Map<Integer, Watchlist> watchlistMap) {
     Tenant sourceTenant = em.find(Tenant.class, sourceIdTenant);
     Tenant targetTenant = em.find(Tenant.class, targetIdTenant);
+    // The copy must calculate as its source does, whether or not there is a performance watchlist
+    targetTenant.setCostBasisMethod(sourceTenant.getCostBasisMethod());
     Watchlist watchlist = watchlistMap.get(sourceTenant.getIdWatchlistPerformance());
     if (watchlist != null) {
       targetTenant.setIdWatchlistPerformance(watchlist.getIdWatchlist());
-      em.persist(targetTenant);
-      em.flush();
     }
+    em.persist(targetTenant);
+    em.flush();
   }
 
   /**

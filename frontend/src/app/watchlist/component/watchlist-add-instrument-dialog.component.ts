@@ -41,7 +41,7 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
         #dynamicFormComponent="dynamicForm"
         (submitBt)="submit($event)" />
       <br />
-      <add-instrument-table [tenantLimits]="tenantLimits()" />
+      <add-instrument-table [tenantLimits]="tenantLimits()" [advancedFields]="advancedSearchFields()" />
     </p-dialog>
   `,
   imports: [TranslateModule, DialogModule, ...DYNAMIC_FORM_IMPORTS, WatchlistAddInstrumentTableComponent]

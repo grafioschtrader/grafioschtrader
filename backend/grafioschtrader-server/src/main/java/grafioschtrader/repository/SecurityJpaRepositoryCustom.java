@@ -19,6 +19,7 @@ import grafioschtrader.reportviews.securitycurrency.ISecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
+import grafioschtrader.search.AdvancedSearchResult;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.SeasonalPeriodType;
 
@@ -164,6 +165,24 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * @return A list of securities matching the criteria.
    */
   List<Security> searchBuilderWithExclusion(Integer idWatchlist, Integer idCorrelationSet,
+      SecuritycurrencySearch securitycurrencySearch, Integer idTenant);
+
+  /**
+   * Same search as {@link #searchBuilderWithExclusion}, additionally returning the values that satisfied the criteria
+   * on user-defined fields and indicators of {@link SecuritycurrencySearch#getAdvancedCriteria()}. Those criteria are
+   * validated against the fields of the logged-in user; they are ignored when the search has an ISIN. Indicator
+   * criteria are evaluated only for the securities that remain after all other criteria, and the search fails when
+   * there are more of them than the limit of the fields.
+   *
+   * @param idWatchlist            ID of the watchlist whose existing instruments are no longer offered
+   * @param idCorrelationSet       ID of the correlation set whose existing instruments are no longer offered
+   * @param securitycurrencySearch The search criteria.
+   * @param idTenant               Securities with an active open position may be selected; this ID is required for this
+   *                               purpose
+   * @return the matching securities, the matched values per security and the number of candidates that could not be
+   *         evaluated for an indicator
+   */
+  AdvancedSearchResult searchWithAdvancedCriteria(Integer idWatchlist, Integer idCorrelationSet,
       SecuritycurrencySearch securitycurrencySearch, Integer idTenant);
 
   /**

@@ -40,6 +40,7 @@ import { SendRecvForwardTabMenuComponent } from '../app/lib/mail/component/send.
 import { SendRecvTreetableComponent } from '../app/lib/mail/component/send.recv.treetable.component';
 import { MAIN_TREE_CONTRIBUTOR } from '../app/lib/maintree/contributor/main-tree-contributor.interface';
 import { DashboardMainTreeContributor } from '../app/lib/maintree/contributor/dashboard-main-tree.contributor';
+import { provideLimitRequestOpener } from '../app/lib/dynamicdialog/limit.request.provider';
 import { DIALOG_HANDLER } from '../app/lib/maintree/handler/dialog-handler.interface';
 import { ProposeChangeTabMenuComponent } from '../app/lib/proposechange/component/propose.change.tab.menu.component';
 import { RequestForYouTableComponent } from '../app/lib/proposechange/component/request.for.you.table.component';
@@ -125,7 +126,20 @@ const routes: Routes = [
       },
       {
         path: BaseSettings.UDF_METADATA_GENERAL_KEY,
-        component: UDFMetadataGeneralTableComponent,
+        loadComponent: () =>
+          import('../app/lib/udfmeta/components/udf-metadata-tab-menu.component').then(
+            (m) => m.UDFMetadataTabMenuComponent
+          ),
+        children: [
+          { path: BaseSettings.UDF_METADATA_OWN_KEY, component: UDFMetadataGeneralTableComponent },
+          {
+            path: BaseSettings.UDF_METADATA_SHARED_KEY,
+            loadComponent: () =>
+              import('../app/lib/udfmeta/components/udf.metadata.general.shared.table.component').then(
+                (m) => m.UDFMetadataGeneralSharedTableComponent
+              )
+          }
+        ],
         canActivate: [authGuard]
       },
       {
@@ -238,6 +252,7 @@ bootstrapApplication(GrafioschAppComponent, {
     { provide: TASK_EXTENDED_SERVICE, useValue: null },
     // The three extension points a host has to implement, see the interfaces in lib/maintree and lib/login.
     { provide: DIALOG_HANDLER, useClass: GrafioschDialogHandler },
+    provideLimitRequestOpener(),
     { provide: AfterLoginHandler, useClass: GrafioschAfterLoginHandler },
     {
       provide: MAIN_TREE_CONTRIBUTOR,

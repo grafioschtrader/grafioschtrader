@@ -1,5 +1,6 @@
 package grafioschtrader.dto;
 
+import java.util.List;
 import java.util.Set;
 
 import grafiosch.types.UDFDataType;
@@ -11,5 +12,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record UDFFillResolverOption(
     @Schema(description = "ID of the resolver as stored in the fill rule, also the NLS key of its name") String resolverId,
     @Schema(description = "The data types of a field this resolver can fill") Set<UDFDataType> udfDataTypes,
-    @Schema(description = "The argument used when the rule names the resolver only") String defaultArgument) {
+    @Schema(description = "The argument used when the rule names the resolver only") String defaultArgument,
+    @Schema(description = """
+        The arguments the resolver accepts, each with the data types it can fill. Empty when the argument is a free
+        text, for example a list of languages""") List<UDFFillArgumentOption> argumentOptions) {
 }

@@ -255,6 +255,11 @@ export class GlobalparameterService
     return sessionStorage.getItem(GlobalSessionNames.GT_NET_LOG_ENABLED) === 'true';
   }
 
+  /** Whether every user of this instance sees the nickname of other users instead of only the user id. */
+  public isUserNicknameVisible(): boolean {
+    return sessionStorage.getItem(GlobalSessionNames.USER_NICKNAME_VISIBLE) === 'true';
+  }
+
   public hasGtNetHistoricalExchangePeer(): boolean {
     return sessionStorage.getItem(GlobalSessionNames.GT_NET_HAS_HISTORICAL_PEER) === 'true';
   }

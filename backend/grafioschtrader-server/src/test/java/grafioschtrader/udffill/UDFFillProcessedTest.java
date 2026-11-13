@@ -24,7 +24,8 @@ class UDFFillProcessedTest {
   void manualFieldsAreActiveAndLanguageModelFieldsRequireAModel() {
     UDFFillService service = new UDFFillService(mock(UDFMetadataSecurityJpaRepository.class),
         mock(UDFDataFillJpaRepository.class), mock(UserJpaRepository.class), mock(UDFFillScopeService.class),
-        mock(UDFFillWriter.class), mock(UDFFillTaskQueue.class), mock(GlobalparametersService.class));
+        mock(UDFFillWriter.class), mock(UDFFillTaskQueue.class), mock(GlobalparametersService.class),
+        mock(grafiosch.repository.UDFMetadataSubscriptionJpaRepository.class));
 
     assertThat(service.isProcessed(field(UDFFillSource.MANUAL), false)).isTrue();
 

@@ -43,6 +43,7 @@ import { WatchlistMainTreeContributor } from './watchlist/contributor/watchlist-
 import { AlgoMainTreeContributor } from './algo/contributor/algo-main-tree.contributor';
 import { BaseDataMainTreeContributor } from './shared/contributor/basedata-main-tree.contributor';
 import { AdminDataMainTreeContributor } from './shared/contributor/admindata-main-tree.contributor';
+import { provideLimitRequestOpener } from './lib/dynamicdialog/limit.request.provider';
 import { DIALOG_HANDLER } from './lib/maintree/handler/dialog-handler.interface';
 import { SETTINGS_MENU_EXTENSIONS } from './lib/mainmenubar/service/settings-menu-extensions';
 import { aiSettingsMenu } from './tenantaiprovider/ai-settings-menu';
@@ -138,6 +139,8 @@ export const appConfig: ApplicationConfig = {
     }),
     // Main Tree Dialog Handler
     { provide: DIALOG_HANDLER, useClass: AppDialogHandler },
+    // A refused change because of the daily limit offers the request for a higher limit
+    provideLimitRequestOpener(),
     { provide: SETTINGS_MENU_EXTENSIONS, useValue: aiSettingsMenu, multi: true },
     { provide: SETTINGS_MENU_EXTENSIONS, useValue: mcpSettingsMenu, multi: true },
     // File name of the personal data export, overrides the neutral default of the lib layer

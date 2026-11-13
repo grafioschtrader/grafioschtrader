@@ -2,6 +2,8 @@ package grafioschtrader.search;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -16,6 +18,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Defines the search criteria for securities and currency pairs.")
 public class SecuritycurrencySearch implements Serializable {
   private static final long serialVersionUID = 1L;
+
+  /** Most criteria of the advanced search a request may carry. The frontend offers the same number of slots. */
+  public static final int MAX_ADVANCED_CRITERIA = 5;
 
   @Schema(description = "International Securities Identification Number (ISIN) of the security.")
   private String isin;
@@ -74,6 +79,12 @@ public class SecuritycurrencySearch implements Serializable {
 
   @Schema(description = "Flag to indicate if the search should consider instruments that the tenant has holdings in.")
   private boolean withHoldings;
+
+  @Schema(description = """
+      Criteria on user-defined fields and indicators of securities, combined with AND and with the other criteria. At
+      most 5 entries and each field once. They are ignored when an ISIN is given and they exclude every currency pair.
+      Sent as indexed parameters: advancedCriteria[0].field=...""")
+  private List<AdvancedSearchCriterion> advancedCriteria = new ArrayList<>();
 
   /**
    * A correlation matrix can only work with data from historical price data, so this flag is set to true.
@@ -227,6 +238,14 @@ public class SecuritycurrencySearch implements Serializable {
 
   public void setWithHoldings(boolean withHoldings) {
     this.withHoldings = withHoldings;
+  }
+
+  public List<AdvancedSearchCriterion> getAdvancedCriteria() {
+    return advancedCriteria;
+  }
+
+  public void setAdvancedCriteria(List<AdvancedSearchCriterion> advancedCriteria) {
+    this.advancedCriteria = advancedCriteria == null ? new ArrayList<>() : advancedCriteria;
   }
 
   public boolean isNoMarketValue() {

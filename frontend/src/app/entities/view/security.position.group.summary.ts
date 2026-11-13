@@ -19,6 +19,9 @@ export interface SecurityPositionGroupSummary {
   /** Share of the group in the report total; null when the total is not positive. */
   groupShareOfTotalPercentage: number | null;
   groupGainLossSecurityMC: number;
+  groupRealizedGainLossSecurityMC: number;
+  groupIncomeGainLossSecurityMC: number;
+  groupUnrealizedGainLossSecurityMC: number;
   groupGainLossCurrencyMC: number;
   /** Disposal cost estimate of the group, only present when it is switched on. */
   groupDisposalCostMC?: number;

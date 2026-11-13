@@ -48,6 +48,10 @@ public class WatchlistIndicatorReport {
       FundamentalMetric.EPS_FY, "EPS_FY", FundamentalMetric.BVPS, "BVPS", FundamentalMetric.SPS_TTM, "SPS",
       FundamentalMetric.SPS_FY, "SPS", FundamentalMetric.SHARES, "SHARES", FundamentalMetric.NET_DEBT, "NET_DEBT");
 
+  /**
+   * Computes the indicator cells of one watchlist group. The columns of the tenant that apply to the watchlist are
+   * evaluated through {@link #evaluate} and the result is copied into the group together with its presentation data.
+   */
   public SecuritycurrencyIndicatorGroup calculate(SecuritycurrencyGroup group, Integer tenant, LocalDate today) {
     var all = columns.findByIdTenantOrderByUiOrder(tenant);
     var selected = all.stream()
@@ -56,20 +60,52 @@ public class WatchlistIndicatorReport {
     result.tenantHasColumns = !all.isEmpty();
     if (selected.isEmpty())
       return result;
+    var instruments = new ArrayList<Securitycurrency<?>>();
+    group.securityPositionList.forEach(p -> instruments.add(p.securitycurrency));
+    group.currencypairPositionList.forEach(p -> instruments.add(p.securitycurrency));
+    var batch = evaluate(instruments, selected, tenant, today);
+    result.cells.putAll(batch.cells);
+    result.benchmarks.putAll(batch.benchmarks);
+    result.columnFundamentalVariables.putAll(batch.columnFundamentalVariables);
+    result.fundamentalInfo.putAll(batch.fundamentalInfo);
+    result.columnCategories.putAll(batch.columnCategories);
+    if (batch.seriesLoaded) {
+      group.securityPositionList
+          .forEach(p -> p.youngestHistoryDate = batch.newestHistoryDate.get(p.securitycurrency.getId()));
+      group.currencypairPositionList
+          .forEach(p -> p.youngestHistoryDate = batch.newestHistoryDate.get(p.securitycurrency.getId()));
+    }
+    return result;
+  }
+
+  /**
+   * Loads the quote series, dividends, fundamentals and benchmarks that the given columns need and evaluates every
+   * column for every instrument. The columns are evaluated as passed; their watchlist assignment is not applied here.
+   * Used by the watchlist indicator tab and by the advanced security search, which therefore share one loading and one
+   * evaluation pass. Prices are the stored last prices of the instruments; no price update is triggered.
+   *
+   * @param instruments the securities and currency pairs to evaluate
+   * @param columns     the indicator columns to evaluate, not empty
+   * @param idTenant    the tenant that authorises the benchmarks of the columns
+   * @param today       the day of the evaluation, in the calendar of the client
+   * @return the cells and the information that the indicator tab shows around them
+   */
+  public IndicatorBatch evaluate(List<? extends Securitycurrency<?>> instruments,
+      List<WatchlistIndicatorColumn> columns, Integer idTenant, LocalDate today) {
+    var result = new IndicatorBatch();
     var inputs = new LinkedHashMap<Integer, Input>();
-    group.securityPositionList.forEach(p -> inputs.put(p.securitycurrency.getId(), input(p.securitycurrency)));
-    group.currencypairPositionList.forEach(p -> inputs.put(p.securitycurrency.getId(), input(p.securitycurrency)));
+    instruments.forEach(instrument -> inputs.put(instrument.getId(), input(instrument)));
     Map<Integer, Set<IndicatorData>> requirements = new HashMap<>();
-    selected.forEach(c -> requirements.put(c.getId(), AlertExpressionSupport.requiredData(c.getExpression())));
+    columns.forEach(c -> requirements.put(c.getId(), AlertExpressionSupport.requiredData(c.getExpression())));
     requirements.forEach((id, data) -> result.columnCategories.put(id, category(data)));
     var needed = EnumSet.noneOf(IndicatorData.class);
     requirements.values().forEach(needed::addAll);
     var ids = new HashSet<>(inputs.keySet());
-    for (var column : selected) {
+    for (var column : columns) {
       if (column.getIdBenchmark() == null)
         continue;
       var security = securities
-          .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(column.getIdBenchmark(), tenant);
+          .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(column.getIdBenchmark(), idTenant);
       Securitycurrency<?> benchmark = security != null ? security
           : currencies.findById(column.getIdBenchmark()).orElse(null);
       if (benchmark != null) {
@@ -83,33 +119,38 @@ public class WatchlistIndicatorReport {
     Map<Integer, List<DividendAmount>> amounts = new HashMap<>();
     Set<Integer> known = new HashSet<>();
     if (needed.contains(IndicatorData.DIVIDENDS))
-      loadDividends(inputs, selected, today, amounts, known);
+      loadDividends(inputs, columns, today, amounts, known);
     Map<Integer, Map<String, Double>> fundamentalValues = Map.of();
     if (needed.contains(IndicatorData.FUNDAMENTALS)) {
       fundamentalValues = loadFundamentals(inputs, today, result.fundamentalInfo);
-      for (var column : selected)
+      for (var column : columns)
         if (requirements.get(column.getId()).contains(IndicatorData.FUNDAMENTALS))
           result.columnFundamentalVariables.put(column.getId(),
               AlertExpressionSupport.fundamentalVariables(column.getExpression()));
     }
     if (!series.isEmpty()) {
-      group.securityPositionList.forEach(p -> p.youngestHistoryDate = newest(series.get(p.securitycurrency.getId())));
-      group.currencypairPositionList
-          .forEach(p -> p.youngestHistoryDate = newest(series.get(p.securitycurrency.getId())));
+      result.seriesLoaded = true;
+      inputs.keySet().forEach(id -> {
+        var newest = newest(series.get(id));
+        if (newest != null)
+          result.newestHistoryDate.put(id, newest);
+      });
     }
     var logged = new HashSet<Integer>();
     for (var entry : inputs.entrySet()) {
       var cells = new LinkedHashMap<Integer, IndicatorCell>();
       var sets = new HashMap<Integer, IndicatorFunctionSet>();
-      for (var column : selected) {
+      for (var column : columns) {
         int benchmark = column.getIdBenchmark() == null ? 0 : column.getIdBenchmark();
         var functions = sets.computeIfAbsent(benchmark,
             _ -> new IndicatorFunctionSet(new IndicatorSeries(series.getOrDefault(entry.getKey(), List.of()),
                 series.getOrDefault(benchmark, List.of()), amounts.getOrDefault(entry.getKey(), List.of()),
                 known.contains(entry.getKey()), entry.getValue().security(), today,
                 entry.getValue().prices().get("PRICE"))));
-        cells.put(column.getId(), evaluate(column, requirements.get(column.getId()), functions, entry.getValue(),
-            fundamentalValues.getOrDefault(entry.getKey(), Map.of()), result.benchmarks.containsKey(benchmark), logged));
+        cells.put(column.getId(),
+            evaluate(column, requirements.get(column.getId()), functions, entry.getValue(),
+                fundamentalValues.getOrDefault(entry.getKey(), Map.of()), result.benchmarks.containsKey(benchmark),
+                logged));
       }
       result.cells.put(entry.getKey(), cells);
     }
@@ -137,7 +178,8 @@ public class WatchlistIndicatorReport {
         .filter(id -> rows.getOrDefault(id, List.of()).size() < AlertExpressionSupport.SERIES_OBSERVATIONS).toList();
     if (!shortIds.isEmpty()) {
       shortIds.forEach(rows::remove);
-      history.findNewestDateCloseHighLowByIds(shortIds, today).stream().map(HistoryquoteJpaRepository.IndicatorQuote::of)
+      history.findNewestDateCloseHighLowByIds(shortIds, today).stream()
+          .map(HistoryquoteJpaRepository.IndicatorQuote::of)
           .forEach(r -> rows.computeIfAbsent(r.getIdSecuritycurrency(), _ -> new ArrayList<>()).add(r));
     }
     rows.replaceAll((_, list) -> List
@@ -203,6 +245,9 @@ public class WatchlistIndicatorReport {
   }
 
   private static String sourceName(Integer source) {
+    if (source == FundamentalSource.SEC.getValue()) {
+      return "SEC";
+    }
     String name = FundamentalSource.getByValue(source.byteValue()).name();
     return name.charAt(0) + name.substring(1).toLowerCase(Locale.ROOT);
   }

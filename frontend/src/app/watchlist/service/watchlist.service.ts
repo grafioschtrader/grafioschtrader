@@ -8,23 +8,36 @@ import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlis
 import { Security } from '../../entities/security';
 import { Currencypair } from '../../entities/currencypair';
 import { Observable } from 'rxjs';
-import { HttpParams } from '@angular/common/http';
+import { HttpParams, HttpResourceRequest } from '@angular/common/http';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
-import { AppHelper } from '../../lib/helper/app.helper';
 import { catchError } from 'rxjs/operators';
 import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { AddSearchToListService } from '../component/add-instrument-table.component';
 import { IntraHistoricalWatchlistProblem } from '../model/intra.historical.watchlist.problem';
 import { WatchlistMoveStatus } from '../model/watchlist.move.status';
 import { BaseSettings } from '../../lib/base.settings';
+import { securitycurrencySearchParams } from '../../securitycurrency/service/securitycurrency.search.params';
 
 @Service()
 export class WatchlistService
   extends AuthServiceWithLogout<Watchlist>
   implements ServiceEntityUpdate<Watchlist>, AddSearchToListService<Watchlist>
 {
+  /**
+   * Builds the request of the market map of a watchlist; it also loads current prices on the server.
+   *
+   * @param idWatchlist - The watchlist
+   * @returns The request descriptor for an httpResource
+   */
+  getWatchlistTreemapRequest(idWatchlist: number) {
+    return {
+      url: `${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}/treemap`,
+      headers: this.prepareHeaders()
+    } satisfies HttpResourceRequest;
+  }
+
   getSecuritiesCurrenciesWatchlistLimits(idWatchlist: number): Observable<TenantLimit[]> {
     return this.httpClient
       .get<TenantLimit[]>(
@@ -150,7 +163,7 @@ export class WatchlistService
         `${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}` + `/${idWatchlist}/search`,
         {
           headers: this.prepareHeaders(),
-          params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
+          params: securitycurrencySearchParams(securitycurrencySearch, ['onlyTenantPrivate'])
         }
       )
       .pipe(catchError(this.handleError.bind(this)));

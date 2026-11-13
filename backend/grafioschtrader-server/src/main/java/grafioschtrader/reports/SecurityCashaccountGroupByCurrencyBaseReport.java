@@ -133,19 +133,21 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
       SecurityPositionCurrenyGroupSummary securityPositionCurrenyGroupSummary = null;
       seperateSecurityaccountCurrency.currency = currency;
       seperateSecurityaccountCurrency.idSecuritycashAccount = securityPositionSummary.usedIdSecurityaccount;
-      seperateSecurityaccountCurrencySet.contains(seperateSecurityaccountCurrency);
       securityPositionCurrenyGroupSummary = cscr.securityaccountCurrencyTotalMap.get(seperateSecurityaccountCurrency);
-      if (securityPositionCurrenyGroupSummary == null
-          && seperateSecurityaccountCurrencySet.contains(seperateSecurityaccountCurrency)) {
-        securityPositionCurrenyGroupSummary = new SecurityPositionCurrenyGroupSummary(currency, currencyExchangeRate,
-            currencyPrecisionMap.getOrDefault(currency, BaseConstants.FID_STANDARD_FRACTION_DIGITS));
-        cscr.securityaccountCurrencyTotalMap.put(
-            new SeperateSecurityaccountCurrency(currency, seperateSecurityaccountCurrency.idSecuritycashAccount),
-            securityPositionCurrenyGroupSummary);
-      } else {
-        securityPositionCurrenyGroupSummary = cscr.currencyTotalMap.computeIfAbsent(currency,
-            c -> new SecurityPositionCurrenyGroupSummary(c, currencyExchangeRate,
-                currencyPrecisionMap.getOrDefault(currency, BaseConstants.FID_STANDARD_FRACTION_DIGITS)));
+      if (securityPositionCurrenyGroupSummary == null) {
+        // Only a position that is not yet in a separate currency/security account group is a candidate for a new one or
+        // for the group of its currency. A second position of an existing separate group must stay in that group.
+        if (seperateSecurityaccountCurrencySet.contains(seperateSecurityaccountCurrency)) {
+          securityPositionCurrenyGroupSummary = new SecurityPositionCurrenyGroupSummary(currency, currencyExchangeRate,
+              currencyPrecisionMap.getOrDefault(currency, BaseConstants.FID_STANDARD_FRACTION_DIGITS));
+          cscr.securityaccountCurrencyTotalMap.put(
+              new SeperateSecurityaccountCurrency(currency, seperateSecurityaccountCurrency.idSecuritycashAccount),
+              securityPositionCurrenyGroupSummary);
+        } else {
+          securityPositionCurrenyGroupSummary = cscr.currencyTotalMap.computeIfAbsent(currency,
+              c -> new SecurityPositionCurrenyGroupSummary(c, currencyExchangeRate,
+                  currencyPrecisionMap.getOrDefault(currency, BaseConstants.FID_STANDARD_FRACTION_DIGITS)));
+        }
       }
       securityPositionSummary.calcMainCurrency(currencyExchangeRate);
       securityPositionCurrenyGroupSummary.addToGroupSummaryAndCalcGroupTotals(securityPositionSummary);

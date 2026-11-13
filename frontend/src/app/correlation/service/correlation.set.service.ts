@@ -15,9 +15,9 @@ import { catchError } from 'rxjs/operators';
 import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { SecuritycurrencyLists } from '../../entities/view/securitycurrency.lists';
-import { AppHelper } from '../../lib/helper/app.helper';
 import { AddSearchToListService } from '../../watchlist/component/add-instrument-table.component';
 import { BaseSettings } from '../../lib/base.settings';
+import { securitycurrencySearchParams } from '../../securitycurrency/service/securitycurrency.search.params';
 
 @Service()
 export class CorrelationSetService
@@ -115,7 +115,7 @@ export class CorrelationSetService
         `${BaseSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}` + `/${idCorrelationSet}/search`,
         {
           headers: this.prepareHeaders(),
-          params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
+          params: securitycurrencySearchParams(securitycurrencySearch, ['onlyTenantPrivate'])
         }
       )
       .pipe(catchError(this.handleError.bind(this)));

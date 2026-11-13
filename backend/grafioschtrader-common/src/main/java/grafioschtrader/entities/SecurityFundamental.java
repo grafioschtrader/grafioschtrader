@@ -57,7 +57,7 @@ public class SecurityFundamental {
   @Column(name = "currency")
   private String currency;
 
-  @Schema(description = "End of the reporting period the value describes, null when the source does not say")
+  @Schema(description = "Reporting period end, or the measurement date of a SHARES stock; null when not stated")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "period_end")
   private LocalDate periodEnd;

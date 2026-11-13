@@ -79,7 +79,7 @@ class WikipediaResolverComparisonReport {
     UDFMetadataSecurity field = uMetaSecurityRepository.findById(Integer.valueOf(idField)).orElseThrow();
     User owner = userJpaRepository.findById(field.getIdUser()).orElseThrow();
     String languages = resolver.normalizeArgument(System.getProperty(LANGUAGES_PROPERTY));
-    Map<Integer, String> manual = scopeService.getFieldValues(owner.getIdUser(), field.getIdUDFMetadata());
+    Map<Integer, String> manual = scopeService.getFieldValues(field);
 
     List<String> identical = new ArrayList<>();
     List<String> differing = new ArrayList<>();

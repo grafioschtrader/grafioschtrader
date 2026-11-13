@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
     automatic, locked, manual or without a value from the source, and whether a fill run is pending.""")
 public class UDFFillStatus {
 
-  @Schema(description = "Number of securities in the tenant scope of the owner that match the asset classes of the field")
+  @Schema(description = "Number of securities in the tenant scope of the caller that match the asset classes of the field")
   public int inScope;
 
   @Schema(description = """

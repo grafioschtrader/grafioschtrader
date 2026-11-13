@@ -20,6 +20,10 @@ public interface SecurityFundamentalJpaRepository extends JpaRepository<Security
 
   List<SecurityFundamental> findByIdSecuritycurrency(Integer idSecuritycurrency);
 
+  /** Last effective split, used to avoid combining a pre-split SEC stock with a post-split quote. */
+  @Query(value = "SELECT MAX(split_date) FROM securitysplit WHERE id_securitycurrency = ?1 AND split_date <= ?2", nativeQuery = true)
+  LocalDate findLatestSplitDate(Integer idSecuritycurrency, LocalDate asOfDate);
+
   /**
    * Removes every fundamental row of a security, used when a change of the security invalidates them: its currency,
    * ISIN, the extension of its Yahoo or Finnhub connector or its Yahoo symbol.
@@ -39,8 +43,11 @@ public interface SecurityFundamentalJpaRepository extends JpaRepository<Security
    * <li>Only rows in state CONFIRMED, CHECKED or SINGLE (1, 2, 3) of the seven bound metrics (1–7).</li>
    * <li>A dated row counts while its period ended at most 18 months before {@code asOfDate}, an undated row while it
    * was fetched at most 21 days before.</li>
+   * <li>SHARES is a stock, not an EPS denominator: only SEC (4) and Yahoo (1), fetched in the last 21 days. A dated
+   * stock must be at most six months old; a SEC stock must state its measurement date.</li>
    * <li>Every row of a security is skipped that was fetched on or before the day of a split of that security: the new
-   * price would otherwise be combined with per-share values of the old share count.</li>
+   * price would otherwise be combined with per-share values of the old share count. A SEC stock is also skipped for a
+   * split on or after its measurement date, even if the report was downloaded later. Future splits do not count.</li>
    * <li>{@code exchangeRate} turns the value into the currency of the security: 1 for the share count and for a value
    * in that currency, otherwise the newest close of the currency pair up to {@code asOfDate}, inverted when only the
    * reverse pair exists, and null when no pair or no currency is known.</li>
@@ -52,6 +59,24 @@ public interface SecurityFundamentalJpaRepository extends JpaRepository<Security
    */
   @Query(nativeQuery = true)
   List<SelectedFundamental> findSelectedByIds(List<Integer> idsSecuritycurrency, LocalDate asOfDate);
+
+  /**
+   * Loads Yahoo's market capitalisation, stored as evidence for the check of the share count, for several securities in
+   * one round trip. The watchlist market map falls back to it when no share count is selected.
+   *
+   * Named query: SecurityFundamental.findMarketCapChecks
+   * <ul>
+   * <li>Only rows of metric MCAP_CHECK (9) and source YAHOO (1) that state a currency.</li>
+   * <li>A row counts while it was fetched at most 21 days before {@code asOfDate}.</li>
+   * <li>A row fetched on or before the day of a split of its security is skipped.</li>
+   * </ul>
+   *
+   * @param idsSecuritycurrency the securities (?1), must not be empty
+   * @param asOfDate            the day of the request (?2)
+   * @return per security at most one row, in full units of the stated currency
+   */
+  @Query(nativeQuery = true)
+  List<MarketCapCheck> findMarketCapChecks(List<Integer> idsSecuritycurrency, LocalDate asOfDate);
 
   /**
    * Ids of the securities the weekly load covers: active direct equities in a watchlist of any tenant or in a
@@ -77,6 +102,15 @@ public interface SecurityFundamentalJpaRepository extends JpaRepository<Security
   @Modifying
   @Query(nativeQuery = true)
   int deleteOutOfScope(byte categoryType, byte specInvestInstrument, LocalDate activeOnDate);
+
+  /** Yahoo's market capitalisation of a security in the currency it was stated in. */
+  interface MarketCapCheck {
+    Integer getIdSecuritycurrency();
+
+    Double getValue();
+
+    String getCurrency();
+  }
 
   /** A selected fundamental row with the rate into the currency of its security. */
   interface SelectedFundamental {

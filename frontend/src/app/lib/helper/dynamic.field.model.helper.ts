@@ -249,6 +249,9 @@ export class DynamicFieldModelHelper {
       )
     );
     DynamicFieldModelHelper.addAsterisksToLabelAndHelpText(fdExtendedList, fieldConfigs);
+    fdExtendedList.forEach((fd, index) => {
+      if (fd.valueEditable === false) fieldConfigs[index].disabled = true;
+    });
     return fieldConfigs;
   }
 

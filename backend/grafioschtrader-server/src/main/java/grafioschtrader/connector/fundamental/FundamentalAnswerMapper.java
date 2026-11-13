@@ -15,9 +15,9 @@ import grafioschtrader.types.FundamentalSource;
 import tools.jackson.databind.JsonNode;
 
 /**
- * Turns the answers of the three fundamental sources into rows, following one field contract: every stored value has a
- * stated unit, currency, period and share basis. A missing or non-numeric field writes no row, and every value is
- * stored in full units — Eulerpool's share count in millions is multiplied out here, before any check sees it.
+ * Turns the answers of the fundamental sources into rows, following one field contract: every stored value has a stated
+ * unit, currency, period and share basis. A missing or non-numeric field writes no row, and every value is stored in
+ * full units — Eulerpool's share count in millions is multiplied out here, before any check sees it.
  *
  * <p>
  * The methods are pure, so that they can be tested on answers recorded by the fundamental source probe.
@@ -36,8 +36,8 @@ public final class FundamentalAnswerMapper {
    * Telekom, Sanofi and others). The answers recorded on 2026-10-21 show why: {@code netIncome} is in full units — EPS
    * times shares reproduces it within 2 % for Nestle, Novo Nordisk, Apple and Merck — but it is the group result
    * including non-controlling interests, of which Deutsche Telekom's EPS times shares gives only 65 %. A failed check
-   * would therefore discard a correct share count. The market capitalisation check already catches a slip of the
-   * millions factor.
+   * would therefore discard a useful fiscal-year denominator. That denominator is kept separately from the current
+   * outstanding stock and never binds SHARES.
    */
   static final List<String> EULERPOOL_NET_INCOME_FIELDS = List.of();
 
@@ -95,6 +95,53 @@ public final class FundamentalAnswerMapper {
   }
 
   /**
+   * Maps EDGAR's dei/EntityCommonStockSharesOutstanding company concept. The latest measurement date wins, then the
+   * latest filing of that measurement (an amendment can correct it). Only instantaneous, positive share stocks in
+   * domestic annual/quarterly reports count; an EPS denominator is never substituted for a missing stock.
+   */
+  public static FundamentalAnswer secShares(JsonNode root, Integer idSecuritycurrency, LocalDateTime fetchedTime) {
+    if (root == null || !"dei".equals(FundamentalFeedSupport.text(root, "/taxonomy"))
+        || !"EntityCommonStockSharesOutstanding".equals(FundamentalFeedSupport.text(root, "/tag"))
+        || !root.path("units").isObject()) {
+      return FundamentalAnswer.failed("no SEC outstanding share stock concept", 200);
+    }
+    JsonNode latest = null;
+    boolean conflict = false;
+    for (JsonNode fact : root.at("/units/shares")) {
+      if (!isShareStock(fact, fetchedTime.toLocalDate())) {
+        continue;
+      }
+      int order = latest == null ? 1 : compareShareStocks(fact, latest);
+      if (order > 0) {
+        latest = fact;
+        conflict = false;
+      } else if (order == 0 && !number(fact, "/val").equals(number(latest, "/val"))) {
+        conflict = true;
+      }
+    }
+    Rows rows = new Rows(idSecuritycurrency, FundamentalSource.SEC, fetchedTime);
+    if (latest != null && !conflict) {
+      rows.add(FundamentalMetric.SHARES, number(latest, "/val"), null, FundamentalFeedSupport.date(latest, "/end"));
+    }
+    return FundamentalAnswer.usable(rows.list, Map.of());
+  }
+
+  private static boolean isShareStock(JsonNode fact, LocalDate today) {
+    String form = FundamentalFeedSupport.text(fact, "/form");
+    LocalDate end = FundamentalFeedSupport.date(fact, "/end");
+    LocalDate filed = FundamentalFeedSupport.date(fact, "/filed");
+    return ("10-K".equals(form) || "10-Q".equals(form) || "10-K/A".equals(form) || "10-Q/A".equals(form))
+        && FundamentalFeedSupport.text(fact, "/start") == null && end != null && filed != null && !end.isAfter(filed)
+        && !filed.isAfter(today) && positive(number(fact, "/val")) != null;
+  }
+
+  private static int compareShareStocks(JsonNode a, JsonNode b) {
+    int date = FundamentalFeedSupport.date(a, "/end").compareTo(FundamentalFeedSupport.date(b, "/end"));
+    return date != 0 ? date
+        : FundamentalFeedSupport.date(a, "/filed").compareTo(FundamentalFeedSupport.date(b, "/filed"));
+  }
+
+  /**
    * Maps Finnhub's basic financials ({@code stock/metric?metric=all}). The free plan answers for US listings only,
    * whose values are in the currency of the security. The {@code metric} object names no period; the fiscal year
    * earnings take the period of the first annual entry of the {@code series} block when that entry carries the same
@@ -147,7 +194,8 @@ public final class FundamentalAnswerMapper {
     rows.add(FundamentalMetric.BVPS, number(root, "/perShare/bps"), currency, period);
     rows.add(FundamentalMetric.SPS_FY, number(root, "/perShare/sps"), currency, period);
     Double sharesMillions = positive(number(root, "/other/shares"));
-    rows.add(FundamentalMetric.SHARES, sharesMillions == null ? null : sharesMillions * 1_000_000, null, period);
+    // other.shares can be the diluted fiscal-year average (Adobe, Booking), not the outstanding stock at a date.
+    rows.add(FundamentalMetric.SHARES_FY, sharesMillions == null ? null : sharesMillions * 1_000_000, null, period);
     rows.add(FundamentalMetric.NET_DEBT, number(root, "/leverage/netDebt"), currency, period);
     Map<String, Double> evidence = new HashMap<>();
     if (newest != null) {

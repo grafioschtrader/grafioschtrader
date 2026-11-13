@@ -22,6 +22,9 @@ export class Tenant extends TenantBase {
   /** Keeps the disposal cost estimate on for this tenant; effective only while the instance switch is on too. */
   disposalCostEstimate = true;
 
+  /** Name of the cost basis method all portfolios use unless they override it: AVERAGE_COST, FIFO or LIFO. */
+  costBasisMethod: string | null = 'AVERAGE_COST';
+
   public override getId(): number | undefined {
     return this.idTenant;
   }

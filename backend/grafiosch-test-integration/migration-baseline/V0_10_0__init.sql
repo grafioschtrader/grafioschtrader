@@ -454,6 +454,7 @@ CREATE TABLE `tenant` (
   `fee_interest_fx_at_cut_off_date` tinyint(1) NOT NULL DEFAULT 0,
   `report_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`report_settings`)),
   `disposal_cost_estimate` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Tenant opt-out of the disposal cost estimate; effective only while gt.disposal.cost.estimate is 1',
+  `cost_basis_method` tinyint(4) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_tenant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -485,6 +486,18 @@ CREATE TABLE `udf_data` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `udf_data_shared` (
+  `id_udf_metadata` int(11) NOT NULL,
+  `id_entity` int(11) NOT NULL,
+  `entity` varchar(20) NOT NULL COMMENT 'Entity name as in udf_data.entity',
+  `field_value` text NOT NULL COMMENT 'Canonical text of the value, true or false for a boolean',
+  PRIMARY KEY (`id_udf_metadata`,`id_entity`),
+  KEY `I_UdfDataShared_Entity` (`entity`,`id_entity`),
+  CONSTRAINT `FK_UdfDataShared_Metadata` FOREIGN KEY (`id_udf_metadata`) REFERENCES `udf_metadata` (`id_udf_metadata`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `udf_metadata` (
   `id_udf_metadata` int(11) NOT NULL AUTO_INCREMENT,
   `id_user` int(11) DEFAULT NULL,
@@ -494,6 +507,7 @@ CREATE TABLE `udf_metadata` (
   `udf_data_type` tinyint(2) NOT NULL,
   `field_size` varchar(20) DEFAULT NULL,
   `ui_order` smallint(2) NOT NULL,
+  `share_mode` tinyint(4) NOT NULL DEFAULT 0 COMMENT 'UDFShareMode: 0 not shared, 1 read, 2 read and write',
   PRIMARY KEY (`id_udf_metadata`),
   KEY `I_UDF_Metadata_IdUser` (`id_user`),
   CONSTRAINT `FK_udfMetadata_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`)
@@ -506,6 +520,20 @@ CREATE TABLE `udf_metadata_general` (
   `entity` varchar(20) NOT NULL,
   PRIMARY KEY (`id_udf_metadata`),
   CONSTRAINT `FK_MetadataGeneral_Metadata` FOREIGN KEY (`id_udf_metadata`) REFERENCES `udf_metadata` (`id_udf_metadata`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `udf_metadata_subscription` (
+  `id_udf_metadata_subscription` int(11) NOT NULL AUTO_INCREMENT,
+  `id_udf_metadata` int(11) NOT NULL,
+  `id_user` int(11) NOT NULL,
+  `ui_order` smallint(2) NOT NULL,
+  PRIMARY KEY (`id_udf_metadata_subscription`),
+  UNIQUE KEY `UK_UdfMetadataSubscription_Field_User` (`id_udf_metadata`,`id_user`),
+  KEY `FK_UdfMetadataSubscription_User` (`id_user`),
+  CONSTRAINT `FK_UdfMetadataSubscription_Metadata` FOREIGN KEY (`id_udf_metadata`) REFERENCES `udf_metadata` (`id_udf_metadata`) ON DELETE CASCADE,
+  CONSTRAINT `FK_UdfMetadataSubscription_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -654,6 +682,7 @@ INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_strin
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.max.security.breach.count',5,NULL,NULL,NULL,NULL,0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.password.regex.properties',NULL,NULL,NULL,NULL,'de=Das Passwort besteht aus mindestens acht Zeichen mit mindestens einem Buchstaben und einer Zahl.\nregex=^(?\\=.*[A-Za-z])(?\\=.*\\\\d)[A-Za-z\\\\d]{8,}$\nforceRegex=false\nen=The password has at least eight characters with at least one letter and one number.\n\n\n\n\n',0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.task.data.days.preserve',10,NULL,NULL,NULL,NULL,0,NULL);
+INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.user.nickname.visible',0,NULL,NULL,NULL,NULL,0,'enum:0,1');
 /*!40000 ALTER TABLE `globalparameters` ENABLE KEYS */;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
@@ -711,6 +740,7 @@ INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'OAuthAuthorization', NULL, NULL, 2, NULL, 10, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'ProposeUserTask', NULL, NULL, 2, NULL, 100, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'UDFMetadataGeneral', NULL, NULL, 2, NULL, 50, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'UDFMetadataSubscription', NULL, NULL, 2, NULL, 50, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'UserAccessToken', NULL, NULL, 2, NULL, 5, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNet', NULL, NULL, NULL, 8, 5, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetConfig', NULL, NULL, NULL, 8, 3, NULL, 0, 0, 0);
@@ -721,6 +751,7 @@ INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'MailSettingForward', NULL, NULL, NULL, 8, 12, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'ProposeUserTask', NULL, NULL, NULL, 8, 10, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'UDFMetadataGeneral', NULL, NULL, NULL, 8, 20, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'UDFMetadataSubscription', NULL, NULL, NULL, NULL, 20, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'UserAccessToken', NULL, NULL, NULL, NULL, 10, NULL, 0, 0, 0);
 
 -- g.gnet.my.entry.id points at the dumping machine's own GTNet entry, but gt_net is dumped

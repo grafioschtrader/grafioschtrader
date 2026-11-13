@@ -58,6 +58,48 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
       .pipe(catchError(this.handleError.bind(this)));
   }
 
+  /**
+   * Reads the cost basis methods a tenant or a portfolio can choose.
+   *
+   * @returns Options in the order of the backend enum; key and value hold the enum name, the caller translates the value
+   */
+  public getCostBasisMethods(): Observable<ValueKeyHtmlSelectOptions[]> {
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/${AppSettings.COST_BASIS_METHODS_P_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Reads the fund classes of the German tax.
+   *
+   * @returns Options in the order of the backend enum; key and value hold the enum name, the caller translates the value
+   */
+  public getFundTaxClasses(): Observable<ValueKeyHtmlSelectOptions[]> {
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/${AppSettings.FUND_TAX_CLASSES_P_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Reads the withholding assignments a portfolio can have for the German tax help.
+   *
+   * @returns Options in the order of the backend enum; key and value hold the enum name, the caller translates the value
+   */
+  public getTaxWithholdings(): Observable<ValueKeyHtmlSelectOptions[]> {
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/${AppSettings.TAX_WITHHOLDINGS_P_KEY}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   public getPossibleAssetclassInstrumentMap(): Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }> {
     return this.httpClient
       .get<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }>(

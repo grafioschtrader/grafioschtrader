@@ -12,6 +12,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { HistoryquoteDateClose } from '../../entities/projection/historyquote.date.close';
 import { SecurityCurrencyService } from './security.currency.service';
 import { BaseSettings } from '../../lib/base.settings';
+import { securitycurrencySearchParams } from './securitycurrency.search.params';
 
 @Service()
 export class CurrencypairService extends SecurityCurrencyService<Currencypair> {
@@ -99,7 +100,7 @@ export class CurrencypairService extends SecurityCurrencyService<Currencypair> {
     return this.httpClient
       .get<Currencypair[]>(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/search`, {
         headers: this.prepareHeaders(),
-        params: AppHelper.getHttpParamsOfObject(securitycurrencySearch)
+        params: securitycurrencySearchParams(securitycurrencySearch)
       })
       .pipe(catchError(this.handleError.bind(this)));
   }

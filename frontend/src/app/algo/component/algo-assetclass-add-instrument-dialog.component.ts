@@ -31,7 +31,7 @@ import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-
         #dynamicFormComponent="dynamicForm"
         (submitBt)="submit($event)" />
       <br />
-      <algo-assetclass-add-instrument-table [tenantLimits]="[]" />
+      <algo-assetclass-add-instrument-table [tenantLimits]="[]" [advancedFields]="advancedSearchFields()" />
     </p-dialog>
   `,
   imports: [TranslateModule, DialogModule, DynamicFormComponent, AlgoAssetclassAddInstrumentTableComponent]

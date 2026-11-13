@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.common.ClientClock;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.*;
+import grafioschtrader.instrument.CostBasisMethods;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
@@ -239,7 +240,7 @@ public class AlgoHistoricalValuationService {
             parameters.getCurrencyPrecision());
         // Transactions are already bounded; the exclusive next day includes splits on the opening date.
         calculator.calcTransactions(security, tenant.isExcludeDivTax(), summary, splitMap, txs, date.plusDays(1),
-            new DateTransactionCurrencypairMap(date.plusDays(1), true));
+            new DateTransactionCurrencypairMap(date.plusDays(1), true), CostBasisMethods.AVERAGE_ONLY);
         var open = summary.securityPositionSummary.getTransactionsMarginOpenUnits();
         if (open.isEmpty())
           continue;

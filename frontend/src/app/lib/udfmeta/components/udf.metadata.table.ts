@@ -1,3 +1,7 @@
+import { UDFMetadataSubscriptionService } from '../service/udf.metadata.subscription.service';
+import { LoginService } from '../../login/service/log-in.service';
+import { AppHelper } from '../../helper/app.helper';
+import { PanelClickEvent } from '../../mainmenubar/component/iglobal.menu.attach';
 import { signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UDFMetadata, UDFMetadataParam } from '../model/udf.metadata';
@@ -19,6 +23,72 @@ import { UDFSpecialTypeRegistry } from '../model/udf.special.type.registry';
  * column additions and parameter preparation for editing dialogs.
  */
 export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSupportMenu<T> {
+  protected readonly subscriptionService = inject(UDFMetadataSubscriptionService);
+  private readonly loginService = inject(LoginService);
+  private readonly nicknames = signal<Record<number, string>>({});
+  readonly subscriptionField = signal<T | null>(null);
+  subscriptionExcludedOrders: number[] = [];
+
+  isOwn(field: UDFMetadata): boolean {
+    return field.idUser === this.gps.getIdUser();
+  }
+  isSubscribed(field: UDFMetadata): boolean {
+    return field.idUDFMetadataSubscription != null;
+  }
+  isOrphaned(field: UDFMetadata): boolean {
+    return this.isSubscribed(field) && field.idUser == null;
+  }
+
+  override onComponentClick(event: PanelClickEvent): void {
+    if (!event.consumedGT) super.onComponentClick(event);
+  }
+
+  override handleEditEntity(field: T | null): void {
+    if (field && this.isSubscribed(field)) {
+      const param = new UDFMetadataParam();
+      this.beforeEdit(field, param);
+      this.subscriptionExcludedOrders = param.excludeUiOrders;
+      this.subscriptionField.set(field);
+    } else {
+      super.handleEditEntity(field);
+    }
+  }
+
+  override handleDeleteEntity(field: T): void {
+    const subscriptionId = field.idUDFMetadataSubscription;
+    if (subscriptionId != null) {
+      AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'UDF_UNSUBSCRIBE', () =>
+        this.subscriptionService
+          .deleteEntity(subscriptionId)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => this.readData())
+      );
+    } else if (this.isOwn(field) && field.subscriberCount) {
+      const id = field.idUDFMetadata;
+      if (id == null) return;
+      this.confirmationService.confirm({
+        message: this.translateService.instant('UDF_DELETE_SHARED_CONFIRM', { count: field.subscriberCount }),
+        header: this.translateService.instant('MSG_GENERAL_HEADER'),
+        accept: () =>
+          this.deleteReadAllService
+            .deleteEntity(id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.readData())
+      });
+    } else {
+      super.handleDeleteEntity(field);
+    }
+  }
+
+  protected override getEditMenuItems(field: T | null): MenuItem[] {
+    const items = super.getEditMenuItems(field);
+    if (field && this.isSubscribed(field)) {
+      const item = items.find((i) => i.label?.startsWith('DELETE_RECORD|'));
+      if (item) item.label = 'UDF_UNSUBSCRIBE';
+    }
+    return items;
+  }
+
   private udfSpecialTypeDisableUserService: UDFSpecialTypeDisableUserService = inject(UDFSpecialTypeDisableUserService);
 
   /**
@@ -78,6 +148,16 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
     this.addColumn(DataType.String, 'descriptionHelp', 'FIELD_DESCRIPTION_HELP', true, false, { width: 150 });
     this.addColumnFeqH(DataType.String, 'udfDataType', true, false, { translateValues: TranslateValue.NORMAL });
     this.addColumnFeqH(DataType.String, 'fieldSize', true, false, { width: 60 });
+    this.addColumnFeqH(DataType.String, 'shareMode', true, false, { translateValues: TranslateValue.NORMAL });
+    this.addColumn(DataType.String, 'idUser', 'UDF_OWNER', true, false, {
+      fieldValueFN: (field: T) =>
+        field.idUser == null || field.idUser === 0
+          ? ''
+          : this.nicknames()[field.idUser]
+            ? `${field.idUser} (${this.nicknames()[field.idUser]})`
+            : String(field.idUser)
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'subscriberCount', true, false);
     this.addAdditionalFields(false);
     this.multiSortMeta.push(...sortMeta);
     this.prepareTableAndTranslate();
@@ -119,6 +199,19 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
           this.specialTypeDisabledArr.set(data[1]);
           this.createTranslatedValueStoreAndFilterField(entities);
           this.entityList.set(entities);
+          if (this.gps.isUserNicknameVisible()) {
+            const ids = [
+              ...new Set(entities.map((f) => f.idUser).filter((id): id is number => id != null && id !== 0))
+            ];
+            if (ids.length)
+              this.loginService
+                .getNicknames(ids)
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe((names) => {
+                  this.nicknames.set(names);
+                  this.notifyViewChanged();
+                });
+          }
           this.togglingSpecialType.set(false);
           this.refreshSelectedEntity();
         },
@@ -135,6 +228,18 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @protected
    */
   protected override addCustomMenusToSelectedEntity(udfMetaData: T, menuItems: MenuItem[]): void {
+    menuItems.push({
+      label: 'UDF_CLAIM_OWNERSHIP',
+      disabled: !this.isOrphaned(udfMetaData) || this.gps.isReadOnlyUser(),
+      command: () => {
+        const id = udfMetaData.idUDFMetadataSubscription;
+        if (id != null)
+          this.subscriptionService
+            .claimOwnership(id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.readData());
+      }
+    });
     menuItems.push({
       label: 'UDF_TURN_ON_OFF_FIELD_USER0',
       command: (event) => this.turnOnOffFieldUser0(udfMetaData),
@@ -201,7 +306,7 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @protected
    */
   protected override hasRightsForUpdateEntity(entity: T): boolean {
-    return entity.idUser !== 0;
+    return this.isOwn(entity) || this.isSubscribed(entity);
   }
 
   /**
@@ -213,7 +318,7 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @protected
    */
   protected override hasRightsForDeleteEntity(entity: T): boolean {
-    return entity.idUser !== 0;
+    return this.isOwn(entity) || this.isSubscribed(entity);
   }
 }
 

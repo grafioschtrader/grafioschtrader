@@ -1,0 +1,23 @@
+Bern, {datetime|P|N}
+Börsentransaktion: {transType|P|N}
+Unsere Referenz: 142494149 
+Gemäss Ihrem Kaufauftrag vom 08.03.2018 haben wir folgende Transaktionen vorgenommen:
+Titel Ort der Ausführung
+2.20 BALIFE 17-48 ISIN: {isin|P} SIX Swiss Exchange
+NKN: 37961100
+Anzahl Preis Betrag
+{units|PL|R} {quotation} {per|O} {cin} 4’741.56
+CHF
+Marchzinsen {ac|SL|N|O}
+Total CHF 5'068.60
+Kommission CHF {tc1|SL|N|O}
+Abgabe (Eidg. Stempelsteuer) CHF {tt1|SL|N}
+Börsengebühren CHF {tc2|SL|N|O}
+Benutzter Trading Credit {reduce|SL|N|O}
+Zu Ihren Lasten {cac|SL} {ta|SL|N}
+[END]
+templatePurpose=Kauf und Verkauf Wertpapier
+transType=ACCUMULATE|Kauf
+transType=REDUCE|Verkauf
+dateFormat=dd.MM.yyyy
+overRuleSeparators=All<’'|.>

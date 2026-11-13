@@ -29,6 +29,8 @@ import grafioschtrader.types.FundamentalState;
  * becomes {@code CHECKED} or {@code SINGLE}. Finally the chosen fiscal year earnings are held against the chosen
  * trailing twelve months earnings when three of their quarters overlap.
  * </p>
+ * Outstanding shares follow a separate rule: a recent dated SEC stock takes precedence over Yahoo's checked undated
+ * stock. A fiscal-year share count never binds SHARES and is never used to contradict a stock.
  */
 public final class FundamentalSelector {
 
@@ -45,6 +47,8 @@ public final class FundamentalSelector {
   public static final int DATED_FRESH_MONTHS = 18;
   /** An undated value counts while it was fetched no longer ago than this; the weekly run may fail twice. */
   public static final int UNDATED_FRESH_DAYS = 21;
+  /** A dated outstanding stock must come from a reasonably recent quarterly disclosure. */
+  public static final int SHARES_FRESH_MONTHS = 6;
   /** Two dated candidates further apart describe different periods and are not compared. */
   static final int COMPARABLE_DAYS = 45;
   /** Fiscal year and trailing twelve months at most this far apart share three of their four quarters. */
@@ -56,7 +60,7 @@ public final class FundamentalSelector {
           FundamentalMetric.EPS_FY, List.of(FundamentalSource.FINNHUB, FundamentalSource.EULERPOOL),
           FundamentalMetric.SPS_TTM, List.of(FundamentalSource.YAHOO, FundamentalSource.FINNHUB),
           FundamentalMetric.SPS_FY, List.of(FundamentalSource.EULERPOOL), FundamentalMetric.SHARES,
-          List.of(FundamentalSource.YAHOO, FundamentalSource.EULERPOOL), FundamentalMetric.BVPS,
+          List.of(FundamentalSource.SEC, FundamentalSource.YAHOO), FundamentalMetric.BVPS,
           List.of(FundamentalSource.YAHOO, FundamentalSource.FINNHUB, FundamentalSource.EULERPOOL),
           FundamentalMetric.NET_DEBT, List.of(FundamentalSource.YAHOO, FundamentalSource.EULERPOOL)));
 
@@ -71,11 +75,18 @@ public final class FundamentalSelector {
    * @return per bound metric the selected row; a metric without a selected row is absent
    */
   public static Map<FundamentalMetric, SecurityFundamental> select(List<SecurityFundamental> rows, LocalDate asOfDate) {
+    return select(rows, asOfDate, null);
+  }
+
+  /** As {@link #select(List, LocalDate)}, also excluding a share stock whose basis predates the latest split. */
+  public static Map<FundamentalMetric, SecurityFundamental> select(List<SecurityFundamental> rows, LocalDate asOfDate,
+      LocalDate latestSplit) {
     rows.forEach(r -> r.setState(FundamentalState.CANDIDATE));
     Map<FundamentalMetric, List<SecurityFundamental>> candidates = new EnumMap<>(FundamentalMetric.class);
     for (FundamentalMetric metric : BOUND_METRICS) {
-      List<SecurityFundamental> list = new ArrayList<>(
-          rows.stream().filter(r -> r.getMetric() == metric && isCandidate(r, asOfDate)).toList());
+      List<SecurityFundamental> list = new ArrayList<>(rows.stream()
+          .filter(r -> r.getMetric() == metric && isCandidate(r, asOfDate) && sharesAfterSplit(r, latestSplit))
+          .toList());
       list.sort(Comparator.comparingInt(r -> PREFERENCE.get(metric).indexOf(r.getSource())));
       candidates.put(metric, list);
       markContradictedGroups(metric, list);
@@ -97,6 +108,7 @@ public final class FundamentalSelector {
    */
   static boolean isCandidate(SecurityFundamental row, LocalDate asOfDate) {
     return row.getSourceCheck() != FundamentalSourceCheck.FAILED && isFresh(row, asOfDate)
+        && (row.getSource() != FundamentalSource.SEC || row.getPeriodEnd() != null)
         && (row.getSource() != FundamentalSource.YAHOO
             || row.getMetric() != FundamentalMetric.SHARES && row.getMetric() != FundamentalMetric.SPS_TTM
             || row.getSourceCheck() == FundamentalSourceCheck.PASSED)
@@ -105,9 +117,25 @@ public final class FundamentalSelector {
 
   /** The freshness rule, applied again when the rows are read for the watchlist. */
   public static boolean isFresh(SecurityFundamental row, LocalDate asOfDate) {
+    if (row.getMetric() == FundamentalMetric.SHARES) {
+      return row.getValue() > 0 && Double.isFinite(row.getValue()) && row.getFetchedTime() != null
+          && !row.getFetchedTime().toLocalDate().isBefore(asOfDate.minusDays(UNDATED_FRESH_DAYS))
+          && !row.getFetchedTime().toLocalDate().isAfter(asOfDate)
+          && (row.getPeriodEnd() == null || !row.getPeriodEnd().isBefore(asOfDate.minusMonths(SHARES_FRESH_MONTHS))
+              && !row.getPeriodEnd().isAfter(asOfDate));
+    }
     return row.getPeriodEnd() != null ? !row.getPeriodEnd().isBefore(asOfDate.minusMonths(DATED_FRESH_MONTHS))
         : row.getFetchedTime() != null
             && !row.getFetchedTime().toLocalDate().isBefore(asOfDate.minusDays(UNDATED_FRESH_DAYS));
+  }
+
+  private static boolean sharesAfterSplit(SecurityFundamental row, LocalDate latestSplit) {
+    if (row.getMetric() != FundamentalMetric.SHARES || latestSplit == null) {
+      return true;
+    }
+    LocalDate basis = row.getSource() == FundamentalSource.SEC ? row.getPeriodEnd()
+        : row.getFetchedTime().toLocalDate();
+    return basis != null && basis.isAfter(latestSplit);
   }
 
   /**
@@ -143,21 +171,19 @@ public final class FundamentalSelector {
       previous.setState(FundamentalState.CANDIDATE);
     }
     List<SecurityFundamental> open = candidates.stream().filter(c -> c.getState() != FundamentalState.SUSPECT).toList();
+    if (metric == FundamentalMetric.SHARES) {
+      // A dated original disclosure takes precedence over an undated vendor count. Neither an older count nor a
+      // fiscal-year average can contradict it; repurchases and new issues legitimately change the capital stock.
+      open.stream().findFirst().ifPresent(row -> {
+        row.setState(row.getSource() == FundamentalSource.SEC ? FundamentalState.SINGLE : FundamentalState.CHECKED);
+        selected.put(metric, row);
+      });
+      return;
+    }
     for (SecurityFundamental candidate : open) {
       if (tolerance(metric) != null && hasAgreeingPartner(metric, candidate, open)) {
         candidate.setState(FundamentalState.CONFIRMED);
         selected.put(metric, candidate);
-        return;
-      }
-    }
-    // Shares describe the current capital structure, not a reporting period. A fresh undated count can stand
-    // alone when it reproduces market capitalisation; undated earnings still require another source.
-    if (metric == FundamentalMetric.SHARES) {
-      var checked = open.stream()
-          .filter(c -> c.getPeriodEnd() == null && c.getSourceCheck() == FundamentalSourceCheck.PASSED).findFirst();
-      if (checked.isPresent()) {
-        checked.get().setState(FundamentalState.CHECKED);
-        selected.put(metric, checked.get());
         return;
       }
     }
@@ -238,7 +264,6 @@ public final class FundamentalSelector {
     return switch (metric) {
     case EPS_TTM, EPS_FY -> 0.05;
     case SPS_TTM -> 0.10;
-    case SHARES -> 0.05;
     default -> null;
     };
   }

@@ -58,7 +58,7 @@ public class FundamentalDataLoadService {
   private final TransactionTemplate transactionTemplate;
 
   /** Comma-separated sources that may be asked; empty disables every fundamental request. */
-  @Value("${gt.fundamental.sources:yahoo,finnhub,eulerpool}")
+  @Value("${gt.fundamental.sources:sec,yahoo,finnhub,eulerpool}")
   private String enabledSources;
 
   public FundamentalDataLoadService(List<IFundamentalFeedConnector> connectors,
@@ -215,7 +215,8 @@ public class FundamentalDataLoadService {
   private void store(Security security, Map<FundamentalSource, FundamentalAnswer> usable, LocalDate today) {
     Integer id = security.getIdSecuritycurrency();
     List<SecurityFundamental> all = combine(securityFundamentalJpaRepository.findByIdSecuritycurrency(id), usable,
-        security.getSLast(), security.getCurrency(), this::rate, today);
+        security.getSLast(), security.getCurrency(), this::rate, today,
+        securityFundamentalJpaRepository.findLatestSplitDate(id, today));
     transactionTemplate.executeWithoutResult(_ -> {
       securityFundamentalJpaRepository.deleteByIdSecuritycurrency(id);
       securityFundamentalJpaRepository.saveAll(all);
@@ -233,11 +234,12 @@ public class FundamentalDataLoadService {
    * @param securityCurrency the currency of the security
    * @param exchangeRate     the currency conversion of the checks
    * @param today            the day of the run
+   * @param latestSplit      last effective split, or null; a SEC stock at or before it cannot use today's price
    * @return the checked and graded rows to store
    */
   static List<SecurityFundamental> combine(List<SecurityFundamental> stored,
       Map<FundamentalSource, FundamentalAnswer> usable, Double lastPrice, String securityCurrency,
-      FundamentalSourceChecks.ExchangeRate exchangeRate, LocalDate today) {
+      FundamentalSourceChecks.ExchangeRate exchangeRate, LocalDate today, LocalDate latestSplit) {
     List<SecurityFundamental> all = new ArrayList<>(
         stored.stream().filter(r -> !usable.containsKey(r.getSource())).toList());
     List<SecurityFundamental> loaded = new ArrayList<>();
@@ -248,7 +250,7 @@ public class FundamentalDataLoadService {
     });
     all.addAll(loaded);
     FundamentalSourceChecks.apply(loaded, all, evidence, lastPrice, securityCurrency, exchangeRate);
-    FundamentalSelector.select(all, today);
+    FundamentalSelector.select(all, today, latestSplit);
     return all;
   }
 

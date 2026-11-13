@@ -157,5 +157,6 @@ export interface FieldDescriptorInputAndShowExtended extends FieldDescriptorInpu
   udfSpecialType: number;
 
   /** ID of the user who created this field configuration. Used for user-specific customizations. */
-  idUser: number;
+  idUser: number | null;
+  valueEditable?: boolean;
 }

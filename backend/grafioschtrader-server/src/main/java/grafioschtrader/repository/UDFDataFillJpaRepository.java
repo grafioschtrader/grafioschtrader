@@ -60,11 +60,29 @@ public interface UDFDataFillJpaRepository extends JpaRepository<UDFDataFill, UDF
   int deleteByIdUDFMetadataAndFillStateIn(Integer idUDFMetadata, Collection<Byte> fillStates);
 
   /**
-   * Returns the fill rows of all fields of a user for the given securities, used for the fill marks of the watchlist.
+   * Deletes the fill rows of a field in the given states for the given securities only. A participant of a shared
+   * field asks a language model again for the own securities with it, without touching the rows of securities only
+   * another participant holds.
+   *
+   * @param idUDFMetadata the field
+   * @param fillStates    the byte values of the states
+   * @param idEntities    the securities whose rows are deleted; must not be empty
+   * @return the number of deleted rows
+   */
+  @Transactional
+  @Modifying
+  @Query(value = "DELETE FROM udf_data_fill WHERE id_udf_metadata = ?1 AND fill_state IN (?2)"
+      + " AND id_entity IN (?3)", nativeQuery = true)
+  int deleteByIdUDFMetadataAndFillStateInAndIdEntityIn(Integer idUDFMetadata, Collection<Byte> fillStates,
+      Collection<Integer> idEntities);
+
+  /**
+   * Returns the fill rows of owned and subscribed fields for the given securities, used for the fill marks of the
+   * watchlist.
    *
    * Named query: UDFDataFill.getByIdUserAndIdEntityIn
    *
-   * @param idUser     the owner of the fields
+   * @param idUser     the participant of the fields
    * @param idEntities the securities of the watchlist
    * @return the fill rows of the user's fields for these securities
    */

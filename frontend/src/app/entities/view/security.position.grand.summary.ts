@@ -35,6 +35,9 @@ export interface SecurityPositionGrandSummary<S extends SecurityPositionGroupSum
   currency: string;
 
   grandGainLossSecurityMC: number;
+  grandRealizedGainLossSecurityMC: number;
+  grandIncomeGainLossSecurityMC: number;
+  grandUnrealizedGainLossSecurityMC: number;
   grandGainLossCurrencyMC: number;
   /** Disposal cost estimate of the report, only present when it is switched on. */
   grandDisposalCostMC?: number;

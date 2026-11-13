@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 import grafiosch.BaseConstants;
 import grafiosch.entities.UDFData;
 import grafiosch.entities.UDFMetadata;
+import grafiosch.types.UDFDataType;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.udffill.UDFFillTemplateException.Reason;
 
@@ -517,6 +518,10 @@ public class UDFFillTemplate {
    * @return null when the value is valid, otherwise the validation message
    */
   public static String validate(String value, UDFMetadataSecurity field) {
+    if (field.getUdfDataType() == UDFDataType.UDF_Boolean) {
+      // checkDataAgainstMetadata does not look at a boolean, the stored form is the JSON value true or false
+      return "true".equals(value) || "false".equals(value) ? null : "Not a boolean: " + value;
+    }
     String key = BaseConstants.UDF_FIELD_PREFIX + field.getIdUDFMetadata();
     Map<String, Object> values = new HashMap<>();
     values.put(key, value);

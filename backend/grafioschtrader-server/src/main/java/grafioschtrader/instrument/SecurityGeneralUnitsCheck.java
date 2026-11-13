@@ -40,7 +40,7 @@ public class SecurityGeneralUnitsCheck {
    * This method performs comprehensive validation by:
    * <ul>
    * <li>Applying or removing the target transaction from the transaction list</li>
-   * <li>Reordering transactions to ensure proper same-day transaction sequencing</li>
+   * <li>Sorting the transactions by {@link Transaction#CALC_ORDER}, the order the reports calculate in</li>
    * <li>Calculating running units balances with security split adjustments</li>
    * <li>Validating that units never go negative and dividends have sufficient backing units</li>
    * </ul>
@@ -62,7 +62,7 @@ public class SecurityGeneralUnitsCheck {
     final List<TransactionTimeUnits> transactionTimeUnits = new ArrayList<>();
     final DataViolationException dataViolationException = new DataViolationException();
     List<Transaction> transactionAfter = addUpdateRemoveToTransaction(operationType, transactions, targetTransaction);
-    reorderTransactionForDividends(transactionAfter);
+    transactionAfter.sort(Transaction.CALC_ORDER);
     transactionAfter.forEach(transaction -> {
       checkUnitsIntegrity(securitySplitMap, security, transaction, transactionTimeUnits, dataViolationException);
       if (!transactionTimeUnits.isEmpty() && transactionTimeUnits.get(0).units < 0.0) {
@@ -170,39 +170,6 @@ public class SecurityGeneralUnitsCheck {
       }
     }
     return false;
-  }
-
-  /**
-   * Reorders transactions that occur on the same day to ensure proper business logic sequence.
-   *
-   * <p>
-   * Applies these ordering rules for same-day transactions:
-   * <ul>
-   * <li>ACCUMULATE transactions come before DIVIDEND transactions</li>
-   * <li>DIVIDEND transactions come before REDUCE transactions</li>
-   * </ul>
-   *
-   * <p>
-   * This ensures that dividends are calculated after stock purchases but before sales when they occur on the same
-   * trading day.
-   * </p>
-   *
-   * @param transactions the list of transactions to reorder (modified in place)
-   */
-  private static void reorderTransactionForDividends(final List<Transaction> transactions) {
-    for (int i = 0; i < transactions.size(); i++) {
-      if (i + 1 < transactions.size()
-          && transactions.get(i).getTransactionTime().equals(transactions.get(i + 1).getTransactionTime())) {
-        if (transactions.get(i).getTransactionType() == TransactionType.DIVIDEND
-            && transactions.get(i + 1).getTransactionType() == TransactionType.ACCUMULATE
-            || transactions.get(i).getTransactionType() == TransactionType.REDUCE
-                && transactions.get(i + 1).getTransactionType() == TransactionType.DIVIDEND) {
-          final Transaction swapTransaction = transactions.get(i);
-          transactions.set(i, transactions.get(i + 1));
-          transactions.set(i + 1, swapTransaction);
-        }
-      }
-    }
   }
 }
 

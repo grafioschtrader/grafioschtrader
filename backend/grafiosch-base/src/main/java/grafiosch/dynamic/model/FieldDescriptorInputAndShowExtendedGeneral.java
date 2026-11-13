@@ -29,7 +29,7 @@ public class FieldDescriptorInputAndShowExtendedGeneral extends FieldDescriptorI
    * @param entity          the name or identifier of the entity this field belongs to
    */
   public FieldDescriptorInputAndShowExtendedGeneral(String fieldName, String description, String descriptionHelp,
-      byte uiOrder, DataType dataType, Double min, Double max, Byte udfSpecialType, int idUser, String entity) {
+      byte uiOrder, DataType dataType, Double min, Double max, Byte udfSpecialType, Integer idUser, String entity) {
     super(fieldName, description, descriptionHelp, uiOrder, dataType, min, max, udfSpecialType, idUser);
     this.entity = entity;
   }
