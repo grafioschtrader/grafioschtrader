@@ -45,7 +45,8 @@ import grafioschtrader.report.pdf.ChartSvgSanitizer.ChartSvg;
  *
  * <p>
  * The fonts come from the class path through a {@code classpath:} scheme of FOP's resource resolver, so no file has to
- * exist on disk and the converter works the same from a test and from the executable jar.
+ * exist on disk and the converter works the same from a test and from the executable jar. FOP's font cache is off:
+ * it would write a file into the home directory of the user the server runs as, to save reading two fonts.
  * </p>
  */
 @Component
@@ -55,6 +56,7 @@ public class SvgPdfConverter {
   private static final String FO_NAMESPACE = "http://www.w3.org/1999/XSL/Format";
   private static final String FOP_CONFIGURATION = """
       <fop version="1.0">
+        <use-cache>false</use-cache>
         <renderers>
           <renderer mime="application/pdf">
             <fonts>
@@ -149,8 +151,10 @@ public class SvgPdfConverter {
         .createSchemeAwareResourceResolverBuilder(ResourceResolverFactory.createDefaultResourceResolver());
     resolvers.registerResourceResolverForScheme("classpath", new ClasspathResolver());
     String configuration = String.format(FOP_CONFIGURATION, ChartSvgSanitizer.FONT_FAMILY);
+    // The base must be a URL that Java can open: FOP turns it into one for every SVG. Nothing is resolved against it,
+    // because the fonts have absolute URIs and the checked SVG contains no reference.
     FopConfParser parser = new FopConfParser(new ByteArrayInputStream(configuration.getBytes(StandardCharsets.UTF_8)),
-        URI.create("classpath:/"), resolvers.build());
+        URI.create("file:///"), resolvers.build());
     return parser.getFopFactoryBuilder().build();
   }
 
