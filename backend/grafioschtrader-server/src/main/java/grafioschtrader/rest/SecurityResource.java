@@ -287,6 +287,14 @@ public class SecurityResource extends UpdateCreateResource<Security> {
         HttpStatus.OK);
   }
 
+  @Operation(summary = "Options of the PDF of a time-series chart", description = """
+      Paper formats, languages and number formats the dialog may offer; the same values are checked on generation.
+      """, tags = { Security.TABNAME })
+  @GetMapping(value = "/chart/pdf/options", produces = APPLICATION_JSON_VALUE)
+  public SecurityChartPdfService.Options getChartPdfOptions() {
+    return securityChartPdfService.options();
+  }
+
   @Operation(summary = "Generate the PDF of a time-series chart", description = """
       The chart arrives as SVG, exactly as the user adjusted it on screen, together with the numbers at its transaction
       markers. The server places it on the page and adds the table of those transactions, which it reads itself in the

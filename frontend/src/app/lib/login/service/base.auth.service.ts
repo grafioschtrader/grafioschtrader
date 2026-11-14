@@ -1,7 +1,7 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
-import { catchError, take } from 'rxjs/operators';
+import { from, Observable, throwError } from 'rxjs';
+import { catchError, map, switchMap, take } from 'rxjs/operators';
 import { BaseSettings } from '../../base.settings';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { MessageToastService } from '../../message/message.toast.service';
@@ -46,6 +46,59 @@ export abstract class BaseAuthService<T> extends BaseService {
         .post<T>(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity, { headers: this.prepareHeaders() })
         .pipe(catchError(this.handleError.bind(this)));
     }
+  }
+
+  /**
+   * Posts a request that is answered with a PDF document. A failed request carries its error as a Blob; the body is
+   * read back as JSON so that it is shown by the same translated error toast as any other failed request. An answer
+   * that is not a PDF is a failure as well.
+   *
+   * @param pathApi Resource path.
+   * @param body The request body, sent as JSON.
+   * @param invalidDownloadKey Translation key of the error shown when the answer is not a PDF.
+   * @returns The full response; its body holds the PDF and its headers the file name.
+   */
+  protected postForPdf(pathApi: string, body: unknown, invalidDownloadKey: string): Observable<HttpResponse<Blob>> {
+    return this.httpClient
+      .post(`${BaseSettings.API_ENDPOINT}${pathApi}`, body, {
+        headers: this.prepareHeaders(),
+        observe: 'response',
+        responseType: 'blob'
+      })
+      .pipe(
+        map((response) => {
+          if (
+            response.status !== 200 ||
+            response.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() !== 'application/pdf'
+          ) {
+            throw new HttpErrorResponse({ status: response.status, error: invalidDownloadKey });
+          }
+          return response;
+        }),
+        catchError((error) => {
+          if (error instanceof HttpErrorResponse && error.error instanceof Blob) {
+            return from(error.error.text()).pipe(
+              switchMap((text) => {
+                let parsed: unknown;
+                try {
+                  parsed = JSON.parse(text);
+                } catch {
+                  parsed = { error: { message: text } };
+                }
+                return this.handleError(
+                  new HttpErrorResponse({
+                    error: parsed,
+                    status: error.status,
+                    statusText: error.statusText,
+                    headers: error.headers
+                  })
+                );
+              })
+            );
+          }
+          return this.handleError(error);
+        })
+      ) as Observable<HttpResponse<Blob>>;
   }
 
   /** Re-throws through the error channel without adding a value to a request's result type. */

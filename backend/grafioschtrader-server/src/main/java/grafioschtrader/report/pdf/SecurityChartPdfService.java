@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.dto.PerformanceReportSettings;
 import grafioschtrader.dto.SecurityChartPdfRequest;
@@ -50,6 +51,17 @@ public class SecurityChartPdfService {
   public record Result(byte[] bytes, String filename) {
   }
 
+  /**
+   * The choices of the dialog, owned by the server so that a value outside them is refused here as well.
+   *
+   * @param papers        paper formats with their description as label
+   * @param languages     languages of the texts
+   * @param numberFormats locale tags for dates and numbers
+   */
+  public record Options(List<ValueKeyHtmlSelectOptions> papers, List<ValueKeyHtmlSelectOptions> languages,
+      List<ValueKeyHtmlSelectOptions> numberFormats) {
+  }
+
   private static final double SAME_PRICE = 1e-9;
 
   private final SecruityTransactionsReport transactionsReport;
@@ -73,6 +85,19 @@ public class SecurityChartPdfService {
     this.messages = messages;
     this.converter = converter;
     this.composer = composer;
+  }
+
+  /**
+   * Lists what the dialog may offer.
+   *
+   * @return paper formats, languages and number formats
+   */
+  public Options options() {
+    return new Options(
+        List.of(new ValueKeyHtmlSelectOptions(ChartPdfPaper.A4.name(), "A4 (210 × 297 mm)"),
+            new ValueKeyHtmlSelectOptions(ChartPdfPaper.LETTER.name(), "Letter (8.5 × 11 in)")),
+        BaseConstants.G_LANGUAGE_CODES.stream().map(l -> new ValueKeyHtmlSelectOptions(l, l)).toList(),
+        PerformanceReportSettings.NUMBER_FORMATS.stream().map(l -> new ValueKeyHtmlSelectOptions(l, l)).toList());
   }
 
   /**

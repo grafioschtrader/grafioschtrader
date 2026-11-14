@@ -21,6 +21,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem, MenuItemCommandEvent, SelectItem } from '@openng/optimus-ui/api';
 import { ContextMenu } from '@openng/optimus-ui/contextmenu';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { Select } from '@openng/optimus-ui/select';
 import moment, { Moment } from 'moment';
 import { combineLatest, forkJoin, map, Observable, of, Subscription } from 'rxjs';
@@ -35,6 +36,7 @@ import { BaseSettings } from '../../lib/base.settings';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppHelper, Comparison } from '../../lib/helper/app.helper';
+import { DynamicDialogHelper } from '../../lib/dynamicdialog/component/dynamicDialogHelper';
 import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { ViewSizeChangedService } from '../../lib/layout/service/view.size.changed.service';
@@ -60,12 +62,24 @@ import { BusinessHelper } from '../../shared/helper/business.helper';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
 import { ChartType } from '../../shared/types/chart.type';
 import { TransactionType } from '../../shared/types/transaction.type';
+import {
+  buildPrintFigure,
+  ChartPdfExport,
+  ChartPdfScope,
+  MARKER_TIME_FORMAT,
+  numberTransactionMarkers,
+  PlotlyTraceLike,
+  PRINT_FIGURE_SIZE,
+  svgFromDataUrl,
+  TRANSACTION_MARKER_META
+} from '../model/security-chart-pdf';
 import { TimeSeriesParam } from '../model/time.series.param';
 import { HistoryquoteService } from '../service/historyquote.service';
 import { UserChartShapeService } from '../service/user.chart.shape.service';
 import { ChartCurrencyNormalizer } from './chart.currency.normalizer';
 import { ChartShapeController } from './chart.shape.controller';
 import { IndicatorEditComponent } from './indicator-edit.component';
+import type { SecurityChartPdfDialogData } from './security-chart-pdf-dialog.component';
 import {
   IndicatorDefinition,
   IndicatorDefinitions,
@@ -77,7 +91,7 @@ import {
 } from './indicator.definitions';
 
 interface Traces {
-  [key: string]: Data & { text: string[] };
+  [key: string]: Data & { text: string[]; customdata: unknown[] };
 }
 
 interface Data {
@@ -88,6 +102,10 @@ interface Data {
   type?: string;
   name: string;
   line?: any;
+  /** Marks a trace of transaction markers for the PDF export, see TRANSACTION_MARKER_META. */
+  meta?: unknown;
+  /** Per point `[idTransaction, transactionTime]` of a transaction marker, read by the PDF export. */
+  customdata?: unknown[];
 }
 
 /**
@@ -173,6 +191,10 @@ interface Data {
             [(ngModel)]="selectedChartType"
             (onChange)="handleChangeChartType($event)" />
         }
+
+        @if (canExportPdf()) {
+          <button type="button" title="{{ 'CHART_PDF' | translate }}" (click)="openChartPdfDialog()">PDF</button>
+        }
       </div>
       <div #chart class="plot-container"></div>
       <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container" />
@@ -187,11 +209,16 @@ interface Data {
   styles: [
     'button { border: 0; margin-left: 3px} .input-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }'
   ],
-  imports: [FormsModule, DatePicker, Select, ContextMenu, TranslatePipe, IndicatorEditComponent]
+  imports: [FormsModule, DatePicker, Select, ContextMenu, TranslatePipe, IndicatorEditComponent],
+  // The dialog of the PDF export lives and dies with the chart.
+  providers: [DialogService]
 })
 export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlobalMenuAttach {
   readonly allParam = input.required<string>();
   private readonly routeInjector = inject(Injector);
+  private readonly dialogService = inject(DialogService);
+  /** The series the chart was opened with; they carry the scope of the transactions for the PDF export. */
+  private seriesParams: TimeSeriesParam[] = [];
 
   private messageToastService = inject(MessageToastService);
   private usersettingsService = inject(UserSettingsService);
@@ -433,6 +460,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   }
 
   prepareChart(timeSeriesParams: TimeSeriesParam[]): void {
+    this.seriesParams = timeSeriesParams;
     this.dividendRequest.set(undefined);
     if (timeSeriesParams.length === 1 || timeSeriesParams.length - 1 !== this.loadedData.length) {
       this.loadedData = [];
@@ -1033,6 +1061,11 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
             traces[transactionTypeStr] = this.initializeBuySellTrace(transactionTypeStr, transactionType);
           }
           const transactionDateStr = this.getDateTimeAsStringPutAsX(transaction, traces[transactionTypeStr].x);
+          // The point and its transaction stay together: the PDF export numbers the markers by it.
+          traces[transactionTypeStr].customdata.push([
+            transaction.idTransaction ?? null,
+            moment(transaction.transactionTime).format(MARKER_TIME_FORMAT)
+          ]);
           if (transactionType === TransactionType.DIVIDEND || this.loadedData.length > 1 || this.usePercentage) {
             const foundIndex = AppHelper.binarySearch(
               loadedData.historicalLine.x,
@@ -1084,6 +1117,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       x: [] as string[],
       y: [] as (number | null)[],
       text: [] as string[],
+      customdata: [] as unknown[],
+      meta: TRANSACTION_MARKER_META,
       mode: 'markers',
       type: 'scatter',
       opacity: 0.75,
@@ -1147,6 +1182,73 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 
   hideContextMenu(): void {}
 
+  /**
+   * The PDF is made for the chart of a single security. A comparison of several instruments has no one table of
+   * transactions to follow it, and a currency pair is not a security.
+   */
+  canExportPdf(): boolean {
+    return (
+      this.loadedData.length === 1 && this.loadedData[0].currencySecurity != null && this.seriesParams.length === 1
+    );
+  }
+
+  /**
+   * Opens the dialog of the chart PDF. The dialog gets the scope the chart was opened for, so the table of the PDF lists
+   * the transactions of exactly the securities account, the portfolio or the tenant the markers come from.
+   */
+  openChartPdfDialog(): void {
+    if (!this.canExportPdf()) return;
+    const series = this.seriesParams[0];
+    // Like the chart's own request: a securities account wins over the portfolio.
+    const scope: ChartPdfScope = {
+      idSecuritycurrency: series.idSecuritycurrency,
+      idPortfolio: series.idSecurityaccount ? null : (series.idPortfolio ?? null),
+      idsSecurityaccount: series.idSecurityaccount ? [series.idSecurityaccount] : null
+    };
+    this.securityService.getChartPdfOptions().subscribe((options) => {
+      const data: SecurityChartPdfDialogData = {
+        options,
+        scope,
+        exportChart: (includeTransactions) => this.exportChartForPdf(includeTransactions)
+      };
+      import('./security-chart-pdf-dialog.component').then((m) =>
+        new DynamicDialogHelper(
+          this.translateService,
+          this.dialogService,
+          m.SecurityChartPdfDialogComponent,
+          'CHART_PDF'
+        )
+          .openDynamicDialog(420, data)
+          .subscribe()
+      );
+    });
+  }
+
+  /**
+   * Pictures the chart as the user adjusted it. The picture is made from a copy of the displayed data and layout, so
+   * the zoom, the holdings line, the indicators and the drawn lines come along while the chart on screen stays as it
+   * is. The copy is drawn for paper: white ground, fixed size, no range slider, and the markers carry their numbers.
+   * Plotly renders it in a hidden element; the chart needs not be visible for that.
+   *
+   * @param includeTransactions whether the markers get numbers for a table of transactions
+   * @returns the SVG text and the markers that were numbered
+   */
+  private async exportChartForPdf(includeTransactions: boolean): Promise<ChartPdfExport> {
+    const plotly = requireInitialized(this.plotly, 'Time-series renderer');
+    const chart = this.chartElement().nativeElement;
+    const data: PlotlyTraceLike[] = chart.data;
+    const layout: Record<string, any> = chart.layout;
+    const numbering = includeTransactions ? numberTransactionMarkers(data, layout['xaxis']?.range) : null;
+    const figure = { ...buildPrintFigure(data, layout, numbering), config: PlotlyLocales.setPlotyLocales(this.gps) };
+    // toImage accepts a figure of data, layout and config in place of a chart element; its typings name the element only.
+    const dataUrl = await plotly.toImage(figure as unknown as HTMLElement, {
+      format: 'svg',
+      width: PRINT_FIGURE_SIZE.width,
+      height: PRINT_FIGURE_SIZE.height
+    });
+    return { svg: svgFromDataUrl(dataUrl), transactionNumbers: numbering?.numbers ?? [] };
+  }
+
   private addCurrencyCrossRateObservable(
     timeSeriesParams: TimeSeriesParam[],
     currencySecurity: string | null,
@@ -1201,6 +1303,12 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
         ]
       };
       menuItems.push(iDef.menuItem);
+    });
+    menuItems.push({
+      label: 'CHART_PDF' + BaseSettings.DIALOG_MENU_SUFFIX,
+      icon: 'fa fa-file-pdf-o',
+      disabled: !this.canExportPdf(),
+      command: () => this.openChartPdfDialog()
     });
     TranslateHelper.translateMenuItems(menuItems, this.translateService, false);
     return menuItems;

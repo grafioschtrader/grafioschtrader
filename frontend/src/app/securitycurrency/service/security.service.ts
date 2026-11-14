@@ -1,4 +1,4 @@
-import { HttpHeaders, HttpParams, HttpResourceRequest } from '@angular/common/http';
+import { HttpHeaders, HttpParams, HttpResourceRequest, HttpResponse } from '@angular/common/http';
 import { Service } from '@angular/core';
 import moment from 'moment';
 import { Observable } from 'rxjs';
@@ -13,6 +13,7 @@ import { BaseSettings } from '../../lib/base.settings';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { ITaskExtendService } from '../../lib/taskdatamonitor/component/itask.extend.service';
+import { SecurityChartPdfOptions, SecurityChartPdfRequest } from '../../historyquote/model/security-chart-pdf';
 import { AppSettings } from '../../shared/app.settings';
 import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
 import {
@@ -173,6 +174,26 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
         options
       )
       .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /** Loads the paper formats, languages and number formats the dialog of the chart PDF offers. */
+  getChartPdfOptions(): Observable<SecurityChartPdfOptions> {
+    return this.httpClient
+      .get<SecurityChartPdfOptions>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/chart/pdf/options`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Asks the server for the PDF of a time-series chart. A failed request shows the translated error of the server.
+   *
+   * @param request the chart as SVG with the scope it was opened for and the numbers at its transaction markers
+   * @returns the response, whose body is the PDF and whose Content-Disposition header names the file
+   */
+  downloadChartPdf(request: SecurityChartPdfRequest): Observable<HttpResponse<Blob>> {
+    return this.postForPdf(`${AppSettings.SECURITY_KEY}/chart/pdf`, request, 'gt.report.invalid.download');
   }
 
   getTransactionsByIdSecurityaccountsAndIdSecurity(

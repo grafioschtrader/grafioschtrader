@@ -29,11 +29,16 @@ export interface PerformanceReportOptions {
   dateSections: string[];
 }
 
-/** Prefer RFC 5987 names while accepting an older quoted filename. Strip any directory portion. */
-export function performanceReportFilename(disposition: string | null): string {
+/**
+ * Prefer RFC 5987 names while accepting an older quoted filename. Strip any directory portion.
+ *
+ * @param disposition the Content-Disposition header of the download
+ * @param fallback the name used when the header carries none
+ */
+export function performanceReportFilename(disposition: string | null, fallback = 'performance.pdf'): string {
   const extended = /filename\*=UTF-8''([^;]+)/i.exec(disposition || '');
   const quoted = /filename="([^"]+)"/i.exec(disposition || '');
-  let name = quoted?.[1] || 'performance.pdf';
+  let name = quoted?.[1] || fallback;
   if (extended) {
     try {
       name = decodeURIComponent(extended[1]);
@@ -45,7 +50,7 @@ export function performanceReportFilename(disposition: string | null): string {
     name
       .split(/[\\/]/)
       .pop()
-      ?.replace(/[\x00-\x1f]/g, '_') || 'performance.pdf'
+      ?.replace(/[\x00-\x1f]/g, '_') || fallback
   );
 }
 
