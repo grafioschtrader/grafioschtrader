@@ -4,43 +4,43 @@ Hash: SHA512
 Architectures: amd64 arm64 armhf
 Codename: stable
 Components: main
-Date: Mon, 09 Nov 2026 14:40:49 +0000
+Date: Sat, 14 Nov 2026 20:27:25 +0000
 Description: Grafioschtrader installer
 Label: Grafioschtrader
 Origin: Grafioschtrader
 Suite: stable
 MD5Sum:
- 77ee0a47937dbf69367462a557aec367             1271 main/binary-amd64/Packages
- a889622a1cb96adf867f566ff31fd69d              739 main/binary-amd64/Packages.gz
- 77ee0a47937dbf69367462a557aec367             1271 main/binary-arm64/Packages
- a889622a1cb96adf867f566ff31fd69d              739 main/binary-arm64/Packages.gz
- 77ee0a47937dbf69367462a557aec367             1271 main/binary-armhf/Packages
- a889622a1cb96adf867f566ff31fd69d              739 main/binary-armhf/Packages.gz
+ a62528a65580883eb7ccb2669608ab03             1271 main/binary-amd64/Packages
+ 28fd1dbb56cb8ca696b711fa8c37809b              737 main/binary-amd64/Packages.gz
+ a62528a65580883eb7ccb2669608ab03             1271 main/binary-arm64/Packages
+ 28fd1dbb56cb8ca696b711fa8c37809b              737 main/binary-arm64/Packages.gz
+ a62528a65580883eb7ccb2669608ab03             1271 main/binary-armhf/Packages
+ 28fd1dbb56cb8ca696b711fa8c37809b              737 main/binary-armhf/Packages.gz
 SHA1:
- 88a65f675a02df924f2ae7bc611995fd51e53b93             1271 main/binary-amd64/Packages
- bb6b3adcab7edc6f1a2f3bb1a8fd5c150b9e4faa              739 main/binary-amd64/Packages.gz
- 88a65f675a02df924f2ae7bc611995fd51e53b93             1271 main/binary-arm64/Packages
- bb6b3adcab7edc6f1a2f3bb1a8fd5c150b9e4faa              739 main/binary-arm64/Packages.gz
- 88a65f675a02df924f2ae7bc611995fd51e53b93             1271 main/binary-armhf/Packages
- bb6b3adcab7edc6f1a2f3bb1a8fd5c150b9e4faa              739 main/binary-armhf/Packages.gz
+ 4422063aae05b32c0107977d9c46b9dc5b14dc78             1271 main/binary-amd64/Packages
+ f27ea3f2aca97d645680f14a63e82d93361ea213              737 main/binary-amd64/Packages.gz
+ 4422063aae05b32c0107977d9c46b9dc5b14dc78             1271 main/binary-arm64/Packages
+ f27ea3f2aca97d645680f14a63e82d93361ea213              737 main/binary-arm64/Packages.gz
+ 4422063aae05b32c0107977d9c46b9dc5b14dc78             1271 main/binary-armhf/Packages
+ f27ea3f2aca97d645680f14a63e82d93361ea213              737 main/binary-armhf/Packages.gz
 SHA256:
- e7dcd050523ee1bcd8fddf8a8d23c4aad7068ea1af5d815298d77983e6f9b9c7             1271 main/binary-amd64/Packages
- 924fed345a797be79021db6719f05133282dd3c9e28bdaee6553b9120a74e89e              739 main/binary-amd64/Packages.gz
- e7dcd050523ee1bcd8fddf8a8d23c4aad7068ea1af5d815298d77983e6f9b9c7             1271 main/binary-arm64/Packages
- 924fed345a797be79021db6719f05133282dd3c9e28bdaee6553b9120a74e89e              739 main/binary-arm64/Packages.gz
- e7dcd050523ee1bcd8fddf8a8d23c4aad7068ea1af5d815298d77983e6f9b9c7             1271 main/binary-armhf/Packages
- 924fed345a797be79021db6719f05133282dd3c9e28bdaee6553b9120a74e89e              739 main/binary-armhf/Packages.gz
+ 5291828bc0ec1ea152d2244f8ddb0cf8a46d2d2f966332358dcfa7ec8e606f4f             1271 main/binary-amd64/Packages
+ 99b3a584488dfe78bfc95ae94ac3208196a0b65e14f8fa5400d6568bd738fc11              737 main/binary-amd64/Packages.gz
+ 5291828bc0ec1ea152d2244f8ddb0cf8a46d2d2f966332358dcfa7ec8e606f4f             1271 main/binary-arm64/Packages
+ 99b3a584488dfe78bfc95ae94ac3208196a0b65e14f8fa5400d6568bd738fc11              737 main/binary-arm64/Packages.gz
+ 5291828bc0ec1ea152d2244f8ddb0cf8a46d2d2f966332358dcfa7ec8e606f4f             1271 main/binary-armhf/Packages
+ 99b3a584488dfe78bfc95ae94ac3208196a0b65e14f8fa5400d6568bd738fc11              737 main/binary-armhf/Packages.gz
 SHA512:
- 9cc33547a08ae1efbf5561c37f45b6eb094e777601cefc0afc944d61e155346a3cee9506c75b1f7a2cea1039a440dd91f46ced1608c4911b778f19b5bf8484a5             1271 main/binary-amd64/Packages
- 2746d3b753bec68352580846423e67e8bc699ae8f360fa993f3531fd254ad425561ddbf9616251b1c3c8f069e6ee38ef45cd80fe874b2b894c8cd530b8b6470f              739 main/binary-amd64/Packages.gz
- 9cc33547a08ae1efbf5561c37f45b6eb094e777601cefc0afc944d61e155346a3cee9506c75b1f7a2cea1039a440dd91f46ced1608c4911b778f19b5bf8484a5             1271 main/binary-arm64/Packages
- 2746d3b753bec68352580846423e67e8bc699ae8f360fa993f3531fd254ad425561ddbf9616251b1c3c8f069e6ee38ef45cd80fe874b2b894c8cd530b8b6470f              739 main/binary-arm64/Packages.gz
- 9cc33547a08ae1efbf5561c37f45b6eb094e777601cefc0afc944d61e155346a3cee9506c75b1f7a2cea1039a440dd91f46ced1608c4911b778f19b5bf8484a5             1271 main/binary-armhf/Packages
- 2746d3b753bec68352580846423e67e8bc699ae8f360fa993f3531fd254ad425561ddbf9616251b1c3c8f069e6ee38ef45cd80fe874b2b894c8cd530b8b6470f              739 main/binary-armhf/Packages.gz
+ 58e4f8e70cec6abe69fa07dc1fd91dce5069f38350060447d86331cf499d843dd23c2a19f932f5ac4c76d7ce82bb081d09a1c4cc74972d24a6563b92cc45708a             1271 main/binary-amd64/Packages
+ 11167e58ccdcc2cc5a874907726003801c9c75640a0a8e9da0d982761be8cf0b32507e90c234367a095f138e5072cfd20715245311f70a46d469f42b72527732              737 main/binary-amd64/Packages.gz
+ 58e4f8e70cec6abe69fa07dc1fd91dce5069f38350060447d86331cf499d843dd23c2a19f932f5ac4c76d7ce82bb081d09a1c4cc74972d24a6563b92cc45708a             1271 main/binary-arm64/Packages
+ 11167e58ccdcc2cc5a874907726003801c9c75640a0a8e9da0d982761be8cf0b32507e90c234367a095f138e5072cfd20715245311f70a46d469f42b72527732              737 main/binary-arm64/Packages.gz
+ 58e4f8e70cec6abe69fa07dc1fd91dce5069f38350060447d86331cf499d843dd23c2a19f932f5ac4c76d7ce82bb081d09a1c4cc74972d24a6563b92cc45708a             1271 main/binary-armhf/Packages
+ 11167e58ccdcc2cc5a874907726003801c9c75640a0a8e9da0d982761be8cf0b32507e90c234367a095f138e5072cfd20715245311f70a46d469f42b72527732              737 main/binary-armhf/Packages.gz
 -----BEGIN PGP SIGNATURE-----
 
-iHUEARYKAB0WIQTnzjA4cwzche8ThR8ArHq4Knh6ugUCavHbcQAKCRAArHq4Knh6
-usFGAQDSHvRpZxvhoBXteGEvezWmMQ+o/I5gn3Skv1cvvSpYsgEAz+s9xsoxXRVU
-xtiu4nWoEsxPTLO7MCebiKi9O1U6dgc=
-=R0gp
+iHUEARYKAB0WIQTnzjA4cwzche8ThR8ArHq4Knh6ugUCavjELQAKCRAArHq4Knh6
+ulpoAQCmkPUu5wBOFRJrvsfTfu7RldtgUG5QeQRCPVBkctiXOwD9Gneoz31IzcZO
+3rA7uMBe66J5XnxmXtCWJtr84g+tkgA=
+=Sb4i
 -----END PGP SIGNATURE-----
