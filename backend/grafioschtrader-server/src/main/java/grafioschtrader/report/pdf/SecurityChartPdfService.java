@@ -2,7 +2,6 @@ package grafioschtrader.report.pdf;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -24,13 +23,11 @@ import grafioschtrader.dto.SecurityChartPdfRequest.TransactionNumber;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
-import grafioschtrader.entities.Transaction;
 import grafioschtrader.report.pdf.ChartSvgSanitizer.ChartSvg;
 import grafioschtrader.report.pdf.SecurityChartPdfComposer.Content;
 import grafioschtrader.report.pdf.SecurityChartPdfComposer.Row;
 import grafioschtrader.reports.SecruityTransactionsReport;
 import grafioschtrader.reports.SecruityTransactionsReport.SecruityTransactionsReportOptions;
-import grafioschtrader.reportviews.transaction.SecurityTransactionPosition;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
@@ -61,8 +58,6 @@ public class SecurityChartPdfService {
   public record Options(List<ValueKeyHtmlSelectOptions> papers, List<ValueKeyHtmlSelectOptions> languages,
       List<ValueKeyHtmlSelectOptions> numberFormats) {
   }
-
-  private static final double SAME_PRICE = 1e-9;
 
   private final SecruityTransactionsReport transactionsReport;
   private final SecurityJpaRepository securities;
@@ -165,22 +160,18 @@ public class SecurityChartPdfService {
   }
 
   /**
-   * Loads the transactions in the scope of the chart and keeps those the chart marks, numbered as in the chart. The
-   * numbers come from the browser, but they only label rows: which rows exist is decided by the database.
+   * Loads the transactions in the scope of the chart and keeps those the chart marks, numbered as in the chart, with
+   * the hypothetical sale of the open position. The numbers come from the browser, but they only label rows: which
+   * rows exist is decided by the database.
    */
   private List<Row> rows(Integer idTenant, SecurityChartPdfRequest request, LocalDate today) {
-    if (request.transactionNumbers == null || request.transactionNumbers.isEmpty()) {
-      return List.of();
-    }
     Map<Integer, Integer> numbers = new HashMap<>();
-    for (TransactionNumber transactionNumber : request.transactionNumbers) {
-      numbers.putIfAbsent(transactionNumber.idTransaction, transactionNumber.number);
+    if (request.transactionNumbers != null) {
+      for (TransactionNumber transactionNumber : request.transactionNumbers) {
+        numbers.putIfAbsent(transactionNumber.idTransaction, transactionNumber.number);
+      }
     }
-    return load(idTenant, request, today).transactionPositionList.stream()
-        .filter(position -> numbers.containsKey(position.transaction.getIdTransaction()))
-        .sorted(Comparator.comparing((SecurityTransactionPosition p) -> p.transaction.getTransactionTime())
-            .thenComparing(p -> p.transaction.getIdTransaction()))
-        .map(position -> toRow(position, numbers.get(position.transaction.getIdTransaction()))).toList();
+    return SecurityChartPdfRows.of(load(idTenant, request, today).transactionPositionList, numbers);
   }
 
   /** The same three scopes as the chart's own requests; the report methods add the tenant check themselves. */
@@ -197,16 +188,6 @@ public class SecurityChartPdfService {
     }
     return transactionsReport.getTransactionsByIdTenantAndIdSecurityAndClearSecurity(idTenant,
         request.idSecuritycurrency, today, options);
-  }
-
-  private Row toRow(SecurityTransactionPosition position, int number) {
-    Transaction t = position.transaction;
-    Double adjusted = position.quotationSplitCorrection;
-    boolean splitAdjusted = adjusted != null && t.getQuotation() != null
-        && Math.abs(adjusted - t.getQuotation()) > SAME_PRICE * Math.max(1, Math.abs(t.getQuotation()));
-    String currency = t.getCashaccount() == null ? null : t.getCashaccount().getCurrency();
-    return new Row(number, t.getTransactionDateAsLocalDate(), t.getTransactionType().name(), t.getUnits(),
-        t.getQuotation(), t.getCashaccountAmount(), currency, splitAdjusted);
   }
 
   private static PDRectangle paper(ChartPdfPaper paper) {
