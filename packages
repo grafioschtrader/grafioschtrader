@@ -43,8 +43,10 @@ grafioschtrader.reportviews.transactioncost
 grafioschtrader.reportviews
 grafioschtrader.reportviews.currencypair
 grafioschtrader.reportviews.transaction
+grafioschtrader.reportviews.germantax
 grafioschtrader.reportviews.account
 grafioschtrader.reportviews.historyquotequality
+grafioschtrader.reportviews.realizedgain
 grafioschtrader.reportviews.securityaccount
 grafioschtrader.types
 grafioschtrader.dto
@@ -90,6 +92,7 @@ grafioschtrader.receipt
 grafioschtrader.tax.swiss.ictax
 grafioschtrader.tax.swiss.ech0196
 grafioschtrader.tax.swiss.ech0196.model
+grafioschtrader.tax.germany
 grafioschtrader.instrument
 grafioschtrader.instrument.lookup
 grafioschtrader.fundamental

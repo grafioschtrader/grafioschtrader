@@ -134,8 +134,10 @@ grafioschtrader.reportviews
 grafioschtrader.reportviews.account
 grafioschtrader.reportviews.currencypair
 grafioschtrader.reportviews.dashboard
+grafioschtrader.reportviews.germantax
 grafioschtrader.reportviews.historyquotequality
 grafioschtrader.reportviews.performance
+grafioschtrader.reportviews.realizedgain
 grafioschtrader.reportviews.securityaccount
 grafioschtrader.reportviews.securitycurrency
 grafioschtrader.reportviews.securitydividends
@@ -155,6 +157,7 @@ grafioschtrader.task
 grafioschtrader.task.exec
 grafioschtrader.task.exec.unofficial
 grafioschtrader.task.exec.update
+grafioschtrader.tax.germany
 grafioschtrader.tax.swiss.ech0196
 grafioschtrader.tax.swiss.ech0196.model
 grafioschtrader.tax.swiss.ictax
