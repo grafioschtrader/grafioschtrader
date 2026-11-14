@@ -15,6 +15,7 @@ import {
   openTaxDataView,
   RX,
   TAX_YEAR,
+  taxYearRow,
   uploadTaxData,
   zipName
 } from './taxdata.helpers';
@@ -52,20 +53,20 @@ test.describe.serial('tax data - create, upload, delete and recreate', () => {
     await createTaxCountry(page, container, COUNTRY_CODE);
     await createTaxYear(page, container, nodeRow(container, RX.country), TAX_YEAR);
 
-    const fullCount = await uploadTaxData(page, container, nodeRow(container, String(TAX_YEAR)), FULL_ZIP);
+    const fullCount = await uploadTaxData(page, container, taxYearRow(container), FULL_ZIP);
     expect(fullCount, 'the full Kursliste must match at least one ISIN held in GT').toBeGreaterThan(0);
 
     // The official exchange rates are imported in full, independently of the ISIN filter above.
-    const rateTable = await openExchangeRateTable(container, nodeRow(container, String(TAX_YEAR)));
+    const rateTable = await openExchangeRateTable(container, taxYearRow(container));
     await expect(exchangeRateRow(rateTable, 'USD'), 'the year-end rate of the tax authority').toContainText('0.79225');
     // The Kursliste quotes the yen per 100 units, which the denomination column has to state.
     await expect(exchangeRateRow(rateTable, 'JPY')).toContainText('100');
 
-    const diffCount = await uploadTaxData(page, container, nodeRow(container, String(TAX_YEAR)), DIFF_ZIP);
+    const diffCount = await uploadTaxData(page, container, taxYearRow(container), DIFF_ZIP);
     expect(diffCount, 'the diff Kursliste holds only changed securities and may match none').toBeGreaterThanOrEqual(0);
 
     // A differential Kursliste carries no exchange rates at all; it must not drop the imported ones.
-    const rateTableAfterDiff = await openExchangeRateTable(container, nodeRow(container, String(TAX_YEAR)));
+    const rateTableAfterDiff = await openExchangeRateTable(container, taxYearRow(container));
     await expect(
       exchangeRateRow(rateTableAfterDiff, 'USD'),
       'a diff upload must leave the exchange rates of the year untouched'
@@ -78,7 +79,7 @@ test.describe.serial('tax data - create, upload, delete and recreate', () => {
 
     await deleteNode(page, nodeRow(container, zipName(DIFF_ZIP)));
     await deleteNode(page, nodeRow(container, zipName(FULL_ZIP)));
-    await deleteNode(page, nodeRow(container, String(TAX_YEAR)));
+    await deleteNode(page, taxYearRow(container));
     await deleteNode(page, nodeRow(container, RX.country));
 
     // Countries that only provide a built-in tax model remain; this scenario owns Switzerland alone.
@@ -93,10 +94,10 @@ test.describe.serial('tax data - create, upload, delete and recreate', () => {
     await createTaxCountry(page, container, COUNTRY_CODE);
     await createTaxYear(page, container, nodeRow(container, RX.country), TAX_YEAR);
 
-    const fullCount = await uploadTaxData(page, container, nodeRow(container, String(TAX_YEAR)), FULL_ZIP);
+    const fullCount = await uploadTaxData(page, container, taxYearRow(container), FULL_ZIP);
     expect(fullCount).toBeGreaterThan(0);
 
-    const diffCount = await uploadTaxData(page, container, nodeRow(container, String(TAX_YEAR)), DIFF_ZIP);
+    const diffCount = await uploadTaxData(page, container, taxYearRow(container), DIFF_ZIP);
     expect(diffCount).toBeGreaterThanOrEqual(0);
   });
 });

@@ -100,3 +100,13 @@ SELECT 56, 30, NULL, NULL, UTC_TIMESTAMP() + INTERVAL 5 MINUTE, UTC_TIMESTAMP(),
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM task_data_change WHERE id_task = 56 AND id_entity IS NULL AND progress_state IN (0, 4));
 -- SECTION-END fundamental-shares
+
+-- SECTION-BEGIN release_note
+-- Release note shown on the login screen. The leading DELETE keeps the insert idempotent against the unique key
+-- (version, language).
+DELETE FROM release_note WHERE version = '0.40.0';
+INSERT INTO release_note (version, language, note) VALUES ('0.40.0', 'EN',
+  'Cost basis method: a sale can be assigned to purchases by moving average, FIFO or LIFO, chosen per client and overridable per portfolio. The total gain of a position stays the same, the method only moves it between realized and unrealized, and the holdings overview shows both parts. Realized gains per year and German tax help (Anlage KAP and KAP-INV). Watchlist market map by market capitalisation and price change. Time-series chart as PDF with numbered transactions. User-defined fields can be shared with other users. Advanced instrument search over user-defined fields and indicators. The administrator can make nicknames of other users visible.');
+INSERT INTO release_note (version, language, note) VALUES ('0.40.0', 'DE',
+  'Einstandswert-Methode: Ein Verkauf lässt sich nach gleitendem Durchschnitt, FIFO oder LIFO den Käufen zuordnen, gewählt beim Klienten und je Portfolio übersteuerbar. Der Gesamtgewinn einer Position bleibt gleich, die Methode verschiebt ihn nur zwischen realisiert und unrealisiert, die Bestandesübersicht zeigt beide Teile. Realisierte Gewinne pro Jahr und Steuerhilfe Deutschland (Anlage KAP und KAP-INV). Marktkarte der Watchlist nach Marktkapitalisierung und Kursveränderung. Zeitreihen-Chart als PDF mit nummerierten Transaktionen. Benutzerdefinierte Felder lassen sich mit anderen Benutzern teilen. Erweiterte Instrumentensuche über benutzerdefinierte Felder und Indikatoren. Der Administrator kann die Nicknamen anderer Benutzer sichtbar machen.');
+-- SECTION-END release_note

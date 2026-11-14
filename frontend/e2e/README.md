@@ -876,6 +876,31 @@ other spec calculates with average cost. It needs the trades of `122`.
 Run only this spec with
 `npx playwright test e2e/128-cost-basis-method-sale.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## Realized gains (146-*)
+
+`146-realized-gains.spec.ts` checks the tab `REALIZED_GAINS` against the report the backend calculates for the same
+cost basis method. `alledit` owns the Santander sale of `122`: a partial sale from one purchase consumes the same cost
+under every method, so the year row (sale count, net gain) must stay the same under average cost, FIFO and LIFO, while
+the selection of the form changes the caption, and the expanded sale row names the method. `limit1` owns the security
+transfer of `145`: its year counts the transfer as system booking and not as sale. The columns of the year table are
+addressed by position behind the expand toggle (`YEAR_COLUMN` in `realized-gains.helpers.ts`). The spec creates and
+changes no data and needs the trades of `122` and the transfer of `145`.
+
+Run only this spec with
+`npx playwright test e2e/146-realized-gains.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Tax help Germany (147-*)
+
+`147-german-tax-help.spec.ts` covers the area `GERMAN_TAX_HELP` below the realized gains, which only a client that
+reports in euro with the country Germany sees: `limit1`. Its portfolios with accounts are set to no withholding through
+REST, so the report asks for the assignment, lists each portfolio as not assigned and shows as many sums without amount
+as the backend report has incomplete sums. After the assignment to domestic withholding the request is gone. Every
+withholding is restored in `finally`. `limit2` (CHF, Switzerland) and `user` (USD, United States) get a rejection from
+the endpoint and no area on the tab.
+
+Run only this spec with
+`npx playwright test e2e/147-german-tax-help.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Account-dialog notification spec (124-*)
 
 `124-account-dialog-notification.spec.ts` reopens the CornèrTrader securities account `CT` of `alledit`, using

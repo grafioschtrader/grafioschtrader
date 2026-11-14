@@ -29,7 +29,22 @@ Every issue follows this pattern:
 
 ## Solution
 [Brief description of what should be done to fix or improve it]
+
+## User Manual
+- [Page title](https://grafioschtrader.github.io/gt-user-manual/en/<section>/<page>/#<anchor>)
 ```
+
+The **User Manual** section links the page of the gt-user-manual that documents (or will document) the feature,
+as in issue #299. Add it whenever the issue touches user-visible behaviour.
+
+- Find the page under `../gt-user-manual/content/` (`_index.en.md` of the folder), pick the heading the feature
+  belongs to and use its slug as the anchor.
+- URL form: `https://grafioschtrader.github.io/gt-user-manual/en/<path below content/>/#<anchor>` — English
+  variant, no `/de/`, no `/en/` duplication inside the path.
+- No manual page exists yet: still name the intended page, and create it via the `update-user-manual` skill when
+  the feature is implemented.
+- Purely internal issues (build, refactoring, test infrastructure) omit the section.
+- Link manual pages only; never reference GitHub issues from the manual (see gt-user-manual rules).
 
 ## Rules
 

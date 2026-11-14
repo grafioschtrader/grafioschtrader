@@ -84,6 +84,24 @@ export function nodeRow(container: Locator, text: string | RegExp): Locator {
 }
 
 /**
+ * The tax year row below the country this suite owns (Switzerland). A plain `nodeRow(container, '2025')` is not
+ * enough: countries that only provide a built-in tax model, such as Germany, list the same years above Switzerland,
+ * so the first match would be a row of another country whose context menu has no upload entry and whose delete
+ * entry removes built-in data. The first matching row after the country row belongs to that country's subtree.
+ */
+export function taxYearRow(container: Locator, taxYear: number = TAX_YEAR): Locator {
+  return nodeRow(container, RX.country)
+    .locator('xpath=following-sibling::tr')
+    .filter({
+      has: container
+        .page()
+        .locator('td:has(p-treetabletoggler)')
+        .filter({ hasText: exactText(String(taxYear)) })
+    })
+    .first();
+}
+
+/**
  * Expands a tax year row and returns the table of official exchange rates rendered below it. The
  * expansion toggle sits in the leading cell and is only rendered when the year actually holds rates,
  * so this fails fast when the import did not write any.
@@ -188,7 +206,7 @@ export async function createTaxYear(
   await dialog.locator('button[type="submit"]').click();
   await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
 
-  await expect(nodeRow(container, String(taxYear))).toBeVisible({ timeout: 10_000 });
+  await expect(taxYearRow(container, taxYear)).toBeVisible({ timeout: 10_000 });
 }
 
 /**
@@ -260,7 +278,7 @@ export async function deleteTaxCountryIfPresent(page: Page, container: Locator):
       await deleteNode(page, fileRow);
     }
   }
-  const yearRow = nodeRow(container, String(TAX_YEAR));
+  const yearRow = taxYearRow(container);
   if ((await yearRow.count()) > 0) {
     await deleteNode(page, yearRow);
   }

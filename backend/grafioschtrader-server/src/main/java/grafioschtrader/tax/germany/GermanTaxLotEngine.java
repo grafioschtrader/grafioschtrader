@@ -43,7 +43,8 @@ import grafioschtrader.types.TransactionType;
  *
  * <ul>
  * <li>A security account transfer and an ISIN change are one event: the lots of the source move with their purchase
- * time, cost in euro and applied advance lump sums, and no gain arises (§ 43 Abs. 1 Satz 4 EStG, Rn. 67, 184a).</li>
+ * time, cost in euro and applied advance lump sums, and no gain arises (BMF letter on individual questions of the
+ * flat-rate withholding tax: Rn. 67 for the ISIN change, Rn. 184a for the transferred acquisition data).</li>
  * <li>A sale gains the proceeds after its costs at the rate of the day of the sale, less the cost in euro of the lots
  * it consumed (§ 20 Abs. 4 EStG). The gain of a fund is reduced by the advance lump sums of the units sold (§ 19 Abs.
  * 1 InvStG).</li>

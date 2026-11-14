@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { loginAsFixtureUser } from './helpers';
 import { holdResponse } from './response.helpers';
-import { exchangeRateRow, nodeRow, openExchangeRateTable, openTaxDataView, RX } from './taxdata.helpers';
+import { exchangeRateRow, openExchangeRateTable, openTaxDataView, RX, taxYearRow } from './taxdata.helpers';
 
 const yaml = fs.readFileSync(
   path.resolve(
@@ -168,7 +168,7 @@ test('exchange-rate overrides render after a delayed read and cancel without cha
   const container = await openTaxDataView(page);
   const pending = await holdResponse(page, '**/api/taxdata/year/*/exchangerate');
   try {
-    const table = await openExchangeRateTable(container, nodeRow(container, '2025'));
+    const table = await openExchangeRateTable(container, taxYearRow(container));
     await pending.arrived;
     pending.release();
     const usd = exchangeRateRow(table, 'USD');

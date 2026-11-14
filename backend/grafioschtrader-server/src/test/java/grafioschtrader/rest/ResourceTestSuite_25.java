@@ -12,8 +12,9 @@ import org.junit.platform.suite.api.Suite;
  * has initialized the required currency pairs.
  */
 @Suite
-@SelectClasses({ PortfolioResourceTest.class, CostBasisMethodResourceTest.class, WatchlistResourceTest.class,
-    UDFSharingResourceTest.class, TaskDataChangeResourceTest.class, EntityLimitRoleResourceTest.class })
+@SelectClasses({ PortfolioResourceTest.class, CostBasisMethodResourceTest.class, GermanTaxHelpResourceTest.class,
+    WatchlistResourceTest.class, UDFSharingResourceTest.class, TaskDataChangeResourceTest.class,
+    EntityLimitRoleResourceTest.class })
 public class ResourceTestSuite_25 {
 
 }

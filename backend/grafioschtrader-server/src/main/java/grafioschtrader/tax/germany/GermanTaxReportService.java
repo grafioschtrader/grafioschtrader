@@ -119,7 +119,7 @@ public class GermanTaxReportService {
 
   private void checkAvailable(Tenant tenant) {
     if (!isAvailable(tenant)) {
-      throw new DataViolationException("tenant.currency", "gt.german.tax.tenant.not.eligible", null);
+      throw new DataViolationException("currency", "gt.german.tax.tenant.not.eligible", null);
     }
   }
 
