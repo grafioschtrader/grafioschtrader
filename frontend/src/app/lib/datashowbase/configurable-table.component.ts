@@ -1122,6 +1122,29 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
   // Component Methods
   // ============================================================================
 
+  /**
+   * Scrolls the scroll container of the table so that the first selected row is visible. A row which is already fully
+   * visible below the column headers is left where it is, otherwise it is centered. Only the container of the table
+   * is scrolled, never the page around it. Call it after the rows and the selection have been rendered.
+   */
+  scrollSelectedRowIntoView(): void {
+    const host = this.elementRef.nativeElement;
+    const container = host.querySelector<HTMLElement>('.p-datatable-table-container');
+    const row = container?.querySelector<HTMLElement>('tbody tr.p-datatable-row-selected');
+    if (!container || !row) {
+      return;
+    }
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+    const headerBottom = container.querySelector('thead')?.getBoundingClientRect().bottom ?? containerRect.top;
+    const visibleTop = Math.max(containerRect.top, headerBottom);
+    if (rowRect.top >= visibleTop && rowRect.bottom <= containerRect.bottom) {
+      return;
+    }
+    const visibleHeight = containerRect.bottom - visibleTop;
+    container.scrollTop += rowRect.top - visibleTop - (visibleHeight - rowRect.height) / 2;
+  }
+
   /** Recomputes the frozen slots when the number of fixed columns or the set of visible columns changed. */
   constructor() {
     effect(() => {

@@ -66,6 +66,7 @@ import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 import { WatchlistFilterSortStateService } from '../service/watchlist.filter.sort.state.service';
+import { WatchlistSelectionStateService } from '../service/watchlist.selection.state.service';
 import { WatchlistService } from '../service/watchlist.service';
 import {
   WatchlistFilterSortSettingsData,
@@ -205,7 +206,16 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   /** Tenant limits for securities and currencies. */
   readonly tenantLimits = signal<TenantLimit[] | undefined>(undefined);
 
-  /** Single or multiple selection state. */
+  /**
+   * Keeps the selected instruments of a watchlist beyond the lifetime of this component. The table is recreated on
+   * every tab change, the selection of the same watchlist is nevertheless expected to stay.
+   */
+  private readonly selectionState = inject(WatchlistSelectionStateService);
+
+  /**
+   * Single or multiple selection state. It follows the rows by instrument id. Without a selection of its own, for
+   * example in a tab opened just now, the rows are selected which the user had selected in this watchlist before.
+   */
   readonly singleMultiSelection = linkedSignal<
     SecuritycurrencyPosition<Security | Currencypair>[],
     SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[] | null
@@ -216,9 +226,14 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
         const id = row?.securitycurrency.idSecuritycurrency;
         return id == null ? undefined : rows.find((p) => p.securitycurrency.idSecuritycurrency === id);
       };
-      return Array.isArray(previous?.value)
-        ? previous.value.map(find).filter((row) => row != null)
-        : (find(previous?.value) ?? null);
+      const previousSelection = previous?.value;
+      if (Array.isArray(previousSelection) ? previousSelection.length > 0 : previousSelection != null) {
+        return Array.isArray(previousSelection)
+          ? previousSelection.map(find).filter((row) => row != null)
+          : (find(previousSelection) ?? null);
+      }
+      const storedRows = this.storedSelectionRows(rows);
+      return this.selectMultiMode === WatchlistTable.MULTIPLE ? storedRows : (storedRows[0] ?? null);
     }
   });
 
@@ -261,6 +276,9 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
 
   /** Subscription to changes made in the filter and sort settings dialog. */
   private subscriptionFilterSortChanged?: Subscription;
+
+  /** True until the selection of the watchlist just opened was scrolled into view, see {@link showRestoredSelection}. */
+  private scrollToSelectionPending = true;
 
   /** True as soon as the stored filters were handed to the table, guards against capturing an empty start state. */
   private storedFiltersApplied = false;
@@ -309,6 +327,48 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     this.filterRowToggleable = true;
     this.frozenColumnsSelectable = true;
     this.multiSortMeta.push({ field: 'securitycurrency.name', order: 1 });
+    this.rememberSelection();
+  }
+
+  /**
+   * Looks up the rows which were selected in this watchlist before this component existed, for example on another
+   * tab of the same watchlist.
+   *
+   * @param rows - Rows currently shown
+   * @returns The stored rows which are still part of the watchlist, empty while the watchlist is not known yet
+   */
+  private storedSelectionRows(
+    rows: SecuritycurrencyPosition<Security | Currencypair>[]
+  ): SecuritycurrencyPosition<Security | Currencypair>[] {
+    if (!this.initializedIdWatchlist || rows.length === 0) {
+      return [];
+    }
+    return this.selectionState
+      .getSelectedIds(this.initializedIdWatchlist)
+      .map((id) => rows.find((row) => row.securitycurrency.idSecuritycurrency === id))
+      .filter((row) => row != null);
+  }
+
+  /**
+   * Hands every change of the selection to the {@link WatchlistSelectionStateService}. Nothing is stored while the rows
+   * are loading or not yet there: the selection is then deliberately cleared or still empty, which is not the
+   * user's choice and would delete what a previous tab has stored.
+   */
+  private rememberSelection(): void {
+    effect(() => {
+      const selection = this.singleMultiSelection();
+      const loading = this.loading();
+      untracked(() => {
+        if (loading || !this.initializedIdWatchlist || this.securityPositionList().length === 0) {
+          return;
+        }
+        const selected = Array.isArray(selection) ? selection : selection ? [selection] : [];
+        this.selectionState.setSelectedIds(
+          this.initializedIdWatchlist,
+          selected.map((row) => row.securitycurrency.idSecuritycurrency).filter((id) => id != null)
+        );
+      });
+    });
   }
 
   /**
@@ -444,7 +504,29 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     // Publish complete rows together, then restore filters once their controls have rendered.
     this.securitycurrencyGroup.set({ ...data, securityPositionList: securities, currencypairPositionList: pairs });
     this.resetMenu(this.getSSP(this.singleMultiSelection()));
-    afterNextRender(() => this.applyStoredFilters(), { injector: this.injector });
+    afterNextRender(
+      () => {
+        this.applyStoredFilters();
+        this.showRestoredSelection();
+      },
+      { injector: this.injector }
+    );
+  }
+
+  /**
+   * Brings the selection which was restored from another tab into the visible area of the table, once per watchlist
+   * shown. Later refreshes of the same rows leave the scroll position alone, the user may have scrolled away on
+   * purpose. It waits for one more render because applying the filters can change which rows are shown.
+   */
+  private showRestoredSelection(): void {
+    if (!this.scrollToSelectionPending) {
+      return;
+    }
+    this.scrollToSelectionPending = false;
+    const selection = this.singleMultiSelection();
+    if (Array.isArray(selection) ? selection.length > 0 : selection != null) {
+      afterNextRender(() => this.configurableTable()?.scrollSelectedRowIntoView(), { injector: this.injector });
+    }
   }
 
   /**
@@ -1189,6 +1271,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       if (this.selectMultiMode === WatchlistTable.MULTIPLE) this.singleMultiSelection.set([]);
       else this.singleMultiSelection.set(null);
       this.selectedSecuritycurrencyPosition.set(null);
+      this.scrollToSelectionPending = true;
       this.loading.set(true);
       this.getWatchlistWithoutUpdate();
     }
