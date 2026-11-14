@@ -353,7 +353,12 @@
 			<artifactId>jaxb-runtime</artifactId>
 		</dependency>
 
-		<!-- Apache FOP for PDF generation from XSL-FO -->
+		<!--
+			Apache FOP for PDF generation from XSL-FO. xml-apis is excluded because the JDK ships org.w3c.dom itself.
+			xml-apis-ext stays: it is the only source of org.w3c.dom.svg.SVGDocument, which Batik needs to embed an SVG
+			(the time-series chart export). Without it FOP logs "Batik not in class path" and fails with a
+			NoClassDefFoundError as soon as a document contains an SVG.
+		-->
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>fop-core</artifactId>
@@ -362,10 +367,6 @@
 				<exclusion>
 					<groupId>xml-apis</groupId>
 					<artifactId>xml-apis</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>xml-apis</groupId>
-					<artifactId>xml-apis-ext</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
