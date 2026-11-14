@@ -117,7 +117,8 @@ public class SecurityChartPdfService {
     List<Row> rows = request.includeTransactions ? rows(idTenant, request, today) : List.of();
 
     byte[] pdf = composer.compose(
-        new Content(security.getName(), security.getCurrency(), scope, converter.convert(chart), rows, today),
+        new Content(security.getName(), security.getCurrency(), security.getIsin(), security.getTickerSymbol(), scope,
+            converter.convert(chart), rows, today),
         formatter, paper(request.paper));
     return new Result(pdf, filename(security.getName(), today));
   }

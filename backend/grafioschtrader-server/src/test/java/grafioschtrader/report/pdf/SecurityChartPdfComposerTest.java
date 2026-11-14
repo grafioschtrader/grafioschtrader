@@ -62,8 +62,14 @@ class SecurityChartPdfComposerTest {
   }
 
   private static byte[] compose(List<Row> rows, Locale language, PDRectangle paper) throws Exception {
+    return compose("CH0012345678", "ACME", rows, language, paper);
+  }
+
+  private static byte[] compose(String isin, String tickerSymbol, List<Row> rows, Locale language, PDRectangle paper)
+      throws Exception {
     return new SecurityChartPdfComposer().compose(
-        new Content("ACME Corp.", "USD", "Portfolio Main", chart(), rows, CREATED), formatter(language), paper);
+        new Content("ACME Corp.", "USD", isin, tickerSymbol, "Portfolio Main", chart(), rows, CREATED),
+        formatter(language), paper);
   }
 
   private static List<String> lines(String text) {
@@ -83,6 +89,7 @@ class SecurityChartPdfComposerTest {
       List<String> lines = lines(new PDFTextStripper().getText(document));
       String text = String.join("\n", lines);
       assertTrue(text.contains("Chart: ACME Corp.") && text.contains("Portfolio Main · Prices in USD"), text);
+      assertTrue(lines.contains("ISIN CH0012345678 · Ticker ACME"), "the identification line: " + text);
       assertTrue(text.contains("Jan 2022"), "the chart text must be part of the page: " + text);
       assertTrue(text.contains("Transactions in the chart"), text);
       assertTrue(text.contains("Quantity") && text.contains("Gain"), "columns of the application table: " + text);
@@ -152,6 +159,27 @@ class SecurityChartPdfComposerTest {
       assertTrue(text.contains("Kaufen") && text.contains("Verkauf") && text.contains("hypothetisch"), text);
       assertTrue(text.contains("Der hypothetische Verkauf bewertet"), text);
       assertFalse(text.contains("splitbereinigten"), "no note without a split-adjusted marker: " + text);
+    }
+  }
+
+  @Test
+  @DisplayName("ISIN and ticker stand above the chart, each only when the security has it")
+  void identifiersAreOptional() throws Exception {
+    List<Row> rows = List.of(booked(1, LocalDate.of(2022, 3, 14), "ACCUMULATE"));
+
+    try (PDDocument document = Loader.loadPDF(compose(null, "ACME", rows, Locale.GERMAN, PDRectangle.A4))) {
+      List<String> lines = lines(new PDFTextStripper().getText(document));
+      assertTrue(lines.contains("Ticker ACME"), "only the ticker: " + lines);
+      assertFalse(lines.stream().anyMatch(l -> l.contains("ISIN")), "no ISIN, no label: " + lines);
+    }
+    try (PDDocument document = Loader.loadPDF(compose(" CH0012345678 ", "  ", rows, Locale.GERMAN, PDRectangle.A4))) {
+      List<String> lines = lines(new PDFTextStripper().getText(document));
+      assertTrue(lines.contains("ISIN CH0012345678"), "only the ISIN, trimmed: " + lines);
+      assertFalse(lines.stream().anyMatch(l -> l.contains("Ticker")), "a blank ticker shows nothing: " + lines);
+    }
+    try (PDDocument document = Loader.loadPDF(compose(null, null, rows, Locale.GERMAN, PDRectangle.A4))) {
+      String text = new PDFTextStripper().getText(document);
+      assertFalse(text.contains("ISIN") || text.contains("Ticker"), "neither is shown: " + text);
     }
   }
 

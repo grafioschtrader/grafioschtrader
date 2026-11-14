@@ -5,6 +5,7 @@ import static grafioschtrader.report.pdf.PdfTable.Alignment.RIGHT;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -48,14 +49,16 @@ public class SecurityChartPdfComposer {
    *
    * @param securityName     name of the security
    * @param securityCurrency currency of the prices and of the gains
+   * @param isin             ISIN of the security, null or blank when it has none
+   * @param tickerSymbol     ticker symbol of the security, null or blank when it has none
    * @param scope            words for where the transactions come from, such as the portfolio name
    * @param chart            the converted chart; this composer closes it
    * @param rows             the numbered transactions in the order of their booking, then the hypothetical sale; empty
    *                         for a chart without table
    * @param created          the day of creation printed in the footer
    */
-  public record Content(String securityName, String securityCurrency, String scope, PDDocument chart, List<Row> rows,
-      LocalDate created) {
+  public record Content(String securityName, String securityCurrency, String isin, String tickerSymbol, String scope,
+      PDDocument chart, List<Row> rows, LocalDate created) {
   }
 
   /**
@@ -72,6 +75,7 @@ public class SecurityChartPdfComposer {
     try (PdfDocumentWriter writer = new PdfDocumentWriter(title, scope, null, formatter.date(content.created()),
         formatter, paper)) {
       writer.startContent();
+      writer.paragraph(identification(content, formatter));
       writer.drawPdfPage(content.chart(), writer.width());
       if (!content.rows().isEmpty()) {
         writer.heading(formatter.text("gt.report.chart.transactions"));
@@ -83,6 +87,23 @@ public class SecurityChartPdfComposer {
     } finally {
       content.chart().close();
     }
+  }
+
+  /**
+   * The line that names the security beyond its name: ISIN and ticker symbol, each only when the security has it. It
+   * stands above the chart and not in the page header, where a long name could push it out of the two lines.
+   *
+   * @return the line, or an empty text when the security has neither
+   */
+  private String identification(Content content, ReportFormatter f) {
+    List<String> identifiers = new ArrayList<>();
+    if (content.isin() != null && !content.isin().isBlank()) {
+      identifiers.add(f.text("isin") + " " + content.isin().strip());
+    }
+    if (content.tickerSymbol() != null && !content.tickerSymbol().isBlank()) {
+      identifiers.add(f.text("TICKER") + " " + content.tickerSymbol().strip());
+    }
+    return String.join(" · ", identifiers);
   }
 
   /**
