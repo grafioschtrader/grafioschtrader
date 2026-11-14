@@ -3,6 +3,8 @@ package grafioschtrader.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.lang.reflect.InvocationTargetException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.common.ClientClock;
 import grafiosch.entities.Auditable;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetSupplierDetail;
@@ -47,6 +50,7 @@ import grafioschtrader.dto.HistoryquoteFillGapsBounds;
 import grafioschtrader.dto.HistoryquoteFillGapsParam;
 import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SeasonalReturnsResult;
+import grafioschtrader.dto.SecurityChartPdfRequest;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
 import grafioschtrader.entities.GTNetSupplierDetailHist;
 import grafioschtrader.entities.GTNetSupplierDetailLast;
@@ -54,6 +58,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.model.GTNetSupplierDetailWithSettings;
 import grafioschtrader.gtnet.model.GTNetSupplierWithDetails;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteQualityService;
+import grafioschtrader.report.pdf.SecurityChartPdfService;
 import grafioschtrader.reports.SecruityTransactionsReport;
 import grafioschtrader.reports.SecruityTransactionsReport.SecruityTransactionsReportOptions;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
@@ -75,6 +80,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @RestController
@@ -91,6 +97,9 @@ public class SecurityResource extends UpdateCreateResource<Security> {
 
   @Autowired
   private SecruityTransactionsReport secruityTransactionsReport;
+
+  @Autowired
+  private SecurityChartPdfService securityChartPdfService;
 
   @Autowired
   private HistoryquoteQualityService historyquoteQuality;
@@ -276,6 +285,26 @@ public class SecurityResource extends UpdateCreateResource<Security> {
         secruityTransactionsReport.getTransactionsByIdSecurityaccountsAndIdSecurityAndClearSecurity(idsSecurityaccount,
             idSecuritycurrency, untilDate != null ? untilDate : LocalDate.now(), secruityTransactionsReportOptions),
         HttpStatus.OK);
+  }
+
+  @Operation(summary = "Generate the PDF of a time-series chart", description = """
+      The chart arrives as SVG, exactly as the user adjusted it on screen, together with the numbers at its transaction
+      markers. The server places it on the page and adds the table of those transactions, which it reads itself in the
+      scope the chart was opened for. The SVG is checked strictly before it is rendered.
+      """, tags = { Security.TABNAME })
+  @PostMapping(value = "/chart/pdf", consumes = APPLICATION_JSON_VALUE)
+  public void getChartPdf(@Valid @RequestBody final SecurityChartPdfRequest request,
+      final HttpServletResponse response) throws Exception {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final SecurityChartPdfService.Result result = securityChartPdfService.generate(user.getIdTenant(), request,
+        ClientClock.today());
+    final String encoded = URLEncoder.encode(result.filename(), StandardCharsets.UTF_8).replace("+", "%20");
+    response.setContentType("application/pdf");
+    response.setHeader("Cache-Control", "no-store");
+    response.setHeader("Content-Disposition", "attachment; filename=\""
+        + result.filename().replaceAll("[^\\x20-\\x7E]", "_") + "\"; filename*=UTF-8''" + encoded);
+    response.setContentLength(result.bytes().length);
+    response.getOutputStream().write(result.bytes());
   }
 
   @Operation(summary = "Searches securities by a search criteria", description = "", tags = { Security.TABNAME })

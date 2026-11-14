@@ -10,16 +10,19 @@ import java.util.Map;
 
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSInteger;
+import org.apache.pdfbox.multipdf.LayerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
+import org.apache.pdfbox.util.Matrix;
 
 import grafioschtrader.types.PerformanceReportSection;
 
@@ -34,6 +37,9 @@ public final class PdfDocumentWriter implements AutoCloseable {
   public static final Color INK = new Color(31, 48, 65);
   public static final Color PALE = new Color(235, 240, 244);
   private final PDDocument document = new PDDocument();
+  /** Pages imported by {@link #drawPdfPage}; PDFBox reads their streams while this document is saved. */
+  private final List<PDDocument> imported = new ArrayList<>();
+  private final PDRectangle paper;
   private final PdfFonts fonts;
   private final ReportFormatter formatter;
   private final String title;
@@ -57,6 +63,18 @@ public final class PdfDocumentWriter implements AutoCloseable {
 
   public PdfDocumentWriter(String title, String scope, String sender, String created, ReportFormatter formatter)
       throws IOException {
+    this(title, scope, sender, created, formatter, PDRectangle.A4);
+  }
+
+  /**
+   * Creates a document on the given paper size. Page furniture and margins are independent of the size, so any
+   * portrait paper from {@link PDRectangle} works.
+   *
+   * @param paper the portrait size of a page, for example {@link PDRectangle#A4} or {@link PDRectangle#LETTER}
+   */
+  public PdfDocumentWriter(String title, String scope, String sender, String created, ReportFormatter formatter,
+      PDRectangle paper) throws IOException {
+    this.paper = paper;
     this.title = title;
     this.scope = scope;
     this.sender = sender == null ? "" : sender.lines().findFirst().orElse("");
@@ -102,8 +120,7 @@ public final class PdfDocumentWriter implements AutoCloseable {
     }
     orientation = direction;
     cover = isCover;
-    PDRectangle size = direction == Orientation.PORTRAIT ? PDRectangle.A4
-        : new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());
+    PDRectangle size = direction == Orientation.PORTRAIT ? paper : new PDRectangle(paper.getHeight(), paper.getWidth());
     page = new PDPage(size);
     document.addPage(page);
     stream = new PDPageContentStream(document, page);
@@ -189,6 +206,43 @@ public final class PdfDocumentWriter implements AutoCloseable {
 
   public void labelValueRow(String label, String value) throws IOException {
     paragraph(label + ": " + value);
+  }
+
+  /**
+   * Draws the first page of another PDF at the current position as vector content, so lines and text stay sharp at
+   * any zoom. The graphic is scaled uniformly to the requested width; its top edge sits at the current y position and
+   * the position moves below it. A page break is made first when the graphic does not fit the rest of the page.
+   *
+   * <p>
+   * The writer takes over the source document: it must stay open until this document is saved, because PDFBox reads
+   * the imported streams then. It is closed together with this writer.
+   * </p>
+   *
+   * @param source the document holding the graphic on its first page
+   * @param width  the width on this page in points, at most {@link #width()}
+   * @return the height of the drawn graphic in points
+   */
+  public float drawPdfPage(PDDocument source, float width) throws IOException {
+    imported.add(source);
+    PDFormXObject form = new LayerUtility(document).importPageAsForm(source, 0);
+    PDRectangle box = form.getBBox();
+    float scale = width / box.getWidth();
+    float height = box.getHeight() * scale;
+    ensureSpace(height);
+    stream.saveGraphicsState();
+    stream.transform(new Matrix(scale, 0, 0, scale, MARGIN - box.getLowerLeftX() * scale,
+        y - height - box.getLowerLeftY() * scale));
+    stream.drawForm(form);
+    stream.restoreGraphicsState();
+    y -= height + 8;
+    return height;
+  }
+
+  private void closeImported() throws IOException {
+    for (PDDocument source : imported) {
+      source.close();
+    }
+    imported.clear();
   }
 
   public void text(String value, float x, float baseline, float size, boolean bold) throws IOException {
@@ -336,6 +390,7 @@ public final class PdfDocumentWriter implements AutoCloseable {
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
     document.save(bytes);
     document.close();
+    closeImported();
     return bytes.toByteArray();
   }
 
@@ -365,5 +420,6 @@ public final class PdfDocumentWriter implements AutoCloseable {
       stream = null;
     }
     document.close();
+    closeImported();
   }
 }
