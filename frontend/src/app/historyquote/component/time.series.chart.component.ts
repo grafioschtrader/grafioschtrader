@@ -191,10 +191,6 @@ interface Data {
             [(ngModel)]="selectedChartType"
             (onChange)="handleChangeChartType($event)" />
         }
-
-        @if (canExportPdf()) {
-          <button type="button" title="{{ 'CHART_PDF' | translate }}" (click)="openChartPdfDialog()">PDF</button>
-        }
       </div>
       <div #chart class="plot-container"></div>
       <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container" />
@@ -1186,7 +1182,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
    * The PDF is made for the chart of a single security. A comparison of several instruments has no one table of
    * transactions to follow it, and a currency pair is not a security.
    */
-  canExportPdf(): boolean {
+  private canExportPdf(): boolean {
     return (
       this.loadedData.length === 1 && this.loadedData[0].currencySecurity != null && this.seriesParams.length === 1
     );
@@ -1196,7 +1192,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
    * Opens the dialog of the chart PDF. The dialog gets the scope the chart was opened for, so the table of the PDF lists
    * the transactions of exactly the securities account, the portfolio or the tenant the markers come from.
    */
-  openChartPdfDialog(): void {
+  private openChartPdfDialog(): void {
     if (!this.canExportPdf()) return;
     const series = this.seriesParams[0];
     // Like the chart's own request: a securities account wins over the portfolio.
@@ -1304,6 +1300,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       };
       menuItems.push(iDef.menuItem);
     });
+    // The PDF is a different kind of action than the indicators above it
+    menuItems.push({ separator: true });
     menuItems.push({
       label: 'CHART_PDF' + BaseSettings.DIALOG_MENU_SUFFIX,
       icon: 'fa fa-file-pdf-o',
