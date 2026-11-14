@@ -144,7 +144,7 @@ public class DashboardPersistenceTest {
   }
 
   @Test
-  void adminSummaryMatchesLimitRequestsAndExcludesUnlocks() {
+  void adminSummaryMatchesLimitRequestsAndIncludesUnlocks() {
     var before = summaries.limitRequests(1);
     long count = before.isEmpty() ? 0 : before.getFirst().getTotalCount();
     int request = propose("U", "EntityLimit", 0);
@@ -156,7 +156,7 @@ public class DashboardPersistenceTest {
     jdbc.update(
         "INSERT INTO propose_user_task (id_propose_request,id_target_user,user_task_type,id_role_to) VALUES (?,?,0,?)",
         unlock, user.getIdUser(), adminRole);
-    assertThat(summaries.limitRequests(1).getFirst().getTotalCount()).isEqualTo(count + 1);
+    assertThat(summaries.limitRequests(1).getFirst().getTotalCount()).isEqualTo(count + 2);
     assertThat(service.get(user, true).results())
         .allMatch(r -> !r.type().equals("USER_LIMIT_REQUESTS") && !r.status().equals("ERROR"));
     user.setMostPrivilegedRole(Role.ROLE_ADMIN);

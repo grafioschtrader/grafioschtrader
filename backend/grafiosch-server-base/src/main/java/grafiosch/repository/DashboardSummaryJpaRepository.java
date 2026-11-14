@@ -40,8 +40,9 @@ public interface DashboardSummaryJpaRepository extends Repository<MailSendRecv, 
   List<MailRow> unreadMail(Integer idUser, int maxRows);
 
   /**
-   * Existing LIMIT_CUD_CHANGE requests for existing users, including the exact useradmin population; total before
-   * LIMIT.
+   * All propose_user_task requests of existing users, newest first: the LIMIT_CUD_CHANGE requests as well as the
+   * RELEASE_LOGOUT requests of users locked out for too many violations. This is the exact useradmin population; the
+   * total count and the number of distinct users are taken before LIMIT.
    */
   @Query(name = "DashboardSummary.limitRequests", nativeQuery = true)
   List<LimitRow> limitRequests(int maxRows);
