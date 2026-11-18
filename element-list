@@ -35,6 +35,8 @@ grafiosch.rest.helper
 grafiosch.schemagen
 grafiosch.security
 grafiosch.security.filter
+grafiosch.security.passkey
+grafiosch.security.totp
 grafiosch.service
 grafiosch.task
 grafiosch.task.exec

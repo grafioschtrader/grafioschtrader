@@ -21,6 +21,8 @@ grafiosch.gtnet.handler.impl
 grafiosch.repository
 grafiosch.security
 grafiosch.security.filter
+grafiosch.security.passkey
+grafiosch.security.totp
 grafiosch.udfalluserfields
 grafiosch.service
 grafiosch.m2m
