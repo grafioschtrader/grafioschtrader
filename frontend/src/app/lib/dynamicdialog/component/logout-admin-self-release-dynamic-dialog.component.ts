@@ -8,22 +8,40 @@ import { MessageToastService } from '../../message/message.toast.service';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { BaseSettings } from '../../base.settings';
 import { ButtonModule } from '@openng/optimus-ui/button';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
 
 /**
  * Confirmation dialog for admin self-release from lockout.
  *
  * When the admin exceeds security breach or request limit thresholds, they cannot
  * approve their own release through the normal ProposeUserTask flow. This dialog
- * lets the admin confirm a self-release which resets both counters and logs them in.
+ * lets the admin confirm a self-release which resets both counters and logs them in. For an account with a second
+ * factor it asks for a new code, because the code of the first attempt is spent.
  */
 @Component({
   template: ` <p>{{ 'ADMIN_SELF_RELEASE_QUESTION' | translate }}</p>
+    @if (secondFactorCodeSent) {
+      <label for="adminSelfReleaseCode">{{ 'SECOND_FACTOR_CODE' | translate }}</label>
+      <input
+        id="adminSelfReleaseCode"
+        pInputText
+        type="text"
+        autocomplete="one-time-code"
+        class="w-full"
+        maxlength="16"
+        [value]="secondFactorCode()"
+        (input)="secondFactorCode.set(inputValue($event))" />
+    }
     <div class="flex justify-content-end mt-3">
-      <p-button [label]="'ADMIN_SELF_RELEASE_CONFIRM' | translate" (click)="confirm()" [loading]="loading()">
+      <p-button
+        [label]="'ADMIN_SELF_RELEASE_CONFIRM' | translate"
+        [disabled]="secondFactorCodeSent && !secondFactorCode().trim()"
+        (click)="confirm()"
+        [loading]="loading()">
         <i class="pi pi-check" pButtonIcon></i>
       </p-button>
     </div>`,
-  imports: [TranslateModule, ButtonModule]
+  imports: [TranslateModule, ButtonModule, InputTextModule]
 })
 export class LogoutAdminSelfReleaseDynamicDialogComponent {
   private translateService = inject(TranslateService);
@@ -35,11 +53,23 @@ export class LogoutAdminSelfReleaseDynamicDialogComponent {
   private dynamicDialogConfig = inject(DynamicDialogConfig);
 
   readonly loading = signal(false);
+  /** The first attempt carried a code of the second factor; the repeated sign-in needs a new one. */
+  readonly secondFactorCodeSent: boolean = !!this.dynamicDialogConfig.data.secondFactorCodeSent;
+  readonly secondFactorCode = signal('');
+
+  inputValue(event: Event): string {
+    return (event.target as HTMLInputElement).value;
+  }
 
   confirm(): void {
     this.loading.set(true);
     this.loginService
-      .login(this.dynamicDialogConfig.data.email, this.dynamicDialogConfig.data.password, 'ADMIN_SELF_RELEASE')
+      .login(
+        this.dynamicDialogConfig.data.email,
+        this.dynamicDialogConfig.data.password,
+        'ADMIN_SELF_RELEASE',
+        this.secondFactorCode().trim() || undefined
+      )
       .subscribe({
         next: (response) => {
           const token = response.headers.get('x-auth-token');

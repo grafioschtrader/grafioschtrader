@@ -25,6 +25,7 @@ import { SvgIconRegistryService } from 'angular-svg-icon';
 import { ProposeUserTaskService } from '../../dynamicdialog/service/propose.user.task.service';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { BaseSettings } from '../../base.settings';
+import { AppHelper } from '../../helper/app.helper';
 
 /**
  * Main component for the user table. It contains nested table to change the limits on information classes.
@@ -219,7 +220,10 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
     }
   }
 
-  /** Below the edit entry: a new entity limit for a user with limited editing, and the transfer of owned entities. */
+  /**
+   * Below the edit entry: a new entity limit for a user with limited editing, the transfer of owned entities and, for
+   * another account, the removal of a lost second factor.
+   */
   protected override addCustomMenusToSelectedEntity(user: User, menuItems: MenuItem[]): void {
     menuItems.push({ separator: true });
     if (AuditHelper.isLimitedEditUser(user)) {
@@ -232,6 +236,23 @@ export class UserTableComponent extends TableCrudSupportMenu<User> {
       label: 'USER_CHANGE_OWNER_ENTITIES' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: () => this.changeOwnerEntities()
     });
+    if (user.idUser != null && user.idUser !== this.gps.getIdUser()) {
+      const idUser = user.idUser;
+      menuItems.push({
+        label: 'SECOND_FACTOR_REMOVE' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.removeSecondFactor(idUser)
+      });
+    }
+  }
+
+  /** Asks for confirmation, then removes the authenticator app and recovery codes of a user who lost both. */
+  private removeSecondFactor(idUser: number): void {
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'MSG_SECOND_FACTOR_REMOVE', () =>
+      this.userAdminService
+        .removeSecondFactor(idUser)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((result) => this.messageToastService.showMessage(InfoLevelType.SUCCESS, result.message))
+    );
   }
 
   protected readData(): void {

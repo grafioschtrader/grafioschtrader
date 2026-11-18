@@ -22,6 +22,13 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FirstAndMissingTradingDays, HoldingService, PerformanceWindowDef, WeekYear } from '../service/holding.service';
 import { performanceWindowFromDraft } from '../model/performance-window';
+import {
+  firstSelectableDateTo,
+  initialPerformanceRange,
+  performanceRangeBounds,
+  performanceRangeCalendars,
+  syncStoredDateTo
+} from '../model/performance-range';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { BusinessHelper } from '../../shared/helper/business.helper';
@@ -31,7 +38,6 @@ import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.s
 import { MenuItem } from '@openng/optimus-ui/api';
 import { Subscription } from 'rxjs';
 import moment from 'moment';
-import { Weekday } from '../../shared/helper/weekday';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
@@ -166,35 +172,21 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
       .subscribe({
         next: (famtd: FirstAndMissingTradingDays) => {
           this.loading.set(false);
-          const {
-            firstEverTradingDay,
-            secondEverTradingDay,
-            lastTradingDayOfLastYear,
-            secondLatestTradingDay,
-            latestTradingDay
-          } = famtd;
-          if (firstEverTradingDay && secondEverTradingDay && secondLatestTradingDay && latestTradingDay) {
+          // The range is shared with the period performance per security through the session storage
+          const range = initialPerformanceRange(
+            famtd,
+            sessionStorage.getItem(GlobalGTSessionNames.PERFORMANCE_DATE_FROM),
+            sessionStorage.getItem(GlobalGTSessionNames.PERFORMANCE_DATE_TO)
+          );
+          const bounds = performanceRangeBounds(famtd);
+          if (famtd.secondEverTradingDay && range && bounds) {
             this.firstAndMissingTradingDays.set(famtd);
-            const fromDate =
-              !lastTradingDayOfLastYear || firstEverTradingDay > lastTradingDayOfLastYear
-                ? firstEverTradingDay
-                : lastTradingDayOfLastYear;
-            requireFormControl(this.configObject.dateFrom).setValue(
-              BusinessHelper.getDateFromSessionStorage(GlobalGTSessionNames.PERFORMANCE_DATE_FROM, new Date(fromDate))
-            );
-            requireFormControl(this.configObject.dateTo).setValue(new Date(latestTradingDay));
-            this.configObject.dateFrom.calendarConfig = {
-              minDate: new Date(firstEverTradingDay),
-              maxDate: new Date(secondLatestTradingDay),
-              disabledDays: [Weekday.Saturday, Weekday.Sunday],
-              disabledDates: famtd.holidayAndMissingQuoteDays
-            };
-            this.configObject.dateTo.calendarConfig = {
-              minDate: new Date(secondEverTradingDay),
-              maxDate: new Date(latestTradingDay),
-              disabledDays: [Weekday.Saturday, Weekday.Sunday],
-              disabledDates: famtd.holidayAndMissingQuoteDays
-            };
+            requireFormControl(this.configObject.dateFrom).setValue(range.dateFrom);
+            requireFormControl(this.configObject.dateTo).setValue(range.dateTo);
+            const calendars = performanceRangeCalendars(bounds, range.dateFrom);
+            this.configObject.dateFrom.calendarConfig = calendars.from;
+            this.configObject.dateTo.calendarConfig = calendars.to;
+            syncStoredDateTo(sessionStorage, GlobalGTSessionNames.PERFORMANCE_DATE_TO, range.dateTo, famtd);
             this.valueChangedOnDateTo();
             this.valueChangedOnDateFrom();
             this.setMonthWeekPeriod();
@@ -222,7 +214,11 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     this.dateToSubscribe?.unsubscribe();
     this.dateToSubscribe = requireFormControl(this.configObject.dateTo)
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((dateTo: Date) => {
+      .subscribe((dateTo: Date | null) => {
+        const days = this.firstAndMissingTradingDays();
+        if (days) {
+          syncStoredDateTo(sessionStorage, GlobalGTSessionNames.PERFORMANCE_DATE_TO, dateTo, days);
+        }
         this.setMonthWeekPeriod();
       });
   }
@@ -335,18 +331,10 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
   private setMinDateForToDate(dateFrom: Date): void {
     const days = this.firstAndMissingTradingDays();
+    const bounds = days ? performanceRangeBounds(days) : null;
     const calendar = this.configObject.dateTo.calendarConfig;
-    if (!days || !calendar) return;
-    let dateTo = moment(dateFrom).add(1, 'd');
-    while (
-      dateTo.isBefore(days.latestTradingDay) &&
-      (dateTo.day() === Weekday.Saturday ||
-        dateTo.day() === Weekday.Sunday ||
-        days.holidayAndMissingQuoteDays.some((day) => dateTo.isSame(day, 'day')))
-    ) {
-      dateTo = moment(dateTo).add(1, 'd');
-    }
-    calendar.minDate = dateTo.toDate();
+    if (!bounds || !calendar || !dateFrom) return;
+    calendar.minDate = firstSelectableDateTo(dateFrom, bounds);
     const currentDateTo: Date = requireFormControl(this.configObject.dateTo).value;
     if (currentDateTo && currentDateTo.getTime() < calendar.minDate.getTime()) {
       requireFormControl(this.configObject.dateTo).setValue(null);

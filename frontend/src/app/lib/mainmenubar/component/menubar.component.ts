@@ -93,6 +93,10 @@ export class MenubarComponent implements OnInit, OnDestroy {
       {
         label: 'NICKNAME_LOCALE_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.NicknameLocale)
+      },
+      {
+        label: 'SIGN_IN_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.SignInSecurity)
       }
     ];
     const accountOperationsAvailable = !this.isInManagedClient();

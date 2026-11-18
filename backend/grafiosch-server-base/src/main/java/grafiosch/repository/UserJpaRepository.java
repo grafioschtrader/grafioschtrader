@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,10 +14,49 @@ import grafiosch.common.UpdateQuery;
 import grafiosch.entities.User;
 import grafiosch.entities.projection.UserOwnProjection;
 import grafiosch.rest.UpdateCreateJpaRepository;
+import jakarta.persistence.LockModeType;
 
 public interface UserJpaRepository
     extends JpaRepository<User, Integer>, UserJpaRepositoryCustom, UpdateCreateJpaRepository<User> {
   Optional<User> findByEmail(String username);
+
+  /** Serializes credential changes and reset requests without merging the caller's tenant context. */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT u FROM User u WHERE u.idUser = ?1")
+  Optional<User> lockById(Integer idUser);
+
+  @Modifying(clearAutomatically = true)
+  @Query("UPDATE User u SET u.authVersion = u.authVersion + 1, u.version = u.version + 1 WHERE u.idUser = ?1")
+  void incrementAuthVersion(Integer idUser);
+
+  @Modifying
+  @Query("UPDATE User u SET u.password = ?2 WHERE u.idUser = ?1")
+  void updatePassword(Integer idUser, String hash);
+
+  @Modifying(clearAutomatically = true)
+  @Transactional
+  @Query("UPDATE User u SET u.timezoneOffset = ?2, u.version = u.version + 1 WHERE u.idUser = ?1")
+  void updateTimezoneOffset(Integer idUser, Integer timezoneOffset);
+
+  /**
+   * Gives the user a WebAuthn user handle unless one exists. Of parallel first registrations exactly one writes; every
+   * caller reads the handle back afterwards with {@link #findPasskeyUserHandle(Integer)}.
+   *
+   * @return 1 when this call created the handle, 0 when the user had one already
+   */
+  @Transactional
+  @Modifying
+  @Query(value = "UPDATE user SET passkey_user_handle = ?2 WHERE id_user = ?1 AND passkey_user_handle IS NULL",
+      nativeQuery = true)
+  int setPasskeyUserHandleIfAbsent(Integer idUser, byte[] handle);
+
+  /** The WebAuthn user handle of a user, null before the first passkey registration. */
+  @Query(value = "SELECT passkey_user_handle FROM user WHERE id_user = ?1", nativeQuery = true)
+  byte[] findPasskeyUserHandle(Integer idUser);
+
+  /** The owner of a WebAuthn user handle, null for an unknown handle. */
+  @Query(value = "SELECT id_user FROM user WHERE passkey_user_handle = ?1", nativeQuery = true)
+  Integer findIdUserByPasskeyUserHandle(byte[] handle);
 
   Optional<User> findByNickname(String nickname);
 

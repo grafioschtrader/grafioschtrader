@@ -59,5 +59,38 @@
       "localeStr": "de-CH",
       "uiShowMyProperty": 1
     }
+  },
+  {
+    "email": "password-reset-e2e@test.local",
+    "password": "A123abcd",
+    "nickname": "reset-e2e",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "CHF",
+    "role": "LIMITEDIT",
+    "tenantName": "Password reset test tenant",
+    "e2e": "e-reset"
+  },
+  {
+    "email": "totp-e2e@test.local",
+    "password": "A123abcd",
+    "nickname": "totp-e2e",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "CHF",
+    "role": "LIMITEDIT",
+    "tenantName": "TOTP test tenant",
+    "e2e": "e-totp"
+  },
+  {
+    "email": "passkey-e2e@test.local",
+    "password": "A123abcd",
+    "nickname": "passkey-e2e",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "CHF",
+    "role": "LIMITEDIT",
+    "tenantName": "Passkey test tenant",
+    "e2e": "e-passkey"
   }
 ]

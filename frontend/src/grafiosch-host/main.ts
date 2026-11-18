@@ -1,3 +1,4 @@
+import { PasswordResetComponent } from '../app/lib/login/component/password-reset.component';
 import { HttpClient, provideHttpClient, withInterceptors, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { authInterceptor } from '../app/lib/login/service/auth.http.interceptor';
 import { provideDialogCloseKeepsFocus } from '../app/lib/edit/dialog.close.focus';
@@ -74,6 +75,7 @@ import { DASHBOARD_ROUTES } from '../app/lib/dashboard/dashboard.routes';
  */
 const routes: Routes = [
   { path: BaseSettings.LOGIN_KEY, component: LoginComponent },
+  { path: 'passwordreset', component: PasswordResetComponent },
   { path: BaseSettings.REGISTER_KEY, component: RegisterComponent },
   {
     path: GrafioschSettings.TOKEN_VERIFY_KEY,

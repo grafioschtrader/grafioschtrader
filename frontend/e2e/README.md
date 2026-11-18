@@ -178,6 +178,23 @@ personal-token persistence and authentication remain covered by 250. Run the not
 `--project=grafioschtrader-e2e` for 251 and `--config=playwright.lib.config.ts --project=lib-e2e` for lib/043. Like 250,
 the Grafioschtrader file skips when MCP is disabled; the library file needs no MCP deployment.
 
+## Period performance per security (253-*)
+
+`253-security-period-performance.spec.ts` opens the tab "Performance by security" / "Ertrag je Wertpapier" as
+`alledit`, beside the period performance of the client and in a portfolio. The trading days (`performanceDates` of
+`performance-notification.helpers.ts`) and the calculation are served by `page.route`, so the spec creates no data and
+needs no security transaction in `grafioschtrader_t`; it reads only the first portfolio of `alledit` and skips the
+portfolio test when there is none. The portfolio is opened through its node in the main tree, because
+`PortfolioTabMenuComponent` takes its portfolio from the tree and shows no tab content after a direct URL. It covers the shared start date (stored in the session storage, preset in both
+views), the request with the form dates and with `idPortfolio`, the partial total, the remark of a row without gain,
+sorting by the time-weighted return and the transaction request of an expanded row, which is aborted on purpose. A
+third test opens the charts in the lower display area through the show menu. In the scatter chart it expects two
+drawn points and the note on the security left out and clicks the first point; after switching the chart type select
+to the treemap it clicks the tile of a second security. Each click expands a row and therefore requests the
+transactions of that security, which the spec aborts.
+
+Run with `npx playwright test e2e/253-security-period-performance.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## MCP OAuth consent notification (255-*)
 
 `255-mcp-oauth-consent-notification.spec.ts` opens the consent page `/oauth/authorize` an MCP client sends the user
@@ -533,8 +550,9 @@ or `npx playwright test e2e/081-correlation-notification.spec.ts --project=grafi
 `ErrorHandler` logs both errors. As `alledit` the application spec reloads the main view and requires that `window.Zone` is undefined, that the
 menu bar, the portfolio branch and the dashboard render, and that no Angular `NG0…` error is logged. With every `/api/`
 request refused, the bilingual overlay must replace the login form until the retry succeeds. A login answer turned into
-a forced password change must show the dialog without a close button; saving the unchanged fixture password returns to
-the login form, so nothing changes in `grafioschtrader_t`. Run it with
+a forced password change must show the dialog without a close button; saving the unchanged fixture password adopts
+the replacement JWT and opens the dashboard without another sign-in. Both hosts check the stored token and use it
+to read the current user from the backend. The fixture password stays unchanged, so the test is rerunnable. Run it with
 `npx playwright test e2e/003-bootstrap.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 As `limit2`, the application bootstrap spec rapidly switches from the base-data root (the proposal tab host) to its
@@ -1813,6 +1831,46 @@ not test backend persistence or job execution. The original `lib/035` continues 
 no job. Run the new specs with `--no-deps`, using `--project=grafioschtrader-e2e` for `101`, or
 `--config=playwright.lib.config.ts --project=lib-e2e` for `lib/036`.
 
+### Password recovery and credential-session replacement
+
+`lib/025-password-reset.spec.ts` creates only the `reset-e2e` account from the library users fixture. It reconciles
+that account and removes only its earlier MailHog messages at the start, recovers the password through a real email,
+checks fragment removal and password confirmation, and verifies the password dialog's replacement JWT without a new
+sign-in. Its `finally` block deletes its own account and tenant. The `e-reset` fixture tag keeps this account out of
+the ordinary registration setup. Run it with `--config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
+`002-password-reset.spec.ts` checks the public recovery route in the GT host and writes no data. `lib/030-password-edit`
+expects the changed-password session to stay signed in and checks the replacement token before probing the new password.
+
+### Second factor (TOTP) and passkeys
+
+`lib/026-totp-sign-in.spec.ts` owns the `totp-e2e` account (fixture tag `e-totp`, kept out of the registration setup).
+It enables an authenticator app through Settings → Sign-in security, computes the codes itself from the secret of the
+setup answer (RFC 6238 in the spec, no library), and checks the code prompt of the login page, a refused code, a code
+of the app, a recovery code typed in lower case, the notice mail about the codes left and the disabling. Enrolment
+spends the code of the previous time step, so the current step stays free for the sign-in without waiting; the spec
+waits only when fewer than twelve seconds of the step are left. The account is deleted at the start and in `finally`.
+A run that stopped with the factor enabled leaves an account no password alone can enter: the cleanup then signs in
+as the fixture `admin` and removes the factor through `DELETE /api/useradmin/{id}/secondfactor` before deleting the
+account. Run it with `--config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
+
+`lib/027-passkey-sign-in.spec.ts` owns the `passkey-e2e` account (fixture tag `e-passkey`). It sets
+`g.public.base.url` to `http://localhost:8081` as the fixture `admin`, so the relying party id is `localhost`; the page
+origin `http://localhost:4201` is accepted through `g.webauthn.additional.origins` in the library host's
+`application.properties`. A virtual authenticator of the Chrome DevTools protocol (`WebAuthn.addVirtualAuthenticator`,
+ctap2, internal, resident key, user verification) creates and signs the credential. The spec registers a passkey in the
+sign-in security dialog, signs in from the login page without e-mail address, checks the return to the address stored in
+`returnAfterLogin` - the session entry the OAuth authorize page of GT writes - and deletes the passkey. The account is
+deleted at the start and in `finally`, where the previous public address is restored as well.
+
+`007-sign-in-security-dialog.spec.ts` opens the dialog from the settings menu of the GT host, checks the passkey section
+(table, or the hint while `grafioschtrader_t` has no usable public address) and the TOTP section, enters the proof
+step, cancels, closes it with the X and opens it again. It writes no data. The dialogs of this application do not close on
+Escape, so both specs use the close button.
+
+Under the `e2e` profile Flyway validates checksums. When a test migration that `grafioschtrader_t` already recorded
+receives another fence, apply the fence by hand and update the version's `checksum` in `flyway_schema_history` to the
+value Flyway reports as "Resolved locally"; the `test` profile and the library host do not validate.
+
 ### Users of the library suite
 
 Same `e2e` property convention as this suite, against
@@ -1822,7 +1880,9 @@ users with JDBC any more, so **the backend suite has to run before the browser s
 for you. Specs address users by nickname, never by id.
 
 The numbering convention above applies here as well. `010-mail.spec.ts` covers reusable mail, `020-nickname-lang-edit`
-updates the profile targets stored in `users.json`, `030-password-edit` changes the configured user's password, and
+updates the profile targets stored in `users.json`, `025-password-reset` covers mailbox recovery and session renewal,
+`026-totp-sign-in` covers the authenticator-app second factor, `027-passkey-sign-in` passkeys, `030-password-edit`
+changes the configured user's password, and
 `035-task-monitor-notification` checks the change notification of tables and forms.
 
 The setup is **re-runnable**: a user that can already sign in is left alone, and one without a tenant only gets the

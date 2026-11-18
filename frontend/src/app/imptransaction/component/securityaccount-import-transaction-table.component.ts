@@ -508,6 +508,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
           resizable: false,
           closable: true,
           closeOnEscape: true,
+          focusOnShow: false,
           data: { supplementCriteria: this.supplementCriteria }
         });
         if (!ref) return;

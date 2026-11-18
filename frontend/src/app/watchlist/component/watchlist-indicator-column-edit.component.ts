@@ -137,6 +137,7 @@ export class WatchlistIndicatorColumnEditComponent
       modal: true,
       closable: true,
       closeOnEscape: true,
+      focusOnShow: false,
       data: { supplementCriteria: new SupplementCriteria(false, false) }
     });
     if (!ref) return;

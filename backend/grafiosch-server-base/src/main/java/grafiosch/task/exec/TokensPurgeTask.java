@@ -1,5 +1,8 @@
 package grafiosch.task.exec;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -9,6 +12,7 @@ import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.repository.UserJpaRepository;
+import grafiosch.repository.UserPasswordResetJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskDataExecPriority;
@@ -23,6 +27,9 @@ public class TokensPurgeTask implements ITask {
 
   @Autowired
   private UserJpaRepository userJpaRepository;
+
+  @Autowired
+  private UserPasswordResetJpaRepository userPasswordResetJpaRepository;
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
@@ -41,5 +48,6 @@ public class TokensPurgeTask implements ITask {
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     userJpaRepository.removeWithExpiredVerificationToken();
+    userPasswordResetJpaRepository.deleteAllExpiredSince(LocalDateTime.now(ZoneOffset.UTC));
   }
 }

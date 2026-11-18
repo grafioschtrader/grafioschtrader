@@ -42,6 +42,7 @@ import tools.jackson.databind.json.JsonMapper;
  * reports how many rows belong to the period. The TradingView endpoint remains for series of other suppliers such as
  * ARIVA, which the price history does not know. It delivers at most 10 years per request, so a longer period is divided
  * into several chunks. It can also answer "ok" with only a part of the period, depending on the exact time stamps.
+ * TradingView also takes over a period for which the price history returns no rows at all.
  */
 @Component
 public class XetraFeedConnector extends BaseFeedConnector {
@@ -224,11 +225,23 @@ public class XetraFeedConnector extends BaseFeedConnector {
         + (countback == null ? "" : "&countback=" + countback);
   }
 
+  /**
+   * Prefers the price history for listings of Deutsche Börse. Since November 2026 that endpoint answers every period
+   * with zero rows and no error, so an empty answer cannot be told apart from a period without trading. The period is
+   * then requested from the TradingView endpoint, which answers {@code no_data} when there really are no bars.
+   */
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
-    return hasPriceHistory(security.getUrlHistoryExtend()) ? loadPriceHistory(security, from, to)
-        : loadTradingViewHistory(security, from, to);
+    if (hasPriceHistory(security.getUrlHistoryExtend())) {
+      List<Historyquote> historyquotes = loadPriceHistory(security, from, to);
+      if (!historyquotes.isEmpty()) {
+        return historyquotes;
+      }
+      log.debug("Xetra price history of {} from {} to {} is empty, falling back to TradingView",
+          security.getUrlHistoryExtend(), from, to);
+    }
+    return loadTradingViewHistory(security, from, to);
   }
 
   /**

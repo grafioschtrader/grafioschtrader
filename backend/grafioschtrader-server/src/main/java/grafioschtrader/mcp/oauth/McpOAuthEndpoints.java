@@ -11,10 +11,9 @@ import grafioschtrader.mcp.McpSecurityConfig;
 
 /**
  * Every address of the OAuth authorization of the MCP server, derived from the global parameter
- * {@code gt.mcp.public.base.url} alone and read anew on every call, so a change by the administrator takes effect
- * without a restart. None is ever built from the incoming request, and the two metadata locations are not appended to
- * the base URL: RFC 9728 and RFC 8414 put the well-known part before the path, so under a path prefix both lie outside
- * of it.
+ * {@code g.public.base.url} alone and read anew on every call, so a change by the administrator takes effect without a
+ * restart. None is ever built from the incoming request, and the two metadata locations are not appended to the base
+ * URL: RFC 9728 and RFC 8414 put the well-known part before the path, so under a path prefix both lie outside of it.
  *
  * <table>
  * <tr>
@@ -77,23 +76,8 @@ public class McpOAuthEndpoints {
 
   /** The issuer, which is the public base URL; null while OAuth is not offered. */
   private String issuer() {
-    String base = mcpAvailability.isOpen() ? mcpAvailability.getPublicBaseUrl() : null;
-    return isUsableIssuer(base) ? base : null;
-  }
-
-  /** HTTPS, or HTTP to a loopback name for development; no query, no fragment. */
-  private static boolean isUsableIssuer(String base) {
-    if (base == null || base.isEmpty()) {
-      return false;
-    }
-    try {
-      URI uri = URI.create(base);
-      boolean loopback = "localhost".equals(uri.getHost()) || "127.0.0.1".equals(uri.getHost());
-      return uri.getHost() != null && uri.getQuery() == null && uri.getFragment() == null
-          && ("https".equals(uri.getScheme()) || ("http".equals(uri.getScheme()) && loopback));
-    } catch (IllegalArgumentException e) {
-      return false;
-    }
+    var base = mcpAvailability.isOpen() ? mcpAvailability.getPublicBaseUrl() : null;
+    return base == null ? null : base.toString();
   }
 
   /** True while the MCP server is open and a usable public base URL is set, which OAuth needs for its addresses. */

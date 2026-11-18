@@ -46,6 +46,11 @@ export class PortfolioTabMenuComponent {
       icon: ''
     },
     {
+      label: 'PERFORMANCE_SECURITIES',
+      route: AppSettings.SECURITY_PERFORMANCE_KEY,
+      icon: ''
+    },
+    {
       label: 'TRANSACTIONS',
       route: AppSettings.PORTFOLIO_TRANSACTION_KEY,
       icon: ''

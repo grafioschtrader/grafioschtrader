@@ -123,6 +123,8 @@ export class AppSettings {
   public static readonly PERFORMANCE_KEY = 'performance';
   public static readonly PERFORMANCE_TAB_KEY = 'performancetabmenu';
   public static readonly EOD_DATA_QUALITY_KEY = 'eoddataquality';
+  /** Period performance per security, a tab beside the period performance of the client and of a portfolio. */
+  public static readonly SECURITY_PERFORMANCE_KEY = 'securityperformance';
   public static readonly DEPOT_CASH_KEY = 'depotcash';
   public static readonly HISTORYQUOTE_KEY = AppSettings.HISTORYQUOTE.toLowerCase();
   public static readonly HISTORYQUOTE_LEGACY_KEY = AppSettings.HISTORYQUOTE_LEGACY.toLowerCase();
@@ -141,6 +143,8 @@ export class AppSettings {
   public static readonly TENANT_DIVIDENDS_CHART = 'tenantdividendschart';
   /** Lower display area route of the charts of the report "security asset classes with cash". */
   public static readonly DEPOT_CASH_CHART = 'depotcashchart';
+  /** Lower display area route of the charts of the view "Performance by security". */
+  public static readonly SECURITY_PERFORMANCE_CHART = 'securityperformancechart';
   public static readonly CHART_GENERAL_PURPOSE = 'chartgeneralpurpose';
   /** Chart id of the equity curve of a completed historical replay. */
   public static readonly SIMULATION_EQUITY_KEY = 'simulationequity';
@@ -212,6 +216,7 @@ export class AppSettings {
   public static readonly DIV_CHART_TYPE = 'div_chart_type';
   public static readonly REALIZED_GAINS_SECURITYACCOUNTS = 'realized_gains_securityaccounts';
   public static readonly DEPOT_CASH_CHART_TYPE = 'depotcash_chart_type';
+  public static readonly SECURITY_PERFORMANCE_CHART_TYPE = 'securityperformance_chart_type';
   public static readonly WATCHLIST_PERFORMANCE_TIMEFRAME_STORE = 'u_watchlist_performance_timeframe_1';
   public static readonly WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE = 'u_watchlist_performance_include_dividends';
   public static readonly WATCHLIST_PERFORMANCE_POSITION_HEADER_STORE = 'u_watchlist_performance_position_header';

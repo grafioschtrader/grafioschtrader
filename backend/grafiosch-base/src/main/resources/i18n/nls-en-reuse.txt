@@ -54,3 +54,6 @@ OK
 
 # --- Deliberate: a product-style status label kept in English (GTNet setup table).
 SERVER_ONLINE
+# --- Deliberate: the German term for a WebAuthn passkey is the English word.
+PASSKEYS
+USER_PASSKEY

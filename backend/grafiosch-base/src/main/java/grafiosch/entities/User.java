@@ -67,6 +67,15 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @Column(name = "id_user")
   private Integer idUser;
 
+  @JsonIgnore
+  @Column(name = "auth_version", nullable = false)
+  private int authVersion;
+
+  @JsonIgnore
+  public int getAuthVersion() {
+    return authVersion;
+  }
+
   @Schema(description = "Contains the user's e-mail address. Is also used as a login name")
   @NotNull
   @Size(min = 4, max = 255)

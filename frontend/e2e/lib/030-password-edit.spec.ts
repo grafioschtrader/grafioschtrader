@@ -38,7 +38,12 @@ test.describe.serial('password settings', () => {
       await dialog.getByRole('button', { name: RX.save }).click();
       const updateResponse = await updateResponsePromise;
       expect(updateResponse.ok(), `${updateResponse.status()} ${await updateResponse.text()}`).toBeTruthy();
-      await page.locator('#email').waitFor({ state: 'visible', timeout: 10_000 });
+      const replacement = updateResponse.headers()['x-auth-token'];
+      expect(replacement).toBeTruthy();
+      await expect.poll(() => page.evaluate(() => sessionStorage.getItem('jwt'))).toBe(replacement);
+      await expect(page.locator('#email')).toHaveCount(0);
+      const own = await page.request.get('/api/user/own', { headers: { 'x-auth-token': replacement } });
+      expect(own.ok()).toBe(true);
 
       const changedCredentials = await libHelpers.loginAsFixtureUser(page, user.nickname);
       expect(changedCredentials.password).toBe(target.passwordNew);

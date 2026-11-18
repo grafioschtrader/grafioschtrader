@@ -104,7 +104,7 @@ test('unreachable translations block bootstrap and retry recovers', async ({ pag
   await expect(page.getByRole('alertdialog')).toHaveCount(0);
 });
 
-test('forced password change renders after login and returns to sign-in after saving', async ({ page }) => {
+test('forced password change renders after login and keeps the renewed session signed in', async ({ page }) => {
   const credentials = libHelpers.getUser('admin');
   // Exercise the server's forced-change response without changing the shared password policy. The update itself
   // goes to the real backend and retains the fixture password, so another run needs no credential repair.
@@ -130,10 +130,19 @@ test('forced password change renders after login and returns to sign-in after sa
   await dialog.locator('#password').fill(credentials.password);
   await dialog.locator('#passwordConfirm').fill(credentials.password);
   await expect(dialog.locator('button[type="submit"]')).toBeEnabled();
-  const updated = page.waitForResponse((response) => response.url().endsWith('/api/user/password'));
+  const updated = page.waitForResponse(
+    (response) => response.url().endsWith('/api/user/password') && response.request().method() === 'PUT'
+  );
   await dialog.locator('button[type="submit"]').click();
-  expect((await updated).ok()).toBe(true);
+  const updateResponse = await updated;
+  expect(updateResponse.ok(), `${updateResponse.status()} ${await updateResponse.text()}`).toBe(true);
+  const replacement = updateResponse.headers()['x-auth-token'];
+  expect(replacement).toBeTruthy();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('jwt'))).toBe(replacement);
   await expect(dialog).toBeHidden();
-  await expect(page.locator('#email')).toBeVisible();
-  await libHelpers.loginAsFixtureUser(page, 'admin');
+  await expect(page).toHaveURL(libHelpers.config.afterLoginUrl);
+  await expect(page.locator('dashboard article').first()).toBeVisible();
+  await expect(page.locator('#email')).toHaveCount(0);
+  const own = await page.request.get('/api/user/own', { headers: { 'x-auth-token': replacement } });
+  expect(own.ok()).toBe(true);
 });

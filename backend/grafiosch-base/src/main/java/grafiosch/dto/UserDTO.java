@@ -30,6 +30,8 @@ public final class UserDTO {
 
   private final Integer timezoneOffset;
   private final String note;
+  /** Code of the authenticator app or a recovery code; only read by the password sign-in. */
+  private final String secondFactorCode;
 
   /**
    * It may be used for the login process.
@@ -42,13 +44,15 @@ public final class UserDTO {
    */
   public UserDTO(@JsonProperty("email") final String email, @JsonProperty("password") final String password,
       @JsonProperty("nickname") final String nickname, @JsonProperty("localeStr") final String localeStr,
-      @JsonProperty("timezoneOffset") final Integer timezoneOffset, @JsonProperty("note") final String note) {
+      @JsonProperty("timezoneOffset") final Integer timezoneOffset, @JsonProperty("note") final String note,
+      @JsonProperty("secondFactorCode") final String secondFactorCode) {
     this.email = email;
     this.password = password;
     this.nickname = nickname;
     this.localeStr = localeStr;
     this.timezoneOffset = timezoneOffset;
     this.note = note;
+    this.secondFactorCode = secondFactorCode;
   }
 
   public Optional<String> getEmail() {
@@ -62,6 +66,11 @@ public final class UserDTO {
 
   public String getNote() {
     return note;
+  }
+
+  @JsonIgnore
+  public String getSecondFactorCode() {
+    return secondFactorCode;
   }
 
   public Optional<String> getEncodedPassword() {

@@ -7,6 +7,7 @@ import { catchError } from 'rxjs/operators';
 import { DeleteService } from '../../datashowbase/delete.service';
 import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
 import { BaseSettings } from '../../base.settings';
+import { SuccessfullyChanged } from '../../login/model/successfully.changed';
 
 @Service()
 export class UserAdminService extends AuthServiceWithLogout<User> implements DeleteService, ServiceEntityUpdate<User> {
@@ -37,6 +38,20 @@ export class UserAdminService extends AuthServiceWithLogout<User> implements Del
   public deleteEntity(idUser: number): Observable<any> {
     return this.httpClient
       .delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_ADMIN_KEY}/` + `${idUser}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Removes the authenticator app and the recovery codes of another user, who lost both. The user's sessions end.
+   *
+   * @param idUser - The user who lost the second factor; never the administrator's own account
+   */
+  public removeSecondFactor(idUser: number): Observable<SuccessfullyChanged> {
+    return this.httpClient
+      .delete<SuccessfullyChanged>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.USER_ADMIN_KEY}/${idUser}/secondfactor`,
+        this.getHeaders()
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 

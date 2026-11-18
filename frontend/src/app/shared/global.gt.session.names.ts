@@ -20,6 +20,12 @@ export enum GlobalGTSessionNames {
    */
   PERFORMANCE_DATE_FROM = 'performanceDateFrom',
 
+  /**
+   * End date shared by the period performance and the period performance per security. Absent while the range ends on
+   * the newest valuation day, so that a reopened view follows a newer one.
+   */
+  PERFORMANCE_DATE_TO = 'performanceDateTo',
+
   /** In certain reports there is a "to date", this can be set by the user. It is stored in the session storage so that
    *  it works across all reports.
    */

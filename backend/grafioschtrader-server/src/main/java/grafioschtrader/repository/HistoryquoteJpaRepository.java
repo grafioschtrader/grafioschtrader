@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -456,6 +457,32 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   @Query(nativeQuery = true)
   List<ISecuritycurrencyIdDateCloseCreateType> getIdDateCloseByIdsAndDate(
       @Param("ids") List<Integer> idSecuritycurrencies, @Param("date") LocalDate date);
+
+  //@formatter:off
+  /**
+   * Returns the daily closes of the currency pairs from several currencies into one target currency within a period.
+   * The period performance per security converts each flow with the close of its day from the security currency into
+   * the main currency, the rate the holding valuation of that day uses.
+   *
+   * Named query: Historyquote.getClosesOfCurrencyPairsInPeriod
+   * Parameters in SQL:
+   * - :fromCurrencies - the currencies to convert from, must not be empty
+   * - :toCurrency - the currency to convert into
+   * - :dateFrom, :dateTo - the period, both inclusive
+   *
+   * Columns of each Object[] in order: from_currency (String), date (LocalDate), close (Double).
+   *
+   * @param fromCurrencies the currencies to convert from
+   * @param toCurrency     the target currency
+   * @param dateFrom       first day, inclusive
+   * @param dateTo         last day, inclusive
+   * @return one row per currency pair and day with a close, unordered
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<Object[]> getClosesOfCurrencyPairsInPeriod(@Param("fromCurrencies") Collection<String> fromCurrencies,
+      @Param("toCurrency") String toCurrency, @Param("dateFrom") LocalDate dateFrom,
+      @Param("dateTo") LocalDate dateTo);
 
   /**
    * Retrieves all historical year-end closing prices for securities and currency pairs that are relevant to a specified

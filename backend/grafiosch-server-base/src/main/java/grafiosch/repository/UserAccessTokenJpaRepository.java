@@ -21,6 +21,9 @@ import jakarta.persistence.LockModeType;
  */
 public interface UserAccessTokenJpaRepository
     extends JpaRepository<UserAccessToken, Integer>, UserAccessTokenJpaRepositoryCustom {
+  @Modifying
+  @Query("DELETE FROM UserAccessToken t WHERE t.idUser = ?1")
+  int deleteByIdUser(Integer idUser);
 
   @Query("SELECT t FROM UserAccessToken t WHERE t.idUser = ?1 AND t.tokenKind = ?2 ORDER BY t.createdAt DESC")
   List<UserAccessToken> findByIdUserAndKind(Integer idUser, byte tokenKind);

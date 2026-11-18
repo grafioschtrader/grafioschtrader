@@ -94,6 +94,7 @@ export class SecurityActionCreateDialogComponent extends SimpleFormEditBase impl
         resizable: false,
         closable: true,
         closeOnEscape: true,
+        focusOnShow: false,
         data: { supplementCriteria: this.supplementCriteria }
       });
       if (!ref) return;

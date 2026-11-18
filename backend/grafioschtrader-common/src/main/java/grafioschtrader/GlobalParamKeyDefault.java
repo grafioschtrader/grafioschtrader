@@ -24,14 +24,6 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final int DEFAULT_MCP_USE = 0;
 
   /**
-   * Public HTTPS address of this instance including a path prefix, for example {@code https://gt.example.org}. The MCP
-   * endpoint shown in the token dialog and every OAuth address derive from it; {@code none} offers personal tokens
-   * only.
-   */
-  public static final String GLOB_KEY_MCP_PUBLIC_BASE_URL = GlobalConstants.GT_PREFIX + "mcp.public.base.url";
-  public static final String MCP_PUBLIC_BASE_URL_NONE = "none";
-
-  /**
    * Days after which a value of a user-defined field with the fill source RESOLVER, or the answer that the source has
    * none, is looked up again.
    */
@@ -248,7 +240,7 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final LocalDateTime DEFAULT_GTNET_EXCHANGE_SYNC_TIMESTAMP = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
   public static final String GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE = GlobalConstants.GT_PREFIX + "update.price.by.exchange";
   /**
-   * Three-state switch for connector ↔ asset class compatibility checking, evaluated against only, 2 enforces
+   * Three-state switch for connector â†” asset class compatibility checking, evaluated against only, 2 enforces
    * server-side AND tells the frontend dropdown to hide incompatible connectors.
    */
   public static final String GLOB_KEY_FORCE_CONNECTOR_MATCH = GlobalConstants.GT_PREFIX + "force.connector.match";

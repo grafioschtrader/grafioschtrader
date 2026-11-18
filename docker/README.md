@@ -76,6 +76,13 @@ Database passwords and the JWT secret are generated automatically and stored in
 `.env` (readable only by your user). **Jasypt encryption is not needed** — the
 Docker setup passes secrets as environment variables.
 
+One value still matters: `JASYPT_ENCRYPTOR_PASSWORD` encrypts what the application must read back from the database,
+the API keys of data providers and the secrets of the authenticator apps users enable as second factor. Without an
+entry in `.env`, `docker-compose.yml` uses the literal `not-used`, which only prevents casual reading of those columns.
+Set your own value in `.env` before the first user enables an authenticator app. Changing it later makes the stored
+secrets unreadable: affected users sign in with a recovery code, disable the authenticator app with a second one and
+set it up again.
+
 ## The two operating modes
 
 ### Local network only (no domain)
@@ -221,16 +228,16 @@ Users can let an AI assistant such as Claude Code read their portfolios through 
 | Global parameter | Value |
 |---|---|
 | `gt.mcp.use` | `1` opens the server, `0` closes it and refuses every token at once |
-| `gt.mcp.public.base.url` | the public address, e.g. `https://myhost.duckdns.org`; `none` offers personal tokens only |
+| `g.public.base.url` | the public address, e.g. `https://myhost.duckdns.org`; `none` offers personal tokens only |
 
 Each user then creates a token under *Settings → AI assistants (MCP)*, visible after the next login; the dialog shows
-the endpoint and a configuration example built from `gt.mcp.public.base.url`.
+the endpoint and a configuration example built from `g.public.base.url`.
 
 Clients that cannot send a fixed header, such as a ChatGPT connector, sign in through OAuth instead: they are given
 only the endpoint URL, discover the authorization server from the two documents under
 `/.well-known/oauth-protected-resource/…` and `/.well-known/oauth-authorization-server`, which the Caddyfile forwards
 to the backend, and send the user to a consent page of Grafioschtrader. The authorized applications appear in the same
-dialog and can be revoked there. OAuth needs `gt.mcp.public.base.url`; with `none` only personal tokens work.
+dialog and can be revoked there. OAuth needs `g.public.base.url`; with `none` only personal tokens work.
 An installation updated from a version before 0.39.0 receives the two routes with the new web image, because the
 Caddyfile is part of it; nothing has to be changed on the host.
 

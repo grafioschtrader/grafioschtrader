@@ -52,7 +52,9 @@ public class TenantContextAccessFilter extends OncePerRequestFilter {
   public static final Set<String> RECOVERY_ALLOW_LIST = Set.of(
       RequestMappings.API + TenantBase.TABNAME + "/switchto/**",
       RequestMappings.API + TenantBase.TABNAME + "/accessible", RequestMappings.USER_MAP + "/password",
-      RequestMappings.USER_MAP + "/nicknamelocale", RequestMappings.API + "userdashboard");
+      RequestMappings.USER_MAP + "/nicknamelocale", RequestMappings.USER_MAP + "/passkey",
+      RequestMappings.USER_MAP + "/passkey/**", RequestMappings.USER_MAP + "/totp/**",
+      RequestMappings.USER_MAP + "/secondfactor", RequestMappings.API + "userdashboard");
 
   private final MessageSource messages;
   private final Set<String> recoveryAllowListAntPatterns;

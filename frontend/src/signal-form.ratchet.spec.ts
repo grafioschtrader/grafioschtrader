@@ -55,7 +55,6 @@ const REACTIVE_FORM_FILES: readonly string[] = [
   'app/lib/gnet/component/gtnet-config-entity-edit.component.ts',
   'app/lib/gnet/component/gtnet-message-answer-edit.component.ts',
   'app/lib/gnet/component/gtnet-message-edit.component.ts',
-  'app/lib/login/component/login.component.ts',
   'app/lib/login/component/nickname-lang-edit.component.ts',
   'app/lib/login/component/password-edit.component.ts',
   'app/lib/login/component/register.component.ts',

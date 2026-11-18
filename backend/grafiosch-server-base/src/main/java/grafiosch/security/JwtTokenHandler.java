@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -97,6 +98,10 @@ public final class JwtTokenHandler {
     Integer userId = ((Number) jwt.getClaim(ID_USER)).intValue();
     User user = (User) userService.loadUserByUserIdAndCheckUsername(userId, jwt.getSubject());
     if (user != null) {
+      Number authVersion = jwt.getClaim("av");
+      if ((authVersion == null ? 0 : authVersion.intValue()) != user.getAuthVersion()) {
+        throw new BadCredentialsException("Credentials changed");
+      }
       Number jwtIdTenantNum = jwt.getClaim("idTenant");
       Integer jwtIdTenant = jwtIdTenantNum != null ? jwtIdTenantNum.intValue() : null;
       if (jwtIdTenant != null && !jwtIdTenant.equals(user.getIdTenant())) {
@@ -153,6 +158,12 @@ public final class JwtTokenHandler {
    * @return signed JWT token string ready for client use
    */
   public String createTokenForUser(final UserDetails user, int expirationMinutes, Integer overrideIdTenant) {
+    return createTokenForUser(user, expirationMinutes, overrideIdTenant, ((User) user).getAuthVersion());
+  }
+
+  /** Issues a replacement after a credential transaction committed, preserving the caller's tenant context. */
+  public String createTokenForUser(final UserDetails user, int expirationMinutes, Integer overrideIdTenant,
+      int authVersion) {
     final Instant expiry = ZonedDateTime.now().plusMinutes(expirationMinutes).toInstant();
 
     List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
@@ -163,7 +174,7 @@ public final class JwtTokenHandler {
     JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
     JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder().subject(user.getUsername())
         .claim(ID_USER, ((User) user).getIdUser()).claim("localeStr", ((User) user).getLocaleStr())
-        .claim("roles", roles).expiresAt(expiry);
+        .claim("roles", roles).claim("av", authVersion).expiresAt(expiry);
     if (userTenantId != null) {
       claimsBuilder.claim("idTenant", userTenantId);
     }

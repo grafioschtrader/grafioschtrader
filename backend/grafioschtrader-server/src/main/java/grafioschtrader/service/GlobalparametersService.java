@@ -107,18 +107,6 @@ public class GlobalparametersService {
   }
 
   /**
-   * The public base URL of the instance for the MCP server ({@code gt.mcp.public.base.url}).
-   *
-   * @return the URL without a trailing slash, or null when it is {@code none} or not set
-   */
-  public String getMcpPublicBaseUrl() {
-    String value = globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_MCP_PUBLIC_BASE_URL)
-        .map(Globalparameters::getPropertyString).map(String::trim).orElse("");
-    return value.isEmpty() || GlobalParamKeyDefault.MCP_PUBLIC_BASE_URL_NONE.equals(value) ? null
-        : value.replaceAll("/+$", "");
-  }
-
-  /**
    * The language models in order of priority, as the administrator entered them.
    *
    * @return the value of {@code gt.ai.providers}, or null when the row is missing

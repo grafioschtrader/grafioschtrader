@@ -432,8 +432,10 @@ public class RestErrorHandler {
   @ExceptionHandler(value = { GeneralNotTranslatedWithArgumentsException.class })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorWrapper restValidError(final GeneralNotTranslatedWithArgumentsException ex) {
-    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    final Locale userLocale = user.createAndGetJavaLocale();
+    var authentication = SecurityContextHolder.getContext().getAuthentication();
+    final Locale userLocale = authentication != null && authentication.getDetails() instanceof User user
+        ? user.createAndGetJavaLocale()
+        : LocaleContextHolder.getLocale();
     return new ErrorWrapper(
         new SingleNativeMsgError(translateArguments(ex.getMessageKey(), ex.getArguments(), userLocale)));
   }

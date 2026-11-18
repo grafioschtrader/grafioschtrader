@@ -1,3 +1,4 @@
+import { PasswordResetComponent } from './lib/login/component/password-reset.component';
 import { Routes } from '@angular/router';
 import { DASHBOARD_ROUTES } from './lib/dashboard/dashboard.routes';
 import { AppSettings } from './shared/app.settings';
@@ -12,6 +13,7 @@ import { BaseSettings } from './lib/base.settings';
 export const APP_ROUTES: Routes = [
   { path: '', redirectTo: '/' + BaseSettings.LOGIN_KEY, pathMatch: 'full' },
   { path: BaseSettings.LOGIN_KEY, component: LoginComponent },
+  { path: 'passwordreset', component: PasswordResetComponent },
   // OAuth authorization endpoint of the MCP server; it sends the user through the login itself when necessary
   {
     path: 'oauth/authorize',
@@ -55,6 +57,14 @@ export const APP_ROUTES: Routes = [
                 loadComponent: () =>
                   import('./performanceperiod/component/performance.period.component').then(
                     (m) => m.PerformancePeriodComponent
+                  ),
+                canActivate: [authGuard]
+              },
+              {
+                path: AppSettings.SECURITY_PERFORMANCE_KEY,
+                loadComponent: () =>
+                  import('./performanceperiod/component/security-period-performance.component').then(
+                    (m) => m.SecurityPeriodPerformanceComponent
                   ),
                 canActivate: [authGuard]
               },
@@ -177,6 +187,14 @@ export const APP_ROUTES: Routes = [
             loadComponent: () =>
               import('./performanceperiod/component/performance.period.component').then(
                 (m) => m.PerformancePeriodComponent
+              ),
+            canActivate: [authGuard]
+          },
+          {
+            path: AppSettings.SECURITY_PERFORMANCE_KEY + '/:id',
+            loadComponent: () =>
+              import('./performanceperiod/component/security-period-performance.component').then(
+                (m) => m.SecurityPeriodPerformanceComponent
               ),
             canActivate: [authGuard]
           },
@@ -336,6 +354,15 @@ export const APP_ROUTES: Routes = [
         path: AppSettings.DEPOT_CASH_CHART,
         loadComponent: () =>
           import('./tenant/component/tenant-holdings-chart.component').then((m) => m.TenantHoldingsChartComponent),
+        outlet: AppSettings.MAIN_BOTTOM,
+        canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.SECURITY_PERFORMANCE_CHART,
+        loadComponent: () =>
+          import('./performanceperiod/component/security-period-performance-chart.component').then(
+            (m) => m.SecurityPeriodPerformanceChartComponent
+          ),
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },

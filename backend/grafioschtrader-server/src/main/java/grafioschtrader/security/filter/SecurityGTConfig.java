@@ -20,12 +20,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import grafiosch.entities.Role;
 import grafiosch.repository.ProposeUserTaskJpaRepository;
 import grafiosch.rest.RequestMappings;
+import grafiosch.security.LoginCompletionService;
 import grafiosch.security.SecurityConfig;
 import grafiosch.security.filter.StatelessAuthenticationFilter;
 import grafiosch.security.filter.StatelessLoginFilter;
 import grafiosch.security.filter.TenantContextAccessFilter;
 import grafiosch.security.filter.TenantReadOnlyFilter;
 import grafiosch.service.LoginAttemptServiceIpAddress;
+import grafiosch.service.SecondFactorService;
 import grafiosch.service.UserService;
 import grafioschtrader.rest.RequestGTMappings;
 import grafioschtrader.security.TokenAuthenticationService;
@@ -68,12 +70,15 @@ import grafioschtrader.security.TokenAuthenticationService;
 public class SecurityGTConfig {
 
   /**
-   * Writes that are either account-self operations or read-only evaluations. Personal access tokens belong to the
-   * account: a user with a read-only home tenant may still revoke tokens and create a reading one.
+   * Writes that are either account-self operations or read-only evaluations. Personal access tokens and sign-in methods
+   * belong to the account: a user with a read-only home tenant may still revoke tokens, create a reading one and manage
+   * the own second factor.
    */
   public static final java.util.Set<String> READ_ONLY_WRITE_ALLOW_LIST = java.util.Set.of(
       RequestGTMappings.TENANT_MAP + "/switchto/**", RequestGTMappings.HOLDING_MAP + "/report/pdf",
       RequestMappings.USER_MAP + "/password", RequestMappings.USER_MAP + "/nicknamelocale",
+      RequestMappings.USER_MAP + "/passkey", RequestMappings.USER_MAP + "/passkey/**",
+      RequestMappings.USER_MAP + "/totp/**", RequestMappings.USER_MAP + "/secondfactor",
       RequestMappings.USER_ACCESS_TOKEN_MAP, RequestMappings.USER_ACCESS_TOKEN_MAP + "/**",
       RequestMappings.API + "oauth/consent");
 
@@ -126,7 +131,8 @@ public class SecurityGTConfig {
    * @throws Exception if security configuration fails
    */
   @Bean
-  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+  SecurityFilterChain filterChain(LoginCompletionService loginCompletionService,
+      SecondFactorService secondFactorService, HttpSecurity http) throws Exception {
 
     http.csrf(csrf -> csrf.disable());
 
@@ -155,8 +161,8 @@ public class SecurityGTConfig {
     }); // Close authorizeHttpRequests
 
     http.addFilterBefore(
-        new StatelessLoginFilter("/api/login", tokenAuthenticationService, userService, authenticationManager,
-            proposeUserTaskJpaRepository, messages, loginAttemptServiceIpAddress),
+        new StatelessLoginFilter("/api/login", loginCompletionService, userService, authenticationManager,
+            proposeUserTaskJpaRepository, messages, loginAttemptServiceIpAddress, secondFactorService),
         UsernamePasswordAuthenticationFilter.class);
 
     http.addFilterBefore(

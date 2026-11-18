@@ -36,10 +36,10 @@ public class XetraFeedConnectorTest extends BaseFeedConnectorCheck {
           XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 3022, "2014-11-11", toDate));
       hisoricalDate.add(new SecurityHistoricalDate("DAX 40", "DE0008469008",
           SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES, "DE0008469008",
-          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6831, "2000-01-03", toDate));
+          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6865, "2000-01-03", toDate));
       hisoricalDate.add(new SecurityHistoricalDate("Beiersdorf Aktiengesellschaft", "DE0005200000",
           SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.EQUITIES, "DE0005200000",
-          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6843, "2000-01-03", toDate));
+          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6890, "2000-01-03", toDate));
       hisoricalDate.add(new SecurityHistoricalDate("iShares Core MSCI World UCITS ETF", "IE00B4L5Y983",
           SpecialInvestmentInstruments.ETF, AssetclassType.EQUITIES, "IE00B4L5Y983",
           XetraFeedConnector.STOCK_EX_MIC_XETRA, 4292, "2009-10-14", toDate));
@@ -58,7 +58,7 @@ public class XetraFeedConnectorTest extends BaseFeedConnectorCheck {
         // The API answers this exact period with a spurious "no_data"; the connector's retry must still load it
         hisoricalDate.add(new SecurityHistoricalDate("EURO STOXX 50 (no_data retry)", "EU0009658145",
             SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES, "ARIVA:EU0009658145",
-            XetraFeedConnector.STOCK_EX_MIC_XETRA, 530, "2023-01-03", toDate));
+            XetraFeedConnector.STOCK_EX_MIC_XETRA, 979, "2023-01-03", toDate));
       }
     } catch (ParseException pe) {
       pe.printStackTrace();

@@ -151,6 +151,7 @@ export interface CellMark {
     @let expandedRowTemplateValue = expandedRowTemplate();
     @let cellMarkFnValue = cellMarkFn();
     @let footerValueFnValue = footerValueFn();
+    @let footerNegativeFnValue = footerNegativeFn();
     <!-- Signal queries are read once here, not per cell: every cell view created from a projected template marks
          them dirty, so a read per cell would collect all views again and make rendering quadratic in the cell count. -->
     @let customCellTemplateValue = customCellTemplate();
@@ -583,7 +584,9 @@ export interface CellMark {
                     [class]="getCellClass(field)"
                     [style.max-width.px]="field.width"
                     [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
-                    {{ footerValueFnValue(field) }}
+                    <span [style.color]="footerNegativeFnValue && footerNegativeFnValue(field) ? 'red' : null">
+                      {{ footerValueFnValue(field) }}
+                    </span>
                   </td>
                 }
               }
@@ -1022,6 +1025,12 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
 
   /** Callback returning the display value for each footer cell. When provided, a footer row is rendered. */
   readonly footerValueFn = input<(field: ColumnConfig) => string>();
+
+  /**
+   * Optional callback telling whether the total of a footer cell is negative; such a total is shown in red, like a
+   * negative value of a 'greenRed' column. Without it the footer keeps the default text colour.
+   */
+  readonly footerNegativeFn = input<(field: ColumnConfig) => boolean>();
 
   /** CSS class applied to each footer cell (e.g., 'row-total' for lightskyblue background). */
   readonly footerCellClass = input<string>();

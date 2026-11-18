@@ -207,10 +207,10 @@ public interface UserService extends UserDetailsService {
    * </p>
    *
    * @param changePasswordDTO data transfer object containing old and new password information
-   * @return SuccessfullyChanged object with success status and localized confirmation message
+   * @return committed authentication version for the caller's replacement token
    * @throws Exception if password validation fails, old password is incorrect, or demo account restrictions apply
    */
-  SuccessfullyChanged changePassword(ChangePasswordDTO changePasswortDTO) throws Exception;
+  int changePassword(ChangePasswordDTO changePasswortDTO) throws Exception;
 
   /**
    * Validates a password against configured security policies and requirements.
@@ -276,7 +276,7 @@ public interface UserService extends UserDetailsService {
    * </p>
    *
    * @param userOwnProjection projection containing the profile updates to apply
-   * @return SuccessfullyChanged object with success status and localized confirmation message
+   * @return committed authentication version for the caller's replacement token
    */
   SuccessfullyChanged updateNicknameLocal(UserOwnProjection userOwnProjection);
 

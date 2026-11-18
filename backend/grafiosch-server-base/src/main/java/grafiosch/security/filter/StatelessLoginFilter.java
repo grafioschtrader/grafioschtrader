@@ -3,8 +3,6 @@ package grafiosch.security.filter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 
 import grafiosch.dto.UserDTO;
@@ -26,13 +23,15 @@ import grafiosch.entities.User;
 import grafiosch.error.ErrorWithLogout;
 import grafiosch.error.ErrorWithLogoutAdmin;
 import grafiosch.error.ImpatientAtLoginError;
+import grafiosch.error.SecondFactorRequiredError;
 import grafiosch.exceptions.RequestLimitAndSecurityBreachException;
 import grafiosch.repository.ProposeUserTaskJpaRepository;
 import grafiosch.rest.helper.RestErrorHandler;
 import grafiosch.security.CustomAuthenticationFailureHandler;
-import grafiosch.security.TokenAuthentication;
-import grafiosch.security.UserAuthentication;
+import grafiosch.security.LoginCompletionService;
 import grafiosch.service.LoginAttemptServiceIpAddress;
+import grafiosch.service.SecondFactorService;
+import grafiosch.service.SecondFactorService.SignInCheck;
 import grafiosch.service.UserService;
 import grafiosch.usertask.UserTaskType;
 import jakarta.servlet.FilterChain;
@@ -67,6 +66,8 @@ import tools.jackson.databind.ObjectMapper;
  * <li>Check IP address against blocked address list</li>
  * <li>Validate password format against security regex patterns</li>
  * <li>Attempt authentication through Spring Security's AuthenticationManager</li>
+ * <li>For an account with an enabled second factor: verify and spend the code of the request; without a valid code the
+ * answer is a {@link SecondFactorRequiredError} and no token is issued</li>
  * <li>On success: generate JWT token, update user preferences, establish security context</li>
  * <li>On failure: track failed attempts, apply IP blocking if necessary</li>
  * </ol>
@@ -89,15 +90,17 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   /** Service for JWT token generation and configuration data preparation. */
-  private final TokenAuthentication tokenAuthentication;
+  private final LoginCompletionService loginCompletionService;
   /** Service for user-related operations including authentication and limit checking. */
   private final UserService userService;
   /** Temporary storage for user values during the authentication process. */
-  private final Map<String, HoldUserValues> emailToTimezoneOffsetMap = new ConcurrentHashMap<>();
+  private static final String LOGIN_VALUES = StatelessLoginFilter.class.getName() + ".values";
   private final ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
   private final MessageSource messages;
   /** Service for IP address-based login attempt tracking and blocking. */
   private final LoginAttemptServiceIpAddress loginAttemptServiceIpAddress;
+  /** Check of the second factor between the verified password and the completion of the sign-in. */
+  private final SecondFactorService secondFactorService;
 
   /**
    * Creates a new stateless login filter with the specified configuration.
@@ -108,25 +111,27 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
    * </p>
    *
    * @param urlMapping                   the URL pattern this filter should process
-   * @param tokenAuthentication          service for JWT token generation and management
+   * @param loginCompletionService       completion of a proven identity
    * @param userService                  service for user operations and validation
    * @param authenticationManager        Spring Security authentication manager
    * @param proposeUserTaskJpaRepository repository for user task proposals
    * @param messages                     message source for internationalized error messages
    * @param loginAttemptServiceIpAddress shared login counter with configured proxy trust
+   * @param secondFactorService          check of the second factor before the sign-in completes
    */
-  public StatelessLoginFilter(final String urlMapping, final TokenAuthentication tokenAuthentication,
+  public StatelessLoginFilter(final String urlMapping, final LoginCompletionService loginCompletionService,
       final UserService userService, final AuthenticationManager authenticationManager,
       ProposeUserTaskJpaRepository proposeUserTaskJpaRepository, final MessageSource messages,
-      LoginAttemptServiceIpAddress loginAttemptServiceIpAddress) {
+      LoginAttemptServiceIpAddress loginAttemptServiceIpAddress, SecondFactorService secondFactorService) {
     super(urlMapping);
-    this.tokenAuthentication = tokenAuthentication;
+    this.loginCompletionService = loginCompletionService;
     this.userService = userService;
     setAuthenticationManager(authenticationManager);
     this.setAuthenticationFailureHandler(new CustomAuthenticationFailureHandler());
     this.proposeUserTaskJpaRepository = proposeUserTaskJpaRepository;
     this.messages = messages;
     this.loginAttemptServiceIpAddress = loginAttemptServiceIpAddress;
+    this.secondFactorService = secondFactorService;
   }
 
   @Override
@@ -142,8 +147,8 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
       } catch (Exception e) {
         log.error("Could not check password against regular expression", e);
       }
-      emailToTimezoneOffsetMap.put(user.getEmail().get(),
-          new HoldUserValues(passwordRegexOk, user.getTimezoneOffset(), user.getNote()));
+      request.setAttribute(LOGIN_VALUES, new HoldUserValues(passwordRegexOk, user.getTimezoneOffset(), user.getNote(),
+          user.getSecondFactorCode()));
       final UsernamePasswordAuthenticationToken loginToken = user.toAuthenticationToken();
       return getAuthenticationManager().authenticate(loginToken);
     }
@@ -168,28 +173,52 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
   @Override
   protected void successfulAuthentication(final HttpServletRequest request, final HttpServletResponse response,
       final FilterChain chain, final Authentication authResult) throws IOException, ServletException {
-    UserDetails authenticatedUser = userService.loadUserByUsername(authResult.getName());
-    HoldUserValues holdUserValue = emailToTimezoneOffsetMap.get(authenticatedUser.getUsername());
+    SecurityContextHolder.clearContext();
+    User authenticatedUser = (User) authResult.getPrincipal();
+    HoldUserValues holdUserValue = (HoldUserValues) request.getAttribute(LOGIN_VALUES);
+    if (!secondFactorPassed(authenticatedUser, holdUserValue, response)) {
+      return;
+    }
     try {
-      loginAttemptServiceIpAddress.loginSucceeded(request);
-      userService.checkUserLimits((User) authenticatedUser);
-      emailToTimezoneOffsetMap.remove(authenticatedUser.getUsername());
-      authenticatedUser = updateTimezoneOffset((User) authenticatedUser, holdUserValue.timezoneOffset);
-      final UserAuthentication userAuthentication = new UserAuthentication(authenticatedUser);
-      tokenAuthentication.addJwtTokenToHeader(response, userAuthentication, holdUserValue.passwordRegexOk);
-      SecurityContextHolder.getContext().setAuthentication(userAuthentication);
+      loginCompletionService.complete(request, response, authenticatedUser, holdUserValue.timezoneOffset,
+          holdUserValue.passwordRegexOk);
 
     } catch (RequestLimitAndSecurityBreachException lee) {
       // User has too many times misused the limits (requests/period or security breach) of this application
-      if (holdUserValue.note != null && isAdminSelfReleaseNote(holdUserValue.note)
-          && isAdmin((User) authenticatedUser)) {
-        performAdminSelfRelease((User) authenticatedUser, response, holdUserValue);
+      if (holdUserValue.note != null && isAdminSelfReleaseNote(holdUserValue.note) && isAdmin(authenticatedUser)) {
+        performAdminSelfRelease(request, authenticatedUser, response, holdUserValue);
       } else if (holdUserValue.note != null) {
         processUserUnlockNoteRequest(authenticatedUser, response, lee, holdUserValue);
       } else {
         requestForUserUnlock(authenticatedUser, response, lee);
       }
     }
+  }
+
+  /**
+   * Checks the second factor after the password was verified. Until it passes, the security context stays empty and no
+   * token is written. Its failures neither count toward the block of the client address nor enter the password failure
+   * handler; wrong codes count toward the lock of the user instead.
+   *
+   * @return true when the sign-in may complete
+   */
+  private boolean secondFactorPassed(User user, HoldUserValues holdUserValue, HttpServletResponse response)
+      throws IOException {
+    SignInCheck check = secondFactorService.checkAtSignIn(user, holdUserValue.secondFactorCode);
+    if (check == SignInCheck.NOT_REQUIRED || check == SignInCheck.PASSED) {
+      return true;
+    }
+    SecurityContextHolder.clearContext();
+    Locale locale = user.createAndGetJavaLocale();
+    String messageKey = switch (check) {
+      case LOCKED -> "secondfactor.locked";
+      case INVALID -> "secondfactor.code.invalid";
+      default -> "secondfactor.required";
+    };
+    RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.UNAUTHORIZED,
+        new SecondFactorRequiredError(messages.getMessage(messageKey, null, locale), check == SignInCheck.INVALID,
+            check == SignInCheck.LOCKED));
+    return false;
   }
 
   @Override
@@ -220,11 +249,11 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
    * @param lee               the limit exception containing violation details
    * @param holdUserValue     the user values including the explanatory note
    */
-  private void processUserUnlockNoteRequest(final UserDetails authenticatedUser, final HttpServletResponse response,
+  private void processUserUnlockNoteRequest(final User authenticatedUser, final HttpServletResponse response,
       RequestLimitAndSecurityBreachException lee, HoldUserValues holdUserValue) throws IOException {
     try {
-      proposeUserTaskJpaRepository.createReleaseLougout(((User) authenticatedUser).getIdUser(),
-          lee.getFieldToBeChangedInUser(), holdUserValue.note);
+      proposeUserTaskJpaRepository.createReleaseLougout(authenticatedUser.getIdUser(), lee.getFieldToBeChangedInUser(),
+          holdUserValue.note);
     } catch (Exception e) {
       SecurityContextHolder.clearContext();
       RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.TOO_MANY_REQUESTS,
@@ -253,43 +282,24 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
    * @param response          the HTTP response for message delivery
    * @param lee               the limit exception containing violation details
    */
-  private void requestForUserUnlock(final UserDetails authenticatedUser, final HttpServletResponse response,
+  private void requestForUserUnlock(final User authenticatedUser, final HttpServletResponse response,
       RequestLimitAndSecurityBreachException lee) throws IOException {
     SecurityContextHolder.clearContext();
-    if (isAdmin((User) authenticatedUser)) {
+    if (isAdmin(authenticatedUser)) {
       RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.TOO_MANY_REQUESTS,
           new ErrorWithLogoutAdmin(lee.getMessage()));
     } else {
-      List<ProposeUserTask> existingProposeUserTasks = proposeUserTaskJpaRepository.findByIdTargetUserAndUserTaskType(
-          ((User) authenticatedUser).getIdUser(), UserTaskType.RELEASE_LOGOUT.getValue());
+      List<ProposeUserTask> existingProposeUserTasks = proposeUserTaskJpaRepository
+          .findByIdTargetUserAndUserTaskType(authenticatedUser.getIdUser(), UserTaskType.RELEASE_LOGOUT.getValue());
       if (existingProposeUserTasks.isEmpty()) {
         RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.TOO_MANY_REQUESTS,
             new ErrorWithLogout(lee.getMessage()));
       } else {
         RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.TOO_MANY_REQUESTS,
             new ImpatientAtLoginError(messages.getMessage("rights.limit.send", null,
-                Locale.forLanguageTag(((User) authenticatedUser).getLocaleStr()))));
+                Locale.forLanguageTag(authenticatedUser.getLocaleStr()))));
       }
     }
-  }
-
-  /**
-   * Updates user timezone offset if it has changed since last login.
-   *
-   * <p>
-   * Compares the current timezone offset with the user's stored preference and updates the database if they differ.
-   * This ensures that user timezone preferences are kept current with their client configuration.
-   * </p>
-   *
-   * @param user           the user whose timezone offset may need updating
-   * @param timezoneOffset the new timezone offset from the login request
-   * @return the user object, potentially with updated timezone offset
-   */
-  private User updateTimezoneOffset(User user, int timezoneOffst) throws IOException {
-    if (!user.getTimezoneOffset().equals(timezoneOffst)) {
-      user = this.userService.updateTimezoneOffset(user, timezoneOffst);
-    }
-    return user;
   }
 
   private static final String ADMIN_SELF_RELEASE_NOTE = "ADMIN_SELF_RELEASE";
@@ -311,8 +321,8 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
    * response.
    * </p>
    */
-  private void performAdminSelfRelease(User user, HttpServletResponse response, HoldUserValues holdUserValue)
-      throws IOException {
+  private void performAdminSelfRelease(HttpServletRequest request, User user, HttpServletResponse response,
+      HoldUserValues holdUserValue) throws IOException {
     short previousSecurityBreachCount = user.getSecurityBreachCount();
     short previousLimitRequestExceedCount = user.getLimitRequestExceedCount();
     user = userService.resetLimitCounters(user);
@@ -320,11 +330,8 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
         "Admin self-release for user {} (id={}). Previous counters: securityBreachCount={}, "
             + "limitRequestExceedCount={}",
         user.getUsername(), user.getIdUser(), previousSecurityBreachCount, previousLimitRequestExceedCount);
-    emailToTimezoneOffsetMap.remove(user.getUsername());
-    user = updateTimezoneOffset(user, holdUserValue.timezoneOffset);
-    final UserAuthentication userAuthentication = new UserAuthentication(user);
-    tokenAuthentication.addJwtTokenToHeader(response, userAuthentication, holdUserValue.passwordRegexOk);
-    SecurityContextHolder.getContext().setAuthentication(userAuthentication);
+    loginCompletionService.complete(request, response, user, holdUserValue.timezoneOffset,
+        holdUserValue.passwordRegexOk);
   }
 
   /**
@@ -333,7 +340,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
    * <p>
    * This static inner class temporarily stores user preferences and validation results that need to be preserved
    * between the authentication attempt phase and the successful authentication completion phase. The data is stored in
-   * the emailToTimezoneOffsetMap during processing.
+   * a request attribute during processing.
    * </p>
    *
    * <h3>Stored Information:</h3>
@@ -341,6 +348,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
    * <li><strong>Password Validation:</strong> Whether the password meets regex requirements</li>
    * <li><strong>Timezone Preference:</strong> User's current timezone offset setting</li>
    * <li><strong>Unlock Note:</strong> Optional explanatory note for limit violation appeals</li>
+   * <li><strong>Second factor:</strong> Optional code of the authenticator app or a recovery code</li>
    * </ul>
    */
   static class HoldUserValues {
@@ -350,11 +358,14 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
     public final Integer timezoneOffset;
     /** Optional explanatory note for unlock requests when limits are exceeded. */
     public final String note;
+    /** Code of the second factor sent with this sign-in, absent when none was entered. */
+    public final String secondFactorCode;
 
-    public HoldUserValues(boolean passwordRegexOk, Integer timezoneOffset, String note) {
+    public HoldUserValues(boolean passwordRegexOk, Integer timezoneOffset, String note, String secondFactorCode) {
       this.passwordRegexOk = passwordRegexOk;
       this.timezoneOffset = timezoneOffset;
       this.note = note;
+      this.secondFactorCode = secondFactorCode;
     }
   }
 

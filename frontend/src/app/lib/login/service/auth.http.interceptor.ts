@@ -1,5 +1,6 @@
+import { tap } from 'rxjs';
 import { DOCUMENT, inject } from '@angular/core';
-import { HttpContext, HttpContextToken, HttpHeaders, HttpInterceptorFn } from '@angular/common/http';
+import { HttpContext, HttpContextToken, HttpHeaders, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { BaseSettings } from '../../base.settings';
 import { GlobalSessionNames } from '../../global.session.names';
 
@@ -49,15 +50,30 @@ export function authHeadersFor(
   return additions;
 }
 
-/** Adds session headers to the own API; response events and error handling remain with the caller. */
+/** Adds session headers to the own API and adopts replacement tokens after a credential change. */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const baseUri = inject(DOCUMENT).baseURI;
   const setHeaders = authHeadersFor(
     req.url,
     req.context,
     sessionStorage.getItem(GlobalSessionNames.JWT),
     Intl.DateTimeFormat().resolvedOptions().timeZone,
-    inject(DOCUMENT).baseURI,
+    baseUri,
     req.headers
   );
-  return next(Object.keys(setHeaders).length ? req.clone({ setHeaders }) : req);
+  const acceptsReplacement = !!authHeadersFor(
+    req.url,
+    req.context,
+    sessionStorage.getItem(GlobalSessionNames.JWT),
+    '',
+    baseUri
+  )['x-auth-token'];
+  return next(Object.keys(setHeaders).length ? req.clone({ setHeaders }) : req).pipe(
+    tap((event) => {
+      if (event instanceof HttpResponse && acceptsReplacement && sessionStorage.getItem(GlobalSessionNames.JWT)) {
+        const token = event.headers.get('x-auth-token');
+        if (token) sessionStorage.setItem(GlobalSessionNames.JWT, token);
+      }
+    })
+  );
 };

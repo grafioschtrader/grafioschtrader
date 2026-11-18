@@ -87,6 +87,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
                     <p-treeTableToggler [rowNode]="rowNode" />
                   }
                   @switch (field.templateName) {
+                    @case ('check') {
+                      <i
+                        [class.fa]="getValueByPath(rowData, field)"
+                        [class.fa-check]="getValueByPath(rowData, field)"
+                        aria-hidden="true"></i>
+                    }
                     @case ('greenRed') {
                       <span [style.color]="isValueByPathMinus(rowData, field) ? 'red' : 'inherit'">
                         {{ getValueByPath(rowData, field) }}

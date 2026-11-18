@@ -3,6 +3,8 @@ package grafioschtrader.mcp;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import grafiosch.common.PublicBaseUrl;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.security.AccessTokenAvailability;
 import grafioschtrader.service.GlobalparametersService;
 
@@ -17,9 +19,11 @@ import grafioschtrader.service.GlobalparametersService;
 public class McpAvailability implements AccessTokenAvailability {
 
   private final GlobalparametersService globalparametersService;
+  private final GlobalparametersJpaRepository parameters;
 
-  public McpAvailability(GlobalparametersService globalparametersService) {
+  public McpAvailability(GlobalparametersService globalparametersService, GlobalparametersJpaRepository parameters) {
     this.globalparametersService = globalparametersService;
+    this.parameters = parameters;
   }
 
   public boolean isOpen() {
@@ -31,8 +35,8 @@ public class McpAvailability implements AccessTokenAvailability {
     return isOpen();
   }
 
-  /** The public base URL from {@code gt.mcp.public.base.url}, or null when the administrator has not set one. */
-  public String getPublicBaseUrl() {
-    return globalparametersService.getMcpPublicBaseUrl();
+  /** The public base URL from {@code g.public.base.url}, or null when the administrator has not set one. */
+  public PublicBaseUrl getPublicBaseUrl() {
+    return parameters.getPublicBaseUrl();
   }
 }

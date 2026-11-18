@@ -22,6 +22,11 @@ export class TenantPerformanceTabMenuComponent {
       icon: ''
     },
     {
+      label: 'PERFORMANCE_SECURITIES',
+      route: AppSettings.SECURITY_PERFORMANCE_KEY,
+      icon: ''
+    },
+    {
       label: 'PERFORMANCE_EOD_MISSING',
       route: AppSettings.EOD_DATA_QUALITY_KEY,
       icon: ''

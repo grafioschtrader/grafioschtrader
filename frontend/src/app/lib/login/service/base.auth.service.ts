@@ -10,6 +10,7 @@ import { ErrorWrapper } from './error.wrapper';
 import { GetTransformedError } from './get.transformed.error';
 import { LimitEntityTransactionError } from './limit.entity.transaction.error';
 import { LIMIT_REQUEST_OPENER } from './limit.request.opener';
+import { SecondFactorRequiredError } from './second.factor.required.error';
 import { SingleNativeMsgError } from './single.native.msg.error';
 import { TransformedError } from './transformed.error';
 import { ValidationError } from './validation.error';
@@ -25,6 +26,7 @@ export abstract class BaseAuthService<T> extends BaseService {
 
   private static readonly classNameClassMap: Record<string, new () => GetTransformedError> = {
     LimitEntityTransactionError,
+    SecondFactorRequiredError,
     SingleNativeMsgError,
     ValidationError
   };
@@ -150,6 +152,12 @@ export abstract class BaseAuthService<T> extends BaseService {
       transformedError.msg = transformedError.msg.replace(/(\r\n|\n|\r)/gm, '');
     }
 
+    // A first prompt for the code of the second factor is no error; the login view shows the code field instead
+    const errorClass = transformedError.errorClass;
+    const silent = errorClass instanceof SecondFactorRequiredError && !errorClass.showsMessage();
+    if (silent) {
+      return transformedError;
+    }
     if (transformedError.msgKey) {
       // The message needs a translation
       this.messageToastService.showMessageI18n(

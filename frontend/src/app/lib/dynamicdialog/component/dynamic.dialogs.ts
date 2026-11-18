@@ -36,7 +36,8 @@ export class DynamicDialogs extends DynamicDialogHelper {
     gps: GlobalparameterService,
     router: Router,
     email: string,
-    password: string
+    password: string,
+    secondFactorCodeSent = false
   ): DynamicDialogHelper {
     const dynamicDialogHelper = new DynamicDialogHelper(
       translateService,
@@ -44,7 +45,7 @@ export class DynamicDialogs extends DynamicDialogHelper {
       LogoutAdminSelfReleaseDynamicDialogComponent,
       'ADMIN_SELF_RELEASE_TITLE'
     );
-    dynamicDialogHelper.openDynamicDialog(400, { email, password }).subscribe();
+    dynamicDialogHelper.openDynamicDialog(400, { email, password, secondFactorCodeSent }).subscribe();
     return dynamicDialogHelper;
   }
 
@@ -52,7 +53,8 @@ export class DynamicDialogs extends DynamicDialogHelper {
     translateService: TranslateService,
     dialogService: DialogService,
     email: string,
-    password: string
+    password: string,
+    secondFactorCodeSent = false
   ): DynamicDialogHelper {
     const dynamicDialogHelper = new DynamicDialogHelper(
       translateService,
@@ -60,7 +62,7 @@ export class DynamicDialogs extends DynamicDialogHelper {
       LogoutReleaseRequestDynamicDialogComponent,
       'RESET_USER_MISUSED'
     );
-    dynamicDialogHelper.openDynamicDialog(400, { email, password }).subscribe();
+    dynamicDialogHelper.openDynamicDialog(400, { email, password, secondFactorCodeSent }).subscribe();
     return dynamicDialogHelper;
   }
 

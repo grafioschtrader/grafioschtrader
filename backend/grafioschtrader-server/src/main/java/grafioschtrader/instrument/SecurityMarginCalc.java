@@ -381,6 +381,10 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
    */
   private void bookMarginFlowToCurrencyPosition(final CalcTransactionPos ctp,
       final SecurityPositionSummary securityPositionSummary, final Transaction transaction) {
+    if (transaction.getIdTransaction() >= 0) {
+      // Kept for every currency: the period performance per security converts it with its own closing rates
+      securityPositionSummary.positionFlow -= securityPositionSummary.transactionGainLoss;
+    }
     if (ctp.exchangeRate == null || transaction.getIdTransaction() < 0
         || transaction.getSecurity().getCurrency().equals(securityPositionSummary.mainCurrency)) {
       // See the note in SecurityGeneralCalc.addFlowToCurrencyPosition: no exposure, no per-transaction share.

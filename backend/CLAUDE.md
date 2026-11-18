@@ -728,7 +728,7 @@ approves in the GT user interface.
   take a tenant from a tool argument. Tool errors are tool results with a `McpErrorCode`, not HTTP errors.
 - **Two switches.** `gt.use.mcp` (application.yaml, default true) only loads the code and derives
   `g.use.accesstoken`. The administrator opens the server with the global parameter `gt.mcp.use` and sets
-  `gt.mcp.public.base.url`; both are read per request (`McpAvailability`, the library asks through
+  `g.public.base.url`; both are read per request (`McpAvailability`, the library asks through
   `AccessTokenAvailability`). A test that needs the server open uses `McpTestSwitch`, which writes the rows with JDBC
   and evicts the `Globalparameters` second-level cache.
 - **OAuth is GT's own small authorization server** in `grafioschtrader.mcp.oauth`, not Spring Authorization Server:
@@ -737,3 +737,25 @@ approves in the GT user interface.
   JWKS and DPoP by default. Clients register only by Client ID Metadata Document; there is no dynamic client
   registration. Do not add `spring-security-oauth2-authorization-server`.
 - **Tokens are stored as SHA-256 hashes** in `user_access_token` and are never exported (`DELETE_USE` only).
+
+## Sign-in Methods — Credentials, Sessions and Second Factor
+
+Password reset, passkeys and the authenticator app (TOTP) live in the library (GitHub issue #301). Every account keeps
+its password; passkey and TOTP are additions.
+
+- **Every credential write goes through `CredentialChangeService`**: locked fresh user, READ COMMITTED,
+  `UserJpaRepository.incrementAuthVersion`, pending `user_password_reset` invalidated, notice through
+  `SecurityNoticeService` (AFTER_COMMIT). Never save the security-context user. The JWT claim `av` carries
+  `user.auth_version`, so the increment ends every other session; the own-account resource returns the replacement
+  token after commit with `JwtTokenHandler.createTokenForUser(user, minutes, overrideIdTenant, authVersion)` so a
+  switched tenant survives. Renaming a passkey and spending a code do not change the version.
+- **A reset by mail leaves TOTP, recovery codes and passkeys alone** — only an administrator removes a lost second
+  factor (`DELETE /api/useradmin/{idUser}/secondfactor`, never for the own account).
+- **Wrong proofs count in `ProofAttemptService` per user**, never toward the address block of
+  `LoginAttemptServiceIpAddress`; a missing code is a question, an undecryptable secret an operating fault, neither
+  counts. A code is spent by a conditional `UPDATE`; only a changed row is a valid code.
+- **WebAuthn goes through `Webauthn4JRelyingPartyOperations` from own REST resources**, not the `http.webAuthn()` DSL,
+  whose filters keep the challenge in the `HttpSession`. User verification is forced to `REQUIRED`. The relying
+  party comes from `g.public.base.url` (DNS name only); `g.webauthn.additional.origins` accepts only origins on the
+  same host, for the Angular dev servers.
+- **Challenge store, proof counters and request buckets are in memory** and assume one JVM per database.

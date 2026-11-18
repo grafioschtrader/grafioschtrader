@@ -28,6 +28,10 @@ import grafiosch.entities.User;
 import grafiosch.entities.UserAccessToken;
 import grafiosch.entities.UserDashboard;
 import grafiosch.entities.UserEntityChangeCount;
+import grafiosch.entities.UserPasskey;
+import grafiosch.entities.UserPasswordReset;
+import grafiosch.entities.UserRecoveryCode;
+import grafiosch.entities.UserTotp;
 import grafiosch.exportdelete.ExportDefinition.TENANT_USER;
 
 /**
@@ -139,7 +143,12 @@ public abstract class ExportDeleteHelper {
       // Only hashes of access tokens are stored, which are worthless on another instance: delete, never export. The
       // OAuth families stand before their tokens, so the backward deletion removes the tokens first.
       new ExportDefinition(OAuthAuthorization.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
-      new ExportDefinition(UserAccessToken.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE), };
+      new ExportDefinition(UserAccessToken.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(UserPasswordReset.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
+      // Sign-in methods have no value in another database, and a secret does not belong in a download
+      new ExportDefinition(UserTotp.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(UserRecoveryCode.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(UserPasskey.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE), };
 
   /**
    * Adds additional {@link ExportDefinition}s to the existing list.

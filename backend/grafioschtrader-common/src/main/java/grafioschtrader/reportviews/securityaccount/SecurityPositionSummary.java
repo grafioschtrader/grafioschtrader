@@ -212,6 +212,16 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public double netInvestedMC;
 
+  /**
+   * Sum of the flows of all transactions in security currency, positive into the position: purchases with their cost,
+   * less sale proceeds after cost, income and, for a margin instrument, the settled results. Unlike
+   * {@link #netInvestedSC} it is kept for every currency. Hypothetical transactions add nothing, so for a non-margin
+   * security valued with a hypothetical sale without estimated cost {@code gainLossSecurity = units * price -
+   * positionFlow}. The period performance per security reads the flow of a transaction as the change it causes here.
+   */
+  @JsonIgnore
+  public double positionFlow;
+
   /** Excluded dividend tax in security currency (when excludeDivTaxcost is enabled) */
   @JsonIgnore
   public double excludedDivTax;

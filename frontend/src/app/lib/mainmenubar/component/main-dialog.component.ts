@@ -3,6 +3,7 @@ import { MainDialogService } from '../service/main.dialog.service';
 import { PasswordEditComponent } from '../../login/component/password-edit.component';
 import { NicknameLangEditComponent } from '../../login/component/nickname-lang-edit.component';
 import { UserSettingsDialogs } from './user-settings-dialogs';
+import { SignInSecurityDialogComponent } from '../../signinsecurity/component/sign-in-security-dialog.component';
 
 /**
  * This component references global dialogs that are normally accessed via the Global Menu Bar.
@@ -18,8 +19,12 @@ import { UserSettingsDialogs } from './user-settings-dialogs';
     @if (mainDialogService.visibleDialogs()[UserSettingsDialogs.NicknameLocale]) {
       <nickname-lang-edit [visibleDialog]="mainDialogService.visibleDialogs()[UserSettingsDialogs.NicknameLocale]" />
     }
+    @if (mainDialogService.visibleDialogs()[UserSettingsDialogs.SignInSecurity]) {
+      <sign-in-security-dialog
+        [visibleDialog]="mainDialogService.visibleDialogs()[UserSettingsDialogs.SignInSecurity]" />
+    }
   `,
-  imports: [PasswordEditComponent, NicknameLangEditComponent]
+  imports: [PasswordEditComponent, NicknameLangEditComponent, SignInSecurityDialogComponent]
 })
 export class MainDialogComponent {
   mainDialogService = inject(MainDialogService);

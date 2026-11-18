@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { getUser, loginAsFixtureUser } from './helpers';
+import { getUser, gtHelpers, loginAsFixtureUser } from './helpers';
 import { assertUnhandledErrorsReachAngular } from './lib/bootstrap.assertions';
 
 /**
  * Start of Grafioschtrader without zone.js: the shell, the translations that block the bootstrap and the forced
- * password change must all render through signals and template listeners alone. Nothing is written to
- * grafioschtrader_t; the forced password change saves the unchanged fixture password.
+ * password change must all render through signals and template listeners alone. The forced password change saves
+ * the unchanged fixture password and renews the browser session.
  */
 
 test('unhandled browser errors reach Angular ErrorHandler', async ({ page }) => {
@@ -64,7 +64,7 @@ test('unreachable translations block the bootstrap and a retry recovers', async 
   await expect(page.getByRole('alertdialog')).toHaveCount(0);
 });
 
-test('a forced password change renders after login and returns to sign-in after saving', async ({ page }) => {
+test('a forced password change renders after login and keeps the renewed session signed in', async ({ page }) => {
   const credentials = getUser('alledit');
   // The server's forced-change answer is simulated, so the shared password policy stays untouched.
   await page.route(
@@ -87,10 +87,19 @@ test('a forced password change renders after login and returns to sign-in after 
   await dialog.locator('#password').fill(credentials.password);
   await dialog.locator('#passwordConfirm').fill(credentials.password);
   await expect(dialog.locator('button[type="submit"]')).toBeEnabled();
-  const updated = page.waitForResponse((response) => response.url().endsWith('/api/user/password'));
+  const updated = page.waitForResponse(
+    (response) => response.url().endsWith('/api/user/password') && response.request().method() === 'PUT'
+  );
   await dialog.locator('button[type="submit"]').click();
-  expect((await updated).ok()).toBe(true);
+  const updateResponse = await updated;
+  expect(updateResponse.ok(), `${updateResponse.status()} ${await updateResponse.text()}`).toBe(true);
+  const replacement = updateResponse.headers()['x-auth-token'];
+  expect(replacement).toBeTruthy();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('jwt'))).toBe(replacement);
   await expect(dialog).toBeHidden();
-  await expect(page.locator('#email')).toBeVisible();
-  await loginAsFixtureUser(page, 'alledit');
+  await expect(page).toHaveURL(gtHelpers.config.afterLoginUrl);
+  await expect(page.locator('dashboard article').first()).toBeVisible();
+  await expect(page.locator('#email')).toHaveCount(0);
+  const own = await page.request.get('/api/user/own', { headers: { 'x-auth-token': replacement } });
+  expect(own.ok()).toBe(true);
 });

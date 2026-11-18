@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -23,10 +24,10 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 
 /**
  * The access rules of the German tax help: which tenant and which tax year {@code GET /api/portfolio/taxgermany/{y}}
- * accepts, and who may set the base interest rate of a tax year through
- * {@code PUT /api/taxdata/year/{id}/fundbaserate}. It needs the registered users of {@link UserResourceTest} and the
- * tenant of {@code limit1}, the only one that reports in euro with the country Germany. The base interest rate it sets
- * is restored, and a tax year it has to create is deleted again.
+ * accepts, and who may set the base interest rate of a tax year through {@code PUT
+ * /api/taxdata/year/{id}/fundbaserate}. It needs the registered users of {@link UserResourceTest} and the tenant of
+ * {@code limit1}, the only one that reports in euro with the country Germany. The base interest rate it sets is
+ * restored. Missing tax countries and years are created through the REST API and removed afterwards.
  */
 @TestMethodOrder(OrderAnnotation.class)
 @TestInstance(Lifecycle.PER_CLASS)
@@ -36,19 +37,51 @@ class GermanTaxHelpResourceTest extends BaseIntegrationTest {
   private static final String TAX_YEAR = TaxDataResource.TAX_DATA_MAP + "/year";
   /** The country the test creates when the tax data has none besides Germany. */
   private static final String OTHER_COUNTRY = "CH";
-  private static final ParameterizedTypeReference<List<Map<String, Object>>> JSON_ARRAY =
-      new ParameterizedTypeReference<>() {
-      };
-  private static final ParameterizedTypeReference<Map<String, Object>> JSON_OBJECT =
-      new ParameterizedTypeReference<>() {
-      };
+  private static final ParameterizedTypeReference<List<Map<String, Object>>> JSON_ARRAY = new ParameterizedTypeReference<>() {
+  };
+  private static final ParameterizedTypeReference<Map<String, Object>> JSON_OBJECT = new ParameterizedTypeReference<>() {
+  };
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
+  private Integer idCreatedGermanCountry;
+  private Integer idCreatedGermanYear;
+
   @BeforeAll
   void setUp() {
     RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
+    Map<String, Object> germany = countries().stream().filter(country -> "DE".equals(country.get("countryCode")))
+        .findFirst().orElse(null);
+    Integer idTaxCountry;
+    if (germany == null) {
+      idCreatedGermanCountry = createCountry("DE");
+      idTaxCountry = idCreatedGermanCountry;
+    } else {
+      idTaxCountry = (Integer) germany.get("idTaxCountry");
+    }
+    if (germany == null || ((List<?>) germany.get("taxYears")).isEmpty()) {
+      Map<String, Object> year = authenticatedClient(RestTestHelper.ADMIN).post().uri(TAX_YEAR)
+          .body(Map.of("idTaxCountry", idTaxCountry, "taxYear", 2018)).exchange().expectStatus().isOk()
+          .expectBody(JSON_OBJECT).returnResult().getResponseBody();
+      assertNotNull(year);
+      idCreatedGermanYear = (Integer) year.get("idTaxYear");
+    }
+  }
+
+  @AfterAll
+  void removeCreatedTaxData() {
+    try {
+      if (idCreatedGermanYear != null) {
+        authenticatedClient(RestTestHelper.ADMIN).delete().uri(TAX_YEAR + "/" + idCreatedGermanYear).exchange()
+            .expectStatus().isOk();
+      }
+    } finally {
+      if (idCreatedGermanCountry != null) {
+        authenticatedClient(RestTestHelper.ADMIN).delete()
+            .uri(TaxDataResource.TAX_DATA_MAP + "/country/" + idCreatedGermanCountry).exchange().expectStatus().isOk();
+      }
+    }
   }
 
   @Test
@@ -69,13 +102,12 @@ class GermanTaxHelpResourceTest extends BaseIntegrationTest {
   void taxYearRange() {
     int currentYear = LocalDate.now().getYear();
     for (int year : new int[] { 2018, currentYear }) {
-      Map<String, Object> report = authenticatedClient(RestTestHelper.LIMIT1).get().uri(TAX_GERMANY + year)
-          .exchange().expectStatus().isOk().expectBody(JSON_OBJECT).returnResult().getResponseBody();
+      Map<String, Object> report = authenticatedClient(RestTestHelper.LIMIT1).get().uri(TAX_GERMANY + year).exchange()
+          .expectStatus().isOk().expectBody(JSON_OBJECT).returnResult().getResponseBody();
       assertNotNull(report, "report of " + year);
     }
     for (int year : new int[] { 2017, currentYear + 1 }) {
-      authenticatedClient(RestTestHelper.LIMIT1).get().uri(TAX_GERMANY + year).exchange().expectStatus()
-          .isBadRequest();
+      authenticatedClient(RestTestHelper.LIMIT1).get().uri(TAX_GERMANY + year).exchange().expectStatus().isBadRequest();
     }
   }
 
@@ -87,12 +119,12 @@ class GermanTaxHelpResourceTest extends BaseIntegrationTest {
     Integer idTaxYear = (Integer) germany.get("idTaxYear");
     Object original = germany.get("fundBaseRate");
     try {
-      assertThat(putBaseRate(RestTestHelper.ADMIN, idTaxYear, 2.53).expectStatus().isOk()
-          .expectBody(JSON_OBJECT).returnResult().getResponseBody()).containsEntry("fundBaseRate", 2.53);
+      assertThat(putBaseRate(RestTestHelper.ADMIN, idTaxYear, 2.53).expectStatus().isOk().expectBody(JSON_OBJECT)
+          .returnResult().getResponseBody()).containsEntry("fundBaseRate", 2.53);
       assertThat(taxYearOf("DE").get("fundBaseRate")).isEqualTo(2.53);
 
-      assertThat(putBaseRate(RestTestHelper.ADMIN, idTaxYear, null).expectStatus().isOk()
-          .expectBody(JSON_OBJECT).returnResult().getResponseBody()).containsEntry("fundBaseRate", null);
+      assertThat(putBaseRate(RestTestHelper.ADMIN, idTaxYear, null).expectStatus().isOk().expectBody(JSON_OBJECT)
+          .returnResult().getResponseBody()).containsEntry("fundBaseRate", null);
 
       putBaseRate(RestTestHelper.ADMIN, idTaxYear, 25.0).expectStatus().isBadRequest();
       assertThat(taxYearOf("DE").get("fundBaseRate")).isNull();
@@ -130,8 +162,8 @@ class GermanTaxHelpResourceTest extends BaseIntegrationTest {
   @Order(5)
   @DisplayName("The base interest rate of a tax year of another country is rejected")
   void otherCountryRejected() {
-    // A freshly built test database holds only Germany. A country this test creates is deleted again, because the
-    // tax data Playwright spec creates its own country later and rejects a duplicate.
+    // A country this test creates is deleted again, because the tax data Playwright spec creates its own country
+    // later and rejects a duplicate.
     Integer existing = idTaxCountryOtherThanGermany();
     Integer idCreatedCountry = existing == null ? createCountry(OTHER_COUNTRY) : null;
     Integer idTaxCountry = existing != null ? existing : idCreatedCountry;
@@ -164,8 +196,7 @@ class GermanTaxHelpResourceTest extends BaseIntegrationTest {
     return (Integer) country.get("idTaxCountry");
   }
 
-  private RestTestClient.ResponseSpec putBaseRate(String nickname,
-      Integer idTaxYear, Double rate) {
+  private RestTestClient.ResponseSpec putBaseRate(String nickname, Integer idTaxYear, Double rate) {
     Map<String, Object> request = new HashMap<>();
     request.put("fundBaseRate", rate);
     return authenticatedClient(nickname).put().uri(TAX_YEAR + "/" + idTaxYear + "/fundbaserate").body(request)
@@ -178,7 +209,7 @@ class GermanTaxHelpResourceTest extends BaseIntegrationTest {
     return countries().stream().filter(country -> countryCode.equals(country.get("countryCode")))
         .flatMap(country -> ((List<Map<String, Object>>) country.get("taxYears")).stream())
         .max((a, b) -> ((Number) a.get("taxYear")).intValue() - ((Number) b.get("taxYear")).intValue())
-        .orElseThrow(() -> new AssertionError("No tax year of " + countryCode + ", the Flyway data is missing"));
+        .orElseThrow(() -> new AssertionError("No tax year of " + countryCode + ", check the test setup"));
   }
 
   @SuppressWarnings("unchecked")

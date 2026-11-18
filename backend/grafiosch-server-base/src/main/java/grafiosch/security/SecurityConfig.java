@@ -73,7 +73,13 @@ public class SecurityConfig {
               .permitAll().requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/properties/*")
               .permitAll().requestMatchers(HttpMethod.POST, RequestMappings.USER_MAP).permitAll()
               .requestMatchers(HttpMethod.GET, RequestMappings.API + "user/tokenverify/*").permitAll()
-              .requestMatchers(HttpMethod.POST, RequestMappings.API + "login").permitAll()
+              .requestMatchers(HttpMethod.POST, RequestMappings.USER_MAP + "/passwordreset",
+                  RequestMappings.USER_MAP + "/passwordreset/confirm")
+              .permitAll().requestMatchers(HttpMethod.POST, RequestMappings.API + "login").permitAll()
+              .requestMatchers(HttpMethod.GET, RequestMappings.API + "login/methods").permitAll()
+              .requestMatchers(HttpMethod.POST, RequestMappings.API + "login/passkey/options",
+                  RequestMappings.API + "login/passkey")
+              .permitAll()
               .requestMatchers(HttpMethod.PATCH, RequestMappings.TASK_DATA_CHANGE_MAP + "/**").hasRole(Role.ADMIN)
               .requestMatchers(HttpMethod.POST, RequestMappings.TASK_DATA_CHANGE_MAP).hasRole(Role.ADMIN)
               .requestMatchers(HttpMethod.PUT, RequestMappings.TASK_DATA_CHANGE_MAP).hasRole(Role.ADMIN)

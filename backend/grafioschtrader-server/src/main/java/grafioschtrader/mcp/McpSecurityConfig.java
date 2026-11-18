@@ -135,7 +135,8 @@ public class McpSecurityConfig {
    */
   @Bean
   @Primary
-  McpStatelessServerTransport mcpStatelessServerTransport(WebMvcStatelessServerTransport webMvcStatelessServerTransport) {
+  McpStatelessServerTransport mcpStatelessServerTransport(
+      WebMvcStatelessServerTransport webMvcStatelessServerTransport) {
     return new McpJsonRpcErrorTransport(webMvcStatelessServerTransport);
   }
 
@@ -143,7 +144,7 @@ public class McpSecurityConfig {
   @Bean
   AccessTokenClientInfoProvider mcpAccessTokenClientInfoProvider() {
     return () -> {
-      String publicBaseUrl = mcpAvailability.getPublicBaseUrl();
+      var publicBaseUrl = mcpAvailability.getPublicBaseUrl();
       String endpoint = publicBaseUrl == null ? null : publicBaseUrl + MCP_PATH;
       String snippet = endpoint == null ? null : """
           claude mcp add --transport http grafioschtrader %s \\

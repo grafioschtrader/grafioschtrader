@@ -1,3 +1,6 @@
+import { Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BaseSettings } from '../../base.settings';
 import { Component, OnInit, input, linkedSignal, inject, viewChild } from '@angular/core';
 import { MainDialogService } from '../../mainmenubar/service/main.dialog.service';
 import { TranslateModule } from '@ngx-translate/core';
@@ -46,6 +49,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
   private mainDialogService = inject(MainDialogService);
   private messageToastService = inject(MessageToastService);
   private loginService = inject(LoginService);
+  private router = inject(Router);
 
   readonly forcePasswordChange = input<boolean>();
   readonly visibleDialogInput = input(false, { alias: 'visibleDialog' });
@@ -75,15 +79,28 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
     const changePassword = new ChangePasswordDTO();
     this.form().cleanMaskAndTransferValuesToBusinessObject(changePassword);
     changePassword.passwordNew = value.password;
-    this.loginService.updatePassword(changePassword).subscribe((successfullyChanged) => {
-      this.messageToastService.showMessage(InfoLevelType.INFO, successfullyChanged.message);
-      this.loginService.logoutWithLoginView();
-    });
-    if (!this.forcePasswordChange()) {
-      this.mainDialogService.visibleDialog(false, UserSettingsDialogs.Password);
-    } else {
-      this.visibleDialog.set(false);
-    }
+    this.loginService
+      .updatePassword(changePassword)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (successfullyChanged) => {
+          this.messageToastService.showMessage(InfoLevelType.INFO, successfullyChanged.message);
+          this.form().setDefaultValuesAndEnableSubmit();
+          if (!this.forcePasswordChange()) {
+            this.mainDialogService.visibleDialog(false, UserSettingsDialogs.Password);
+          } else {
+            this.visibleDialog.set(false);
+            const returnUrl = sessionStorage.getItem(GlobalSessionNames.RETURN_AFTER_LOGIN);
+            sessionStorage.removeItem(GlobalSessionNames.RETURN_AFTER_LOGIN);
+            this.router.navigateByUrl(
+              returnUrl?.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/' + BaseSettings.MAINVIEW_KEY
+            );
+          }
+        },
+        error: () => {
+          this.configObject.submit.disabled = false;
+        }
+      });
   }
 
   /** Opens the settings page of the user manual, which also explains the forced change at login. */

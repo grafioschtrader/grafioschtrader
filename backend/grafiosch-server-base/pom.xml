@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.40.0</version>
+		<version>0.40.1</version>
 	</parent>
 
 	<artifactId>grafiosch-server-base</artifactId>
@@ -65,7 +65,20 @@
 		 <dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
-	        <version>0.40.0</version>
+	        <version>0.40.1</version>
+		</dependency>
+
+		<!-- Passkeys: relying party operations of Spring Security on webauthn4j, version from the Boot BOM -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-webauthn</artifactId>
+		</dependency>
+
+		<!-- QR code of the authenticator-app setup -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>${zxing.version}</version>
 		</dependency>
 
         <dependency>

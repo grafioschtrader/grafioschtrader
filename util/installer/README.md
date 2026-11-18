@@ -323,7 +323,7 @@ The same trust list decides whether a personal access token of the MCP server ar
 believes `X-Forwarded-Proto` only from these proxies, and over AJP it uses the HTTPS flag of the Apache connection.
 The LAN site forwards `http`, so tokens are refused there. The installer asks nothing about the MCP server: it is
 part of every installation and stays closed until the administrator sets the global parameter `gt.mcp.use` to `1` and
-`gt.mcp.public.base.url` to `https://<DOMAIN>` in the global settings. The
+`g.public.base.url` to `https://<DOMAIN>` in the global settings. The
 domain sites and the include snippet also forward the two OAuth discovery documents of the MCP server,
 `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server`, which lie outside `/api` by
 standard; the ACME challenge path stays untouched. An installation completed before V0.39.0 lacks these two routes,

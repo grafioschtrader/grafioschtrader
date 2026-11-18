@@ -13,6 +13,8 @@ package grafiosch;
  */
 public class GlobalParamKeyBaseDefault {
 
+  public static final String GLOB_KEY_PUBLIC_BASE_URL = BaseConstants.G_PREFIX + "public.base.url";
+
   /** Default JWT token expiration time in minutes (24 hours). */
   public static final int DEFAULT_GLOB_KEY_JWT_EXPIRATION_MINUTES = 1440;
 
@@ -45,8 +47,8 @@ public class GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_TASK_DATA_DAYS_PRESERVE = BaseConstants.G_PREFIX + "task.data.days.preserve";
 
   /**
-   * Access key for global parameters. Decides whether every user of this instance sees the nickname of another user
-   * (1) or only the user id (0). Without it a user without the admin role cannot tell who created shared data.
+   * Access key for global parameters. Decides whether every user of this instance sees the nickname of another user (1)
+   * or only the user id (0). Without it a user without the admin role cannot tell who created shared data.
    */
   public static final String GLOB_KEY_USER_NICKNAME_VISIBLE = BaseConstants.G_PREFIX + "user.nickname.visible";
   /** Default: the nickname stays hidden, only the user id is shown. */

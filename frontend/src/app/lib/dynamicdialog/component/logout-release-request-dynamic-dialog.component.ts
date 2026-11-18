@@ -14,7 +14,8 @@ import { BaseSettings } from '../../base.settings';
 import { DYNAMIC_FORM_IMPORTS } from '../../dynamic-form/dynamic-form.imports';
 
 /**
- * Apply for admin to release security breaches or the too often to many serve requests.
+ * Apply for admin to release security breaches or the too often to many serve requests. The request repeats the sign-in
+ * with a note; for an account with a second factor it asks for a new code, because the first one is spent.
  */
 @Component({
   template: ` {{ 'RESET_USER_MISUSED_QUESTION' | translate }}
@@ -36,6 +37,7 @@ export class LogoutReleaseRequestDynamicDialogComponent extends FormBase impleme
   private dynamicDialogConfig: DynamicDialogConfig = inject(DynamicDialogConfig);
 
   readonly NOTE = 'note';
+  readonly SECOND_FACTOR_CODE = 'secondFactorCode';
 
   constructor() {
     super();
@@ -46,9 +48,12 @@ export class LogoutReleaseRequestDynamicDialogComponent extends FormBase impleme
     this.config = [
       DynamicFieldHelper.createFieldTextareaInputString(this.NOTE, 'REASON', BaseSettings.FID_MAX_LETTERS, true, {
         textareaRows: 10
-      }),
-      DynamicFieldHelper.createSubmitButton('SEND')
+      })
     ];
+    if (this.dynamicDialogConfig.data.secondFactorCodeSent) {
+      this.config.push(DynamicFieldHelper.createFieldInputStringHeqF(this.SECOND_FACTOR_CODE, 16, true));
+    }
+    this.config.push(DynamicFieldHelper.createSubmitButton('SEND'));
 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -56,7 +61,12 @@ export class LogoutReleaseRequestDynamicDialogComponent extends FormBase impleme
   submit(value: { [name: string]: any }): void {
     this.configObject.submit.groupItemUseOrLoading = true;
     this.loginService
-      .login(this.dynamicDialogConfig.data.email, this.dynamicDialogConfig.data.password, value[this.NOTE])
+      .login(
+        this.dynamicDialogConfig.data.email,
+        this.dynamicDialogConfig.data.password,
+        value[this.NOTE],
+        value[this.SECOND_FACTOR_CODE] || undefined
+      )
       .subscribe({
         next: (response) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_PROPOSE_SAVED');

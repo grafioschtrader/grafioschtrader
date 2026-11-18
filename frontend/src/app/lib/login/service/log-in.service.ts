@@ -17,6 +17,7 @@ import { Optimus } from '@openng/optimus-ui/config';
 import { BaseSettings } from '../../base.settings';
 import { AfterLoginHandler } from './after-login.handler';
 import { ConfigurationWithLogin } from '../model';
+import type { LoginMethods, PasskeyCredentialJSON, PasskeyOptions } from '../../signinsecurity/model/sign-in-security';
 
 @Service()
 export class LoginService extends BaseAuthService<User> {
@@ -36,9 +37,22 @@ export class LoginService extends BaseAuthService<User> {
     translateService.get('optimus').subscribe((res) => optimusConfig.setTranslation(res));
   }
 
-  login(email: string, password: string, note?: string): Observable<HttpResponse<ConfigurationWithLogin>> {
+  /**
+   * Signs in with e-mail and password.
+   *
+   * @param email - E-mail address of the account
+   * @param password - Password of the account
+   * @param note - Explanation of an unlock request, or the sentinel of the administrator self-release
+   * @param secondFactorCode - Code of the authenticator app or a recovery code, for an account with a second factor
+   */
+  login(
+    email: string,
+    password: string,
+    note?: string,
+    secondFactorCode?: string
+  ): Observable<HttpResponse<ConfigurationWithLogin>> {
     const date = new Date();
-    const loginRequest = { email, password, timezoneOffset: date.getTimezoneOffset(), note };
+    const loginRequest = { email, password, timezoneOffset: date.getTimezoneOffset(), note, secondFactorCode };
     const headers = new HttpHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' });
 
     return this.httpClient
@@ -47,6 +61,60 @@ export class LoginService extends BaseAuthService<User> {
         observe: 'response',
         context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
       })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  requestPasswordReset(email: string): Observable<SuccessfullyChanged> {
+    return this.httpClient
+      .post<SuccessfullyChanged>(
+        '/api/user/passwordreset',
+        { email },
+        {
+          context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+        }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  confirmPasswordReset(token: string, passwordNew: string): Observable<SuccessfullyChanged> {
+    return this.httpClient
+      .post<SuccessfullyChanged>(
+        '/api/user/passwordreset/confirm',
+        { token, passwordNew },
+        {
+          context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+        }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /** The sign-in methods the instance offers besides e-mail and password. */
+  getLoginMethods(): Observable<LoginMethods> {
+    return this.httpClient
+      .get<LoginMethods>('/api/login/methods', { context: new HttpContext().set(SKIP_AUTH_HEADERS, true) })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /** Starts a passkey sign-in; the options carry no e-mail address, the browser offers the passkeys of this site. */
+  passkeySignInOptions(): Observable<PasskeyOptions<PublicKeyCredentialRequestOptionsJSON>> {
+    return this.httpClient
+      .post<PasskeyOptions<PublicKeyCredentialRequestOptionsJSON>>('/api/login/passkey/options', null, {
+        context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+      })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /** Completes a passkey sign-in; the answer is the same as the one of the password sign-in. */
+  passkeySignIn(
+    challengeId: string,
+    credential: PasskeyCredentialJSON
+  ): Observable<HttpResponse<ConfigurationWithLogin>> {
+    return this.httpClient
+      .post<ConfigurationWithLogin>(
+        '/api/login/passkey',
+        { challengeId, credential, timezoneOffset: new Date().getTimezoneOffset() },
+        { observe: 'response', context: new HttpContext().set(SKIP_AUTH_HEADERS, true) }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 

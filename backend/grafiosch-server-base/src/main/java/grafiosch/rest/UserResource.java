@@ -10,6 +10,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +37,7 @@ import grafiosch.entities.projection.UserOwnProjection;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.repository.VerificationTokenJpaRepository;
+import grafiosch.security.JwtTokenHandler;
 import grafiosch.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,6 +55,12 @@ public class UserResource {
 
   @Autowired
   private UserService userService;
+
+  @Autowired
+  private JwtTokenHandler jwtTokenHandler;
+
+  @Autowired
+  private MessageSource messages;
 
   @Autowired
   private VerificationTokenJpaRepository verificationTokenJpaRepository;
@@ -122,7 +130,14 @@ public class UserResource {
   public ResponseEntity<SuccessfullyChanged> changePassword(
       @Validated(PropertyChangePassword.class) @RequestBody final ChangePasswordDTO changePasswordDTO)
       throws Exception {
-    return ResponseEntity.ok().body(userService.changePassword(changePasswordDTO));
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    int authVersion = userService.changePassword(changePasswordDTO);
+    return ResponseEntity.ok()
+        .header("x-auth-token",
+            jwtTokenHandler.createTokenForUser(user, globalparametersJpaRepository.getJWTExpirationMinutes(), null,
+                authVersion))
+        .body(new SuccessfullyChanged(true,
+            messages.getMessage("password.changed.success", null, user.createAndGetJavaLocale())));
   }
 
   @Operation(summary = """

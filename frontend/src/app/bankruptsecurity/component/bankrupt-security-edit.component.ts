@@ -119,6 +119,7 @@ export class BankruptSecurityEditComponent
             modal: true,
             closable: true,
             closeOnEscape: true,
+            focusOnShow: false,
             data: { supplementCriteria: this.supplementCriteria }
           });
           if (!ref) return EMPTY;

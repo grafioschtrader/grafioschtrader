@@ -13,7 +13,6 @@ import org.springframework.security.authentication.AccountStatusUserDetailsCheck
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +33,6 @@ import grafiosch.repository.RoleJpaRepository;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.repository.VerificationTokenJpaRepository;
-import grafiosch.rest.helper.RestHelper;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
 import grafiosch.types.UserRightLimitCounter;
@@ -73,6 +71,9 @@ import jakarta.mail.MessagingException;
  */
 @Service
 public class UserServiceImpl implements UserService {
+
+  @Autowired
+  private CredentialChangeService credentialChangeService;
 
   private final MessageSource messages;
 
@@ -284,8 +285,9 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public User updateTimezoneOffset(final User user, final Integer timezoneOffset) {
+    userJpaRepository.updateTimezoneOffset(user.getIdUser(), timezoneOffset);
     user.setTimezoneOffset(timezoneOffset);
-    return userJpaRepository.save(user);
+    return user;
   }
 
   @Override
@@ -300,20 +302,10 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public SuccessfullyChanged changePassword(final ChangePasswordDTO changePasswordDTO) throws Exception {
-    final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+  public int changePassword(final ChangePasswordDTO changePasswordDTO) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    RestHelper.isDemoAccount(demoAccountPatternDE, user.getUsername());
-    RestHelper.isDemoAccount(demoAccountPatternEN, user.getUsername());
-
-    if (bCryptPasswordEncoder.matches(changePasswordDTO.passwordOld, user.getPassword())) {
-      checkPasswordAgainstRegex(changePasswordDTO.passwordNew);
-      user.setPassword(bCryptPasswordEncoder.encode(changePasswordDTO.passwordNew));
-      userJpaRepository.save(user);
-      return new SuccessfullyChanged(true,
-          messages.getMessage("password.changed.success", null, user.createAndGetJavaLocale()));
-    }
-    throw new DataViolationException("oldpassword", "password.changed.old.wrong", null);
+    return credentialChangeService.changePassword(user.getIdUser(), changePasswordDTO.passwordOld,
+        changePasswordDTO.passwordNew);
   }
 
   /**

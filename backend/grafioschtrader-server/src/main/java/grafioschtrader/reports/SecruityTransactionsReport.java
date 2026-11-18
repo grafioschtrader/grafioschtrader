@@ -451,6 +451,7 @@ public class SecruityTransactionsReport {
       // a currency pair that may not exist yet (first trade in that currency, or the pair stored in the opposite
       // direction). Without a transaction there is nothing to apply the rate to, and the tenant's currency pairs only
       // cover currencies it holds, so asking for the rate of an instrument that was never traded would fail.
+      loadUntilDateRate(security.getCurrency(), dateCurrencyMap);
       securityTransactionSummary.applyReportRate(
           ReportHelper.getReportExchangeRate(security.getCurrency(), dateCurrencyMap, tradingDaysPlusJpaRepository));
     }
@@ -465,6 +466,31 @@ public class SecruityTransactionsReport {
       }
     }
     return securityTransactionSummary;
+  }
+
+  /**
+   * Adds the close of the security currency into the main currency on the cutoff date to the currency map. The map of
+   * this report holds only the rates of the booking days, so a past cutoff date without a booking of the security had
+   * no rate and {@link ReportHelper#getReportExchangeRate} rejected it as a missing quote, although the pair has one.
+   * Nothing is added when the cutoff date is today or in the current weekend, which values at the latest rate, or when
+   * the pair has no close on that day, which stays an error on a trading day.
+   *
+   * @param currency        the currency of the security
+   * @param dateCurrencyMap the currency map of this report, carrying main currency and cutoff date
+   */
+  private void loadUntilDateRate(final String currency, final DateTransactionCurrencypairMap dateCurrencyMap) {
+    final LocalDate untilDate = dateCurrencyMap.getUntilDate();
+    if (currency.equals(dateCurrencyMap.getMainCurrency())
+        || dateCurrencyMap.isUntilDateEqualNowOrAfterOrInActualWeekend()
+        || dateCurrencyMap.getExactDateAndFromCurrency(untilDate, currency) != null) {
+      return;
+    }
+    final Currencypair currencypair = dateCurrencyMap.getCurrencypairByFromCurrency(currency);
+    if (currencypair != null) {
+      historyquoteJpaRepository.findByIdSecuritycurrencyAndDate(currencypair.getIdSecuritycurrency(), untilDate)
+          .ifPresent(historyquote -> dateCurrencyMap.putToDateFromCurrencyMap(
+              List.<Object[]>of(new Object[] { untilDate, currency, historyquote.getClose() })));
+    }
   }
 
   /**

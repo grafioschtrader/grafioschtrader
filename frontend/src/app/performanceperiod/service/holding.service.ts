@@ -8,6 +8,7 @@ import { AppSettings } from '../../shared/app.settings';
 import { catchError, map } from 'rxjs/operators';
 import { HttpParams, HttpResponse } from '@angular/common/http';
 import { PerformancePeriod } from '../model/performance.period';
+import type { SecurityPeriodPerformance } from '../model/security-period-performance';
 import { MissingQuotesWithSecurities } from '../../tenant/model/missing.quotes.with.securities';
 import { BaseSettings } from '../../lib/base.settings';
 import { PerformanceReportOptions, PerformanceReportRequest } from '../model/performance-report';
@@ -49,6 +50,27 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
         `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/${performanceWindowDef.dateFrom}/${performanceWindowDef.dateTo}` +
           `/${performanceWindowDef.periodSplit}`,
         this.getOptionsWithIdPortfolio(performanceWindowDef.idPortfolio)
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Loads the absolute gain and the time-weighted return of every security held or traded in a period.
+   *
+   * @param idPortfolio - The portfolio, or null for the whole client
+   * @param dateFrom - Excluded base date, yyyy-MM-dd
+   * @param dateTo - Last date, yyyy-MM-dd
+   * @returns the period performance per security
+   */
+  getSecurityPeriodPerformance(
+    idPortfolio: number | null,
+    dateFrom: string,
+    dateTo: string
+  ): Observable<SecurityPeriodPerformance> {
+    return this.httpClient
+      .get<SecurityPeriodPerformance>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/securityperformance/${dateFrom}/${dateTo}`,
+        this.getOptionsWithIdPortfolio(idPortfolio)
       )
       .pipe(catchError(this.handleError.bind(this)));
   }

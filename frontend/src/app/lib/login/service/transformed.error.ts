@@ -13,6 +13,8 @@ export class TransformedError {
   public bringUpDialog = false;
   /** The session of an administrator ended; the login view offers the self-release dialog. */
   public bringUpAdminSelfReleaseDialog = false;
+  /** The password was right, but the account asks for the code of its second factor. */
+  public secondFactorRequired = false;
 
   constructor(
     public msg: string = '',

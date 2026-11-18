@@ -18,11 +18,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import grafiosch.repository.ProposeUserTaskJpaRepository;
 import grafiosch.rest.RequestMappings;
+import grafiosch.security.LoginCompletionService;
 import grafiosch.security.SecurityConfig;
 import grafiosch.security.filter.StatelessAuthenticationFilter;
 import grafiosch.security.filter.StatelessLoginFilter;
 import grafiosch.security.filter.TenantContextAccessFilter;
 import grafiosch.service.LoginAttemptServiceIpAddress;
+import grafiosch.service.SecondFactorService;
 import grafiosch.service.UserService;
 
 /**
@@ -41,11 +43,12 @@ import grafiosch.service.UserService;
 public class SecurityIntegrationConfig {
 
   @Bean
-  SecurityFilterChain filterChain(HttpSecurity http, IntegrationTokenAuthenticationService tokenAuthentication,
-      UserService userService, AuthenticationManager authenticationManager,
-      ProposeUserTaskJpaRepository proposeUserTaskJpaRepository, MessageSource messages,
-      LoginAttemptServiceIpAddress loginAttemptServiceIpAddress, @Value("${gt.limit.request}") boolean limitRequest)
-      throws Exception {
+  SecurityFilterChain filterChain(LoginCompletionService loginCompletionService, HttpSecurity http,
+      IntegrationTokenAuthenticationService tokenAuthentication, UserService userService,
+      AuthenticationManager authenticationManager, ProposeUserTaskJpaRepository proposeUserTaskJpaRepository,
+      MessageSource messages, LoginAttemptServiceIpAddress loginAttemptServiceIpAddress,
+      SecondFactorService secondFactorService,
+      @Value("${gt.limit.request}") boolean limitRequest) throws Exception {
     http.csrf(csrf -> csrf.disable());
     http.authorizeHttpRequests(authz -> authz
         .requestMatchers(HttpMethod.GET, "/api/integration-info", "/api/actuator/**", "/swagger-ui/**", "/api-docs/**")
@@ -58,8 +61,8 @@ public class SecurityIntegrationConfig {
         .requestMatchers(HttpMethod.POST, RequestMappings.M2M_API + "**").permitAll());
     SecurityConfig.configureGlobalParameters(http);
     http.addFilterBefore(
-        new StatelessLoginFilter("/api/login", tokenAuthentication, userService, authenticationManager,
-            proposeUserTaskJpaRepository, messages, loginAttemptServiceIpAddress),
+        new StatelessLoginFilter("/api/login", loginCompletionService, userService, authenticationManager,
+            proposeUserTaskJpaRepository, messages, loginAttemptServiceIpAddress, secondFactorService),
         UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(new StatelessAuthenticationFilter(tokenAuthentication, messages, userService, limitRequest),
         UsernamePasswordAuthenticationFilter.class);

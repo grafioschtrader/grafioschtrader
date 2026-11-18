@@ -508,6 +508,32 @@ public class PerformanceReport {
     return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit, flowsAndFees);
   }
 
+  /**
+   * Validates a period exactly as the period performance does, without a period split, for reports that share its date
+   * range such as the period performance per security. Both dates must be valuation days of the scope and the end
+   * date must lie after the start date.
+   *
+   * @param idTenant    tenant of the request
+   * @param idPortfolio the portfolio, or null for the whole tenant
+   * @param localeStr   user's locale for error message formatting
+   * @param today       the client's calendar day
+   * @param dateFrom    excluded base date of the period
+   * @param dateTo      last date of the period
+   * @throws SecurityException      if the portfolio does not belong to the tenant
+   * @throws DataViolationException if a date is not a valuation day or the period is empty
+   */
+  public void validatePeriod(Integer idTenant, Integer idPortfolio, String localeStr, LocalDate today,
+      LocalDate dateFrom, LocalDate dateTo) throws InterruptedException, ExecutionException {
+    if (idPortfolio == null) {
+      checkInputParam(getFirstAndMissingTradingDaysByTenant(idTenant, today), localeStr, dateFrom, dateTo, null,
+          () -> holdSecurityaccountSecurityRepository.getCurrencypairsWithoutAnyQuoteByTenant(idTenant));
+    } else {
+      checkInputParam(getFirstAndMissingTradingDaysByPortfolio(idTenant, idPortfolio, today), localeStr, dateFrom,
+          dateTo, null,
+          () -> holdSecurityaccountSecurityRepository.getCurrencypairsWithoutAnyQuoteByPortfolio(idPortfolio));
+    }
+  }
+
   //@formatter:off
   /**
    * Loads what the relative figures of the report need beyond the daily holdings: the dated external flows and the fee

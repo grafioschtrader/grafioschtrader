@@ -10,6 +10,7 @@ import grafiosch.entities.UDFMetadataGeneral;
 import grafiosch.entities.UDFMetadataSubscription;
 import grafiosch.entities.User;
 import grafiosch.entities.UserAccessToken;
+import grafiosch.entities.UserPasskey;
 import grafiosch.limit.LimitCounters;
 import grafiosch.limit.LimitKeyRegistration;
 import grafiosch.limit.LimitKeyRegistry;
@@ -86,6 +87,11 @@ public abstract class LimitKeyBaseConfig {
    */
   public static final LimitKey KEY_OAUTH_AUTHORIZATION = LimitKey.max(OAuthAuthorization.class.getSimpleName(),
       OwnerScope.CREATOR);
+  /**
+   * Bounds how many passkeys one user may register. Checked inside the transaction of the registration, so parallel
+   * completions cannot exceed it; a sign-in updates a passkey and is no such operation.
+   */
+  public static final LimitKey KEY_USER_PASSKEY = LimitKey.max(UserPasskey.class.getSimpleName(), OwnerScope.CREATOR);
 
   public static final LimitKey KEY_UDF_METADATA_SUBSCRIPTION = LimitKey
       .max(UDFMetadataSubscription.class.getSimpleName(), OwnerScope.CREATOR);
@@ -155,5 +161,8 @@ public abstract class LimitKeyBaseConfig {
     LimitKeyRegistry.register(new LimitKeyRegistration(KEY_OAUTH_AUTHORIZATION, OAuthAuthorization.class,
         LimitCounters.userCount(OAuthAuthorization.class.getSimpleName(), "idUser"), 10, "min:1,max:50",
         "MAX_OAUTH_AUTHORIZATION", false));
+    LimitKeyRegistry.register(new LimitKeyRegistration(KEY_USER_PASSKEY, UserPasskey.class,
+        LimitCounters.userCount(UserPasskey.class.getSimpleName(), "idUser"), 10, "min:1,max:20", "MAX_USER_PASSKEY",
+        false));
   }
 }

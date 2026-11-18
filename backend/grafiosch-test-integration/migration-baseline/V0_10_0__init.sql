@@ -566,9 +566,12 @@ CREATE TABLE `user` (
   `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   `home_tenant_read_only` tinyint(1) NOT NULL DEFAULT 0,
+  `auth_version` int(11) NOT NULL DEFAULT 0,
+  `passkey_user_handle` varbinary(64) DEFAULT NULL,
   PRIMARY KEY (`id_user`),
   UNIQUE KEY `nickname` (`nickname`),
   UNIQUE KEY `email` (`email`) USING BTREE,
+  UNIQUE KEY `UK_User_PasskeyUserHandle` (`passkey_user_handle`),
   KEY `FK_User_Tenant` (`id_tenant`),
   CONSTRAINT `FK_User_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
@@ -622,6 +625,53 @@ CREATE TABLE `user_entity_change_count` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_passkey` (
+  `id_user_passkey` int(11) NOT NULL AUTO_INCREMENT,
+  `id_user` int(11) NOT NULL,
+  `label` varchar(40) NOT NULL,
+  `credential_id` varbinary(1023) NOT NULL,
+  `public_key` blob NOT NULL,
+  `signature_count` bigint(20) NOT NULL,
+  `uv_initialized` tinyint(1) NOT NULL,
+  `backup_eligible` tinyint(1) NOT NULL,
+  `backup_state` tinyint(1) NOT NULL,
+  `transports` varchar(100) DEFAULT NULL,
+  `attestation_object` blob NOT NULL,
+  `attestation_client_data_json` blob DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  `last_used_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id_user_passkey`),
+  UNIQUE KEY `UK_UserPasskey_Credential` (`credential_id`),
+  KEY `FK_UserPasskey_User` (`id_user`),
+  CONSTRAINT `FK_UserPasskey_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_password_reset` (
+  `id_user` int(11) NOT NULL,
+  `token_hash` char(64) NOT NULL,
+  `expiry_date` datetime NOT NULL,
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`id_user`),
+  UNIQUE KEY `UK_UserPasswordReset_Hash` (`token_hash`),
+  CONSTRAINT `FK_UserPasswordReset_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_recovery_code` (
+  `id_user_recovery_code` int(11) NOT NULL AUTO_INCREMENT,
+  `id_user` int(11) NOT NULL,
+  `code_hash` char(64) NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id_user_recovery_code`),
+  UNIQUE KEY `UK_UserRecoveryCode_UserHash` (`id_user`,`code_hash`),
+  CONSTRAINT `FK_UserRecoveryCode_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_role` (
   `id_user` int(11) NOT NULL,
   `id_role` int(11) NOT NULL,
@@ -630,6 +680,20 @@ CREATE TABLE `user_role` (
   CONSTRAINT `FK_User_Roles_Roles` FOREIGN KEY (`id_role`) REFERENCES `role` (`id_role`),
   CONSTRAINT `FK_User_Roles_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_totp` (
+  `id_user` int(11) NOT NULL,
+  `secret` varchar(512) DEFAULT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `last_used_step` bigint(20) DEFAULT NULL,
+  `enabled_at` datetime DEFAULT NULL,
+  `pending_secret` varchar(512) DEFAULT NULL,
+  `pending_created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id_user`),
+  CONSTRAINT `FK_UserTotp_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -681,6 +745,7 @@ INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_strin
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.max.limit.request.exceeded.count',20,NULL,NULL,NULL,NULL,0,'min:1,max:99');
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.max.security.breach.count',5,NULL,NULL,NULL,NULL,0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.password.regex.properties',NULL,NULL,NULL,NULL,'de=Das Passwort besteht aus mindestens acht Zeichen mit mindestens einem Buchstaben und einer Zahl.\nregex=^(?\\=.*[A-Za-z])(?\\=.*\\\\d)[A-Za-z\\\\d]{8,}$\nforceRegex=false\nen=The password has at least eight characters with at least one letter and one number.\n\n\n\n\n',0,NULL);
+INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.public.base.url',NULL,'none',NULL,NULL,NULL,0,'pattern:^(none|https://[^ ?#]+|http://(localhost|127[.]0[.]0[.]1)(:[0-9]+)?(/[^ ?#]*)?)$');
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.task.data.days.preserve',10,NULL,NULL,NULL,NULL,0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.user.nickname.visible',1,NULL,NULL,NULL,NULL,0,'enum:0,1');
 /*!40000 ALTER TABLE `globalparameters` ENABLE KEYS */;
@@ -742,6 +807,7 @@ INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'UDFMetadataGeneral', NULL, NULL, 2, NULL, 50, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'UDFMetadataSubscription', NULL, NULL, 2, NULL, 50, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'UserAccessToken', NULL, NULL, 2, NULL, 5, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'UserPasskey', NULL, NULL, 2, NULL, 10, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNet', NULL, NULL, NULL, 8, 5, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetConfig', NULL, NULL, NULL, 8, 3, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetConfigEntity', NULL, NULL, NULL, 8, 10, NULL, 0, 0, 0);
@@ -753,6 +819,7 @@ INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'UDFMetadataGeneral', NULL, NULL, NULL, 8, 20, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'UDFMetadataSubscription', NULL, NULL, NULL, NULL, 20, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'UserAccessToken', NULL, NULL, NULL, NULL, 10, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'UserPasskey', NULL, NULL, NULL, NULL, 10, NULL, 0, 0, 0);
 
 -- g.gnet.my.entry.id points at the dumping machine's own GTNet entry, but gt_net is dumped
 -- structure-only. NULL - not a deleted row - is the fresh-install state: the key stays visible in

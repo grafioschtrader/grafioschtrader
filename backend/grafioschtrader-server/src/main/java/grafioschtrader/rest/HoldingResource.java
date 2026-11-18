@@ -29,8 +29,10 @@ import grafioschtrader.dto.PerformanceReportRequest;
 import grafioschtrader.report.pdf.PerformanceReportPdfService;
 import grafioschtrader.report.pdf.ReportContext;
 import grafioschtrader.reports.PerformanceReport;
+import grafioschtrader.reports.SecurityPeriodPerformanceReport;
 import grafioschtrader.reportviews.performance.FirstAndMissingTradingDays;
 import grafioschtrader.reportviews.performance.PerformancePeriod;
+import grafioschtrader.reportviews.performance.SecurityPeriodPerformance;
 import grafioschtrader.reportviews.performance.WeekYear;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,6 +53,9 @@ public class HoldingResource {
 
   @Autowired
   private PerformanceReportPdfService pdfService;
+
+  @Autowired
+  private SecurityPeriodPerformanceReport securityPeriodPerformanceReport;
 
   @Operation(summary = "Options for the delivered PDF report sections")
   @GetMapping(value = "/report/options", produces = APPLICATION_JSON_VALUE)
@@ -104,6 +109,24 @@ public class HoldingResource {
       return new ResponseEntity<>(performanceReport.getPeriodPerformanceByTenant(dateFrom, dateTo, periodSplit),
           HttpStatus.OK);
     }
+  }
+
+  @Operation(summary = "Period performance per security: absolute gain and time-weighted return of every security", description = """
+      Both dates must be valuation days of the client or portfolio, as for the period performance; the start date is
+      the excluded base. Without idPortfolio the whole client is calculated in the tenant currency.""", tags = {
+      RequestGTMappings.HOLDING })
+  @GetMapping(value = "/securityperformance/{dateFrom}/{dateTo}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SecurityPeriodPerformance> getSecurityPeriodPerformance(
+      @PathVariable() @DateTimeFormat(iso = ISO.DATE) final LocalDate dateFrom,
+      @PathVariable() @DateTimeFormat(iso = ISO.DATE) final LocalDate dateTo,
+      @RequestParam(required = false) final Integer idPortfolio) throws Exception {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final LocalDate today = ClientClock.today();
+    return new ResponseEntity<>(idPortfolio == null
+        ? securityPeriodPerformanceReport.getByTenant(user.getIdTenant(), user.getLocaleStr(), today, dateFrom, dateTo)
+        : securityPeriodPerformanceReport.getByPortfolio(user.getIdTenant(), user.getLocaleStr(), today, idPortfolio,
+            dateFrom, dateTo),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the missing qoutes for securties during the holding period", description = "", tags = {

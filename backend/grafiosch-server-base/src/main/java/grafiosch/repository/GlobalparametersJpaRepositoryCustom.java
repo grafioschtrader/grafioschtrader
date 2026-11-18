@@ -3,6 +3,7 @@ package grafiosch.repository;
 import java.util.List;
 
 import grafiosch.common.PropertyStringParser;
+import grafiosch.common.PublicBaseUrl;
 import grafiosch.dto.PasswordRegexProperties;
 import grafiosch.dto.TenantLimit;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
@@ -10,6 +11,8 @@ import grafiosch.entities.Globalparameters;
 import jakarta.persistence.EntityManager;
 
 public interface GlobalparametersJpaRepositoryCustom {
+
+  PublicBaseUrl getPublicBaseUrl();
 
   EntityManager getEntityManager();
 
@@ -147,8 +150,8 @@ public interface GlobalparametersJpaRepositoryCustom {
   boolean isGTNetLogEnabled();
 
   /**
-   * Checks whether users of this instance may see the nickname of other users. Uses GLOB_KEY_USER_NICKNAME_VISIBLE
-   * with the default fallback 0.
+   * Checks whether users of this instance may see the nickname of other users. Uses GLOB_KEY_USER_NICKNAME_VISIBLE with
+   * the default fallback 0.
    *
    * @return true if the nickname is visible to every user, false if only the user id is shown
    */

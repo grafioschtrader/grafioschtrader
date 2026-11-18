@@ -148,6 +148,96 @@ public interface HoldSecurityaccountSecurityJpaRepository
       FROM HoldSecurityaccountSecurity hss WHERE hss.idTenant = ?1""")
   LocalDate findByIdTenantMinFromHoldDate(Integer idTenant);
 
+  //@formatter:off
+  /**
+   * Values every held security of a tenant on every trading day of a period, one row per security and day, for the
+   * period performance per security.
+   *
+   * Named query: HoldSecurityaccountSecurity.getDailySecurityValuesByTenant
+   *
+   * The value expressions are those of {@link #getPeriodHoldingsByTenant}: a row without margin_average_price is worth
+   * holdings * split_price_factor * (close + historyquote_period.price), a margin row its open result
+   * holdings * split_price_factor * (close - margin_average_price / split_price_factor), both converted with the close
+   * of id_currency_pair_tenant (factor 1 without a pair). The rows of all security accounts are summed, so on every day
+   * the period performance values, the sum over all securities equals its securitiesMC plus marginCloseGainMC.
+   * Unlike that query no day is dropped; the flags tell the caller which security cannot be valued on which day.
+   *
+   * Columns of each Object[] in order:
+   * - idSecuritycurrency (Integer)
+   * - valuationDate (LocalDate), a day of trading_days_plus
+   * - unitsAsTraded (Double): sum of holdings of the non-margin rows, the units as traded in that span
+   * - valueSC (Double): value in security currency
+   * - valueMC (Double): value in tenant currency
+   * - negativeUnits (Number): 1 when a non-margin row has negative holdings
+   * - notValued (Number): 1 when a non-margin row has neither or both of close and period price, or a margin row has
+   *   no close
+   * - missingFx (Number): 1 when a row has a currency pair without a close on that day
+   * Ordered by security and date.
+   *
+   * @param idTenant the tenant
+   * @param dateFrom first day of the period, inclusive
+   * @param dateTo   last day of the period, inclusive
+   * @return one row per held security and trading day
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<Object[]> getDailySecurityValuesByTenant(Integer idTenant, LocalDate dateFrom, LocalDate dateTo);
+
+  //@formatter:off
+  /**
+   * Same as {@link #getDailySecurityValuesByTenant} for the holding rows of one portfolio, converted with the close of
+   * id_currency_pair_portfolio into the portfolio currency.
+   *
+   * Named query: HoldSecurityaccountSecurity.getDailySecurityValuesByPortfolio
+   *
+   * @param idTenant    the tenant, which must own the portfolio
+   * @param idPortfolio the portfolio
+   * @param dateFrom    first day of the period, inclusive
+   * @param dateTo      last day of the period, inclusive
+   * @return one row per held security and trading day
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<Object[]> getDailySecurityValuesByPortfolio(Integer idTenant, Integer idPortfolio, LocalDate dateFrom,
+      LocalDate dateTo);
+
+  //@formatter:off
+  /**
+   * Returns the spans of the holding rows with units of a tenant that overlap a period. They tell which securities
+   * belong to the period performance per security and on which calendar days each was held at the close.
+   *
+   * Named query: HoldSecurityaccountSecurity.getHoldingSpansByTenant
+   *
+   * Columns of each Object[] in order: id_securitycurrency (Integer), from_hold_date (LocalDate), to_hold_date
+   * (LocalDate, null while the row is open). A row overlaps when from_hold_date is not after dateTo and to_hold_date is
+   * null or not before dateFrom.
+   *
+   * @param idTenant the tenant
+   * @param dateFrom first day of the period, inclusive
+   * @param dateTo   last day of the period, inclusive
+   * @return the overlapping spans, unordered
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<Object[]> getHoldingSpansByTenant(Integer idTenant, LocalDate dateFrom, LocalDate dateTo);
+
+  //@formatter:off
+  /**
+   * Same as {@link #getHoldingSpansByTenant} for the holding rows of one portfolio.
+   *
+   * Named query: HoldSecurityaccountSecurity.getHoldingSpansByPortfolio
+   *
+   * @param idTenant    the tenant, which must own the portfolio
+   * @param idPortfolio the portfolio
+   * @param dateFrom    first day of the period, inclusive
+   * @param dateTo      last day of the period, inclusive
+   * @return the overlapping spans, unordered
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<Object[]> getHoldingSpansByPortfolio(Integer idTenant, Integer idPortfolio, LocalDate dateFrom,
+      LocalDate dateTo);
+
   @Query("""
       SELECT MIN(hss.hssk.fromHoldDate) AS firstTradingDate
       FROM HoldSecurityaccountSecurity hss WHERE hss.idPortfolio = ?1""")

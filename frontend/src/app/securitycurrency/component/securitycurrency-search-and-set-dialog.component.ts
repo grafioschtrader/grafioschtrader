@@ -15,6 +15,10 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
  * Required DynamicDialogConfig.data:
  * - supplementCriteria: SupplementCriteria
  * - callBackSetSecurityWithAfter: CallBackSetSecurityWithAfter
+ *
+ * Every opener passes `focusOnShow: false`. The dialog focuses the ISIN itself once its options have arrived; the
+ * Optimus default would focus the first input again after the show animation and redirect text the user is already
+ * typing into another criterion, for example the name, into the ISIN.
  */
 @Component({
   selector: 'securitycurrency-search-and-set',

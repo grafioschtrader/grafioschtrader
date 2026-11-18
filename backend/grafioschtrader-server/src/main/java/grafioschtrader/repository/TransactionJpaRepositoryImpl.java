@@ -710,7 +710,9 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   private Transaction saveSecurityTransaction(Transaction transaction, TransactionPreImage preImage,
       Securityaccount securityaccount, boolean adjustHoldings) {
-    if (transaction.getTransactionType() == TransactionType.DIVIDEND && transaction.isTaxableInterest() == null) {
+    if (transaction.isMarginInstrument()) {
+      transaction.setTaxableInterest(null);
+    } else if (transaction.getTransactionType() == TransactionType.DIVIDEND && transaction.isTaxableInterest() == null) {
       transaction.setTaxableInterest(false);
     }
     Transaction transactioinNew = saveTransactionAndCorrectCashaccountBalance(transaction, preImage, adjustHoldings,

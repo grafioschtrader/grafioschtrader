@@ -21,6 +21,8 @@ export const AppHelpIds: Record<string, string> = {
   HELP_PORTFOLIOS: 'reportportfolio',
   HELP_PORTFOLIOS_PORTFOLIOS: 'reportportfolio/portfolios',
   HELP_PORTFOLIOS_PERIODPERFORMANCE: 'reportportfolio/periodperformance',
+  /** Period performance per security, the tab beside the period performance. */
+  HELP_PORTFOLIOS_SECURITY_PERIODPERFORMANCE: 'reportportfolio/securityperiodperformance',
   HELP_PORTFOLIOS_SECURITY_ACCOUNT_REPORT: 'reportportfolio/securityaccountreport',
   HELP_PORTFOLIOS_SECURITY_CASH_ACCOUNT_REPORT: 'reportportfolio/securitycashaccountreport',
   HELP_PORTFOLIOS_DIVIDENDS: 'reportportfolio/dividends',

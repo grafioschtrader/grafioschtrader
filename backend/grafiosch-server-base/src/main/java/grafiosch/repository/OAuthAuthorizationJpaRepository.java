@@ -18,6 +18,9 @@ import jakarta.persistence.LockModeType;
  * {@code user_access_token}.
  */
 public interface OAuthAuthorizationJpaRepository extends JpaRepository<OAuthAuthorization, Integer> {
+  @Modifying
+  @Query("DELETE FROM OAuthAuthorization t WHERE t.idUser = ?1")
+  int deleteByIdUser(Integer idUser);
 
   List<OAuthAuthorization> findByIdUserOrderByCreatedAtDesc(Integer idUser);
 

@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import grafiosch.BaseConstants;
 import grafiosch.GlobalParamKeyBaseDefault;
 import grafiosch.common.PropertyStringParser;
+import grafiosch.common.PublicBaseUrl;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.config.BaseFeatureConfig;
 import grafiosch.dto.IPropertiesSelfCheck;
@@ -41,6 +42,12 @@ import jakarta.persistence.PersistenceContext;
  * internationalization support and admin-only modifications.
  */
 public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRepositoryCustom {
+  @Override
+  public PublicBaseUrl getPublicBaseUrl() {
+    return PublicBaseUrl
+        .parse(globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_PUBLIC_BASE_URL)
+            .map(Globalparameters::getPropertyString).orElse(null));
+  }
 
   final static public Map<String, Class<?>> propertiesClassMap = new HashMap<>();
   static {

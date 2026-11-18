@@ -2,6 +2,7 @@ package grafioschtrader.mcp;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import grafiosch.GlobalParamKeyBaseDefault;
 import grafiosch.entities.Globalparameters;
 import grafioschtrader.GlobalParamKeyDefault;
 import jakarta.persistence.EntityManagerFactory;
@@ -32,8 +33,7 @@ public final class McpTestSwitch {
     jdbcTemplate.update("UPDATE globalparameters SET property_int = ? WHERE property_name = ?", use,
         GlobalParamKeyDefault.GLOB_KEY_MCP_USE);
     jdbcTemplate.update("UPDATE globalparameters SET property_string = ? WHERE property_name = ?",
-        publicBaseUrl == null ? GlobalParamKeyDefault.MCP_PUBLIC_BASE_URL_NONE : publicBaseUrl,
-        GlobalParamKeyDefault.GLOB_KEY_MCP_PUBLIC_BASE_URL);
+        publicBaseUrl == null ? "none" : publicBaseUrl, GlobalParamKeyBaseDefault.GLOB_KEY_PUBLIC_BASE_URL);
     emf.getCache().evict(Globalparameters.class);
   }
 }

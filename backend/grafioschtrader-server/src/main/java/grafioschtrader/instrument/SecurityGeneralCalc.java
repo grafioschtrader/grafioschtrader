@@ -457,6 +457,10 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    */
   private void addFlowToCurrencyPosition(final Transaction transaction, final CalcTransactionPos ctp,
       final SecurityPositionSummary securityPositionSummary, final double flowSC) {
+    if (transaction.getTransactionType() != TransactionType.HYPOTHETICAL_SELL) {
+      // Kept for every currency: the period performance per security converts it with its own closing rates
+      securityPositionSummary.positionFlow += flowSC;
+    }
     if (!hasCurrencyExposure(transaction, ctp, securityPositionSummary)) {
       // Leave transactionFlowSC null: a flow that carries no currency exposure must not be given a per-transaction
       // share either, or the shares stop adding up to the position total.
@@ -671,6 +675,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     }
     securityPositionSummary.gainLossSecurity += securityPositionSummary.transactionGainLoss;
     securityPositionSummary.incomeGainLossSecurity += securityPositionSummary.transactionGainLoss;
+    securityPositionSummary.positionFlow -= securityPositionSummary.transactionGainLoss;
     if (exchangeRate != null && !transaction.getSecurity().getCurrency().equals(securityPositionSummary.mainCurrency)) {
       securityPositionSummary.transactionFlowSC = -securityPositionSummary.transactionGainLoss;
       securityPositionSummary.transactionGainLossMC = securityPositionSummary.transactionGainLoss * exchangeRate;

@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,8 +26,11 @@ import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.ProposeUserTask;
 import grafiosch.entities.User;
 import grafiosch.entities.User.AdminModify;
+import grafiosch.entities.projection.SuccessfullyChanged;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.ProposeUserTaskJpaRepository;
 import grafiosch.repository.UserJpaRepository;
+import grafiosch.service.CredentialChangeService;
 import grafiosch.service.MailExternalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,6 +52,9 @@ public class UserAdminResource extends UpdateCreateResource<User> {
 
   @Autowired
   private MailExternalService mailExternalService;
+
+  @Autowired
+  private CredentialChangeService credentialChangeService;
 
   @Operation(summary = "Get all users with limited proposal information", description = """
       Returns a list of all users. For each user, it also connects information about their proposals,
@@ -74,6 +82,22 @@ public class UserAdminResource extends UpdateCreateResource<User> {
       @Parameter(description = "Id of user who gets the entities", required = true) @PathVariable Integer toIdUser)
       throws SQLException {
     return new ResponseEntity<>(userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Remove the second factor of another user", description = """
+      Deletes the authenticator app and the recovery codes of a user who lost both. The user's sessions end and the user
+      receives a notice; passkeys stay. Refused for the own account, which is managed in the sign-in security dialog.""",
+      tags = { RequestMappings.USERADMIN })
+  @DeleteMapping(value = "{idUser}/secondfactor", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SuccessfullyChanged> removeSecondFactor(
+      @Parameter(description = "Id of the user who lost the second factor", required = true) @PathVariable Integer idUser) {
+    User admin = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    if (admin.getIdUser().equals(idUser)) {
+      throw new GeneralNotTranslatedWithArgumentsException("secondfactor.admin.own", null);
+    }
+    credentialChangeService.removeSecondFactorByAdmin(idUser);
+    return ResponseEntity.ok(new SuccessfullyChanged(true,
+        messages.getMessage("secondfactor.removed.admin", null, admin.createAndGetJavaLocale())));
   }
 
   @Operation(summary = "Get user ID and nickname, excluding the current user", description = """

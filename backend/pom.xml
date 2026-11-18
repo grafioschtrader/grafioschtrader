@@ -8,7 +8,7 @@
   <groupId>grafioschtrader</groupId>
   <artifactId>grafioschtrader</artifactId>
   <packaging>pom</packaging>
-  <version>0.40.0</version>
+  <version>0.40.1</version>
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -96,6 +96,12 @@
   <!-- define the common properties used throughout the modules - allows us to keep things consistent -->
   <properties>
     <pdfbox.version>3.0.8</pdfbox.version>
+    <!-- One version for zxing core (QR code of the TOTP setup, grafiosch-server-base) and javase
+         (barcodes, grafioschtrader-server) -->
+    <zxing.version>3.5.4</zxing.version>
+    <!-- Software authenticator of the passkey tests; keep it at the webauthn4j-core release that
+         spring-security-webauthn brings in -->
+    <webauthn4j.version>0.31.10.RELEASE</webauthn4j.version>
     <spring-ai.version>2.0.1</spring-ai.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

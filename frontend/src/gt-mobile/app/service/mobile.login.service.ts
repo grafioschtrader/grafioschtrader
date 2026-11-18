@@ -28,8 +28,19 @@ export class MobileLoginService extends BaseAuthService<unknown> {
   private readonly translateService = inject(TranslateService);
   private readonly formatService = inject(MobileFormatService);
 
-  login(email: string, password: string): Observable<HttpResponse<ConfigurationWithLoginGT>> {
-    const loginRequest = { email, password, timezoneOffset: new Date().getTimezoneOffset() };
+  /**
+   * Signs in with e-mail and password.
+   *
+   * @param email - E-mail address of the account
+   * @param password - Password of the account
+   * @param secondFactorCode - Code of the authenticator app or a recovery code, for an account with a second factor
+   */
+  login(
+    email: string,
+    password: string,
+    secondFactorCode?: string
+  ): Observable<HttpResponse<ConfigurationWithLoginGT>> {
+    const loginRequest = { email, password, timezoneOffset: new Date().getTimezoneOffset(), secondFactorCode };
     const headers = new HttpHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' });
     return this.httpClient
       .post<ConfigurationWithLoginGT>('/api/login', loginRequest, {
