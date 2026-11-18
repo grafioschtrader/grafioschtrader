@@ -61,6 +61,18 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   void moveUpdateSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget, Integer idSecuritycurrency);
 
   /**
+   * Adds an instrument to a watchlist by inserting its row into the join table directly, so the target watchlist and
+   * its lazy instrument collection need not be loaded. The caller must have checked tenant ownership, the entity
+   * limits and that the instrument is not yet in the target watchlist, otherwise the primary key is violated.
+   *
+   * @param idWatchlistTarget  watchlist that receives the instrument
+   * @param idSecuritycurrency security or currency pair to add
+   */
+  @UpdateQuery(value = "INSERT INTO watchlist_sec_cur (id_watchlist, id_securitycurrency) VALUES (?1, ?2)",
+      nativeQuery = true)
+  void copyInsertSecuritycurrency(Integer idWatchlistTarget, Integer idSecuritycurrency);
+
+  /**
    * Atomically updates the last_timestamp for a watchlist only if it is null or older than the given threshold. Returns
    * the number of affected rows (0 or 1). Used to avoid race conditions when multiple concurrent requests check whether
    * an intraday price update is needed — only the first request succeeds and triggers the update.

@@ -86,7 +86,7 @@ return `AdditionalExportQuery` rows; `TenantBaseImpl` collects every addon bean.
 
 **Omitting a table is a decision, not an oversight — write it down.** Every table that is in neither
 array is listed with its reason in `ExportDefinitionCoverageTest.OMITTED_TABLES` (or matched by
-`OMITTED_PREFIXES`: `hold_`, `mail_`) in `grafioschtrader-server/src/test/java/grafioschtrader/exportdelete/`.
+`OMITTED_PREFIXES`, currently only `hold_`) in `grafioschtrader-server/src/test/java/grafioschtrader/exportdelete/`.
 That test also fails for a non-cascading foreign key to `user` / `tenant` that nothing resolves — the
 case in which the account deletion aborts — and when an array or the omission list names a table the
 schema does not have. How such a key is resolved depends on its column:

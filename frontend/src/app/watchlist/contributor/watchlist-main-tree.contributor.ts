@@ -216,18 +216,26 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
   }
 
   /**
-   * Moves the dragged instrument into the target watchlist.
+   * Moves the dragged instrument into the target watchlist, or copies it there when the user held the copy modifier.
    *
    * The backend decides whether the move is possible and reports it in the response, so no existence check is done
    * here. Dropping onto the source watchlist is answered without any request at all. Only the data change event is
    * fired afterwards; it already refreshes the tree through refreshNodesForDataChange, so an additional full tree
    * refresh would only repeat those requests and needlessly consume the REST rate limit.
    */
-  override handleDrop(targetNode: TreeNode, dragData: string, sourceLabel?: string): void {
+  override handleDrop(targetNode: TreeNode, dragData: string, sourceLabel?: string, copy = false): void {
     try {
       const wse: WatchlistSecurityExists = JSON.parse(dragData);
       if (wse.idWatchlistSource === targetNode.data.id) {
-        this.showMoveFailed(targetNode.label);
+        if (copy) {
+          this.showCopyFailed(targetNode.label);
+        } else {
+          this.showMoveFailed(targetNode.label);
+        }
+        return;
+      }
+      if (copy) {
+        this.copyToWatchlist(wse, targetNode, sourceLabel);
         return;
       }
       this.watchlistService
@@ -283,6 +291,36 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
    */
   private showMoveFailed(targetLabel: string | undefined): void {
     this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MOVE_SECURITY_WATCHLIST_FAILED', {
+      to: targetLabel
+    });
+  }
+
+  /**
+   * Copies the dragged instrument into the target watchlist; it remains in the source watchlist. No data change event
+   * is fired: the displayed source watchlist is unchanged, and the target watchlist reads its content when it is opened.
+   *
+   * @param wse - Drag payload with the source watchlist and the instrument
+   * @param targetNode - Tree node of the target watchlist
+   * @param sourceLabel - Name of the source watchlist for the success message
+   * @private
+   */
+  private copyToWatchlist(wse: WatchlistSecurityExists, targetNode: TreeNode, sourceLabel?: string): void {
+    this.watchlistService
+      .copySecuritycurrency(wse.idWatchlistSource, targetNode.data.id, wse.idSecuritycurrency)
+      .subscribe((status) => {
+        if (status === WatchlistMoveStatus.COPIED) {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'COPY_SECURITY_WATCHLIST', {
+            from: sourceLabel,
+            to: targetNode.label
+          });
+        } else {
+          this.showCopyFailed(targetNode.label);
+        }
+      });
+  }
+
+  private showCopyFailed(targetLabel: string | undefined): void {
+    this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'COPY_SECURITY_WATCHLIST_FAILED', {
       to: targetLabel
     });
   }

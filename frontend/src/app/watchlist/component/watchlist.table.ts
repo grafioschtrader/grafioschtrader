@@ -1058,7 +1058,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   }
 
   /**
-   * Initiates drag operation with watchlist security data transfer.
+   * Initiates drag operation with watchlist security data transfer. Both move and copy are allowed, so the browser
+   * shows the copy cursor while the platform's copy modifier is held (Ctrl, on macOS Option).
    *
    * @param {DragEvent} event - Drag start event containing data transfer object
    * @param {SecuritycurrencyPosition<Security | Currencypair>} data - Position data being dragged for drop operations
@@ -1070,7 +1071,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     if (idWatchlist == null || idSecuritycurrency == null || !transfer) return;
     this.changeDetectionStrategy.detach();
     const dragPayload = JSON.stringify(new WatchlistSecurityExists(idWatchlist, idSecuritycurrency));
-    transfer.effectAllowed = 'move';
+    transfer.effectAllowed = 'copyMove';
     transfer.setData('text/plain', dragPayload);
   }
 

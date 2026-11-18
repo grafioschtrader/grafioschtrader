@@ -156,6 +156,16 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         .body(watchlistJpaRepository.moveSecuritycurrency(idWatchlistSource, idWatchlistTarget, idSecuritycurrency));
   }
 
+  @Operation(summary = "Copies a single security or currency pair from one watchlist to another", description = "The "
+      + "instrument stays in the source watchlist. The returned status reports whether the instrument was copied or "
+      + "why nothing was changed", tags = { Watchlist.TABNAME })
+  @PutMapping(value = "{idWatchlistSource}/copyto/{idWatchlistTarget}/securitycurrency/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<WatchlistMoveStatus> copySecuritycurrency(@PathVariable final Integer idWatchlistSource,
+      @PathVariable final Integer idWatchlistTarget, @PathVariable final Integer idSecuritycurrency) {
+    return ResponseEntity.ok()
+        .body(watchlistJpaRepository.copySecuritycurrency(idWatchlistSource, idWatchlistTarget, idSecuritycurrency));
+  }
+
   @Operation(summary = "Remove a currency pair from specified security and deletet it", description = "It can only deleted if the security is not referenced", tags = {
       Watchlist.TABNAME })
   @DeleteMapping(value = "{idWatchlist}/removeDeleteSecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)

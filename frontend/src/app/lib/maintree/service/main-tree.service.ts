@@ -270,12 +270,13 @@ export class MainTreeService {
 
   /**
    * Delegates a drop operation to the appropriate contributor.
-   * This is called when an item is dropped on a tree node.
+   * This is called when an item is dropped on a tree node. The copy flag tells the contributor whether the dragged item
+   * is copied or moved.
    */
-  handleDrop(targetNode: TreeNode, dragData: string, sourceLabel?: string): void {
+  handleDrop(targetNode: TreeNode, dragData: string, sourceLabel?: string, copy = false): void {
     for (const contributor of this.contributors) {
       if (contributor.canDrop?.(targetNode, dragData)) {
-        contributor.handleDrop?.(targetNode, dragData, sourceLabel);
+        contributor.handleDrop?.(targetNode, dragData, sourceLabel, copy);
         break;
       }
     }

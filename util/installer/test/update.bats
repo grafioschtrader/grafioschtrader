@@ -82,6 +82,15 @@ teardown() {
   assert_no_staging
 }
 
+@test "frontend update keeps the .htaccess that routes Angular deep links of a manual Apache setup" {
+  printf 'FallbackResource /grafioschtrader/index.html\n' >"$docroot/grafioschtrader/.htaccess"
+  run bash "$HOME/gtupfrontend.sh"
+  [ "$status" -eq 0 ]
+  [ "$(cat "$docroot/grafioschtrader/.htaccess")" = 'FallbackResource /grafioschtrader/index.html' ]
+  [ ! -e "$docroot/grafioschtrader/.old-asset" ]
+  assert_no_staging
+}
+
 @test "frontend is created when its target directory is absent" {
   rm -rf "$docroot/grafioschtrader"
   run bash "$HOME/gtupfrontend.sh"

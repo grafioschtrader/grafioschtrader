@@ -148,6 +148,21 @@ public interface WatchlistJpaRepositoryCustom extends BaseRepositoryCustom<Watch
       Integer idSecuritycurrency);
 
   /**
+   * Copies a specific security or currency pair from a source watchlist to a target watchlist, the instrument stays in
+   * the source watchlist. The preconditions are those of {@link #moveSecuritycurrency(Integer, Integer, Integer)};
+   * in addition the target watchlist and the tenant's watchlists as a whole must have room for one more instrument.
+   *
+   * @param idWatchlistSource  The ID of the source watchlist that contains the instrument.
+   * @param idWatchlistTarget  The ID of the target watchlist to which the instrument will be added.
+   * @param idSecuritycurrency The ID of the security or currencypair to copy.
+   * @return {@link WatchlistMoveStatus#COPIED} when the instrument was copied, otherwise the reason why nothing was
+   *         changed.
+   * @throws SecurityException if either watchlist belongs to another tenant or an instrument limit would be exceeded.
+   */
+  WatchlistMoveStatus copySecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget,
+      Integer idSecuritycurrency);
+
+  /**
    * Retrieves the raw response string from the configured data provider for an instrument's price data. This method is
    * used when the frontend needs to display data directly from the provider, especially in cases where API keys are
    * involved and handled by the backend.

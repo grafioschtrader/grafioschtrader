@@ -248,6 +248,30 @@ export class WatchlistService
       .pipe(catchError(this.handleError.bind(this)));
   }
 
+  /**
+   * Copies a single instrument from one watchlist to another; it remains in the source watchlist. Like
+   * {@link moveSecuritycurrency}, the returned status reports why nothing was changed, so no existence check is needed.
+   *
+   * @param idWatchlistSource - Watchlist the instrument belongs to
+   * @param idWatchlistTarget - Watchlist that should receive a copy of the instrument
+   * @param idSecuritycurrency - Security or currency pair to copy
+   * @returns Observable of the copy outcome
+   */
+  copySecuritycurrency(
+    idWatchlistSource: number,
+    idWatchlistTarget: number,
+    idSecuritycurrency: number
+  ): Observable<WatchlistMoveStatus> {
+    return this.httpClient
+      .put<WatchlistMoveStatus>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlistSource}/copyto/` +
+          `${idWatchlistTarget}/securitycurrency/${idSecuritycurrency}`,
+        null,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   removeMultipleFromWatchlist(idWatchlist: number, idsSecuritycurrencies: number[]) {
     let httpParams = new HttpParams();
     httpParams = httpParams.append('idsSecuritycurrencies', idsSecuritycurrencies.join(','));

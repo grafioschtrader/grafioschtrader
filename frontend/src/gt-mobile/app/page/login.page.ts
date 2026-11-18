@@ -1,4 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { HttpResponse } from '@angular/common/http';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
   IonButton,
@@ -12,9 +14,15 @@ import {
   IonToolbar
 } from '@ionic/angular';
 import { TranslatePipe } from '@ngx-translate/core';
+import { catchError, EMPTY, finalize, from, of, switchMap } from 'rxjs';
 import { MOBILE_HOME } from '../mobile.routes';
 import { MobileLoginService } from '../service/mobile.login.service';
 import { TransformedError } from '../../../app/lib/login/service/transformed.error';
+import { InfoLevelType } from '../../../app/lib/message/info.leve.type';
+import { MessageToastService } from '../../../app/lib/message/message.toast.service';
+import { PasskeyBrowser } from '../../../app/lib/signinsecurity/service/passkey-browser';
+import type { LoginMethods } from '../../../app/lib/signinsecurity/model/sign-in-security';
+import type { ConfigurationWithLoginGT } from '../../../app/shared/login/configuration-with-login-gt';
 
 /** Value of an Ionic input event. */
 interface InputValueEvent {
@@ -28,6 +36,10 @@ interface InputValueEvent {
  * For an account with a second factor the server answers the first attempt with SecondFactorRequiredError. The page
  * then keeps e-mail and password, shows a code input and repeats the request with the code. The kept values are
  * discarded on success, on cancel and when the e-mail is edited; a sign-in without second factor stays one step.
+ *
+ * Where the server offers passkeys for the origin of this page and the browser supports them, a second button signs in
+ * with a passkey: no e-mail address is typed, the browser offers the passkeys of this site, and no second factor is
+ * asked. Registering and managing passkeys stays in the desktop view.
  */
 @Component({
   selector: 'mobile-login-page',
@@ -101,6 +113,10 @@ interface InputValueEvent {
           <ion-button type="button" expand="block" fill="clear" (click)="discardSecondFactor()">
             {{ 'CANCEL' | translate }}
           </ion-button>
+        } @else if (passkeyAvailable()) {
+          <ion-button type="button" expand="block" fill="outline" [disabled]="busy()" (click)="signInWithPasskey()">
+            {{ 'SIGN_IN_WITH_PASSKEY' | translate }}
+          </ion-button>
         }
       </form>
       <p class="widget-note ion-text-center ion-margin-top">
@@ -111,14 +127,29 @@ interface InputValueEvent {
 })
 export class LoginPage {
   private readonly loginService = inject(MobileLoginService);
+  private readonly messageToastService = inject(MessageToastService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
+  /** Whether the server offers passkeys for this page and the browser supports them. */
+  protected readonly passkeyAvailable = signal(false);
   protected readonly email = signal('');
   protected readonly password = signal('');
   protected readonly busy = signal(false);
   /** Set after the server asked for the code of the second factor; e-mail and password are kept meanwhile. */
   protected readonly secondFactorRequired = signal(false);
   protected readonly secondFactorCode = signal('');
+
+  constructor() {
+    this.loginService
+      .getLoginMethods()
+      // A failure leaves the password sign-in alone
+      .pipe(
+        catchError(() => of<LoginMethods>({ passkeyOrigins: [] })),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((methods) => this.passkeyAvailable.set(PasskeyBrowser.isAvailable(methods.passkeyOrigins)));
+  }
 
   protected valueOf(event: InputValueEvent): string {
     return event.detail.value ?? '';
@@ -147,12 +178,7 @@ export class LoginPage {
     this.busy.set(true);
     this.loginService.login(this.email(), this.password(), code || undefined).subscribe({
       next: (response) => {
-        const token = response.headers.get('x-auth-token');
-        if (token && response.body) {
-          this.loginService.afterSuccessfulLogin(token, response.body);
-          this.discardSecondFactor();
-          this.router.navigate([MOBILE_HOME], { replaceUrl: true });
-        }
+        this.completeSignIn(response);
         this.busy.set(false);
       },
       error: (error: TransformedError) => {
@@ -166,5 +192,51 @@ export class LoginPage {
         this.busy.set(false);
       }
     });
+  }
+
+  /**
+   * Signs in with a passkey: options of the server, the browser dialog, then the verification. A cancelled browser
+   * dialog ends quietly; server errors are reported by the service through the toast of the shell.
+   */
+  protected signInWithPasskey(): void {
+    if (this.busy()) {
+      return;
+    }
+    this.busy.set(true);
+    this.loginService
+      .passkeySignInOptions()
+      .pipe(
+        switchMap((options) =>
+          from(PasskeyBrowser.get(options.publicKey)).pipe(
+            switchMap((credential) =>
+              credential ? this.loginService.passkeySignIn(options.challengeId, credential) : EMPTY
+            )
+          )
+        ),
+        finalize(() => this.busy.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (response) => this.completeSignIn(response),
+        error: (error: unknown) => {
+          if (error instanceof DOMException) {
+            this.messageToastService.showMessage(InfoLevelType.ERROR, error.message);
+          }
+        }
+      });
+  }
+
+  /**
+   * Stores the session of a successful sign-in and opens the home page. Shared by the password and the passkey sign-in.
+   *
+   * @param response - Answer of the sign-in with the token header and the configuration body
+   */
+  private completeSignIn(response: HttpResponse<ConfigurationWithLoginGT>): void {
+    const token = response.headers.get('x-auth-token');
+    if (token && response.body) {
+      this.loginService.afterSuccessfulLogin(token, response.body);
+      this.discardSecondFactor();
+      this.router.navigate([MOBILE_HOME], { replaceUrl: true });
+    }
   }
 }

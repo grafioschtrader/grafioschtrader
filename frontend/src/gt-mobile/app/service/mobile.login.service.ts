@@ -7,6 +7,11 @@ import { catchError } from 'rxjs/operators';
 import { GlobalSessionNames } from '../../../app/lib/global.session.names';
 import { SKIP_AUTH_HEADERS } from '../../../app/lib/login/service/auth.http.interceptor';
 import { BaseAuthService } from '../../../app/lib/login/service/base.auth.service';
+import type {
+  LoginMethods,
+  PasskeyCredentialJSON,
+  PasskeyOptions
+} from '../../../app/lib/signinsecurity/model/sign-in-security';
 import { ConfigurationWithLoginGT } from '../../../app/shared/login/configuration-with-login-gt';
 import { MobileFormatService } from './mobile.format.service';
 
@@ -48,6 +53,42 @@ export class MobileLoginService extends BaseAuthService<unknown> {
         observe: 'response',
         context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
       })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /** The sign-in methods the instance offers besides e-mail and password. */
+  getLoginMethods(): Observable<LoginMethods> {
+    return this.httpClient
+      .get<LoginMethods>('/api/login/methods', { context: new HttpContext().set(SKIP_AUTH_HEADERS, true) })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /** Starts a passkey sign-in; the options carry no e-mail address, the browser offers the passkeys of this site. */
+  passkeySignInOptions(): Observable<PasskeyOptions<PublicKeyCredentialRequestOptionsJSON>> {
+    return this.httpClient
+      .post<PasskeyOptions<PublicKeyCredentialRequestOptionsJSON>>('/api/login/passkey/options', null, {
+        context: new HttpContext().set(SKIP_AUTH_HEADERS, true)
+      })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Completes a passkey sign-in. The answer is the same as the one of the password sign-in, and no second factor is
+   * asked: the passkey demands user verification on the device.
+   *
+   * @param challengeId - Id of the challenge the options carried
+   * @param credential - The assertion of the browser as JSON
+   */
+  passkeySignIn(
+    challengeId: string,
+    credential: PasskeyCredentialJSON
+  ): Observable<HttpResponse<ConfigurationWithLoginGT>> {
+    return this.httpClient
+      .post<ConfigurationWithLoginGT>(
+        '/api/login/passkey',
+        { challengeId, credential, timezoneOffset: new Date().getTimezoneOffset() },
+        { observe: 'response', context: new HttpContext().set(SKIP_AUTH_HEADERS, true) }
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 

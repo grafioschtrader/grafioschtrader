@@ -1,7 +1,7 @@
 package grafioschtrader.types;
 
 /**
- * Outcome of moving a single instrument from one watchlist to another.
+ * Outcome of moving or copying a single instrument from one watchlist to another.
  *
  * The status exists so the client does not have to pre-check whether the target watchlist already contains the
  * instrument. Without it the client would need an additional request per drag-and-drop operation, which quickly
@@ -11,6 +11,9 @@ public enum WatchlistMoveStatus {
 
   /** The instrument was moved from the source to the target watchlist. */
   MOVED,
+
+  /** The instrument was added to the target watchlist and remains in the source watchlist. */
+  COPIED,
 
   /**
    * Nothing was changed because the target watchlist already contains the instrument. An instrument may exist only once

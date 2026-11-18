@@ -11,6 +11,11 @@ const COLOR_LIMIT_PERCENTAGE = 3;
 const LOSS_COLOR = '#b3261e';
 const NEUTRAL_COLOR = '#5f6368';
 const GAIN_COLOR = '#1e8e3e';
+/**
+ * Narrower header band and borders than Plotly's default, so a group with a small capitalisation, such as a single
+ * foreign stock beside large domestic ones, keeps enough room to show the label of its stock without zooming.
+ */
+const GROUP_PADDING = { t: 18, l: 2, r: 2, b: 2 };
 
 /**
  * Maps the market map built by the backend to a Plotly treemap trace. It only maps and formats; every value comes from
@@ -63,7 +68,8 @@ export class WatchlistTreemapChart {
           cmid: 0,
           cmax: COLOR_LIMIT_PERCENTAGE,
           showscale: true,
-          colorbar: { ticksuffix: ' %', thickness: 12 }
+          colorbar: { ticksuffix: ' %', thickness: 12 },
+          pad: GROUP_PADDING
         },
         customdata: nodes.map((n) => this.getCustomData(n, treemap.mainCurrency)),
         texttemplate: '%{label}<br>%{customdata[1]}',

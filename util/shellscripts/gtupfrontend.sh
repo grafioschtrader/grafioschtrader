@@ -104,6 +104,8 @@ chmod -R u+rwX,go+rX,go-w -- "$output"
 replacing=1
 for entry in "$target/"*; do
   [[ "$entry" == "$stage" ]] && continue
+  # A manually set up Apache may route Angular deep links through an .htaccess; it is no build output and must survive.
+  [[ "$(basename "$entry")" == .htaccess ]] && continue
   mv -- "$entry" "$stage/previous/"
 done
 for entry in "$output/"*; do

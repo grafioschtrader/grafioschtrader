@@ -271,12 +271,50 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   public WatchlistMoveStatus moveSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget,
       Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final WatchlistMoveStatus rejected = checkTransferPreconditions(user, idWatchlistSource, idWatchlistTarget,
+        idSecuritycurrency);
+    if (rejected != null) {
+      return rejected;
+    }
+    watchlistJpaRepository.moveUpdateSecuritycurrency(idWatchlistSource, idWatchlistTarget, idSecuritycurrency);
+    return WatchlistMoveStatus.MOVED;
+  }
 
+  @Override
+  public WatchlistMoveStatus copySecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget,
+      Integer idSecuritycurrency) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final WatchlistMoveStatus rejected = checkTransferPreconditions(user, idWatchlistSource, idWatchlistTarget,
+        idSecuritycurrency);
+    if (rejected != null) {
+      return rejected;
+    }
+    // Unlike a move, a copy adds a position, so the same two caps apply as when instruments are added.
+    if (!entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_WATCHLIST_LENGTH, idWatchlistTarget, 1)
+        || !entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_SECURITIES_CURRENCIES, null, 1)) {
+      throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
+    }
+    watchlistJpaRepository.copyInsertSecuritycurrency(idWatchlistTarget, idSecuritycurrency);
+    return WatchlistMoveStatus.COPIED;
+  }
+
+  /**
+   * Checks what a move and a copy have in common: both watchlists belong to the tenant of the user, the instrument is
+   * in the source watchlist and not yet in the target watchlist, since an instrument may occur only once per watchlist.
+   *
+   * @param user               the acting user
+   * @param idWatchlistSource  watchlist the instrument is taken from
+   * @param idWatchlistTarget  watchlist the instrument goes to
+   * @param idSecuritycurrency security or currency pair to transfer
+   * @return {@code null} when the transfer may proceed, otherwise the status that explains why nothing is changed
+   * @throws SecurityException when one of the watchlists belongs to another tenant
+   */
+  private WatchlistMoveStatus checkTransferPreconditions(User user, Integer idWatchlistSource,
+      Integer idWatchlistTarget, Integer idSecuritycurrency) {
     if (watchlistJpaRepository.getWatchlistByTenantAndWatchlistIds(user.getIdTenant(),
         new Integer[] { idWatchlistSource, idWatchlistTarget }) != 2) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
-    // An instrument may exist only once per watchlist, therefore both watchlists must be checked before the update.
     final List<Integer> watchlistsWithInstrument = watchlistJpaRepository
         .getAllWatchlistsWithSecurityByIdSecuritycurrency(user.getIdTenant(), idSecuritycurrency);
     if (watchlistsWithInstrument.contains(idWatchlistTarget)) {
@@ -285,8 +323,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     if (!watchlistsWithInstrument.contains(idWatchlistSource)) {
       return WatchlistMoveStatus.NOT_IN_SOURCE;
     }
-    watchlistJpaRepository.moveUpdateSecuritycurrency(idWatchlistSource, idWatchlistTarget, idSecuritycurrency);
-    return WatchlistMoveStatus.MOVED;
+    return null;
   }
 
   @Override

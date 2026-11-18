@@ -169,8 +169,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     if (canDrop) {
       event.preventDefault();
       event.stopPropagation();
-      transfer.dropEffect = 'move';
-    } else {
+      transfer.dropEffect = this.isCopyRequested(event, transfer) ? 'copy' : 'move';
     }
   }
 
@@ -181,7 +180,22 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     if (!transfer) return;
     const dragData = transfer.getData('text/plain');
     const sourceLabel = this.selectedNode?.label;
-    this.mainTreeService.handleDrop(treeNode, dragData, sourceLabel);
+    this.mainTreeService.handleDrop(treeNode, dragData, sourceLabel, this.isCopyRequested(event, transfer));
+  }
+
+  /**
+   * Decides whether a drag copies instead of moves. As in the file managers of the operating systems, Ctrl (Windows,
+   * Linux) or Option (macOS, reported as altKey) requests a copy. It applies only when the drag source allows copying
+   * through effectAllowed. The modifiers are read on every dragover and on the drop itself, so a key pressed or
+   * released while dragging is honoured.
+   *
+   * @param event - The dragover or drop event carrying the modifier keys
+   * @param transfer - Its data transfer object with the effects the drag source allows
+   * @returns true when the dropped item should be copied
+   */
+  private isCopyRequested(event: DragEvent, transfer: DataTransfer): boolean {
+    const allowsCopy = ['copy', 'copyMove', 'copyLink', 'all'].includes(transfer.effectAllowed);
+    return allowsCopy && (event.ctrlKey || event.altKey);
   }
 
   private nodeSelect(node: TreeNode<TypeNodeData>) {

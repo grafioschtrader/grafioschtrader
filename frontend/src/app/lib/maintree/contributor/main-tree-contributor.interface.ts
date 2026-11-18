@@ -111,8 +111,10 @@ export abstract class MainTreeContributor {
    * @param targetNode The tree node where the drop occurred
    * @param dataTransfer The data transfer object containing the dropped data
    * @param sourceLabel Optional label of the source node (for messaging)
+   * @param copy true when the user held the copy modifier (Ctrl, on macOS Option) and the drag source allows copying;
+   *   the item then stays where it was dragged from
    */
-  handleDrop?(targetNode: TreeNode, dragData: string, sourceLabel?: string): void {
+  handleDrop?(targetNode: TreeNode, dragData: string, sourceLabel?: string, copy?: boolean): void {
     // Default implementation does nothing
   }
 
