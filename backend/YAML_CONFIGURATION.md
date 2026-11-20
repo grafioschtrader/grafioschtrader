@@ -35,4 +35,4 @@ Exit status: `0` = all checked documents valid, `1` = invalid configurations fou
 
 ## Focused verification
 
-`frontend/e2e/210-yaml-validation.spec.ts` verifies REST rejection and the fee editor/preview against the test database. It creates only its own named records and cleans them at the beginning and end. Run with `--project=grafioschtrader-e2e --no-deps`; `E2E_BACKEND_URL` and `E2E_FRONTEND_URL` may select isolated test ports. Never point it at production.
+`frontend/e2e/420-yaml-validation.spec.ts` verifies REST rejection and the fee editor/preview against the test database. It creates only its own named records and cleans them at the beginning and end. Run with `--project=grafioschtrader-e2e --no-deps`; `E2E_BACKEND_URL` and `E2E_FRONTEND_URL` may select isolated test ports. Never point it at production.

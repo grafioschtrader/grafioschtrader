@@ -109,3 +109,113 @@ export function holdingSteps(
   }
   return steps;
 }
+
+/** The kinds of transaction the position chart marks, each with its own trace, symbol and letter. */
+export type PositionEventKind = 'PURCHASE' | 'SALE' | 'TRANSFER' | 'INCOME' | 'FINANCE_COST';
+
+/** The fields of a position event the markers read. */
+export interface PositionEventInput {
+  date: string;
+  transactionType: string;
+  units: number | null;
+  amountSC: number;
+  transfer: boolean;
+}
+
+/** Translated texts of the markers and the formatting of one event for the hover. */
+export interface PositionEventLabels {
+  names: Record<PositionEventKind, string>;
+  letters: Record<PositionEventKind, string>;
+  /** One hover line of an event, for example units and amount formatted by GT's data types. */
+  describe: (event: PositionEventInput) => string;
+}
+
+/** A marker trace of the position chart; it lies on its own hidden axis at the bottom of the plot. */
+export interface PositionEventTrace {
+  x: string[];
+  y: number[];
+  text: string[];
+  hovertext: string[];
+  name: string;
+  type: 'scatter';
+  mode: 'markers+text';
+  textposition: 'top center';
+  hoverinfo: 'text';
+  yaxis: 'y2';
+  marker: { symbol: string; size: number };
+}
+
+const EVENT_KIND_ORDER: PositionEventKind[] = ['PURCHASE', 'SALE', 'TRANSFER', 'INCOME', 'FINANCE_COST'];
+
+const EVENT_KIND_SYMBOL: Record<PositionEventKind, string> = {
+  PURCHASE: 'triangle-up',
+  SALE: 'triangle-down',
+  TRANSFER: 'diamond',
+  INCOME: 'circle',
+  FINANCE_COST: 'square'
+};
+
+/** Height of the markers on their hidden axis, whose range is 0 to 1. */
+export const POSITION_EVENT_Y = 0.03;
+
+/**
+ * The kind of marker of a transaction: a leg of a security transfer is a transfer whatever its type.
+ *
+ * @param event - The event of the position
+ * @returns the marker kind
+ */
+export function positionEventKind(event: PositionEventInput): PositionEventKind {
+  if (event.transfer && (event.transactionType === 'ACCUMULATE' || event.transactionType === 'REDUCE')) {
+    return 'TRANSFER';
+  }
+  switch (event.transactionType) {
+    case 'ACCUMULATE':
+      return 'PURCHASE';
+    case 'REDUCE':
+      return 'SALE';
+    case 'FINANCE_COST':
+      return 'FINANCE_COST';
+    default:
+      return 'INCOME';
+  }
+}
+
+/**
+ * One marker trace per kind of transaction present, with one marker per day: several events of a kind on one day
+ * share the marker, and the hover lists each of them. Each trace can be hidden in the legend.
+ *
+ * @param events - The events of the phase in any order
+ * @param labels - Names, letters and the hover line of an event
+ * @returns the traces in the order purchase, sale, transfer, income, finance cost
+ */
+export function positionEventTraces(events: PositionEventInput[], labels: PositionEventLabels): PositionEventTrace[] {
+  const byKind = new Map<PositionEventKind, Map<string, string[]>>();
+  for (const event of events) {
+    const kind = positionEventKind(event);
+    const days = byKind.get(kind) ?? new Map<string, string[]>();
+    byKind.set(kind, days);
+    days.set(event.date, [...(days.get(event.date) ?? []), labels.describe(event)]);
+  }
+  const traces: PositionEventTrace[] = [];
+  for (const kind of EVENT_KIND_ORDER) {
+    const days = byKind.get(kind);
+    if (!days) {
+      continue;
+    }
+    const dates = [...days.keys()].sort();
+    traces.push({
+      x: dates,
+      y: dates.map(() => POSITION_EVENT_Y),
+      text: dates.map(() => labels.letters[kind]),
+      hovertext: dates.map((date) => `${date} ${labels.names[kind]}<br>${(days.get(date) ?? []).join('<br>')}`),
+      name: labels.names[kind],
+      type: 'scatter',
+      mode: 'markers+text',
+      textposition: 'top center',
+      hoverinfo: 'text',
+      yaxis: 'y2',
+      marker: { symbol: EVENT_KIND_SYMBOL[kind], size: 8 }
+    });
+  }
+  return traces;
+}

@@ -141,7 +141,7 @@ clear their focus references, and disabled fields remain rendered. Buttons use `
 Dialogs that set their initial focus themselves disable Optimus' `focusOnShow` to avoid a delayed second focus.
 Value links derive only when a source value changes. Use `skipInitial: true` to retain a loaded target until a source
 changes; a form rebuild resets that guard. Grouped/filterable `InputDropdown` fields receive their `groupItem` through
-`FIELD_DISPLAY`; the application's stock-exchange editor and `e2e/037-master-data-dialog-notification.spec.ts` exercise
+`FIELD_DISPLAY`; the application's stock-exchange editor and `e2e/080-master-data-dialog-notification.spec.ts` exercise
 this shared input, including flags, filtering and transfer of disabled values.
 The required-query ratchet checks unconditional targets in every concrete descendant, including this host.
 Signals with a null initial/cleared state include null in their types. Guard a captured value before using a selected

@@ -4,7 +4,7 @@ import * as path from 'path';
 import { expandTreeNode } from './portfolio.helpers';
 
 /**
- * Shared helpers and typings for 095-create-generic-connector.spec.ts.
+ * Shared helpers and typings for 200-create-generic-connector.spec.ts.
  *
  * The generic connector testdata is a nested JSON file produced from the developer database by
  * scripts/export-generic-connectors.mjs (invoked by backend/nv.bat). Property names match the

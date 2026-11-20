@@ -112,7 +112,11 @@
   } @if (watchlistType === WatchListType.DIVIDEND_SPLIT_FEED) {
   <div>
     <watchlist-dividend-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency" />
-    <watchlist-securitysplit-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency" />
+    <!-- The split table is usually short, the dividend key figures fill the space below it. -->
+    <div class="leftRight2Column">
+      <watchlist-securitysplit-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency" />
+      <watchlist-dividend-metrics [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency" />
+    </div>
   </div>
   } }
 </ng-template>

@@ -32,7 +32,7 @@ import grafioschtrader.repository.PortfolioJpaRepository;
  *
  * <p>
  * Run explicitly with {@code -Dgt.report.integration=true} after a roundtrip, on the tenant of {@code alledit}, which
- * holds securities from 2015 on and is the tenant Playwright spec 253 uses as well. The e2e backend must be stopped so
+ * holds securities from 2015 on and is the tenant Playwright spec 495 uses as well. The e2e backend must be stopped so
  * only this test application owns {@code grafioschtrader_t}, like {@link PerformanceReportPdfIntegrationTest}. The
  * completeness of the flows is proven against real data by {@code SecurityPeriodPerformanceVerificationTest}.
  * </p>

@@ -15,8 +15,8 @@ Not a reason to run it: "the spec fails", "let me verify", "I'm about to commit"
 dirty", "to be safe". If you believe a full roundtrip is warranted, **say so and ask** — do not start it.
 
 Why: the roundtrip drops and recreates `grafioschtrader_t`, boots the backend, then runs the numbered backend and
-Playwright phases (`ResourceTestSuite_1` → 005–020 → `ResourceTestSuite_25` → 025–045 →
-`ResourceTestSuite_50` → 050–888). It takes a very long time, partly because the
+Playwright phases (`ResourceTestSuite_1` → 005–050 → `ResourceTestSuite_25` → 055–095 →
+`ResourceTestSuite_50` → 100–888). It takes a very long time, partly because the
 freshly started backend downloads price and course data in the background. A single spec iteration
 takes seconds against services that are already running.
 
@@ -55,8 +55,8 @@ Order of preference:
    data **at the start of the run**. If it does, a rerun already recovers and there is nothing to do —
    fix the spec instead.
 2. **Delete through the UI or the REST endpoint**, the same way the spec created the data. This
-   respects the backend's own cascades and audit logic. `125-standing-orders.spec.ts` (REST) and
-   `115-taxdata.spec.ts` (UI, three levels) are the worked examples.
+   respects the backend's own cascades and audit logic. `270-standing-orders.spec.ts` (REST) and
+   `235-taxdata.spec.ts` (UI, three levels) are the worked examples.
 3. **Delete with SQL in `grafioschtrader_t` only** when 1 and 2 are impractical. Mind the indirect
    rows: saving an instrument or a currency pair enqueues `task_data_change` entries, transactions
    write `hold_*` rows, a transfer persists two sides. Never run such statements against

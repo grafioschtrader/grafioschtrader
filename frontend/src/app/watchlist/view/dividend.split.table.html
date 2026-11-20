@@ -11,7 +11,7 @@
   [valueGetterFn]="valueGetter"
   [customSortFn]="customSorter"
   [baseLocale]="baseLocale"
-  customClass="datatable nestedtable leftRight2Table"
+  [customClass]="tableClass"
   (pageChange)="onPage($event)">
   <div caption class="table-header">
     <h5>{{groupTitle | translate}}</h5>

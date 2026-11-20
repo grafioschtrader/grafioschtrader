@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,6 +49,9 @@ import grafiosch.repository.UserPasswordResetJpaRepository;
 import grafiosch.service.CredentialChangeService;
 import grafiosch.types.AccessTokenScope;
 import grafiosch.types.TenantAccessLevel;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.EntityManagerFactory;
 
 /** Real MariaDB transactions and HTTP security chain, with a separate account per test. */
@@ -125,7 +130,7 @@ class PasswordResetResourceTest extends BaseIntegrationTest {
     emf.getCache().evict(Globalparameters.class);
     requestReset(user.getUsername());
     String token = mailedToken();
-    String mail = GreenMailUtil.getBody(greenMail.getReceivedMessages()[0]);
+    String mail = GreenMailUtil.getBody(mailsToUser().getFirst());
     assertThat(mail).contains("https://example.org/gt/passwordreset#token=" + token).doesNotContain("evil.test");
     assertThat(jdbc.queryForObject("SELECT token_hash FROM user_password_reset WHERE id_user = ?", String.class,
         user.getIdUser())).isEqualTo(UserAccessToken.hashToken(token));
@@ -137,8 +142,8 @@ class PasswordResetResourceTest extends BaseIntegrationTest {
     client.post().uri("/api/login").body(loginBody(PASSWORD)).exchange().expectStatus().isUnauthorized();
     assertThat(login(NEW_PASSWORD)).isNotBlank();
     confirm(token, PASSWORD).expectStatus().is4xxClientError();
-    assertThat(greenMail.waitForIncomingEmail(5000, 2)).isTrue();
-    assertThat(GreenMailUtil.getBody(greenMail.getReceivedMessages()[1])).doesNotContain(token);
+    awaitMailsToUser(2);
+    assertThat(GreenMailUtil.getBody(mailsToUser().get(1))).doesNotContain(token);
   }
 
   @Test
@@ -150,7 +155,7 @@ class PasswordResetResourceTest extends BaseIntegrationTest {
     assertThat(requestReset("unknown-" + UUID.randomUUID() + "@test.local")).isEqualTo(answer);
     confirm(token, "x").expectStatus().is4xxClientError();
     assertThat(resets.findByTokenHash(UserAccessToken.hashToken(token))).isPresent();
-    assertThat(greenMail.getReceivedMessages()).hasSize(1);
+    assertThat(mailsToUser()).hasSize(1);
     confirm(token, NEW_PASSWORD).expectStatus().isOk();
   }
 
@@ -166,7 +171,7 @@ class PasswordResetResourceTest extends BaseIntegrationTest {
     assertThat(requestReset("missing@test.local")).isEqualTo(answer);
     confirm(token, NEW_PASSWORD).expectStatus().is4xxClientError();
     assertThat(resets.findByTokenHash(UserAccessToken.hashToken(token))).isPresent();
-    assertThat(greenMail.getReceivedMessages()).hasSize(1);
+    assertThat(mailsToUser()).hasSize(1);
   }
 
   @Test
@@ -236,7 +241,7 @@ class PasswordResetResourceTest extends BaseIntegrationTest {
     assertThat(resets.findByTokenHash(UserAccessToken.hashToken(token))).isPresent();
     assertThat(authorizations.findByIdUserOrderByCreatedAtDesc(user.getIdUser())).hasSize(1);
     assertThat(tokens.findByIdUserAndKind(user.getIdUser(), (byte) 1)).hasSize(1);
-    assertThat(greenMail.getReceivedMessages()).hasSize(1);
+    assertThat(mailsToUser()).hasSize(1);
     confirm(token, NEW_PASSWORD).expectStatus().isOk();
     // This represents a login whose password was checked against the pre-reset user snapshot.
     String lateLogin = jwtTokenHandler.createTokenForUser(user, 60);
@@ -245,12 +250,12 @@ class PasswordResetResourceTest extends BaseIntegrationTest {
 
   @Test
   @DisplayName("Demo accounts receive the same answer but no reset token")
-  void demoAccount() {
+  void demoAccount() throws Exception {
     user.setUsername("reset-demo@test.local");
     user = users.saveAndFlush(user);
     assertThat(requestReset(user.getUsername())).isEqualTo(requestReset("missing@test.local"));
     assertThat(resets.findById(user.getIdUser())).isEmpty();
-    assertThat(greenMail.getReceivedMessages()).isEmpty();
+    assertThat(mailsToUser()).isEmpty();
   }
 
   @Test
@@ -275,7 +280,7 @@ class PasswordResetResourceTest extends BaseIntegrationTest {
       requestReset(user.getUsername());
     mailedToken();
     client.post().uri(RESET).body(Map.of("email", user.getUsername())).exchange().expectStatus().isEqualTo(429);
-    assertThat(greenMail.getReceivedMessages()).hasSize(1);
+    assertThat(mailsToUser()).hasSize(1);
   }
 
   private String requestReset(String email) {
@@ -284,11 +289,37 @@ class PasswordResetResourceTest extends BaseIntegrationTest {
   }
 
   private String mailedToken() throws Exception {
-    assertThat(greenMail.waitForIncomingEmail(5000, 1)).isTrue();
+    awaitMailsToUser(1);
     var matcher = Pattern.compile("(?m)^[A-Za-z0-9_-]{43}\\r?$")
-        .matcher(GreenMailUtil.getBody(greenMail.getReceivedMessages()[0]));
+        .matcher(GreenMailUtil.getBody(mailsToUser().getFirst()));
     assertThat(matcher.find()).isTrue();
     return matcher.group().trim();
+  }
+
+  /**
+   * The mails received for the account of this test. A successful password change sends its security notice
+   * asynchronously after the commit, so the notice of the previous test can arrive after the mailbox was purged. Every
+   * test has an account with its own address, which keeps such a late mail out of the assertions of the next test.
+   */
+  private List<MimeMessage> mailsToUser() throws MessagingException {
+    List<MimeMessage> mails = new ArrayList<>();
+    for (MimeMessage message : greenMail.getReceivedMessages()) {
+      var recipients = message.getAllRecipients();
+      if (recipients != null && Arrays.stream(recipients)
+          .anyMatch(a -> a instanceof InternetAddress ia && user.getUsername().equalsIgnoreCase(ia.getAddress()))) {
+        mails.add(message);
+      }
+    }
+    return mails;
+  }
+
+  /** Waits up to five seconds until at least {@code count} mails for the account of this test have arrived. */
+  private void awaitMailsToUser(int count) throws Exception {
+    long deadline = System.currentTimeMillis() + 5000;
+    while (mailsToUser().size() < count && System.currentTimeMillis() < deadline) {
+      greenMail.waitForIncomingEmail(200, greenMail.getReceivedMessages().length + 1);
+    }
+    assertThat(mailsToUser()).hasSizeGreaterThanOrEqualTo(count);
   }
 
   private RestTestClient.ResponseSpec confirm(String token, String password) {

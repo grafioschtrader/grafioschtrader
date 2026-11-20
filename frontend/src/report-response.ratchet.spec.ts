@@ -25,6 +25,15 @@ const RESPONSE_CONTRACTS: Record<string, string[]> = {
   'app/entities/view/securitycurrency.position.ts': ['SecuritycurrencyPosition'],
   'app/entities/view/securitydividends/security.dividends.grand.total.ts': ['SecurityDividendsGrandTotal'],
   'app/entities/view/securitydividends/security.dividends.year.group.ts': ['SecurityDividendsYearGroup'],
+  'app/entities/view/securitydividends/security.dividend.metrics.ts': [
+    'SecurityDividendMetrics',
+    'DividendYearAmount',
+    'DividendDateValue',
+    'DividendSplitMark',
+    'SecurityDividendChart',
+    'DividendChartSeries',
+    'DividendYearValue'
+  ],
   'app/entities/view/transactioncost/transaction.cost.grand.summary.ts': ['TransactionCostGrandSummary'],
   'app/entities/view/transactioncost/transaction.cost.group.summary.ts': ['TransactionCostGroupSummary'],
   'app/entities/view/transactioncost/transaction.cost.position.ts': ['TransactionCostPosition'],

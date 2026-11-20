@@ -30,9 +30,11 @@ import grafioschtrader.report.pdf.PerformanceReportPdfService;
 import grafioschtrader.report.pdf.ReportContext;
 import grafioschtrader.reports.PerformanceReport;
 import grafioschtrader.reports.SecurityPeriodPerformanceReport;
+import grafioschtrader.reports.SecurityPositionSeriesReport;
 import grafioschtrader.reportviews.performance.FirstAndMissingTradingDays;
 import grafioschtrader.reportviews.performance.PerformancePeriod;
 import grafioschtrader.reportviews.performance.SecurityPeriodPerformance;
+import grafioschtrader.reportviews.performance.SecurityPositionSeriesResult;
 import grafioschtrader.reportviews.performance.WeekYear;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,6 +58,24 @@ public class HoldingResource {
 
   @Autowired
   private SecurityPeriodPerformanceReport securityPeriodPerformanceReport;
+
+  @Autowired
+  private SecurityPositionSeriesReport securityPositionSeriesReport;
+
+  @Operation(summary = "Value, invested capital, returns and drawdown of one holding phase of a security", description = """
+      Series of the security position chart in the scope of the view it was opened from: the tenant when neither
+      idPortfolio nor idSecurityaccount is given, otherwise that portfolio or security account; both together are
+      rejected. The response lists every holding phase; phaseFrom selects one by its first day, otherwise the newest
+      phase is calculated.""", tags = { RequestGTMappings.HOLDING })
+  @GetMapping(value = "/securityposition/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SecurityPositionSeriesResult> getSecurityPositionSeries(
+      @PathVariable final Integer idSecuritycurrency, @RequestParam(required = false) final Integer idPortfolio,
+      @RequestParam(required = false) final Integer idSecurityaccount,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) final LocalDate phaseFrom) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return new ResponseEntity<>(securityPositionSeriesReport.getSeries(user.getIdTenant(), idSecuritycurrency,
+        idPortfolio, idSecurityaccount, phaseFrom, ClientClock.today()), HttpStatus.OK);
+  }
 
   @Operation(summary = "Options for the delivered PDF report sections")
   @GetMapping(value = "/report/options", produces = APPLICATION_JSON_VALUE)

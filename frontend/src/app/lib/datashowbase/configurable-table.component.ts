@@ -116,7 +116,8 @@ export interface CellMark {
   // Rules for the columns fixed by frozenColumnCount. The theme defines the sticky position only for a scrollable table,
   // these rules hold for every table. A body cell takes the opaque background of its row and is stacked above the cells
   // scrolling underneath, so their text stays hidden; a selected row may have a translucent background and gets the
-  // normal row colour below it. The sticky header and footer are lifted above the fixed body cells, otherwise these
+  // normal row colour below it, and its text colour, which the global black text of fixed cells in styles.css would
+  // otherwise replace. The sticky header and footer are lifted above the fixed body cells, otherwise these
   // would cover them on vertical scrolling. The global rule giving every header cell z-index 0 is outweighed by tr >.
   styles: [
     `
@@ -138,6 +139,7 @@ export interface CellMark {
         background:
           linear-gradient(var(--p-datatable-row-selected-background), var(--p-datatable-row-selected-background)),
           var(--p-datatable-row-background);
+        color: var(--p-datatable-row-selected-color);
       }
       tr.gt-footer-row > td.p-datatable-frozen-column {
         background: var(--p-datatable-footer-cell-background);

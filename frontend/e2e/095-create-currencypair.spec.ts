@@ -1,0 +1,182 @@
+import { expect, Locator, Page, test } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
+import { loginAsFixtureUser, parseCsvRow } from './helpers';
+import { watchlistTable } from './watchlist.helpers';
+
+interface CurrencypairRow {
+  fromCurrency: string;
+  toCurrency: string;
+  idConnectorHistory: string;
+  idConnectorIntra: string;
+  e2e: string;
+}
+
+const CSV_PATH = path.resolve(
+  __dirname,
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/currencypair.csv'
+);
+const WATCHLIST_NAME = 'currencypair';
+const LOGIN_NICKNAME = 'alledit';
+
+function loadE2ERows(): CurrencypairRow[] {
+  const csv = fs.readFileSync(CSV_PATH, 'utf-8');
+  return csv
+    .split(/\r?\n/)
+    .filter((l) => l.trim().length > 0)
+    .slice(1)
+    .map((line) => {
+      const [fromCurrency, toCurrency, idConnectorHistory, idConnectorIntra, e2e] = parseCsvRow(line);
+      return { fromCurrency, toCurrency, idConnectorHistory, idConnectorIntra, e2e };
+    })
+    .filter((r) => r.e2e === 'e');
+}
+
+async function openWatchlistContextMenu(page: Page): Promise<Locator> {
+  const contentArea = watchlistTable(page);
+  await contentArea.waitFor({ state: 'visible', timeout: 10_000 });
+  await contentArea.click();
+  await page.waitForTimeout(300);
+  await contentArea.click({ button: 'right' });
+
+  const menu = page.locator('[role="menu"]:visible');
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
+  return menu;
+}
+
+async function addExistingCurrencypair(page: Page, row: CurrencypairRow, pairPattern: RegExp): Promise<void> {
+  const menu = await openWatchlistContextMenu(page);
+  await menu
+    .getByText(/(Add\s+existing\s+instrument|Bestehendes\s+Instrument\s+hinzuf.gen)/i)
+    .first()
+    .click();
+
+  const addDialog = page.locator('watchlist-add-instrument');
+  await addDialog.locator('.p-dialog').waitFor({ state: 'visible', timeout: 10_000 });
+  // initialize() resets the form after loading its options, so wait for its last populated select.
+  await expect(addDialog.locator('select#idStockexchange option')).not.toHaveCount(0, { timeout: 15_000 });
+  await addDialog.locator('select#assetclassType').selectOption({ value: 'CURRENCY_PAIR' });
+  await addDialog.locator('select#currency').selectOption({ value: row.fromCurrency });
+  await addDialog.locator('button[type="submit"]').click();
+
+  const resultRow = addDialog.locator('add-instrument-table tbody tr').filter({ hasText: pairPattern });
+  // A populated test database can have more than one page of pairs for the selected currency.
+  await expect(addDialog.locator('add-instrument-table tbody tr').first()).toBeVisible();
+  const nextPage = addDialog.getByRole('button', { name: 'Next Page', exact: true });
+  while ((await resultRow.count()) === 0 && (await nextPage.isEnabled())) {
+    await nextPage.click();
+  }
+  await expect(resultRow).toHaveCount(1, { timeout: 15_000 });
+  await resultRow.locator('p-tablecheckbox').click();
+
+  const addButton = addDialog.getByRole('button', { name: /^(Add|Hinzuf.gen)$/ });
+  await expect(addButton).toBeEnabled({ timeout: 5_000 });
+  await addButton.click();
+  await expect(addButton).toBeDisabled({ timeout: 15_000 });
+  await addDialog.getByRole('button', { name: /^(Close|Beenden)$/ }).click();
+  await addDialog.locator('.p-dialog').waitFor({ state: 'hidden', timeout: 10_000 });
+}
+
+test.describe.serial('Seed currency pairs in the currencypair watchlist', () => {
+  for (const row of loadE2ERows()) {
+    test(`creates currency pair ${row.fromCurrency}/${row.toCurrency} if missing`, async ({ page }) => {
+      await loginAsFixtureUser(page, LOGIN_NICKNAME);
+
+      const watchlistNode = page.getByRole('treeitem', { name: WATCHLIST_NAME, exact: true }).first();
+      await watchlistNode.waitFor({ state: 'visible', timeout: 10_000 });
+      await watchlistNode.click();
+
+      // Wait for the watchlist table to render so the "skip-if-present" check is meaningful.
+      await page.waitForTimeout(1500);
+
+      // Crypto currencies render with a "(Cryptocurrency)" suffix in the watchlist name cell. The
+      // backend builds the dropdown value as `cc + "(" + i18n("cryptocurrency") + ")"` in
+      // GlobalparametersService.getCurrencies (key="BTC"); the frontend renders the visible label
+      // with a separating space, so the watchlist td reads "BTC (Cryptocurrency)/USD".
+      // Match on the 3-letter codes with any text between to tolerate either form.
+      const pairPattern = new RegExp(`\\b${row.fromCurrency}\\b.*\\b${row.toCurrency}\\b`);
+      if ((await page.locator('td').filter({ hasText: pairPattern }).count()) > 0) {
+        return;
+      }
+
+      // Activate the content area (left-click first, then right-click). Mirrors the pattern used by
+      // spec 055-create-portfolio.spec.ts — Optimus UI context menu requires the panel to be active first.
+      const menu = await openWatchlistContextMenu(page);
+
+      // Menu label 'CREATE_AND_ADD_CURRENCYPAIR...' → "Create and add currencypair..." (EN) /
+      // "Hinzufügen neu erstelltes Währungspaar..." (DE).
+      await menu
+        .getByText(/(Create\s*and\s*add\s*currencypair|Hinzuf.*W.*hrungspaar)/i)
+        .first()
+        .click();
+
+      const dialog = page.locator('.p-dialog');
+      await dialog.waitFor({ state: 'visible', timeout: 10_000 });
+
+      // Currency selects populate asynchronously from GlobalparameterGTService.getCurrencies().
+      const fromSelect = dialog.locator('select#fromCurrency');
+      await fromSelect.waitFor({ state: 'visible', timeout: 10_000 });
+      await expect(fromSelect.locator('option')).not.toHaveCount(0, { timeout: 10_000 });
+      await fromSelect.selectOption({ value: row.fromCurrency });
+
+      const toSelect = dialog.locator('select#toCurrency');
+      // valueChangedOnFromCurrency filters toCurrency options based on fromCurrency value.
+      const toOption = toSelect.locator(`option[value="${row.toCurrency}"]`);
+      const canCreatePair = await toOption
+        .waitFor({ state: 'attached', timeout: 3_000 })
+        .then(() => true)
+        .catch(() => false);
+      if (!canCreatePair) {
+        // The pair can have been created indirectly after an earlier CSV row. It is then correctly
+        // excluded from this create dialog, but still needs adding to the current watchlist.
+        await dialog.locator('.p-dialog-close-button').click();
+        await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
+        await addExistingCurrencypair(page, row, pairPattern);
+        await expect(page.locator('td').filter({ hasText: pairPattern }).first()).toBeVisible({ timeout: 30_000 });
+        return;
+      }
+      await toSelect.selectOption({ value: row.toCurrency });
+
+      // Connector selects populate asynchronously from CurrencypairService.getFeedConnectors().
+      const histSelect = dialog.locator('select#idConnectorHistory');
+      await expect(histSelect.locator(`option[value="${row.idConnectorHistory}"]`)).toHaveCount(1, { timeout: 10_000 });
+      await histSelect.selectOption({ value: row.idConnectorHistory });
+
+      const intraSelect = dialog.locator('select#idConnectorIntra');
+      await expect(intraSelect.locator(`option[value="${row.idConnectorIntra}"]`)).toHaveCount(1, { timeout: 10_000 });
+      await intraSelect.selectOption({ value: row.idConnectorIntra });
+
+      // Creation must succeed before the UI associates the pair with the watchlist. Surface a failed
+      // POST immediately; otherwise its server error is hidden behind a dialog-close timeout.
+      // The PUT can wait for the asynchronous history load of the new pair: that load updates the
+      // securitycurrency row first and holds its lock across all data provider calls, while the
+      // watchlist insert needs that row for its foreign key check. Wait beyond MariaDB's default
+      // innodb_lock_wait_timeout (50 s), so a lock timeout arrives as a failed PUT instead of a timeout.
+      test.setTimeout(180_000);
+      const [saveResponse] = await Promise.all([
+        page.waitForResponse(
+          (response) => {
+            const method = response.request().method();
+            const pathname = new URL(response.url()).pathname;
+            return (
+              (method === 'POST' && pathname === '/api/currencypair' && !response.ok()) ||
+              (method === 'PUT' && /\/api\/watchlist\/\d+\/addSecuritycurrency$/.test(pathname))
+            );
+          },
+          { timeout: 70_000 }
+        ),
+        dialog.locator('button[type="submit"]').click()
+      ]);
+      expect(
+        saveResponse.ok(),
+        `${saveResponse.request().method()} ${saveResponse.url()} returned ${saveResponse.status()}: ${await saveResponse.text()}`
+      ).toBeTruthy();
+      await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
+
+      // The new pair row appears only after the watchlist refetches its rows and the connector returns
+      // first quotes. Keep this separate from awaiting the add-to-watchlist response above so a failed
+      // write is reported as such instead of looking like a table-rendering timeout.
+      await expect(page.locator('td').filter({ hasText: pairPattern }).first()).toBeVisible({ timeout: 30_000 });
+    });
+  }
+});

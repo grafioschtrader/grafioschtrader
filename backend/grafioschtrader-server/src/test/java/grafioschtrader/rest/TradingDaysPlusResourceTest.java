@@ -29,8 +29,8 @@ import grafioschtrader.repository.TradingDaysBase.SaveTradingDays;
  *
  * <p>
  * The fresh E2E schema leaves the calendar empty, and every security transaction is rejected for a date absent from it.
- * Creating these years here, before Playwright resumes at 050, keeps a failure of the calendar UI spec 055 from
- * cascading into every later spec that books, imports or replays dated data. Spec 055 still enters the remaining future
+ * Creating these years here, before Playwright resumes at 100, keeps a failure of the calendar UI spec 115 from
+ * cascading into every later spec that books, imports or replays dated data. Spec 115 still enters the remaining future
  * years through the UI and verifies that the years created here are complete.
  *
  * <p>
@@ -49,7 +49,7 @@ class TradingDaysPlusResourceTest extends BaseIntegrationTest {
   record TradingDays(List<LocalDate> dates) {
   }
 
-  /** Last year created by this test; spec 055 creates the years after it through the UI. */
+  /** Last year created by this test; spec 115 creates the years after it through the UI. */
   static int lastIntegrationYear() {
     return LocalDate.now().getYear() + 1;
   }

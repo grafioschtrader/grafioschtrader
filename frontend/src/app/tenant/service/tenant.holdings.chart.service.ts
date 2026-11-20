@@ -17,9 +17,9 @@ export interface HoldingsChartInput {
 }
 
 /**
- * Couples the report "security asset classes with cash" with its charts in the lower display area. The table
- * publishes every loaded report; the chart component draws the chart the user selected. The latest value is kept, so a
- * chart opened after the load still receives it.
+ * Couples the report "security asset classes with cash" with its charts in the lower display area. The table of the
+ * client and the table of a portfolio publish every loaded report; the chart component draws the chart the user
+ * selected for the report loaded last. The latest value is kept, so a chart opened after the load still receives it.
  */
 @Service()
 export class TenantHoldingsChartService {

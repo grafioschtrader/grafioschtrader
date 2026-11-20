@@ -1,6 +1,6 @@
 {
   "_comment": [
-    "Response fixtures for 056-stockexchange-calendar-notification.spec.ts; no database rows are created.",
+    "Response fixtures for 120-stockexchange-calendar-notification.spec.ts; no database rows are created.",
     "emptyTenant reproduces the null firstEverTradingDay recorded in the failed roundtrip.",
     "completeQuotes represents holdings with no quote gaps. The spec supplies the requested year."
   ],

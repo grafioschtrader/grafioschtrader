@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 import type { FeeModelComparisonDetail, FeeModelComparisonResponse } from '../src/app/entities/fee.model.comparison';
 import type { FxObservationGroup } from '../src/app/entities/fx.observation';
 
-/** UI-only report data: 020 runs before portfolio creation, and must not depend on real trades or FX quotes. */
+/** UI-only report data: 050 runs before portfolio creation, and must not depend on real trades or FX quotes. */
 function feeDetail(
   name: string,
   transactionDate: string,

@@ -176,7 +176,7 @@ export async function applyIsinChange(page: Page, action: ApiSecurityAction): Pr
   });
 }
 
-/** Reverses a prior successful application through REST so 140 can exercise Apply again. */
+/** Reverses a prior successful application through REST so 310 can exercise Apply again. */
 export async function reverseActiveApplication(
   page: Page,
   action: ApiSecurityAction,

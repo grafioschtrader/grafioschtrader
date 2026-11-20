@@ -51,6 +51,11 @@ export class PortfolioTabMenuComponent {
       icon: ''
     },
     {
+      label: 'SECURITY_ASSETCLASS_WITH_CASH',
+      route: AppSettings.DEPOT_CASH_KEY,
+      icon: ''
+    },
+    {
       label: 'TRANSACTIONS',
       route: AppSettings.PORTFOLIO_TRANSACTION_KEY,
       icon: ''

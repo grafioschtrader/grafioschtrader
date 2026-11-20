@@ -322,6 +322,19 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   // ============================================================================
   // PORTFOLIO LEVEL REPORTS
   // ============================================================================
+  @Operation(summary = "Get portfolio security positions grouped by asset class including cash holdings", description = """
+      The asset class report with cash for a single portfolio: its security positions grouped by asset class type and
+      its cash accounts as pseudo-securities, valued in the currency of the portfolio. Cash in that currency is
+      CURRENCY_CASH, cash in any other currency CURRENCY_FOREIGN. Also returns the holdings treemap. Validates user
+      access to the requested portfolio.""", tags = { Securityaccount.TABNAME })
+  @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/assetclasstypewithcash", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SecurityPositionGrandSummary> getSecurityGroupByAssetclassWithCashReportByPortfolio(
+      @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
+    return new ResponseEntity<>(securityGroupByAssetclassWithCashReport
+        .getSecurityPositionGrandSummaryIdPortfolio(idPortfolio, includeClosedPosition, untilDate), HttpStatus.OK);
+  }
+
   @Operation(summary = "Get portfolio security positions grouped by trading currency", description = """
       Creates position summaries for a specific portfolio grouped by trading currency. Provides portfolio-level
       currency exposure analysis and enables assessment of foreign exchange risk within the selected portfolio.

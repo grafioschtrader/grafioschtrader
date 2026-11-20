@@ -34,7 +34,7 @@ import grafioschtrader.types.PerformanceReportSection;
 
 /**
  * Compares a context-free service call with the authenticated screen result on the populated foreign-currency fixture.
- * Run explicitly with -Dgt.report.integration=true after security transactions have been created (Playwright 075 or
+ * Run explicitly with -Dgt.report.integration=true after security transactions have been created (Playwright 175 or
  * later), with the e2e backend stopped so only this test application owns grafioschtrader_t. This opt-in prevents the
  * ordinary unit run from bootstrapping a database or accidentally executing before the interleaved fixtures exist.
  */

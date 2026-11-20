@@ -18,7 +18,7 @@ import {
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, MenuItem, MenuItemCommandEvent, SelectItem } from '@openng/optimus-ui/api';
+import { ConfirmationService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
 import { ContextMenu } from '@openng/optimus-ui/contextmenu';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -74,6 +74,7 @@ import {
   TRANSACTION_MARKER_META
 } from '../model/security-chart-pdf';
 import { TimeSeriesParam } from '../model/time.series.param';
+import { TimeSeriesQuotesService } from '../service/time.series.quotes.service';
 import { HistoryquoteService } from '../service/historyquote.service';
 import { UserChartShapeService } from '../service/user.chart.shape.service';
 import { ChartCurrencyNormalizer } from './chart.currency.normalizer';
@@ -225,6 +226,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   private historyquoteService = inject(HistoryquoteService);
   private translateService = inject(TranslateService);
   private activePanelService = inject(ActivePanelService);
+  private readonly timeSeriesQuotesService = inject(TimeSeriesQuotesService);
 
   readonly container = viewChild<ElementRef>('container');
   readonly chartElement = viewChild.required<ElementRef>('chart');
@@ -450,6 +452,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
 
   ngOnDestroy(): void {
     this.destroyed = true;
+    this.indicatorDefinitions.defMap.forEach((iDef) => iDef.pendingLoad?.unsubscribe());
     this.subscriptionViewSizeChanged?.unsubscribe();
     this.shapeController.destroy();
     this.activePanelService.destroyPanel(this);
@@ -683,6 +686,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
         this.plotly = plotly;
         this.shapeController.setPlotly(plotly);
         this.plot(element, traces, layout);
+        this.forgetTaTraceIndices();
         this.redoTaAfterDateChange();
       },
       () => {}
@@ -1136,10 +1140,13 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     return this.activePanelService.isActivated(this);
   }
 
+  /**
+   * Activates the chart with a menu rebuilt from the indicator state. The context menu gets the same items as the menu
+   * bar: a click on an indicator in the open context menu bubbles up to here, and items bound to only one of the two
+   * menus would show a stale check mark.
+   */
   onComponentClick(event: PanelClickEvent): void {
-    this.activePanelService.activatePanel(this, {
-      showMenu: this.getShowMenu()
-    });
+    this.resetMenu();
   }
 
   onRightClick(event: unknown): void {
@@ -1289,7 +1296,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       iDef.menuItem = {
         label: TaIndicators[taIndicators],
         icon: iDef.shown ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
-        command: (event) => this.onOffIndicatorEvent(event, TaIndicators[taIndicators], iDef),
+        command: () => this.onOffIndicator(TaIndicators[taIndicators], iDef),
         disabled: !this.possibleShowingTaIndicator(),
         items: [
           {
@@ -1308,6 +1315,13 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       disabled: !this.canExportPdf(),
       command: () => this.openChartPdfDialog()
     });
+    // The position of the same security in the same scope; the PDF condition is exactly "one security shown".
+    menuItems.push({
+      label: 'SECURITY_POSITION_CHART',
+      disabled: !this.canExportPdf(),
+      command: () =>
+        this.timeSeriesQuotesService.showChartOfSecurity(AppSettings.SECURITY_POSITION_CHART, this.seriesParams[0])
+    });
     TranslateHelper.translateMenuItems(menuItems, this.translateService, false);
     return menuItems;
   }
@@ -1319,12 +1333,12 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     );
   }
 
-  private onOffIndicatorEvent(event: MenuItemCommandEvent, taIndicators: string, iDef: IndicatorDefinition): void {
-    if (event.item) this.onOffIndicator(event.item, taIndicators, iDef);
-  }
-
-  private onOffIndicator(menuItem: MenuItem, taIndicators: string, iDef: IndicatorDefinition): void {
-    if (menuItem.icon === BaseSettings.ICONNAME_SQUARE_EMTPY) {
+  /**
+   * Switches an indicator on or off. The decision follows the indicator's own state, not the icon of the clicked menu
+   * item, which may belong to a menu built before the last change.
+   */
+  private onOffIndicator(taIndicators: string, iDef: IndicatorDefinition): void {
+    if (!iDef.shown) {
       this.loadAndShowIndicatorDataWithMenu(taIndicators, iDef);
     } else {
       const wasOscillator = iDef.isOscillator;
@@ -1368,7 +1382,8 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators) ||
       definition.defaultDataModel;
     this.indicatorDefinitions.idSecuritycurrency = this.loadedData[0].idSecuritycurrency;
-    this.historyquoteService
+    iDef.pendingLoad?.unsubscribe();
+    iDef.pendingLoad = this.historyquoteService
       .getTaWithShortMediumLongInputPeriod(
         taIndicators,
         this.indicatorDefinitions.idSecuritycurrency,
@@ -1376,6 +1391,10 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
         this.includeDividends
       )
       .subscribe((taTraceIndicatorDataList: TaTraceIndicatorData[]) => {
+        iDef.pendingLoad = undefined;
+        if (this.destroyed || !iDef.shown) return;
+        // The new values replace the traces on screen, e.g. after the parameters were applied unchanged.
+        this.removeTaTraces(iDef);
         iDef.taTraceIndicatorDataList = taTraceIndicatorDataList;
         if (iDef.isOscillator) {
           // Replot the entire chart to include subplot layout for oscillator indicators
@@ -1401,32 +1420,55 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   }
 
   private deleteTaIndicator(iDef: IndicatorDefinition) {
+    iDef.pendingLoad?.unsubscribe();
+    iDef.pendingLoad = undefined;
     if (iDef.shown) {
       requireInitialized(iDef.menuItem, 'Indicator menu').icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
       iDef.shown = false;
-      const traceIndices = iDef.taTraceIndicatorDataList
-        .map((taT) => taT.traceIndex)
-        .filter((index) => index != null)
-        .reverse();
-      this.plotly?.deleteTraces(this.chartElement().nativeElement, traceIndices);
-      iDef.taTraceIndicatorDataList.forEach((taT) => (taT.traceIndex = undefined));
-      this.adjustTATraceIndices(traceIndices);
+      this.removeTaTraces(iDef);
     }
   }
 
+  /**
+   * Removes the traces of an indicator from the chart and moves the indices of the traces behind them.
+   */
+  private removeTaTraces(iDef: IndicatorDefinition): void {
+    const traceIndices = iDef.taTraceIndicatorDataList
+      .map((taT) => taT.traceIndex)
+      .filter((index): index is number => index != null)
+      .sort((a, b) => b - a);
+    iDef.taTraceIndicatorDataList.forEach((taT) => (taT.traceIndex = undefined));
+    if (traceIndices.length === 0) return;
+    this.plotly?.deleteTraces(this.chartElement().nativeElement, traceIndices);
+    this.adjustTATraceIndices(traceIndices);
+  }
+
+  /**
+   * Shifts the remaining indicator trace indices after traces were deleted.
+   *
+   * @param traceIndices the deleted indices in descending order, so each comparison uses the positions still valid
+   */
   private adjustTATraceIndices(traceIndices: number[]): void {
     for (const index of traceIndices) {
-      this.indicatorDefinitions.defMap.forEach((iDefI: IndicatorDefinition, taIndicators: TaIndicators) => {
-        if (iDefI.shown) {
-          iDefI.taTraceIndicatorDataList.forEach((ttid) => {
-            if (ttid.traceIndex != null && ttid.traceIndex > index) ttid.traceIndex--;
-          });
-        }
+      this.indicatorDefinitions.defMap.forEach((iDefI: IndicatorDefinition) => {
+        iDefI.taTraceIndicatorDataList.forEach((ttid) => {
+          if (ttid.traceIndex != null && ttid.traceIndex > index) ttid.traceIndex--;
+        });
       });
     }
   }
 
+  /**
+   * A new plot holds no indicator traces; the indices of the previous plot would point to other traces.
+   */
+  private forgetTaTraceIndices(): void {
+    this.indicatorDefinitions.defMap.forEach((iDef: IndicatorDefinition) =>
+      iDef.taTraceIndicatorDataList.forEach((taT) => (taT.traceIndex = undefined))
+    );
+  }
+
   private createTaTrace(iDef: IndicatorDefinition): void {
+    this.removeTaTraces(iDef);
     iDef.taTraceIndicatorDataList.forEach((taTraceIndicatorData: TaTraceIndicatorData) => {
       const foundStartIndex = AppHelper.binarySearch(
         taTraceIndicatorData.taIndicatorData,

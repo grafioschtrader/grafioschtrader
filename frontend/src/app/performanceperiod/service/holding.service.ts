@@ -9,6 +9,7 @@ import { catchError, map } from 'rxjs/operators';
 import { HttpParams, HttpResponse } from '@angular/common/http';
 import { PerformancePeriod } from '../model/performance.period';
 import type { SecurityPeriodPerformance } from '../model/security-period-performance';
+import type { SecurityPositionSeries } from '../model/security-position-series';
 import { MissingQuotesWithSecurities } from '../../tenant/model/missing.quotes.with.securities';
 import { BaseSettings } from '../../lib/base.settings';
 import { PerformanceReportOptions, PerformanceReportRequest } from '../model/performance-report';
@@ -80,6 +81,39 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
       .get<MissingQuotesWithSecurities>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/missingquotes/${year}`,
         this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Loads the series of the security position chart. Only one scope parameter is sent: a security account wins over
+   * a portfolio, as for the chart PDF; neither means the whole client.
+   *
+   * @param idSecuritycurrency - The security
+   * @param idPortfolio - Portfolio of the calling view, or null
+   * @param idSecurityaccount - Security account of the calling view, or null
+   * @param phaseFrom - First day of the requested holding phase, yyyy-MM-dd; null for the newest phase
+   * @returns the phases and the series of one phase
+   */
+  getSecurityPositionSeries(
+    idSecuritycurrency: number,
+    idPortfolio: number | null | undefined,
+    idSecurityaccount: number | null | undefined,
+    phaseFrom: string | null
+  ): Observable<SecurityPositionSeries> {
+    let params = new HttpParams();
+    if (idSecurityaccount) {
+      params = params.set('idSecurityaccount', idSecurityaccount);
+    } else if (idPortfolio) {
+      params = params.set('idPortfolio', idPortfolio);
+    }
+    if (phaseFrom) {
+      params = params.set('phaseFrom', phaseFrom);
+    }
+    return this.httpClient
+      .get<SecurityPositionSeries>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/securityposition/${idSecuritycurrency}`,
+        { headers: this.prepareHeaders(), params }
       )
       .pipe(catchError(this.handleError.bind(this)));
   }

@@ -3,8 +3,8 @@
     "Hand-authored fixture for Playwright specs that create securities through a watchlist.",
     "It must NOT be moved into testdata/generated/, because nv.bat wipes that directory.",
     "The groups mirror production records, but runtime lookups use natural keys rather than source IDs.",
-    "DERIVED securities are consumed by 065-create-derived-security.spec.ts.",
-    "STANDARD_WITH_PERIODS securities are consumed by 067-create-fixed-deposit-security.spec.ts.",
+    "DERIVED securities are consumed by 155-create-derived-security.spec.ts.",
+    "STANDARD_WITH_PERIODS securities are consumed by 160-create-fixed-deposit-security.spec.ts.",
     "For fixed-price securities the complete period list mirrors production. Only USER_CREATED rows",
     "are entered in the UI; the backend derives the leading SYSTEM_CREATED row from denomination."
   ],

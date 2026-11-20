@@ -203,6 +203,58 @@ public interface HoldSecurityaccountSecurityJpaRepository
 
   //@formatter:off
   /**
+   * Values one security over every security account of a tenant on every trading day of a period, for the security
+   * position chart. The value expression is the non-margin one of {@link #getDailySecurityValuesByTenant}; margin rows
+   * are left out. Unlike that query the rate into the tenant currency is returned as a column, null when the currency
+   * pair has no close on that day, so the caller can tell a missing rate from a rate of 1.
+   *
+   * Named query: HoldSecurityaccountSecurity.getDailyValuesOfSecurityByTenant
+   *
+   * Columns of each Object[] in order:
+   * - valuationDate (LocalDate), a day of trading_days_plus with at least one holding row with units
+   * - unitsAsTraded (Double): sum of holdings, the units as traded
+   * - valueSC (Double): holdings * split_price_factor * (close + historyquote_period.price), summed
+   * - close (Double): the close or the period price of that day, null when neither exists
+   * - rateMC (Number): close of id_currency_pair_tenant, 1 without pair, null when the pair has no close
+   * - negativeUnits (Number): 1 when a row has negative holdings
+   * - notValued (Number): 1 when a row has neither or both of close and period price
+   * Ordered by date.
+   *
+   * @param idTenant           the tenant
+   * @param idSecuritycurrency the security
+   * @param dateFrom           first day, inclusive
+   * @param dateTo             last day, inclusive
+   * @return one row per trading day with units
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<Object[]> getDailyValuesOfSecurityByTenant(Integer idTenant, Integer idSecuritycurrency, LocalDate dateFrom,
+      LocalDate dateTo);
+
+  //@formatter:off
+  /**
+   * Same as {@link #getDailyValuesOfSecurityByTenant} for the holding rows of some security accounts, converted with
+   * the close of id_currency_pair_portfolio into the portfolio currency. Serves the portfolio and the security account
+   * scope of the security position chart.
+   *
+   * Named query: HoldSecurityaccountSecurity.getDailyValuesOfSecurityBySecurityaccounts
+   *
+   * @param idTenant           the tenant, which must own the accounts
+   * @param idsSecurityaccount the security accounts of the scope
+   * @param idSecuritycurrency the security
+   * @param dateFrom           first day, inclusive
+   * @param dateTo             last day, inclusive
+   * @return one row per trading day with units, columns as in {@link #getDailyValuesOfSecurityByTenant}
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<Object[]> getDailyValuesOfSecurityBySecurityaccounts(@Param("idTenant") Integer idTenant,
+      @Param("idsSecurityaccount") List<Integer> idsSecurityaccount,
+      @Param("idSecuritycurrency") Integer idSecuritycurrency, @Param("dateFrom") LocalDate dateFrom,
+      @Param("dateTo") LocalDate dateTo);
+
+  //@formatter:off
+  /**
    * Returns the spans of the holding rows with units of a tenant that overlap a period. They tell which securities
    * belong to the period performance per security and on which calendar days each was held at the close.
    *

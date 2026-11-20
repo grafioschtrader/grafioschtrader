@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { holdingSteps, interpolatedClose, totalReturnFactorAt } from './security.chart.series';
+import {
+  holdingSteps,
+  interpolatedClose,
+  positionEventKind,
+  positionEventTraces,
+  totalReturnFactorAt
+} from './security.chart.series';
 
 const trade = (time: string, type: string, holdings: number) => ({
   transaction: { transactionTime: time, transactionType: type },
@@ -59,5 +65,46 @@ describe('totalReturnFactorAt', () => {
     expect(totalReturnFactorAt(factors, '2024-01-10')).toBe(0.95);
     expect(totalReturnFactorAt(factors, '2024-04-26')).toBe(0.98);
     expect(totalReturnFactorAt(factors, '2025-06-01')).toBe(1);
+  });
+});
+
+describe('positionEventTraces', () => {
+  const labels = {
+    names: { PURCHASE: 'Buy', SALE: 'Sell', TRANSFER: 'Transfer', INCOME: 'Income', FINANCE_COST: 'Finance cost' },
+    letters: { PURCHASE: 'B', SALE: 'S', TRANSFER: 'T', INCOME: 'I', FINANCE_COST: 'F' },
+    describe: (e: { units: number | null; amountSC: number }) => `${e.units ?? ''}:${e.amountSC}`
+  };
+  const event = (date: string, transactionType: string, amountSC: number, transfer = false) => ({
+    date,
+    transactionType,
+    units: 10,
+    amountSC,
+    transfer
+  });
+
+  it('maps transfer legs, income and finance costs to their own kinds', () => {
+    expect(positionEventKind(event('2025-01-01', 'ACCUMULATE', 1))).toBe('PURCHASE');
+    expect(positionEventKind(event('2025-01-01', 'REDUCE', 1))).toBe('SALE');
+    expect(positionEventKind(event('2025-01-01', 'REDUCE', 1, true))).toBe('TRANSFER');
+    expect(positionEventKind(event('2025-01-01', 'DIVIDEND', 1))).toBe('INCOME');
+    expect(positionEventKind(event('2025-01-01', 'FINANCE_COST', 1))).toBe('FINANCE_COST');
+  });
+
+  it('groups the events of one kind per day and keeps every event in the hover', () => {
+    const traces = positionEventTraces(
+      [
+        event('2025-02-01', 'DIVIDEND', 5),
+        event('2025-01-02', 'ACCUMULATE', 100),
+        event('2025-01-02', 'ACCUMULATE', 200),
+        event('2025-01-05', 'REDUCE', 150)
+      ],
+      labels
+    );
+    expect(traces.map((t) => t.name)).toEqual(['Buy', 'Sell', 'Income']);
+    expect(traces[0].x).toEqual(['2025-01-02']);
+    expect(traces[0].text).toEqual(['B']);
+    expect(traces[0].hovertext).toEqual(['2025-01-02 Buy<br>10:100<br>10:200']);
+    expect(traces[1].x).toEqual(['2025-01-05']);
+    expect(traces[2].x).toEqual(['2025-02-01']);
   });
 });

@@ -368,6 +368,17 @@ table th input {
   border: 2px solid darkgray;
 }
 
+/* A column of the two-column expanded row that stacks several boxes, like .leftRight2Table without its border. */
+.leftRight2Column {
+  float: left;
+  min-width: 300px;
+  width: 50%;
+}
+
+.nestedTableBorder {
+  border: 2px solid darkgray;
+}
+
 /**
 * Grid
 */

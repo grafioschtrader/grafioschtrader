@@ -1,5 +1,8 @@
 import { Securitycurrency } from '../../entities/securitycurrency';
-import { DestroyRef, inject } from '@angular/core';
+import { DestroyRef, effect, inject, input, untracked } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { Portfolio } from '../../entities/portfolio';
+import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
 import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
 import { Component, OnDestroy, OnInit } from '@angular/core';
@@ -43,11 +46,14 @@ import { NgxFileDropModule } from 'ngx-file-drop';
 /**
  * It groups asset classes of securities and includes balance of cash accounts as an asset class.
  *
- * Selecting one of the rule based trading strategies turns the same report into an allocation comparison: the
+ * The report serves the tab of the client and the tab of a single portfolio. The route of the portfolio supplies its id;
+ * the report is then limited to the securities and cash accounts of that portfolio and valued in its currency.
+ *
+ * Selecting one of the rule based trading strategies turns the report of the client into an allocation comparison: the
  * positions are then grouped by the buckets of that strategy, and target share, actual share, deviation and the
  * recommended action are shown per instrument, per bucket and for the book as a whole. Without a selection the report
  * is exactly what it was before, which is why the strategy is a selection on this report rather than a report of its
- * own.
+ * own. A strategy compares the holdings of the whole client, so the portfolio tab does not offer it.
  */
 @Component({
   templateUrl: '../../securityaccount/view/securityaccount.table.html',
@@ -68,19 +74,27 @@ import { NgxFileDropModule } from 'ngx-file-drop';
   ]
 })
 export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable implements OnInit, OnDestroy {
+  /** Portfolio of the route; absent for the tab of the client. */
+  readonly id = input<number | null, unknown>(null, {
+    transform: (value: unknown) => (value == null || value === '' ? null : Number(value))
+  });
+
   private parentChildRegisterService: ParentChildRegisterService = inject(ParentChildRegisterService);
   private algoTopService: AlgoTopService = inject(AlgoTopService);
+  private treeNavState: TreeNavigationStateService = inject(TreeNavigationStateService);
 
   private statementReports = inject(PerformanceReportDialogService);
   private reportDestroyRef = inject(DestroyRef);
   private tenantHoldingsChartService = inject(TenantHoldingsChartService);
+  private readonly reportGroup = 'assetclasstypewithcash';
+  private readSubscription?: Subscription;
 
   override getMenuShowOptionsParam(selected: Securitycurrency) {
     return [
       ...(super.getMenuShowOptionsParam(selected) || []),
       this.statementReports.menu(
         () => this.untilDate,
-        () => null,
+        () => this.idPortfolio ?? null,
         this.reportDestroyRef
       )
     ];
@@ -90,6 +104,19 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     super();
     this.securityaccountGroupBase = new SecurityaccountAssetclassCategortypeGroup(this.translateService, this);
     this.createColumns();
+
+    // A reused portfolio route changes only its id, which must load the report of the other portfolio.
+    effect(() => {
+      const id = this.id();
+      untracked(() => {
+        this.idPortfolio = id ?? undefined;
+        this.portfolio =
+          id == null
+            ? undefined
+            : (this.treeNavState.getEntity<Portfolio>(AppSettings.DEPOT_CASH_KEY, id) ?? undefined);
+        this.readData();
+      });
+    });
   }
 
   ngOnInit() {
@@ -98,26 +125,38 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
       this.notifyViewChanged();
     });
     this.parentChildRegisterService.initRegistry();
-    this.loadAlgoTopOptions();
-    this.preselectAlgoTop();
-    this.readData();
+    if (this.id() == null) {
+      this.loadAlgoTopOptions();
+      this.preselectAlgoTop();
+    }
     this.onComponentClick(null);
   }
 
   readData(): void {
     this.selectedSecurityPositionSummary = null;
-    const observable = this.selectedIdAlgoTop
-      ? this.securityaccountService.getRebalancingSummaryTenant(
-          this.selectedIdAlgoTop,
-          this.includeClosedPosition,
-          this.untilDate
-        )
-      : this.securityaccountService.getSecurityPositionSummaryTenant(
-          'assetclasstypewithcash',
-          this.includeClosedPosition,
-          this.untilDate
-        );
-    observable.subscribe((data: SecurityPositionGrandSummary) => {
+    const idPortfolio = this.idPortfolio;
+    const observable =
+      idPortfolio != null
+        ? this.securityaccountService.getSecurityPositionSummaryPortfolio(
+            idPortfolio,
+            this.reportGroup,
+            this.includeClosedPosition,
+            this.untilDate
+          )
+        : this.selectedIdAlgoTop
+          ? this.securityaccountService.getRebalancingSummaryTenant(
+              this.selectedIdAlgoTop,
+              this.includeClosedPosition,
+              this.untilDate
+            )
+          : this.securityaccountService.getSecurityPositionSummaryTenant(
+              this.reportGroup,
+              this.includeClosedPosition,
+              this.untilDate
+            );
+    // A newer read replaces a pending one, so a slow answer for the previous portfolio or date cannot overwrite it.
+    this.readSubscription?.unsubscribe();
+    this.readSubscription = observable.subscribe((data: SecurityPositionGrandSummary) => {
       this.getDataToView(data);
       this.initTableTextTranslation();
       if (this.selectedIdAlgoTop) {
@@ -145,6 +184,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
   }
 
   ngOnDestroy(): void {
+    this.readSubscription?.unsubscribe();
     super.destroy();
   }
 
@@ -178,8 +218,12 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     }
   }
 
+  /** The portfolio tab names its portfolio, which also labels the root of the holdings treemap. */
   protected override getTitleChart(): string | undefined {
-    return this.translatedTitle;
+    const portfolioName = this.portfolio?.name;
+    return this.translatedTitle != null && portfolioName
+      ? `${this.translatedTitle}: ${portfolioName}`
+      : this.translatedTitle;
   }
 
   /**
@@ -215,10 +259,15 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     return AppSettings.DEPOT_CASH_KEY;
   }
 
-  protected extendTransactionParamData(transactionCallParam: TransactionCallParam): void {}
+  /** On the portfolio tab a new transaction stays in that portfolio. */
+  protected extendTransactionParamData(transactionCallParam: TransactionCallParam): void {
+    if (this.portfolio) {
+      transactionCallParam.portfolio = this.portfolio;
+    }
+  }
 
   protected getOptionalParameters(): OptionalParameters | null {
-    return null;
+    return this.idPortfolio == null ? null : { idPortfolio: this.idPortfolio };
   }
 
   /**

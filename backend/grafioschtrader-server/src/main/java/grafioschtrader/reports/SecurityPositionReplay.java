@@ -60,19 +60,49 @@ public class SecurityPositionReplay {
       final BiConsumer<Transaction, Map<Integer, List<Securitysplit>>> splitObserver,
       final BiConsumer<Transaction, SecurityPositionSummary> positionObserver) {
     for (Securityaccount securityaccount : securityaccounts) {
-      final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
-          .getSecuritysplitMapByIdSecuritycashaccount(securityaccount.getIdSecuritycashAccount());
-      for (final Transaction transaction : SecurityCalcService
-          .sortForCalculation(securityaccount.getSecurityTransactionList())) {
-        if (transaction.getSecurity() != null && include.test(transaction)) {
-          securityCalcService.calcSingleSecurityTransaction(transaction, summarySecurityMap, securitysplitMap,
-              excludeDivTaxcost, dateCurrencyMap, costBasisMethods);
-          if (splitObserver != null) {
-            splitObserver.accept(transaction, securitysplitMap);
-          }
-          if (positionObserver != null) {
-            positionObserver.accept(transaction, summarySecurityMap.get(transaction.getSecurity()));
-          }
+      walk(securityaccount.getIdSecuritycashAccount(), securityaccount.getSecurityTransactionList(),
+          summarySecurityMap, excludeDivTaxcost, dateCurrencyMap, costBasisMethods, include, splitObserver,
+          positionObserver);
+    }
+  }
+
+  /**
+   * Processes the given transactions of one security account, for a caller that loaded only the transactions it
+   * needs, for example those of one security, instead of the account's whole transaction list.
+   *
+   * @param idSecuritycashAccount the security account the transactions belong to; its splits are loaded
+   * @param transactions          transactions of that account, in any order
+   * @param summarySecurityMap    receives one summary per security; may already hold summaries to continue
+   * @param excludeDivTaxcost     if true, tax withholdings of income are not deducted
+   * @param dateCurrencyMap       currency context supplying the rate of each transaction
+   * @param costBasisMethods      the cost basis methods of the report
+   * @param positionObserver      called after each processed transaction with the summary of its security, may be null
+   */
+  public void replayAccount(final Integer idSecuritycashAccount, final List<Transaction> transactions,
+      final Map<Security, SecurityPositionSummary> summarySecurityMap, final boolean excludeDivTaxcost,
+      final DateTransactionCurrencypairMap dateCurrencyMap, final CostBasisMethods costBasisMethods,
+      final BiConsumer<Transaction, SecurityPositionSummary> positionObserver) {
+    walk(idSecuritycashAccount, transactions, summarySecurityMap, excludeDivTaxcost, dateCurrencyMap,
+        costBasisMethods, _ -> true, null, positionObserver);
+  }
+
+  private void walk(final Integer idSecuritycashAccount, final List<Transaction> transactions,
+      final Map<Security, SecurityPositionSummary> summarySecurityMap, final boolean excludeDivTaxcost,
+      final DateTransactionCurrencypairMap dateCurrencyMap, final CostBasisMethods costBasisMethods,
+      final Predicate<Transaction> include,
+      final BiConsumer<Transaction, Map<Integer, List<Securitysplit>>> splitObserver,
+      final BiConsumer<Transaction, SecurityPositionSummary> positionObserver) {
+    final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
+        .getSecuritysplitMapByIdSecuritycashaccount(idSecuritycashAccount);
+    for (final Transaction transaction : SecurityCalcService.sortForCalculation(transactions)) {
+      if (transaction.getSecurity() != null && include.test(transaction)) {
+        securityCalcService.calcSingleSecurityTransaction(transaction, summarySecurityMap, securitysplitMap,
+            excludeDivTaxcost, dateCurrencyMap, costBasisMethods);
+        if (splitObserver != null) {
+          splitObserver.accept(transaction, securitysplitMap);
+        }
+        if (positionObserver != null) {
+          positionObserver.accept(transaction, summarySecurityMap.get(transaction.getSecurity()));
         }
       }
     }

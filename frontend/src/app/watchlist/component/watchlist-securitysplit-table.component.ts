@@ -40,6 +40,7 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
     });
     this.addColumnFeqH(DataType.NumericInteger, 'fromFactor', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'toFactor', true, false);
+    this.tableClass = 'datatable nestedtable nestedTableBorder';
     this.prepareTableAndTranslate();
   }
 

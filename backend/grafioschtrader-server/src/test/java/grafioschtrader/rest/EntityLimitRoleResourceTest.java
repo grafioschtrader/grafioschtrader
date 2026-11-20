@@ -32,7 +32,7 @@ import grafiosch.types.LimitType;
 import grafiosch.types.OwnerScope;
 
 /**
- * Creates the integration-owned role limits from the fixture shared with Playwright spec 190.
+ * Creates the integration-owned role limits from the fixture shared with Playwright spec 385.
  *
  * <p>
  * This class deliberately runs at the end of {@link ResourceTestSuite_25}: the migration owns only the mandatory MAX

@@ -58,6 +58,13 @@ export class TimeSeriesQuotesService {
       command: (e) => this.showEodChartTable(AppSettings.TIME_SERIE_QUOTES, false),
       disabled: !isTimeSeriesShown
     });
+    if (currencySecurity) {
+      // Securities only, also those without market value, which are valued with their period prices.
+      menuItems.push({
+        label: 'SECURITY_POSITION_CHART',
+        command: (e) => this.showEodChartTable(AppSettings.SECURITY_POSITION_CHART, true)
+      });
+    }
     if (!this.optionalParameters.noMarketValue) {
       menuItems.push({
         label: 'HISTORY_QUOTES_TABLE',
@@ -89,6 +96,18 @@ export class TimeSeriesQuotesService {
     return routeUrlComponents?.[1] === AppSettings.TIME_SERIE_QUOTES;
   }
 
+  /**
+   * Opens the price chart or the security position chart of one security in the lower display area with the scope
+   * the calling chart was opened with, so the two charts lead to each other without returning to the list.
+   *
+   * @param routeKey - AppSettings.TIME_SERIE_QUOTES or AppSettings.SECURITY_POSITION_CHART
+   * @param param - The security and its scope
+   */
+  showChartOfSecurity(routeKey: string, param: TimeSeriesParam): void {
+    this.timeSeriesParams = [param];
+    this.navigateToRoute(routeKey);
+  }
+
   private showEodChartTable(routeKey: string, initializeTimeSeriesParam: boolean): void {
     if (initializeTimeSeriesParam) {
       this.timeSeriesParams = [];
@@ -101,6 +120,10 @@ export class TimeSeriesQuotesService {
         this.optionalParameters.idSecurityaccount
       )
     );
+    this.navigateToRoute(routeKey);
+  }
+
+  private navigateToRoute(routeKey: string): void {
     this.router.navigate([
       BaseSettings.MAINVIEW_KEY + '/',
       {

@@ -105,3 +105,4 @@ GERMAN_TAX_COL_STATUS
 GERMAN_TAX_COL_DETAIL
 # Proper noun: "Portfolio" is also the German word.
 gt.report.chart.scope.portfolio
+POSITION_EVENT_LETTER_FINANCE_COST

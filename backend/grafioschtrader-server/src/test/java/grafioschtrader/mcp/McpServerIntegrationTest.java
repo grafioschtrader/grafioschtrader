@@ -56,7 +56,7 @@ import tools.jackson.databind.json.JsonMapper;
  * reports of the user interface, ownership checks, the reproducible running sum and the atomic daily budget.
  *
  * <p>
- * It reads the portfolios that Playwright spec 025 created for alledit in {@code grafioschtrader_t}, so it runs inside
+ * It reads the portfolios that Playwright spec 055 created for alledit in {@code grafioschtrader_t}, so it runs inside
  * {@code ResourceTestSuite_50} and fails standalone. alledit has no transactions yet at that point, so the running sum is
  * checked on a series the test books itself. It opens the server through the global parameter {@code gt.mcp.use} for
  * its run and closes it again, and it cleans up the tokens, the bookings and the budget row it writes.
@@ -220,7 +220,7 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
           ON s.id_securitycash_account = c.id_securitycash_account JOIN portfolio p ON p.id_portfolio = s.id_portfolio
           WHERE p.id_tenant = (SELECT id_tenant FROM user WHERE id_user = ?) AND c.currency = 'CHF'""", Integer.class,
         idUserAlledit);
-    assertThat(idCashaccount).as("a CHF cash account of the portfolios Playwright spec 025 created").isNotNull();
+    assertThat(idCashaccount).as("a CHF cash account of the portfolios Playwright spec 055 created").isNotNull();
     bookRunningSumSeries(idCashaccount);
     Integer count = jdbcTemplate.queryForObject(
         "SELECT COUNT(*) FROM transaction WHERE id_cash_account = ? AND YEAR(transaction_time) = ?", Integer.class,

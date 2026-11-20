@@ -4,9 +4,9 @@ Application artifacts go to `frontend/test-results`, library artifacts to `front
 directories distinct when running the stacks in parallel: Playwright clears its output directory before each run,
 which would otherwise delete live traces of the other stack and cause `ENOENT` errors during context cleanup.
 
-## Signal dynamic form dialogs (151-*)
+## Signal dynamic form dialogs (335-*)
 
-`151-signal-form-dialogs.spec.ts` exercises the shared signal form through application dialogs: the general UDF
+`335-signal-form-dialogs.spec.ts` exercises the shared signal form through application dialogs: the general UDF
 editor's grouped validation and fixed-size transfer, the asset-class editor's suggestions and three audit modes,
 GTNet fieldsets and numeric/text constraints, file selection and upload retry, invalid calendar input and instrument
 lookup in the bankrupt-security editor, connector inclusion/exclusion trees, and the securities-account tri-state
@@ -18,13 +18,13 @@ The CSV scenario uses `limit1`'s existing Migros account with a browser-local im
 CSV template and checks that its disabled selector still transfers the template id into the multipart upload. Its
 upload response is intercepted, so it neither deletes nor creates any existing imported transactions.
 
-Run with `npx playwright test e2e/151-signal-form-dialogs.spec.ts --project=grafioschtrader-e2e --no-deps`.
+Run with `npx playwright test e2e/335-signal-form-dialogs.spec.ts --project=grafioschtrader-e2e --no-deps`.
 The shared general-UDF editor also runs in `lib/039-udf-metadata-notification.spec.ts`; its locked field-size draft is
 retained until re-enabled and cleared only when a fixed-size type is saved.
 
-## Master-data dialog notification (037-*)
+## Master-data dialog notification (080-*)
 
-`037-master-data-dialog-notification.spec.ts` opens the trading-platform-plan, asset-class and stock-exchange
+`080-master-data-dialog-notification.spec.ts` opens the trading-platform-plan, asset-class and stock-exchange
 dialogs as `alledit`. It holds back real option responses, checks that drafts survive loading, closes a dialog
 while a mapping is pending, repeats opening and reopens existing rows. The stock-exchange scenario delivers an
 obsolete country-index answer after the newer one, checks index/rule-set exclusion and selects then clears a MIC.
@@ -39,8 +39,8 @@ The security-UDF scenario exercises the same category/instrument base with multi
 scenario creates, renames and deletes its own plan with delayed table responses; it checks retained selection,
 main-menu editing and repeated fee-model dialog opening. It deletes leftovers of its own two plan names before
 each run. The remaining dialog scenarios save nothing, and existing shared fixtures are preserved. It requires the fixture logins and the
-Saxo Trader plan from 015, stock exchanges and US reference indices, plus at least one trading-calendar rule set.
-The add-only plan check in 015 waits for rendered rows and tolerates whitespace around the translated name, so a
+Saxo Trader plan from 045, stock exchanges and US reference indices, plus at least one trading-calendar rule set.
+The add-only plan check in 045 waits for rendered rows and tolerates whitespace around the translated name, so a
 rerun recognizes the existing fixture instead of creating a duplicate.
 
 The asset-class and stock-exchange table scenarios create, rename and delete their own rows, delay table and
@@ -52,11 +52,11 @@ The platform-plan table scenario checks visible CRUD and menu behavior. Closing 
 disposal issue is outside the table notification assertions.
 
 Run it with
-`npx playwright test e2e/037-master-data-dialog-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/080-master-data-dialog-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Stock-exchange calendar notification (056-*)
+## Stock-exchange calendar notification (120-*)
 
-`056-stockexchange-calendar-notification.spec.ts` expands the SIX (`XSWX`) calendar below its OnPush stock-exchange
+`120-stockexchange-calendar-notification.spec.ts` expands the SIX (`XSWX`) calendar below its OnPush stock-exchange
 table as `alledit`. It delays real calendar responses, supersedes an old year request, collapses a calendar during
 loading, checks the marking-style menu and verifies that calendar clicks keep the calendar's own menu active.
 The copy scenario creates two dedicated exchanges, copies a single year and the full calendar, retries a transport
@@ -64,43 +64,43 @@ failure and closes/reopens a dialog while a copy response is pending. It removes
 calendar rows at startup and in a final cleanup; shared exchange calendars are never changed. The missing-quote
 calendar uses response fixtures from `testdata/missing-quote-calendar.json` to check a tenant without holdings and
 shared year navigation with holdings but no quote gaps. These responses are delayed and independent of transactions
-created later in the roundtrip or quote downloads. The spec runs after `ResourceTestSuite_50` and 055, which
+created later in the roundtrip or quote downloads. The spec runs after `ResourceTestSuite_50` and 115, which
 populate the global trading days.
 
 Run it with
-`npx playwright test e2e/056-stockexchange-calendar-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/120-stockexchange-calendar-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Fee-model notification (038-*)
+## Fee-model notification (085-*)
 
-`038-fee-model-notification.spec.ts` opens the fee editor from the Saxo Trader plan and from an `alledit`
+`085-fee-model-notification.spec.ts` opens the fee editor from the Saxo Trader plan and from an `alledit`
 securities-account tree node. It holds back real option and estimation responses, checks that drafts survive
 option loading, verifies commission and FX results without an extra UI event, delivers an obsolete FX answer
 after the newer result, exercises transport failure and recovery, and closes with a request pending before
-reopening. It uses the plans and accounts created by 015/025 and persists no changes to their YAML or accounts.
+reopening. It uses the plans and accounts created by 045/055 and persists no changes to their YAML or accounts.
 
 Run it with
-`npx playwright test e2e/038-fee-model-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/085-fee-model-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Tenant analysis tables (245-*)
+## Tenant analysis tables (455-*)
 
-`245-tenant-analysis-tables.spec.ts` covers the fee-comparison and FX-observation child tables
+`455-tenant-analysis-tables.spec.ts` covers the fee-comparison and FX-observation child tables
 (`FeeModelComparisonTableComponent`, `FxObservationTableComponent`) with controlled HTTP responses from
 `tenant-analysis.helpers.ts`. It verifies initial and interactive sorting, translated transaction filters,
 recalculation after toggling zero costs, replacement of data and filter options on account changes, translated FX
 kinds, small-sample hints and clearing the selected account while tenant-wide transfers remain visible. The spec uses
 the real login (`alledit`) and NLS bundles but creates no portfolio, account or transaction, so it depends on no other
 spec and needs no cleanup. Run with
-`npx playwright test e2e/245-tenant-analysis-tables.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/455-tenant-analysis-tables.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Tenant view notification (246-* and 247-*)
+## Tenant view notification (460-* and 465-*)
 
-`246-tenant-notification.spec.ts` checks delayed dividend reports, expanded security/cash account tables, applying
+`460-tenant-notification.spec.ts` checks delayed dividend reports, expanded security/cash account tables, applying
 the account-selection dialog, fee-comparison summaries and FX rows, regrouping the cash summary, transaction costs
 and changing the year of the missing-EOD calendar. `tenant-notification.helpers.ts` holds controlled responses until
 the view is ready. The fee scenario also waits for the independent FX response before releasing the comparison;
 removing the host's eager strategy without adding notifications leaves those FX rows empty.
 
-`247-tenant-chart-notification.spec.ts` checks a delayed income chart, a year without distributions, switching back
+`465-tenant-chart-notification.spec.ts` checks a delayed income chart, a year without distributions, switching back
 to an aggregate chart, and the holdings chart's empty-treemap hint and subsequent asset-class chart. Both files use
 real login and translations as `alledit`, intercept only report reads and create no database records. The holdings
 report remains eager because its shared securities-account base and template require a separate conversion.
@@ -108,9 +108,9 @@ report remains eager because its shared securities-account base and template req
 Run each file separately with `--project=grafioschtrader-e2e --no-deps` against the verified test stack. They need no
 portfolio or transaction fixtures from earlier browser specs.
 
-## Performance-period notification (249-*)
+## Performance-period notification (475-*)
 
-`249-performance-notification.spec.ts` uses controlled valuation responses from `performance-notification.helpers.ts`.
+`475-performance-notification.spec.ts` uses controlled valuation responses from `performance-notification.helpers.ts`.
 It checks a tenant without holdings, delayed initial date bounds, loading completion, first/last/difference cards,
 translated metrics and expanded tree rows, and replacement of year/month columns by week/day columns. Its PDF-dialog
 scenario delays real report metadata, selects the transaction section, checks download failure and a successful
@@ -122,12 +122,12 @@ eager strategy removed but its old plain result/loading fields retained: the loa
 the held response. For the pre-conversion baseline, the tenant tab hosts also need their original eager strategy;
 an eager calculation below the converted OnPush tab hosts already exposes the missing notification.
 
-Run with `npx playwright test e2e/249-performance-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+Run with `npx playwright test e2e/475-performance-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 The spec creates no database rows and requires no earlier portfolio/transaction fixture.
 
-## Language-model keys (240-*)
+## Language-model keys (450-*)
 
-`240-ai-providers.spec.ts` drives Settings → Language-model keys as `e2euser`: `TenantAIProviderDialogComponent`,
+`450-ai-providers.spec.ts` drives Settings → Language-model keys as `e2euser`: `TenantAIProviderDialogComponent`,
 its table and the edit dialog `TenantAIProviderEditComponent`. All three run with the `OnPush` default, so the spec
 waits on what only an asynchronous answer puts on screen — the provider options, the model placeholder of the chosen
 provider, the submit button re-enabled after the server rejects the model name, the table and its selection buttons
@@ -138,11 +138,11 @@ The spec owns the Anthropic and OpenAI rows of `e2euser`'s tenant and deletes th
 presses "Test key", which would send the fake key to the provider. Two traps: the edit dialog is appended to the body,
 so it is found by its key hint, not inside `tenant-ai-provider-edit`; and reloading after a save keeps the row
 selected, so a second click on it would deselect it. Run with
-`npx playwright test e2e/240-ai-providers.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/450-ai-providers.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Personal MCP access tokens (250-*)
+## Personal MCP access tokens (480-*)
 
-`250-mcp-access-token.spec.ts` drives Settings → AI assistants (MCP) as `e2euser`, against the real test backend.
+`480-mcp-access-token.spec.ts` drives Settings → AI assistants (MCP) as `e2euser`, against the real test backend.
 Its two scenarios create the named tokens in `testdata/mcp-access-tokens.json` through
 `UserAccessTokenCreateDialogComponent`. They check required/range validation, persisted name/scope/lifetime, the
 one-time clear-text display, copying the exact token to the browser clipboard or closing without copying, reopening
@@ -157,13 +157,13 @@ are disabled for this file, and assertions avoid printing generated credentials.
 The spec skips only when the login's `useFeatures` lacks `MCP`, matching the settings menu's feature gate. For a full
 run the test instance must have MCP deployed and the administrator must have opened it with `gt.mcp.use=1`; the spec
 does not change that setting. It needs only the registered fixture user and home tenant, and no earlier form spec.
-The number 250 places it after the existing settings-dialog tests. This spec changes only personal tokens; the four
+The number 480 places it after the existing settings-dialog tests. This spec changes only personal tokens; the four
 token/OAuth dialog components use Angular's `OnPush` default.
 
 Run against verified test services with
-`npx playwright test e2e/250-mcp-access-token.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/480-mcp-access-token.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-`251-access-token-notification.spec.ts` and `lib/043-access-token-notification.spec.ts` run the eight shared scenarios in
+`485-access-token-notification.spec.ts` and `lib/043-access-token-notification.spec.ts` run the eight shared scenarios in
 `lib/access-token.scenarios.ts` against Grafioschtrader and the zoneless reference host. The reference host exposes the
 portable dialog through Settings → Personal access tokens; it has no MCP endpoint. These scenarios use real login,
 translations and form definitions, but intercept all personal-token/OAuth requests and writes with a fresh page-local
@@ -174,13 +174,13 @@ real token or authorization. A cancelled creation response does not imply backen
 the server is listed when the management dialog is reopened, without its clear text.
 
 OAuth consent, code exchange and real authorization revocation remain outside these notification scenarios. Real
-personal-token persistence and authentication remain covered by 250. Run the notification files with `--no-deps`, using
-`--project=grafioschtrader-e2e` for 251 and `--config=playwright.lib.config.ts --project=lib-e2e` for lib/043. Like 250,
+personal-token persistence and authentication remain covered by 480. Run the notification files with `--no-deps`, using
+`--project=grafioschtrader-e2e` for 485 and `--config=playwright.lib.config.ts --project=lib-e2e` for lib/043. Like 480,
 the Grafioschtrader file skips when MCP is disabled; the library file needs no MCP deployment.
 
-## Period performance per security (253-*)
+## Period performance per security (495-*)
 
-`253-security-period-performance.spec.ts` opens the tab "Performance by security" / "Ertrag je Wertpapier" as
+`495-security-period-performance.spec.ts` opens the tab "Performance by security" / "Ertrag je Wertpapier" as
 `alledit`, beside the period performance of the client and in a portfolio. The trading days (`performanceDates` of
 `performance-notification.helpers.ts`) and the calculation are served by `page.route`, so the spec creates no data and
 needs no security transaction in `grafioschtrader_t`; it reads only the first portfolio of `alledit` and skips the
@@ -193,21 +193,21 @@ drawn points and the note on the security left out and clicks the first point; a
 to the treemap it clicks the tile of a second security. Each click expands a row and therefore requests the
 transactions of that security, which the spec aborts.
 
-Run with `npx playwright test e2e/253-security-period-performance.spec.ts --project=grafioschtrader-e2e --no-deps`.
+Run with `npx playwright test e2e/495-security-period-performance.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## MCP OAuth consent notification (255-*)
+## MCP OAuth consent notification (500-*)
 
-`255-mcp-oauth-consent-notification.spec.ts` opens the consent page `/oauth/authorize` an MCP client sends the user
+`500-mcp-oauth-consent-notification.spec.ts` opens the consent page `/oauth/authorize` an MCP client sends the user
 to, logged in as `alledit`. The validation and consent endpoints answer from the spec after a held delay: the page
 first shows the checking text, then the consent question with client name and host, disables both buttons while a
 decision is pending and enables them again after a refused consent; a 404 validation shows the "not enabled" reason.
 Every request is held, because the page is loaded a second time after the login redirect. The spec needs no
 registered client and creates no authorization. Run with
-`npx playwright test e2e/255-mcp-oauth-consent-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/500-mcp-oauth-consent-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## HTTP authentication (235-* and lib/005-*)
+## HTTP authentication (445-* and lib/005-*)
 
-`235-auth-http-interceptor.spec.ts` and `lib/005-auth-http-interceptor.spec.ts` run the shared scenarios in
+`445-auth-http-interceptor.spec.ts` and `lib/005-auth-http-interceptor.spec.ts` run the shared scenarios in
 `lib/auth-http-interceptor.scenarios.ts` against each host. They cover registration and token verification,
 authenticated JSON create/update/delete, login with a stale session token, public metadata reads, a download,
 the multipart boundary of an upload, and one toast per failed request including both logout error classes.
@@ -221,25 +221,25 @@ so it exercises the real validation failure without importing or replacing any G
 Run each file separately with `--no-deps` against its `e2e` stack. For an isolated application stack, set both
 `E2E_BACKEND_URL` and `E2E_FRONTEND_URL` and configure that frontend's proxy to target the test backend.
 
-## Public route inputs (004-*)
+## Public route inputs (015-*)
 
-`004-route-inputs.spec.ts` and `lib/004-route-inputs.spec.ts` share `lib/route-input.scenarios.ts`. They check
+`015-route-inputs.spec.ts` and `lib/004-route-inputs.spec.ts` share `lib/route-input.scenarios.ts`. They check
 registration feedback from query and matrix parameters, clearing that feedback when returning through the registration
 page, and the invalid-token redirect from `/tokenverify?token=…`. They create no users, tokens or other records.
 
-## Watchlist indicators (230-*)
+## Watchlist indicators (440-*)
 
-`230-watchlist-indicators.spec.ts` uses the `alledit` account, an owned `Indicator E2E` watchlist and the definitions in
+`440-watchlist-indicators.spec.ts` uses the `alledit` account, an owned `Indicator E2E` watchlist and the definitions in
 `testdata/watchlist-indicators.json`. It removes only its prefixed columns and watchlist at the start and after success,
 then exercises the real column editor, numeric/boolean presentation, the watchlist selection, a column shown only in
 the expanded row (grouped as a fundamental indicator) and missing-data cells. Existing
 USD/CHF and EUR/CHF instruments are only associated with this watchlist, never edited or deleted. Both the backend and
 frontend proxy must report `grafioschtrader_t` with profile `e2e`. Run with
-`npx playwright test e2e/230-watchlist-indicators.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/440-watchlist-indicators.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Dashboard (225-*)
+## Dashboard (435-*)
 
-`225-dashboard.spec.ts` exercises the real dashboard catalogue, configuration forms and persistence for the existing
+`435-dashboard.spec.ts` exercises the real dashboard catalogue, configuration forms and persistence for the existing
 `admin`, `alledit`, `user` and `limit1` accounts from `testdata/users.json`. Admin sees seven widgets; the other roles
 see six and cannot add `USER_LIMIT_REQUESTS`, including through a forged REST save. `ALGO_MONITORING` is present
 because the `e2e` profile enables the ALGO feature; it declares no settings, so its card has no Configure button and
@@ -266,16 +266,16 @@ Before login, the spec checks both the backend URL and the frontend's proxied `/
 
 ```bash
 cd frontend
-npx playwright test e2e/225-dashboard.spec.ts --project=grafioschtrader-e2e --no-deps
+npx playwright test e2e/435-dashboard.spec.ts --project=grafioschtrader-e2e --no-deps
 ```
 
 For an isolated stack, set `E2E_BACKEND_URL` and `E2E_FRONTEND_URL` to its respective URLs and point that frontend's
 proxy at the test backend. The URL overrides alone do not change the proxy. The production stack must remain
 untouched. Run the spec a second time to verify cleanup and repeatability; the full roundtrip is not required.
 
-## Alert diagnostics (200-*)
+## Alert diagnostics (400-*)
 
-`200-alert-diagnostics.spec.ts` checks the Evaluation, Trading decisions and Notifications tabs, missing-data diagnostics,
+`400-alert-diagnostics.spec.ts` checks the Evaluation, Trading decisions and Notifications tabs, missing-data diagnostics,
 row selection and explicit retry. It uses the `alledit` fixture login and deterministic intercepted alert
 responses, creates no records and sends no messages. It refuses to log in unless `/api/gtinfo` reports
 `grafioschtrader_t`. The backend tests cover actual signal transactions, routing and delivery recovery.
@@ -283,11 +283,11 @@ Match translated diagnostics by cell role and accessible name: an anchored `getB
 whitespace around Angular's interpolated text.
 
 Run against the test services with
-`npx playwright test e2e/200-alert-diagnostics.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/400-alert-diagnostics.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Algo notification (201-*)
+## Algo notification (405-*)
 
-`201-algo-notification.spec.ts` checks delayed hierarchy creation, dynamic class and security forms, follow-on
+`405-algo-notification.spec.ts` checks delayed hierarchy creation, dynamic class and security forms, follow-on
 instrument search, strategy schemas, manual allocation rows and portfolio generation. It holds real responses so
 the forms must render after HTTP completion. Switching back to a cached strategy while another schema is pending
 must retain the selected form. Deterministic intercepted alert responses cover delayed standalone rows, the dormant
@@ -301,7 +301,7 @@ The spec owns the `Algo signals e2e` watchlist and hierarchy and removes them be
 It requires `/api/gtinfo` to identify the `e2e` profile and `grafioschtrader_t`.
 
 Run against the active test services with
-`npx playwright test e2e/201-algo-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/405-algo-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## One-command run
 
@@ -314,15 +314,15 @@ documented in the header of `scripts/e2e-test.mjs`.
 The application roundtrip alternates its data-producing suites at the Playwright numbering boundary:
 
 1. `ResourceTestSuite_1` (all early REST fixtures, deliberately excluding `PortfolioResourceTest`)
-2. Playwright specs `005` through `020`, including trading-platform-plan creation in `015`
+2. Playwright specs `005` through `050`, including trading-platform-plan creation in `045`
 3. `ResourceTestSuite_25` (`PortfolioResourceTest`, watchlists, and task data)
-4. Playwright specs `025` through `045`, including USD/CHF initialization in `045`
+4. Playwright specs `055` through `095`, including USD/CHF initialization in `095`
 5. `ResourceTestSuite_50` (`TradingDaysPlusResourceTest` creates the global trading calendar through next year;
    `TransactionResourceTest` consumes the initialized currency pair)
-6. Playwright specs `050` through `888` (`auth.setup.ts` is not repeated)
+6. Playwright specs `100` through `888` (`auth.setup.ts` is not repeated)
 
-This ordering lets an integration portfolio consume a plan created by `015`, while everything required by
-Playwright `025` is present before that spec starts. It also prevents an integration transfer from creating USD/CHF
+This ordering lets an integration portfolio consume a plan created by `045`, while everything required by
+Playwright `055` is present before that spec starts. It also prevents an integration transfer from creating USD/CHF
 on demand while its transaction is being saved. The three JUnit phases remain directly runnable with
 `-Dtest=ResourceTestSuite_1`, `-Dtest=ResourceTestSuite_25`, and `-Dtest=ResourceTestSuite_50` when reproducing a
 particular phase against the same database state.
@@ -366,25 +366,25 @@ Three rules from it are worth repeating here, because getting them wrong is sile
 - Reference rows by natural key (ISIN + currency, MIC, nickname, account name), never by id. Ids differ
   between databases.
 - Carry the `e2e` routing tag as the last field and filter on `'e'` in the spec, so the same file can
-  also feed a JUnit test filtering on `'i'`. `105-create-trading-calendar-rule-set.spec.ts` and
+  also feed a JUnit test filtering on `'i'`. `220-create-trading-calendar-rule-set.spec.ts` and
   `TradingCalendarRuleSetResourceTest` are the worked example of one file with both consumers.
 
-## Watchlist specs (040-* create / 844-* teardown)
+## Watchlist specs (090-* create / 844-* teardown)
 
-`248-watchlist-notification.spec.ts` creates its own `Watchlist OnPush e2e` through the tree dialog for `alledit`
+`470-watchlist-notification.spec.ts` creates its own `Watchlist OnPush e2e` through the tree dialog for `alledit`
 and `admin`, removes leftovers before each scenario and deletes it after success. It borrows Banco Santander by
 ISIN from the shared securities without editing that instrument. Held responses verify the search, price refresh,
 UDF tab and nested dividend/split tables without another view event; deterministic quotation and dividend/split
 values are browser-only responses. The spec also covers menu-bar dialog opening, the position caption, filter
 restoration across tabs, removing a filter through the settings dialog, expanded instrument information and the
 price-problem form's checkbox validation. Run it individually against the existing e2e services:
-`npx playwright test e2e/248-watchlist-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/470-watchlist-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 Use `watchlistTable(page)` from `watchlist.helpers.ts` to locate the watchlist table and its context-menu
 container. It is scoped to the shared watchlist view without depending on the sizing class (`data-container-full`).
 Other views still use `data-container`; do not replace that selector across the entire suite.
 
-`040-create-watchlist.spec.ts` creates every Playwright-owned watchlist before the currency-pair and
+`090-create-watchlist.spec.ts` creates every Playwright-owned watchlist before the currency-pair and
 security workflows run. `844-delete-watchlist.spec.ts` removes the watchlists whose fixture row has
 `delete=true`; it runs before the portfolio teardown in `888`. Both read the hand-authored JSON fixture
 `backend/grafioschtrader-server/src/test/resources/testdata/watchlists.json`. Rows tagged `e` belong to
@@ -392,28 +392,28 @@ Playwright; `i` is reserved for the backend integration tests. `instrumentE2E` c
 instruments when one layer creates the watchlist and the other populates it. Each row can list securities by
 ISIN/currency or exact name/currency and currency pairs by from/to currency. A `main=true` row is selected for
 performance calculations and becomes the tenant's `id_watchlist_performance`. An existing watchlist is accepted by
-040 and an already missing cleanup row is accepted by 844, so both specs can be rerun against the same database.
+090 and an already missing cleanup row is accepted by 844, so both specs can be rerun against the same database.
 
 The eight `alledit` watchlists (`Hauptliste`, `currencypair`, `Spain`, `Switzerland`, `Derived`, `Festgeld`, `_USA`,
 and `_Switzerland`) are retained; `Hauptliste` is the tenant's performance watchlist, while later workflows populate
-and reuse the other lists. Spec 040 also creates `_USA`, `_Switzerland`, `_Switzerland Bond`, and
+and reuse the other lists. Spec 090 also creates `_USA`, `_Switzerland`, `_Switzerland Bond`, and
 `_Schwellenländer Bond` for `admin`. For both German-language users it searches the existing-instrument dialog by
 localized subcategory (`Aktien USA`, `Aktien Schweiz`, `Anleihen Schweiz`, and `Anleihen Schwellenländer`), selects
 every remaining result, and verifies that the resulting watchlists contain only that subcategory. Because the search
 omits instruments already in a watchlist, completed and partially completed runs are safe to repeat. The retained `limit2`
-watchlist `Hauptliste` is also selected for performance calculations. After 065 creates the shared derived securities,
-`070-add-forex-to-performance-watchlist.spec.ts` searches for Name=`Forex` and adds the two exact fixture results to
+watchlist `Hauptliste` is also selected for performance calculations. After 155 creates the shared derived securities,
+`170-add-forex-to-performance-watchlist.spec.ts` searches for Name=`Forex` and adds the two exact fixture results to
 that list.
 
 `WatchlistResourceTest` creates and selects `limit1`'s `Hauptliste`, but its `instrumentE2E='e'` leaves the contents to
-070 because Repsol and Telefónica are created later by spec 050. The spec searches separately for ISIN
+170 because Repsol and Telefónica are created later by spec 100. The spec searches separately for ISIN
 `ES0173516115` and `ES0178430E18`, requires one exact ISIN/currency result, and adds both through the existing-instrument
-dialog. Both search modes retain existing rows and add only missing instruments, so 070 is safe to rerun. Specs 045,
-050, 060, 065, and 067 consume their `alledit` watchlists but do not create them.
+dialog. Both search modes retain existing rows and add only missing instruments, so 170 is safe to rerun. Specs 095,
+100, 135, 155, and 160 consume their `alledit` watchlists but do not create them.
 
-## Currency-pair creation spec (045-*)
+## Currency-pair creation spec (095-*)
 
-`045-create-currencypair.spec.ts` creates the rows tagged `e2e='e'` in
+`095-create-currencypair.spec.ts` creates the rows tagged `e2e='e'` in
 `backend/grafioschtrader-server/src/test/resources/testdata/currencypair.csv` and adds them to `alledit`'s retained
 `currencypair` watchlist. A rerun accepts an existing watchlist row; if the pair exists globally but is absent from
 the watchlist, the spec adds it through the existing-instrument dialog. Creation involves two sequential writes:
@@ -426,9 +426,9 @@ run `cd backend && mvn clean install -DskipTests`, and restart it with the `e2e`
 `target/classes`; avoid IDE rebuilds while the backend is running, since they can replace classes or remove
 compiler-generated companions that the running JVM still needs.
 
-## Security creation spec (050-*)
+## Security creation spec (100-*)
 
-`050-create-security.spec.ts` recreates the Spanish rows tagged `e2e='e'` in
+`100-create-security.spec.ts` recreates the Spanish rows tagged `e2e='e'` in
 `backend/grafioschtrader-server/src/test/resources/testdata/generated/securities.json`. The fixture is generated by
 `scripts/export-securities.mjs` from `backend/nv.bat`; it uses natural stock-exchange and asset-class keys plus REST
 enum names, and carries the history, intraday, dividend, and split connector settings. Database IDs, retry counters,
@@ -437,9 +437,9 @@ timestamps, prices, and GTNet runtime state are intentionally excluded.
 The spec adds only securities missing from the retained `Spain` watchlist, so it is repeatable against a populated
 test database. The same JSON file supplies the `e2e='i'` Austrian and Australian rows to `SecurityResourceTest`.
 
-## Security lookup spec (053-*)
+## Security lookup spec (105-*)
 
-`053-security-lookup.spec.ts` opens the security form from its own empty `Lookup OnPush e2e` watchlist as `alledit`.
+`105-security-lookup.spec.ts` opens the security form from its own empty `Lookup OnPush e2e` watchlist as `alledit`.
 It intercepts only `/api/securitylookup/lookup`, so provider availability does not influence the test. Switching
 between two listings must replace the listing hints and connector rows, reject a failed connector, disable the
 dividend feed for a non-distributing listing, and apply the independently chosen name to the unsaved security form.
@@ -447,11 +447,11 @@ These checks cover the three OnPush child tables of the lookup dialog.
 
 The spec deletes its own watchlist before and after the run; it never saves a security. It needs the Spanish direct
 investment asset class and Madrid exchange from the preceding master-data specs. Run with
-`npx playwright test e2e/053-security-lookup.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/105-security-lookup.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Instrument editor notification spec (054-*)
+## Instrument editor notification spec (110-*)
 
-`054-instrument-editor-notification.spec.ts` opens unsaved currency-pair, security and derived-instrument drafts
+`110-instrument-editor-notification.spec.ts` opens unsaved currency-pair, security and derived-instrument drafts
 from its own `Instrument OnPush e2e` watchlist as `alledit`. It holds real helper responses to verify cancellation
 when closing, reopening before an older response arrives, and preserving the newer draft. A failed helper request
 must show a toast and allow reopening. The remaining scenarios cover split and price-period add/edit/delete,
@@ -461,17 +461,17 @@ and repeated addition/removal of formula-driven instrument controls.
 The test requires the Spanish equity, Austrian bond and fixed-deposit asset classes plus the Madrid and Private
 Papers exchanges. It deletes its own empty watchlist before each scenario and in teardown; no instrument, split,
 price period, price-download task or transaction is persisted. Run against the verified test services with
-`npx playwright test e2e/054-instrument-editor-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/110-instrument-editor-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Global trading calendar spec (055-*)
+## Global trading calendar spec (115-*)
 
 The fresh E2E schema deliberately leaves `trading_days_plus` empty, and backend transaction validation rejects every
 date that is absent from that table. The calendar is therefore split between two suites:
 
 - `TradingDaysPlusResourceTest`, the first class of `ResourceTestSuite_50`, creates the years 2000 through next year
-  through the REST resource. Every spec from 050 on that books, imports or replays dated data relies only on these
+  through the REST resource. Every spec from 100 on that books, imports or replays dated data relies only on these
   years, so a failure of the calendar UI no longer cascades into them.
-- `055-create-global-trading-calendar.spec.ts` first verifies that those years are complete — it fails with a
+- `115-create-global-trading-calendar.spec.ts` first verifies that those years are complete — it fails with a
   pointer to `ResourceTestSuite_50` when they are not — and then enters the years from the year after next through
   2030 (`GlobalConstants.YOUNGEST_TRADING_CALENDAR_DAY`) through the UI. Once no such year is left, the UI scenario
   is skipped with a note to raise that boundary.
@@ -485,25 +485,25 @@ An additional read-only scenario always runs, including on an already complete c
 response, supersedes a year request and toggles an existing day twice without saving, checking the save button and
 year-selection lock.
 
-## Instrument statistics and price-quality notification (057-_, 058-_)
+## Instrument statistics and price-quality notification (125-_, 130-_)
 
-`057-instrument-statistics-notification.spec.ts` expands a row of the `Spain` watchlist from 050 on the quote data feed
+`125-instrument-statistics-notification.spec.ts` expands a row of the `Spain` watchlist from 100 on the quote data feed
 tab as `alledit` and opens the return and statistics panel. It holds the statistics request and answers it with fixed
 figures, so the three OnPush tables must appear only after the response, with translated headers, the main-currency
 suffix and red negative values.
 
-`058-historyquote-quality-notification.spec.ts` opens the completeness view of historical prices with intercepted
+`130-historyquote-quality-notification.spec.ts` opens the completeness view of historical prices with intercepted
 responses only. It checks the delayed group tree and its total row, switches the grouping and back while the older
 request is still pending so that its late answer cannot replace the newer tree, then selects an instrument group,
 waits for the delayed security list and verifies the show menu of the selected security in the context menu.
 
 Neither spec writes to the database. Run them with
-`npx playwright test e2e/057-instrument-statistics-notification.spec.ts --project=grafioschtrader-e2e --no-deps` and
-`npx playwright test e2e/058-historyquote-quality-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/125-instrument-statistics-notification.spec.ts --project=grafioschtrader-e2e --no-deps` and
+`npx playwright test e2e/130-historyquote-quality-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Security transaction spec (075-*)
+## Security transaction spec (175-*)
 
-`075-create-security-transactions.spec.ts` recreates the ordered security transaction groups tagged `e2e='e'` in
+`175-create-security-transactions.spec.ts` recreates the ordered security transaction groups tagged `e2e='e'` in
 `backend/grafioschtrader-server/src/test/resources/testdata/transaction_securities.json`. A group identifier selects
 one complete scenario and keeps its user, watchlist, portfolio, account, and security natural keys together; IDs are
 resolved through the UI and REST representation.
@@ -511,7 +511,7 @@ resolved through the UI and REST representation.
 The first group, `Forex1`, belongs to `limit2` and uses the `Forex USD/CHF -> CHF` derived security on `Hauptliste`.
 It creates an opening margin purchase, a connected finance-cost transaction, and the connected closing sale. The
 finance-cost quotation is deliberately negative (`-6.67`), which the current transaction calculation persists as a
-positive CHF 400.20 cash-account amount. The spec runs after 065 creates the derived security and 070 adds it to the
+positive CHF 400.20 cash-account amount. The spec runs after 155 creates the derived security and 170 adds it to the
 watchlist.
 
 At startup the spec deletes only rows matching the group's security, cash account, transaction type, and date, with
@@ -520,18 +520,18 @@ margin-transaction dialogs and verifies their values and parent-child links thro
 safe after either a completed or partially failed run.
 
 With the backend and frontend from an earlier run still active, execute only this spec with
-`npx playwright test e2e/075-create-security-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/175-create-security-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Correlation matrix and notification (080-_, 081-_)
+## Correlation matrix and notification (180-_, 185-_)
 
-`080-correlation-matrix.spec.ts` deletes its own named `E2E Corr Matrix` / `E2E Corr Limit` set through REST at the
+`180-correlation-matrix.spec.ts` deletes its own named `E2E Corr Matrix` / `E2E Corr Limit` set through REST at the
 start of each test, then recreates its data through the forms. It renders a six-instrument matrix and a rolling
 Plotly chart, and checks the twenty-instrument limit. It needs the existing fixture login, CH/US instruments and
 their overlapping historical prices. Removing only its own sets also recovers a partially populated matrix after a
 failed search. The search dialog leaves initial focus to `SecuritycurrencySearchBase`, avoiding Optimus UI's delayed
 focus stealing a name entry into the ISIN field; the test checks the entered name and the empty ISIN.
 
-`081-correlation-notification.spec.ts` covers the OnPush master, matrix table, set editor and chart with fresh
+`185-correlation-notification.spec.ts` covers the OnPush master, matrix table, set editor and chart with fresh
 browser-local set/limit/calculation/save/rolling responses. It supersedes a delayed calculation, clears an empty
 set, reports a rejected calculation with one toast and the load-failure text that the next set's matrix replaces,
 changes selection during a pending save, reopens the editor with rebuilt rolling options, and switches
@@ -540,12 +540,12 @@ transaction is persisted, so it needs only the existing fixture login and no dat
 checks that the OnPush search dialog shows a delayed search result below the converted matrix host, adds the selected
 instrument and updates its tenant-limit line from two to three instruments.
 
-Run each file separately with `npx playwright test e2e/080-correlation-matrix.spec.ts --project=grafioschtrader-e2e --no-deps`
-or `npx playwright test e2e/081-correlation-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+Run each file separately with `npx playwright test e2e/180-correlation-matrix.spec.ts --project=grafioschtrader-e2e --no-deps`
+or `npx playwright test e2e/185-correlation-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Bootstrap without zone.js (003-\*)
+## Bootstrap without zone.js (010-\*)
 
-`003-bootstrap.spec.ts` checks the start of Grafioschtrader, which runs zoneless like the library host of
+`010-bootstrap.spec.ts` checks the start of Grafioschtrader, which runs zoneless like the library host of
 `lib/003-bootstrap.spec.ts`. Both specs trigger an unhandled timer error and a rejected promise and require that Angular's
 `ErrorHandler` logs both errors. As `alledit` the application spec reloads the main view and requires that `window.Zone` is undefined, that the
 menu bar, the portfolio branch and the dashboard render, and that no Angular `NG0…` error is logged. With every `/api/`
@@ -553,7 +553,7 @@ request refused, the bilingual overlay must replace the login form until the ret
 a forced password change must show the dialog without a close button; saving the unchanged fixture password adopts
 the replacement JWT and opens the dashboard without another sign-in. Both hosts check the stored token and use it
 to read the current user from the backend. The fixture password stays unchanged, so the test is rerunnable. Run it with
-`npx playwright test e2e/003-bootstrap.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/010-bootstrap.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 As `limit2`, the application bootstrap spec rapidly switches from the base-data root (the proposal tab host) to its
 stock-exchange child. The last selection must win. It also opens and reloads the rule-set child URL directly, which
@@ -562,9 +562,9 @@ must retain its selected tab instead of being replaced by the host's default. Th
 The library bootstrap spec also holds back the real user-form-definition request. The login form must wait for that
 response, then render its required fields without logging initialization errors from the checked `FormBase` accessors.
 
-## Connector API key specs (005-_, 006-_ and lib/038-*)
+## Connector API key specs (020-_, 025-_ and lib/038-*)
 
-`005-connector-api-key.spec.ts` creates the connector API keys as the admin user, through the
+`020-connector-api-key.spec.ts` creates the connector API keys as the admin user, through the
 Connector-API-Key admin view. It replaces the former Flyway migration `V3__seed_connector_apikey`,
 which injected the rows directly, so the keys are now stored the way the application stores them
 (`ConnectorApiKey.setApiKey()` encrypts with Jasypt) and the create workflow itself is covered.
@@ -581,11 +581,11 @@ mvn -pl grafioschtrader-server test -Dtest=ConnectorApiKeyCsvExportTest -Dgt.exp
 Without the file both tests skip — the normal state for contributors and CI; the API-key connector
 tests then skip in turn via `assumeTrue(isActivated())`. The spec deletes every existing row before
 creating, because the create dialog only offers providers that are not configured yet; that also
-makes it re-runnable against a polluted database. It carries the lowest number in the suite (`005`) so
-the keys exist before every other spec — and, since the startup price update was removed from the
-`e2e` profile, before `100-schedule-batch-jobs.spec.ts` schedules that update.
+makes it re-runnable against a polluted database. Its low number (`020`) places it before
+every spec that needs the keys — and, since the startup price update was removed from the
+`e2e` profile, before `210-schedule-batch-jobs.spec.ts` schedules that update.
 
-`006-connector-api-key-notification.spec.ts` and `lib/038-connector-api-key-notification.spec.ts` run the five shared
+`025-connector-api-key-notification.spec.ts` and `lib/038-connector-api-key-notification.spec.ts` run the five shared
 scenarios in `lib/connector-api-key.scenarios.ts` against Grafioschtrader and the zoneless library host. They cover delayed
 provider metadata and key lists, translated display values, provider exclusions, subscription options delivered as
 names/numbers/identifier objects, required validation, provider switching, repeated dialog openings, long keys,
@@ -595,23 +595,23 @@ metadata/list requests before the view opens again.
 Every test starts with a fresh, page-local in-memory fixture. All `/api/connectorapikey` requests, including provider
 metadata and writes, are intercepted; no existing credentials are read or overwritten and no external provider is called.
 These are browser notification/interaction tests, independent of the local CSV. Encryption and database persistence stay
-the responsibility of `005` and the backend tests.
+the responsibility of `020` and the backend tests.
 
 Run either spec against its verified test services with `--no-deps`:
-`npx playwright test e2e/006-connector-api-key-notification.spec.ts --project=grafioschtrader-e2e --no-deps` or
+`npx playwright test e2e/025-connector-api-key-notification.spec.ts --project=grafioschtrader-e2e --no-deps` or
 `npx playwright test e2e/lib/038-connector-api-key-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
 
-## Managed-client specs (085-_, 090-_)
+## Managed-client specs (190-_, 195-_)
 
 The application `loginAsFixtureUser` helper waits for the labelled portfolio root, not just the tree shell.
 If `/api/portfolio/tenant` fails with `net::ERR_CONNECTION_REFUSED`, it reloads once to recover the empty branch;
-HTTP errors, other transport errors and a failed second load still fail the test. Spec `085` aborts one such
+HTTP errors, other transport errors and a failed second load still fail the test. Spec `190` aborts one such
 request during the advisor login to exercise this recovery before switching tenants and checking CRUD access.
 Managed clients and portfolios are reused when already present, so the spec can run against a populated test database.
 
-## Batch-job scheduling spec (100-*)
+## Batch-job scheduling spec (210-*)
 
-`100-schedule-batch-jobs.spec.ts` schedules the batch jobs tagged `e2e='e'` in the hand-maintained,
+`210-schedule-batch-jobs.spec.ts` schedules the batch jobs tagged `e2e='e'` in the hand-maintained,
 headered `backend/grafioschtrader-server/src/test/resources/testdata/taskdatachange.csv`. It uses the
 admin user's create dialog in the batch processing monitor rather than writing directly to the
 database. The fixture currently contains `PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU` (`id_task = 30`)
@@ -619,15 +619,15 @@ and `CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET` (`id_task = 53`).
 
 The job used to be queued by `ExecuteStartupTask` when the backend came up, for `now + 5 min` with
 `PRIO_HIGH`. That is the wrong moment for a test run: the roundtrip boots the backend, then runs
-the numbered backend and early Playwright phases before reaching spec 100, so the five minutes were long over before the
-first spec logged in. The price update consequently ran **without** the connector API keys of `005`
+the numbered backend and early Playwright phases before reaching spec 210, so the five minutes were long over before the
+first spec logged in. The price update consequently ran **without** the connector API keys of `020`
 and competed with every spec for database, CPU and connectors — which made the suite look as if it
 were waiting for `id_task = 30`. `application-e2e.properties` therefore sets
 `gt.startup.price.update.task=false`; the `@ConditionalOnProperty` on `ExecuteStartupTask` defaults
 to enabled, so production is untouched.
 
-`100` runs after everything the jobs work on has been created — API keys (005), currency pairs (045),
-instruments (050, 065), generic connectors (095) and rule sets (from the backend fixture). The CSV
+`210` runs after everything the jobs work on has been created — API keys (020), currency pairs (095),
+instruments (100, 155), generic connectors (200) and rule sets (from the backend fixture). The CSV
 schedules task 30 for `now + 10 min` and task 53 one minute later. `BackgroundWorker` is single-threaded
 and polls every 15 seconds, so the rule-set calendar rebuild runs only after the price update. Task 53
 leaves the optional entity empty, which requests a full rebuild of every rule-based exchange.
@@ -637,16 +637,16 @@ not wait for execution because a full price update takes far longer than the who
 it deletes every non-running row for all fixture task types through the UI, so it can be rerun against
 the same `grafioschtrader_t`; a job already in `PROG_RUNNING` is skipped because
 `hasRightsForDeleteEntity()` removes its delete entry. Run only this spec against existing services
-with `npx playwright test e2e/100-schedule-batch-jobs.spec.ts --project=grafioschtrader-e2e --no-deps`.
+with `npx playwright test e2e/210-schedule-batch-jobs.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 Note that specs create further `task_data_change` rows indirectly through backend save hooks — for
-example `SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA` when `050` saves an instrument with a history
-connector, or `LOAD_EMPTY_CURRENCYPAIR_HISTORYQUOTES` for a new currency pair in `045`. Those are
+example `SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA` when `100` saves an instrument with a history
+connector, or `LOAD_EMPTY_CURRENCYPAIR_HISTORYQUOTES` for a new currency pair in `095`. Those are
 caused by the tests themselves and are left as they are.
 
-## Generic connector spec (095-*)
+## Generic connector spec (200-*)
 
-`095-create-generic-connector.spec.ts` creates the generic feed connectors as user `alledit` and
+`200-create-generic-connector.spec.ts` creates the generic feed connectors as user `alledit` and
 activates them as the admin user. Its testdata is the nested JSON file
 `backend/grafioschtrader-server/src/test/resources/testdata/generic-connectors.json`,
 exported from the developer database by `scripts/export-generic-connectors.mjs` (invoked by
@@ -663,7 +663,7 @@ to receive focus before filling any cells, so that autofocus cannot redirect typ
 resumes existing connectors by adding missing endpoints, field mappings and headers; it does not treat a partially
 created definition as a completed connector.
 
-`097-generic-connector-dialog-notification.spec.ts` opens the two connector edit dialogs with `OnPush`. It delays
+`205-generic-connector-dialog-notification.spec.ts` opens the two connector edit dialogs with `OnPush`. It delays
 stock-exchange options and the token schema, checks that drafts and YAML diagnostics survive their arrival, closes
 with options pending, and repeats opening. Geographic selections are checked through inclusion/exclusion overlay
 closing and reopening, category propagation and clearing the inclusion. This guards against the widget's cyclic
@@ -672,30 +672,30 @@ markers and schema completion, asynchronous server validation and an obsolete va
 values are checked again after canceling an edit. The master-view scenario delays the initial list, saves and deletes
 an HTTP header, changes selection while a save is pending and edits an endpoint twice. It owns the two
 `e2e_notify_a` / `e2e_notify_b` definitions, removes leftovers before creating them and deletes them in final cleanup;
-shared 095 fixtures are only read. The test-dialog scenario supplies deterministic HTTP answers without contacting
+shared 200 fixtures are only read. The test-dialog scenario supplies deterministic HTTP answers without contacting
 external price providers, verifies changed columns and empty results, retries after a 503 and closes/reopens while
 an old answer is held. Run it with
-`npx playwright test e2e/097-generic-connector-dialog-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/205-generic-connector-dialog-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 On the first blur of an empty required field, the error row changes the centered connector dialog's position. Blur
 the initially focused `shortId` before clicking a header control, so the button stays under the pointer throughout
 the click.
 
-`106-calendar-rule-set-notification.spec.ts` complements the alias-only scenario of 105 with real YAML CRUD as
+`225-calendar-rule-set-notification.spec.ts` complements the alias-only scenario of 220 with real YAML CRUD as
 `alledit`. It owns and cleans up its two `E2E OnPush calendar rules` names before creating a rule set without a MIC.
 Real schema, option, table and preview responses are held back to verify draft preservation, persistent YAML,
 retained selection and refreshed menus. Preview checks use unsaved rules on seeded SIX (`XSWX`), compare the next
 weekday after 2 January independently, release an obsolete year/YAML response last, exercise request failure and
 recovery, and close with a response pending. It also checks active tabs after browser back/forward navigation.
 Run it with
-`npx playwright test e2e/106-calendar-rule-set-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/225-calendar-rule-set-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-The trading calendar rule sets of 105 have a related trap: their table offers _Create_ only while no rule set is
+The trading calendar rule sets of 220 have a related trap: their table offers _Create_ only while no rule set is
 selected, so `createRuleSet` opens the context menu on the table caption, never on a row.
 
-## Import template group spec (010-*)
+## Import template group spec (035-*)
 
-`010-import-template-group.spec.ts` creates the import template group `Grafioschtrader` as user
+`035-import-template-group.spec.ts` creates the import template group `Grafioschtrader` as user
 `alledit` and adds one import template per file in
 `backend/grafioschtrader-server/src/test/resources/testdata/import_template/` through the template
 edit dialog (not the drag-and-drop upload zone). The `.tmpl` filenames encode the dialog metadata as
@@ -705,19 +705,19 @@ The file content itself is pasted verbatim into the `templateAsTxt` textarea. Th
 `alledit` cannot see the instance-wide platform command, then logs in as `admin` and marks `Grafioschtrader`
 as the template set offered by this installation. A rerun accepts that platform already being selected.
 
-## Import-template notification (011-*)
+## Import-template notification (040-*)
 
-`011-import-template-notification.spec.ts` uses the existing `alledit` login and Grafioschtrader template set.
+`040-import-template-notification.spec.ts` uses the existing `alledit` login and Grafioschtrader template set.
 It delays language options while editing a draft, closes and reopens during a pending response, supersedes a
 pending template check, displays failed and successful parsed results, creates/edits/deletes a browser-local template,
 retries after an HTTP error and replaces
 an in-flight PDF transformation. The HTTP check and transformation responses are local browser fixtures;
 no template, document or transaction is persisted. Closing waits for the dialog to be removed before reopening.
-Run with `npx playwright test e2e/011-import-template-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+Run with `npx playwright test e2e/040-import-template-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Tenant edit spec (020-*)
+## Tenant edit spec (050-*)
 
-`020-edit-tenant.spec.ts` exercises Grafioschtrader's `TenantEditComponent` through the dynamic tenant dialog. It
+`050-edit-tenant.spec.ts` exercises Grafioschtrader's `TenantEditComponent` through the dynamic tenant dialog. It
 reads complete `tenantEdit` targets (tenant name, dividend-tax exclusion, country and GT-template opt-in) such as the
 one on the `limit2` object in
 `backend/grafioschtrader-server/src/test/resources/testdata/users.json`, saves the tenant name, dividend-tax exclusion,
@@ -727,13 +727,13 @@ is still asserted as ISO code `CH`. Partial `tenantEdit` targets containing
 only country and the opt-in are reserved for the backend integration test
 and are deliberately ignored by this UI workflow.
 
-The spec runs after `010-import-template-group.spec.ts`, which configures the instance-wide platform, and before the
-portfolio workflow. Updating to the same fixture state is safe, so `020` can be rerun against an already populated
+The spec runs after `035-import-template-group.spec.ts`, which configures the instance-wide platform, and before the
+portfolio workflow. Updating to the same fixture state is safe, so `050` can be rerun against an already populated
 `grafioschtrader_t` without cleanup.
 
-## Portfolio specs (025-* create / 888-* teardown)
+## Portfolio specs (055-* create / 888-* teardown)
 
-`025-create-portfolio.spec.ts` creates portfolios with their cash accounts, securities accounts and
+`055-create-portfolio.spec.ts` creates portfolios with their cash accounts, securities accounts and
 trading periods; `888-delete-portfolio.spec.ts` removes them again at the end of the run. Both read
 the same hand-authored fixture
 `backend/grafioschtrader-server/src/test/resources/testdata/portfolios.json` — it belongs in
@@ -745,24 +745,24 @@ constant in two specs.
 The `delete` flag per portfolio is the teardown definition: `true` makes `888` remove the portfolio
 completely (cash accounts → securities accounts → portfolio), `false` generates no test at all there
 and keeps the portfolio in `grafioschtrader_t`. `888` processes the portfolios in reverse fixture
-order and tolerates an already missing row or node, so a partially failed `025` does not turn the
-teardown red as well. `025` accepts existing portfolios and accounts by natural key and creates only missing rows,
+order and tolerates an already missing row or node, so a partially failed `055` does not turn the
+teardown red as well. `055` accepts existing portfolios and accounts by natural key and creates only missing rows,
 so reruns preserve transactions created by later specs. Its dialog checks reopen every portfolio and cash account,
 hold back the real currency-options response, and verify that it arrives without erasing unsaved name edits.
 The portfolio is selected before opening its context menu; clicking a node already selected by the context menu
 can deselect it without navigating to the cash-account summary.
 
-`027-cashaccount-server-validation.spec.ts` opens the first cash account of the first fixture portfolio in the
+`060-cashaccount-server-validation.spec.ts` opens the first cash account of the first fixture portfolio in the
 signal-form cash account dialog and answers its save with an intercepted 400 `ValidationError` naming `name`. The
 message must appear at the name field, the submit button stays disabled while the rejected value is unchanged, and
 editing the name withdraws the message and enables saving again. The dialog is closed unsaved, so the spec changes no
-data and runs repeatedly; it needs the accounts of `025`.
+data and runs repeatedly; it needs the accounts of `055`.
 
-`028-cost-basis-method.spec.ts` sets the cost basis method of the tenant and the override of the first fixture
+`065-cost-basis-method.spec.ts` sets the cost basis method of the tenant and the override of the first fixture
 portfolio through their edit dialogs: the tenant offers average cost, FIFO and LIFO in that order, the portfolio
 additionally the empty option that follows the tenant and is saved as `null`. It resets both values through REST at
 the start and leaves them on their defaults, because every later spec calculates with average cost; it needs the
-portfolio of `025`.
+portfolio of `055`.
 
 The fixture spans three users with different locales: `e2euser` (en-US, registered by `auth.setup.ts`)
 owns `Test Portfolio`; `alledit` and `limit2` (de-CH, seeded by `ResourceTestSuite_1`) own the remaining
@@ -774,7 +774,7 @@ through the `RX` block in `portfolio.helpers.ts` and scope tree navigation to th
 `tradingPlatformPlan` holds a case-insensitive **substring** of the option label, because the plan
 names are translated: `Saxo Trader` (identical in DE and EN) and `CornèrTrader` (from `CornèrTrader
 Transaktionsbetrag` / `CornèrTrader Transactions value`). `TradingPlatformPlanResourceTest` creates the generated
-rows tagged `e2e='i'`; `015` creates those tagged `e2e='e'`. Only after both producers finish does
+rows tagged `e2e='i'`; `045` creates those tagged `e2e='e'`. Only after both producers finish does
 `ResourceTestSuite_25` create the integration-owned portfolios, so either ownership tag can supply their plan.
 `null` takes the first non-empty option.
 
@@ -793,9 +793,9 @@ The two `limit1` portfolios are integration-owned exports from `grafioschtrader_
 with one securities account, its four trading periods, and EUR/CHF cash accounts. `PortfolioResourceTest` creates and
 verifies this structure in `ResourceTestSuite_25`.
 
-## Bank-account transaction spec (120-*)
+## Bank-account transaction spec (245-*)
 
-`120-bank-account-transactions.spec.ts` recreates the bank-account-only transactions of every fixture user
+`245-bank-account-transactions.spec.ts` recreates the bank-account-only transactions of every fixture user
 through the single-account and account-transfer dialogs. Its input is the optional `transactions`
 array below each portfolio in `testdata/portfolios.json`. A `single` entry names its cash account and
 transaction type; a `transfer` entry names the debit account and the destination portfolio/account,
@@ -816,12 +816,12 @@ independently against an already populated
 `grafioschtrader_t` without a full `e2eTest` database reset.
 
 With the backend and frontend from an earlier run still active, execute only this spec with
-`npx playwright test e2e/120-bank-account-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/245-bank-account-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 The `--no-deps` flag avoids rerunning the create-only user-registration setup against the populated database.
 
-## Transaction notification spec (121-*)
+## Transaction notification spec (250-*)
 
-`121-transaction-notification.spec.ts` checks delayed tenant transaction rows, CSV download failure and retry,
+`250-transaction-notification.spec.ts` checks delayed tenant transaction rows, CSV download failure and retry,
 the locked-period warning after delayed portfolio loading across repeated cash-dialog openings, connected-transfer
 lookups with retained accounts and amounts, and receipt
 selection and download failure/retry for both cash and margin instruments. The receipt case fails against the
@@ -829,23 +829,23 @@ old dialog with only `Eager` removed: its delayed rows never reach the table.
 
 Authentication and translations use the real test backend. Transactions, portfolio options, receipt summaries and
 downloads are intercepted; the spec creates no database rows. It uses the Spain watchlist and Banco Santander
-instrument from 040/050 to open the receipt dialog, without requiring transactions from 122/123. It enters the
+instrument from 090/100 to open the receipt dialog, without requiring transactions from 255/260. It enters the
 tenant transaction view through the tab to exercise its navigation; explicit child URLs are also retained by the host.
 Menu selection tolerates the watchlist's row-selection toggle on reopening. Download button names include the
 projected icon; date assertions use the fixture user's locale.
 
 Run it individually with
-`npx playwright test e2e/121-transaction-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/250-transaction-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Cash-security buy/sell spec (122-*)
+## Cash-security buy/sell spec (255-*)
 
-`122-cash-security-transactions.spec.ts` drives `TransactionSecurityEditComponent` for an ordinary cash equity and
+`255-cash-security-transactions.spec.ts` drives `TransactionSecurityEditComponent` for an ordinary cash equity and
 `CalcExRateDialogComponent` for settlement in another currency. Its hand-authored fixture is
 `testdata/cash-security-transactions.json`: `alledit`, Spain watchlist, Banco Santander (`ES0113900J37`, EUR),
 CornèrTrader securities account `CT` and cash account `CT CHF`. The default equity/direct-investment trading period
-from 025 permits the trade. The spec follows 050, 055 and **120**, whose 2008 deposit funds the purchase.
+from 055 permits the trade. The spec follows 100, 115 and **245**, whose 2008 deposit funds the purchase.
 
-It buys ten shares and sells four, leaving six for 123. EUR 105 including purchase costs settles at CHF -99.75 with
+It buys ten shares and sells four, leaving six for 260. EUR 105 including purchase costs settles at CHF -99.75 with
 EUR/CHF 0.95; the partial sale settles at CHF 43.32. The test checks asynchronously populated instrument/account
 options, holding quantities, calculated amounts, the exchange-rate calculator, and a real server-rejected oversell.
 Before correcting the quantity, it asserts the error toast and re-enabled submit button without another UI action.
@@ -853,8 +853,8 @@ REST verification checks the persisted amounts, dates and dated holdings.
 
 Ownership is the fixture note plus instrument ISIN/currency, cash-account name, type and date. At startup only its
 sale and purchase are deleted through REST, which also adjusts `hold_*`. When a dividend or another transaction
-already depends on the purchase, 122 accepts the exact purchase and saves it again through the table's edit dialog;
-it never deletes 123's dividend. The sale is recreated on every run. Missing prerequisites fail explicitly.
+already depends on the purchase, 255 accepts the exact purchase and saves it again through the table's edit dialog;
+it never deletes 260's dividend. The sale is recreated on every run. Missing prerequisites fail explicitly.
 
 The `de-CH` user requires bilingual menu/toast matches. Numeric widgets need `pressSequentially`, and readback strips
 the displayed currency prefix. The prefilled datetime is set through the picker controls and read back; `fill()` can
@@ -862,12 +862,12 @@ leave its model unchanged. The exchange-rate dialog is found among body dialogs 
 Watchlist refreshes can replace the selected row; the helper closes and retries a menu missing its transaction action.
 
 Run only this spec with
-`npx playwright test e2e/122-cash-security-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/255-cash-security-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Security-dividend spec (123-*)
+## Security-dividend spec (260-*)
 
-`123-security-dividend.spec.ts` consumes the same `testdata/cash-security-transactions.json` fixture and the six-share
-holding produced by 122. It opens the dividend path of `TransactionSecurityEditComponent`, sets payment date and
+`260-security-dividend.spec.ts` consumes the same `testdata/cash-security-transactions.json` fixture and the six-share
+holding produced by 255. It opens the dividend path of `TransactionSecurityEditComponent`, sets payment date and
 ex-date, checks the asynchronous account/holding option, enters dividend, tax and fee, and verifies CHF 4.99 net.
 A quantity exceeding even the original purchase is rejected by the real server; the dialog must remain usable,
 show the toast and re-enable Save before the test corrects the quantity. Successful persistence is verified through
@@ -875,41 +875,41 @@ REST, including ex-date, taxable-interest flag and the unchanged six-share holdi
 The server adjusts the persisted exchange rate to the rounded settlement: CHF 4.99 / EUR 5.25, rather than retaining
 the entered 0.95 exactly. The assertion checks this effective rate as well as the rounded amount.
 
-123 deletes only its own marked dividend at startup through REST. The purchase and sale remain owned by 122 and
-are asserted as prerequisites. The widget, body-dialog and selection traps described for 122 apply here too.
+260 deletes only its own marked dividend at startup through REST. The purchase and sale remain owned by 255 and
+are asserted as prerequisites. The widget, body-dialog and selection traps described for 255 apply here too.
 No accrued-interest scenario is included; this fixture is an equity, not a bond.
 
 Run only this spec with
-`npx playwright test e2e/123-security-dividend.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/260-security-dividend.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Cost basis method of a sale (128-*)
+## Cost basis method of a sale (285-*)
 
-`128-cost-basis-method-sale.spec.ts` reads the Santander purchase and partial sale of `122` under FIFO. Through REST
+`285-cost-basis-method-sale.spec.ts` reads the Santander purchase and partial sale of `255` under FIFO. Through REST
 the sale names the purchase as its only consumed lot, with the four units sold and their share of the purchase cost
 including tax and fees; under average cost it names none. In the watchlist `Spain` only the sale row of the
 transaction table offers the expansion, and the expanded row lists that purchase. The spec owns nothing but the cost
 basis method of the tenant `alledit`: it sets it to average cost at the start and again at the end, because every
-other spec calculates with average cost. It needs the trades of `122`.
+other spec calculates with average cost. It needs the trades of `255`.
 
 Run only this spec with
-`npx playwright test e2e/128-cost-basis-method-sale.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/285-cost-basis-method-sale.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Realized gains (146-*)
+## Realized gains (320-*)
 
-`146-realized-gains.spec.ts` checks the tab `REALIZED_GAINS` against the report the backend calculates for the same
-cost basis method. `alledit` owns the Santander sale of `122`: a partial sale from one purchase consumes the same cost
+`320-realized-gains.spec.ts` checks the tab `REALIZED_GAINS` against the report the backend calculates for the same
+cost basis method. `alledit` owns the Santander sale of `255`: a partial sale from one purchase consumes the same cost
 under every method, so the year row (sale count, net gain) must stay the same under average cost, FIFO and LIFO, while
 the selection of the form changes the caption, and the expanded sale row names the method. `limit1` owns the security
-transfer of `145`: its year counts the transfer as system booking and not as sale. The columns of the year table are
+transfer of `315`: its year counts the transfer as system booking and not as sale. The columns of the year table are
 addressed by position behind the expand toggle (`YEAR_COLUMN` in `realized-gains.helpers.ts`). The spec creates and
-changes no data and needs the trades of `122` and the transfer of `145`.
+changes no data and needs the trades of `255` and the transfer of `315`.
 
 Run only this spec with
-`npx playwright test e2e/146-realized-gains.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/320-realized-gains.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Tax help Germany (147-*)
+## Tax help Germany (325-*)
 
-`147-german-tax-help.spec.ts` covers the area `GERMAN_TAX_HELP` below the realized gains, which only a client that
+`325-german-tax-help.spec.ts` covers the area `GERMAN_TAX_HELP` below the realized gains, which only a client that
 reports in euro with the country Germany sees: `limit1`. Its portfolios with accounts are set to no withholding through
 REST, so the report asks for the assignment, lists each portfolio as not assigned and shows as many sums without amount
 as the backend report has incomplete sums. After the assignment to domestic withholding the request is gone. Every
@@ -917,22 +917,22 @@ withholding is restored in `finally`. `limit2` (CHF, Switzerland) and `user` (US
 the endpoint and no area on the tab.
 
 Run only this spec with
-`npx playwright test e2e/147-german-tax-help.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/325-german-tax-help.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Account-dialog notification spec (124-*)
+## Account-dialog notification spec (265-*)
 
-`124-account-dialog-notification.spec.ts` reopens the CornèrTrader securities account `CT` of `alledit`, using
-`cash-security-transactions.json` to identify the account used by 122/123. Those trades must already exist.
+`265-account-dialog-notification.spec.ts` reopens the CornèrTrader securities account `CT` of `alledit`, using
+`cash-security-transactions.json` to identify the account used by 255/260. Those trades must already exist.
 It checks the existing trading periods and selected platform plan, holds back the real transaction-summary
 response, then verifies that the delete button for the equity/direct-investment period disappears when the
 response arrives without a further UI event. It saves nothing and is repeatable against a populated database.
 
 Run only this spec with
-`npx playwright test e2e/124-account-dialog-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/265-account-dialog-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Standing-order spec (125-*)
+## Standing-order spec (270-*)
 
-`125-standing-orders.spec.ts` recreates the two standing orders of `alledit` from the optional
+`270-standing-orders.spec.ts` recreates the two standing orders of `alledit` from the optional
 `standingOrders` array below the CornèrTrader portfolio in `testdata/portfolios.json`. It creates a foreign-currency
 cash fee for `CT USD` and an amount-based accumulation order for the iShares Core SPI ETF in security account `CT`.
 The ETF is selected through the instrument search by ISIN; account and security IDs remain database-independent.
@@ -942,20 +942,20 @@ orders with generated transactions are retained and their fixture values are ver
 is never detached or deleted for a rerun, and unrelated orders remain untouched.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/125-standing-orders.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/270-standing-orders.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Standing-order notification (126-*)
+## Standing-order notification (275-*)
 
-`126-standing-order-notification.spec.ts` checks delayed capability/order loading, cancelled and reopened cash and
+`275-standing-order-notification.spec.ts` checks delayed capability/order loading, cancelled and reopened cash and
 security dialogs, dependent schedule/investment fields, and saving a dedicated future cash order. That order is
 identified by its note and removed at startup and in `finally`; its future validity prevents scheduled execution.
 The expansion case uses display-only transaction/failure responses from `testdata/standing-order-notification.json`
-with runtime account/order IDs. It persists no failure or transaction. Run 126 individually with
+with runtime account/order IDs. It persists no failure or transaction. Run 275 individually with
 `--project=grafioschtrader-e2e --no-deps`.
 
-## Direct document-import spec (130-*)
+## Direct document-import spec (290-*)
 
-`130-import-transactions.spec.ts` discovers its scenarios below
+`290-import-transactions.spec.ts` discovers its scenarios below
 `backend/grafioschtrader-server/src/test/resources/testdata/import_transaction/<test-type>/<nickname>/<security-account>/`.
 The `e2e` test type is selected by this Playwright spec; the next two path segments identify the fixture user and the
 securities account. A securities-account name must be unique within that user because the directory contract does not
@@ -974,14 +974,14 @@ deleting that head, making successful and partial
 runs repeatable against the same `grafioschtrader_t`.
 
 The first scenario is `e2e/user/Swissquote`: its buy and dividend receipts both use the Grafioschtrader templates
-created and configured instance-wide by `010-import-template-group.spec.ts`. `TenantResourceTest` opts the integration
-user `user` into those templates from `users.json`; `020` separately exercises the same checkbox through the UI for
+created and configured instance-wide by `035-import-template-group.spec.ts`. `TenantResourceTest` opts the integration
+user `user` into those templates from `users.json`; `050` separately exercises the same checkbox through the UI for
 the complete `limit2` fixture. With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/130-import-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/290-import-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## CSV transaction-import spec (132-*)
+## CSV transaction-import spec (295-*)
 
-`132-import-transactions-csv.spec.ts` replays transaction exports found beside an `imp_trans_head.csv` fixture below
+`295-import-transactions-csv.spec.ts` replays transaction exports found beside an `imp_trans_head.csv` fixture below
 `testdata/import_transaction/e2e/<nickname>/<security-account>/`. The pipe-delimited import-head row contains
 `loginNickname|portfolioName|securityAccountName|name|note|useGtPlatform|e2e`; it deliberately uses natural keys and
 never carries the source database's `id_trans_head`. The first scenario represents `imp_trans_head` 1027 for
@@ -995,49 +995,49 @@ The final checks require two purchases and sixteen dividends with the exact expo
 reconciliation makes an interrupted or successful run repeatable against the same `grafioschtrader_t`.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/132-import-transactions-csv.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/295-import-transactions-csv.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Transaction-import notification (133-*)
+## Transaction-import notification (300-*)
 
-`133-import-notification.spec.ts` navigates to `limit1`'s Migros securities account. It supplies fresh browser-local
+`300-import-notification.spec.ts` navigates to `limit1`'s Migros securities account. It supplies fresh browser-local
 import heads and positions, expands a position, delays cash-account options, checks assignment and retained
 selection, and changes the selected import head while a previous position response is pending. It also exercises
 the GTNet head-selection dialog's delayed options, preserved draft, mode-dependent validation and re-enabled
 submit button after two rejected saves. All import/GTNet writes are intercepted; it creates no database rows
 and needs no database cleanup. Shared account fixtures remain unchanged. Run with
-`npx playwright test e2e/133-import-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/300-import-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## ISIN-change specs (135-* and 140-*)
+## ISIN-change specs (305-* and 310-*)
 
-`135-create-security-action.spec.ts` reads the Playwright row from `testdata/isin_change.csv`, logs in as `admin`, and
+`305-create-security-action.spec.ts` reads the Playwright row from `testdata/isin_change.csv`, logs in as `admin`, and
 creates the exported 4:1 ISIN change through `SecurityActionCreateDialogComponent`. The old instrument is selected by ISIN,
 so neither security ID is fixed in the fixture. The spec verifies the persisted tree representation and the exact
 sender (`S`) notification returned from `mail_send_recv`. An identical action left by a successful or interrupted run
 is retained and validated, including when it has application history that the backend protects from deletion.
 
-`140-apply-security-action.spec.ts` consumes the action created by 135 as `user`, applies it through the Security Action
+`310-apply-security-action.spec.ts` consumes the action created by 305 as `user`, applies it through the Security Action
 TreeTable, and verifies the active application, applied count, and exact receiver (`R`) notification. A previous active
-application is reversed at startup and then applied again, making 140 independently repeatable against the populated
+application is reversed at startup and then applied again, making 310 independently repeatable against the populated
 database. The two mail assertions use `/api/mailsendrecv`, the authenticated REST projection of `mail_send_recv`, and
 check the subject, body, direction, and conversation link copied from the source database.
 
 Run the affected specs in order with `--no-deps`:
 
 ```
-npx playwright test e2e/135-create-security-action.spec.ts --project=grafioschtrader-e2e --no-deps
-npx playwright test e2e/140-apply-security-action.spec.ts --project=grafioschtrader-e2e --no-deps
+npx playwright test e2e/305-create-security-action.spec.ts --project=grafioschtrader-e2e --no-deps
+npx playwright test e2e/310-apply-security-action.spec.ts --project=grafioschtrader-e2e --no-deps
 ```
 
-## Security-transfer spec (145-*)
+## Security-transfer spec (315-*)
 
-`145-security-transfer.spec.ts` reads the Playwright row from `testdata/security-transfer.csv`, logs in with the
+`315-security-transfer.spec.ts` reads the Playwright row from `testdata/security-transfer.csv`, logs in with the
 fixture nickname (`limit1`), and transfers the complete Repsol position from the fixture's Migros securities account
 to its Swissquote account through `SecurityTransferCreateDialogComponent`. The pipe-delimited fixture contains only natural
 keys and exported business values:
 `nickname|sourcePortfolio|sourceAccount|targetPortfolio|targetAccount|securityName|isin|currency|transferDate|units|quotation|note|e2e`.
 Database, tenant, account, security, and generated transaction IDs are always resolved at runtime.
 
-The spec depends on `132-import-transactions-csv.spec.ts`, which creates the 1,000-unit source holding. At startup 145
+The spec depends on `295-import-transactions-csv.spec.ts`, which creates the 1,000-unit source holding. At startup 315
 first logs in as `alledit` and creates the fixture's exact Repsol closing price through `/api/historyquote` when the
 asynchronous history connector has not supplied it. It then logs in as `limit1`, reverses an exact transfer left by an
 earlier run through `/api/securityaction/transfer/{id}`, and waits for the scheduled holdings rebuild before reopening
@@ -1046,11 +1046,11 @@ persisted transfer plus source and target holdings. This makes the spec repeatab
 `grafioschtrader_t`, including after an interrupted run and independently of connector timing.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/145-security-transfer.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/315-security-transfer.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## UDF metadata spec (150-*)
+## UDF metadata spec (330-*)
 
-`150-udf-metadata.spec.ts` exercises both metadata creation dialogs using the hand-authored
+`330-udf-metadata.spec.ts` exercises both metadata creation dialogs using the hand-authored
 `testdata/udf-metadata.json` fixture. The source business values come from production security UDF rows `2`, `3`,
 `4`, `81`, `82`, and `162`, general UDF row `148` (`Currencypair` / `Ausblick`), and `grafioschtrader_t` general row
 `5887` (`Currencypair` / `FX möglich`). Database IDs are deliberately not stored: `admin` recreates security rows `2`
@@ -1061,7 +1061,7 @@ Before creating a row, the spec uses the authenticated UDF REST endpoint to dele
 an interrupted or earlier run. It explicitly excludes `idUser = 0`, so system UDF definitions are neither created nor
 deleted. Each row is then created through `UDFMetadataGeneralEditComponent` or
 `UDFMetadataSecurityEditComponent`, checked in the table, and compared with the complete persisted REST payload. The
-created user-owned definitions are retained in `grafioschtrader_t` for later tests; rerunning `150-*` replaces them at
+created user-owned definitions are retained in `grafioschtrader_t` for later tests; rerunning `330-*` replaces them at
 the start.
 
 Five notification cases also cover cancelling and saving edits in both metadata tables, delayed table reloads,
@@ -1080,25 +1080,25 @@ initialisation move the button by themselves. It saves no data. Run it with
 `npx playwright test e2e/lib/039-udf-metadata-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/150-udf-metadata.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/330-udf-metadata.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## UDF fill by language model notification (152-*)
+## UDF fill by language model notification (340-*)
 
-`152-udf-fill-llm-notification.spec.ts` covers the language-model parts of the security UDF metadata: the proposals
+`340-udf-fill-llm-notification.spec.ts` covers the language-model parts of the security UDF metadata: the proposals
 dialog of an LLM field, the rule-proposal dialog of a saved manual field and the value-suggestion test in the edit
 dialog. It adds two fabricated own fields (`E2E LLM proposals`, `E2E rule proposal`, ids 990001/990002) to the table
 response, offers rule proposal and value suggestion in the `fillsources` response and answers every language-model
 endpoint itself after a held delay. Each test checks that the dialog renders the delayed answer: proposals and the
 reload after a decision, the preview examples and the proposed rule with its test result, and the suggestion results
 one by one. It needs no provider key, depends on no other spec and writes nothing to the database. Run with
-`npx playwright test e2e/152-udf-fill-llm-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/340-udf-fill-llm-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## UDF data spec (155-*)
+## UDF data spec (345-*)
 
-`155-udf-data.spec.ts` consumes the user-owned definitions created by `150-*` and recreates the values exported from
+`345-udf-data.spec.ts` consumes the user-owned definitions created by `330-*` and recreates the values exported from
 `grafioschtrader_t` in `testdata/udf_data.json`. The fixture uses nickname, watchlist name, ISIN plus currency, or a
 currency pair's from/to codes instead of database IDs. UDF values are keyed by their metadata description because
-`150-*` receives new `id_udf_metadata` values on every fresh database.
+`330-*` receives new `id_udf_metadata` values on every fresh database.
 
 The spec opens `_USA` for `admin` and `alledit` and `currencypair` for `alledit`, selects each exact instrument row,
 and chooses **Edit additional field...** from its context menu. It derives the runtime `f<id>` field names from the
@@ -1107,12 +1107,12 @@ authenticated `GET /api/udfdata/{entity}/{idEntity}`. Existing rows are updated 
 spec reconciles interrupted or completed runs without deleting shared instruments or watchlists.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/155-udf-data.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/345-udf-data.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Advanced security search spec (157-*)
+## Advanced security search spec (350-*)
 
-`157-advanced-security-search.spec.ts` drives the **Advanced search +** block of the add-existing-instrument dialog
-against the values that `150-*` and `155-*` stored for `admin`: the Yes/No field _CFD möglich_. The link field _Short
+`350-advanced-security-search.spec.ts` drives the **Advanced search +** block of the add-existing-instrument dialog
+against the values that `330-*` and `345-*` stored for `admin`: the Yes/No field _CFD möglich_. The link field _Short
 Volume Link_ must not be offered. The expected securities are derived from `testdata/udf_data.json` (rows tagged `e`),
 not hard-coded. The
 dialog is opened on admin's `Hauptliste` of the integration suite, which holds none of those securities, because the
@@ -1127,11 +1127,11 @@ while no field is chosen; and the options of the field select load with the dial
 text before choosing it.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/157-advanced-security-search.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/350-advanced-security-search.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Security-split spec (160-*)
+## Security-split spec (360-*)
 
-`160-security-splits.spec.ts` restores the split history exported from Apple (`US0378331005`, USD) in admin's
+`360-security-splits.spec.ts` restores the split history exported from Apple (`US0378331005`, USD) in admin's
 `_USA` watchlist. Its pipe-delimited fixture is
 `backend/grafioschtrader-server/src/test/resources/testdata/security_split.csv`, with columns
 `nickname|watchlist|securityName|isin|currency|splitDate|fromFactor|toFactor|e2e`. The four exported rows cover the
@@ -1145,13 +1145,13 @@ every run starts by deleting the current split collection and finishes by restor
 partially interrupted runs converge on the same state without deleting the shared Apple security.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/160-security-splits.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/360-security-splits.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Time-series chart spec (170-*)
+## Time-series chart spec (365-*)
 
-`170-time-series-chart.spec.ts` exercises `TimeSeriesChartComponent` as the German-locale `alledit` user with HPQ and
+`365-time-series-chart.spec.ts` exercises `TimeSeriesChartComponent` as the German-locale `alledit` user with HPQ and
 DIS from `_USA` and Nestlé (`NESN`) from `_Switzerland`. All three are shared securities with deep history from
-`V2__testdata.sql`; the watchlists are populated by `040-*` and are only read here. The assertions cover manual and
+`V2__testdata.sql`; the watchlists are populated by `090-*` and are only read here. The assertions cover manual and
 preset date ranges, checkboxes, volume, line/candlestick/OHLC rendering, and edited SMA, EMA, and RSI periods. They
 inspect Plotly trace and layout state plus the indicator request bodies, not the financial values of seeded quotes.
 
@@ -1164,21 +1164,21 @@ dialog from the menu bar instead of the chart's context menu; the menu bar lies 
 only appears when its visibility notifies the chart.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/170-time-series-chart.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/365-time-series-chart.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Route-resource cancellation (252-*)
+## Route-resource cancellation (490-*)
 
-`252-route-resources.spec.ts` reads the two retained `alledit` portfolios from `portfolios.json`. It holds the first
+`490-route-resources.spec.ts` reads the two retained `alledit` portfolios from `portfolios.json`. It holds the first
 cash-account summary, switches the portfolio through the tree, verifies that the first browser request was aborted and
 that only the newer portfolio's account rows appear. It creates and changes no records. Run the single spec with
 `--project=grafioschtrader-e2e --no-deps` against the verified application test stack.
 
-The second case in `063-historyquote-legacy-notification.spec.ts` rejects one combined live-quote read. It checks that
+The second case in `145-historyquote-legacy-notification.spec.ts` rejects one combined live-quote read. It checks that
 the service and resource together show exactly one error toast, then reopens the live view and verifies recovery.
 
-## Entity-limit spec (190-*)
+## Entity-limit spec (385-*)
 
-`190-create-entity-limits.spec.ts` shares the headered, pipe-delimited
+`385-create-entity-limits.spec.ts` shares the headered, pipe-delimited
 `backend/grafioschtrader-server/src/test/resources/testdata/limit_entity.csv` fixture with
 `EntityLimitRoleResourceTest`. Its columns are
 `limitType|entityName|relationEntityName|countScope|ownerScope|roleName|limitValue|validUntil|e2e`; enum and role names
@@ -1189,7 +1189,7 @@ counts. The Playwright share includes the two nested GTNet MAX keys so the brows
 qualifiers as well as daily keys.
 
 The test database migration seeds only the mandatory role-less `limit_type = 0` MAX defaults. The Suite 25 test
-creates the `i` rows through REST; spec 190 deletes only its six matching role/key rows at startup and recreates them
+creates the `i` rows through REST; spec 385 deletes only its six matching role/key rows at startup and recreates them
 through the entity-limit administration dialog as `admin`. It resolves the role id at runtime and verifies both the
 table and the persisted REST payload, so a completed or interrupted run is repeatable against the same
 `grafioschtrader_t`. The table check addresses cells by position through the `COL` map in the spec; a column added
@@ -1197,20 +1197,20 @@ to or moved in `EntityLimitTableComponent` must be mirrored there, otherwise the
 succeeded.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/190-create-entity-limits.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/385-create-entity-limits.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-`191-entity-limit-notification.spec.ts` runs the shared `lib/entity-limit.scenarios.ts` cases against GT;
+`390-entity-limit-notification.spec.ts` runs the shared `lib/entity-limit.scenarios.ts` cases against GT;
 `lib/037-entity-limit-notification.spec.ts` runs the same cases against the zoneless library host. They cover delayed
 table loading, translated filters and clearing them when hidden, the disabled delete action of mandatory defaults,
 role choices excluding already configured scopes, create/edit/cancel/delete, delayed reloads, closing during option
 loading and the user-scoped dialog opened from user administration. The user-scoped case saves no data.
 
-The persistence case owns only `DAY_CUD|UserAccessToken|||` for `ROLE_LIMITEDIT`, outside spec 190's fixture. It
+The persistence case owns only `DAY_CUD|UserAccessToken|||` for `ROLE_LIMITEDIT`, outside spec 385's fixture. It
 deletes that exact key/role pair at the start and through the UI at the end; an interrupted run is repeatable.
 No mandatory default or user override is changed. Limit and role ids are resolved from the API in each database.
 
 Run the application wrapper with
-`npx playwright test e2e/191-entity-limit-notification.spec.ts --project=grafioschtrader-e2e --no-deps`, and the library
+`npx playwright test e2e/390-entity-limit-notification.spec.ts --project=grafioschtrader-e2e --no-deps`, and the library
 wrapper separately with
 `npx playwright test e2e/lib/037-entity-limit-notification.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
 
@@ -1234,9 +1234,9 @@ menu bar marks it for check: the icon follows only because the menu bar republis
 afterwards restores the tree. Run it with
 `npx playwright test e2e/lib/046-collapse-tree-icon.spec.ts --config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
 
-## Simulation-opening spec (195-*)
+## Simulation-opening spec (395-*)
 
-`195-simulation-opening.spec.ts` covers the three ways a simulation environment establishes its opening ledger.
+`395-simulation-opening.spec.ts` covers the three ways a simulation environment establishes its opening ledger.
 It has no CSV fixture. As `alledit` it creates, through REST, one watchlist and one AlgoTop both named `Opening e2e`,
 gives the watchlist a member taken from an existing watchlist, weights the AlgoTop with one asset class at 100% (the
 readiness check refuses an environment whose weightings below the strategy do not add up to 100%; an asset class
@@ -1263,16 +1263,16 @@ Four things bite in this dialog:
 - **The dialog assigns `tenantName` and `initializationMode` through `afterNextRender`**; typing before
   that lands is overwritten, so `openCreateDialog` waits for both values first.
 
-Prerequisites: the `ALGO` feature must be enabled for the instance, and 025 must have left portfolios with cash
+Prerequisites: the `ALGO` feature must be enabled for the instance, and 055 must have left portfolios with cash
 accounts, because manual mode needs at least one cash-balance field.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/195-simulation-opening.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/395-simulation-opening.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## History quote spec (060-*)
+## History quote spec (135-*)
 
-`060-historyquote-table.spec.ts` covers the end-of-day price views of `Nestlé AG` (CH0038863350): it
-uses the `Switzerland` watchlist created by 040 and adds the instrument through the "Add existing instrument"
+`135-historyquote-table.spec.ts` covers the end-of-day price views of `Nestlé AG` (CH0038863350): it
+uses the `Switzerland` watchlist created by 090 and adds the instrument through the "Add existing instrument"
 search dialog by ISIN, then deletes an interior quote and recreates it with exactly the same
 values through the create dialog.
 
@@ -1284,7 +1284,7 @@ quotes from 2000 onwards). The data is therefore present as soon as Flyway has r
 A security created through the UI from `generated/securities.json` would not work here: saving it
 only enqueues a background price import, and there is no guarantee that `BackgroundWorker` has run
 it by the time this spec looks at the table — it can be many minutes before the first quote appears,
-and from `100` on the full price update competes for the same worker. Earlier revisions of this spec
+and from `210` on the full price update competes for the same worker. Earlier revisions of this spec
 used `Banco Santander` from the `Spain` watchlist and consequently skipped almost every run.
 
 Nestlé is shared data (`id_tenant_private` NULL, created by the system user), so `alledit` is not
@@ -1304,7 +1304,7 @@ with `fill()`.
 Delete-then-recreate makes the spec repeatable. The recreated
 row comes back with create type `ADD_MODIFIED_USER` instead of `CONNECTOR_CREATED`, so its icon in
 the `T` column changes — harmless for the flow. Because the OHLCV values are written back unchanged,
-the shared Nestlé series also stays intact for `080-correlation-matrix.spec.ts`, which uses it. A `finally`
+the shared Nestlé series also stays intact for `180-correlation-matrix.spec.ts`, which uses it. A `finally`
 block restores the original OHLCV values through REST if a failed UI flow leaves the target row missing.
 Write-response matchers accept error statuses and assert the status/body separately, so a backend rejection
 is reported directly instead of appearing as a response timeout.
@@ -1312,10 +1312,10 @@ is reported directly instead of appearing as a response timeout.
 The instrument is added only when missing, so the spec can be re-run against the same `grafioschtrader_t`
 without a reset.
 
-## History quote bulk-tools spec (062-*)
+## History quote bulk-tools spec (140-*)
 
-`062-historyquote-bulk-tools.spec.ts` logs in as `admin`, opens the `_Schwellenländer Bond` watchlist populated by
-040, and exercises the two bulk tools of `HistoryquoteTableComponent` on the seeded CRE18 bond. It first opens
+`140-historyquote-bulk-tools.spec.ts` logs in as `admin`, opens the `_Schwellenländer Bond` watchlist populated by
+090, and exercises the two bulk tools of `HistoryquoteTableComponent` on the seeded CRE18 bond. It first opens
 "Delete imported and/or linear filled", verifies that both displayed dates are the unchanged bounds returned by the
 backend, and executes the deletion. The resulting series must contain neither `MANUAL_IMPORTED` nor
 `FILLED_CLOSED_LINEAR_TRADING_DAY` rows and must retain exactly the two `ADD_MODIFIED_USER` quotes dated 2024-12-31
@@ -1330,20 +1330,20 @@ filling, the absence of deletable quote types is accepted and the test resumes w
 repeatable without resetting `grafioschtrader_t`.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/062-historyquote-bulk-tools.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/140-historyquote-bulk-tools.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## History quote notification spec (063-*)
+## History quote notification spec (145-*)
 
-`063-historyquote-legacy-notification.spec.ts` opens the EOD table of Nestlé from the `Switzerland` watchlist of 060 as
+`145-historyquote-legacy-notification.spec.ts` opens the EOD table of Nestlé from the `Switzerland` watchlist of 135 as
 `alledit`. It holds the real quote response, so the rows must appear only after its delivery, and raises the archive
 count of the response to check the translated menu entry with that count. It then switches to the archive view, whose
 rows are intercepted, opens and closes the apply-split dialog and the edit dialog of an archived row, and returns to the
 live view. Nothing is written to the database. Run it with
-`npx playwright test e2e/063-historyquote-legacy-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/145-historyquote-legacy-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Seasonality notification spec (064-*)
+## Seasonality notification spec (150-*)
 
-`064-seasonality-notification.spec.ts` opens the seasonality heat map of Nestlé from the `Switzerland` watchlist of 060
+`150-seasonality-notification.spec.ts` opens the seasonality heat map of Nestlé from the `Switzerland` watchlist of 135
 as `alledit`. The seasonal returns are intercepted with fixed figures. The first monthly response is held, so the
 progress bar and then the 14 columns must follow its delivery; the capability flags of the response disable the
 main-currency toggle. Switching to quarterly and back to monthly while the quarterly request is still pending must keep
@@ -1354,11 +1354,11 @@ message identical to one still open, and the retry is selected with `selectOptio
 `selectDynamicFormOptionByText` dispatches a second `change` and with it a second request. An `ErrorWithLogout` and an
 `ErrorWithLogoutAdmin` answer — the former is what an expired token produces — each show one toast and log out.
 Nothing is written to the database. Run it with
-`npx playwright test e2e/064-seasonality-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/150-seasonality-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Derived instrument spec (065-*)
+## Derived instrument spec (155-*)
 
-`065-create-derived-security.spec.ts` uses the `Derived` watchlist created by 040 for user `alledit` and
+`155-create-derived-security.spec.ts` uses the `Derived` watchlist created by 090 for user `alledit` and
 adds three **derived instruments** through the watchlist context menu entry "Add new derived security".
 A derived instrument has no price connector: its prices are calculated from the base instrument
 (formula variable `o`, stored in `security.id_link_securitycurrency`) and, when a pricing formula is
@@ -1368,7 +1368,7 @@ those two tables.
 
 Its `DERIVED` entries are in
 `backend/grafioschtrader-server/src/test/resources/testdata/security-creations.json`. The generalized fixture groups
-security creations by login nickname and watchlist and discriminates the workflows with `creationType`; 067 consumes
+security creations by login nickname and watchlist and discriminates the workflows with `creationType`; 160 consumes
 the `STANDARD_WITH_PERIODS` entries. It is hand-authored, so it belongs in `testdata/` and **not** in
 `testdata/generated/`, which `nv.bat` empties on every run. JSON rather than CSV because the linked instruments and
 history-quote periods form nested structures. The three derived instruments mirror the production database:
@@ -1382,8 +1382,8 @@ history-quote periods form nested structures. The three derived instruments mirr
 Linked instruments are referenced **by name, never by id**. `Gold Feinunze` and the pair `EUR/CHF` are
 seeded by `V2__testdata.sql`, but `USD/CHF` is not: `nv.bat` drops every currency pair whose connector
 needs an API key, and the production USD/CHF pair uses one. That pair is recreated by
-`045-create-currencypair.spec.ts` from `currencypair.csv` and therefore gets a different id — which is
-also why this spec has to run after `045`.
+`095-create-currencypair.spec.ts` from `currencypair.csv` and therefore gets a different id — which is
+also why this spec has to run after `095`.
 
 Two ordering traps are worth knowing when changing the spec. Assigning a _security_ as base instrument
 calls `transferBusinessObjectToForm()` and overwrites name, currency, asset class, stock exchange and
@@ -1408,10 +1408,10 @@ already present in the watchlist are skipped, so the spec is re-runnable against
 `grafioschtrader_t` without a reset — necessary because derived instruments are shared data and
 `security` has no unique index on the name.
 
-## Fixed-deposit security spec (067-*)
+## Fixed-deposit security spec (160-*)
 
-`067-create-fixed-deposit-security.spec.ts` recreates production security `3721`, `Festgeld 2019`, as user `alledit`
-in the `Festgeld` watchlist created by 040. The `STANDARD_WITH_PERIODS` fixture entry uses only natural runtime keys:
+`160-create-fixed-deposit-security.spec.ts` recreates production security `3721`, `Festgeld 2019`, as user `alledit`
+in the `Festgeld` watchlist created by 090. The `STANDARD_WITH_PERIODS` fixture entry uses only natural runtime keys:
 CHF, asset class `Festgeld`, stock exchange `Private Papers`, active dates 2019-01-03 through 2019-12-30, denomination
 100 and distribution frequency `DF_NONE`. The source ID is retained only as provenance and is never used for lookup.
 
@@ -1426,9 +1426,9 @@ the watchlist; if absent, it searches for an exact existing security and adds th
 The edit dialog then replaces all user-created periods with the fixture values and saves the base values again. This
 makes both a completed rerun and a security left outside the watchlist converge on the same database state.
 
-## Bankrupt security spec (069-*)
+## Bankrupt security spec (165-*)
 
-`069-bankrupt-security.spec.ts` marks the seeded Alfa bond `CH0385518086` / CHF (`2.875 Alfa Holding Issuance
+`165-bankrupt-security.spec.ts` marks the seeded Alfa bond `CH0385518086` / CHF (`2.875 Alfa Holding Issuance
 (Ireland) 17-22`) through `BankruptSecurityEditComponent`. The field values come from
 `backend/grafioschtrader-server/src/test/resources/testdata/bankrupt-security.json` (the `e2e='e'` row, copied from
 the production marker: both dates `2023-03-20`, note `Russland Sanktionen`). The bond and its closing prices are
@@ -1439,7 +1439,7 @@ The spec logs in as `alledit`, opens Base data → Instrument without price data
 that ISIN before creating it. It cancels an edit, reopens the dialog with the original values and saves changed dates
 and notes. Holding the real table reload verifies that the OnPush table shows the changed row after the response
 arrives. It then deletes the row and creates it once more with the fixture values, so a run that stopped halfway can
-be repeated. The marker is left in place. CRE18 (`CH0398677754`) is not used: `062-historyquote-bulk-tools` owns that
+be repeated. The marker is left in place. CRE18 (`CH0398677754`) is not used: `140-historyquote-bulk-tools` owns that
 bond.
 
 Two further cases leave the view while its form definition is pending and close the search and edit dialogs while
@@ -1452,11 +1452,11 @@ an already populated date with keyboard input currently makes the Optimus date m
 
 With the backend on the `e2e` profile (`grafioschtrader_t`) and the frontend dev server already running:
 
-`npx playwright test e2e/069-bankrupt-security.spec.ts --project=grafioschtrader-e2e --no-deps`
+`npx playwright test e2e/165-bankrupt-security.spec.ts --project=grafioschtrader-e2e --no-deps`
 
-## Tax data spec (115-*)
+## Tax data spec (235-*)
 
-`115-taxdata.spec.ts` covers the tax data administration view (Administrative data -> Tax data) as the
+`235-taxdata.spec.ts` covers the tax data administration view (Administrative data -> Tax data) as the
 admin user, in three tests that mirror the lifecycle: create the tax country `Switzerland` and the
 tax year `2025` and upload both Kursliste files, delete the uploads, the year and the country again,
 then recreate everything. The create-country dialog uses a filterable Optimus dropdown (`p-select#countryCode`);
@@ -1496,29 +1496,29 @@ rather than by column position. The expansion toggle of a tax year is a leading 
 being introduced it shifted the name out of the first column and broke every selector of this spec at
 once.
 
-## Tax dialog notification (116-_, 127-_)
+## Tax dialog notification (240-_, 280-_)
 
-`116-tax-data-notification.spec.ts` delays the tree, country options, model YAML, schema and event-kind options.
+`240-tax-data-notification.spec.ts` delays the tree, country options, model YAML, schema and event-kind options.
 It checks dialog sessions, draft preservation and a real preview using `testdata/tax-model-notification.yaml`:
 1% of a CHF 1,000 clean value must display CHF 10. It also exercises transport failure/retry and closes the editor
 while a preview is pending, without saving a model. The exchange-rate case needs the optional 2025 Kursliste import
-from 115 and cancels an edit without changing the published USD rate; the other cases need no Kursliste files.
+from 235 and cancels an edit without changing the published USD rate; the other cases need no Kursliste files.
 
-`127-tax-dialog-notification.spec.ts` opens tax export and correction dialogs through the dividends report. It
+`280-tax-dialog-notification.spec.ts` opens tax export and correction dialogs through the dividends report. It
 overlays only the report's Swiss-country and available-year metadata, preserving saved tenant settings. The export
 case checks canton options, drafts and old dialog responses; no statement is downloaded. The correction case saves
 an owned comment through the table and deletes only comments carrying its note prefix at startup and in `finally`.
-Existing corrections remain untouched. Run 116 and 127 individually with `--project=grafioschtrader-e2e --no-deps`.
+Existing corrections remain untouched. Run 240 and 280 individually with `--project=grafioschtrader-e2e --no-deps`.
 
-## GTNet exchange-flag spec (175-*)
+## GTNet exchange-flag spec (370-*)
 
-`175-gtnet-exchange-flags.spec.ts` covers `gtnet-exchange-securities` and `gtnet-exchange-currencypairs`: the
+`370-gtnet-exchange-flags.spec.ts` covers `gtnet-exchange-securities` and `gtnet-exchange-currencypairs`: the
 four checkbox columns `gtNetLastpriceRecv`, `gtNetHistoricalRecv`, `gtNetLastpriceSend` and
 `gtNetHistoricalSend`, the header toggle strip that flips a whole column, and the batch save through
 `POST /api/security/gtnetexchange/batch` resp. `/api/currencypair/gtnetexchange/batch`. The flags are columns of
 `securitycurrency`, not rows of a join table, so no GTNet own entry and no peer is needed; the menu is gated
-only by `useGtnet()`. It logs in as `admin`, reads no fixture and works with whatever instruments `050` and
-`045` left behind.
+only by `useGtnet()`. It logs in as `admin`, reads no fixture and works with whatever instruments `100` and
+`095` left behind.
 
 Two things it has to take care of, and one it must not do:
 
@@ -1534,13 +1534,13 @@ Two things it has to take care of, and one it must not do:
   exchange.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/175-gtnet-exchange-flags.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/370-gtnet-exchange-flags.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## GTNet security-import spec (180-*)
+## GTNet security-import spec (375-*)
 
-`180-gtnet-security-import.spec.ts` covers the tenant-private import staging area: the
+`375-gtnet-security-import.spec.ts` covers the tenant-private import staging area: the
 `gtnet-security-import-edit-head` dialog (`input#name`, `textarea#note`), the inline row editor of the position
-table, and its CSV upload. Like `175` it needs neither an own GTNet entry nor a peer.
+table, and its CSV upload. Like `370` it needs neither an own GTNet entry nor a peer.
 
 The head is a non-modal `dynamic-form` whose CRUD entries sit in the context menu of the surrounding
 `.data-container`, and the positions are an `editable-table` with **per-row** persistence — the pencil opens a
@@ -1559,11 +1559,11 @@ deletes it with its positions both before the first test and after the last, so 
 repeatable against the same `grafioschtrader_t`.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/180-gtnet-security-import.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/375-gtnet-security-import.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## Propose data-change spec (185-*)
+## Propose data-change spec (380-*)
 
-`185-propose-data-change.spec.ts` covers the complete approval workflow for shared entities. Its hand-authored
+`380-propose-data-change.spec.ts` covers the complete approval workflow for shared entities. Its hand-authored
 `backend/grafioschtrader-server/src/test/resources/testdata/propose_data_change.json` fixture identifies users,
 watchlists, entities and referenced rule sets only by natural keys and carries the baseline and proposed values of
 every changed field. The shape is deliberately an array so proposal scenarios share the same loader and three-stage
@@ -1594,10 +1594,10 @@ through the Stockexchange REST endpoint removes any derived rule calendar rows. 
 accepted requests and an interrupted prior run are safe to retry without resetting `grafioschtrader_t`. After the
 last assertion, the spec deletes its accepted request, restores the entity baseline, and removes its queued refresh
 task, with REST assertions confirming each cleanup. XVIE and `Wiener Boerse` are seeded by the numbered backend suite,
-so spec 185 must remain after that prerequisite.
+so spec 380 must remain after that prerequisite.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/185-propose-data-change.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/380-propose-data-change.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## Reusable library suite
 
@@ -1803,7 +1803,7 @@ GTNET_SKIP_BOOTSTRAP=true \
 npx playwright test e2e/gtnet-app/075-exchange-kind-approval.spec.ts --config=playwright.gtnet-app.config.ts
 ```
 
-### Task monitor and table/form notification (lib/035-_, lib/036-_ and 101-*)
+### Task monitor and table/form notification (lib/035-_, lib/036-_ and 215-*)
 
 `035-task-monitor-notification.spec.ts` uses the batch processing monitor of `grafiosch-host` as `admin` to check the
 change notification of the library building blocks: a column toggled in the column visibility dialog disappears and
@@ -1817,7 +1817,7 @@ own (a routed component), the admin's locale may be German after `020-nickname-l
 the header text. Run with
 `npx playwright test --config=playwright.lib.config.ts e2e/lib/035-task-monitor-notification.spec.ts --project=lib-e2e --no-deps`.
 
-`101-task-monitor-notification.spec.ts` and `lib/036-task-monitor-queues.spec.ts` run the shared scenarios in
+`215-task-monitor-notification.spec.ts` and `lib/036-task-monitor-queues.spec.ts` run the shared scenarios in
 `lib/task-monitor.scenarios.ts` in Grafioschtrader and the zoneless library host. They delay constraints and row responses,
 switch queues before responses arrive, follow browser back/forward navigation, and leave/reopen the monitor while
 requests are pending. They also check the persisted task filter, an empty intersection between queue and filter (which
@@ -1828,7 +1828,7 @@ checks cancellation of the additional security-tooltip request when the queue ch
 Each test starts with a fresh page-local fixture intercepting all task endpoints, including writes, plus the security
 tooltip endpoint. These tests exercise browser behavior without enqueuing, interrupting or deleting real jobs; they do
 not test backend persistence or job execution. The original `lib/035` continues to use the real test services and saves
-no job. Run the new specs with `--no-deps`, using `--project=grafioschtrader-e2e` for `101`, or
+no job. Run the new specs with `--no-deps`, using `--project=grafioschtrader-e2e` for `215`, or
 `--config=playwright.lib.config.ts --project=lib-e2e` for `lib/036`.
 
 ### Password recovery and credential-session replacement
@@ -1838,7 +1838,7 @@ that account and removes only its earlier MailHog messages at the start, recover
 checks fragment removal and password confirmation, and verifies the password dialog's replacement JWT without a new
 sign-in. Its `finally` block deletes its own account and tenant. The `e-reset` fixture tag keeps this account out of
 the ordinary registration setup. Run it with `--config=playwright.lib.config.ts --project=lib-e2e --no-deps`.
-`002-password-reset.spec.ts` checks the public recovery route in the GT host and writes no data. `lib/030-password-edit`
+`005-password-reset.spec.ts` checks the public recovery route in the GT host and writes no data. `lib/030-password-edit`
 expects the changed-password session to stay signed in and checks the replacement token before probing the new password.
 
 ### Second factor (TOTP) and passkeys
@@ -1862,7 +1862,7 @@ sign-in security dialog, signs in from the login page without e-mail address, ch
 `returnAfterLogin` - the session entry the OAuth authorize page of GT writes - and deletes the passkey. The account is
 deleted at the start and in `finally`, where the previous public address is restored as well.
 
-`007-sign-in-security-dialog.spec.ts` opens the dialog from the settings menu of the GT host, checks the passkey section
+`030-sign-in-security-dialog.spec.ts` opens the dialog from the settings menu of the GT host, checks the passkey section
 (table, or the hint while `grafioschtrader_t` has no usable public address) and the TOTP section, enters the proof
 step, cancels, closes it with the X and opens it again. It writes no data. The dialogs of this application do not close on
 Escape, so both specs use the close button.
@@ -1894,7 +1894,7 @@ password.
 below the fold can never be scrolled into view and every click on it fails as "element is not stable" — in Playwright's
 720px default the send button of the mail dialog sits at y=751.
 
-## Strategy activation specs (205-_, 210-_, 215-*)
+## Strategy activation specs (410-_, 415-_, 425-*)
 
 The three specs share one shape and differ only in the rule set they activate. Each of them logs in as `alledit`,
 creates one watchlist and one AlgoTop under its own name, borrows an existing instrument by ISIN from another
@@ -1903,27 +1903,27 @@ configuration on its security node through `/api/algostrategy` and then tries to
 deliberately defective variations of it. None of them books a trade, creates an instrument or sends a message, and
 each deletes its own two objects at the start of the run as well as at the end, so an interrupted run does not break
 the retry. The configuration is written through REST rather than through the YAML editor because a rejected
-activation has to be observed as an HTTP status rather than as a toast - the editor path is covered once, in 215.
+activation has to be observed as an HTTP status rather than as a toast - the editor path is covered once, in 425.
 The dip strategy is valid only at security level; attaching it to the AlgoTop would fail hierarchy validation before
 any of the configuration checks under test.
 
 | Spec                                  | Rule set                                             | Owner name         | Fixture                                 |
 | ------------------------------------- | ---------------------------------------------------- | ------------------ | --------------------------------------- |
-| `205-dip-strategy-activation.spec.ts` | Buy after a dip, one take-profit, one hard stop      | `Dip strategy e2e` | `testdata/mean-reversion-strategy.json` |
-| `210-scale-out-plan.spec.ts`          | Exit in tranches, the last one closing the remainder | `Scale-out e2e`    | `testdata/scale-out-strategy.json`      |
-| `215-average-down.spec.ts`            | Answer a falling price by buying more, bounded       | `Average-down e2e` | `testdata/average-down-strategy.json`   |
+| `410-dip-strategy-activation.spec.ts` | Buy after a dip, one take-profit, one hard stop      | `Dip strategy e2e` | `testdata/mean-reversion-strategy.json` |
+| `415-scale-out-plan.spec.ts`          | Exit in tranches, the last one closing the remainder | `Scale-out e2e`    | `testdata/scale-out-strategy.json`      |
+| `425-average-down.spec.ts`            | Answer a falling price by buying more, bounded       | `Average-down e2e` | `testdata/average-down-strategy.json`   |
 
 The rule they all probe is the same: a strategy may only become `activatable` when the engine can execute every part
-of it, while a draft (`activatable: false`) may describe anything. 205 refuses two enabled downside variants, an
+of it, while a draft (`activatable: false`) may describe anything. 410 refuses two enabled downside variants, an
 intraday timeframe and an unknown configuration key, and additionally checks that the buy dialog offers the active
-strategy as an assignment. 210 refuses a duplicate tranche identifier, a remainder tranche that is not the last one,
+strategy as an assignment. 415 refuses a duplicate tranche identifier, a remainder tranche that is not the last one,
 a tranche with neither fraction nor remainder, fractions of the initial position adding beyond the whole position, an
 enabled plan without tranches or without a sizing basis, and both mismatches between trigger type and indicator
-rules - and it accepts the same overflowing fractions once the basis is `current_position`. 215 refuses custom
+rules - and it accepts the same overflowing fractions once the basis is `current_position`. 425 refuses custom
 addition steps, disabled cost reconciliation, zero maximum additions, a zero step, two enabled downside variants and
 an indicator step without indicator confirmation.
 
-215 additionally covers the YAML editor, which has two traps: Monaco's value cannot be typed or filled, so the text
+425 additionally covers the YAML editor, which has two traps: Monaco's value cannot be typed or filled, so the text
 is set on the model through Monaco's own API and the **last** model in the list is the one the open dialog owns; and
 the editor renders YAML while the backend stores JSON, so the edited object is dumped with `js-yaml` on the way in.
 The tree node is addressed with `.last()` because the owner name belongs to both the watchlist and the AlgoTop, and
@@ -1933,20 +1933,20 @@ The fixture files are shared with the backend decision and module tests. They ho
 identity.
 
 Prerequisites: the `ALGO` feature must be enabled for the instance, and a watchlist holding at least one instrument
-with an ISIN must exist - 040 together with 050 provide it.
+with an ISIN must exist - 090 together with 100 provide it.
 
 For isolated services, set `E2E_BACKEND_URL` and `E2E_FRONTEND_URL`; both default to the usual 8080/4200 pair, and
 the backend must report `grafioschtrader_t`. With the backend and frontend still active, execute only the affected
 spec with `npx playwright test e2e/<spec> --project=grafioschtrader-e2e --no-deps`.
 
-## Historical replay spec (220-*)
+## Historical replay spec (430-*)
 
-`220-historical-replay.spec.ts` drives the replay of a simulation environment from that environment's tree node. As
+`430-historical-replay.spec.ts` drives the replay of a simulation environment from that environment's tree node. As
 `alledit` it creates, through REST, one watchlist and one AlgoTop both named `Replay e2e` plus a simulation
 environment `Replay e2e run`, opened with **manual cash** on purpose. The AlgoTop carries one asset class at 100% and
 no security, which satisfies the readiness check and keeps the environment uninvested: a cash-only ledger is the one case whose
 replayed result is known without a single price, so the run must complete with no trades, no drawdown and no Sharpe
-ratio. What a replay does with prices belongs to 205-215 and to the pure backend tests; this spec covers the workflow
+ratio. What a replay does with prices belongs to 410-425 and to the pure backend tests; this spec covers the workflow
 
 - the "Start replay…" menu entry of the environment node, confirmation before the start dialog at both the tree and
   replay-panel entries, cancellation without submitting a run, the start dialog that only collects the inputs, the
@@ -1967,25 +1967,25 @@ Four things bite here:
 - **The replay is started from the main tenant, never from inside a switched-in simulation.** The backend books the
   fills as the owner of the environment, so the menu entry is deliberately absent while a simulation is entered.
 - **The end date must be typed with `pressSequentially` in the de-CH short form** and read back - the same picker
-  trap as in 195.
+  trap as in 395.
 - **The run is asynchronous**, and it finishes in well under a second over two weeks of trading days. Its status is
   therefore polled through the REST endpoint; an assertion on a rendered "running" state would lose the race.
 
 Everything it created is removed before and after each test. Prerequisites: the `ALGO` feature must be enabled, and
-025 must have left a portfolio with a cash account, because the opening balance needs one.
+055 must have left a portfolio with a cash account, because the opening balance needs one.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/220-historical-replay.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/430-historical-replay.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## YAML validation (210-*)
+## YAML validation (420-*)
 
-`210-yaml-validation.spec.ts` uses the `alledit` fixture login, creates its own plan and inactive connector, and checks invalid REST writes, editor diagnostics and previews without saves. It cleans only its named records at the start and end. Run against verified test services with `--project=grafioschtrader-e2e --no-deps`; no other data-producing specs are required beyond the registered user and tenant.
+`420-yaml-validation.spec.ts` uses the `alledit` fixture login, creates its own plan and inactive connector, and checks invalid REST writes, editor diagnostics and previews without saves. It cleans only its named records at the start and end. Run against verified test services with `--project=grafioschtrader-e2e --no-deps`; no other data-producing specs are required beyond the registered user and tenant.
 
-## Shared additional fields (158-*)
+## Shared additional fields (355-*)
 
-`158-udf-sharing.spec.ts` covers both general and instrument fields. An owner shares a manual field or a template field, another user
+`355-udf-sharing.spec.ts` covers both general and instrument fields. An owner shares a manual field or a template field, another user
 adopts it through the shared-fields tab, and the owner deletes it. Template adoption also checks the read-only rule
 details. The subscriber sees the orphaned field and claims
 ownership. The two tabs are clicked, and each table is addressed by its component selector. Only this spec's fields
 and subscriptions are deleted, both before the scenario and in teardown, so it can be repeated against an existing
-`grafioschtrader_t`. Run only this spec with `npx playwright test e2e/158-udf-sharing.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`grafioschtrader_t`. Run only this spec with `npx playwright test e2e/355-udf-sharing.spec.ts --project=grafioschtrader-e2e --no-deps`.

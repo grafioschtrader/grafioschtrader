@@ -4,11 +4,11 @@ import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
 /**
- * Builds the integration-test state required by Playwright specs 005 through 020.
+ * Builds the integration-test state required by Playwright specs 005 through 050.
  *
  * <p>
  * The suite deliberately stops before {@link PortfolioResourceTest}: integration-owned portfolios can reference trading
- * platform plans created by Playwright spec 015. The roundtrip runner continues with {@link ResourceTestSuite_25} after
+ * platform plans created by Playwright spec 045. The roundtrip runner continues with {@link ResourceTestSuite_25} after
  * the early Playwright phase.
  *
  * <p>

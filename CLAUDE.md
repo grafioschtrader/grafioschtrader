@@ -429,7 +429,7 @@ double-opt-in Java test when decryption or entity logic is needed (`ConnectorApi
 
 Worked example of one fixture with both consumers: `trading_calendar_rule_set.json`, read by
 `TradingCalendarRuleSetResourceTest` (filters `e2e == "i"`, throws when missing) and by
-`105-create-trading-calendar-rule-set.spec.ts` (filters `e2e === 'e'`, warns and yields `[]` when missing).
+`220-create-trading-calendar-rule-set.spec.ts` (filters `e2e === 'e'`, warns and yields `[]` when missing).
 
 ## Key Architectural Patterns
 

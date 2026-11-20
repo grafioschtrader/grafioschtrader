@@ -1201,7 +1201,7 @@ export class MyEditComponent
   focus after the animation and can redirect keystrokes already entered in a different field.
 - **Server validation errors** (`ValidationError` of the backend) appear at their field through the entity edit bases.
   The field stays invalid, which keeps the submit button disabled, until the user changes the rejected value
-  (`e2e/027-cashaccount-server-validation.spec.ts`).
+  (`e2e/060-cashaccount-server-validation.spec.ts`).
 
 `src/signal-form.ratchet.spec.ts` checks every component rendering `<signal-dynamic-form>`: its edit base must declare
 `SignalDynamicFormComponent` as the form type, it must not use reactive-forms members (`formControl`, `valueChanges`,
@@ -1215,7 +1215,7 @@ Once that inventory is empty, remove `DynamicFormComponent`, `DynamicFieldDirect
 `requireFormControl`, `DYNAMIC_FORM_IMPORTS` and the reactive branch of `DynamicFormLayoutComponent`. Existing dialogs
 convert when they are otherwise revised; completing the signal-form framework does not require converting them all.
 
-`e2e/151-signal-form-dialogs.spec.ts` covers grouped validation and fixed UDF sizes, all three audit modes, suggestions,
+`e2e/335-signal-form-dialogs.spec.ts` covers grouped validation and fixed UDF sizes, all three audit modes, suggestions,
 fieldsets and range/length constraints, file upload/retry, calendar parsing, instrument lookup, geographic trees and
 the three-state checkbox through real application dialogs. The shared UDF editor is additionally exercised by
 `e2e/lib/039-udf-metadata-notification.spec.ts` in the library host. A locked signal-form field retains its draft value;
@@ -1269,7 +1269,7 @@ Reference implementations: `CashaccountEditComponent` (form generated from the b
 state as rules), `GenericConnectorEndpointEditComponent` (cascading dependencies, start values, value link), and
 `StockexchangeEditComponent` (grouped/filterable `InputDropdown`, MIC defaults, audit fields and mutually exclusive
 calendar sources). Stock-exchange country changes cancel obsolete index reads. Option loading preserves the draft;
-existing MICs and fields of referenced exchanges retain their locks. `e2e/037-master-data-dialog-notification.spec.ts`
+existing MICs and fields of referenced exchanges retain their locks. `e2e/080-master-data-dialog-notification.spec.ts`
 checks grouped flags, filter reset, main/secondary MIC choices, defaults, disabled-value transfer and existing values
 through delayed options and repeated opening.
 

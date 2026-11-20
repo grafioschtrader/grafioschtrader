@@ -199,6 +199,14 @@ export const APP_ROUTES: Routes = [
             canActivate: [authGuard]
           },
           {
+            path: AppSettings.DEPOT_CASH_KEY + '/:id',
+            loadComponent: () =>
+              import('./tenant/component/tenant.summaries.assetclass.component').then(
+                (m) => m.TenantSummariesAssetclassComponent
+              ),
+            canActivate: [authGuard]
+          },
+          {
             path: AppSettings.PORTFOLIO_TRANSACTION_KEY + '/:id',
             loadComponent: () =>
               import('./portfolio/component/portfolio.transaction.table.component').then(
@@ -326,6 +334,15 @@ export const APP_ROUTES: Routes = [
         path: AppSettings.TIME_SERIE_QUOTES,
         loadComponent: () =>
           import('./historyquote/component/time.series.chart.component').then((m) => m.TimeSeriesChartComponent),
+        outlet: AppSettings.MAIN_BOTTOM,
+        canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.SECURITY_POSITION_CHART,
+        loadComponent: () =>
+          import('./historyquote/component/security-position-chart.component').then(
+            (m) => m.SecurityPositionChartComponent
+          ),
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },

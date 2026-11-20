@@ -3,13 +3,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * Shared fixture loading and UI helpers for the portfolio specs 025-create-portfolio (create) and
+ * Shared fixture loading and UI helpers for the portfolio specs 055-create-portfolio (create) and
  * 888-delete-portfolio (teardown). Both drive the same JSON fixture, so the portfolio, cash account
  * and securities account names exist exactly once.
  *
  * The fixture spans two users with different locales — 'e2euser' runs an English UI (en-US) and
  * 'alledit' a German one (de-CH) — therefore every text selector here matches both languages (same
- * convention as manage-client.helpers.ts / 080-correlation-matrix.spec.ts).
+ * convention as manage-client.helpers.ts / 180-correlation-matrix.spec.ts).
  */
 const FIXTURE_PATH = path.resolve(
   __dirname,
@@ -314,7 +314,7 @@ export async function selectWhenLoaded(
  * GlobalparameterService.getCalendarTwoNumberDateFormat(), which is moment's locale pattern 'L' with
  * the four-digit year token replaced by Optimus UI's `y` — and that token is a **two-digit** year. So
  * de-CH types '03.01.00' and en-US '01/03/00'; a four-digit year is rejected and blur wipes the field
- * again (same trap as 010-import-template-group and 065-create-derived-security).
+ * again (same trap as 035-import-template-group and 155-create-derived-security).
  */
 export function toShortDate(isoDate: string, locale: string): string {
   const [year, month, day] = isoDate.split('-');
@@ -332,7 +332,7 @@ export function toShortDate(isoDate: string, locale: string): string {
 /**
  * Writes an ISO date into a p-datepicker inside an editable-table row. The picker ignores input
  * events without a preceding keydown (Optimus UI's isKeydown guard), so fill() never reaches the model —
- * the text has to be typed key by key, exactly as in 065-create-derived-security.spec.ts.
+ * the text has to be typed key by key, exactly as in 155-create-derived-security.spec.ts.
  */
 export async function setRowDate(row: Locator, index: number, isoDate: string, locale: string): Promise<void> {
   const input = row.locator('p-datepicker input').nth(index);

@@ -31,6 +31,7 @@ import { SecuritycurrencyUdfComponent } from './securitycurrency-udf.component';
 import { WatchlistPriceFeedExpandedComponent } from './watchlist-price-feed-expanded.component';
 import { WatchlistDividendTableComponent } from './watchlist-dividend-table.component';
 import { WatchlistSecuritysplitTableComponent } from './watchlist-securitysplit-table.component';
+import { WatchlistDividendMetricsComponent } from './watchlist-dividend-metrics.component';
 import { WatchlistAddInstrumentDialogComponent } from './watchlist-add-instrument-dialog.component';
 import { CurrencypairEditComponent } from '../../shared/securitycurrency/currencypair-edit.component';
 import { SecurityEditComponent } from '../../shared/securitycurrency/security-edit.component';
@@ -75,6 +76,7 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
     WatchlistPriceFeedExpandedComponent,
     WatchlistDividendTableComponent,
     WatchlistSecuritysplitTableComponent,
+    WatchlistDividendMetricsComponent,
     WatchlistAddInstrumentDialogComponent,
     CurrencypairEditComponent,
     SecurityEditComponent,

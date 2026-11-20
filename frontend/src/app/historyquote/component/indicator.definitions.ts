@@ -1,6 +1,7 @@
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FieldDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import { MenuItem } from '@openng/optimus-ui/api';
+import type { Subscription } from 'rxjs';
 
 /**
  * Registry of indicator definitions for the chart.
@@ -37,6 +38,11 @@ export class IndicatorDefinition {
   shown = false;
   menuItem?: MenuItem;
   taTraceIndicatorDataList: TaTraceIndicatorData[] = [];
+  /**
+   * The request of the indicator values still on its way. Switching the indicator off or requesting it anew cancels
+   * it, so a late answer cannot add traces to the chart that no menu state accounts for.
+   */
+  pendingLoad?: Subscription;
 
   /**
    * Creates an indicator definition.

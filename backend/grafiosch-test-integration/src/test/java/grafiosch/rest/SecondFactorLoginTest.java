@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,8 @@ import grafiosch.security.totp.TotpGenerator;
 import grafiosch.service.CredentialChangeService;
 import grafiosch.service.SecondFactorService.TotpSetup;
 import grafiosch.types.TenantAccessLevel;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.EntityManagerFactory;
 import tools.jackson.databind.ObjectMapper;
 
@@ -156,8 +159,7 @@ class SecondFactorLoginTest extends BaseIntegrationTest {
     String recovery = recoveryCodes.get(3).toLowerCase().replace("-", " ");
     assertThat(login(PASSWORD, recovery)).isNotBlank();
     assertThat(refused(PASSWORD, recovery).error().invalidCode()).isTrue();
-    assertThat(greenMail.waitForIncomingEmail(5000, 1)).isTrue();
-    assertThat(GreenMailUtil.getBody(greenMail.getReceivedMessages()[0])).contains("9 recovery codes left");
+    assertThat(firstMailToUser()).contains("9 recovery codes left");
   }
 
   @Test
@@ -224,8 +226,7 @@ class SecondFactorLoginTest extends BaseIntegrationTest {
     assertThat(parsed.getIdTenant()).isEqualTo(other);
     assertThatThrownBy(() -> jwtTokenHandler.parseUserFromToken(old)).isInstanceOf(BadCredentialsException.class);
     assertThat(resets.findById(user.getIdUser())).isEmpty();
-    assertThat(greenMail.waitForIncomingEmail(5000, 1)).isTrue();
-    String notice = GreenMailUtil.getBody(greenMail.getReceivedMessages()[0]);
+    String notice = firstMailToUser();
     assertThat(notice).contains("Authenticator app (TOTP) enabled").doesNotContain(TotpGenerator.base32Encode(secret));
     own(replacement).get().uri("/api/user/secondfactor").exchange().expectStatus().isOk().expectBody(String.class)
         .value(body -> assertThat(body).contains("\"totpEnabled\":true").contains("\"recoveryCodesLeft\":10"));
@@ -349,6 +350,26 @@ class SecondFactorLoginTest extends BaseIntegrationTest {
   private int status(String password, String code) {
     return client.post().uri("/api/login").body(loginBody(user, password, code)).exchange().expectBody().returnResult()
         .getStatus().value();
+  }
+
+  /**
+   * Body of the first mail to the account of this test. Security notices are sent asynchronously after the commit, so
+   * the notice of the previous test can arrive after the mailbox was purged; every test has an account with its own
+   * address, which keeps such a late mail out. Waits up to five seconds.
+   */
+  private String firstMailToUser() throws Exception {
+    long deadline = System.currentTimeMillis() + 5000;
+    do {
+      for (MimeMessage message : greenMail.getReceivedMessages()) {
+        var recipients = message.getAllRecipients();
+        if (recipients != null && Arrays.stream(recipients)
+            .anyMatch(a -> a instanceof InternetAddress ia && user.getUsername().equalsIgnoreCase(ia.getAddress()))) {
+          return GreenMailUtil.getBody(message);
+        }
+      }
+      greenMail.waitForIncomingEmail(200, greenMail.getReceivedMessages().length + 1);
+    } while (System.currentTimeMillis() < deadline);
+    throw new AssertionError("No mail to " + user.getUsername() + " within five seconds");
   }
 
   private String login(String password, String code) {

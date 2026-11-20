@@ -58,6 +58,8 @@ export class AppSettings {
   public static readonly ASSETCLASS_KEY = AppSettings.ASSETCLASS.toLowerCase();
   public static readonly CORRELATION_SET_KEY = 'correlationset';
   public static readonly CORRELATION_CHART = 'correlationchart';
+  /** Prefix of the general purpose chart id of the dividend chart, followed by the security id */
+  public static readonly DIVIDEND_METRICS_CHART = 'dividendmetricschart';
 
   public static readonly WATCHLIST_KEY = AppSettings.WATCHLIST.toLowerCase();
   public static readonly SECURITY_DIVIDEND_KEY = AppSettings.DIVIDEND.toLowerCase();
@@ -138,6 +140,7 @@ export class AppSettings {
   public static readonly UDF_METADATA_SECURITY_KEY = AppSettings.UDF_METADATA_SECURITY.toLowerCase();
 
   public static readonly TIME_SERIE_QUOTES = 'timeSerieQuotes';
+  public static readonly SECURITY_POSITION_CHART = 'securityPositionChart';
   public static readonly SEASONALITY = 'seasonality';
   /** Lower display area route of the income charts of the dividends view. */
   public static readonly TENANT_DIVIDENDS_CHART = 'tenantdividendschart';
@@ -217,6 +220,7 @@ export class AppSettings {
   public static readonly REALIZED_GAINS_SECURITYACCOUNTS = 'realized_gains_securityaccounts';
   public static readonly DEPOT_CASH_CHART_TYPE = 'depotcash_chart_type';
   public static readonly SECURITY_PERFORMANCE_CHART_TYPE = 'securityperformance_chart_type';
+  public static readonly SECURITY_POSITION_CHART_TYPE = 'securityposition_chart_type';
   public static readonly WATCHLIST_PERFORMANCE_TIMEFRAME_STORE = 'u_watchlist_performance_timeframe_1';
   public static readonly WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE = 'u_watchlist_performance_include_dividends';
   public static readonly WATCHLIST_PERFORMANCE_POSITION_HEADER_STORE = 'u_watchlist_performance_position_header';

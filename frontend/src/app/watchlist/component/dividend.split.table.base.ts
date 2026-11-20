@@ -19,6 +19,12 @@ export abstract class DividendSplitTableBase<S extends DividendSplit> extends Ta
   readonly data = signal<S[] | undefined>(undefined);
 
   /**
+   * CSS classes of the table container. The default floats the table as one of two columns of the expanded row; a
+   * table placed inside such a column takes its full width instead.
+   */
+  tableClass = 'datatable nestedtable leftRight2Table';
+
+  /**
    * Creates a new dividend/split table base with sorting and icon configuration.
    *
    * @param keyfield Primary key field name for table row identification

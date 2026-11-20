@@ -15,14 +15,14 @@
  *                   from db/migration/test on backend startup).
  *                3. Start grafioschtrader-server on port 8080 with the `e2e` profile and wait
  *                   until /api/gtinfo reports database `grafioschtrader_t`.
- *                4. Run `ResourceTestSuite_1`, which seeds the state needed through Playwright 020.
+ *                4. Run `ResourceTestSuite_1`, which seeds the state needed through Playwright 050.
  *                5. Ensure the frontend dev server on port 4200 (reused if already running,
- *                   otherwise started via `npm start`), then run Playwright specs 005 through 020.
+ *                   otherwise started via `npm start`), then run Playwright specs 005 through 050.
  *                6. Run `ResourceTestSuite_25`, beginning with PortfolioResourceTest.
- *                7. Run Playwright specs 025 through 045 without repeating the setup project.
+ *                7. Run Playwright specs 055 through 095 without repeating the setup project.
  *                8. Run `ResourceTestSuite_50`, which creates the global trading calendar through next year
  *                   and transactions after currency-pair setup.
- *                9. Run Playwright specs 050 through 888 without repeating the setup project.
+ *                9. Run Playwright specs 100 through 888 without repeating the setup project.
  *   --lib      Reusable-library suite: recreate `grafiosch_t`, start grafiosch-test-integration
  *              on port 8081 (profile `e2e`), run the backend integration suite `ResourceTestSuite`
  *              (registers the users.json users), ensure the grafiosch host on port 4201
@@ -152,9 +152,9 @@ const SUITES = {
         // argLine is what surefire passes to the JVM it forks for the tests.
         cmd: 'mvn', args: ['test', '-pl', 'grafioschtrader-server', '-Dtest=ResourceTestSuite_1',
           `-DargLine="${E2E_JVM_ARGS}"`] },
-      { name: 'frontend-playwright-005-020', cwd: FRONTEND_DIR,
+      { name: 'frontend-playwright-005-050', cwd: FRONTEND_DIR,
         cmd: 'npx', args: ['playwright', 'test', '--project=grafioschtrader-e2e',
-          ...numberedMainSpecs(5, 20)],
+          ...numberedMainSpecs(5, 50)],
         clearOutputDir: PLAYWRIGHT_OUTPUT_DIR,
         // The timing reporter writes next to the config's rootDir, which is the testDir.
         timingJson: path.join(FRONTEND_DIR, 'e2e', 'test-results', 'e2e-timing.json') },
@@ -162,20 +162,20 @@ const SUITES = {
         // This phase consumes state created by the first JUnit and Playwright phases.
         cmd: 'mvn', args: ['test', '-pl', 'grafioschtrader-server', '-Dtest=ResourceTestSuite_25',
           `-DargLine="${E2E_JVM_ARGS}"`] },
-      { name: 'frontend-playwright-025-045', cwd: FRONTEND_DIR,
-        // auth.setup.ts is create-only and already ran as the dependency of the 005-020 phase.
+      { name: 'frontend-playwright-055-095', cwd: FRONTEND_DIR,
+        // auth.setup.ts is create-only and already ran as the dependency of the 005-050 phase.
         cmd: 'npx', args: ['playwright', 'test', '--project=grafioschtrader-e2e', '--no-deps',
-          ...numberedMainSpecs(25, 45)],
+          ...numberedMainSpecs(55, 95)],
         clearOutputDir: PLAYWRIGHT_OUTPUT_DIR,
         // The timing reporter writes next to the config's rootDir, which is the testDir.
         timingJson: path.join(FRONTEND_DIR, 'e2e', 'test-results', 'e2e-timing.json') },
       { name: 'backend-resource-suite-50', cwd: BACKEND_DIR,
-        // Transaction fixtures consume the currency pairs initialized by Playwright spec 045.
+        // Transaction fixtures consume the currency pairs initialized by Playwright spec 095.
         cmd: 'mvn', args: ['test', '-pl', 'grafioschtrader-server', '-Dtest=ResourceTestSuite_50',
           `-DargLine="${E2E_JVM_ARGS}"`] },
-      { name: 'frontend-playwright-050-888', cwd: FRONTEND_DIR,
+      { name: 'frontend-playwright-100-888', cwd: FRONTEND_DIR,
         cmd: 'npx', args: ['playwright', 'test', '--project=grafioschtrader-e2e', '--no-deps',
-          ...numberedMainSpecs(50, 888)],
+          ...numberedMainSpecs(100, 888)],
         clearOutputDir: PLAYWRIGHT_OUTPUT_DIR,
         // The timing reporter writes next to the config's rootDir, which is the testDir.
         timingJson: path.join(FRONTEND_DIR, 'e2e', 'test-results', 'e2e-timing.json') },

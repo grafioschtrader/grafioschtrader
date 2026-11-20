@@ -101,7 +101,7 @@ function owned(row: StoredTransaction, fixture: CashSecurityTransaction): boolea
   );
 }
 
-/** Authenticate in the app and require the funding supplied by 120; never manufacture another spec's deposit. */
+/** Authenticate in the app and require the funding supplied by 245; never manufacture another spec's deposit. */
 export async function beginCashSecurityScenario(page: Page): Promise<void> {
   page.setDefaultTimeout(15_000);
   const info = await page.request.get(`${BACKEND_URL}/api/gtinfo`);
