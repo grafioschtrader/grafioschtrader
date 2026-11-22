@@ -3,6 +3,7 @@ package grafioschtrader.service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -163,7 +164,7 @@ public class PriceFreshnessService {
    * Determines the closing instant of the newest session of the exchange that has already opened: the close of today
    * during and after a session, the close of the previous session before the opening, on a weekend and on a holiday.
    * Comparing a price time with this instant keeps the prices of a closed market current, whichever way their connector
-   * dates them.
+   * dates them. An exchange can specify its regular close separately when its hours include after-hours trading.
    *
    * @param sessionsDesc  sessions of the exchange, newest first, as returned by {@link #loadSessions}; may be null
    * @param stockexchange the exchange of the instrument
@@ -179,10 +180,12 @@ public class PriceFreshnessService {
     }
     final ZoneId zone = ZoneId.of(stockexchange.getTimeZone());
     final Instant now = nowUtc.toInstant(ZoneOffset.UTC);
+    final LocalTime close = stockexchange.getRegularClose() != null ? stockexchange.getRegularClose()
+        : stockexchange.getTimeClose();
     for (LocalDate session : sessionsDesc) {
       if (!session.atTime(stockexchange.getTimeOpen()).atZone(zone).toInstant().isAfter(now)) {
-        return LocalDateTime.ofInstant(session.atTime(stockexchange.getTimeClose()).atZone(zone).toInstant(),
-            ZoneOffset.UTC);
+        LocalDate closeDate = close.isBefore(stockexchange.getTimeOpen()) ? session.plusDays(1) : session;
+        return LocalDateTime.ofInstant(closeDate.atTime(close).atZone(zone).toInstant(), ZoneOffset.UTC);
       }
     }
     return null;

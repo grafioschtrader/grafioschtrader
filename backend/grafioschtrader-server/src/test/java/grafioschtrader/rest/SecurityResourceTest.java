@@ -39,6 +39,11 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 class SecurityResourceTest extends BaseIntegrationTest {
 
   private static final String FIXTURE = "/testdata/generated/securities.json";
+  /**
+   * Hand-authored securities in the format of {@link #FIXTURE}, kept outside {@code testdata/generated/} because nv.bat
+   * wipes that directory. They carry connectors that need no API key, so a test database can load their prices.
+   */
+  private static final String SPIN_OFF_FIXTURE = "/testdata/spin-off-securities.json";
   private static List<Assetclass> assetclasses;
   private static List<Stockexchange> stockexchanges;
 
@@ -76,14 +81,22 @@ class SecurityResourceTest extends BaseIntegrationTest {
   }
 
   static Stream<SecuritySeed> integrationRows() {
-    try (InputStream input = SecurityResourceTest.class.getResourceAsStream(FIXTURE)) {
+    return integrationRows(FIXTURE, "regenerate it with nv.bat");
+  }
+
+  static Stream<SecuritySeed> spinOffRows() {
+    return integrationRows(SPIN_OFF_FIXTURE, "it is maintained by hand");
+  }
+
+  private static Stream<SecuritySeed> integrationRows(String fixture, String remedy) {
+    try (InputStream input = SecurityResourceTest.class.getResourceAsStream(fixture)) {
       if (input == null) {
-        throw new IllegalStateException("Missing fixture " + FIXTURE + " - regenerate it with nv.bat");
+        throw new IllegalStateException("Missing fixture " + fixture + " - " + remedy);
       }
       SecuritySeed[] all = new ObjectMapper().readValue(input, SecuritySeed[].class);
       return Arrays.stream(all).filter(row -> "i".equals(row.e2e()));
     } catch (java.io.IOException e) {
-      throw new UncheckedIOException("Unable to read " + FIXTURE, e);
+      throw new UncheckedIOException("Unable to read " + fixture, e);
     }
   }
 
@@ -98,6 +111,32 @@ class SecurityResourceTest extends BaseIntegrationTest {
     Assumptions.assumeFalse(
         "gt.datafeed.vienna".equals(row.idConnectorHistory()) || "gt.datafeed.vienna".equals(row.idConnectorIntra()),
         "skip rows whose connector performs a slow external fetch during creation");
+    createAndVerify(row);
+  }
+
+  /**
+   * Creates the parent and the existing child of the spin-off Playwright spec. A security that already exists with
+   * this ISIN and currency is kept, for example when a later nv.bat run carries it in the Flyway test data.
+   */
+  @Order(11)
+  @ParameterizedTest
+  @MethodSource("spinOffRows")
+  @DisplayName("Create the spin-off securities from JSON unless they exist (e2e='i')")
+  void createSpinOffSecuritiesTest(SecuritySeed row) {
+    Assumptions.assumeTrue(findByIsinAndCurrency(row.isin(), row.currency()).isEmpty(),
+        () -> row.isin() + " " + row.currency() + " already exists");
+    createAndVerify(row);
+  }
+
+  private Optional<Security> findByIsinAndCurrency(String isin, String currency) {
+    Security[] found = authenticatedClient(RestTestHelper.LIMIT1).get()
+        .uri(RequestGTMappings.SECURITY_MAP + "/search?isin={isin}&currency={currency}", isin, currency)
+        .exchange().expectStatus().isOk().expectBody(Security[].class).returnResult().getResponseBody();
+    return Arrays.stream(found == null ? new Security[0] : found)
+        .filter(s -> isin.equals(s.getIsin()) && currency.equals(s.getCurrency())).findFirst();
+  }
+
+  private void createAndVerify(SecuritySeed row) {
     Security security = row.toSecurity();
 
     Security created = authenticatedClient(RestTestHelper.getRadomUser()).post().uri(RequestGTMappings.SECURITY_MAP)
@@ -138,7 +177,7 @@ class SecurityResourceTest extends BaseIntegrationTest {
       s.setLeverageFactor(leverageFactor);
       s.setStockexchange(
           stockexchanges.stream().filter(se -> se.getName().equals(stockexchangeName)).findFirst().orElseThrow(
-              () -> new IllegalStateException("Unknown stock exchange in " + FIXTURE + ": " + stockexchangeName)));
+              () -> new IllegalStateException("Unknown stock exchange in a security fixture: " + stockexchangeName)));
       s.setAssetClass(RestTestHelper.getAssetclassBy(assetclasses, categoryType.getValue(), subCategoryDE,
           specialInvestmentInstrument.getValue()));
       s.setStockexchangeLink(stockexchangeLink);

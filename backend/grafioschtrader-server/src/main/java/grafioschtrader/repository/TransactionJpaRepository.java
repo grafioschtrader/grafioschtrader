@@ -217,6 +217,20 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   List<Transaction> findByIdSecurityActionApp(Integer idSecurityActionApp);
 
+  boolean existsByIdTenantAndIdSecurityaccountAndSecurity_IdSecuritycurrencyAndSecurityActionRoleAndTransactionDateAfter(
+      Integer idTenant, Integer idSecurityaccount, Integer idSecuritycurrency, byte role, LocalDate transactionDate);
+
+  /** Whether changing the units of this trade would change a booked spin-off entitlement. */
+  default boolean precedesSpinOffEntitlement(Transaction trade) {
+    return trade != null && trade.getSecurity() != null && trade.getIdSecurityaccount() != null
+        && trade.getTransactionDate() != null
+        && (trade.getTransactionType() == grafioschtrader.types.TransactionType.ACCUMULATE
+            || trade.getTransactionType() == grafioschtrader.types.TransactionType.REDUCE)
+        && existsByIdTenantAndIdSecurityaccountAndSecurity_IdSecuritycurrencyAndSecurityActionRoleAndTransactionDateAfter(
+            trade.getIdTenant(), trade.getIdSecurityaccount(), trade.getSecurity().getId(),
+            grafioschtrader.types.SecurityActionRole.SPIN_OFF_SALE.getValue(), trade.getTransactionDate());
+  }
+
   /**
    * Reassigns all transactions for a given old security to a new security after a specified date. Used during ISIN
    * change (SecurityAction) to move post-action-date transactions to the new security.
@@ -267,6 +281,9 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   int revertReassignedTransactions(@Param("oldSecurityId") Integer oldSecurityId, @Param("appId") Integer appId);
 
   List<Transaction> findBySecurity_idSecuritycurrency(Integer idSecuritycurrency);
+
+  List<Transaction> findBySecurity_idSecuritycurrencyAndTransactionTimeBefore(Integer idSecuritycurrency,
+      LocalDateTime cutoff);
 
   /**
    * Get close or finance cost of a margin position

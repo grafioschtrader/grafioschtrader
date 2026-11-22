@@ -14,6 +14,7 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 import grafiosch.common.DataHelper;
 import grafioschtrader.common.DataBusinessHelper;
@@ -24,6 +25,7 @@ import grafioschtrader.reportviews.performance.SecurityPositionSeriesResult.Draw
 import grafioschtrader.reportviews.performance.SecurityPositionSeriesResult.Phase;
 import grafioschtrader.reportviews.performance.SecurityPositionSeriesResult.PositionEvent;
 import grafioschtrader.reportviews.performance.SecurityPositionSeriesResult.UnderwaterRun;
+import grafioschtrader.types.SecurityActionRole;
 import grafioschtrader.types.SecurityPositionSeriesRemark;
 import grafioschtrader.types.TransactionType;
 
@@ -46,7 +48,11 @@ import grafioschtrader.types.TransactionType;
  * <li>{@code invested} is the sum of the cost bases the replay keeps per account. Its main currency counterpart
  * converts each purchase with its own rate and removes the same historical amount on a sale, so the realized result
  * in main currency contains the currency result on the cost.</li>
- * <li>Flows are kept gross for the drawdown; only the two legs of one security transfer on one point are netted.</li>
+ * <li>Flows are kept gross for the drawdown; only the two legs of one security transfer on one point are netted, and
+ * the sale and repurchase of a spin-off parent.</li>
+ * <li>The three legs of a spin-off move cost without a realized result. The parent sale removes the historical main
+ * currency amount of the moved cost from {@code invested} and leaves the purchases; the child purchase adds the same
+ * amount, which {@link #spinOffTransfer} derives from the parent's events, and counts it as the child's purchases.</li>
  * </ul>
  */
 //@formatter:on
@@ -61,10 +67,56 @@ public final class SecurityPositionSeries {
   /**
    * A purchase lot a FIFO or LIFO sale consumed.
    *
-   * @param idTransaction the purchase transaction
-   * @param cost          cost of the consumed units in the currency of the security
+   * @param idTransaction       the purchase transaction; for a lot inherited through a spin-off the child purchase
+   * @param originIdTransaction the original parent purchase of an inherited lot, null for an ordinary lot
+   * @param cost                cost of the consumed units in the currency of the security
    */
-  public record ConsumedLot(Integer idTransaction, double cost) {
+  public record ConsumedLot(Integer idTransaction, Integer originIdTransaction, double cost) {
+
+    public ConsumedLot(Integer idTransaction, double cost) {
+      this(idTransaction, null, cost);
+    }
+  }
+
+  /**
+   * One lot part a spin-off leg moved: for the parent sale the cost one parent lot handed to the child, for the child
+   * purchase one inherited lot.
+   *
+   * @param idTransaction       the purchase of the lot; for an inherited lot the child purchase
+   * @param originIdTransaction the original purchase of an inherited lot, null for an ordinary lot
+   * @param cost                the moved cost in the currency of the security of the event
+   * @param investedMC          main currency amount of an inherited lot, null for the parts of the parent sale
+   */
+  public record SpinOffLot(Integer idTransaction, Integer originIdTransaction, double cost, Double investedMC) {
+
+    /** The original purchase the part goes back to: the origin of an inherited lot, otherwise the purchase itself. */
+    public Integer rootTransaction() {
+      return originIdTransaction != null ? originIdTransaction : idTransaction;
+    }
+  }
+
+  /**
+   * The spin-off side of an event, present only for the three legs of a spin-off. The legs move cost between parent and
+   * child; they are neither purchases nor sales in the purchase and realized figures of the chart.
+   *
+   * @param role                which leg the event is
+   * @param idSecurityActionApp the application of the spin-off the leg belongs to
+   * @param lots                the moved lot parts, empty for an account on average cost
+   * @param investedMC          for the child purchase the main currency amount the parent handed over, null when it is
+   *                            unknown; null for the parent legs, whose amount the chart derives itself
+   */
+  public record SpinOff(SecurityActionRole role, Integer idSecurityActionApp, List<SpinOffLot> lots,
+      Double investedMC) {
+  }
+
+  /**
+   * Main currency amount of the cost a spin-off moved out of one parent account.
+   *
+   * @param investedMC        the whole amount
+   * @param investedMCByRoot  the amount per original purchase, empty for an account on average cost
+   * @param complete          false when a rate was missing on the way, so the amount is too low
+   */
+  public record SpinOffTransfer(double investedMC, Map<Integer, Double> investedMCByRoot, boolean complete) {
   }
 
   /**
@@ -95,11 +147,33 @@ public final class SecurityPositionSeries {
    * @param exDate             ex-date of a dividend, null when unknown or for other types. The price falls on the
    *                           ex-date while the dividend is booked on its payment date, so the drawdown takes the
    *                           outflow on the ex-date; income and results stay on the payment date.
+   * @param spinOff            the spin-off side of a spin-off leg, null for every other transaction
    */
   public record Event(LocalDate date, Integer idSecurityaccount, TransactionType type, Integer idTransaction,
       Integer idSecurityTransfer, Double units, double unitsAfter, double costBaseBefore, double costBaseAfter,
       double flowSC, double incomeSC, double gainLoss, double costBaseRemoved, List<ConsumedLot> consumedLots,
-      Double bookedRate, List<MarginPosition> marginPositions, boolean marginOpening, LocalDate exDate) {
+      Double bookedRate, List<MarginPosition> marginPositions, boolean marginOpening, LocalDate exDate,
+      SpinOff spinOff) {
+
+    public Event(LocalDate date, Integer idSecurityaccount, TransactionType type, Integer idTransaction,
+        Integer idSecurityTransfer, Double units, double unitsAfter, double costBaseBefore, double costBaseAfter,
+        double flowSC, double incomeSC, double gainLoss, double costBaseRemoved, List<ConsumedLot> consumedLots,
+        Double bookedRate, List<MarginPosition> marginPositions, boolean marginOpening, LocalDate exDate) {
+      this(date, idSecurityaccount, type, idTransaction, idSecurityTransfer, units, unitsAfter, costBaseBefore,
+          costBaseAfter, flowSC, incomeSC, gainLoss, costBaseRemoved, consumedLots, bookedRate, marginPositions,
+          marginOpening, exDate, null);
+    }
+
+    /** A copy with another spin-off side, used to add the main currency amount of a child purchase. */
+    public Event withSpinOff(SpinOff newSpinOff) {
+      return new Event(date, idSecurityaccount, type, idTransaction, idSecurityTransfer, units, unitsAfter,
+          costBaseBefore, costBaseAfter, flowSC, incomeSC, gainLoss, costBaseRemoved, consumedLots, bookedRate,
+          marginPositions, marginOpening, exDate, newSpinOff);
+    }
+
+    boolean isSpinOffRole(SecurityActionRole role) {
+      return spinOff != null && spinOff.role() == role;
+    }
 
     boolean isPurchase() {
       return type == TransactionType.ACCUMULATE;
@@ -269,6 +343,35 @@ public final class SecurityPositionSeries {
     return calc.result();
   }
 
+  /**
+   * Main currency amount of the cost a spin-off moved out of one account of the parent. The events of that account are
+   * walked with the rules of the chart, purchases at their rate and sales by their consumed lots or proportionally,
+   * up to the parent sale of the spin-off. The child chart starts its inherited lots with this amount, so the invested
+   * capital of parent and child together stays the same across the action date and no currency result is realized.
+   *
+   * @param accountEvents       the events of one account of the parent, in the order of the replay
+   * @param idSecurityActionApp the application of the spin-off
+   * @param rateOf              rate of an event into the main currency, null when it is unknown
+   * @return the moved amount, incomplete when the parent sale is missing or a rate was unknown
+   */
+  public static SpinOffTransfer spinOffTransfer(List<Event> accountEvents, Integer idSecurityActionApp,
+      Function<Event, Double> rateOf) {
+    AccountState account = new AccountState();
+    for (Event e : accountEvents) {
+      if (e.isMargin()) {
+        continue;
+      }
+      if (e.isSpinOffRole(SecurityActionRole.SPIN_OFF_SALE)
+          && idSecurityActionApp.equals(e.spinOff().idSecurityActionApp())) {
+        return account.spinOffSale(e);
+      }
+      Double rate = rateOf.apply(e);
+      account.broken |= rate == null;
+      account.applyCost(e, rate == null ? 0 : rate);
+    }
+    return new SpinOffTransfer(0, Map.of(), false);
+  }
+
   static boolean isFlat(Map<Integer, Double> unitsByAccount) {
     double sum = 0;
     for (double units : unitsByAccount.values()) {
@@ -290,8 +393,106 @@ public final class SecurityPositionSeries {
   private static final class AccountState {
     double costBase;
     double investedMC;
-    final Map<Integer, Double> purchaseRates = new HashMap<>();
+    /** Main currency rate of each purchase lot, keyed like the lots of the cost ledger. */
+    final Map<LotKey, Double> purchaseRates = new HashMap<>();
     List<MarginPosition> positions = List.of();
+    /** A rate of a lot or of an event was unknown, so {@link #investedMC} is incomplete. */
+    boolean broken;
+
+    /**
+     * Applies the cost side of an event that is no margin event: a purchase adds its cost at its rate, a sale removes
+     * the historical amount of what it consumed, a spin-off leg moves cost without purchase or realized result.
+     *
+     * @return the cost a purchase added, 0 for every other event
+     */
+    double applyCost(Event e, double rate) {
+      double purchased = 0;
+      if (e.spinOff() != null) {
+        if (e.spinOff().role() == SecurityActionRole.SPIN_OFF_SALE) {
+          spinOffSale(e);
+        } else if (e.spinOff().role() == SecurityActionRole.SPIN_OFF_CHILD) {
+          spinOffChild(e);
+        }
+      } else if (e.isPurchase()) {
+        purchased = e.costBaseAfter() - e.costBaseBefore();
+        investedMC += purchased * rate;
+        purchaseRates.put(new LotKey(e.idTransaction(), null), rate);
+      } else if (e.isSale()) {
+        investedMC -= removedBySale(e);
+      }
+      costBase = e.costBaseAfter();
+      return purchased;
+    }
+
+    /** Main currency amount a sale removes: its consumed lots at their purchase rates, otherwise proportionally. */
+    double removedBySale(Event e) {
+      if (e.consumedLots() == null) {
+        return proportional(e.costBaseRemoved(), e.costBaseBefore());
+      }
+      double removed = 0;
+      for (ConsumedLot lot : e.consumedLots()) {
+        if (lot.cost() != 0) {
+          removed += lot.cost() * rateOf(new LotKey(lot.idTransaction(), lot.originIdTransaction()));
+        }
+      }
+      return removed;
+    }
+
+    /**
+     * Removes the main currency amount of the cost the parent handed to the child: the moved part of each lot at its
+     * purchase rate, or for average cost the proportional share of the invested capital.
+     */
+    SpinOffTransfer spinOffSale(Event e) {
+      List<SpinOffLot> lots = e.spinOff().lots();
+      Map<Integer, Double> byRoot = new HashMap<>();
+      double removed = 0;
+      if (lots.isEmpty()) {
+        removed = proportional(e.costBaseRemoved(), e.costBaseBefore());
+      } else {
+        for (SpinOffLot lot : lots) {
+          if (lot.cost() != 0) {
+            double part = lot.cost() * rateOf(new LotKey(lot.idTransaction(), lot.originIdTransaction()));
+            byRoot.merge(lot.rootTransaction(), part, Double::sum);
+            removed += part;
+          }
+        }
+      }
+      investedMC -= removed;
+      costBase = e.costBaseAfter();
+      return new SpinOffTransfer(removed, byRoot, !broken);
+    }
+
+    /** Adds the main currency amount the parent handed over and remembers the rate of every inherited lot. */
+    void spinOffChild(Event e) {
+      SpinOff spinOff = e.spinOff();
+      if (spinOff.investedMC() == null) {
+        broken = true;
+      } else {
+        investedMC += spinOff.investedMC();
+      }
+      for (SpinOffLot lot : spinOff.lots()) {
+        if (lot.cost() != 0 && lot.investedMC() != null) {
+          purchaseRates.put(new LotKey(lot.idTransaction(), lot.originIdTransaction()), lot.investedMC() / lot.cost());
+        }
+      }
+    }
+
+    private double proportional(double removedCost, double costBefore) {
+      return costBefore > 0 ? investedMC * removedCost / costBefore : 0;
+    }
+
+    private double rateOf(LotKey key) {
+      Double rate = purchaseRates.get(key);
+      broken |= rate == null;
+      return rate == null ? 0 : rate;
+    }
+  }
+
+  /**
+   * Identity of a purchase lot: the purchase, plus the original purchase for a lot inherited through a spin-off, whose
+   * parts all carry the same child purchase.
+   */
+  private record LotKey(Integer idTransaction, Integer originIdTransaction) {
   }
 
   /** Running sums and the output columns of one currency. */
@@ -382,6 +583,9 @@ public final class SecurityPositionSeries {
         unitsAtClose.put(date, units.values().stream().mapToDouble(Double::doubleValue).sum());
       }
       markInternalTransfers();
+      if (phaseEvents.stream().anyMatch(e -> e.spinOff() != null)) {
+        remarks.add(SecurityPositionSeriesRemark.SPIN_OFF);
+      }
       phaseEvents.stream().filter(this::flowsOnExDate).forEach(exDateFlows::add);
       trailingIncome.stream().filter(this::flowsOnExDate).forEach(exDateFlows::add);
       exDateFlows.sort(Comparator.comparing(Event::exDate));
@@ -480,12 +684,28 @@ public final class SecurityPositionSeries {
           // Its outflow was taken on the ex-date
           continue;
         }
-        Object key = e.idSecurityTransfer() != null ? e.idSecurityTransfer() : (Object) ("e" + nextEvent);
+        Object key = flowKey(e);
         double[] flow = flows.computeIfAbsent(key, _ -> new double[2]);
         flow[0] += eventFlow[0];
         flow[1] += eventFlow[1];
       }
       return flows;
+    }
+
+    /**
+     * Key under which the flow of an event is netted: the two legs of a security transfer, and the sale and repurchase
+     * of a spin-off parent, which together move only the market value of the child out of the position. Every other
+     * flow stays apart.
+     */
+    private Object flowKey(Event e) {
+      if (e.idSecurityTransfer() != null) {
+        return e.idSecurityTransfer();
+      }
+      if (e.isSpinOffRole(SecurityActionRole.SPIN_OFF_SALE)
+          || e.isSpinOffRole(SecurityActionRole.SPIN_OFF_REPURCHASE)) {
+        return "s" + e.spinOff().idSecurityActionApp() + "/" + e.idSecurityaccount();
+      }
+      return "e" + nextEvent;
     }
 
     /**
@@ -501,13 +721,13 @@ public final class SecurityPositionSeries {
       double entryBefore = account.costBase;
       double entryBeforeMC = account.investedMC;
       if (e.marginOpening()) {
-        account.purchaseRates.put(e.idTransaction(), rate);
+        account.purchaseRates.put(new LotKey(e.idTransaction(), null), rate);
       }
       account.positions = e.marginPositions();
       account.costBase = account.positions.stream().mapToDouble(MarginPosition::entry).sum();
       account.investedMC = 0;
       for (MarginPosition position : account.positions) {
-        Double positionRate = account.purchaseRates.get(position.idOpenTransaction());
+        Double positionRate = account.purchaseRates.get(new LotKey(position.idOpenTransaction(), null));
         mcBroken |= positionRate == null;
         account.investedMC += position.entry() * (positionRate == null ? 0 : positionRate);
       }
@@ -521,34 +741,29 @@ public final class SecurityPositionSeries {
       return new double[] { account.costBase - entryBefore - cash, account.investedMC - entryBeforeMC - cash * rate };
     }
 
+    /**
+     * Applies the cost side of an event to its account and the running sums. A spin-off leg only moves invested
+     * capital: the parent sale removes the historical main currency amount of the moved cost, the child purchase adds
+     * the same amount, and none of them realizes a result. The parent keeps its purchases; the child counts its
+     * inherited cost as purchases at that historical amount, so its total performance has a base.
+     */
     private void applyCost(Event e, double rate) {
       AccountState account = account(e);
-      if (e.isPurchase()) {
-        double cost = e.costBaseAfter() - e.costBaseBefore();
-        sc.purchases += cost;
-        mc.purchases += cost * rate;
-        account.investedMC += cost * rate;
-        account.purchaseRates.put(e.idTransaction(), rate);
-      } else if (e.isSale()) {
-        double removedMC = removedMC(e, account);
-        account.investedMC -= removedMC;
+      double investedBefore = account.investedMC;
+      if (e.isSale() && e.spinOff() == null) {
+        account.applyCost(e, rate);
         sc.realized += e.gainLoss();
-        mc.realized += (e.gainLoss() + e.costBaseRemoved()) * rate - removedMC;
+        mc.realized += (e.gainLoss() + e.costBaseRemoved()) * rate - (investedBefore - account.investedMC);
+      } else if (e.isSpinOffRole(SecurityActionRole.SPIN_OFF_CHILD)) {
+        account.applyCost(e, rate);
+        sc.purchases += e.costBaseAfter() - e.costBaseBefore();
+        mc.purchases += account.investedMC - investedBefore;
+      } else {
+        double purchased = account.applyCost(e, rate);
+        sc.purchases += purchased;
+        mc.purchases += purchased * rate;
       }
-      account.costBase = e.costBaseAfter();
-    }
-
-    private double removedMC(Event e, AccountState account) {
-      if (e.consumedLots() != null) {
-        double removed = 0;
-        for (ConsumedLot lot : e.consumedLots()) {
-          Double rate = account.purchaseRates.get(lot.idTransaction());
-          mcBroken |= rate == null;
-          removed += lot.cost() * (rate == null ? 0 : rate);
-        }
-        return removed;
-      }
-      return e.costBaseBefore() > 0 ? account.investedMC * e.costBaseRemoved() / e.costBaseBefore() : 0;
+      mcBroken |= account.broken;
     }
 
     private void applyIncome(Event e, Double rate) {

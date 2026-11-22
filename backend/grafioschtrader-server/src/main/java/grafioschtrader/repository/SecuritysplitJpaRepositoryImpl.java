@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.dto.SecuritysplitDeleteAndCreateMultiple;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityAction;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
@@ -187,6 +189,15 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
 
   @Override
   public List<String> loadAllSplitDataFromConnectorForSecurity(Security security, LocalDate requestedSplitdate) {
+    return loadSplitData(security, requestedSplitdate, true);
+  }
+
+  @Override
+  public List<String> loadSplitDataOfSpinOffParent(Security security) {
+    return loadSplitData(security, null, false);
+  }
+
+  private List<String> loadSplitData(Security security, LocalDate requestedSplitdate, boolean checkHistory) {
     List<String> errorMessages = new ArrayList<>();
     if (globalparametersService.getMaxSplitRetry() > security.getRetrySplitLoad()) {
       short retrySplitLoad = security.getRetrySplitLoad();
@@ -199,7 +210,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         }
         List<Securitysplit> securitysplitsRead = connector.getSplitHistory(security,
             LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), getSplitToDate());
-        updateSplitData(security, securitysplitsRead, requestedSplitdate);
+        updateSplitData(security, securitysplitsRead, requestedSplitdate, checkHistory);
         retrySplitLoad = 0;
       } catch (ParseException pe) {
         log.error(pe.getMessage() + "Offset: " + pe.getErrorOffset(), pe);
@@ -228,11 +239,13 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
    * @param securitysplitsRead The splits read from the persistence.
    * @param requestedSplitdate The date of this split is the most recent and comes from the split calendar. It can be
    *                           Null if it does not come from a split calendar.
+   * @param checkHistory       false when the caller reloads the history itself
    * @throws Exception
    */
-  private void updateSplitData(Security security, List<Securitysplit> securitysplitsRead, LocalDate requestedSplitdate)
-      throws Exception {
+  private void updateSplitData(Security security, List<Securitysplit> securitysplitsRead, LocalDate requestedSplitdate,
+      boolean checkHistory) throws Exception {
     securitysplitsRead = removeSplitsOfPredecessor(security, securitysplitsRead);
+    securitysplitsRead = removeSplitsOfSpinOffs(security, securitysplitsRead);
     securitysplitJpaRepository.deleteByIdSecuritycurrencyAndCreateType(security.getIdSecuritycurrency(),
         CreateType.CONNECTOR_CREATED.getValue());
     List<Securitysplit> existingSplits = securitysplitJpaRepository
@@ -242,6 +255,9 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
     Optional<LocalDate> youngestSplitDate = createdSplits.stream().map(Securitysplit::getSplitDate)
         .max(LocalDate::compareTo);
 
+    if (!checkHistory) {
+      return;
+    }
     if (requestedSplitdate == null
         || !youngestSplitDate.isEmpty() && youngestSplitDate.get().isEqual(requestedSplitdate)) {
       // The requested split could be read via the connector or there is no requested
@@ -282,7 +298,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
    */
   private List<Securitysplit> removeSplitsOfPredecessor(Security security, List<Securitysplit> securitysplitsRead) {
     if (securitysplitsRead.isEmpty()
-        || !securityActionJpaRepository.existsBySecurityNew_IdSecuritycurrency(security.getIdSecuritycurrency())) {
+        || !securityActionJpaRepository.isIsinChangeSuccessor(security.getIdSecuritycurrency())) {
       return securitysplitsRead;
     }
     LocalDate oldestQuoteDate = historyquoteJpaRepository
@@ -290,6 +306,41 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         .map(IMinMaxDateHistoryquote::getMinDate).orElse(null);
     return oldestQuoteDate == null ? securitysplitsRead
         : securitysplitsRead.stream().filter(ss -> ss.getSplitDate().isAfter(oldestQuoteDate)).toList();
+  }
+
+  /**
+   * Drops the connector-read splits by which a data provider expresses a recorded spin-off of this parent.
+   * <p>
+   * Yahoo and EODHD often publish a spin-off as a split of the parent on its ex-date. Stored, such a split would
+   * multiply every parent unit bought before that date and keep the child's value inside the parent, so with the legs
+   * of the spin-off the child would count twice. A split is dropped only when it falls exactly on the action date of a
+   * recorded spin-off; stock dividends and real splits have factors of the same shape and are never recognised by
+   * their factor. The factor of the dropped split is kept on the action, null when no read split falls on its date.
+   * The connector-read splits all carry {@code CONNECTOR_CREATED}; a split entered by a user is not part of the list
+   * and therefore stays.
+   * </p>
+   *
+   * @param security           the security the splits were read for
+   * @param securitysplitsRead the splits delivered by the connector
+   * @return the splits to keep
+   */
+  List<Securitysplit> removeSplitsOfSpinOffs(Security security, List<Securitysplit> securitysplitsRead) {
+    List<SecurityAction> spinOffs = securityActionJpaRepository.findSpinOffsOfParent(security.getIdSecuritycurrency());
+    if (spinOffs.isEmpty()) {
+      return securitysplitsRead;
+    }
+    List<Securitysplit> kept = new ArrayList<>(securitysplitsRead);
+    for (SecurityAction spinOff : spinOffs) {
+      Optional<Securitysplit> providerSplit = securitysplitsRead.stream()
+          .filter(split -> split.getSplitDate().equals(spinOff.getActionDate())).findFirst();
+      kept.removeIf(split -> split.getSplitDate().equals(spinOff.getActionDate()));
+      Double factor = providerSplit.map(Securitysplit::getFactor).orElse(null);
+      if (!Objects.equals(factor, spinOff.getProviderSplitFactor())) {
+        spinOff.setProviderSplitFactor(factor);
+        securityActionJpaRepository.save(spinOff);
+      }
+    }
+    return kept;
   }
 
   @Override

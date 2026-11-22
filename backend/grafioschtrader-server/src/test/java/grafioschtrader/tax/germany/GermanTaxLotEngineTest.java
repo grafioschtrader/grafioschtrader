@@ -29,7 +29,9 @@ import grafioschtrader.tax.germany.GermanTaxMarketData.Distribution;
 import grafioschtrader.tax.germany.GermanTaxMarketData.PricePoint;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.FundTaxClass;
+import grafioschtrader.types.SecurityActionRole;
 import grafioschtrader.types.SpecialInvestmentInstruments;
+import grafioschtrader.types.SpinOffTaxTreatmentDe;
 import grafioschtrader.types.TaxWithholding;
 import grafioschtrader.types.TransactionType;
 
@@ -57,6 +59,181 @@ class GermanTaxLotEngineTest {
     portfolios = new FakePortfolios();
     nextId = 1;
     nextSecurityId = 1;
+  }
+
+  // ------------------------------------------------------------------------------------------ spin-off
+
+  // Parent lots A 60 at 50 (2008, pre-2009) and B 40 at 70, spin-off 4:1 on 2 March 2026, German allocation 20 %
+  @Test
+  @DisplayName("Spin-off as cost split: 20 % of each parent lot moves to a child lot with the parent's purchase time")
+  void spinOffCostSplit() {
+    Security parent = stock("EUR");
+    Security child = stock("EUR");
+    Cashaccount eur = cashaccount("EUR");
+    Transaction lotA = buy(DEPOT_A, parent, eur, 60, 50, LocalDateTime.of(2008, 5, 2, 10, 0));
+    Transaction lotB = buy(DEPOT_A, parent, eur, 40, 70, LocalDateTime.of(2015, 3, 10, 10, 0));
+    Transaction[] legs = spinOffLegs(parent, child, eur, 100, 25);
+    // 50 parent units from A: cost 2400 x 50 / 60 = 2000; 20 child units: 15 from A' (600) and 5 from B' (280)
+    Transaction parentSale = sell(DEPOT_A, parent, eur, 50, 70, at(2026, 6));
+    Transaction childSale = sell(DEPOT_A, child, eur, 20, 50, at(2026, 7));
+
+    GermanTaxYearReport report = runWithSpinOff(SpinOffTaxTreatmentDe.COST_SPLIT, 2026, lotA, lotB, legs[0], legs[1],
+        legs[2], parentSale, childSale);
+
+    assertThat(report.details).hasSize(3);
+    GermanTaxDetail parentLegacy = report.details.get(0);
+    assertThat(parentLegacy.block).isEqualTo(GermanTaxKeys.BLOCK_LEGACY);
+    assertThat(parentLegacy.costEur).isEqualTo(2_000.0, within(EXACT));
+    assertThat(parentLegacy.gainEur).isEqualTo(1_500.0, within(EXACT));
+    GermanTaxDetail childRegular = report.details.get(1);
+    assertThat(childRegular.block).isEqualTo(GermanTaxKeys.BLOCK_SHARES);
+    assertThat(childRegular.costEur).isEqualTo(280.0, within(EXACT));
+    assertThat(childRegular.gainEur).isEqualTo(-30.0, within(EXACT));
+    assertThat(childRegular.lots.getFirst().idTransaction).isEqualTo(lotB.getIdTransaction());
+    assertThat(childRegular.lots.getFirst().acquisitionTime).isEqualTo(lotB.getTransactionTime());
+    GermanTaxDetail childLegacy = report.details.get(2);
+    assertThat(childLegacy.block).isEqualTo(GermanTaxKeys.BLOCK_LEGACY);
+    assertThat(childLegacy.costEur).isEqualTo(600.0, within(EXACT));
+    assertThat(childLegacy.gainEur).isEqualTo(150.0, within(EXACT));
+    assertThat(childLegacy.lots.getFirst().acquisitionTime).isEqualTo(lotA.getTransactionTime());
+    assertThat(sum(report, GermanTaxKeys.BLOCK_SHARES, GermanTaxKeys.LINE_SHARE_LOSSES).amountEur).isEqualTo(30.0,
+        within(EXACT));
+    assertThat(report.warnings).extracting(w -> w.code).contains(GermanTaxKeys.WARN_SPIN_OFF).doesNotContain(
+        GermanTaxKeys.WARN_UNPAIRED_BOOKING, GermanTaxKeys.WARN_SPIN_OFF_UNDETERMINED,
+        GermanTaxKeys.WARN_SALE_FROM_INCOMPLETE_LOT);
+  }
+
+  // 103 parent units at 4:1 give 25.75 child units; a third of 100 units at 10 leaves a remainder of one cent
+  @Test
+  @DisplayName("Spin-off: the warning names the fraction 0.75 and the child lot keeps the exact allotted units")
+  void spinOffFraction() {
+    Security parent = stock("EUR");
+    Security child = stock("EUR");
+    Cashaccount eur = cashaccount("EUR");
+    Transaction lot = buy(DEPOT_A, parent, eur, 103, 50, at(2020, 1));
+    Transaction[] legs = spinOffLegs(parent, child, eur, 103, 25.75);
+    Transaction childSale = sell(DEPOT_A, child, eur, 25.75, 40, at(2026, 7));
+
+    GermanTaxYearReport report = runWithSpinOff(SpinOffTaxTreatmentDe.COST_SPLIT, 2026, lot, legs[0], legs[1],
+        legs[2], childSale);
+
+    assertThat(report.warnings).filteredOn(w -> GermanTaxKeys.WARN_SPIN_OFF.equals(w.code)).singleElement()
+        .satisfies(w -> assertThat(w.detail).isEqualTo("0.75"));
+    GermanTaxDetail sale = report.details.getFirst();
+    assertThat(sale.complete).isTrue();
+    assertThat(sale.lots.getFirst().units).isEqualTo(25.75, within(EXACT));
+    assertThat(sale.costEur).isEqualTo(1_030.0, within(EXACT));
+  }
+
+  // Parent in USD bought for 5000 USD at 0.90 = 4500 EUR; the child keeps 20 % of the euro cost, not a value of 2026
+  @Test
+  @DisplayName("Spin-off of a dollar share: the child's euro cost is 20 % of the historical euro cost")
+  void spinOffKeepsTheHistoricalEuroCost() {
+    Security parent = stock("USD");
+    Security child = stock("USD");
+    Cashaccount eur = cashaccount("EUR");
+    market.rate("USD", LocalDate.of(2020, 1, 10), 0.90);
+    market.rate("USD", LocalDate.of(2026, 7, 10), 0.80);
+    Transaction lot = buy(DEPOT_A, parent, eur, 100, 50, at(2020, 1));
+    Transaction[] legs = spinOffLegs(parent, child, eur, 100, 25);
+    Transaction childSale = sell(DEPOT_A, child, eur, 25, 60, at(2026, 7));
+
+    GermanTaxYearReport report = runWithSpinOff(SpinOffTaxTreatmentDe.COST_SPLIT, 2026, lot, legs[0], legs[1],
+        legs[2], childSale);
+
+    GermanTaxDetail sale = report.details.getFirst();
+    assertThat(sale.costEur).isEqualTo(900.0, within(EXACT));
+    assertThat(sale.proceedsEur).isEqualTo(1_200.0, within(EXACT));
+    assertThat(sale.gainEur).isEqualTo(300.0, within(EXACT));
+  }
+
+  @Test
+  @DisplayName("Spin-off as distribution: the child value 1200 is a dividend, the parent keeps its cost")
+  void spinOffTaxableDistribution() {
+    Security parent = stock("EUR");
+    Security child = stock("EUR");
+    Cashaccount eur = cashaccount("EUR");
+    Transaction lotA = buy(DEPOT_A, parent, eur, 60, 50, LocalDateTime.of(2008, 5, 2, 10, 0));
+    Transaction lotB = buy(DEPOT_A, parent, eur, 40, 70, LocalDateTime.of(2015, 3, 10, 10, 0));
+    Transaction[] legs = spinOffLegs(parent, child, eur, 100, 25);
+    Transaction parentSale = sell(DEPOT_A, parent, eur, 50, 70, at(2026, 6));
+    Transaction childSale = sell(DEPOT_A, child, eur, 10, 50, at(2026, 7));
+
+    GermanTaxYearReport report = runWithSpinOff(SpinOffTaxTreatmentDe.TAXABLE_DISTRIBUTION, 2026, lotA, lotB,
+        legs[0], legs[1], legs[2], parentSale, childSale);
+
+    assertThat(sum(report, GermanTaxKeys.BLOCK_SHARES, GermanTaxKeys.LINE_SHARE_DIVIDENDS).amountEur)
+        .isEqualTo(1_200.0, within(EXACT));
+    List<GermanTaxDetail> sales = report.details.stream().filter(d -> GermanTaxKeys.KIND_SALE.equals(d.kind))
+        .toList();
+    // The parent sale takes 50 of lot A at its full cost 3000 x 50 / 60
+    assertThat(sales.get(0).costEur).isEqualTo(2_500.0, within(EXACT));
+    assertThat(sales.get(0).block).isEqualTo(GermanTaxKeys.BLOCK_LEGACY);
+    // The child lot is new: 1200 for 25 units, dated on the action date and therefore no legacy holding
+    assertThat(sales.get(1).costEur).isEqualTo(480.0, within(EXACT));
+    assertThat(sales.get(1).block).isEqualTo(GermanTaxKeys.BLOCK_SHARES);
+    assertThat(sales.get(1).lots.getFirst().acquisitionTime).isEqualTo(legs[2].getTransactionTime());
+    assertThat(report.warnings).extracting(w -> w.code).contains(GermanTaxKeys.WARN_SPIN_OFF_DISTRIBUTION);
+  }
+
+  @Test
+  @DisplayName("Spin-off without tax treatment: split like a cost split, but later sales of both sides have no amount")
+  void spinOffUndetermined() {
+    Security parent = stock("EUR");
+    Security child = stock("EUR");
+    Cashaccount eur = cashaccount("EUR");
+    Transaction lot = buy(DEPOT_A, parent, eur, 100, 50, at(2020, 1));
+    Transaction[] legs = spinOffLegs(parent, child, eur, 100, 25);
+    Transaction parentSale = sell(DEPOT_A, parent, eur, 50, 70, at(2026, 6));
+    Transaction childSale = sell(DEPOT_A, child, eur, 10, 50, at(2026, 7));
+
+    GermanTaxYearReport report = runWithSpinOff(SpinOffTaxTreatmentDe.UNDETERMINED, 2026, lot, legs[0], legs[1],
+        legs[2], parentSale, childSale);
+
+    assertThat(report.details).extracting(d -> d.complete).containsExactly(false, false);
+    assertThat(report.details).extracting(d -> d.gainEur).containsOnlyNulls();
+    assertThat(sum(report, GermanTaxKeys.BLOCK_SHARES, GermanTaxKeys.LINE_SHARE_GAINS).amountEur).isNull();
+    assertThat(report.warnings).extracting(w -> w.code).contains(GermanTaxKeys.WARN_SPIN_OFF_UNDETERMINED)
+        .doesNotContain(GermanTaxKeys.WARN_SPIN_OFF);
+  }
+
+  @Test
+  @DisplayName("Spin-off of a fund: the derived lots are incomplete and a later child sale has no amount")
+  void spinOffOfAFund() {
+    Security parent = fund("EUR", FundTaxClass.EQUITY_FUND);
+    Security child = stock("EUR");
+    Cashaccount eur = cashaccount("EUR");
+    Transaction lot = buy(DEPOT_A, parent, eur, 100, 50, at(2026, 1));
+    Transaction[] legs = spinOffLegs(parent, child, eur, 100, 25);
+    Transaction childSale = sell(DEPOT_A, child, eur, 10, 50, at(2026, 7));
+
+    GermanTaxYearReport report = runWithSpinOff(SpinOffTaxTreatmentDe.COST_SPLIT, 2026, lot, legs[0], legs[1],
+        legs[2], childSale);
+
+    assertThat(report.details.getFirst().complete).isFalse();
+    assertThat(report.warnings).extracting(w -> w.code).contains(GermanTaxKeys.WARN_SPIN_OFF_FUND);
+  }
+
+  @Test
+  @DisplayName("Spin-off with a missing booking: the child lot is incomplete without the repurchase or the sale")
+  void spinOffIncomplete() {
+    Security parent = stock("EUR");
+    Security child = stock("EUR");
+    Cashaccount eur = cashaccount("EUR");
+    Transaction lot = buy(DEPOT_A, parent, eur, 100, 50, at(2020, 1));
+    Transaction[] legs = spinOffLegs(parent, child, eur, 100, 25);
+    Transaction childSale = sell(DEPOT_A, child, eur, 10, 50, at(2026, 7));
+
+    GermanTaxYearReport withoutRepurchase = runWithSpinOff(SpinOffTaxTreatmentDe.COST_SPLIT, 2026, lot, legs[0],
+        legs[2], childSale);
+    GermanTaxYearReport withoutSale = runWithSpinOff(SpinOffTaxTreatmentDe.COST_SPLIT, 2026, lot, legs[1], legs[2],
+        childSale);
+
+    for (GermanTaxYearReport report : List.of(withoutRepurchase, withoutSale)) {
+      assertThat(report.details.getFirst().complete).isFalse();
+      assertThat(report.warnings).extracting(w -> w.code).contains(GermanTaxKeys.WARN_SPIN_OFF_INCOMPLETE)
+          .doesNotContain(GermanTaxKeys.WARN_UNPAIRED_BOOKING);
+    }
   }
 
   // ------------------------------------------------------------------------------------------ gains of sales
@@ -689,6 +866,32 @@ class GermanTaxLotEngineTest {
   private GermanTaxYearReport run(int taxYear, Transaction... transactions) {
     return new GermanTaxLotEngine(market, portfolios, Map.of(), TODAY).calculate(taxYear, List.of(transactions),
         List.of());
+  }
+
+  /** A run in which the application 1 is a spin-off with the given treatment and a German allocation of 20 %. */
+  private GermanTaxYearReport runWithSpinOff(SpinOffTaxTreatmentDe treatment, int taxYear,
+      Transaction... transactions) {
+    return new GermanTaxLotEngine(market, portfolios, Map.of(), TODAY,
+        Map.of(1, new GermanTaxSpinOff(treatment, 0.20))).calculate(taxYear, List.of(transactions), List.of());
+  }
+
+  /**
+   * The three bookings of a spin-off of application 1 in depot A on 2 March 2026 at midnight, priced like the action
+   * books them: the parent sale at the cum price 76, the repurchase at the ex-date close 64, the child at 48.
+   */
+  private Transaction[] spinOffLegs(Security parent, Security child, Cashaccount cashaccount, double parentUnits,
+      double childUnits) {
+    LocalDateTime exDate = LocalDateTime.of(2026, 3, 2, 0, 0);
+    Transaction sale = sell(DEPOT_A, parent, cashaccount, parentUnits, 76, exDate);
+    Transaction repurchase = buy(DEPOT_A, parent, cashaccount, parentUnits, 64, exDate);
+    Transaction allotment = buy(DEPOT_A, child, cashaccount, childUnits, 48, exDate);
+    sale.setSecurityActionRole(SecurityActionRole.SPIN_OFF_SALE);
+    repurchase.setSecurityActionRole(SecurityActionRole.SPIN_OFF_REPURCHASE);
+    allotment.setSecurityActionRole(SecurityActionRole.SPIN_OFF_CHILD);
+    for (Transaction leg : List.of(sale, repurchase, allotment)) {
+      leg.setIdSecurityActionApp(1);
+    }
+    return new Transaction[] { sale, repurchase, allotment };
   }
 
   private static GermanTaxSum sum(GermanTaxYearReport report, String block, String line) {

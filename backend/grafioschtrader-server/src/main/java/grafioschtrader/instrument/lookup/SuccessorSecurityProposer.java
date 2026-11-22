@@ -101,6 +101,27 @@ public class SuccessorSecurityProposer {
    * @return the unsaved successor, or empty when the lookup found no listing
    */
   Optional<Security> propose(Security old, String isinNew, LocalDate actionDate, Locale locale, LocalDate today) {
+    return propose(old, isinNew, actionDate, locale, today, false);
+  }
+
+  /**
+   * Looks up a child on the parent's exchange in the requested currency, leaving feeds without a usable child connector
+   * empty. The listing supplies the child's master data.
+   */
+  public Optional<Security> proposeSpinOffChild(Security parent, String isin, String currency, LocalDate actionDate,
+      Locale locale) {
+    Security listingContext = new Security();
+    listingContext.setIsin(parent.getIsin());
+    listingContext.setCurrency(currency);
+    listingContext.setAssetClass(parent.getAssetClass());
+    listingContext.setStockexchange(parent.getStockexchange());
+    listingContext.setLeverageFactor(1.0f);
+    listingContext.setActiveToDate(ConnectorProbe.OPEN_END);
+    return propose(listingContext, isin, actionDate, locale, LocalDate.now(), true);
+  }
+
+  private Optional<Security> propose(Security old, String isinNew, LocalDate actionDate, Locale locale, LocalDate today,
+      boolean spinOff) {
     if (old.getStockexchange() == null || old.getAssetClass() == null) {
       return Optional.empty();
     }
@@ -109,21 +130,20 @@ public class SuccessorSecurityProposer {
       response = securityLookupService.lookup(isinNew, old.getCurrency(), old.getStockexchange().getMic(),
           old.getTickerSymbol(), old.getAssetClass().getIdAssetClass(), locale);
     } catch (RuntimeException e) {
-      log.warn("Lookup of the successor {} of {} failed, the predecessor is copied: {}", isinNew, old.getIsin(),
-          e.toString());
+      log.warn("Lookup of {} for security action on {} failed: {}", isinNew, old.getIsin(), e.toString());
       return Optional.empty();
     }
     List<SecurityLookupCandidateDto> candidates = response.candidates().stream()
         .filter(c -> !c.instrumentTypeMismatch()).toList();
     if (candidates.isEmpty()) {
-      log.info("Lookup found no listing of the successor {} of {}, the predecessor is copied", isinNew, old.getIsin());
+      log.info("Lookup found no listing of {} for security action on {}", isinNew, old.getIsin());
       return Optional.empty();
     }
     Map<SecurityLookupCandidateDto, Predicate<ConnectorAlternativeDto>> coverage = new IdentityHashMap<>();
     Function<SecurityLookupCandidateDto, Predicate<ConnectorAlternativeDto>> fromActionDate = c -> coverage
         .computeIfAbsent(c, _ -> memoize(a -> deliversHistoryFrom(old, c, isinNew, a, actionDate, today)));
     SecurityLookupCandidateDto candidate = chooseCandidate(candidates, old, fromActionDate);
-    Security successor = buildSuccessor(old, isinNew, actionDate, candidate, candidates);
+    Security successor = buildSuccessor(old, isinNew, actionDate, candidate, candidates, spinOff);
     applyConnectors(successor, old, candidate, response, fromActionDate.apply(candidate));
     log.info("Successor {} of {} proposed from the {} listing: history {}, intraday {}, dividend {}, split {}", isinNew,
         old.getIsin(), candidate.providerId(), successor.getIdConnectorHistory(), successor.getIdConnectorIntra(),
@@ -159,15 +179,15 @@ public class SuccessorSecurityProposer {
    * listing. A value the listing lacks is taken from the predecessor.
    */
   private Security buildSuccessor(Security old, String isinNew, LocalDate actionDate,
-      SecurityLookupCandidateDto candidate, List<SecurityLookupCandidateDto> candidates) {
+      SecurityLookupCandidateDto candidate, List<SecurityLookupCandidateDto> candidates, boolean spinOff) {
     Security successor = new Security();
     successor.setIsin(isinNew);
-    successor.setName(chooseName(old, candidate, candidates));
+    successor.setName(chooseName(old, candidate, candidates, isinNew));
     successor.setCurrency(old.getCurrency());
     successor.setAssetClass(old.getAssetClass());
     successor.setStockexchange(old.getStockexchange());
     successor.setLeverageFactor(old.getLeverageFactor());
-    successor.setActiveFromDate(actionDate);
+    successor.setActiveFromDate(spinOff ? firstNonNull(candidate.activeFromDate(), actionDate) : actionDate);
     successor.setActiveToDate(candidate.activeToDate() != null ? candidate.activeToDate() : old.getActiveToDate());
     successor.setTickerSymbol(firstNonNull(candidate.tickerSymbol(), old.getTickerSymbol()));
     successor.setDenomination(firstNonNull(candidate.denomination(), old.getDenomination()));
@@ -285,10 +305,11 @@ public class SuccessorSecurityProposer {
    * the chosen listing; without any, the name of the predecessor marked as successor.
    */
   private static String chooseName(Security old, SecurityLookupCandidateDto candidate,
-      List<SecurityLookupCandidateDto> candidates) {
-    String name = candidates.stream().map(SecurityLookupCandidateDto::name)
-        .filter(n -> n != null && !isAllUpperCase(n)).findFirst().orElse(candidate.name());
-    return name == null || name.isBlank() ? successorName(old.getName()) : truncate(name.strip());
+      List<SecurityLookupCandidateDto> candidates, String isinNew) {
+    String name = candidates.stream().map(SecurityLookupCandidateDto::name).filter(n -> n != null && !isAllUpperCase(n))
+        .findFirst().orElse(candidate.name());
+    return name == null || name.isBlank() ? old.getName() == null ? isinNew : successorName(old.getName())
+        : truncate(name.strip());
   }
 
   /**

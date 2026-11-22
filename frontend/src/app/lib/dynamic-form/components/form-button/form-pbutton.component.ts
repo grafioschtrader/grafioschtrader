@@ -41,6 +41,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
       <button
         pButton
         class="btn btn-primary ms-1"
+        [attr.id]="config.field"
         [disabled]="config.disabled"
         pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}"
         type="button"

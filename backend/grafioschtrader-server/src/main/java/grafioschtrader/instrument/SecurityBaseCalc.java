@@ -309,6 +309,7 @@ public abstract class SecurityBaseCalc {
     securityPositionSummary.transactionFlowSC = null;
     securityPositionSummary.transactionCostBasisMethod = null;
     securityPositionSummary.transactionConsumedLots = null;
+    securityPositionSummary.transactionSpinOffLots = null;
     securityPositionSummary.transactionCostBasisIncomplete = null;
     securityPositionSummary.transactionExchangeRate = ctp.exchangeRate;
 

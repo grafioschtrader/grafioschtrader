@@ -1,0 +1,31 @@
+[
+  {
+    "nickname": "user",
+    "portfolio": "Swissquote",
+    "securityAccount": "Swissquote",
+    "cashAccount": "SQ USD",
+    "parentIsin": "US3696041033",
+    "parentCurrency": "USD",
+    "purchaseDate": "2022-12-01",
+    "units": 300,
+    "note": "E2E spin-off entitlement 312",
+    "spinOffs": [
+      {
+        "childIsin": "US36266G1076",
+        "childCurrency": "USD",
+        "actionDate": "2023-01-04",
+        "parentUnits": 300,
+        "childUnits": 100
+      },
+      {
+        "childIsin": "US36828A1016",
+        "childCurrency": "USD",
+        "actionDate": "2024-04-02",
+        "parentUnits": 300,
+        "childUnits": 75,
+        "childCloseLater": true
+      }
+    ],
+    "e2e": "e"
+  }
+]

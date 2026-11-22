@@ -1,5 +1,9 @@
+import { inject } from '@angular/core';
 import { ShowRecordConfigBase } from './show.record.config.base';
-import { FilterService, SelectItem } from '@openng/optimus-ui/api';
+import { FilterService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { UserSettingsService } from '../services/user.settings.service';
+import { ColumnVisibilityDialogComponent, ColumnVisibilityOwner } from './column-visibility-dialog.component';
 import moment from 'moment';
 import { ColumnConfig, ColumnGroupConfig } from './column.config';
 import { AppHelper } from '../helper/app.helper';
@@ -44,6 +48,189 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
 
   /** Names of registered custom filter functions */
   customSearchNames: string[] = [];
+
+  protected usersettingsService: UserSettingsService = inject(UserSettingsService);
+
+  /**
+   * Number of leading visible columns that stay in place while the table is scrolled horizontally. The view hands it to
+   * ConfigurableTableComponent or ConfigurableTreeTableComponent, for example [frozenColumnCount]="frozenColumnCount".
+   * Only tables which set {@link frozenColumnsSelectable} offer it in the column visibility dialog and save it.
+   */
+  frozenColumnCount = 0;
+
+  /**
+   * Opt-in for the slider of the column visibility dialog that sets {@link frozenColumnCount}. Only a table bound to
+   * a scrollable ConfigurableTableComponent or ConfigurableTreeTableComponent can make use of it.
+   */
+  protected frozenColumnsSelectable = false;
+
+  /**
+   * Key under which readTableDefinition found the column settings of this table. The column visibility dialog saves
+   * them under it as soon as it closes; otherwise a choice made there would only be saved when the component is
+   * destroyed, which a page reload never does.
+   */
+  private tableDefinitionKey: string | null = null;
+
+  /**
+   * Persists the column visibility and, for a table that offers it, the number of frozen columns to the user settings.
+   * Settings that only a kind of table has are saved by {@link writeExtraTableSettings}.
+   *
+   * @param key - Unique identifier for this table configuration
+   */
+  writeTableDefinition(key: string): void {
+    const visibleColumns: Record<string, boolean>[] = [];
+    this.fields.forEach((field) => {
+      if (field.headerKey != null) visibleColumns.push({ [field.headerKey]: field.visible });
+    });
+    this.usersettingsService.saveArray(key, visibleColumns);
+    if (this.frozenColumnsSelectable) {
+      this.usersettingsService.saveSingleValue(key + '.frozen', this.frozenColumnCount);
+    }
+    this.writeExtraTableSettings(key);
+  }
+
+  /**
+   * Restores the column visibility and the number of frozen columns from the user settings. The visibility is only
+   * applied when the column structure is unchanged since it was saved (checksum validation).
+   *
+   * @param key - Unique identifier for this table configuration
+   */
+  readTableDefinition(key: string): void {
+    this.tableDefinitionKey = key;
+    if (this.hasSameChecksum(key)) {
+      const readFields: Record<string, boolean>[] = this.usersettingsService.readArray(key);
+      if (readFields != null && readFields.length > 0) {
+        const fieldObject: Record<string, boolean> = Object.assign({}, ...readFields);
+        this.fields.forEach((field) => {
+          // Dynamic columns may be newer than the saved visibility settings.
+          if (field.headerKey != null && Object.hasOwn(fieldObject, field.headerKey))
+            field.visible = fieldObject[field.headerKey];
+        });
+      }
+    }
+    this.readExtraTableSettings(key);
+    if (this.frozenColumnsSelectable) {
+      const storedFrozen = this.usersettingsService.readSingleValue(key + '.frozen');
+      this.frozenColumnCount =
+        storedFrozen > 0 ? Math.min(storedFrozen, ColumnVisibilityDialogComponent.MAX_FROZEN_COLUMNS) : 0;
+    }
+    this.notifyViewChanged();
+  }
+
+  /**
+   * Hook for settings that only a kind of table saves together with its columns, such as the rows per page of a flat
+   * table. Does nothing by default.
+   *
+   * @param _key - Unique identifier for this table configuration
+   */
+  protected writeExtraTableSettings(_key: string): void {}
+
+  /**
+   * Hook restoring the settings saved by {@link writeExtraTableSettings}. Does nothing by default.
+   *
+   * @param _key - Unique identifier for this table configuration
+   */
+  protected readExtraTableSettings(_key: string): void {}
+
+  /**
+   * Creates a single menu item that opens a dialog for column visibility management.
+   * Returns a menu item only if there are toggleable columns available.
+   *
+   * @returns Array containing a single menu item for column visibility dialog, or empty array
+   */
+  getColumnsShow(): MenuItem[] {
+    const hasToggleableColumns = this.fields.some((field) => field.changeVisibility);
+    if (hasToggleableColumns) {
+      return [
+        {
+          label: 'ON_OFF_COLUMNS' + BaseSettings.DIALOG_MENU_SUFFIX,
+          icon: 'fa fa-columns',
+          command: () => this.openColumnVisibilityDialog()
+        }
+      ];
+    }
+    return [];
+  }
+
+  /**
+   * Opens a dialog for toggling column visibility.
+   * The dialog shows checkboxes for all columns with changeVisibility enabled.
+   * Changes are applied in real-time as checkboxes are toggled and saved when the dialog closes, provided the table
+   * reads its settings through readTableDefinition. A table that set {@link frozenColumnsSelectable} additionally gets
+   * a slider for the number of columns fixed on the left.
+   */
+  openColumnVisibilityDialog(): void {
+    if (!this.injector) {
+      console.warn('Injector not available for opening column visibility dialog');
+      return;
+    }
+    const dialogService = this.injector.get(DialogService);
+    this.translateService.get('ON_OFF_COLUMNS').subscribe((header) => {
+      dialogService
+        .open(ColumnVisibilityDialogComponent, {
+          header,
+          width: '300px',
+          modal: true,
+          draggable: true,
+          closable: true,
+          closeOnEscape: true,
+          position: 'right',
+          data: {
+            fields: this.fields,
+            frozenColumns: this.frozenColumnsSelectable ? this : null,
+            owner: this satisfies ColumnVisibilityOwner
+          }
+        })
+        ?.onClose.subscribe(() => this.tableDefinitionKey && this.writeTableDefinition(this.tableDefinitionKey));
+    });
+  }
+
+  /**
+   * Validates that table structure hasn't changed since last save.
+   * Compares checksum of current field names with stored checksum to detect
+   * backend changes that would invalidate saved column preferences.
+   *
+   * @param key - Base key for table configuration
+   * @returns True if table structure is unchanged, false if recreation needed
+   */
+  private hasSameChecksum(key: string): boolean {
+    const keyChecksum = key + '.checksum';
+    const existingChecksum = localStorage.getItem(keyChecksum);
+    const newChecksum: string = this.calculateHashAllOverFieldNames();
+    localStorage.setItem(keyChecksum, newChecksum);
+    return existingChecksum === newChecksum;
+  }
+
+  /**
+   * Calculates hash of all field names for structure change detection.
+   * Creates a numeric hash based on field names to detect when backend
+   * adds/removes/renames fields that would break saved configurations.
+   *
+   * @returns String representation of calculated hash
+   */
+  private calculateHashAllOverFieldNames(): string {
+    let sum = 0;
+    this.fields.forEach((field) => {
+      const fieldName = field.field.replace(/(\.de|\.en)$/, '');
+      sum = sum + 65027 / this.charSum(fieldName);
+    });
+    return ('' + sum).slice(0, 16);
+  }
+
+  /**
+   * Calculates character sum for hash generation.
+   * Uses character codes and position weights to create consistent hash values.
+   *
+   * @param s - String to calculate hash for
+   * @returns Numeric hash value
+   */
+  private charSum(s: string): number {
+    let sum = 0;
+    for (let i = 0; i < s.length; i++) {
+      sum += s.charCodeAt(i) * (i + 1);
+    }
+    return sum;
+  }
 
   /**
    * Configures columns starting from a specified index to use their field names for group display.

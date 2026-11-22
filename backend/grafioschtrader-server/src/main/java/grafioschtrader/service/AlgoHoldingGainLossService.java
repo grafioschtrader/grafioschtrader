@@ -124,7 +124,8 @@ public class AlgoHoldingGainLossService {
     // converting both into the tenant currency would divide the exchange rate out again. Passing null lets the service
     // build the minimal map it needs for the walk itself.
     securityCalcService.calcTransactions(security, tenant.isExcludeDivTax(), summary, securitySplitMap, transactions,
-        LocalDate.now(), null, costBasisMethodService.forTenant(idTenant));
+        LocalDate.now(), null, costBasisMethodService.forTenant(idTenant),
+        securityCalcService.spinOffContext(idTenant, null));
 
     SecurityPositionSummary position = summary.securityPositionSummary;
     if (position.units == 0.0)

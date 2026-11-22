@@ -11,8 +11,8 @@ import grafioschtrader.entities.Tenant;
 public interface AlgoReplayRepository extends Repository<Tenant, Integer> {
 
   /**
-   * Breaks the circular references before removing transfers and action applications. Opening transactions never carry
-   * these references and remain untouched.
+   * Breaks the circular references before removing transfers and action applications. Opening transactions remain
+   * untouched: only the legs of a spin-off carry such a reference among them, and they keep it.
    *
    * @param idTenant the simulation environment
    * @return number of updated transactions
@@ -29,10 +29,15 @@ public interface AlgoReplayRepository extends Repository<Tenant, Integer> {
   @Query("DELETE FROM SecurityTransfer t WHERE t.idTenant = ?1")
   int deleteSecurityTransfers(Integer idTenant);
 
-  /** Removes tenant applications, including those without SELL/BUY pairs, while keeping shared security actions. */
+  /**
+   * Removes the applications the replay created, including those without SELL/BUY pairs, while keeping shared security
+   * actions. An application the opening ledger refers to stays: it is the copy of a spin-off the source tenant had
+   * applied, and the cost basis of the opening state depends on it.
+   */
   @Transactional
   @Modifying
-  @Query("DELETE FROM SecurityActionApplication a WHERE a.idTenant = ?1")
+  @Query("DELETE FROM SecurityActionApplication a WHERE a.idTenant = ?1 AND NOT EXISTS (SELECT t.idTransaction"
+      + " FROM Transaction t WHERE t.idSecurityActionApp = a.idSecurityActionApp AND t.simulationOpening = true)")
   int deleteSecurityActionApplications(Integer idTenant);
 
   /**

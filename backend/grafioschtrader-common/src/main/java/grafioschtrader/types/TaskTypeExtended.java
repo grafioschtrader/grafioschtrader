@@ -73,6 +73,11 @@ public enum TaskTypeExtended implements ITaskType {
 
   // Task which used oldValueNumber or oldValueString can not created by the admin
   // ----------------------------------------------------------------------------
+  /**
+   * A spin-off of the parent security was recorded, deleted or its history basis set: reads the splits, decides the
+   * history basis and reloads the parent's history, then rebuilds its holdings.
+   */
+  SPIN_OFF_PARENT_REFRESH((byte) 81),
   // Update from V_0
   UPD_V_0_11_0((byte) 90),
 

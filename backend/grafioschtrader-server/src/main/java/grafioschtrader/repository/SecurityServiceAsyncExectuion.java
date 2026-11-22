@@ -33,6 +33,7 @@ public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U exte
         S sc = securitycurrency;
 
         if (sc.getIdSecuritycurrency() != null && withDeletion) {
+          securitycurrencyService.beforeFullHistoryReload(sc);
           securitycurrencyService.historyquoteJpaRepository.removeAllSecurityHistoryquote(sc.getIdSecuritycurrency());
           sc = securitycurrencyService.getJpaRepository().getReferenceById(sc.getIdSecuritycurrency());
         }

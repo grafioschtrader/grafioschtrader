@@ -54,6 +54,10 @@ public class SecurityActionApplication extends BaseID<Integer> {
   @Column(name = "id_transaction_buy")
   private Integer idTransactionBuy;
 
+  @Schema(description = "Fraction of the parent's cost basis allocated to the spin-off child")
+  @Column(name = "cost_allocation")
+  private Double costAllocation;
+
   @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
   @Column(name = "applied_time")
   @NotNull
@@ -69,6 +73,12 @@ public class SecurityActionApplication extends BaseID<Integer> {
       applying the ISIN change.""")
   @Transient
   private Integer alreadyPerformedCount;
+
+  @Transient
+  private Integer bookedAccounts;
+
+  @Transient
+  private Integer skippedAccounts;
 
   @Override
   public Integer getId() {
@@ -111,6 +121,14 @@ public class SecurityActionApplication extends BaseID<Integer> {
     return idTransactionBuy;
   }
 
+  public Double getCostAllocation() {
+    return costAllocation;
+  }
+
+  public void setCostAllocation(Double costAllocation) {
+    this.costAllocation = costAllocation;
+  }
+
   public void setIdTransactionBuy(Integer idTransactionBuy) {
     this.idTransactionBuy = idTransactionBuy;
   }
@@ -137,5 +155,21 @@ public class SecurityActionApplication extends BaseID<Integer> {
 
   public void setAlreadyPerformedCount(Integer alreadyPerformedCount) {
     this.alreadyPerformedCount = alreadyPerformedCount;
+  }
+
+  public Integer getBookedAccounts() {
+    return bookedAccounts;
+  }
+
+  public void setBookedAccounts(Integer bookedAccounts) {
+    this.bookedAccounts = bookedAccounts;
+  }
+
+  public Integer getSkippedAccounts() {
+    return skippedAccounts;
+  }
+
+  public void setSkippedAccounts(Integer skippedAccounts) {
+    this.skippedAccounts = skippedAccounts;
   }
 }

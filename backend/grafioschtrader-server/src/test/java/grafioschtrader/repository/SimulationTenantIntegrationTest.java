@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.algo.*;
 import grafioschtrader.entities.*;
 import grafioschtrader.instrument.CostBasisMethods;
@@ -50,6 +51,12 @@ class SimulationTenantIntegrationTest {
   private AlgoAssetclassJpaRepository assetclasses;
   @Autowired
   private AlgoSecurityJpaRepository algoSecurities;
+  @Autowired
+  private AlgoReplayRepository replay;
+  @Autowired
+  private grafioschtrader.service.SpinOffApplyService spinOffApply;
+  @Autowired
+  private grafioschtrader.instrument.SecurityCalcService securityCalcService;
   private final LocalDate date = LocalDate.of(2020, 6, 15);
   private Integer tenantId;
   private Integer topId;
@@ -308,6 +315,116 @@ class SimulationTenantIntegrationTest {
     assertThat(copiedIds).doesNotContain(debit.getId(), credit.getId());
     simulations.deleteSimulationTenant(simulation.getId());
     assertThat(source.transactions(tenantId, date.plusDays(2))).hasSize(4);
+  }
+
+  // Parent 100 units bought at 50 (cost 5000), spin-off 4:1 on 10 June 2020 with an allocation of 20 %
+  @Test
+  @DisplayName("A copied spin-off keeps its legs and its own application: same child cost, survives replay and delete")
+  void copiedSpinOffKeepsItsApplication() throws Exception {
+    List<Security> pair = em.createQuery("""
+        SELECT s FROM Security s WHERE s.currency = 'CHF' AND s.isin IS NOT NULL AND s.idLinkSecuritycurrency IS NULL
+          AND s.assetClass IS NOT NULL ORDER BY s.idSecuritycurrency""", Security.class).setMaxResults(2)
+        .getResultList();
+    assertThat(pair).hasSize(2);
+    Security parent = pair.getFirst();
+    Security child = pair.getLast();
+    LocalDateTime exDate = date.minusDays(5).atStartOfDay();
+    Securityaccount account = addSecurityaccount();
+    Cashaccount cash = em.find(Cashaccount.class, cashId);
+    addTrade(account, parent, cash, 100, 50, date.minusDays(40).atTime(10, 0));
+    SecurityActionApplication application = spinOffApplication(parent, child, exDate.toLocalDate());
+    Transaction sale = spinOffLeg(account, parent, cash, -100, 76, exDate, application,
+        SecurityActionRole.SPIN_OFF_SALE);
+    spinOffLeg(account, parent, cash, 100, 64, exDate, application, SecurityActionRole.SPIN_OFF_REPURCHASE);
+    Transaction allotment = spinOffLeg(account, child, cash, 25, 48, exDate, application,
+        SecurityActionRole.SPIN_OFF_CHILD);
+    application.setIdTransactionSell(sale.getId());
+    application.setIdTransactionBuy(allotment.getId());
+    em.flush();
+    em.clear();
+    holdings.createSecurityHoldingsEntireByTenant(tenantId);
+    balances.createCashaccountBalanceEntireByTenant(tenantId);
+
+    Integer simulationId = simulations.createSimulationTenant(request(SimulationInitializationMode.COPY_PORTFOLIO))
+        .getId();
+
+    List<Transaction> copiedLegs = source.transactions(simulationId, date.plusDays(1)).stream()
+        .filter(t -> t.getSecurityActionRole() != null).toList();
+    assertThat(copiedLegs).hasSize(3).allMatch(Transaction::isSimulationOpening);
+    Integer copiedApplication = copiedLegs.getFirst().getIdSecurityActionApp();
+    assertThat(copiedLegs).allMatch(t -> copiedApplication.equals(t.getIdSecurityActionApp()));
+    SecurityActionApplication copy = em.find(SecurityActionApplication.class, copiedApplication);
+    assertThat(copy.getIdTenant()).isEqualTo(simulationId);
+    assertThat(copy.getCostAllocation()).isEqualTo(0.20);
+    assertThat(copy.getSecurityAction().getIdSecurityAction())
+        .isEqualTo(application.getSecurityAction().getIdSecurityAction());
+    assertThat(copiedLegs).extracting(Transaction::getId).contains(copy.getIdTransactionSell(),
+        copy.getIdTransactionBuy());
+    // 20 % of the parent's cost of 5000 in both tenants
+    assertThat(childCost(tenantId, child)).isEqualTo(1000.0, within(1e-9));
+    assertThat(childCost(simulationId, child)).isEqualTo(1000.0, within(1e-9));
+
+    assertThatThrownBy(() -> spinOffApply.reverse(application.getSecurityAction().getIdSecurityAction(),
+        simulationId)).isInstanceOf(GeneralNotTranslatedWithArgumentsException.class);
+    replay.clearGeneratedTransactionReferences(simulationId);
+    replay.deleteSecurityActionApplications(simulationId);
+    em.clear();
+    assertThat(em.find(SecurityActionApplication.class, copiedApplication)).isNotNull();
+
+    simulations.deleteSimulationTenant(simulationId);
+    em.clear();
+    assertThat(em.find(SecurityActionApplication.class, copiedApplication)).isNull();
+    assertThat(em.find(SecurityActionApplication.class, application.getIdSecurityActionApp())).isNotNull();
+  }
+
+  /** Records an applied spin-off of the fixture tenant with an allocation of 20 %. */
+  private SecurityActionApplication spinOffApplication(Security parent, Security child, LocalDate actionDate) {
+    SecurityAction action = new SecurityAction();
+    action.setActionType(SecurityActionType.SPIN_OFF);
+    action.setSecurityOld(parent);
+    action.setSecurityNew(child);
+    action.setIsinOld(parent.getIsin());
+    action.setIsinNew(child.getIsin());
+    action.setActionDate(actionDate);
+    action.setFromFactor(4);
+    action.setToFactor(1);
+    action.setCostAllocation(0.20);
+    action.setTaxTreatmentDe(SpinOffTaxTreatmentDe.COST_SPLIT);
+    action.setCreatedBy(em.createQuery("SELECT u.idUser FROM User u ORDER BY u.idUser", Integer.class)
+        .setMaxResults(1).getSingleResult());
+    action.setCreationTime(LocalDateTime.now());
+    em.persist(action);
+    SecurityActionApplication application = new SecurityActionApplication();
+    application.setSecurityAction(action);
+    application.setIdTenant(tenantId);
+    application.setAppliedTime(LocalDateTime.now());
+    application.setCostAllocation(0.20);
+    em.persist(application);
+    return application;
+  }
+
+  private Transaction spinOffLeg(Securityaccount account, Security security, Cashaccount cash, double units,
+      double price, LocalDateTime when, SecurityActionApplication application, SecurityActionRole role) {
+    Transaction leg = new Transaction(account.getId(), cash, security, -units * price, Math.abs(units), price,
+        units > 0 ? TransactionType.ACCUMULATE : TransactionType.REDUCE, 0.0, 0.0, null, when, null, null, null, false);
+    leg.setIdTenant(tenantId);
+    leg.setIdSecurityActionApp(application.getIdSecurityActionApp());
+    leg.setSecurityActionRole(role);
+    leg.setNote("System-Created");
+    em.persist(leg);
+    return leg;
+  }
+
+  /** The cost basis of the child in a tenant, calculated by FIFO from its transactions. */
+  private double childCost(Integer idTenant, Security child) {
+    List<Transaction> childTransactions = source.transactions(idTenant, date.plusDays(1)).stream()
+        .filter(t -> t.getSecurity() != null && t.getSecurity().getId().equals(child.getId())).toList();
+    var summary = new grafioschtrader.reportviews.transaction.SecurityTransactionSummary(child, null,
+        new HashMap<>(Map.of("CHF", 2)));
+    securityCalcService.calcTransactions(child, false, summary, Map.of(), childTransactions, date,
+        new grafioschtrader.reportviews.DateTransactionCurrencypairMap(date, true),
+        CostBasisMethods.all(CostBasisMethod.FIFO));
+    return summary.securityPositionSummary.adjustedCostBase;
   }
 
   private Security addSecurityPosition() {

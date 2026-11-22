@@ -21,5 +21,11 @@ public enum SecurityPositionSeriesRemark {
    * A security transfer between two accounts of the scope falls into the phase. Invested capital, purchases and the
    * realized result restart at the transfer value there, as GT books the transfer; the drawdown is not affected.
    */
-  INTERNAL_TRANSFER
+  INTERNAL_TRANSFER,
+  /**
+   * A spin-off falls into the phase. The units stay; invested capital moves to the new shares at its historical cost
+   * and main currency amount without a realized result, and the market value of the new shares leaves the parent as
+   * one outflow.
+   */
+  SPIN_OFF
 }

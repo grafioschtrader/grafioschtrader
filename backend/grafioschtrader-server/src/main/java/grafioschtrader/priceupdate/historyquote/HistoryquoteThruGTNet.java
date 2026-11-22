@@ -239,8 +239,8 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
       if (dto != null && dto.getRecords() != null && !dto.getRecords().isEmpty()) {
         try {
           // Convert DTO records to Historyquote entities
-          List<Historyquote> historyquotes = convertToHistoryquotes(dto.getRecords(),
-              securitycurrency.getIdSecuritycurrency());
+          List<Historyquote> historyquotes = securitycurrencyService.acceptPeerHistoryquotes(securitycurrency,
+              convertToHistoryquotes(dto.getRecords(), securitycurrency.getIdSecuritycurrency()));
 
           // Calculate dates
           LocalDate fromDate = filled.getDate() != null ? filled.getDate().plusDays(1) : null;

@@ -20,6 +20,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.SecurityCostPosition;
+import grafioschtrader.types.SecurityActionRole;
 import grafioschtrader.types.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -255,6 +256,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Schema(description = "Reference to the security action application that created this transaction, null if not from ISIN change")
   @Column(name = "id_security_action_app")
   private Integer idSecurityActionApp;
+
+  @Column(name = "security_action_role")
+  private Byte securityActionRole;
 
   @Schema(description = "Reference to the security transfer that created this transaction, null if not from a transfer")
   @Column(name = "id_security_transfer")
@@ -581,6 +585,15 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     this.idSecurityActionApp = idSecurityActionApp;
   }
 
+  @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY)
+  public SecurityActionRole getSecurityActionRole() {
+    return securityActionRole == null ? null : SecurityActionRole.getByValue(securityActionRole);
+  }
+
+  public void setSecurityActionRole(SecurityActionRole securityActionRole) {
+    this.securityActionRole = securityActionRole == null ? null : securityActionRole.getValue();
+  }
+
   public Integer getIdSecurityTransfer() {
     return idSecurityTransfer;
   }
@@ -868,11 +881,11 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       .thenComparing(Transaction::getIdTransaction, Comparator.nullsLast(Comparator.naturalOrder()));
 
   /**
-   * Rank of this transaction among transactions with the same time: purchase (0), income and every other type (1),
-   * sale (2), purchase of a security account transfer (3). A dividend therefore sees the units of a purchase of the
-   * same minute and still those of a sale of the same minute. The purchase of a transfer follows its sale, which
-   * carries the same time, so that a pooled view over both security accounts realizes the sale before the transferred
-   * units enter the pool again.
+   * Rank of this transaction among transactions with the same time: spin-off sale (-1), purchase (0), income and every
+   * other type (1), sale (2), purchase of a security account transfer (3). A dividend therefore sees the units of a
+   * purchase of the same minute and still those of a sale of the same minute. The purchase of a transfer follows its
+   * sale, which carries the same time, so that a pooled view over both security accounts realizes the sale before the
+   * transferred units enter the pool again.
    *
    * <p>
    * Transactions without a security and those of margin instruments have no rank and are ordered by id alone: the
@@ -882,6 +895,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * @return the rank, deliberately not a getter so that it stays out of the JSON
    */
   public int calcRank() {
+    if (getSecurityActionRole() == SecurityActionRole.SPIN_OFF_SALE) {
+      return -1;
+    }
     if (security == null || security.isMarginInstrument()) {
       return 0;
     }
@@ -921,11 +937,14 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     default:
       calcCashaccountAmount = cashaccountAmount;
     }
-    // A rounding difference already recorded on a persisted transaction is added back so the calculated amount ties
-    // out to the booked amount. Sign convention: diff = round(calculatedAmount) - round(bookedAmount), hence
-    // calculatedAmount - diff == bookedAmount.
+    // Document imports store calculated minus booked. A spin-off child stores the cash-neutral residual minus the
+    // independently rounded child amount.
     if (cashaccountRoundingDiff != null) {
-      calcCashaccountAmount -= cashaccountRoundingDiff;
+      if (getSecurityActionRole() == SecurityActionRole.SPIN_OFF_CHILD) {
+        calcCashaccountAmount += cashaccountRoundingDiff;
+      } else {
+        calcCashaccountAmount -= cashaccountRoundingDiff;
+      }
     }
     calcCashaccountAmount = DataHelper.round(calcCashaccountAmount, currencyFraction);
     double roundCashaccountAmount = DataHelper.round(cashaccountAmount, currencyFraction);

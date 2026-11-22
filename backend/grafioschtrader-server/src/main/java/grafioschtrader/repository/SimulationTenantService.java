@@ -34,6 +34,7 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.SecaccountTradingPeriod;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityActionApplication;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Tenant;
@@ -41,6 +42,7 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.service.AlgoHistoricalValuationService;
+import grafioschtrader.types.SecurityActionRole;
 import grafioschtrader.types.SimulationInitializationMode;
 import grafioschtrader.types.TenantKindType;
 import grafioschtrader.types.TransactionType;
@@ -95,6 +97,9 @@ public class SimulationTenantService {
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
+
+  @Autowired
+  private SecurityActionApplicationJpaRepository securityActionApplicationJpaRepository;
 
   /**
    * Creates a simulation tenant from the given AlgoTop strategy. Copies portfolios, security accounts, and cash
@@ -587,6 +592,10 @@ public class SimulationTenantService {
    * references (connected transaction already copied), while forward references (connected transaction not yet copied)
    * are deferred and resolved in the second pass. This handles mutual references in account transfers and
    * one-directional references in margin instruments (close/finance cost → open position).</li>
+   * <li>{@code idSecurityActionApp} — kept only for the legs of a spin-off, which keep their role as well: the source
+   * application is copied into the simulation tenant once and the legs refer to that copy, so the opening cost basis
+   * splits the parent's cost as in the source tenant. Every other system booking loses the link and becomes an
+   * ordinary transaction. All legs of an application share one timestamp and are therefore copied together.</li>
    * </ul>
    * Fields referencing shared (non-tenant-specific) entities are left unchanged: {@code security} (global),
    * {@code idCurrencypair} (global).
@@ -599,6 +608,8 @@ public class SimulationTenantService {
   private void copyTransactionsUpToDate(List<Transaction> originals, Integer targetIdTenant,
       Map<Integer, Securityaccount> securityAccountMap, Map<Integer, Cashaccount> cashAccountMap) {
     Map<Integer, Transaction> copied = new HashMap<>();
+    // Source application id -> its copy in the simulation tenant, null when the source application is gone
+    Map<Integer, SecurityActionApplication> spinOffApplications = new HashMap<>();
     // Copied in the order of the calculation, so that the new ids keep it for transactions of the same minute
     for (Transaction original : SecurityCalcService.sortForCalculation(originals)) {
       Transaction tx = new Transaction();
@@ -612,7 +623,15 @@ public class SimulationTenantService {
       tx.setAlgoFillId(null);
       tx.setAlgoSignalId(null);
       tx.setIdStandingOrder(null);
-      tx.setIdSecurityActionApp(null);
+      SecurityActionApplication spinOffCopy = original.getSecurityActionRole() == null ? null
+          : spinOffApplications.computeIfAbsent(original.getIdSecurityActionApp(),
+              id -> copySpinOffApplication(id, targetIdTenant));
+      if (spinOffCopy != null) {
+        tx.setIdSecurityActionApp(spinOffCopy.getIdSecurityActionApp());
+      } else {
+        tx.setIdSecurityActionApp(null);
+        dropSpinOffRole(original, tx);
+      }
       tx.setIdSecurityTransfer(null);
       tx.setCashaccount(cashAccountMap.get(original.getCashaccount().getId()));
       tx.setConnectedIdTransaction(null);
@@ -636,7 +655,67 @@ public class SimulationTenantService {
             "simulation.opening.unresolved", original.getId());
       copied.get(original.getId()).setConnectedIdTransaction(linked == null ? null : linked.getId());
     }
+    linkSpinOffApplicationCopies(spinOffApplications, copied);
     em.flush();
+  }
+
+  /**
+   * Copies the source tenant's application of a spin-off into the simulation tenant, so that the copied legs keep
+   * their role and the cost basis of the opening state splits the parent's cost exactly as in the source tenant. The
+   * copy refers to the same shared action and calculates with the same allocation. It is no application of a user and
+   * therefore leaves the applied count of the action alone.
+   *
+   * @param idSecurityActionApp the application of the source tenant the legs refer to
+   * @param targetIdTenant      the simulation tenant
+   * @return the persisted copy, or null when the source application no longer exists
+   */
+  private SecurityActionApplication copySpinOffApplication(Integer idSecurityActionApp, Integer targetIdTenant) {
+    SecurityActionApplication original = idSecurityActionApp == null ? null
+        : securityActionApplicationJpaRepository.findById(idSecurityActionApp).orElse(null);
+    if (original == null) {
+      return null;
+    }
+    SecurityActionApplication copy = new SecurityActionApplication();
+    copy.setSecurityAction(original.getSecurityAction());
+    copy.setIdTenant(targetIdTenant);
+    copy.setAppliedTime(original.getAppliedTime());
+    copy.setReversed(false);
+    copy.setCostAllocation(original.getCostAllocation());
+    em.persist(copy);
+    em.flush();
+    return copy;
+  }
+
+  /**
+   * Points each copied application at the copies of the sale and the child purchase its source application names, so
+   * the copy describes its own legs as the original does.
+   */
+  private void linkSpinOffApplicationCopies(Map<Integer, SecurityActionApplication> spinOffApplications,
+      Map<Integer, Transaction> copied) {
+    for (Map.Entry<Integer, SecurityActionApplication> entry : spinOffApplications.entrySet()) {
+      SecurityActionApplication copy = entry.getValue();
+      SecurityActionApplication original = copy == null ? null
+          : securityActionApplicationJpaRepository.findById(entry.getKey()).orElse(null);
+      if (original != null) {
+        Transaction sale = original.getIdTransactionSell() == null ? null : copied.get(original.getIdTransactionSell());
+        Transaction child = original.getIdTransactionBuy() == null ? null : copied.get(original.getIdTransactionBuy());
+        copy.setIdTransactionSell(sale == null ? null : sale.getId());
+        copy.setIdTransactionBuy(child == null ? null : child.getId());
+        em.merge(copy);
+      }
+    }
+  }
+
+  /**
+   * A leg whose source application is gone becomes an ordinary sale or purchase. Without its role the child purchase
+   * is validated like any purchase, which counts the rounding difference with the opposite sign.
+   */
+  private static void dropSpinOffRole(Transaction original, Transaction copy) {
+    copy.setSecurityActionRole(null);
+    if (original.getSecurityActionRole() == SecurityActionRole.SPIN_OFF_CHILD
+        && copy.getCashaccountRoundingDiff() != null) {
+      copy.setCashaccountRoundingDiff(-copy.getCashaccountRoundingDiff());
+    }
   }
 
   private void createDepositTransactions(Integer simIdTenant, Map<Integer, Cashaccount> cashAccountMap,

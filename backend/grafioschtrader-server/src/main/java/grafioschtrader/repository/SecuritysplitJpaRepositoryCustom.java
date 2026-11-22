@@ -31,6 +31,16 @@ public interface SecuritysplitJpaRepositoryCustom {
   List<String> loadAllSplitDataFromConnectorForSecurity(Security security, LocalDate requestedSplitdate);
 
   /**
+   * Reads the splits of a spin-off parent through its split connector and replaces the connector-created ones, without
+   * checking whether the history must be reloaded. The parent refresh reloads the history itself right afterwards, in
+   * its own transaction, so a reload started here would run concurrently with it.
+   *
+   * @param security the spin-off parent
+   * @return error messages of the connector, empty on success
+   */
+  List<String> loadSplitDataOfSpinOffParent(Security security);
+
+  /**
    * Loads the historical price data of a security if it reflects the split, otherwise another task is created for the
    * future which repeats this process.
    */

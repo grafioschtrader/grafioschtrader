@@ -14,7 +14,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { Transaction } from '../../entities/transaction';
 import { TransactionService } from '../service/transaction.service';
-import { AlgoAlertService } from '../../algo/service/algo-alert.service';
+import { AlgoAlertService, type StrategyAssignment } from '../../algo/service/algo-alert.service';
 import { SecurityOpenPositionPerSecurityaccount } from '../../entities/view/security.open.position.per.securityaccount';
 import { ITransactionEditType } from './i.transaction.edit.type';
 import { TransactionSecurityEditAccumulate } from './transaction.security.edit.accumulate';
@@ -32,7 +32,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { Helper } from '../../lib/helper/helper';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
-import { merge, Observable, Subscription } from 'rxjs';
+import { forkJoin, merge, Observable, of, Subscription } from 'rxjs';
 
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -219,8 +219,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         this.gps.getMaxFractionDigits(),
         transactionCallParam.transactionType === TransactionType.DIVIDEND ||
           transactionCallParam.transactionType === TransactionType.FINANCE_COST,
-        { userDefinedValue: 'S', usedLayoutColumns: 8 }
+        { userDefinedValue: 'S', usedLayoutColumns: 7 }
       ),
+      this.createCalcQuotationButton(),
       DynamicFieldHelper.createFieldInputNumber(
         'quotationCA',
         '_CA',
@@ -704,7 +705,72 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     requireFormControl(this.configObject.currencyExRate).setValue(exRate);
   }
 
+  /**
+   * Button beside "Price/Div/etc." for statements that show only the booked total in the cash account currency.
+   * The user enters that total and the price per unit is derived from it, so no calculator is needed.
+   */
+  private createCalcQuotationButton(): FieldConfig {
+    return DynamicFieldHelper.createFunctionButtonFieldName(
+      'calcQuotationButton',
+      'CALC_QUOTATION',
+      () => this.openCalcQuotationDialog(),
+      { buttonInForm: true, usedLayoutColumns: 1, disabled: true }
+    );
+  }
+
+  /**
+   * The price can only be derived when the quantity is known and the cash account amount depends on the price, which
+   * is not the case when a margin position is opened.
+   */
+  private disableEnableCalcQuotationButton(units: number | null | undefined): void {
+    this.configObject.calcQuotationButton.disabled = !units || this.isOpenMarginInstrument();
+  }
+
+  /**
+   * Opens the dialog for the booked total in the cash account currency and derives the price per unit from it.
+   */
+  private openCalcQuotationDialog(): void {
+    const title = this.configObject.calcQuotationButton.labelKey;
+    if (!title) return;
+    const ddh = new DynamicDialogHelper(this.translateService, this.dialogService, CalcExRateDialogComponent, title);
+    ddh
+      .openDynamicDialog(400, { cashaccountCurrency: this.currencyCashaccount })
+      .pipe(
+        switchMap((ref) => ref.onClose),
+        this.untilDialogClosed()
+      )
+      .subscribe((amount: number) => {
+        if (amount != null) {
+          this.calcQuotationFromAmount(amount);
+        }
+      });
+  }
+
+  /**
+   * Derives the price per unit from the booked cash account amount. The cash account amount is a linear function of
+   * the price, so it is evaluated through calcPosTotal for two prices and solved for the entered amount. This keeps
+   * costs, taxes, accrued interest, exchange rate and the closing of a margin position exactly as the form computes
+   * them. A positive amount is taken as the absolute booking, its sign follows the transaction (a purchase debits the
+   * account); a negative amount is used as it is, e.g. for a negative dividend.
+   *
+   * @param cashaccountAmount the booked total in the cash account currency
+   */
+  private calcQuotationFromAmount(cashaccountAmount: number): void {
+    const data = this.getTransactionByForm();
+    if (!data.units) return;
+    const amountAtZero = this.calcPosTotal({ ...data, quotation: 0 }, false);
+    const amountAtOne = this.calcPosTotal({ ...data, quotation: 1 }, false);
+    if (amountAtZero == null || amountAtOne == null) return;
+    const slope = amountAtOne - amountAtZero;
+    if (slope === 0) return;
+    const target = cashaccountAmount < 0 ? cashaccountAmount : Math.sign(slope) * cashaccountAmount;
+    const quotation = BusinessHelper.roundNumber((target - amountAtZero) / slope, this.gps.getMaxFractionDigits());
+    requireFormControl(this.configObject.quotationCA).setValue(null);
+    requireFormControl(this.configObject.quotation).setValue(quotation);
+  }
+
   private calcPosTotalOnChanges(data: any): void {
+    this.disableEnableCalcQuotationButton(data.units);
     this.currencyExRateHasChanged();
     if (data.units && data.quotation) {
       if (!this.configObject.securityRisk.invisible) {
@@ -1177,35 +1243,52 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     transactionCallParam.transaction && this.form().transferBusinessObjectToForm(transactionCallParam.transaction);
   }
 
+  /**
+   * Offers the assignment of a buy or sell to a mean-reversion strategy. The field stays hidden unless a strategy
+   * watches the selected security or the transaction already carries an assignment, so an ordinary transaction does
+   * not show a selection that holds nothing but "unassigned". The closing fill of a margin position takes the
+   * assignment of its opening and cannot change it.
+   */
   private loadStrategyAssignments(): void {
-    this.subObj['meanReversionOpening']?.unsubscribe();
     this.subObj['meanReversionAssignment']?.unsubscribe();
+    AppHelper.invisibleAndHide(this.configObject.idAlgoStrategy, true);
     const security = this.selectedSecurity?.idSecuritycurrency;
-    AppHelper.invisibleAndHide(this.configObject.idAlgoStrategy, !this.isAccumaulteOrReduce);
     if (!security || !this.isAccumaulteOrReduce) return;
     const transactionCallParam = this.transactionCallParam();
-    if (transactionCallParam.closeMarginPosition) {
-      requireFormControl(this.configObject.idAlgoStrategy).disable();
-      this.subObj['meanReversionOpening'] = this.transactionService
-        .getTransactionByIdTransaction(transactionCallParam.closeMarginPosition.idOpenMarginTransaction)
-        .pipe(this.untilDialogClosed())
-        .subscribe((opening) => requireFormControl(this.configObject.idAlgoStrategy).setValue(opening.idAlgoStrategy));
-    }
-    this.subObj['meanReversionAssignment'] = this.algoAlertService
-      .assignmentOptions(security)
+    const closeMarginPosition = transactionCallParam.closeMarginPosition;
+    const existingAssignment = transactionCallParam.transaction?.idAlgoStrategy ?? null;
+    if (!closeMarginPosition && existingAssignment == null && !this.gps.useAlgo() && !this.gps.useAlert()) return;
+    const assigned$: Observable<number | null> = closeMarginPosition
+      ? this.transactionService
+          .getTransactionByIdTransaction(closeMarginPosition.idOpenMarginTransaction)
+          .pipe(map((opening) => opening.idAlgoStrategy ?? null))
+      : of(existingAssignment);
+    this.subObj['meanReversionAssignment'] = forkJoin([this.algoAlertService.assignmentOptions(security), assigned$])
       .pipe(this.untilDialogClosed())
-      .subscribe((strategies) => {
-        this.configObject.idAlgoStrategy.valueKeyHtmlOptions = [
-          new ValueKeyHtmlSelectOptions(null, this.translateService.instant('UNASSIGNED')),
-          ...strategies.map(
-            (strategy: { idAlgoRuleStrategy: string | number; name: string }) =>
-              new ValueKeyHtmlSelectOptions(strategy.idAlgoRuleStrategy, strategy.name)
-          )
-        ];
-        const selected = requireFormControl(this.configObject.idAlgoStrategy).value;
-        if (selected && !strategies.some((s: { idAlgoRuleStrategy: number }) => s.idAlgoRuleStrategy === selected))
-          requireFormControl(this.configObject.idAlgoStrategy).setValue(null);
-      });
+      .subscribe(([strategies, assigned]) =>
+        this.applyStrategyAssignments(strategies, assigned, !!closeMarginPosition)
+      );
+  }
+
+  /**
+   * Fills the strategy selection and decides its visibility once the options and the current assignment are known.
+   *
+   * @param strategies mean-reversion strategies whose scope contains the selected security
+   * @param assigned strategy the transaction (or the opening of a margin position being closed) is assigned to
+   * @param locked true when closing a margin position, whose assignment follows the opening
+   */
+  private applyStrategyAssignments(strategies: StrategyAssignment[], assigned: number | null, locked: boolean): void {
+    const fieldConfig = this.configObject.idAlgoStrategy;
+    const control = requireFormControl(fieldConfig);
+    fieldConfig.valueKeyHtmlOptions = [
+      new ValueKeyHtmlSelectOptions(null, this.translateService.instant('UNASSIGNED')),
+      ...strategies.map((strategy) => new ValueKeyHtmlSelectOptions(strategy.idAlgoRuleStrategy, strategy.name))
+    ];
+    if (locked) control.setValue(assigned);
+    const selected = control.value;
+    if (selected != null && !strategies.some((s) => s.idAlgoRuleStrategy === selected)) control.setValue(null);
+    AppHelper.invisibleAndHide(fieldConfig, strategies.length === 0 && assigned == null);
+    if (locked) control.disable();
   }
 
   /**

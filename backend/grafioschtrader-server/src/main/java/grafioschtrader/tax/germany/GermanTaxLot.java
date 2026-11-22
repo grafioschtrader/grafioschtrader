@@ -53,6 +53,25 @@ final class GermanTaxLot {
   }
 
   /**
+   * Derives the lot of the new shares of a spin-off from this parent lot: the same purchase and purchase time, so FIFO
+   * order and the transition rules of the purchase continue, and the gaps of this lot. The parent lot keeps its units;
+   * the caller lowers its cost and advance lump sums by what it hands over.
+   *
+   * @param childUnits       units of the new shares on the split basis of today
+   * @param childCostEur     the euro cost that passes to the new shares
+   * @param childPreliminary the applied advance lump sums that pass to the new shares
+   * @return the new lot, with its own list of gaps
+   */
+  GermanTaxLot deriveSpinOff(double childUnits, double childCostEur, double childPreliminary) {
+    final GermanTaxLot child = new GermanTaxLot(idTransaction, acquisitionTime, childUnits,
+        new ArrayList<>(reasons));
+    child.incomplete = incomplete;
+    child.costEur = childCostEur;
+    child.preliminaryEur = childPreliminary;
+    return child;
+  }
+
+  /**
    * Takes a part of the lot. A part that is as large as the lot is the lot itself and leaves it empty.
    *
    * @param takeUnits the units of the part, not more than the lot holds

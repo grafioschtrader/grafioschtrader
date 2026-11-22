@@ -116,6 +116,12 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
     return 0;
   }
 
+  /** Open, high and low come from the raw columns, the close from the adjusted column (field 5). */
+  @Override
+  public boolean isHistoryOpenHighLowAsTraded() {
+    return true;
+  }
+
   /*-
    *  timestamp,open,high,low,close,adjusted_close,volume,dividend_amount,split_coefficient
    *  2020-11-23,117.18,117.6202,113.75,113.85,113.85,127959318,0.0000,1.0

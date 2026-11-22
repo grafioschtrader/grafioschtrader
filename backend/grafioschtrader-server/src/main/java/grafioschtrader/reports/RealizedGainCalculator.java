@@ -75,11 +75,13 @@ public class RealizedGainCalculator {
       Set<Integer> idsSecurityaccount) {
     final Map<Integer, RealizedGainYearGroup> yearMap = new TreeMap<>(Comparator.reverseOrder());
     final Set<CostBasisMethod> usedMethods = EnumSet.noneOf(CostBasisMethod.class);
+    var spinOff = securityCalcService.spinOffContext(transactionsBySecurity.values().stream().flatMap(List::stream)
+        .findFirst().map(Transaction::getIdTenant).orElse(null), null);
     for (Map.Entry<Security, List<Transaction>> entry : transactionsBySecurity.entrySet()) {
       final SecurityTransactionSummary summary = new SecurityTransactionSummary(entry.getKey(), mainCurrency,
           currencyPrecision);
       securityCalcService.calcTransactions(entry.getKey(), excludeDivTax, summary, securitySplitMap, entry.getValue(),
-          untilDate, dateCurrencyMap, costBasisMethods);
+          untilDate, dateCurrencyMap, costBasisMethods, spinOff);
       for (SecurityTransactionPosition position : summary.transactionPositionList) {
         if (isSale(position) && isSelected(idsSecurityaccount, position.transaction)) {
           final RealizedGainPosition row = toRow(position, dateCurrencyMap);
@@ -121,7 +123,8 @@ public class RealizedGainCalculator {
    */
   private static boolean isSale(SecurityTransactionPosition position) {
     final Transaction transaction = position.transaction;
-    if (position.transactionGainLoss == null || transaction.getTransactionType() == TransactionType.ACCRUED_INTEREST) {
+    if (transaction.getSecurityActionRole() != null || position.transactionGainLoss == null
+        || transaction.getTransactionType() == TransactionType.ACCRUED_INTEREST) {
       return false;
     }
     return transaction.getSecurity().isMarginInstrument() ? transaction.isMarginClosePosition()
@@ -159,9 +162,9 @@ public class RealizedGainCalculator {
   /**
    * The rate from the currency of the security into the main currency on the day of the sale. A security in the main
    * currency has the rate 1. Settled over a cash account in the main currency, the booked rate of the transaction
-   * counts. In every other case the closing rate of the security currency on the day counts, never the rate of the
-   * cash account currency: that would convert an amount of another currency. The shared helper of the calculation
-   * returns nothing or exactly that cash account rate for such sales and is therefore not used.
+   * counts. In every other case the closing rate of the security currency on the day counts, never the rate of the cash
+   * account currency: that would convert an amount of another currency. The shared helper of the calculation returns
+   * nothing or exactly that cash account rate for such sales and is therefore not used.
    *
    * @return the rate, null when none exists
    */

@@ -1028,6 +1028,42 @@ npx playwright test e2e/305-create-security-action.spec.ts --project=grafioschtr
 npx playwright test e2e/310-apply-security-action.spec.ts --project=grafioschtrader-e2e --no-deps
 ```
 
+## Spin-off specs (307 and 312)
+
+`307-create-spin-off.spec.ts` reads the rows tagged `e` from `testdata/spin_off.json` and records each spin-off as
+`admin` through `SecurityActionCreateDialogComponent`: General Electric → GE HealthCare (ex-date 2023-01-04, 3:1,
+20.87 %) and General Electric → GE Vernova (ex-date 2024-04-02, 4:1, 20.26 %). The parent is always chosen in the
+security search dialog. GE HealthCare is a `LOOKUP` child, given only by ISIN and trading currency, so the save first
+looks it up at the data providers and creates the instrument with the action; GE Vernova is an `EXISTING` child chosen
+in the search dialog. The lookup needs network access and can take a while, which is why the test allows 180 seconds.
+
+The three securities reach `grafioschtrader_t` on three paths. General Electric is created by `SecurityResourceTest`
+(`ResourceTestSuite_1`) from the hand-written `testdata/spin-off-securities.json` with Yahoo connectors, skipping it
+when its ISIN and currency already exist; in production its intraday connector needs an API key, so nv.bat leaves it
+out. GE Vernova comes with its history from `V2__testdata.sql`; its first close is on 2024-04-03, one day after the
+ex-date. GE HealthCare has production connectors that need an API key, so nv.bat never exports it and spec 307 creates
+it through the lookup.
+
+At startup an unapplied spin-off left by an earlier run is deleted through `DELETE /api/securityaction/{id}`, so every
+run exercises the dialog again; an applied one is kept and only verified. Recording or deleting a spin-off enqueues the
+parent refresh `SPIN_OFF_PARENT_REFRESH`, which drops or restores Yahoo's provider splits of the ex-dates, decides the
+history basis of each spin-off and reloads the history of General Electric. The spec verifies the persisted tree
+representation (type, factors, allocation, source, German tax treatment, persisted child) and the visible tree row.
+
+`312-apply-spin-off.spec.ts` (tenant `user`) reads `testdata/spin_off_apply.json`: portfolio and securities account
+_Swissquote_, cash account _SQ USD_, 300 General Electric bought on 2022-12-01 with a note that identifies the purchase,
+and per spin-off the expected parent and child units. It first reverses active applications of the tenant, newest
+first, and deletes the purchase, which the entitlement protection allows only after the reversals. It books the
+purchase through `POST /api/transaction` at the stored close of that day, polls the preview of both actions until the
+parent refresh has finished and the history bases are decided, and applies GE HealthCare (300 → 100) and GE Vernova
+(300 → 75, child close from a later day) through `SpinOffApplyDialogComponent`. It checks the three legs per
+application and the final units 300 / 100 / 75. `user` is chosen because no later spec asserts figures of this tenant.
+
+```
+npx playwright test e2e/307-create-spin-off.spec.ts --project=grafioschtrader-e2e --no-deps
+npx playwright test e2e/312-apply-spin-off.spec.ts --project=grafioschtrader-e2e --no-deps
+```
+
 ## Security-transfer spec (315-*)
 
 `315-security-transfer.spec.ts` reads the Playwright row from `testdata/security-transfer.csv`, logs in with the

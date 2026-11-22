@@ -302,6 +302,15 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public List<CostLot> transactionConsumedLots;
 
+  /**
+   * The lot parts a spin-off leg of this row moved, otherwise null. For the parent sale each entry is the cost one
+   * parent lot handed to the child, for the child purchase each entry is an inherited child lot. The security position
+   * chart follows the main currency amount of exactly these parts, so that the spin-off realizes no currency result.
+   * Empty for an account on average cost, whose pool has no lots.
+   */
+  @JsonIgnore
+  public List<CostLot> transactionSpinOffLots;
+
   /** True when the lots did not cover the sale of this row, otherwise null. */
   @JsonIgnore
   public Boolean transactionCostBasisIncomplete;
@@ -580,6 +589,9 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
       transactionCostBasisIncomplete = Boolean.TRUE;
     }
     transactionConsumedLots = reduction.consumedLots();
+    if (reduction.consumedLots().stream().anyMatch(lot -> lot.incomplete)) {
+      transactionCostBasisIncomplete = Boolean.TRUE;
+    }
     // The whole sale leaves the ledger totals, also its uncovered part, so that the average cost pool stays untouched
     ledgerUnits -= unitsSplited;
     ledgerCost -= cost;
@@ -590,6 +602,31 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public CostLedger getCostLedger(Integer idSecurityaccount) {
     return costLedgers.get(idSecurityaccount);
+  }
+
+  /** Applies the cost moved to the child to the existing parent lots and totals. */
+  public void removeSpinOffCost(Integer idSecurityaccount, double allocated, List<CostLot> parentLotsAfter) {
+    adjustedCostBase -= allocated;
+    CostLedger ledger = getCostLedger(idSecurityaccount);
+    if (ledger != null) {
+      var remaining = new HashMap<List<Integer>, Double>();
+      for (CostLot lot : parentLotsAfter) {
+        remaining.put(java.util.Arrays.asList(lot.idTransaction, lot.originIdTransaction), lot.cost);
+      }
+      ledger.getLots().forEach(lot -> lot.cost = remaining
+          .getOrDefault(java.util.Arrays.asList(lot.idTransaction, lot.originIdTransaction), lot.cost));
+      ledgerCost -= allocated;
+    }
+  }
+
+  /** Adds the inherited lots without changing their acquisition order. */
+  public void addSpinOffLots(Integer idSecurityaccount, List<CostLot> inherited) {
+    CostLedger ledger = costLedgers.computeIfAbsent(idSecurityaccount, _ -> new CostLedger());
+    for (CostLot lot : inherited) {
+      ledger.insertByTime(lot.withAmount(lot.units, lot.cost));
+      ledgerCost += lot.cost;
+      ledgerUnits += lot.units;
+    }
   }
 
   /**

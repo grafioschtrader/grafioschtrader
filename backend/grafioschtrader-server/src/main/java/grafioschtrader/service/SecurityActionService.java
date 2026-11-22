@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
@@ -26,6 +27,8 @@ import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.dto.SecurityActionTreeData;
+import grafioschtrader.dto.SpinOffDecisionDto;
+import grafioschtrader.dto.SpinOffPreviewDto;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -47,8 +50,10 @@ import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityTransferJpaRepository;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
+import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.service.IsinChangePairDetector.PerformedPair;
+import grafioschtrader.types.SecurityActionType;
 import grafioschtrader.types.TaskTypeExtended;
 import grafioschtrader.types.TransactionType;
 import jakarta.persistence.EntityManager;
@@ -102,6 +107,22 @@ public class SecurityActionService {
   @Autowired
   private EntityManager entityManager;
 
+  @Autowired
+  private SpinOffActionService spinOffActionService;
+
+  @Autowired
+  private SpinOffApplyService spinOffApplyService;
+
+  @Autowired
+  private SpinOffParentRefreshService spinOffParentRefreshService;
+
+  @Autowired
+  private TenantJpaRepository tenantJpaRepository;
+
+  public SpinOffPreviewDto previewSpinOff(Integer action, Integer tenant) {
+    return spinOffApplyService.preview(action, tenant);
+  }
+
   /**
    * Returns tree data for the SecurityAction TreeTable: all system actions, the current tenant's application status,
    * and the tenant's own security transfers.
@@ -144,6 +165,13 @@ public class SecurityActionService {
   @Transactional
   public SecurityAction createSecurityAction(SecurityAction action, Optional<Security> proposal) throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    if (action.getActionType() == SecurityActionType.SPIN_OFF) {
+      return spinOffActionService.record(action, proposal.orElse(null), user);
+    }
+    action.setCostAllocation(null);
+    action.setCostAllocationSource(null);
+    action.setTaxTreatmentDe(null);
+    action.setCostAllocationDe(null);
 
     List<Security> oldSecurities = securityJpaRepository.findByIsin(action.getIsinOld());
     if (oldSecurities.isEmpty()) {
@@ -198,14 +226,18 @@ public class SecurityActionService {
   }
 
   /**
-   * Deletes an ISIN change event if no tenant has applied it.
+   * Deletes an ISIN change or spin-off if no tenant has applied it. Deleting a spin-off enqueues the parent refresh,
+   * which restores the provider split of its action date together with the provider's series.
    */
   @Transactional
   public void deleteSecurityAction(Integer idSecurityAction) {
     if (securityActionApplicationJpaRepository.existsBySecurityAction_IdSecurityAction(idSecurityAction)) {
       throw new DataViolationException("id.security.action", "gt.security.action.has.applications", null);
     }
+    Optional<SecurityAction> action = securityActionJpaRepository.findById(idSecurityAction);
     securityActionJpaRepository.deleteById(idSecurityAction);
+    action.filter(a -> a.getActionType() == SecurityActionType.SPIN_OFF)
+        .ifPresent(a -> spinOffParentRefreshService.enqueue(a.getSecurityOld().getIdSecuritycurrency()));
   }
 
   /**
@@ -234,13 +266,22 @@ public class SecurityActionService {
    * state is acceptable. The closedUntil restriction is also intentionally bypassed because ISIN changes are
    * system-level operations that must succeed regardless of user-defined closed periods.
    */
-  @Transactional
+  @Transactional(isolation = Isolation.READ_COMMITTED)
   public SecurityActionApplication applySecurityAction(Integer idSecurityAction) {
+    return applySecurityAction(idSecurityAction, null);
+  }
+
+  @Transactional(isolation = Isolation.READ_COMMITTED)
+  public SecurityActionApplication applySecurityAction(Integer idSecurityAction, List<SpinOffDecisionDto> decisions) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Integer idTenant = user.getIdTenant();
 
     SecurityAction action = securityActionJpaRepository.findById(idSecurityAction)
         .orElseThrow(() -> new DataViolationException("id.security.action", "gt.security.action.not.found", null));
+    if (action.getActionType() == SecurityActionType.SPIN_OFF) {
+      return spinOffApplyService.apply(idSecurityAction, idTenant, decisions);
+    }
+    tenantJpaRepository.lockMonitoringTenant(idTenant);
 
     Optional<SecurityActionApplication> existing = securityActionApplicationJpaRepository
         .findBySecurityAction_IdSecurityActionAndIdTenant(idSecurityAction, idTenant);
@@ -253,6 +294,10 @@ public class SecurityActionService {
         action.getSecurityOld().getIdSecuritycurrency());
     if (allTenantTransactions.isEmpty()) {
       throw new DataViolationException("id.security.action", "gt.security.action.no.holdings", null);
+    }
+    if (allTenantTransactions.stream()
+        .anyMatch(t -> t.getSecurityActionRole() != null && t.getTransactionDate().isAfter(action.getActionDate()))) {
+      throw new DataViolationException("action.date", "gt.security.action.isin.change.spinoff.conflict", null);
     }
     if (allTenantTransactions.stream()
         .anyMatch(t -> t.isSimulationOpening() && t.getTransactionDate().isAfter(action.getActionDate()))) {
@@ -425,10 +470,11 @@ public class SecurityActionService {
    * security, deletes the system-created SELL/BUY pair, marks the application as reversed, and schedules a holdings
    * rebuild task.
    */
-  @Transactional
+  @Transactional(isolation = Isolation.READ_COMMITTED)
   public void reverseSecurityAction(Integer idSecurityAction) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Integer idTenant = user.getIdTenant();
+    tenantJpaRepository.lockMonitoringTenant(idTenant);
 
     SecurityActionApplication application = securityActionApplicationJpaRepository
         .findBySecurityAction_IdSecurityActionAndIdTenant(idSecurityAction, idTenant)
@@ -439,7 +485,12 @@ public class SecurityActionService {
     }
 
     SecurityAction action = application.getSecurityAction();
+    if (action.getActionType() == SecurityActionType.SPIN_OFF) {
+      spinOffApplyService.reverse(idSecurityAction, idTenant);
+      return;
+    }
     Integer appId = application.getIdSecurityActionApp();
+    assertNoSpinOffEntitlement(transactionJpaRepository.findByIdSecurityActionApp(appId));
 
     // Step 1: Revert bulk-reassigned transactions back to old security
     transactionJpaRepository.revertReassignedTransactions(action.getSecurityOld().getIdSecuritycurrency(), appId);
@@ -507,10 +558,11 @@ public class SecurityActionService {
    * a rebuild is scheduled for the tenant — the same compensation {@link #reverseSecurityAction(Integer)} applies.
    * </p>
    */
-  @Transactional
+  @Transactional(isolation = Isolation.READ_COMMITTED)
   public void reverseTransfer(Integer idSecurityTransfer) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Integer idTenant = user.getIdTenant();
+    tenantJpaRepository.lockMonitoringTenant(idTenant);
 
     SecurityTransfer transfer = securityTransferJpaRepository.findById(idSecurityTransfer)
         .orElseThrow(() -> new DataViolationException("id.security.transfer", "gt.security.transfer.not.found", null));
@@ -527,6 +579,9 @@ public class SecurityActionService {
           null);
     }
 
+    List<Transaction> transferTransactions = transactionJpaRepository.findByIdSecurityTransfer(idSecurityTransfer);
+    assertNoSpinOffEntitlement(transferTransactions);
+
     // Clear transfer's FK references to transactions first
     transfer.setIdTransactionSell(null);
     transfer.setIdTransactionBuy(null);
@@ -534,7 +589,6 @@ public class SecurityActionService {
     securityTransferJpaRepository.flush();
 
     // Find all transactions referencing this transfer, clear connected refs, then delete
-    List<Transaction> transferTransactions = transactionJpaRepository.findByIdSecurityTransfer(idSecurityTransfer);
     for (Transaction t : transferTransactions) {
       t.setConnectedIdTransaction(null);
     }
@@ -548,6 +602,12 @@ public class SecurityActionService {
     // hold_cashaccount_deposit still counting the removed transactions.
     taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
         TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant, Tenant.class.getSimpleName()));
+  }
+
+  private void assertNoSpinOffEntitlement(List<Transaction> transactions) {
+    if (transactions.stream().anyMatch(transactionJpaRepository::precedesSpinOffEntitlement)) {
+      throw new DataViolationException("units", "gt.transaction.spinoff.entitlement.changed", null);
+    }
   }
 
   /**

@@ -15,4 +15,6 @@ public interface SecurityActionApplicationJpaRepository extends JpaRepository<Se
       Integer idTenant);
 
   boolean existsBySecurityAction_IdSecurityAction(Integer idSecurityAction);
+
+  List<SecurityActionApplication> findBySecurityAction_IdSecurityActionAndReversedFalse(Integer idSecurityAction);
 }

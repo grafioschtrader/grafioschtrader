@@ -92,6 +92,7 @@ export const AppHelpIds: Record<string, string> = {
   HELP_BASEDATA_SECURITY_ACTION: 'basedata/securityaction',
   HELP_BASEDATA_SECURITY_ACTION_SECURITY_TRANSFER: 'basedata/securityaction/securitytransfer',
   HELP_BASEDATA_SECURITY_ACTION_ISIN_RENAME: 'basedata/securityaction/securityisinrename',
+  HELP_BASEDATA_SECURITY_ACTION_SPIN_OFF: 'basedata/securityaction/spinoff',
 
   // Admin data (application-specific extensions)
   HELP_TRADING_CALENDAR: 'admindata/tradingcalendar',

@@ -30,6 +30,7 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.instrument.SpinOffProviderAdjustment;
 import grafioschtrader.gtnet.m2m.model.HistoryquoteRecordDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
 import grafioschtrader.gtnet.model.msg.HistoryquoteCoverageQueryMsg;
@@ -81,6 +82,9 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
 
   @Autowired
   private List<IFeedConnector> feedConnectorbeans;
+
+  @Autowired
+  private SpinOffProviderAdjustment spinOffProviderAdjustment;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -296,7 +300,8 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
       LocalDate endDate = LocalDate.now();
 
       // Directly call the connector's method to get historical quotes
-      List<Historyquote> quotes = connector.getEodSecurityHistory(security, startDate, endDate);
+      List<Historyquote> quotes = spinOffProviderAdjustment.revert(security,
+          connector.getEodSecurityHistory(security, startDate, endDate), connector);
 
       if (quotes != null && !quotes.isEmpty()) {
         // Set idSecuritycurrency on each quote

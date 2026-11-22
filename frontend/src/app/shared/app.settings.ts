@@ -209,6 +209,7 @@ export class AppSettings {
   public static readonly IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE = 'u_importtransactionpos_2';
   public static readonly HISTORYQUOTE_TABLE_SETTINGS_STORE = 'u_historyquote_01';
   public static readonly FEE_MODEL_COMPARISON_TABLE_SETTINGS_STORE = 'u_fee_model_comparison_1';
+  public static readonly SECURITY_ACTION_TREETABLE_SETTINGS_STORE = 'u_security_action_treetable_1';
   public static readonly WATCHLIST_FILTER_SORT_STORE = 'u_watchlist_filter_sort_1';
 
   // Save others in local storage

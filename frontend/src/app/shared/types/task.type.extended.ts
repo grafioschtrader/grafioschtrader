@@ -99,6 +99,9 @@ export enum TaskTypeExtended {
 
   // System tasks (80+ band): use oldValueNumber/oldValueString and cannot be created by a user
 
+  /** Reads splits, decides the history basis of the spin-offs and reloads the history of a spin-off parent */
+  SPIN_OFF_PARENT_REFRESH = 81,
+
   /** Update task migrated from V_0 */
   UPD_V_0_11_0 = 90,
 

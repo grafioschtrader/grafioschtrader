@@ -18,6 +18,7 @@ import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityActionApplication;
 import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TaxCountry;
@@ -29,12 +30,14 @@ import grafioschtrader.reportviews.germantax.GermanTaxYearReport.PortfolioAssign
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
+import grafioschtrader.repository.SecurityActionApplicationJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TaxCountryJpaRepository;
 import grafioschtrader.repository.TaxYearJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.types.DistributionFrequency;
+import grafioschtrader.types.SecurityActionType;
 import grafioschtrader.types.TaxWithholding;
 import grafioschtrader.types.TransactionType;
 
@@ -76,6 +79,8 @@ public class GermanTaxReportService {
   private TaxCountryJpaRepository taxCountryJpaRepository;
   @Autowired
   private TaxYearJpaRepository taxYearJpaRepository;
+  @Autowired
+  private SecurityActionApplicationJpaRepository securityActionApplicationJpaRepository;
 
   /**
    * Calculates the report of a tax year for a tenant.
@@ -107,9 +112,21 @@ public class GermanTaxReportService {
     final Map<Integer, List<Securitysplit>> splitMap = securitysplitJpaRepository
         .getSecuritysplitMapByIdTenant(idTenant);
     final GermanTaxYearReport report = new GermanTaxLotEngine(new RepositoryMarketData(),
-        new TenantPortfolios(tenant.getPortfolioList()), splitMap, today).calculate(taxYear, securityTransactions,
-            cashInterest);
+        new TenantPortfolios(tenant.getPortfolioList()), splitMap, today, spinOffs(idTenant))
+            .calculate(taxYear, securityTransactions, cashInterest);
     return report;
+  }
+
+  /** The tax treatment and German allocation of every spin-off the tenant applied, by the id of the application. */
+  private Map<Integer, GermanTaxSpinOff> spinOffs(Integer idTenant) {
+    final Map<Integer, GermanTaxSpinOff> spinOffs = new HashMap<>();
+    for (SecurityActionApplication application : securityActionApplicationJpaRepository.findByIdTenant(idTenant)) {
+      if (!application.isReversed()
+          && application.getSecurityAction().getActionType() == SecurityActionType.SPIN_OFF) {
+        spinOffs.put(application.getIdSecurityActionApp(), GermanTaxSpinOff.of(application));
+      }
+    }
+    return spinOffs;
   }
 
   /** Whether the tenant may use the German tax help: it reports in euro and its country is Germany. */

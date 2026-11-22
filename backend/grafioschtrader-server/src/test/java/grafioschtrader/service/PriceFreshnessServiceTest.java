@@ -9,6 +9,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import grafioschtrader.entities.Stockexchange;
 
@@ -121,6 +123,28 @@ class PriceFreshnessServiceTest {
     List<LocalDate> withHolidayWednesday = List.of(THU, TUE, MON);
     assertThat(service.closeOfNewestOpenedSession(withHolidayWednesday, xnys, LocalDateTime.of(2026, 10, 21, 15, 0)))
         .isEqualTo(LocalDateTime.of(2026, 10, 20, 20, 0));
+  }
+
+  @ParameterizedTest
+  @CsvSource({ "America/New_York, 16:00, 21:00", "Asia/Tokyo, 15:30, 06:30" })
+  @DisplayName("On Saturday the Friday regular close is current even with extended exchange hours")
+  void regularCloseOnWeekend(String zone, LocalTime regularClose, LocalTime expectedUtc) {
+    Stockexchange exchange = exchange(zone, null);
+    exchange.setTimeClose(LocalTime.of(20, 0));
+    exchange.setRegularClose(regularClose);
+    LocalDate friday = LocalDate.of(2026, 11, 20);
+    assertThat(service.closeOfNewestOpenedSession(List.of(friday), exchange, friday.plusDays(1).atTime(18, 0)))
+        .isEqualTo(friday.atTime(expectedUtc));
+  }
+
+  @Test
+  @DisplayName("An evening session closing after midnight uses the following local date")
+  void overnightClose() {
+    Stockexchange exchange = exchange("Asia/Tokyo", null);
+    exchange.setTimeOpen(LocalTime.of(19, 0));
+    exchange.setTimeClose(LocalTime.of(2, 0));
+    assertThat(service.closeOfNewestOpenedSession(List.of(FRI), exchange, FRI.atTime(11, 0)))
+        .isEqualTo(FRI.atTime(17, 0));
   }
 
   @Test

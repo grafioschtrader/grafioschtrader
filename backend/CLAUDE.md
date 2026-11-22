@@ -620,7 +620,7 @@ These methods enforce critical business rules that `JpaRepository.save()` bypass
 - **Currency pair validation** — verifies exchange rates against historical data
 - **Cash account amount validation** — recalculates and verifies the cash account impact
 
-The only exception is `applySecurityAction()` (ISIN changes), which intentionally bypasses closedUntil via direct `save()` because ISIN changes are system-level operations that must succeed regardless of user-defined closed periods.
+System security actions use direct saves so the action date can fall within a tenant's closed period. The table below lists the sanctioned bypasses and their holdings compensation.
 
 ### If you must bypass it, schedule a rebuild
 
@@ -643,6 +643,7 @@ Sanctioned bypasses and why they are safe:
 | Path | Why it bypasses | Compensation |
 |------|-----------------|--------------|
 | `SecurityActionService.applySecurityAction` / `reverseSecurityAction` | bulk reassign + system SELL/BUY pair, must ignore closedUntil | schedules the rebuild |
+| `SpinOffApplyService.apply` / `reverse` | validates the entitlement and books or removes the three cash-neutral legs as one system action, independent of closedUntil | queues a tenant rebuild in the booking transaction |
 | `SecurityActionService.reverseTransfer` | must break the `connected_id_transaction` cycle before deleting | schedules the rebuild |
 | `TransferDividendToTransactionTest` (unofficial task) | bulk generation from the dividend table | schedules the rebuild |
 | `TransactionJpaRepositoryImpl.updateTaxableInterest` / `applyExDatesFromTaxData` | only `taxable_interest` / `ex_date` change | none needed — neither column feeds a hold table |

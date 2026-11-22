@@ -1,0 +1,32 @@
+[
+  {
+    "createNickname": "admin",
+    "parentIsin": "US3696041033",
+    "parentCurrency": "USD",
+    "childIsin": "US36266G1076",
+    "childCurrency": "USD",
+    "childMode": "LOOKUP",
+    "actionDate": "2023-01-04",
+    "fromFactor": 3,
+    "toFactor": 1,
+    "costAllocationPercent": 20.87,
+    "costAllocationSource": "IRS Form 8937 of General Electric",
+    "taxTreatmentDe": "UNDETERMINED",
+    "e2e": "e"
+  },
+  {
+    "createNickname": "admin",
+    "parentIsin": "US3696041033",
+    "parentCurrency": "USD",
+    "childIsin": "US36828A1016",
+    "childCurrency": "USD",
+    "childMode": "EXISTING",
+    "actionDate": "2024-04-02",
+    "fromFactor": 4,
+    "toFactor": 1,
+    "costAllocationPercent": 20.26,
+    "costAllocationSource": "IRS Form 8937 of General Electric",
+    "taxTreatmentDe": "UNDETERMINED",
+    "e2e": "e"
+  }
+]

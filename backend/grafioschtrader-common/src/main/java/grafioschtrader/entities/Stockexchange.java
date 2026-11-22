@@ -114,6 +114,13 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   private LocalTime timeClose;
 
+  @Schema(description = "Local close of the regular equity session for price comparisons. Defaults to timeClose.")
+  @Column(name = "regular_close")
+  @JsonFormat(pattern = "HH:mm")
+  @JsonDeserialize(using = JacksonConfig.FlexibleLocalTimeDeserializer.class)
+  @PropertyAlwaysUpdatable
+  private LocalTime regularClose;
+
   @Schema(description = "The time zone of this stock exchange")
   @Basic(optional = false)
   @NotNull
@@ -247,6 +254,14 @@ public class Stockexchange extends Auditable implements Serializable {
 
   public void setTimeClose(LocalTime timeClose) {
     this.timeClose = timeClose;
+  }
+
+  public LocalTime getRegularClose() {
+    return regularClose;
+  }
+
+  public void setRegularClose(LocalTime regularClose) {
+    this.regularClose = regularClose;
   }
 
   public LocalTime getTimeOpen() {

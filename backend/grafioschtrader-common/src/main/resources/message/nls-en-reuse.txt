@@ -48,6 +48,7 @@ simulation.tenant.name
 # --- Deliberate: migrated from the frontend. Symbols, abbreviations and loan words that are
 # identical in German, plus a few pure-symbol labels used as column headers.
 CALC_EX_RATE
+CALC_QUOTATION
 DF_AD_HOC
 EX_RATE_SYMBOL
 IMPORT
@@ -106,3 +107,4 @@ GERMAN_TAX_COL_DETAIL
 # Proper noun: "Portfolio" is also the German word.
 gt.report.chart.scope.portfolio
 POSITION_EVENT_LETTER_FINANCE_COST
+ADMINISTRATOR

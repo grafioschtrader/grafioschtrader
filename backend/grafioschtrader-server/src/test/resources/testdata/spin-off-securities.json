@@ -1,0 +1,31 @@
+[
+  {
+    "name": "General Electric",
+    "isin": "US3696041033",
+    "tickerSymbol": "GE",
+    "currency": "USD",
+    "activeFromDate": "2000-01-03",
+    "activeToDate": "2036-01-01",
+    "distributionFrequency": "DF_QUARTERLY",
+    "denomination": null,
+    "leverageFactor": 1,
+    "stockexchangeName": "NYSE Market (Amex)",
+    "categoryType": "EQUITIES",
+    "subCategoryDE": "Aktien USA",
+    "specialInvestmentInstrument": "DIRECT_INVESTMENT",
+    "stockexchangeLink": "https://www.nyse.com/quote/XNYS:GE",
+    "productLink": null,
+    "formulaPrices": null,
+    "idConnectorHistory": "gt.datafeed.yahoo",
+    "urlHistoryExtend": "GE",
+    "idConnectorIntra": "gt.datafeed.yahoo",
+    "urlIntraExtend": "GE",
+    "idConnectorDividend": "gt.datafeed.yahoo",
+    "urlDividendExtend": "GE",
+    "dividendCurrency": null,
+    "idConnectorSplit": "gt.datafeed.yahoo",
+    "urlSplitExtend": "GE",
+    "note": null,
+    "e2e": "i"
+  }
+]

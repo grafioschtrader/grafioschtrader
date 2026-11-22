@@ -177,6 +177,12 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
     }
   }
 
+  /** Open, high and low come from the raw columns, the close from the adjusted column (field 5). */
+  @Override
+  public boolean isHistoryOpenHighLowAsTraded() {
+    return true;
+  }
+
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {

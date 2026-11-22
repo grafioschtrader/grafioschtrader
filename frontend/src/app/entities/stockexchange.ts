@@ -9,6 +9,7 @@ export class Stockexchange extends Auditable implements BaseID {
   countryCode: string | null = null;
   timeOpen: string | null = null;
   timeClose: string | null = null;
+  regularClose: string | null = null;
   timeZone: string | null = null;
   secondaryMarket: boolean | null = null;
   noMarketValue: boolean | null = null;

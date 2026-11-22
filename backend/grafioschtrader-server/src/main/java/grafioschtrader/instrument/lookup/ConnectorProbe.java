@@ -51,7 +51,7 @@ public class ConnectorProbe {
   static final int SPLIT_YEARS = 10;
   private static final int MAX_DETAIL_LENGTH = 200;
   /** Last active day of a transient security whose master data names none. */
-  private static final LocalDate OPEN_END = LocalDate.of(2099, 12, 31);
+  static final LocalDate OPEN_END = LocalDate.of(2099, 12, 31);
 
   private static final Logger log = LoggerFactory.getLogger(ConnectorProbe.class);
 

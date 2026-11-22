@@ -42,6 +42,20 @@ public final class CostLedger {
     units += lot.units;
   }
 
+  /** Inserts a lot by its original purchase time, after existing lots with the same time. */
+  public void insertByTime(CostLot lot) {
+    if (lots.isEmpty() || !lot.transactionTime.isBefore(lots.getLast().transactionTime)) {
+      add(lot);
+      return;
+    }
+    Deque<CostLot> later = new ArrayDeque<>();
+    while (!lots.isEmpty() && lot.transactionTime.isBefore(lots.getLast().transactionTime)) {
+      later.addFirst(lots.removeLast());
+    }
+    add(lot);
+    lots.addAll(later);
+  }
+
   /**
    * Consumes lots for a sale. A lot that is used up hands over its whole cost, a partly used lot the proportional
    * share, so no cost remainder is left behind. A lot whose remaining units round to zero counts as used up. When the
@@ -83,8 +97,7 @@ public final class CostLedger {
   }
 
   private double consume(CostLot lot, double consumedUnits, double consumedCost, List<CostLot> consumedLots) {
-    consumedLots
-        .add(new CostLot(lot.idTransaction, lot.transactionTime, lot.exchangeRate, consumedUnits, consumedCost));
+    consumedLots.add(lot.withAmount(consumedUnits, consumedCost));
     return consumedCost;
   }
 

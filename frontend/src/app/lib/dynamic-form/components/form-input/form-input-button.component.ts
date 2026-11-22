@@ -9,7 +9,9 @@ import { InputGroupAddon } from '@openng/optimus-ui/inputgroupaddon';
 import { UpperCaseDirective } from './upper-case.directive';
 
 /**
- * Creates an input field with a following button.
+ * Creates an input field with a following button. The button is disabled only when `config.disabled` is true: an
+ * attribute binding with `false` would still render `disabled="false"`, which the browser treats as disabled, so a
+ * false or absent value removes the attribute.
  */
 @Component({
   selector: 'form-input-button',
@@ -46,7 +48,7 @@ import { UpperCaseDirective } from './upper-case.directive';
         @if (config.fieldSuffix) {
           <p-inputgroup-addon>{{ config.fieldSuffix | translate }}</p-inputgroup-addon>
         }
-        <button pButton type="button" [attr.disabled]="config.disabled" (click)="config.buttonFN?.(config)">
+        <button pButton type="button" [attr.disabled]="config.disabled ? '' : null" (click)="config.buttonFN?.(config)">
           <i [class]="config.icon || 'pi pi-search'" pButtonIcon></i>
         </button>
       </p-inputgroup>

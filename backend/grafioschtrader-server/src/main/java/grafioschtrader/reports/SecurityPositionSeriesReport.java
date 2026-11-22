@@ -18,10 +18,13 @@ import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityActionApplication;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.instrument.CostBasisMethods;
+import grafioschtrader.instrument.SecurityCalcService;
+import grafioschtrader.instrument.SpinOffContext;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.TransactionsMarginOpenUnits;
 import grafioschtrader.reportviews.performance.SecurityPositionSeries;
@@ -30,12 +33,16 @@ import grafioschtrader.reportviews.performance.SecurityPositionSeries.DailyValue
 import grafioschtrader.reportviews.performance.SecurityPositionSeries.Event;
 import grafioschtrader.reportviews.performance.SecurityPositionSeries.Input;
 import grafioschtrader.reportviews.performance.SecurityPositionSeries.MarginPosition;
+import grafioschtrader.reportviews.performance.SecurityPositionSeries.SpinOff;
+import grafioschtrader.reportviews.performance.SecurityPositionSeries.SpinOffLot;
+import grafioschtrader.reportviews.performance.SecurityPositionSeries.SpinOffTransfer;
 import grafioschtrader.reportviews.performance.SecurityPositionSeriesResult;
 import grafioschtrader.reportviews.performance.SecurityPositionSeriesResult.Phase;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
+import grafioschtrader.repository.SecurityActionApplicationJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
@@ -43,6 +50,7 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.service.CostBasisMethodService;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.SecurityActionRole;
 import grafioschtrader.types.SecurityPositionSeriesRemark;
 import grafioschtrader.types.TransactionType;
 
@@ -95,6 +103,15 @@ public class SecurityPositionSeriesReport {
 
   @Autowired
   private GlobalparametersService globalparametersService;
+
+  @Autowired
+  private SecurityActionApplicationJpaRepository securityActionApplicationJpaRepository;
+
+  @Autowired
+  private SecurityCalcService securityCalcService;
+
+  /** Longest chain of spin-offs whose parent amounts are followed for the main currency series of a child. */
+  private static final int MAX_SPIN_OFF_DEPTH = 8;
 
   /** The accounts, the main currency and the display name of the scope; tenant scope when both ids are null. */
   private record Scope(Tenant tenant, List<Securityaccount> accounts, String mainCurrency, String name,
@@ -162,8 +179,9 @@ public class SecurityPositionSeriesReport {
       if (portfolio == null) {
         throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       }
-      return new Scope(tenant, securityaccountJpaRepository.findByPortfolio_IdPortfolioAndIdTenant(idPortfolio,
-          idTenant), portfolio.getCurrency(), portfolio.getName(), false);
+      return new Scope(tenant,
+          securityaccountJpaRepository.findByPortfolio_IdPortfolioAndIdTenant(idPortfolio, idTenant),
+          portfolio.getCurrency(), portfolio.getName(), false);
     }
     return new Scope(tenant, securityaccountJpaRepository.findByIdTenant(idTenant), tenant.getCurrency(),
         tenant.getTenantName(), true);
@@ -176,18 +194,72 @@ public class SecurityPositionSeriesReport {
         .findByIdTenantAndSecurityAccountsIdSecurity(scope.tenant().getIdTenant(), ids,
             security.getIdSecuritycurrency())
         .stream().collect(Collectors.groupingBy(Transaction::getIdSecurityaccount));
-    DateTransactionCurrencypairMap securityCurrencyMap = new DateTransactionCurrencypairMap(security.getCurrency(),
-        today, new ArrayList<>(), new ArrayList<>(), false, true, today);
     CostBasisMethods costBasisMethods = costBasisMethodService.forTenant(scope.tenant().getIdTenant());
     List<Event> events = new ArrayList<>();
     for (Map.Entry<Integer, List<Transaction>> entry : byAccount.entrySet()) {
-      Previous previous = new Previous();
-      securityPositionReplay.replayAccount(entry.getKey(), entry.getValue(), new HashMap<>(),
-          scope.tenant().isExcludeDivTax(), securityCurrencyMap, costBasisMethods,
-          (transaction, summary) -> events.add(event(transaction, summary, previous, scope.mainCurrency())));
+      events.addAll(accountEvents(scope, security, entry.getKey(), entry.getValue(), costBasisMethods, today, 0));
     }
     events.sort(Comparator.comparing(Event::date));
     return events;
+  }
+
+  /**
+   * Replays one account of the security and returns its events in the order of the replay. A child purchase of a
+   * spin-off gets the main currency amount the parent handed over, see {@link #withParentInvestedMC}.
+   */
+  private List<Event> accountEvents(Scope scope, Security security, Integer idSecurityaccount,
+      List<Transaction> transactions, CostBasisMethods costBasisMethods, LocalDate today, int depth) {
+    DateTransactionCurrencypairMap securityCurrencyMap = new DateTransactionCurrencypairMap(security.getCurrency(),
+        today, new ArrayList<>(), new ArrayList<>(), false, true, today);
+    List<Event> events = new ArrayList<>();
+    Previous previous = new Previous();
+    securityPositionReplay.replayAccount(idSecurityaccount, transactions, new HashMap<>(),
+        scope.tenant().isExcludeDivTax(), securityCurrencyMap, costBasisMethods,
+        (transaction, summary) -> events.add(event(transaction, summary, previous, scope.mainCurrency())));
+    for (int i = 0; i < events.size(); i++) {
+      Event e = events.get(i);
+      if (e.spinOff() != null && e.spinOff().role() == SecurityActionRole.SPIN_OFF_CHILD) {
+        events.set(i, withParentInvestedMC(scope, e, costBasisMethods, today, depth));
+      }
+    }
+    return events;
+  }
+
+  /**
+   * Adds to a child purchase of a spin-off the main currency amount of the cost the parent handed over. The parent's
+   * events of the same account are replayed with the rules of the chart up to the parent sale, so the parent chart
+   * removes and the child chart adds the same historical amount. A parent purchase without a documented rate uses the
+   * closing rate of its day. The amount stays unknown, and the main currency series of the child are left out, when a
+   * rate is missing or a chain of spin-offs is deeper than {@value #MAX_SPIN_OFF_DEPTH}.
+   */
+  private Event withParentInvestedMC(Scope scope, Event child, CostBasisMethods costBasisMethods, LocalDate today,
+      int depth) {
+    SpinOff spinOff = child.spinOff();
+    SecurityActionApplication application = securityActionApplicationJpaRepository
+        .findById(spinOff.idSecurityActionApp()).orElse(null);
+    if (application == null || depth >= MAX_SPIN_OFF_DEPTH) {
+      return child;
+    }
+    Security parent = application.getSecurityAction().getSecurityOld();
+    Integer idTenant = scope.tenant().getIdTenant();
+    List<Transaction> parentTransactions = transactionJpaRepository.findByIdTenantAndSecurityAccountsIdSecurity(
+        idTenant, List.of(child.idSecurityaccount()), parent.getIdSecuritycurrency());
+    List<Event> parentEvents = accountEvents(scope, parent, child.idSecurityaccount(), parentTransactions,
+        costBasisMethods, today, depth + 1);
+    SpinOffContext rates = securityCalcService.spinOffContext(idTenant, Set.of(child.idSecurityaccount()));
+    String parentCurrency = parent.getCurrency();
+    String main = scope.mainCurrency();
+    SpinOffTransfer transfer = SecurityPositionSeries.spinOffTransfer(parentEvents, spinOff.idSecurityActionApp(),
+        e -> e.bookedRate() != null ? e.bookedRate() : positiveOrNull(rates.rate(parentCurrency, main, e.date())));
+    List<SpinOffLot> lots = spinOff.lots().stream().map(lot -> new SpinOffLot(lot.idTransaction(),
+        lot.originIdTransaction(), lot.cost(), transfer.investedMCByRoot().getOrDefault(lot.rootTransaction(), 0.0)))
+        .toList();
+    return child.withSpinOff(new SpinOff(spinOff.role(), spinOff.idSecurityActionApp(), lots,
+        transfer.complete() ? transfer.investedMC() : null));
+  }
+
+  private static Double positiveOrNull(double rate) {
+    return rate > 0 ? rate : null;
   }
 
   private static Event event(Transaction transaction, SecurityPositionSummary summary, Previous previous,
@@ -196,20 +268,31 @@ public class SecurityPositionSeriesReport {
       return marginEvent(transaction, summary, previous, mainCurrency);
     }
     boolean sale = transaction.getTransactionType() == TransactionType.REDUCE;
-    List<ConsumedLot> lots = sale && summary.transactionConsumedLots != null
-        ? summary.transactionConsumedLots.stream().map(l -> new ConsumedLot(l.idTransaction, l.cost)).toList()
-        : null;
+    List<ConsumedLot> lots = sale && summary.transactionConsumedLots != null ? summary.transactionConsumedLots.stream()
+        .map(l -> new ConsumedLot(l.idTransaction, l.originIdTransaction, l.cost)).toList() : null;
     Event event = new Event(transaction.getTransactionDate(), transaction.getIdSecurityaccount(),
         transaction.getTransactionType(), transaction.getIdTransaction(), transaction.getIdSecurityTransfer(),
         transaction.getUnits(), summary.units, previous.costBase, summary.adjustedCostBase,
         summary.positionFlow - previous.flow, summary.incomeGainLossSecurity - previous.income,
         sale ? value(summary.transactionGainLoss) : 0, sale ? value(summary.transactionCostBase) : 0, lots,
         bookedRate(transaction, mainCurrency), null, false,
-        transaction.getTransactionType() == TransactionType.DIVIDEND ? transaction.getExDate() : null);
+        transaction.getTransactionType() == TransactionType.DIVIDEND ? transaction.getExDate() : null,
+        spinOff(transaction, summary));
     previous.costBase = summary.adjustedCostBase;
     previous.flow = summary.positionFlow;
     previous.income = summary.incomeGainLossSecurity;
     return event;
+  }
+
+  /** The spin-off side of a leg with the lot parts it moved, null for an ordinary transaction. */
+  private static SpinOff spinOff(Transaction transaction, SecurityPositionSummary summary) {
+    if (transaction.getSecurityActionRole() == null) {
+      return null;
+    }
+    List<SpinOffLot> lots = summary.transactionSpinOffLots == null ? List.of()
+        : summary.transactionSpinOffLots.stream()
+            .map(l -> new SpinOffLot(l.idTransaction, l.originIdTransaction, l.cost, null)).toList();
+    return new SpinOff(transaction.getSecurityActionRole(), transaction.getIdSecurityActionApp(), lots, null);
   }
 
   /**
@@ -226,9 +309,9 @@ public class SecurityPositionSeriesReport {
       if (units > SecurityPositionSeries.FLAT_UNITS) {
         Transaction opening = open.openTransaction;
         double openedUnits = previous.openedUnits.computeIfAbsent(opening.getIdTransaction(), _ -> units);
-        positions.add(new MarginPosition(opening.getIdTransaction(),
-            opening.getTransactionType() != TransactionType.ACCUMULATE, units,
-            Math.abs(opening.getSeucritiesNetPrice()) * units / openedUnits, opening.getValuePerPoint()));
+        positions.add(
+            new MarginPosition(opening.getIdTransaction(), opening.getTransactionType() != TransactionType.ACCUMULATE,
+                units, Math.abs(opening.getSeucritiesNetPrice()) * units / openedUnits, opening.getValuePerPoint()));
       }
     }
     double result = value(summary.transactionGainLoss);

@@ -97,4 +97,4 @@ export interface SecurityPositionUnderwaterRun {
 
 /** The constant names are the text keys. */
 export type SecurityPositionSeriesRemark =
-  'NO_HOLDING' | 'NOT_VALUED_DAYS' | 'MISSING_FX' | 'NEGATIVE_UNITS_DAYS' | 'INTERNAL_TRANSFER';
+  'NO_HOLDING' | 'NOT_VALUED_DAYS' | 'MISSING_FX' | 'NEGATIVE_UNITS_DAYS' | 'INTERNAL_TRANSFER' | 'SPIN_OFF';

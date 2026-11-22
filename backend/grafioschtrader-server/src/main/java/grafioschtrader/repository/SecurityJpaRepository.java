@@ -3,12 +3,14 @@ package grafioschtrader.repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
@@ -24,6 +26,7 @@ import grafioschtrader.entities.projection.SecurityYearClose;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithSecurityProp;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
+import jakarta.persistence.LockModeType;
 
 /**
  * Spring Data JPA repository for managing Security entities
@@ -106,6 +109,10 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<Security> findByIdSecuritycurrencyInOrderByName(Set<Integer> idSecuritycurrencyIds);
 
   Security findByIsinAndCurrency(String isin, String currencySecurity);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT s FROM Security s WHERE s.idSecuritycurrency = :id")
+  Optional<Security> findByIdForSecurityAction(Integer id);
 
   List<Security> findByIsin(String isin);
 

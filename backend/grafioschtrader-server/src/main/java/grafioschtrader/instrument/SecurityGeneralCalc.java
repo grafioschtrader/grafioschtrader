@@ -1,5 +1,6 @@
 package grafioschtrader.instrument;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,8 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
+import grafioschtrader.reportviews.securityaccount.CostLedger;
+import grafioschtrader.reportviews.securityaccount.CostLot;
 import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
@@ -363,6 +366,71 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     securityPositionSummary.transactionGainLoss = (securityPositionSummary.transactionGainLoss != null)
         ? DataBusinessHelper.round(securityPositionSummary.transactionGainLoss)
         : null;
+  }
+
+  /** Moves the cost basis of a spin-off while recording the market-value flows of its bookings. */
+  void calcSpinOffPosition(Transaction transaction, SecurityPositionSummary position,
+      Map<Integer, List<Securitysplit>> splits, boolean excludeDivTax, DateTransactionCurrencypairMap currencyMap,
+      CostBasisMethods methods, SpinOffContext spinOff, boolean useParentPosition) {
+    CalcTransactionPos ctp = initTransactionCalcTransCost(transaction, position, splits, currencyMap, null);
+    var role = transaction.getSecurityActionRole();
+    var method = methods.forAccount(transaction.getIdSecurityaccount());
+    switch (role) {
+    case SPIN_OFF_SALE -> {
+      var allocation = spinOff.allocation(transaction, useParentPosition ? position : null, excludeDivTax, currencyMap,
+          methods, ctp.unitsSplited);
+      List<CostLot> before = copyLots(position.getCostLedger(transaction.getIdSecurityaccount()));
+      position.removeSpinOffCost(transaction.getIdSecurityaccount(), allocation.allocatedCost(),
+          allocation.parentLotsAfter());
+      position.transactionCostBase = allocation.allocatedCost();
+      position.transactionSpinOffLots = movedParts(before,
+          position.getCostLedger(transaction.getIdSecurityaccount()));
+    }
+    case SPIN_OFF_REPURCHASE -> {
+      // The sale and repurchase are movements of market value. The parent's units stay in their existing lots.
+    }
+    case SPIN_OFF_CHILD -> {
+      var allocation = spinOff.allocation(transaction, null, excludeDivTax, currencyMap, methods, ctp.unitsSplited);
+      position.adjustedCostBase += allocation.childCost();
+      position.units += ctp.unitsSplited;
+      position.costBasisMethods.add(method);
+      if (method != CostBasisMethod.AVERAGE_COST) {
+        position.addSpinOffLots(transaction.getIdSecurityaccount(), allocation.childLots());
+        position.transactionSpinOffLots = allocation.childLots();
+      } else {
+        position.transactionSpinOffLots = List.of();
+      }
+      position.transactionCostBase = allocation.childCost();
+      position.transactionCostBasisIncomplete = allocation.incomplete() ? Boolean.TRUE : null;
+    }
+    }
+    addFlowToCurrencyPosition(transaction, ctp, position,
+        role == grafioschtrader.types.SecurityActionRole.SPIN_OFF_SALE ? -ctp.securitiesNetPrice
+            : ctp.securitiesNetPrice);
+    position.roundUnits();
+  }
+
+  /** Copies of the open lots of a ledger, with their cost before a spin-off changes them; empty without a ledger. */
+  private static List<CostLot> copyLots(CostLedger ledger) {
+    return ledger == null ? List.of()
+        : ledger.getLots().stream().map(lot -> lot.withAmount(lot.units, lot.cost)).toList();
+  }
+
+  /**
+   * The cost each parent lot handed to the child: the lot with its units and the difference between its cost before and
+   * after the spin-off. The ledger keeps its order and identities, so both lists are aligned by position.
+   */
+  private static List<CostLot> movedParts(List<CostLot> before, CostLedger ledgerAfter) {
+    if (before.isEmpty() || ledgerAfter == null) {
+      return List.of();
+    }
+    List<CostLot> after = ledgerAfter.getLots();
+    List<CostLot> moved = new ArrayList<>(before.size());
+    for (int i = 0; i < before.size() && i < after.size(); i++) {
+      CostLot lot = before.get(i);
+      moved.add(lot.withAmount(lot.units, lot.cost - after.get(i).cost));
+    }
+    return moved;
   }
 
   /**

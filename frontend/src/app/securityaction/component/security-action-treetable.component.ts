@@ -1,7 +1,7 @@
 import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subscription, switchMap, map } from 'rxjs';
+import { forkJoin, Subscription, switchMap, map } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
@@ -17,6 +17,7 @@ import {
   SecurityAction,
   SecurityActionApplication,
   SecurityActionTreeData,
+  SecurityActionType,
   SecurityTransfer
 } from '../model/security-action.model';
 
@@ -29,6 +30,10 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { SecurityActionCreateDialogComponent } from './security-action-create-dialog.component';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
+import { SpinOffApplyDialogComponent } from './spin-off-apply-dialog.component';
+import { ConfirmationService } from '@openng/optimus-ui/api';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AppSettings } from '../../shared/app.settings';
 
 enum NodeLevel {
   SYSTEM_ROOT,
@@ -58,20 +63,38 @@ enum NodeLevel {
         [fieldsRevision]="fieldsRevision()"
         dataKey="nodeKey"
         sortField="name"
+        [scrollable]="true"
+        [frozenColumnCount]="frozenColumnCount"
         [(selection)]="tableSelection"
         (nodeSelect)="onNodeSelect($event)"
         (nodeUnselect)="onNodeUnselect($event)"
         [contextMenuItems]="contextMenuItems()"
         [showContextMenu]="!!contextMenuItems()"
+        [contextMenuAppendTo]="'body'"
         [valueGetterFn]="valueGetter" />
       @if (visibleCreateDialog()) {
         <security-action-create
           [visibleDialog]="visibleCreateDialog()"
+          [initialType]="createType()"
+          [actionToEdit]="actionToEdit()"
           (closeDialog)="handleCloseCreateDialog($event)" />
+      }
+      @if (spinOffToApply(); as actionId) {
+        <spin-off-apply-dialog
+          [actionId]="actionId"
+          [visibleDialog]="true"
+          (closeDialog)="closeSpinOffPreview($event)" />
       }
     </div>
   `,
-  imports: [TranslatePipe, Panel, SharedModule, ConfigurableTreeTableComponent, SecurityActionCreateDialogComponent]
+  imports: [
+    TranslatePipe,
+    Panel,
+    SharedModule,
+    ConfigurableTreeTableComponent,
+    SecurityActionCreateDialogComponent,
+    SpinOffApplyDialogComponent
+  ]
 })
 export class SecurityActionTreetableComponent
   extends TreeTableConfigBase
@@ -80,6 +103,8 @@ export class SecurityActionTreetableComponent
   private securityActionService: SecurityActionService = inject(SecurityActionService);
   private activePanelService: ActivePanelService = inject(ActivePanelService);
   private messageToastService: MessageToastService = inject(MessageToastService);
+  private readonly confirmationService = inject(ConfirmationService);
+  readonly spinOffToApply = signal<number | null>(null);
 
   readonly treeNodes = signal<TreeNode[]>([]);
   /** Row highlighted by the single-selection tree table. */
@@ -88,6 +113,8 @@ export class SecurityActionTreetableComponent
   readonly contextMenuItems = signal<MenuItem[] | null>(null);
   isAdmin: boolean;
   readonly visibleCreateDialog = signal(false);
+  readonly createType = signal<SecurityActionType>('ISIN_CHANGE');
+  readonly actionToEdit = signal<SecurityAction | null>(null);
 
   private selectedNode: TreeNode | null = null;
   private readonly destroyRef = inject(DestroyRef);
@@ -99,40 +126,58 @@ export class SecurityActionTreetableComponent
   constructor() {
     super();
     this.isAdmin = AuditHelper.hasAdminRole(this.gps);
+    this.frozenColumnsSelectable = true;
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 250 });
-    this.addColumnFeqH(DataType.String, 'isinOld', true, false, { width: 120 });
-    this.addColumnFeqH(DataType.String, 'isinNew', true, false, { width: 120 });
-    this.addColumnFeqH(DataType.DateString, 'actionDate', true, false, {
-      width: 120
-    });
-    this.addColumnFeqH(DataType.NumericInteger, 'fromFactor', true, false, {
-      width: 80
-    });
-    this.addColumnFeqH(DataType.NumericInteger, 'toFactor', true, false, {
-      width: 80
-    });
-    this.addColumnFeqH(DataType.NumericInteger, 'affectedCount', true, false, {
-      width: 80
-    });
-    this.addColumnFeqH(DataType.NumericInteger, 'appliedCount', true, false, {
-      width: 80
+    this.addColumnFeqH(DataType.String, 'actionType', true, false, {
+      width: 100,
+      translateValues: TranslateValue.NORMAL
     });
     this.addColumn(DataType.String, 'status', 'PROGRESS_STATE_TYPE', true, false, {
       width: 120,
       translateValues: TranslateValue.NORMAL
     });
+    this.addColumnFeqH(DataType.Numeric, 'costAllocation', true, false, {
+      width: 110,
+      headerSuffix: '%',
+      maxFractionDigits: 4
+    });
+    // Whether the parent's history source is adjusted for a spin-off; an administrator resolves UNDETERMINED
+    this.addColumnFeqH(DataType.String, 'historyBasis', this.isAdmin, this.isAdmin, {
+      width: 100,
+      translateValues: TranslateValue.NORMAL
+    });
+    this.addColumnFeqH(DataType.String, 'isinOld', true, false, { width: 100 });
+    this.addColumnFeqH(DataType.String, 'isinNew', true, false, { width: 100 });
+    this.addColumnFeqH(DataType.DateString, 'actionDate', true, false, {
+      width: 80
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'fromFactor', true, false, {
+      width: 60
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'toFactor', true, false, {
+      width: 60
+    });
     this.addColumnFeqH(DataType.Numeric, 'units', true, false, { width: 100 });
-    this.addColumnFeqH(DataType.Numeric, 'quotation', true, false, {
+    // The transfer price; there is no QUOTATION key, PRICE is the label of a price per unit
+    this.addColumn(DataType.Numeric, 'quotation', 'PRICE', true, false, {
       width: 100
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'affectedCount', true, true, {
+      width: 80
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'appliedCount', true, true, {
+      width: 80
     });
     this.translateHeadersAndColumns();
   }
 
   ngOnInit(): void {
+    this.readTableDefinition(AppSettings.SECURITY_ACTION_TREETABLE_SETTINGS_STORE);
     this.readData();
   }
 
   ngOnDestroy(): void {
+    this.writeTableDefinition(AppSettings.SECURITY_ACTION_TREETABLE_SETTINGS_STORE);
     this.menuSubscription?.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
@@ -202,6 +247,9 @@ export class SecurityActionTreetableComponent
         return {
           data: {
             name: action.securityOld?.name || action.isinOld,
+            actionType: action.actionType,
+            costAllocation: action.costAllocation == null ? null : action.costAllocation * 100,
+            historyBasis: action.historyBasis ?? null,
             isinOld: action.isinOld,
             isinNew: action.isinNew,
             actionDate: action.actionDate,
@@ -236,12 +284,13 @@ export class SecurityActionTreetableComponent
     }));
 
     const appliedIsinChanges = Object.values(data.appliedByCurrentTenant || {})
-      .filter((app) => !app.reversed)
+      .filter((app) => !app.reversed && app.securityAction.actionType === 'ISIN_CHANGE')
       .map((app) => {
         const action = app.securityAction;
         return {
           data: {
             name: action.securityOld?.name || action.isinOld,
+            actionType: action.actionType,
             isinOld: action.isinOld,
             isinNew: action.isinNew,
             actionDate: action.actionDate,
@@ -270,15 +319,21 @@ export class SecurityActionTreetableComponent
     return [systemRoot, clientRoot];
   }
 
-  /** Publishes the translated menu of the selected node as context menu and in the menu bar. */
+  /**
+   * Publishes the translated menu of the selected node as context menu and in the menu bar, together with the show
+   * menu that switches columns on and off and sets the number of frozen columns.
+   */
   private resetMenu(): void {
     this.menuSubscription?.unsubscribe();
-    this.menuSubscription = TranslateHelper.translateMenuItems$(
-      this.prepareEditMenu(),
-      this.translateService
-    ).subscribe((menuItems) => {
+    this.menuSubscription = forkJoin([
+      TranslateHelper.translateMenuItems$(this.prepareEditMenu(), this.translateService),
+      TranslateHelper.translateMenuItems$(this.getColumnsShow(), this.translateService)
+    ]).subscribe(([menuItems, showMenu]) => {
       this.contextMenuItems.set(menuItems);
-      this.activePanelService.activatePanel(this, { showMenu: null, editMenu: menuItems });
+      this.activePanelService.activatePanel(this, {
+        showMenu: showMenu.length > 0 ? showMenu : null,
+        editMenu: menuItems
+      });
     });
   }
 
@@ -290,30 +345,49 @@ export class SecurityActionTreetableComponent
     const level: NodeLevel = this.selectedNode.data.nodeLevel;
 
     if (level === NodeLevel.SYSTEM_ROOT && this.isAdmin) {
-      menuItems.push({
-        label: 'CREATE_ISIN_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
-        command: () => this.createIsinChange()
-      });
+      menuItems.push(
+        {
+          label: 'CREATE_ISIN_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
+          command: () => this.openActionDialog('ISIN_CHANGE')
+        },
+        { label: 'CREATE_SPIN_OFF' + BaseSettings.DIALOG_MENU_SUFFIX, command: () => this.openActionDialog('SPIN_OFF') }
+      );
     } else if (level === NodeLevel.SYSTEM_ACTION) {
+      const action: SecurityAction = this.selectedNode.data.entity;
       const app: SecurityActionApplication = this.selectedNode.data.application;
-      if (!app || app.reversed) {
+      if (action.actionType === 'SPIN_OFF') {
+        menuItems.push(
+          app && !app.reversed
+            ? { label: 'REVERSE_SPIN_OFF', command: () => this.confirmSpinOffReversal(action) }
+            : {
+                label: 'APPLY_SPIN_OFF' + BaseSettings.DIALOG_MENU_SUFFIX,
+                command: () => this.spinOffToApply.set(action.idSecurityAction)
+              }
+        );
+      }
+      if (action.actionType === 'ISIN_CHANGE' && (!app || app.reversed)) {
         menuItems.push({
           label: 'APPLY_ISIN_CHANGE',
           command: () => this.applyIsinChange()
         });
       }
-      if (app && !app.reversed) {
+      if (action.actionType === 'ISIN_CHANGE' && app && !app.reversed) {
         menuItems.push({
           label: 'REVERSE_ISIN_CHANGE',
           command: () => this.reverseIsinChange()
         });
       }
       if (this.isAdmin) {
-        const action: SecurityAction = this.selectedNode.data.entity;
+        if (action.actionType === 'SPIN_OFF') {
+          menuItems.push({
+            label: 'EDIT_SPIN_OFF' + BaseSettings.DIALOG_MENU_SUFFIX,
+            command: () => this.openActionDialog('SPIN_OFF', action)
+          });
+        }
         if (action.appliedCount === 0) {
           menuItems.push({
             label: 'DELETE' + BaseSettings.DIALOG_MENU_SUFFIX,
-            command: () => this.deleteIsinChange()
+            command: () => this.deleteAction()
           });
         }
       }
@@ -334,13 +408,49 @@ export class SecurityActionTreetableComponent
     return menuItems;
   }
 
-  private createIsinChange(): void {
+  private openActionDialog(type: SecurityActionType, action: SecurityAction | null = null): void {
+    this.createType.set(type);
+    this.actionToEdit.set(action);
     this.visibleCreateDialog.set(true);
+  }
+
+  closeSpinOffPreview(event: ProcessedActionData): void {
+    this.spinOffToApply.set(null);
+    if (event.action === ProcessedAction.CREATED) {
+      this.clearSelectionAndReload();
+    }
+  }
+
+  private confirmSpinOffReversal(action: SecurityAction): void {
+    const id = action.idSecurityAction;
+    if (id == null) return;
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'SPIN_OFF_REVERSE_CONFIRM', () => {
+      this.securityActionService
+        .reverseSecurityAction(id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REVERSE_SPIN_OFF_SUCCESS');
+          this.clearSelectionAndReload();
+        });
+    });
+  }
+
+  private clearSelectionAndReload(): void {
+    this.selectedNode = null;
+    this.tableSelection = null;
+    this.resetMenu();
+    this.readData();
   }
 
   handleCloseCreateDialog(processedActionData: ProcessedActionData): void {
     this.visibleCreateDialog.set(false);
-    if (processedActionData?.action === ProcessedAction.CREATED) {
+    if (
+      processedActionData?.action === ProcessedAction.CREATED ||
+      processedActionData?.action === ProcessedAction.UPDATED
+    ) {
+      this.selectedNode = null;
+      this.tableSelection = null;
+      this.resetMenu();
       this.readData();
     }
   }
@@ -371,7 +481,7 @@ export class SecurityActionTreetableComponent
     });
   }
 
-  private deleteIsinChange(): void {
+  private deleteAction(): void {
     const action: SecurityAction | undefined = this.selectedNode?.data.entity;
     const actionId = action?.idSecurityAction;
     if (actionId == null) return;

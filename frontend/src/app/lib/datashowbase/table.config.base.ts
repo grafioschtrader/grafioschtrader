@@ -1,13 +1,9 @@
 import { inject } from '@angular/core';
 import { FilterService, MenuItem, SortEvent, SortMeta } from '@openng/optimus-ui/api';
-import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TableColResizeEvent, TablePageEvent } from '@openng/optimus-ui/table';
-import { UserSettingsService } from '../services/user.settings.service';
 import { Helper } from '../helper/helper';
 import { ColumnConfig } from './column.config';
 import { TableTreetableTotalBase } from './table.treetable.total.base';
-import { BaseSettings } from '../base.settings';
-import { ColumnVisibilityDialogComponent, ColumnVisibilityOwner } from './column-visibility-dialog.component';
 
 /**
  * Abstract base class for displaying data in Optimus table format with comprehensive
@@ -27,7 +23,6 @@ import { ColumnVisibilityDialogComponent, ColumnVisibilityOwner } from './column
  */
 export abstract class TableConfigBase extends TableTreetableTotalBase {
   protected override filterService = inject(FilterService);
-  protected usersettingsService: UserSettingsService = inject(UserSettingsService);
 
   /** Locale string for form and date formatting */
   formLocale: string;
@@ -54,28 +49,8 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   protected filterRowToggleable = false;
 
-  /**
-   * Number of leading visible columns that stay in place while the table is scrolled horizontally. The view hands it to
-   * ConfigurableTableComponent, for example [frozenColumnCount]="frozenColumnCount". Only tables which set
-   * {@link frozenColumnsSelectable} offer it in the column visibility dialog and save it.
-   */
-  frozenColumnCount = 0;
-
-  /**
-   * Opt-in for the slider of the column visibility dialog that sets {@link frozenColumnCount}. Only a table bound to
-   * a scrollable ConfigurableTableComponent can make use of it.
-   */
-  protected frozenColumnsSelectable = false;
-
   /** Backup array for restoring column visibility states */
   private visibleRestore: boolean[] = [];
-
-  /**
-   * Key under which readTableDefinition found the column settings of this table. The column visibility dialog saves
-   * them under it as soon as it closes; otherwise a choice made there would only be saved when the component is
-   * destroyed, which a page reload never does.
-   */
-  private tableDefinitionKey: string | null = null;
 
   /**
    * Stable sort callback for the customSortFn input of the table hosts. It calls customSort, so overrides in
@@ -149,47 +124,26 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   /**
-   * Persists current table column visibility configuration to user settings.
-   * Saves which columns are visible/hidden for restoration on next load.
+   * Saves the settings only a flat table has, the rows per page and the state of the filter row, together with the
+   * column visibility and frozen columns that {@link writeTableDefinition} of the base saves.
    *
    * @param key - Unique identifier for this table configuration
    */
-  writeTableDefinition(key: string) {
-    const visibleColumns: any[] = [];
-    this.fields.forEach((field) => {
-      if (field.headerKey != null) visibleColumns.push({ [field.headerKey]: field.visible });
-    });
-    this.usersettingsService.saveArray(key, visibleColumns);
+  protected override writeExtraTableSettings(key: string): void {
     if (this.rowsPerPage) {
       this.usersettingsService.saveSingleValue(key + '.rows', this.rowsPerPage);
     }
     if (this.filterRowToggleable) {
       this.usersettingsService.saveSingleValue(key + '.filterrow', this.showFilterRow);
     }
-    if (this.frozenColumnsSelectable) {
-      this.usersettingsService.saveSingleValue(key + '.frozen', this.frozenColumnCount);
-    }
   }
 
   /**
-   * Restores table column visibility from persisted user settings.
-   * Only applies saved settings if the table structure hasn't changed (checksum validation).
+   * Restores the rows per page and the state of the filter row saved by {@link writeExtraTableSettings}.
    *
    * @param key - Unique identifier for this table configuration
    */
-  readTableDefinition(key: string): void {
-    this.tableDefinitionKey = key;
-    if (this.hasSameChecksum(key)) {
-      const readFields: any[] = this.usersettingsService.readArray(key);
-      if (readFields != null && readFields.length > 0) {
-        const fieldObject: any = Object.assign({}, ...readFields);
-        this.fields.forEach((field) => {
-          // Dynamic columns may be newer than the saved visibility settings.
-          if (field.headerKey != null && Object.hasOwn(fieldObject, field.headerKey))
-            field.visible = fieldObject[field.headerKey];
-        });
-      }
-    }
+  protected override readExtraTableSettings(key: string): void {
     const storedRows = this.usersettingsService.readSingleValue(key + '.rows');
     if (storedRows != null && storedRows > 0) {
       this.rowsPerPage = storedRows;
@@ -197,63 +151,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     if (this.filterRowToggleable) {
       this.showFilterRow = this.usersettingsService.readSingleValue(key + '.filterrow') === true;
     }
-    if (this.frozenColumnsSelectable) {
-      const storedFrozen = this.usersettingsService.readSingleValue(key + '.frozen');
-      this.frozenColumnCount =
-        storedFrozen > 0 ? Math.min(storedFrozen, ColumnVisibilityDialogComponent.MAX_FROZEN_COLUMNS) : 0;
-    }
-    this.notifyViewChanged();
-  }
-
-  /**
-   * Validates that table structure hasn't changed since last save.
-   * Compares checksum of current field names with stored checksum to detect
-   * backend changes that would invalidate saved column preferences.
-   *
-   * @param key - Base key for table configuration
-   * @returns True if table structure is unchanged, false if recreation needed
-   */
-  private hasSameChecksum(key: string): boolean {
-    const keyChecksum = key + '.checksum';
-    const existingChecksum = localStorage.getItem(keyChecksum);
-    const newChecksum: string = this.calculateHashAllOverFieldNames();
-    localStorage.setItem(keyChecksum, newChecksum);
-    return existingChecksum === newChecksum;
-  }
-
-  /**
-   * Calculates hash of all field names for structure change detection.
-   * Creates a numeric hash based on field names to detect when backend
-   * adds/removes/renames fields that would break saved configurations.
-   *
-   * @returns String representation of calculated hash
-   */
-  private calculateHashAllOverFieldNames(): string {
-    let i: number;
-    let sum: number = 0;
-    this.fields.forEach((field) => {
-      let fieldName = field.field.replace(/(\.de|\.en)$/, '');
-      let cs = this.charSum(fieldName);
-      sum = sum + 65027 / cs;
-    });
-    return ('' + sum).slice(0, 16);
-  }
-
-  /**
-   * Calculates character sum for hash generation.
-   * Uses character codes and position weights to create consistent hash values.
-   *
-   * @param s - String to calculate hash for
-   * @returns Numeric hash value
-   * @private
-   */
-  private charSum(s: string): number {
-    let i: number;
-    let sum = 0;
-    for (i = 0; i < s.length; i++) {
-      sum += s.charCodeAt(i) * (i + 1);
-    }
-    return sum;
   }
 
   /**
@@ -393,26 +290,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   /**
-   * Creates a single menu item that opens a dialog for column visibility management.
-   * Returns a menu item only if there are toggleable columns available.
-   *
-   * @returns Array containing a single menu item for column visibility dialog, or empty array
-   */
-  getColumnsShow(): MenuItem[] {
-    const hasToggleableColumns = this.fields.some((field) => field.changeVisibility);
-    if (hasToggleableColumns) {
-      return [
-        {
-          label: 'ON_OFF_COLUMNS' + BaseSettings.DIALOG_MENU_SUFFIX,
-          icon: 'fa fa-columns',
-          command: () => this.openColumnVisibilityDialog()
-        }
-      ];
-    }
-    return [];
-  }
-
-  /**
    * Shows or hides columns by header key. Programmatically controls column visibility for specific headers.
    *
    * @param fileHeader - Header key of columns to show/hide
@@ -421,39 +298,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   hideShowColumnByFileHeader(fileHeader: string, visible: boolean) {
     this.fields.filter((field) => field.headerKey === fileHeader).forEach((field) => (field.visible = visible));
     this.notifyViewChanged();
-  }
-
-  /**
-   * Opens a dialog for toggling column visibility.
-   * The dialog shows checkboxes for all columns with changeVisibility enabled.
-   * Changes are applied in real-time as checkboxes are toggled and saved when the dialog closes, provided the table
-   * reads its settings through readTableDefinition. A table that set {@link frozenColumnsSelectable} additionally gets
-   * a slider for the number of columns fixed on the left.
-   */
-  openColumnVisibilityDialog(): void {
-    if (!this.injector) {
-      console.warn('Injector not available for opening column visibility dialog');
-      return;
-    }
-    const dialogService = this.injector.get(DialogService);
-    this.translateService.get('ON_OFF_COLUMNS').subscribe((header) => {
-      dialogService
-        .open(ColumnVisibilityDialogComponent, {
-          header,
-          width: '300px',
-          modal: true,
-          draggable: true,
-          closable: true,
-          closeOnEscape: true,
-          position: 'right',
-          data: {
-            fields: this.fields,
-            frozenColumns: this.frozenColumnsSelectable ? this : null,
-            owner: this satisfies ColumnVisibilityOwner
-          }
-        })
-        ?.onClose.subscribe(() => this.tableDefinitionKey && this.writeTableDefinition(this.tableDefinitionKey));
-    });
   }
 
   /**

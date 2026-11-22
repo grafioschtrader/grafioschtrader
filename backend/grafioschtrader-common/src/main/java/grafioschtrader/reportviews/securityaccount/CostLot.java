@@ -17,6 +17,12 @@ public final class CostLot {
   @Schema(description = "Identifier of the purchase transaction")
   public final Integer idTransaction;
 
+  @Schema(description = "Original purchase identifier for a lot inherited through a spin-off")
+  public final Integer originIdTransaction;
+
+  @Schema(description = "Whether the lot represents shares without a documented acquisition cost")
+  public final boolean incomplete;
+
   @Schema(description = "Time of the purchase")
   @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_ISO)
   public final LocalDateTime transactionTime;
@@ -40,11 +46,23 @@ public final class CostLot {
    * @param cost            cost of these units in security currency, purchase costs included
    */
   public CostLot(Integer idTransaction, LocalDateTime transactionTime, Double exchangeRate, double units, double cost) {
+    this(idTransaction, null, transactionTime, exchangeRate, units, cost, false);
+  }
+
+  public CostLot(Integer idTransaction, Integer originIdTransaction, LocalDateTime transactionTime, Double exchangeRate,
+      double units, double cost, boolean incomplete) {
     this.idTransaction = idTransaction;
+    this.originIdTransaction = originIdTransaction;
+    this.incomplete = incomplete;
     this.transactionTime = transactionTime;
     this.exchangeRate = exchangeRate;
     this.units = units;
     this.cost = cost;
+  }
+
+  public CostLot withAmount(double newUnits, double newCost) {
+    return new CostLot(idTransaction, originIdTransaction, transactionTime, exchangeRate, newUnits, newCost,
+        incomplete);
   }
 
   @Override

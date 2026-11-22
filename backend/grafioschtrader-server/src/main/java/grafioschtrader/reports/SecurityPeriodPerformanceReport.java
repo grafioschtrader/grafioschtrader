@@ -45,6 +45,7 @@ import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.service.CostBasisMethodService;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.SecurityActionRole;
 
 //@formatter:off
 /**
@@ -241,8 +242,12 @@ public class SecurityPeriodPerformanceReport {
     flowSoFar.put(security, summary.positionFlow);
     LocalDate transactionDate = transaction.getTransactionDate();
     if (transactionDate.isAfter(dateFrom)) {
-      flows.computeIfAbsent(security.getIdSecuritycurrency(), id -> new ArrayList<>())
-          .add(new Flow(transactionDate, summary.positionFlow - before, transaction.getIdSecurityTransfer()));
+      SecurityActionRole role = transaction.getSecurityActionRole();
+      Integer idSpinOffApp = role == SecurityActionRole.SPIN_OFF_SALE || role == SecurityActionRole.SPIN_OFF_REPURCHASE
+          ? transaction.getIdSecurityActionApp()
+          : null;
+      flows.computeIfAbsent(security.getIdSecuritycurrency(), id -> new ArrayList<>()).add(
+          new Flow(transactionDate, summary.positionFlow - before, transaction.getIdSecurityTransfer(), idSpinOffApp));
     }
   }
 

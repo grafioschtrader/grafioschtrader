@@ -134,6 +134,29 @@ class SecurityPeriodSeriesTest {
   }
 
   @Test
+  @DisplayName("Spin-off parent: sale 7600 and repurchase 6400 net to one outflow of 1200, the ex-date drop is no loss")
+  void spinOffParentLegsNetted() {
+    // 100 units, cum close 76 on Monday, ex-date Tuesday with parent close 64 and child value 25 x 48 = 1200
+    List<DailyValue> values = List.of(held(MON, 100, 7600), held(TUE, 100, 6400), held(WED, 100, 6400));
+    List<Flow> flows = List.of(new Flow(TUE, -7600, null, 5), new Flow(TUE, 6400, null, 5));
+    Result r = calc(MON, WED, false, values, List.of(new Span(MON, null)), flows, MAIN_CURRENCY);
+    assertEquals(0, r.twr(), EPS);
+    assertEquals(0, r.gainPeriodMC(), EPS);
+    assertEquals(0, r.inflowMC(), EPS);
+    assertEquals(1200, r.outflowMC(), EPS);
+  }
+
+  @Test
+  @DisplayName("Spin-off child: purchase of 25 units at 48 is one inflow of 1200, no gain at an unchanged close")
+  void spinOffChildInflow() {
+    List<DailyValue> values = List.of(held(TUE, 25, 1200), held(WED, 25, 1200));
+    Result r = calc(MON, WED, false, values, List.of(new Span(TUE, null)), List.of(flow(TUE, 1200)), MAIN_CURRENCY);
+    assertEquals(0, r.gainPeriodMC(), EPS);
+    assertEquals(1200, r.inflowMC(), EPS);
+    assertEquals(0, r.outflowMC(), EPS);
+  }
+
+  @Test
   @DisplayName("Flows without a transfer id are never netted, even on the same day")
   void ordinaryFlowsAreNotNetted() {
     List<DailyValue> values = List.of(held(MON, 10, 1000), held(TUE, 10, 1030));

@@ -462,7 +462,9 @@ export class SecurityPositionChartComponent implements IGlobalMenuAttach, OnDest
     if (!result || this.emptyTextKey()) {
       return [];
     }
-    const notes: string[] = [...result.remarks];
+    const notes: string[] = result.remarks.map((remark) =>
+      remark === 'SPIN_OFF' ? 'POSITION_SERIES_SPIN_OFF' : remark
+    );
     const chartType = this.form()?.value('chartType') as string | null | undefined;
     if (chartType != null && CHART_TYPES_WITH_BASIS.includes(chartType)) {
       const basis =

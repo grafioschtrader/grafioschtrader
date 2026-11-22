@@ -35,6 +35,7 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.ISecuritycurrencyIdDateCloseCreateType;
 import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Stockexchange;
@@ -116,6 +117,22 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   protected S afterFullLoad(final S securitycurrency) throws Exception {
     return securitycurrency;
+  }
+
+  /**
+   * Called before the stored history of an instrument is deleted for a full reload, in the transaction of the reload.
+   * Default implementation is a no-op; {@link SecurityJpaRepositoryImpl} decides the history basis of the spin-offs
+   * of a parent here, because that decision compares the stored with the delivered series.
+   *
+   * @param securitycurrency the instrument whose history is reloaded in full
+   */
+  protected void beforeFullHistoryReload(S securitycurrency) {
+    // no-op; overridden in SecurityJpaRepositoryImpl
+  }
+
+  @Override
+  public List<Historyquote> acceptPeerHistoryquotes(S securitycurrency, List<Historyquote> historyquotes) {
+    return historyquotes;
   }
 
   /**

@@ -873,10 +873,11 @@ public class WatchlistReport {
       final Map<Integer, List<Securitysplit>> securitysplitMap, final DateTransactionCurrencypairMap dateCurrencyMap,
       final CostBasisMethods costBasisMethods) {
     final Map<Security, SecurityPositionSummary> summarySecurityMap = new HashMap<>();
+    var spinOff = securityCalcService.spinOffContext(tenant.getIdTenant(), null);
     // Calculate all positions closed or open
     SecurityCalcService.sortForCalculation(transactions)
         .forEach(transaction -> securityCalcService.calcSingleSecurityTransaction(transaction, summarySecurityMap,
-            securitysplitMap, tenant.isExcludeDivTax(), dateCurrencyMap, costBasisMethods));
+            securitysplitMap, tenant.isExcludeDivTax(), dateCurrencyMap, costBasisMethods, spinOff, true));
     this.calcOpenSecurityPositons(securitycurrencyPositions, summarySecurityMap, securitysplitMap, dateCurrencyMap);
   }
 

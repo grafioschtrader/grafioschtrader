@@ -19,12 +19,12 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 
 /**
- * Walks the security transactions of a set of security accounts through the position calculation. The same security
- * in different security accounts is merged into one {@link SecurityPositionSummary}, keyed by the security.
+ * Walks the security transactions of a set of security accounts through the position calculation. The same security in
+ * different security accounts is merged into one {@link SecurityPositionSummary}, keyed by the security.
  *
  * <p>
- * Shared by the security account reports, which value the resulting positions afterwards, and by the period
- * performance per security, which only reads the flow each transaction causes. Each account is walked in
+ * Shared by the security account reports, which value the resulting positions afterwards, and by the period performance
+ * per security, which only reads the flow each transaction causes. Each account is walked in
  * {@link SecurityCalcService#sortForCalculation(List)} order; transactions without a security, for example fees, are
  * skipped. The walk runs on the calling thread, because the summaries and the lazily loaded transactions are not safe
  * on another one.
@@ -47,8 +47,8 @@ public class SecurityPositionReplay {
    * @param excludeDivTaxcost  if true, tax withholdings of income are not deducted
    * @param dateCurrencyMap    currency context supplying the rate of each transaction
    * @param costBasisMethods   the cost basis methods of the report
-   * @param include            selects the transactions to process. Because every account is walked in ascending
-   *                           time, a predicate on the transaction time behaves like stopping at the first excluded
+   * @param include            selects the transactions to process. Because every account is walked in ascending time, a
+   *                           predicate on the transaction time behaves like stopping at the first excluded
    *                           transaction.
    * @param splitObserver      called after each processed transaction with the split map of its account, may be null
    * @param positionObserver   called after each processed transaction with the summary of its security, may be null
@@ -59,16 +59,18 @@ public class SecurityPositionReplay {
       final Predicate<Transaction> include,
       final BiConsumer<Transaction, Map<Integer, List<Securitysplit>>> splitObserver,
       final BiConsumer<Transaction, SecurityPositionSummary> positionObserver) {
+    var tenant = securityaccounts.isEmpty() ? null : securityaccounts.getFirst().getIdTenant();
+    var spinOff = securityCalcService.spinOffContext(tenant, securityaccounts.stream()
+        .map(Securityaccount::getIdSecuritycashAccount).collect(java.util.stream.Collectors.toSet()));
     for (Securityaccount securityaccount : securityaccounts) {
-      walk(securityaccount.getIdSecuritycashAccount(), securityaccount.getSecurityTransactionList(),
-          summarySecurityMap, excludeDivTaxcost, dateCurrencyMap, costBasisMethods, include, splitObserver,
-          positionObserver);
+      walk(securityaccount.getIdSecuritycashAccount(), securityaccount.getSecurityTransactionList(), summarySecurityMap,
+          excludeDivTaxcost, dateCurrencyMap, costBasisMethods, include, splitObserver, positionObserver, spinOff);
     }
   }
 
   /**
-   * Processes the given transactions of one security account, for a caller that loaded only the transactions it
-   * needs, for example those of one security, instead of the account's whole transaction list.
+   * Processes the given transactions of one security account, for a caller that loaded only the transactions it needs,
+   * for example those of one security, instead of the account's whole transaction list.
    *
    * @param idSecuritycashAccount the security account the transactions belong to; its splits are loaded
    * @param transactions          transactions of that account, in any order
@@ -82,8 +84,10 @@ public class SecurityPositionReplay {
       final Map<Security, SecurityPositionSummary> summarySecurityMap, final boolean excludeDivTaxcost,
       final DateTransactionCurrencypairMap dateCurrencyMap, final CostBasisMethods costBasisMethods,
       final BiConsumer<Transaction, SecurityPositionSummary> positionObserver) {
-    walk(idSecuritycashAccount, transactions, summarySecurityMap, excludeDivTaxcost, dateCurrencyMap,
-        costBasisMethods, _ -> true, null, positionObserver);
+    var spinOff = securityCalcService.spinOffContext(
+        transactions.isEmpty() ? null : transactions.getFirst().getIdTenant(), java.util.Set.of(idSecuritycashAccount));
+    walk(idSecuritycashAccount, transactions, summarySecurityMap, excludeDivTaxcost, dateCurrencyMap, costBasisMethods,
+        _ -> true, null, positionObserver, spinOff);
   }
 
   private void walk(final Integer idSecuritycashAccount, final List<Transaction> transactions,
@@ -91,13 +95,14 @@ public class SecurityPositionReplay {
       final DateTransactionCurrencypairMap dateCurrencyMap, final CostBasisMethods costBasisMethods,
       final Predicate<Transaction> include,
       final BiConsumer<Transaction, Map<Integer, List<Securitysplit>>> splitObserver,
-      final BiConsumer<Transaction, SecurityPositionSummary> positionObserver) {
+      final BiConsumer<Transaction, SecurityPositionSummary> positionObserver,
+      grafioschtrader.instrument.SpinOffContext spinOff) {
     final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
         .getSecuritysplitMapByIdSecuritycashaccount(idSecuritycashAccount);
     for (final Transaction transaction : SecurityCalcService.sortForCalculation(transactions)) {
       if (transaction.getSecurity() != null && include.test(transaction)) {
         securityCalcService.calcSingleSecurityTransaction(transaction, summarySecurityMap, securitysplitMap,
-            excludeDivTaxcost, dateCurrencyMap, costBasisMethods);
+            excludeDivTaxcost, dateCurrencyMap, costBasisMethods, spinOff, false);
         if (splitObserver != null) {
           splitObserver.accept(transaction, securitysplitMap);
         }

@@ -34,7 +34,8 @@ import grafioschtrader.types.SecurityPeriodRemark;
  * valued. A trading day without a holding row is a grid day with value 0.</li>
  * <li>A flow of the period, dated by its business date after {@code dateFrom} and not after {@code dateTo}, is placed
  * on the first grid day on or after that date. Flows of the same placement day and the same security transfer are
- * netted; flows without a transfer are never netted.</li>
+ * netted, as are the parent sale and repurchase of one spin-off, which together move the market value of the child
+ * out of the parent; every other flow is never netted.</li>
  * <li>A flow is converted into the main currency with the closing rate of its placement day, the rate the valuation of
  * that day uses.</li>
  * <li>{@code gain = value(dateTo) - value(dateFrom) - sum of the flows}, in both currencies.</li>
@@ -81,8 +82,15 @@ public final class SecurityPeriodSeries {
    * @param transactionDate    business date of the transaction
    * @param flowSC             amount in security currency, positive into the position
    * @param idSecurityTransfer the security transfer the transaction belongs to, null for an ordinary transaction
+   * @param idSpinOffApp       the spin-off application of a parent sale or repurchase, null for every other
+   *                           transaction. The two parent legs together move only the market value of the child out of
+   *                           the position and are netted into one flow.
    */
-  public record Flow(LocalDate transactionDate, double flowSC, Integer idSecurityTransfer) {
+  public record Flow(LocalDate transactionDate, double flowSC, Integer idSecurityTransfer, Integer idSpinOffApp) {
+
+    public Flow(LocalDate transactionDate, double flowSC, Integer idSecurityTransfer) {
+      this(transactionDate, flowSC, idSecurityTransfer, null);
+    }
   }
 
   /**
@@ -136,8 +144,11 @@ public final class SecurityPeriodSeries {
       boolean missingRate) {
   }
 
-  /** Key that nets the legs of one security transfer on one day and keeps every other flow apart. */
-  private record NettingKey(LocalDate day, Integer idSecurityTransfer, int ordinal) {
+  /**
+   * Key that nets the legs of one security transfer, and the parent sale and repurchase of one spin-off, on one day
+   * and keeps every other flow apart.
+   */
+  private record NettingKey(LocalDate day, Integer idSecurityTransfer, Integer idSpinOffApp, int ordinal) {
   }
 
   /**
@@ -226,8 +237,14 @@ public final class SecurityPeriodSeries {
       LocalDate date = flow.transactionDate();
       if (date.isAfter(input.dateFrom()) && !date.isAfter(input.dateTo())) {
         LocalDate day = firstOnOrAfter(grid, date, input.dateTo());
-        NettingKey key = flow.idSecurityTransfer() == null ? new NettingKey(day, null, ordinal++)
-            : new NettingKey(day, flow.idSecurityTransfer(), -1);
+        NettingKey key;
+        if (flow.idSecurityTransfer() != null) {
+          key = new NettingKey(day, flow.idSecurityTransfer(), null, -1);
+        } else if (flow.idSpinOffApp() != null) {
+          key = new NettingKey(day, null, flow.idSpinOffApp(), -1);
+        } else {
+          key = new NettingKey(day, null, null, ordinal++);
+        }
         netted.merge(key, flow.flowSC(), Double::sum);
       }
     }

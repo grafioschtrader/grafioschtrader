@@ -356,7 +356,7 @@ export async function createCashSecurityTransaction(
     await dialog.locator('textarea#note').fill(fixture.note);
     if (options.calculateExchangeRate) {
       await number(dialog, 'currencyExRate', 1);
-      await dialog.getByRole('button', { name: 'f(x)', exact: true }).click();
+      await dialog.locator('button#calcExRateButton').click();
       const calculator = page
         .locator('.p-dialog:visible')
         .filter({ has: page.locator('#cashaccountAmount input:enabled') });

@@ -4,20 +4,29 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.config.NegativeIdNumberCreater;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityActionApplication;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
+import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.SecurityActionApplicationJpaRepository;
+import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
+import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.SecurityActionType;
 import grafioschtrader.types.TransactionType;
 
 /**
@@ -38,6 +47,15 @@ public class SecurityCalcService {
 
   @Autowired
   private GlobalparametersService globalparametersService;
+
+  @Autowired
+  private SecurityActionApplicationJpaRepository spinOffApplications;
+  @Autowired
+  private TransactionJpaRepository spinOffTransactions;
+  @Autowired
+  private SecuritysplitJpaRepository spinOffSplits;
+  @Autowired
+  private CurrencypairJpaRepository spinOffPairs;
 
   private final SecurityGeneralCalc securityGeneralCalc;
   private final SecurityMarginCalc securityMarginCalc;
@@ -65,6 +83,24 @@ public class SecurityCalcService {
       final SecurityTransactionSummary securityTransactionSummary,
       final Map<Integer, List<Securitysplit>> securitySplitMap, final List<Transaction> transactions,
       final LocalDate untilDate, DateTransactionCurrencypairMap dateCurrencyMap, CostBasisMethods costBasisMethods) {
+    calcTransactions(security, excludeDivTaxcost, securityTransactionSummary, securitySplitMap, transactions, untilDate,
+        dateCurrencyMap, costBasisMethods, null, true);
+  }
+
+  public void calcTransactions(Security security, final boolean excludeDivTaxcost,
+      final SecurityTransactionSummary securityTransactionSummary,
+      final Map<Integer, List<Securitysplit>> securitySplitMap, final List<Transaction> transactions,
+      final LocalDate untilDate, DateTransactionCurrencypairMap dateCurrencyMap, CostBasisMethods costBasisMethods,
+      SpinOffContext spinOff) {
+    calcTransactions(security, excludeDivTaxcost, securityTransactionSummary, securitySplitMap, transactions, untilDate,
+        dateCurrencyMap, costBasisMethods, spinOff, false);
+  }
+
+  private void calcTransactions(Security security, final boolean excludeDivTaxcost,
+      final SecurityTransactionSummary securityTransactionSummary,
+      final Map<Integer, List<Securitysplit>> securitySplitMap, final List<Transaction> transactions,
+      final LocalDate untilDate, DateTransactionCurrencypairMap dateCurrencyMap, CostBasisMethods costBasisMethods,
+      SpinOffContext spinOff, boolean useParentPosition) {
 
     boolean isMarginInstrument = securityTransactionSummary.securityPositionSummary.getSecurity().isMarginInstrument();
 
@@ -73,8 +109,17 @@ public class SecurityCalcService {
           tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate));
     }
     for (final Transaction transaction : sortForCalculation(transactions)) {
-      if (transaction.getTransactionTime().toLocalDate().isAfter(untilDate)) {
+      if (untilDate != null && transaction.getTransactionTime().toLocalDate().isAfter(untilDate)) {
         return;
+      }
+      if (transaction.getSecurityActionRole() != null) {
+        if (spinOff == null) {
+          spinOff = spinOffContext(transactions);
+        }
+        securityGeneralCalc.calcSpinOffPosition(transaction, securityTransactionSummary.securityPositionSummary,
+            securitySplitMap, excludeDivTaxcost, dateCurrencyMap, costBasisMethods, spinOff, useParentPosition);
+        securityTransactionSummary.createAndAddPositionGainLoss(transaction);
+        continue;
       }
       if (!isMarginInstrument) {
         securityGeneralCalc.createAccruedInterestPostion(security, TransactionType.REDUCE, transaction,
@@ -109,9 +154,112 @@ public class SecurityCalcService {
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
       final DateTransactionCurrencypairMap dateCurrencyMap, final CostBasisMethods costBasisMethods) {
+    calcSingleSecurityTransaction(transaction, summarySecurityMap, securitysplitMap, excludeDivTaxcost, dateCurrencyMap,
+        costBasisMethods, transaction.getSecurityActionRole() == null ? null
+            : spinOffContext(transaction.getIdTenant(), Set.of(transaction.getIdSecurityaccount())),
+        false);
+  }
+
+  public void calcSingleSecurityTransaction(final Transaction transaction,
+      final Map<Security, SecurityPositionSummary> summarySecurityMap,
+      final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
+      final DateTransactionCurrencypairMap dateCurrencyMap, final CostBasisMethods costBasisMethods,
+      SpinOffContext spinOff, boolean useParentPosition) {
+    if (transaction.getSecurityActionRole() != null) {
+      var position = securityGeneralCalc.getSecurityPositionSummary(transaction, summarySecurityMap, dateCurrencyMap,
+          globalparametersService.getCurrencyPrecision());
+      securityGeneralCalc.calcSpinOffPosition(transaction, position, securitysplitMap, excludeDivTaxcost,
+          dateCurrencyMap, costBasisMethods, spinOff, useParentPosition);
+      return;
+    }
     getSecurityCalc(transaction.getSecurity()).calcSingleSecurityTransaction(transaction, summarySecurityMap,
         securitysplitMap, excludeDivTaxcost, dateCurrencyMap, negativeIdNumberCreater,
         globalparametersService.getCurrencyPrecision(), costBasisMethods);
+  }
+
+  /** Creates a lazy context; a null account set selects the whole tenant. */
+  public SpinOffContext spinOffContext(Integer tenant, Set<Integer> accounts) {
+    return new SpinOffContext(this, tenant, accounts);
+  }
+
+  /** Derives the accounts present in a complete ledger supplied by a caller. */
+  public SpinOffContext spinOffContext(List<Transaction> transactions) {
+    return spinOffContext(transactions.isEmpty() ? null : transactions.getFirst().getIdTenant(), transactions.stream()
+        .map(Transaction::getIdSecurityaccount).filter(java.util.Objects::nonNull).collect(Collectors.toSet()));
+  }
+
+  Map<Integer, SecurityActionApplication> spinOffApplications(Integer tenant) {
+    return spinOffApplications.findByIdTenant(tenant).stream()
+        .filter(a -> !a.isReversed() && a.getSecurityAction().getActionType() == SecurityActionType.SPIN_OFF)
+        .collect(Collectors.toMap(SecurityActionApplication::getId, a -> a));
+  }
+
+  List<Transaction> spinOffHistory(Integer tenant, Integer security) {
+    return spinOffTransactions.findByIdTenantAndIdSecurity(tenant, security);
+  }
+
+  List<Transaction> spinOffLegs(Integer application) {
+    return spinOffTransactions.findByIdSecurityActionApp(application);
+  }
+
+  int spinOffPrecision(String currency) {
+    return globalparametersService.getPrecisionForCurrency(currency);
+  }
+
+  double spinOffSplitFactor(Integer security, LocalDate date, DateTransactionCurrencypairMap currencyMap) {
+    return Securitysplit.calcSplitFatorForFromDateAndToDate(security, date,
+        currencyMap == null ? null : currencyMap.getUntilDate(),
+        spinOffSplits.getSecuritysplitMapByIdSecuritycurrency(security)).fromToDateFactor;
+  }
+
+  double spinOffRate(SpinOffContext.FxKey key) {
+    if (key.from().equals(key.to())) {
+      return 1;
+    }
+    for (var pair : spinOffPairs.findByFromCurrencyAndToCurrencyOrToCurrencyAndFromCurrency(key.from(), key.to())) {
+      Double close = spinOffPairs.getHistoricalClosePriceForDate(pair, key.date());
+      if (close != null && close > 0 && Double.isFinite(close)) {
+        return DataBusinessHelper.divideMultiplyExchangeRate(1, close, key.from(), key.to(),
+            !key.from().equals(pair.getFromCurrency()));
+      }
+    }
+    return 0;
+  }
+
+  SecurityPositionSummary spinOffParentState(Security parent, List<Transaction> before, boolean excludeDivTax,
+      DateTransactionCurrencypairMap currencyMap, CostBasisMethods methods, SpinOffContext spinOff) {
+    LocalDate untilDate = currencyMap == null ? null : currencyMap.getUntilDate();
+    String main = currencyMap == null ? null : currencyMap.getMainCurrency();
+    Map<Integer, List<Securitysplit>> splitMap = spinOffSplits.getSecuritysplitMapByIdSecuritycurrency(parent.getId());
+    var summary = new SecurityTransactionSummary(parent, main, globalparametersService.getCurrencyPrecision());
+    var parentRates = spinOffParentRates(parent, before, currencyMap, spinOff);
+    calcTransactions(parent, excludeDivTax, summary, splitMap, before, untilDate, parentRates, methods, spinOff, true);
+    return summary.securityPositionSummary;
+  }
+
+  private DateTransactionCurrencypairMap spinOffParentRates(Security parent, List<Transaction> before,
+      DateTransactionCurrencypairMap original, SpinOffContext spinOff) {
+    if (original == null || original.getMainCurrency() == null
+        || parent.getCurrency().equals(original.getMainCurrency())) {
+      return original == null ? new DateTransactionCurrencypairMap(null, true) : original;
+    }
+    String main = original.getMainCurrency();
+    var prices = new ArrayList<Object[]>();
+    boolean complete = true;
+    for (LocalDate date : before.stream().map(Transaction::getTransactionDate).distinct().toList()) {
+      Double existing = original.getExactDateAndFromCurrency(date, parent.getCurrency());
+      double value = existing == null ? spinOff.rate(parent.getCurrency(), main, date) : existing;
+      if (value > 0) {
+        prices.add(new Object[] { date, parent.getCurrency(), value });
+      } else {
+        complete = false;
+      }
+    }
+    // The calculation of cost in instrument currency remains available with a gap in the parent's exchange history.
+    return complete
+        ? new DateTransactionCurrencypairMap(main, original.getUntilDate(), prices,
+            List.copyOf(original.getCurrencypairFromToCurrencyMap().values()), true)
+        : new DateTransactionCurrencypairMap(original.getUntilDate(), true);
   }
 
   /**

@@ -9,6 +9,7 @@ export class Transaction {
   idTransaction?: number;
   /** Server-owned marker protecting the simulation's opening ledger. */
   readonly simulationOpening?: boolean;
+  readonly securityActionRole?: 'SPIN_OFF_SALE' | 'SPIN_OFF_REPURCHASE' | 'SPIN_OFF_CHILD' | null;
   idAlgoStrategy: number | null = null;
   units?: number | null = null;
   quotation?: number | null = null;

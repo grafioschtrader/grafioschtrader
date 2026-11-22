@@ -11,7 +11,8 @@ import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.import
 
 /**
  * Minimal dynamic dialog for entering the cash account amount (credited/debited total).
- * The entered amount is used to reverse-calculate the exchange rate in the transaction form.
+ * The transaction form uses the entered amount to reverse-calculate either the exchange rate or the price/dividend
+ * per unit, depending on which f(x) button opened the dialog.
  * Opened via DialogService.open() and returns the entered amount on submit.
  */
 @Component({

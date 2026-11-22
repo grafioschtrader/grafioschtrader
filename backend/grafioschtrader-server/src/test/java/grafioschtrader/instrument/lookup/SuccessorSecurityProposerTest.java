@@ -125,6 +125,23 @@ class SuccessorSecurityProposerTest {
   }
 
   @Test
+  void spinOffUsesTheRequestedCurrencyAndOnlyTheChildListing() {
+    var listing = candidate("Independent child", true, List.of(), List.of());
+    when(securityLookupService.lookup(eq(NEW_ISIN), eq("USD"), eq("XSWX"), any(), eq(1), any(Locale.class)))
+        .thenReturn(new SecurityLookupResponse(List.of(listing), List.of(), true, true, List.of()));
+
+    Security child = proposer.proposeSpinOffChild(old, NEW_ISIN, "USD", ACTION_DATE, Locale.ENGLISH).orElseThrow();
+
+    assertEquals("Independent child", child.getName());
+    assertEquals("USD", child.getCurrency());
+    assertEquals(listing.tickerSymbol(), child.getTickerSymbol());
+    assertEquals(1.0f, child.getLeverageFactor());
+    assertTrue(child.getActiveToDate().isAfter(ACTION_DATE));
+    assertNull(child.getIdConnectorHistory());
+    assertNull(child.getIdConnectorDividend());
+  }
+
+  @Test
   @DisplayName("The name of the predecessor marked as successor never exceeds the length of a security name")
   void successorNameFitsColumn() {
     String name = SuccessorSecurityProposer.successorName("x".repeat(80));

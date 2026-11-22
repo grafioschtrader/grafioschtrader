@@ -389,8 +389,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * @param securitysplitMap                 mapping of securities to their historical stock splits
    * @param excludeDivTaxcost                whether to exclude dividend tax costs from position calculations
    * @param dateCurrencyMap                  currency exchange rate context for multi-currency securities
-   * @param disposalCollector                collects units, settlement and trades for the disposal cost estimate,
-   *                                         null when the estimate is switched off
+   * @param disposalCollector                collects units, settlement and trades for the disposal cost estimate, null
+   *                                         when the estimate is switched off
    * @param costBasisMethods                 the cost basis methods of this report
    * @return map of securities to their calculated position summaries
    */
@@ -400,11 +400,12 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       final DateTransactionCurrencypairMap dateCurrencyMap, final DisposalPositionCollector disposalCollector,
       final CostBasisMethods costBasisMethods) {
     final Map<Security, SecurityPositionSummary> securityPositionSummaryMap = new HashMap<>();
+    var spinOff = securityCalcService.spinOffContext(everyKindOfTransactionsUntilDate);
     // A sorted copy: the cash calculation keeps the order it always had, only the securities need the unique one
     for (final Transaction transaction : SecurityCalcService.sortForCalculation(everyKindOfTransactionsUntilDate)) {
       if (transaction.getSecurity() != null) {
         securityCalcService.calcSingleSecurityTransaction(transaction, securityPositionSummaryMap, securitysplitMap,
-            excludeDivTaxcost, dateCurrencyMap, costBasisMethods);
+            excludeDivTaxcost, dateCurrencyMap, costBasisMethods, spinOff, true);
         if (disposalCollector != null) {
           disposalCollector.accept(transaction, securitysplitMap);
         }

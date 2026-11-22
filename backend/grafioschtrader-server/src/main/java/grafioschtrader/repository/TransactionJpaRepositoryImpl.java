@@ -258,7 +258,11 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   private Transaction saveOnly(final Transaction transaction, Transaction existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
+    if (transaction.getSecurity() != null && transaction.getIdTenant() != null) {
+      tenantJpaRepository.lockMonitoringTenant(transaction.getIdTenant());
+    }
     existingEntity = prepareTransactionUpdate(transaction);
+    assertSpinOffEntitlement(existingEntity, transaction);
     // Must happen before checkTransactionSecurityAndCashaccountBeforSave and the save: existingEntity is the managed
     // instance that merge writes the new values into, so the old coordinates are only readable now.
     final TransactionPreImage preImage = TransactionPreImage.of(existingEntity);
@@ -281,6 +285,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     assertOpeningUnchanged(stored);
+    assertNotSpinOffLeg(stored);
     transaction.setSimulationOpening(stored.isSimulationOpening());
     transaction.setAlgoFillId(stored.getAlgoFillId());
     transaction.setAlgoSignalId(stored.getAlgoSignalId());
@@ -827,11 +832,14 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   @Modifying
   public void deleteSingleDoubleTransaction(final Integer idTransaction) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    tenantJpaRepository.lockMonitoringTenant(user.getIdTenant());
 
     final Transaction transaction = transactionJpaRepository.findByIdTransactionAndIdTenant(idTransaction,
         user.getIdTenant());
     if (transaction != null) {
       assertOpeningUnchanged(transaction);
+      assertNotSpinOffLeg(transaction);
+      assertSpinOffEntitlement(transaction, null);
       if (transaction.getSecurity() != null) {
         checkOverdraftAllowedForDelete(transaction);
         deleteSecurityTransaction(transaction);
@@ -855,6 +863,32 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
         }
       }
     }
+  }
+
+  private static void assertNotSpinOffLeg(Transaction transaction) {
+    if (transaction.getSecurityActionRole() != null) {
+      throw new DataViolationException("id.transaction", "gt.transaction.spinoff.leg.protected", null);
+    }
+  }
+
+  private void assertSpinOffEntitlement(Transaction before, Transaction after) {
+    if (movesUnits(before) && movesUnits(after) && before.getTransactionType() == after.getTransactionType()
+        && java.util.Objects.equals(before.getUnits(), after.getUnits())
+        && java.util.Objects.equals(before.getIdSecurityaccount(), after.getIdSecurityaccount())
+        && java.util.Objects.equals(before.getSecurity().getId(), after.getSecurity().getId())
+        && java.util.Objects.equals(before.getTransactionDate(), after.getTransactionDate())) {
+      return;
+    }
+    if (transactionJpaRepository.precedesSpinOffEntitlement(before)
+        || transactionJpaRepository.precedesSpinOffEntitlement(after)) {
+      throw new DataViolationException("units", "gt.transaction.spinoff.entitlement.changed", null);
+    }
+  }
+
+  private static boolean movesUnits(Transaction transaction) {
+    return transaction != null && transaction.getSecurity() != null && transaction.getIdSecurityaccount() != null
+        && (transaction.getTransactionType() == TransactionType.ACCUMULATE
+            || transaction.getTransactionType() == TransactionType.REDUCE);
   }
 
   /**

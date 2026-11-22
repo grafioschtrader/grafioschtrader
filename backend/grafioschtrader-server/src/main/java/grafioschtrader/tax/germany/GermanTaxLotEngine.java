@@ -12,8 +12,8 @@ import java.util.Map;
 import java.util.Set;
 
 import grafiosch.common.DataHelper;
-import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.germantax.GermanTaxDetail;
 import grafioschtrader.reportviews.germantax.GermanTaxDetail.LotPart;
@@ -27,6 +27,8 @@ import grafioschtrader.tax.germany.GermanTaxClassifier.Kind;
 import grafioschtrader.tax.germany.GermanTaxMarketData.Distribution;
 import grafioschtrader.tax.germany.GermanTaxMarketData.PricePoint;
 import grafioschtrader.types.FundTaxClass;
+import grafioschtrader.types.SecurityActionRole;
+import grafioschtrader.types.SpinOffTaxTreatmentDe;
 import grafioschtrader.types.TaxWithholding;
 import grafioschtrader.types.TransactionType;
 
@@ -45,6 +47,10 @@ import grafioschtrader.types.TransactionType;
  * <li>A security account transfer and an ISIN change are one event: the lots of the source move with their purchase
  * time, cost in euro and applied advance lump sums, and no gain arises (BMF letter on individual questions of the
  * flat-rate withholding tax: Rn. 67 for the ISIN change, Rn. 184a for the transferred acquisition data).</li>
+ * <li>A spin-off follows the tax treatment recorded on its action. A cost split leaves the parent lots in place and
+ * divides their euro cost by the German allocation; the child lots continue the parent's purchase times (§ 20 Abs. 4a
+ * Satz 7 EStG, BMF letter Rn. 100 ff., 115). A taxable distribution books the market value of the new shares as income
+ * and opens one new lot. An undetermined treatment is calculated as a cost split and left incomplete.</li>
  * <li>A sale gains the proceeds after its costs at the rate of the day of the sale, less the cost in euro of the lots
  * it consumed (§ 20 Abs. 4 EStG). The gain of a fund is reduced by the advance lump sums of the units sold (§ 19 Abs.
  * 1 InvStG).</li>
@@ -73,8 +79,11 @@ public class GermanTaxLotEngine {
   private final GermanTaxPortfolios portfolios;
   private final Map<Integer, List<Securitysplit>> splitMap;
   private final LocalDate today;
+  private final Map<Integer, GermanTaxSpinOff> spinOffs;
 
   /**
+   * An engine for a tenant without spin-offs.
+   *
    * @param market     closing rates, prices, distributions and base interest rates
    * @param portfolios the portfolios of the tenant and their withholding
    * @param splitMap   the splits by security id, to put the units of every purchase on the basis of today
@@ -82,10 +91,23 @@ public class GermanTaxLotEngine {
    */
   public GermanTaxLotEngine(GermanTaxMarketData market, GermanTaxPortfolios portfolios,
       Map<Integer, List<Securitysplit>> splitMap, LocalDate today) {
+    this(market, portfolios, splitMap, today, Map.of());
+  }
+
+  /**
+   * @param market     closing rates, prices, distributions and base interest rates
+   * @param portfolios the portfolios of the tenant and their withholding
+   * @param splitMap   the splits by security id, to put the units of every purchase on the basis of today
+   * @param today      the current day of the client, the tax year of this day is provisional
+   * @param spinOffs   the tax treatment and allocation of each applied spin-off, by the id of its application
+   */
+  GermanTaxLotEngine(GermanTaxMarketData market, GermanTaxPortfolios portfolios,
+      Map<Integer, List<Securitysplit>> splitMap, LocalDate today, Map<Integer, GermanTaxSpinOff> spinOffs) {
     this.market = market;
     this.portfolios = portfolios;
     this.splitMap = splitMap;
     this.today = today;
+    this.spinOffs = spinOffs;
   }
 
   /**
@@ -119,12 +141,23 @@ public class GermanTaxLotEngine {
 
   // ---------------------------------------------------------------------------------------------------------------
 
+  /**
+   * {@code SPIN_OFF} is the parent sale of a spin-off with the child purchase as partner; {@code SPIN_OFF_CHILD} is a
+   * child purchase whose parent sale is missing.
+   */
   private enum EventType {
-    BUY, SELL, DIVIDEND, MOVE, SWAP
+    BUY, SELL, DIVIDEND, MOVE, SWAP, SPIN_OFF, SPIN_OFF_CHILD
   }
 
-  /** What happens at a point of time. A move and an ISIN change carry their purchase as partner. */
+  /**
+   * What happens at a point of time. A move and an ISIN change carry their purchase as partner, a spin-off its child
+   * purchase.
+   */
   private record Event(EventType type, Transaction tx, Transaction partner) {
+  }
+
+  /** Category, form line and detail kind of an income, chosen by the classification of the security. */
+  private record IncomeLine(String category, String line, String kind) {
   }
 
   private enum Target {
@@ -217,6 +250,8 @@ public class GermanTaxLotEngine {
     final List<GermanTaxDetail> details = new ArrayList<>();
     final List<GermanTaxUnclassified> unclassified = new ArrayList<>();
     final List<Event> pending = new ArrayList<>();
+    /** Parent sales of spin-offs whose repurchase is missing. */
+    final Set<Transaction> spinOffsWithoutRepurchase = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
     int nextYearEnd = FIRST_PREPAYMENT_YEAR;
 
     Run(int taxYear) {
@@ -276,7 +311,7 @@ public class GermanTaxLotEngine {
       final Set<Transaction> partners = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
       final Map<Transaction, Event> pairEvents = new IdentityHashMap<>();
       for (Transaction t : sorted) {
-        if (t.getTransactionType() != TransactionType.REDUCE) {
+        if (t.getSecurityActionRole() != null || t.getTransactionType() != TransactionType.REDUCE) {
           continue;
         }
         Event pair = null;
@@ -298,8 +333,18 @@ public class GermanTaxLotEngine {
           pairEvents.put(t, pair);
         }
       }
+      final Map<String, Transaction[]> spinOffLegs = new HashMap<>();
+      for (Transaction t : sorted) {
+        if (t.getSecurityActionRole() != null) {
+          spinOffLegs.computeIfAbsent(spinOffKey(t), _ -> new Transaction[3])[t.getSecurityActionRole().ordinal()] = t;
+        }
+      }
       final List<Event> events = new ArrayList<>();
       for (Transaction t : sorted) {
+        if (t.getSecurityActionRole() != null) {
+          spinOffEvent(t, spinOffLegs.get(spinOffKey(t)), events);
+          continue;
+        }
         if (partners.contains(t)) {
           continue;
         }
@@ -311,6 +356,34 @@ public class GermanTaxLotEngine {
         }
       }
       return events;
+    }
+
+    /** The legs of one spin-off in one security account share the application and the account. */
+    private String spinOffKey(Transaction t) {
+      return t.getIdSecurityActionApp() + "/" + t.getIdSecurityaccount();
+    }
+
+    /**
+     * Turns the legs of a spin-off into one event at the parent sale, which sorts before every other booking of the
+     * action date. The repurchase only restores the units the sale took and changes no lot, so it is no event of its
+     * own; a missing repurchase marks the event incomplete. A child purchase without its parent sale stands alone.
+     *
+     * @param t      a leg
+     * @param legs   sale, repurchase and child purchase of the same application and account, any of them null
+     * @param events the events to extend
+     */
+    private void spinOffEvent(Transaction t, Transaction[] legs, List<Event> events) {
+      final Transaction sale = legs[SecurityActionRole.SPIN_OFF_SALE.ordinal()];
+      final Transaction repurchase = legs[SecurityActionRole.SPIN_OFF_REPURCHASE.ordinal()];
+      final Transaction child = legs[SecurityActionRole.SPIN_OFF_CHILD.ordinal()];
+      if (t == sale) {
+        events.add(new Event(EventType.SPIN_OFF, sale, child));
+        if (repurchase == null) {
+          spinOffsWithoutRepurchase.add(sale);
+        }
+      } else if (t == child && sale == null) {
+        events.add(new Event(EventType.SPIN_OFF_CHILD, child, null));
+      }
     }
 
     private EventType plainType(Transaction t) {
@@ -337,6 +410,8 @@ public class GermanTaxLotEngine {
       }
       case SELL -> sell(t, cl);
       case DIVIDEND -> dividend(t, cl);
+      case SPIN_OFF -> spinOff(event);
+      case SPIN_OFF_CHILD -> spinOffChildAlone(t);
       case MOVE, SWAP -> {
         if (cl.kind() == Kind.UNCLASSIFIED
             && classification(event.partner().getSecurity()).kind() == Kind.UNCLASSIFIED) {
@@ -442,6 +517,157 @@ public class GermanTaxLotEngine {
       if (warning.year != null && warning.year == taxYear) {
         warnings.add(warning);
       }
+    }
+
+    // ------------------------------------------------------------------------------------------ spin-off
+
+    /**
+     * A spin-off in one security account, by the tax treatment recorded on its action. A cost split and an
+     * undetermined treatment divide the euro cost of every parent lot by the allocation and give the child lots the
+     * parent's purchase times (§ 20 Abs. 4a Satz 7 EStG); an undetermined treatment leaves all these lots incomplete.
+     * A taxable distribution leaves the parent lots alone and books the market value of the new shares as income.
+     */
+    private void spinOff(Event event) {
+      final Transaction sale = event.tx();
+      final Transaction child = event.partner();
+      if (child == null) {
+        registerInTaxYear(warn(GermanTaxKeys.WARN_SPIN_OFF_INCOMPLETE, sale, null));
+        return;
+      }
+      final GermanTaxSpinOff info = spinOffs.get(sale.getIdSecurityActionApp());
+      if (info == null || info.allocation() == null) {
+        spinOffChildAlone(child);
+        return;
+      }
+      final Classification parentCl = classification(sale.getSecurity());
+      final Classification childCl = classification(child.getSecurity());
+      if (parentCl.kind() == Kind.UNCLASSIFIED && childCl.kind() == Kind.UNCLASSIFIED) {
+        return;
+      }
+      if (info.treatment() == SpinOffTaxTreatmentDe.TAXABLE_DISTRIBUTION) {
+        spinOffDistribution(child, parentCl, childCl);
+      } else {
+        spinOffCostSplit(sale, child, info, parentCl, childCl);
+      }
+    }
+
+    /**
+     * Divides the euro cost and the applied advance lump sums of every parent lot. Each child part is rounded to the
+     * cent and the last parent lot with a cost takes the remainder, so the child lots add up to exactly the allocated
+     * share of the parent's cost. A lot of cost 0 stays 0. Child units the parent lots do not cover become an
+     * incomplete lot.
+     */
+    private void spinOffCostSplit(Transaction sale, Transaction child, GermanTaxSpinOff info,
+        Classification parentCl, Classification childCl) {
+      final List<GermanTaxWarning> marks = new ArrayList<>();
+      if (info.treatment() == SpinOffTaxTreatmentDe.UNDETERMINED) {
+        marks.add(noted(warn(GermanTaxKeys.WARN_SPIN_OFF_UNDETERMINED, child, null)));
+      } else {
+        registerInTaxYear(warn(GermanTaxKeys.WARN_SPIN_OFF, child, fraction(child)));
+      }
+      if (parentCl.isFund() || childCl.isFund()) {
+        marks.add(noted(warn(GermanTaxKeys.WARN_SPIN_OFF_FUND, sale, null)));
+      }
+      if (spinOffsWithoutRepurchase.contains(sale)) {
+        marks.add(noted(warn(GermanTaxKeys.WARN_SPIN_OFF_INCOMPLETE, sale, null)));
+      }
+      final double q = info.allocation();
+      final List<GermanTaxLot> parentLots = book(sale.getIdSecurityaccount(), sale.getSecurity()).lots;
+      final Book childBook = book(child.getIdSecurityaccount(), child.getSecurity());
+      final double parentUnits = unitsOf(sale);
+      final double childUnits = unitsOf(child);
+      final double childTotal = money(q * parentLots.stream().mapToDouble(lot -> lot.costEur).sum());
+      int lastWithCost = -1;
+      for (int i = 0; i < parentLots.size(); i++) {
+        if (parentLots.get(i).costEur != 0.0) {
+          lastWithCost = i;
+        }
+      }
+      double handedOver = 0.0;
+      double coveredUnits = 0.0;
+      for (int i = 0; i < parentLots.size(); i++) {
+        final GermanTaxLot lot = parentLots.get(i);
+        final double childCost = lot.costEur == 0.0 ? 0.0
+            : i == lastWithCost ? childTotal - handedOver : money(q * lot.costEur);
+        final double childPreliminary = lot.preliminaryEur * q;
+        final double units = parentUnits > EPS ? lot.units / parentUnits * childUnits : 0.0;
+        final GermanTaxLot derived = lot.deriveSpinOff(units, childCost, childPreliminary);
+        handedOver += childCost;
+        coveredUnits += units;
+        lot.costEur -= childCost;
+        lot.preliminaryEur -= childPreliminary;
+        for (GermanTaxWarning mark : marks) {
+          lot.markIncomplete(mark);
+          derived.markIncomplete(mark);
+        }
+        childBook.add(derived);
+      }
+      if (childUnits - coveredUnits > EPS) {
+        final GermanTaxLot unknown = new GermanTaxLot(child.getIdTransaction(), child.getTransactionTime(),
+            childUnits - coveredUnits);
+        unknown.markIncomplete(noted(warn(GermanTaxKeys.WARN_UNCOVERED_TRANSFER, sale, null)));
+        marks.forEach(unknown::markIncomplete);
+        childBook.add(unknown);
+      }
+    }
+
+    /**
+     * A spin-off taxed as a distribution: the parent lots keep their cost, the market value of the new shares at the
+     * rate of the action date is income like a dividend of the parent, and the new shares are one lot of that cost
+     * dated on the action date, so they carry no transition status.
+     */
+    private void spinOffDistribution(Transaction child, Classification parentCl, Classification childCl) {
+      registerInTaxYear(warn(GermanTaxKeys.WARN_SPIN_OFF_DISTRIBUTION, child, fraction(child)));
+      final RateResult rate = eurRate(child);
+      final double value = child.getSeucritiesNetPrice();
+      if (childCl.kind() != Kind.UNCLASSIFIED) {
+        final GermanTaxLot lot = new GermanTaxLot(child.getIdTransaction(), child.getTransactionTime(),
+            unitsOf(child));
+        if (rate.rate() == null) {
+          lot.markIncomplete(warn(GermanTaxKeys.WARN_MISSING_RATE, child, child.getSecurity().getCurrency()));
+        } else {
+          lot.costEur = value * rate.rate();
+        }
+        if (childCl.isFund()) {
+          lot.markIncomplete(noted(warn(GermanTaxKeys.WARN_SPIN_OFF_FUND, child, null)));
+        }
+        book(child.getIdSecurityaccount(), child.getSecurity()).add(lot);
+      }
+      if (child.getTransactionTime().getYear() != taxYear) {
+        return;
+      }
+      if (parentCl.kind() == Kind.UNCLASSIFIED) {
+        unclassified.add(new GermanTaxUnclassified("INCOME", parentCl.reason(), child.getIdTransaction(),
+            child.getSecurity().getIdSecuritycurrency(), child.getSecurity().getName(), child.getTransactionDate(),
+            rate.rate() == null ? null : money(value * rate.rate())));
+        return;
+      }
+      final IncomeLine incomeLine = incomeLine(parentCl);
+      income(incomeLine.kind(), child, parentCl, rate, value, 0.0, incomeLine.category(), incomeLine.line(),
+          parentCl.fundTaxClass(), portfolios.portfolioOfSecurityaccount(child.getIdSecurityaccount()), null);
+    }
+
+    /** A child purchase without the rest of its spin-off: its units are known, its cost is not. */
+    private void spinOffChildAlone(Transaction child) {
+      final GermanTaxWarning warning = noted(warn(GermanTaxKeys.WARN_SPIN_OFF_INCOMPLETE, child, null));
+      if (classification(child.getSecurity()).kind() == Kind.UNCLASSIFIED) {
+        return;
+      }
+      final GermanTaxLot lot = new GermanTaxLot(child.getIdTransaction(), child.getTransactionTime(), unitsOf(child));
+      lot.markIncomplete(warning);
+      book(child.getIdSecurityaccount(), child.getSecurity()).add(lot);
+    }
+
+    /** The fractional part of the allotted child units, which a bank may settle in cash; null for a whole allotment. */
+    private String fraction(Transaction child) {
+      final double fraction = child.getUnits() - Math.floor(child.getUnits());
+      return fraction > EPS && 1.0 - fraction > EPS ? String.valueOf(DataHelper.round(fraction, 6)) : null;
+    }
+
+    /** Registers a warning in the tax year of its event and returns it, for a lot it marks. */
+    private GermanTaxWarning noted(GermanTaxWarning warning) {
+      registerInTaxYear(warning);
+      return warning;
     }
 
     // ------------------------------------------------------------------------------------------ sale
@@ -587,29 +813,22 @@ public class GermanTaxLotEngine {
             rate.rate() == null ? null : money(t.getSeucritiesNetPrice() * rate.rate())));
         return;
       }
-      final String category;
-      final String line;
-      final String kind;
-      switch (cl.kind()) {
-      case SHARE -> {
-        category = GermanTaxKeys.CATEGORY_SHARES;
-        line = GermanTaxKeys.LINE_SHARE_DIVIDENDS;
-        kind = GermanTaxKeys.KIND_DIVIDEND;
-      }
-      case CLAIM -> {
-        category = GermanTaxKeys.CATEGORY_OTHER_INCOME;
-        line = GermanTaxKeys.LINE_INTEREST;
-        kind = GermanTaxKeys.KIND_INTEREST;
-      }
-      default -> {
-        category = GermanTaxKeys.CATEGORY_FUNDS;
-        line = GermanTaxKeys.LINE_FUND_DISTRIBUTIONS;
-        kind = GermanTaxKeys.KIND_DIVIDEND;
-      }
-      }
+      final IncomeLine incomeLine = incomeLine(cl);
       final Integer idPortfolio = portfolios.portfolioOfSecurityaccount(t.getIdSecurityaccount());
-      income(kind, t, cl, rate, t.getSeucritiesNetPrice(), nz(t.getTaxCost()), category, line, cl.fundTaxClass(),
-          idPortfolio, null);
+      income(incomeLine.kind(), t, cl, rate, t.getSeucritiesNetPrice(), nz(t.getTaxCost()), incomeLine.category(),
+          incomeLine.line(), cl.fundTaxClass(), idPortfolio, null);
+    }
+
+    /** Where the income of a classified security goes: dividends of shares, interest of claims, fund distributions. */
+    private IncomeLine incomeLine(Classification cl) {
+      return switch (cl.kind()) {
+      case SHARE -> new IncomeLine(GermanTaxKeys.CATEGORY_SHARES, GermanTaxKeys.LINE_SHARE_DIVIDENDS,
+          GermanTaxKeys.KIND_DIVIDEND);
+      case CLAIM -> new IncomeLine(GermanTaxKeys.CATEGORY_OTHER_INCOME, GermanTaxKeys.LINE_INTEREST,
+          GermanTaxKeys.KIND_INTEREST);
+      default -> new IncomeLine(GermanTaxKeys.CATEGORY_FUNDS, GermanTaxKeys.LINE_FUND_DISTRIBUTIONS,
+          GermanTaxKeys.KIND_DIVIDEND);
+      };
     }
 
     private void cashInterest(Transaction t) {

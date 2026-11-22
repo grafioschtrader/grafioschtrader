@@ -126,4 +126,14 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
    */
   List<SecurityCurrencyMaxHistoryquoteData<S>> findGTNetFallbackBandInstruments(short connectorCap, short absoluteCap);
 
+  /**
+   * Filters the historical quotes a GTNet peer supplies before they are stored. A peer's quotes of a spin-off parent
+   * dated before the latest recorded action date are dropped, because the peer's basis for that event is unknown.
+   *
+   * @param securitycurrency the instrument the quotes belong to
+   * @param historyquotes    the quotes received from the peer
+   * @return the quotes that may be stored
+   */
+  List<Historyquote> acceptPeerHistoryquotes(S securitycurrency, List<Historyquote> historyquotes);
+
 }

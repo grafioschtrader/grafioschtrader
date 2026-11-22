@@ -144,7 +144,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    */
   handleDeleteTransaction(transaction: Transaction): void {
     const id = transaction.idTransaction;
-    if (id == null) return;
+    if (id == null || transaction.securityActionRole) return;
     AppHelper.confirmationDialog(
       this.translateService,
       this.confirmationService,
@@ -321,6 +321,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param closeMarginPosition Optional margin position data for closing margin transactions
    */
   protected handleEditTransaction(transaction: Transaction, closeMarginPosition?: CloseMarginPosition): void {
+    if (transaction.securityActionRole) return;
     if (!!transaction.connectedIdTransaction) {
       if (closeMarginPosition) {
         this.handleSecurityEditTransaction(transaction, closeMarginPosition);
@@ -413,6 +414,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    */
   protected getMenuItemsOnTransaction(transaction: Transaction | null): MenuItem[] {
     const menuItems: MenuItem[] = [];
+    if (transaction?.securityActionRole) return menuItems;
     if (transaction?.idTransaction != null && transaction.idTransaction >= 0) {
       const permissions = transactionMenuPermissions(transaction, this.canDeleteTransaction(transaction));
       menuItems.push({

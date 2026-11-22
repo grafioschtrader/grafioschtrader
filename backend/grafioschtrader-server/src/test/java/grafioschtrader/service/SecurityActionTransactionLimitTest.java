@@ -32,6 +32,7 @@ class SecurityActionTransactionLimitTest {
 
   SecurityActionTransactionLimitTest() {
     ReflectionTestUtils.setField(service, "transactionJpaRepository", transactions);
+    ReflectionTestUtils.setField(service, "tenantJpaRepository", mock(TenantJpaRepository.class));
     ReflectionTestUtils.setField(service, "securityActionJpaRepository", actions);
     ReflectionTestUtils.setField(service, "securityActionApplicationJpaRepository", applications);
     ReflectionTestUtils.setField(service, "securityaccountJpaRepository", accounts);

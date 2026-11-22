@@ -180,6 +180,7 @@ export class StockexchangeEditComponent
       DynamicFieldHelper.createFieldCheckboxHeqF('noMarketValue'),
       DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeOpen', 8, true),
       DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeClose', 8, true),
+      DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'regularClose', 8, false),
       DynamicFieldHelper.createFieldSelectStringHeqF('timeZone', true),
       DynamicFieldHelper.createFieldSelectNumberHeqF('idTradingCalendarRuleSet', false),
       DynamicFieldHelper.createFieldSelectNumberHeqF('idIndexUpdCalendar', false),
@@ -319,6 +320,7 @@ export class StockexchangeEditComponent
       this.proposeChangeEntityWithEntity()
     );
     stockexchange.mic = stockexchange.mic || null;
+    stockexchange.regularClose = stockexchange.regularClose || null;
     return stockexchange;
   }
 

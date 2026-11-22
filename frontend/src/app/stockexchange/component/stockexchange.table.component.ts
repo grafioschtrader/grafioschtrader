@@ -133,6 +133,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     });
     this.addColumnFeqH(DataType.TimeString, 'timeOpen', true, false);
     this.addColumnFeqH(DataType.TimeString, 'timeClose', true, false);
+    this.addColumnFeqH(DataType.TimeString, 'regularClose', false, false);
     this.addColumnFeqH(DataType.String, 'timeZone', true, false, {
       width: 120
     });

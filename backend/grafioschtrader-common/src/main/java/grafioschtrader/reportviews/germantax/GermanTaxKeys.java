@@ -75,6 +75,19 @@ public final class GermanTaxKeys {
   public static final String WARN_SALE_FROM_INCOMPLETE_LOT = "SALE_FROM_INCOMPLETE_LOT";
   /** Warning: a security account transfer or ISIN change has no counterpart. */
   public static final String WARN_UNPAIRED_BOOKING = "UNPAIRED_BOOKING";
+  /**
+   * Note: a spin-off divided the euro cost of the parent lots between parent and child, the purchase times continue.
+   * The detail names the fractional child units a bank may settle in cash, null when the allotment is whole.
+   */
+  public static final String WARN_SPIN_OFF = "SPIN_OFF";
+  /** Note: a spin-off is taxed as a distribution; the market value of the new shares is income. */
+  public static final String WARN_SPIN_OFF_DISTRIBUTION = "SPIN_OFF_DISTRIBUTION";
+  /** Warning: the tax treatment of a spin-off is not recorded; its lots are a cost split, but incomplete. */
+  public static final String WARN_SPIN_OFF_UNDETERMINED = "SPIN_OFF_UNDETERMINED";
+  /** Warning: parent or child of a spin-off is a fund; the derived lots are incomplete. */
+  public static final String WARN_SPIN_OFF_FUND = "SPIN_OFF_FUND";
+  /** Warning: one of the three bookings of a spin-off is missing; the derived lots are incomplete. */
+  public static final String WARN_SPIN_OFF_INCOMPLETE = "SPIN_OFF_INCOMPLETE";
   /** Warning: the source of a transfer or ISIN change did not hold the transferred units. */
   public static final String WARN_UNCOVERED_TRANSFER = "UNCOVERED_TRANSFER";
   /** Warning: the ISIN change of a fund may be a merger and follows own rules. */

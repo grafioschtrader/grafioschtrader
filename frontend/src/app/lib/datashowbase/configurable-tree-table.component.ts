@@ -1,4 +1,19 @@
-import { Component, contentChild, input, TemplateRef, output, model, computed } from '@angular/core';
+import {
+  AfterViewChecked,
+  Component,
+  contentChild,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  NgZone,
+  OnDestroy,
+  TemplateRef,
+  output,
+  model,
+  computed,
+  untracked
+} from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { toClassString } from '../helper/css-class.helper';
 import { FormsModule } from '@angular/forms';
@@ -90,6 +105,34 @@ export interface TreeTableCellEditEvent {
     InputTextModule,
     NgTemplateOutlet
   ],
+  // Rules for the columns fixed by frozenColumnCount, the counterpart of those in ConfigurableTableComponent. A fixed
+  // cell sticks to the left of its scroll container; in scrolling mode the header and the body are separate tables, each
+  // in its own container, so both stay aligned. A body cell takes the opaque background of its row and is stacked
+  // above the cells scrolling underneath; a selected row may have a translucent background and gets the normal row
+  // colour below it.
+  styles: [
+    `
+      .gt-frozen-column {
+        position: sticky;
+        z-index: 1;
+      }
+      th.gt-frozen-column {
+        background: var(--p-treetable-header-cell-background);
+      }
+      td.gt-frozen-column {
+        background: inherit;
+      }
+      tr.p-treetable-row-selected > td.gt-frozen-column {
+        background:
+          linear-gradient(var(--p-treetable-row-selected-background), var(--p-treetable-row-selected-background)),
+          var(--p-treetable-row-background);
+        color: var(--p-treetable-row-selected-color);
+      }
+      .gt-frozen-last {
+        border-inline-end: 2px solid var(--p-treetable-body-cell-border-color);
+      }
+    `
+  ],
   template: `
     @let footerTemplateValue = footerTemplate();
     @let checkboxDisabledFnValue = checkboxDisabledFn();
@@ -132,11 +175,18 @@ export interface TreeTableCellEditEvent {
         <ng-template pTemplate="header" let-columns>
           <tr>
             @if (expandable()) {
-              <th [style.width.px]="expansionColumnWidth()"></th>
+              <th
+                [class.gt-frozen-column]="expansionFrozenSlot >= 0"
+                [style.left]="frozenLeft(expansionFrozenSlot)"
+                [style.width.px]="expansionColumnWidth()"></th>
             }
             @for (field of columns; track field.field) {
               @if (field.visible) {
+                @let slot = frozenSlot(field);
                 <th
+                  [class.gt-frozen-column]="slot >= 0"
+                  [class.gt-frozen-last]="slot === lastFrozenSlot"
+                  [style.left]="frozenLeft(slot)"
                   [ttSortableColumn]="enableSort() ? field.field : null"
                   [pTooltip]="field.headerTooltipTranslated"
                   [style.width.px]="field.width">
@@ -158,7 +208,10 @@ export interface TreeTableCellEditEvent {
             [style.background-color]="getRowStyle(rowData)"
             (contextmenu)="onRowContextMenu(rowNode)">
             @if (expandable()) {
-              <td [style.width.px]="expansionColumnWidth()">
+              <td
+                [class.gt-frozen-column]="expansionFrozenSlot >= 0"
+                [style.left]="frozenLeft(expansionFrozenSlot)"
+                [style.width.px]="expansionColumnWidth()">
                 @if (canExpand(rowData)) {
                   <a href="#" (click)="toggleRow(rowData, $event)">
                     <i [class]="isRowExpanded(rowData) ? expandedIcon() : collapsedIcon()"></i>
@@ -168,12 +221,16 @@ export interface TreeTableCellEditEvent {
             }
             @for (field of columns; track field.field; let i = $index) {
               @if (field.visible) {
+                @let slot = frozenSlot(field);
                 @if (isEditable(field, rowData)) {
                   <!-- Editable cell with cell editor -->
                   <td
                     [ttEditableColumn]="rowData"
                     [ttEditableColumnField]="field.field"
                     [class]="getCellClass(field, rowData)"
+                    [class.gt-frozen-column]="slot >= 0"
+                    [class.gt-frozen-last]="slot === lastFrozenSlot"
+                    [style.left]="frozenLeft(slot)"
                     [style.width.px]="field.width">
                     @if (i === 0) {
                       <p-treeTableToggler [rowNode]="rowNode" />
@@ -212,7 +269,12 @@ export interface TreeTableCellEditEvent {
                   </td>
                 } @else {
                   <!-- Non-editable cell (standard rendering) -->
-                  <td [class]="getCellClass(field, rowData)" [style.width.px]="field.width">
+                  <td
+                    [class]="getCellClass(field, rowData)"
+                    [class.gt-frozen-column]="slot >= 0"
+                    [class.gt-frozen-last]="slot === lastFrozenSlot"
+                    [style.left]="frozenLeft(slot)"
+                    [style.width.px]="field.width">
                     @if (i === 0) {
                       <p-treeTableToggler [rowNode]="rowNode" />
                     }
@@ -300,7 +362,7 @@ export interface TreeTableCellEditEvent {
     </div>
   `
 })
-export class ConfigurableTreeTableComponent {
+export class ConfigurableTreeTableComponent implements AfterViewChecked, OnDestroy {
   protected readonly toClassString = toClassString;
   // ============================================================================
   // Data and Column Configuration
@@ -392,6 +454,168 @@ export class ConfigurableTreeTableComponent {
 
   /** Height of the scrollable viewport. */
   readonly scrollHeight = input<string>();
+
+  /**
+   * Number of leading visible data columns that stay in place while the tree table is scrolled horizontally; the
+   * toggle column of an expandable table is fixed along with them. It needs {@link scrollable}, otherwise there is no
+   * horizontal scrolling.
+   *
+   * The cells only get a CSS class and a left offset. The offsets are measured once from the header cells and again
+   * when one of these cells changes its width, which a single ResizeObserver reports, as in ConfigurableTableComponent.
+   */
+  readonly frozenColumnCount = input(0);
+
+  /** Frozen slot of each fixed data column; the toggle column of an expandable table takes slot 0 */
+  private frozenSlotByField = new Map<string, number>();
+
+  /** Frozen slot of the toggle column of an expandable table, -1 when it is not fixed */
+  expansionFrozenSlot = -1;
+
+  /** Slot of the rightmost fixed column, which draws the separating border, -1 when nothing is fixed */
+  lastFrozenSlot = -1;
+
+  /** Visible columns and settings the frozen slots were assigned for, an empty string when nothing is fixed */
+  private frozenSignature = '';
+
+  /** Set when the frozen slots changed and the header cells have to be observed anew once rendered */
+  private frozenObserveRequired = false;
+
+  private frozenResizeObserver: ResizeObserver | null = null;
+
+  private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
+
+  private readonly ngZone = inject(NgZone);
+
+  /** Recomputes the frozen slots when the number of fixed columns or the set of visible columns changed. */
+  constructor() {
+    effect(() => {
+      this.fields();
+      this.fieldsRevision();
+      this.frozenColumnCount();
+      this.expandable();
+      untracked(() => this.updateFrozenSlots());
+    });
+  }
+
+  /**
+   * Measures and observes the header cells of the fixed columns once they are rendered for the current frozen slots.
+   * As long as the header row is not rendered yet, the next check tries again.
+   */
+  ngAfterViewChecked(): void {
+    if (this.frozenObserveRequired) {
+      this.frozenObserveRequired = !this.observeFrozenHeaderCells();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.frozenResizeObserver?.disconnect();
+  }
+
+  /**
+   * Returns the frozen slot of a data column.
+   *
+   * @param field - Column configuration
+   * @returns The slot, or -1 when the column moves with the scrolling
+   */
+  frozenSlot(field: ColumnConfig): number {
+    return this.frozenSlotByField.get(field.field) ?? -1;
+  }
+
+  /**
+   * Returns the left offset of a fixed column as reference to the CSS variable the measurement sets on the host.
+   *
+   * @param slot - Frozen slot of the column
+   * @returns The CSS value for left, or null for a column that is not fixed
+   */
+  frozenLeft(slot: number): string | null {
+    return slot >= 0 ? `var(--gt-frozen-left-${slot}, 0px)` : null;
+  }
+
+  private updateFrozenSlots(): void {
+    const count = Math.max(0, Math.min(this.frozenColumnCount() ?? 0, this.fields().length));
+    const signature = count === 0 ? '' : this.createFrozenSignature(count);
+    if (signature !== this.frozenSignature) {
+      this.frozenSignature = signature;
+      this.assignFrozenSlots(count);
+      this.frozenObserveRequired = true;
+    }
+  }
+
+  /** Describes everything the frozen slots depend on, so that a change of it can be detected cheaply. */
+  private createFrozenSignature(count: number): string {
+    let signature = `${count}|${this.expandable()}`;
+    for (const field of this.fields()) {
+      if (field.visible) {
+        signature += '|' + field.field;
+      }
+    }
+    return signature;
+  }
+
+  /**
+   * Gives the toggle column of an expandable table and the first visible data columns up to the given number their
+   * frozen slots, numbered from the left.
+   *
+   * @param count - Number of data columns to fix
+   */
+  private assignFrozenSlots(count: number): void {
+    this.frozenSlotByField.clear();
+    const leadSlots = this.expandable() ? 1 : 0;
+    let slot = leadSlots;
+    for (const field of this.fields()) {
+      if (slot - leadSlots >= count) {
+        break;
+      }
+      if (field.visible) {
+        this.frozenSlotByField.set(field.field, slot++);
+      }
+    }
+    const fixed = slot > leadSlots;
+    this.expansionFrozenSlot = fixed && this.expandable() ? 0 : -1;
+    this.lastFrozenSlot = fixed ? slot - 1 : -1;
+  }
+
+  /**
+   * Measures the fixed columns right away and observes their header cells, so that they are measured again whenever
+   * one of them changes its width.
+   *
+   * @returns False when the header row holds fewer cells than there are fixed columns, it is not rendered yet
+   */
+  private observeFrozenHeaderCells(): boolean {
+    this.frozenResizeObserver?.disconnect();
+    if (this.lastFrozenSlot < 0) {
+      return true;
+    }
+    const cells = this.getFrozenHeaderCells();
+    if (cells.length <= this.lastFrozenSlot) {
+      return false;
+    }
+    this.measureFrozenColumns();
+    this.ngZone.runOutsideAngular(() => {
+      const observer = (this.frozenResizeObserver ??= new ResizeObserver(() => this.measureFrozenColumns()));
+      cells.forEach((cell) => observer.observe(cell));
+    });
+    return true;
+  }
+
+  /**
+   * Sets the left offset of each fixed column as CSS variable on the host element. The offset is the sum of the widths
+   * of the fixed columns to its left. Writing variables instead of bound values needs no change detection.
+   */
+  private measureFrozenColumns(): void {
+    const host = this.elementRef.nativeElement;
+    let left = 0;
+    this.getFrozenHeaderCells().forEach((cell, slot) => {
+      host.style.setProperty(`--gt-frozen-left-${slot}`, left + 'px');
+      left += cell.getBoundingClientRect().width;
+    });
+  }
+
+  /** Returns the cells of the header row that belong to fixed columns, in slot order. */
+  private getFrozenHeaderCells(): HTMLElement[] {
+    const headerRow = this.elementRef.nativeElement.querySelector('thead > tr');
+    return headerRow ? (Array.from(headerRow.children).slice(0, this.lastFrozenSlot + 1) as HTMLElement[]) : [];
+  }
 
   // ============================================================================
   // Visual Styling

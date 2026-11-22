@@ -32,6 +32,7 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.instrument.CostBasisMethods;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
+import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
 import grafioschtrader.reportviews.securityaccount.SecurityOpenPositionPerSecurityaccount;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityaccountOpenPositionUnits;
@@ -46,7 +47,6 @@ import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
-import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
 import grafioschtrader.service.CostBasisMethodService;
 import grafioschtrader.service.DisposalCostEstimator;
 import grafioschtrader.service.DisposalPositionCollector;
@@ -198,15 +198,15 @@ public class SecruityTransactionsReport {
         idSecuritycurrency, untilDate, Collections.<SecruityTransactionsReportOptions>emptySet(),
         idOpenMarginTransaction);
     securityaccountOpenPositionSecurity.securityPositionSummary = securityTransactionSummary.securityPositionSummary;
-    final Map<Integer, List<Transaction>> securityTransactionMap = this
-        .separateTransactionForSecurityBySecurityaccount(securityTransactionSummary, excludeIdTransaction,
-            requestedMinute);
+    final Map<Integer, List<Transaction>> securityTransactionMap = this.separateTransactionForSecurityBySecurityaccount(
+        securityTransactionSummary, excludeIdTransaction, requestedMinute);
     // Resolved once, the loop over the security accounts must not change the methods
     final CostBasisMethods costBasisMethods = costBasisMethodService.forTenant(idTenant);
     for (final Map.Entry<Integer, List<Transaction>> entry : securityTransactionMap.entrySet()) {
       securityTransactionSummary = calcSummaryForTransactions(entry.getValue(),
           securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate,
-          Collections.<SecruityTransactionsReportOptions>emptySet(), null, costBasisMethods);
+          Collections.<SecruityTransactionsReportOptions>emptySet(), null, costBasisMethods, idTenant,
+          Set.of(entry.getKey()));
       if (securityTransactionSummary.securityPositionSummary.units != 0.0) {
         securityaccountOpenPositionSecurity.securityaccountOpenPositionUnitsList
             .add(new SecurityaccountOpenPositionUnits(entry.getKey(),
@@ -282,7 +282,8 @@ public class SecruityTransactionsReport {
             this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate, today), true, today));
     return calcSummaryForTransactions(transactionsFuture.join(),
         securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
-        dateCurrencyMapFuture.join(), costBasisMethodService.forTenant(idTenant));
+        dateCurrencyMapFuture.join(), costBasisMethodService.forTenant(idTenant), idTenant,
+        idsSecurityaccount == null ? null : Set.copyOf(idsSecurityaccount));
   }
 
   /**
@@ -317,7 +318,9 @@ public class SecruityTransactionsReport {
               this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate, today), true, today));
       return calcSummaryForTransactions(transactionsFuture.join(),
           securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
-          dateCurrencyMapFuture.join(), costBasisMethodService.forTenant(idTenant));
+          dateCurrencyMapFuture.join(), costBasisMethodService.forTenant(idTenant), idTenant,
+          portfolio.getSecurityaccountList().stream().map(Securityaccount::getIdSecuritycashAccount)
+              .collect(Collectors.toSet()));
     } else {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
@@ -352,7 +355,8 @@ public class SecruityTransactionsReport {
             this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate, today), true, today));
     return calcSummaryForTransactions(transactionsFuture.join(),
         securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
-        dateCurrencyMapFuture.join(), costBasisMethodService.forTenant(idTenant));
+        dateCurrencyMapFuture.join(), costBasisMethodService.forTenant(idTenant), idTenant,
+        Set.of(idSecuritycashAccount));
   }
 
   /**
@@ -404,7 +408,8 @@ public class SecruityTransactionsReport {
   private SecurityTransactionSummary calcSummaryForTransactions(final List<Transaction> transactions,
       final Security security, final LocalDate untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions,
-      final DateTransactionCurrencypairMap dateCurrencyMap, final CostBasisMethods costBasisMethods) {
+      final DateTransactionCurrencypairMap dateCurrencyMap, final CostBasisMethods costBasisMethods, Integer idTenant,
+      Set<Integer> scopeAccounts) {
 
     final SecurityTransactionSummary securityTransactionSummary = new SecurityTransactionSummary(
         securityJpaRepository.findById(security.getIdSecuritycurrency()).get(),
@@ -422,21 +427,20 @@ public class SecruityTransactionsReport {
       securityTransactionSummary.securityPositionSummary.securitycurrency.setSplitPropose(securitysplitsArray);
     }
     securityCalcService.calcTransactions(security, excludeDivTaxcost, securityTransactionSummary, securitySplitMap,
-        transactions, untilDate, dateCurrencyMap, costBasisMethods);
+        transactions, untilDate, dateCurrencyMap, costBasisMethods,
+        securityCalcService.spinOffContext(idTenant, scopeAccounts));
     if ((securityTransactionSummary.securityPositionSummary.units != 0.0
         || !securityTransactionSummary.transactionPositionList.isEmpty())
         && secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY)) {
       final DisposalCostEstimator.Session disposalSession = createDisposalSession(
-          securityTransactionSummary.securityPositionSummary.getSecurity(), transactions, untilDate,
-          securitySplitMap);
+          securityTransactionSummary.securityPositionSummary.getSecurity(), transactions, untilDate, securitySplitMap);
       securityJpaRepository.calcGainLossBasedOnDateOrNewestPrice(securityTransactionSummary.securityPositionSummary,
           new IPositionCloseOnLatestPrice<Security, SecurityPositionSummary>() {
 
             @Override
             public void calculatePositionClose(final SecurityPositionSummary securityPositionSummary,
                 final Double lastPrice) {
-              DisposalEstimate disposalEstimate = disposalSession == null || securityPositionSummary.units == 0.0
-                  ? null
+              DisposalEstimate disposalEstimate = disposalSession == null || securityPositionSummary.units == 0.0 ? null
                   : disposalSession.estimateSell(securityPositionSummary.getSecurity(), securityPositionSummary.units,
                       lastPrice, securityPositionSummary.usedIdSecurityaccount);
               securityCalcService.createHypotheticalSellTransaction(securityPositionSummary, lastPrice,

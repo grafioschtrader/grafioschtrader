@@ -20,7 +20,10 @@ import grafioschtrader.reportviews.performance.SecurityPositionSeries.DailyValue
 import grafioschtrader.reportviews.performance.SecurityPositionSeries.Event;
 import grafioschtrader.reportviews.performance.SecurityPositionSeries.Input;
 import grafioschtrader.reportviews.performance.SecurityPositionSeries.MarginPosition;
+import grafioschtrader.reportviews.performance.SecurityPositionSeries.SpinOff;
+import grafioschtrader.reportviews.performance.SecurityPositionSeries.SpinOffLot;
 import grafioschtrader.reportviews.performance.SecurityPositionSeriesResult.Phase;
+import grafioschtrader.types.SecurityActionRole;
 import grafioschtrader.types.SecurityPositionSeriesRemark;
 import grafioschtrader.types.TransactionType;
 
@@ -282,5 +285,65 @@ class SecurityPositionSeriesTest {
     sessions.remove(day(3));
     SecurityPositionSeriesResult holiday = calc("CHF", "CHF", events, null, values, sessions);
     assertFalse(holiday.remarks().contains(SecurityPositionSeriesRemark.NOT_VALUED_DAYS));
+  }
+
+  /**
+   * Parent in USD with two FIFO lots bought at different rates into EUR: lot A 60 units cost 3000 at 0.90, lot B 40
+   * units cost 2800 at 0.80, invested 4940 EUR. The spin-off on day 4 moves 20 %: 600 of A and 560 of B, together 988
+   * EUR at the purchase rates. Sale at the cum price 76 and repurchase at 64 move the child value 1200 out.
+   */
+  private static List<Event> spinOffParentEvents() {
+    Event sale = new Event(day(4), 1, TransactionType.REDUCE, 201, null, 100.0, 100, 5800, 4640, -7600, 0, 0, 1160,
+        null, 0.85, null, false, null, new SpinOff(SecurityActionRole.SPIN_OFF_SALE, 7,
+            List.of(new SpinOffLot(101, null, 600, null), new SpinOffLot(102, null, 560, null)), null));
+    Event repurchase = new Event(day(4), 1, TransactionType.ACCUMULATE, 202, null, 100.0, 100, 4640, 4640, 6400, 0, 0,
+        0, null, 0.85, null, false, null, new SpinOff(SecurityActionRole.SPIN_OFF_REPURCHASE, 7, List.of(), null));
+    return List.of(buy(1, 1, 101, 60, 60, 0, 3000, 0.9), buy(2, 1, 102, 40, 100, 3000, 2800, 0.8), sale,
+        repurchase);
+  }
+
+  @Test
+  @DisplayName("Spin-off parent: invested EUR falls by the historical 988 of the moved cost, no purchase, no result")
+  void spinOffParent() {
+    List<DailyValue> values = List.of(held(1, 60, 50, 0.9), held(2, 100, 55, 0.8), held(3, 100, 76, 0.85),
+        held(4, 100, 64, 0.85), held(5, 100, 64, 0.85));
+    SecurityPositionSeriesResult r = calc("USD", "EUR", spinOffParentEvents(), null, values, sessions(1, 5));
+    assertEquals(1, r.phases().size());
+    assertTrue(r.remarks().contains(SecurityPositionSeriesRemark.SPIN_OFF));
+    assertSeries(r.security().invested(), 3000.0, 5800.0, 5800.0, 4640.0, 4640.0);
+    assertSeries(r.main().invested(), 2700.0, 4940.0, 4940.0, 3952.0, 3952.0);
+    assertSeries(r.security().purchases(), 3000.0, 5800.0, 5800.0, 5800.0, 5800.0);
+    assertSeries(r.main().purchases(), 2700.0, 4940.0, 4940.0, 4940.0, 4940.0);
+    assertSeries(r.main().realized(), 0.0, 0.0, 0.0, 0.0, 0.0);
+    assertSeries(r.security().realized(), 0.0, 0.0, 0.0, 0.0, 0.0);
+    // The netted outflow of 1200 offsets the drop from 7600 to 6400
+    assertEquals(0.0, r.security().drawdown().get(3), EPS);
+  }
+
+  @Test
+  @DisplayName("Spin-off child: starts with the parent's 988 EUR, a FIFO sale from lot A' removes it at A's rate")
+  void spinOffChild() {
+    var transfer = SecurityPositionSeries.spinOffTransfer(spinOffParentEvents(), 7, Event::bookedRate);
+    assertTrue(transfer.complete());
+    assertEquals(988, transfer.investedMC(), EPS);
+    assertEquals(540, transfer.investedMCByRoot().get(101), EPS);
+    assertEquals(448, transfer.investedMCByRoot().get(102), EPS);
+
+    // Child in CHF at 1 USD = 0.8 CHF: lot A' 15 units cost 480, lot B' 10 units cost 448
+    Event allotment = new Event(day(4), 1, TransactionType.ACCUMULATE, 301, null, 25.0, 25, 0, 928, 1200, 0, 0, 0,
+        null, 0.95, null, false, null,
+        new SpinOff(SecurityActionRole.SPIN_OFF_CHILD, 7, List.of(new SpinOffLot(301, 101, 480, 540.0),
+            new SpinOffLot(301, 102, 448, 448.0)), transfer.investedMC()));
+    Event sale = sell(6, 1, 10, 15, 928, 320, 180, List.of(new ConsumedLot(301, 101, 320)), 0.95);
+    List<DailyValue> values = List.of(held(4, 25, 48, 0.95), held(5, 25, 48, 0.95), held(6, 15, 50, 0.95));
+    SecurityPositionSeriesResult r = calc("CHF", "EUR", List.of(allotment, sale), null, values, sessions(4, 6));
+    assertSeries(r.security().invested(), 928.0, 928.0, 608.0);
+    assertSeries(r.main().invested(), 988.0, 988.0, 628.0);
+    // The inherited cost is the child's purchase base, at its historical main currency amount
+    assertSeries(r.security().purchases(), 928.0, 928.0, 928.0);
+    assertSeries(r.main().purchases(), 988.0, 988.0, 988.0);
+    // (180 + 320) x 0.95 - 320 x 540 / 480
+    assertSeries(r.main().realized(), 0.0, 0.0, 115.0);
+    assertSeries(r.security().realized(), 0.0, 0.0, 180.0);
   }
 }

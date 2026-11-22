@@ -54,12 +54,15 @@ import grafioschtrader.dto.SeasonalReturnsResult;
 import grafioschtrader.dto.StatisticsSummary;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityAction;
 import grafioschtrader.entities.SecurityDerivedLink;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.WatchlistIndicatorColumn;
+import grafioschtrader.instrument.SpinOffHistoryBasisService;
+import grafioschtrader.instrument.SpinOffProviderAdjustment;
 import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.priceupdate.historyquote.BaseHistoryquoteThru;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruCalculation;
@@ -163,6 +166,18 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Autowired
   private AdvancedSearchFieldService advancedSearchFieldService;
 
+  /** Lazy, because the service reads repositories whose implementations read this repository. */
+  @Autowired
+  @Lazy
+  private SpinOffHistoryBasisService spinOffHistoryBasisService;
+
+  @Autowired
+  @Lazy
+  private SpinOffProviderAdjustment spinOffProviderAdjustment;
+
+  @Autowired
+  private SecurityActionJpaRepository securityActionJpaRepository;
+
   /** Lazy, because the report reads this repository as well. */
   @Autowired
   @Lazy
@@ -250,7 +265,34 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public List<Historyquote> getHistoryQuote(final Security security, final LocalDate fromDate, final LocalDate toDate,
       final IFeedConnector feedConnector) throws Exception {
-    return feedConnector.getEodSecurityHistory(security, fromDate, toDate);
+    // The one place where connector quotes of a full or incremental load enter GT; getDataByConnnector delegates here.
+    return spinOffProviderAdjustment.revert(security, feedConnector.getEodSecurityHistory(security, fromDate, toDate),
+        feedConnector);
+  }
+
+  @Override
+  protected void beforeFullHistoryReload(Security security) {
+    if (security != null && !security.isDerivedInstrument()) {
+      spinOffHistoryBasisService.decide(security);
+    }
+  }
+
+  /**
+   * Drops the quotes a GTNet peer supplies for a spin-off parent dated before the latest action date of its recorded
+   * spin-offs. Whether the peer's series is adjusted for the event is unknown, so those dates are filled by the
+   * connector only.
+   */
+  @Override
+  public List<Historyquote> acceptPeerHistoryquotes(Security security, List<Historyquote> historyquotes) {
+    if (security == null || security.getIdSecuritycurrency() == null || historyquotes.isEmpty()) {
+      return historyquotes;
+    }
+    List<SecurityAction> spinOffs = securityActionJpaRepository.findSpinOffsOfParent(security.getIdSecuritycurrency());
+    if (spinOffs.isEmpty()) {
+      return historyquotes;
+    }
+    LocalDate latestActionDate = spinOffs.getLast().getActionDate();
+    return historyquotes.stream().filter(hq -> !hq.getDate().isBefore(latestActionDate)).toList();
   }
 
   @Override
@@ -258,6 +300,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Modifying
   public Security rebuildSecurityCurrencypairHisotry(Security security) {
     if (security != null && !security.isDerivedInstrument()) {
+      beforeFullHistoryReload(security);
       historyquoteLegacyJpaRepository.copyLiveToLegacy(security.getIdSecuritycurrency(), LocalDate.now());
     }
     historyquoteJpaRepository.removeAllSecurityHistoryquote(security.getIdSecuritycurrency());

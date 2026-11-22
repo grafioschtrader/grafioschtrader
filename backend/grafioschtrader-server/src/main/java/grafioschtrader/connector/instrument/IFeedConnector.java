@@ -383,6 +383,16 @@ public interface IFeedConnector {
   boolean isDividendSplitAdjusted();
 
   /**
+   * Tells whether this connector stores open, high and low of its history as traded while the close is the provider's
+   * adjusted close. GT multiplies the delivered prices of a spin-off parent back to the unadjusted basis; such
+   * as-traded fields carry no adjustment and must stay as delivered.
+   *
+   * @return true when open, high and low of the history are as traded and only the close is adjusted
+   */
+  @JsonIgnore
+  boolean isHistoryOpenHighLowAsTraded();
+
+  /**
    * Generates the download URL for accessing historical dividend data of a security.
    *
    * @param security the security for which to generate the dividend download link
