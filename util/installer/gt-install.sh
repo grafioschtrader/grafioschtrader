@@ -1126,7 +1126,7 @@ SMTP_HOST|host|smtp||SMTP host|SMTP-Server
 SMTP_PORT|port|smtp||SMTP port|SMTP-Port
 SMTP_AUTH|yesno|smtp||SMTP authentication required|SMTP-Anmeldung erforderlich
 SMTP_USER|email|smtp||
-  Email address Grafioschtrader sends mail from (e.g. gt@example.org). If SMTP requires a login, this is also the username.|
+  Sender address for Grafioschtrader mail (e.g. gt@example.org); also the SMTP login if authentication is required.|
   Absenderadresse für Grafioschtrader-Mails (z. B. gt@example.org). Bei SMTP-Anmeldung ist sie auch der Benutzername.
 SMTP_SECURITY|choice|smtp|starttls tls none|SMTP transport security; none only for unauthenticated relays|
   SMTP-Transportverschlüsselung; none nur für Relays ohne Anmeldung
