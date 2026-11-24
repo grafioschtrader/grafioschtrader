@@ -282,6 +282,24 @@ setup() {
   [[ "${NOTES[*]}" == *'WARN: Legacy platform: Ubuntu 22.04 standard support ends 2027-04'* ]]
 }
 
+@test "unsupported Ubuntu stops before inventory and questions in installation workflows" {
+  printf 'ID=ubuntu\nVERSION_ID="26.10"\n' > "$ROOT/etc/os-release"
+  gt_inventory() { echo unexpected-inventory; return 99; }
+  gt_questions() { echo unexpected-questions; return 99; }
+  gt_interactive_answers() { echo unexpected-questions; return 99; }
+
+  for MODE in --bootstrap --install-core --dry-run --prepare; do
+    case "$MODE" in
+      --bootstrap|--install-core) run gt_install_core ;;
+      --dry-run) run gt_dry_run ;;
+      --prepare) run gt_prepare ;;
+    esac
+    [ "$status" -eq 2 ]
+    [[ "$output" == *'Unsupported or unknown operating system (ubuntu 26.10).'* ]]
+    [[ "$output" != *unexpected-* ]]
+  done
+}
+
 @test "an existing MariaDB older than 10.6 blocks while 10.6 is reused" {
   collect_check
   FACT[database.vendor]=mariadb FACT[database.version]=10.5.29

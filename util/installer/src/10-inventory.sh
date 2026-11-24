@@ -1,10 +1,15 @@
-gt_system() {
-  local field value os mem pidone lists newest now
+gt_os_release() {
+  local field value os
   os=$(gt_path /etc/os-release)
   for field in ID ID_LIKE VERSION_ID VERSION_CODENAME; do
     value=$(gt_literal "$os" "$field") || value=unknown
     FACT[os.$field]=$value
   done
+}
+
+gt_system() {
+  local field value mem pidone lists newest now
+  gt_os_release
   gt_capture architecture dpkg --print-architecture
   mem=$(gt_path /proc/meminfo)
   for field in MemTotal MemAvailable SwapTotal; do

@@ -195,13 +195,18 @@ gt_source_revision() {
   [[ "${FACT[source.requirements]}" == remote ]] || gt_note UNKNOWN requirements
   FACT[required.java]=$JAVA_REQUIRED FACT[required.node]=$NODE_REQUIRED FACT[required.angular_cli]=$CLI_REQUIRED
 }
-gt_system() {
-  local field value os mem pidone lists newest now
+gt_os_release() {
+  local field value os
   os=$(gt_path /etc/os-release)
   for field in ID ID_LIKE VERSION_ID VERSION_CODENAME; do
     value=$(gt_literal "$os" "$field") || value=unknown
     FACT[os.$field]=$value
   done
+}
+
+gt_system() {
+  local field value mem pidone lists newest now
+  gt_os_release
   gt_capture architecture dpkg --print-architecture
   mem=$(gt_path /proc/meminfo)
   for field in MemTotal MemAvailable SwapTotal; do
@@ -797,11 +802,8 @@ gt_dynamic_dns() {
   return 0
 }
 gt_action() { ACTION[$1]=$2 REASON[$1]=$3; [[ "$2" != block ]] || BLOCKS=$((BLOCKS+1)); }
-gt_compatibility() {
-  local distro=${FACT[os.ID]} release=${FACT[os.VERSION_ID]} arch=${FACT[architecture]} candidate version device
-  ACTION=() REASON=() DISKS=() DISK_FREE=() DISK_NEED=()
-  BLOCKS=0
-  unset 'FACT[disk.unknown]'
+gt_platform_compatibility() {
+  local distro=${FACT[os.ID]} release=${FACT[os.VERSION_ID]}
   if [[ "$distro" != debian && "$distro" != ubuntu ]]; then
     case " ${FACT[os.ID_LIKE]} " in *' ubuntu '*) distro=ubuntu ;; *' debian '*) distro=debian ;; esac
   fi
@@ -812,8 +814,30 @@ gt_compatibility() {
     debian:11) gt_action platform block 'Debian 11 LTS ended 2026-08-31; upgrade to Debian 12 or 13' ;;
     ubuntu:22.04) gt_action platform reuse 'legacy release'
       gt_note WARN legacy 'Ubuntu 22.04 standard support ends 2027-04' ;;
-    *) gt_action platform block 'unsupported or unknown distribution/release' ;;
+    *) gt_action platform block "$(gt_text \
+      "Unsupported or unknown operating system (${FACT[os.ID]} $release)." \
+      "Nicht unterstütztes oder unbekanntes Betriebssystem (${FACT[os.ID]} $release).")" ;;
   esac
+}
+
+# Keep the early release check independent of the full inventory and its report.
+gt_require_supported_platform() (
+  gt_os_release
+  gt_platform_compatibility
+  if [[ "${ACTION[platform]}" == block ]]; then
+    gt_text 'Installation cannot start.' 'Installation kann nicht gestartet werden.' >&2
+    gt_safe "${REASON[platform]}" >&2
+    printf '\n' >&2
+    return 2
+  fi
+)
+
+gt_compatibility() {
+  local arch=${FACT[architecture]} candidate version device
+  ACTION=() REASON=() DISKS=() DISK_FREE=() DISK_NEED=()
+  BLOCKS=0
+  unset 'FACT[disk.unknown]'
+  gt_platform_compatibility
   case "$arch" in amd64|arm64) gt_action architecture reuse "$arch" ;; armhf)
     if [[ "$(date -u +%F)" < 2027-04-30 ]]; then
       gt_action architecture reuse armhf; gt_note WARN legacy 'armhf requires Node 22; support ends 2027-04-30'
@@ -3016,6 +3040,7 @@ gt_dry_run() {
   local status=0
   gt_completed || status=$?
   (( status == 3 )) || return "$status"
+  gt_require_supported_platform || return $?
   status=0
   gt_inventory; gt_compatibility; gt_show_report || return $?
   if [[ "${FACT[host.class]}" == fresh ]]; then
@@ -3036,6 +3061,7 @@ gt_prepare() {
   local status=0 de
   gt_completed || status=$?
   (( status == 3 )) || return "$status"
+  gt_require_supported_platform || return $?
   status=0
   gt_inventory; gt_compatibility; gt_show_report || return $?
   gt_question_model
@@ -8432,6 +8458,7 @@ gt_install_core() {
   completed_status=0
   gt_completed || completed_status=$?
   (( completed_status == 3 )) || return "$completed_status"
+  gt_require_supported_platform || return $?
   state_dir=$(gt_path /var/lib/gt-install)
   gt_question_model
   if [[ -e "$state_dir/state" || -L "$state_dir/state" ]]; then

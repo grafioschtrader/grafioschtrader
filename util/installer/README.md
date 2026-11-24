@@ -179,6 +179,9 @@ its conditions, defaults and validation (`gt_question_applies`, `gt_default`, `g
 plain prompts when it is missing. `--check` and the stages without questions (`--install-app`, `--install-web`,
 `--check-mail`) keep their line output.
 
+The install, dry-run and preparation workflows report an unsupported operating system before the inventory and questions.
+`--check` still prints the full compatibility report.
+
 The dialogs appear in this order: the inventory and compatibility report as a scrollable text box; for a domain,
 the DNS checklist with *Continue* and *Stop here* once the TLS source is chosen; the questions and credentials;
 the summary and action plan with *Install* and *Cancel* (dry-run and preparation only show it); during execution

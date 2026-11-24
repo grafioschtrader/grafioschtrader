@@ -814,6 +814,7 @@ gt_dry_run() {
   local status=0
   gt_completed || status=$?
   (( status == 3 )) || return "$status"
+  gt_require_supported_platform || return $?
   status=0
   gt_inventory; gt_compatibility; gt_show_report || return $?
   if [[ "${FACT[host.class]}" == fresh ]]; then
@@ -834,6 +835,7 @@ gt_prepare() {
   local status=0 de
   gt_completed || status=$?
   (( status == 3 )) || return "$status"
+  gt_require_supported_platform || return $?
   status=0
   gt_inventory; gt_compatibility; gt_show_report || return $?
   gt_question_model
