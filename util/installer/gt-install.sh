@@ -1063,7 +1063,8 @@ gt_question_model() {
     QUESTIONS+=("$key"); Q_TYPE[$key]=$type Q_WHEN[$key]=$when Q_CHOICES[$key]=$choices Q_EN[$key]=$en Q_DE[$key]=$de
     [[ "$type" != yesno ]] || Q_CHOICES[$key]='yes no'
   done <<'QUESTIONS'
-DOMAIN|domain|always||Public domain; empty for LAN only|Öffentliche Domain; leer für nur LAN
+DOMAIN|domain|always||Public DNS name for internet access (e.g. example.duckdns.org). Leave empty for LAN only.|
+  Öffentlicher DNS-Name für den Internetzugriff (z. B. example.duckdns.org). Für reinen LAN-Zugriff leer lassen.
 DNS_FAMILY|choice|domain|ipv4 ipv6 both|Reachable address families; choose ipv6 for DS-Lite/CGNAT|
   Erreichbare Adressfamilien; ipv6 bei DS-Lite/CGNAT wählen
 DUCKDNS_UPDATER|yesno|duckdns||Run a DuckDNS updater here; no if your router or another client updates it|
@@ -1100,8 +1101,9 @@ SMTP_CONFIGURE|yesno|always||Configure mail; no prevents completed registration|
 SMTP_HOST|host|smtp||SMTP host|SMTP-Server
 SMTP_PORT|port|smtp||SMTP port|SMTP-Port
 SMTP_AUTH|yesno|smtp||SMTP authentication required|SMTP-Anmeldung erforderlich
-SMTP_USER|email|smtp||SMTP login and sender email; also required for unauthenticated relays|
-  SMTP-Anmeldung und Absender-E-Mail; auch für Relays ohne Anmeldung erforderlich
+SMTP_USER|email|smtp||
+  Email address Grafioschtrader sends mail from (e.g. gt@example.org). If SMTP requires a login, this is also the username.|
+  Absenderadresse für Grafioschtrader-Mails (z. B. gt@example.org). Bei SMTP-Anmeldung ist sie auch der Benutzername.
 SMTP_SECURITY|choice|smtp|starttls tls none|SMTP transport security; none only for unauthenticated relays|
   SMTP-Transportverschlüsselung; none nur für Relays ohne Anmeldung
 SMTP_PASSWORD|secret|smtp_auth||SMTP password required during installation|
@@ -1843,8 +1845,8 @@ gt_confirm() {
 # A short explanation of what a rejected value has to look like, shown above the reopened dialog.
 gt_validation_hint() {
   case "${Q_TYPE[$1]}" in
-    domain) gt_text 'Enter a DNS name such as gt.example.org, or leave it empty for LAN only.' \
-      'Einen DNS-Namen wie gt.example.org eingeben oder für nur LAN leer lassen.' ;;
+    domain) gt_text 'Enter only the DNS name, without https://, a port or a path.' \
+      'Nur den DNS-Namen eingeben, ohne https://, Port oder Pfad.' ;;
     host) gt_text 'Enter a host name such as smtp.example.org.' 'Einen Hostnamen wie smtp.example.org eingeben.' ;;
     email) gt_text 'Enter an e-mail address such as admin@example.org.' \
       'Eine E-Mail-Adresse wie admin@example.org eingeben.' ;;

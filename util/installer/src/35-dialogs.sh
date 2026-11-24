@@ -107,8 +107,8 @@ gt_confirm() {
 # A short explanation of what a rejected value has to look like, shown above the reopened dialog.
 gt_validation_hint() {
   case "${Q_TYPE[$1]}" in
-    domain) gt_text 'Enter a DNS name such as gt.example.org, or leave it empty for LAN only.' \
-      'Einen DNS-Namen wie gt.example.org eingeben oder für nur LAN leer lassen.' ;;
+    domain) gt_text 'Enter only the DNS name, without https://, a port or a path.' \
+      'Nur den DNS-Namen eingeben, ohne https://, Port oder Pfad.' ;;
     host) gt_text 'Enter a host name such as smtp.example.org.' 'Einen Hostnamen wie smtp.example.org eingeben.' ;;
     email) gt_text 'Enter an e-mail address such as admin@example.org.' \
       'Eine E-Mail-Adresse wie admin@example.org eingeben.' ;;
