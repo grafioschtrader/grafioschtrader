@@ -185,9 +185,10 @@ The install, dry-run and preparation workflows report an unsupported operating s
 The dialogs appear in this order: the inventory and compatibility report as a scrollable text box; for a domain,
 the DNS checklist with *Continue* and *Stop here* once the TLS source is chosen; the questions and credentials;
 the summary and action plan with *Install* and *Cancel* (dry-run and preparation only show it); during execution
-a gauge with the current step, its elapsed minutes and the last line of its log — the first build moves the gauge
-by the npm, Angular and Maven reactor progress of `/var/lib/gt-install/app-build.log`; finally the result as a
-text box. Step output that the plain front end prints goes to a private execution log while the gauge is shown.
+a gauge with the step position and its elapsed minutes and those of the run, all steps in two columns (`[x]` done,
+`[>]` running, `[ ]` pending), the path of the log being written and as many of its last lines as the terminal
+height allows — the first build moves the gauge by the npm, Angular and Maven reactor progress of
+`/var/lib/gt-install/app-build.log`; finally the result as a text box. Step output that the plain front end prints goes to a private execution log while the gauge is shown.
 When the last dialog closes, everything shown in dialogs — report, plan, execution output and result — is printed
 to the terminal, so it stays in the scrollback; this also happens after an abort.
 

@@ -334,7 +334,8 @@ gt_wt_secret() {
 }
 
 # Progress of the execution. The plain front end prints the given line as before; whiptail shows a gauge with the
-# current step and the last line of its log, fed by a background reader of a small state file.
+# step list, the elapsed times and the last lines of the log being written, fed by a background reader of a small
+# state file.
 gt_progress() {
   local phase=$1 step=$2 line=${3:-}
   if [[ -n "$GAUGE_PID" ]]; then
@@ -366,7 +367,7 @@ gt_gauge_label() {
     service) gt_text 'Service unit' 'Dienst-Unit' ;;
     cron) gt_text 'Scheduled tasks' 'Zeitgesteuerte Aufgaben' ;;
     build) gt_text 'Build of frontend and backend' 'Build von Frontend und Backend' ;;
-    start) gt_text 'First start and database migrations' 'Erster Start und Datenbankmigrationen' ;;
+    start) gt_text 'First start and migrations' 'Erster Start und Migrationen' ;;
     web) gt_text 'Web server and TLS' 'Webserver und TLS' ;;
     mail) gt_text 'Mail check' 'Mail-Prüfung' ;;
     *) printf '%s' "$1" ;;
@@ -388,34 +389,95 @@ gt_build_fraction() {
   echo 0
 }
 
+# The steps of the gauged phases as "phase step weight" lines, in execution order.
+gt_gauge_steps() {
+  local p s w
+  while read -r p s w; do
+    [[ " $GAUGE_PHASES " != *" $p "* ]] || printf '%s %s %s\n' "$p" "$s" "$w"
+  done < <(gt_gauge_weights)
+}
+
+# The step list in two columns of the given width, read top to bottom: [x] done, [>] running, [ ] pending. The
+# running step is counted from 1; 0 shows every step as pending.
+gt_gauge_step_list() {
+  local current=$1 column=$2 count=0 rows row mark cell s
+  local -a cells=()
+  while read -r _ s _; do
+    count=$((count + 1))
+    if (( count == current )); then mark='[>]'; elif (( count < current )); then mark='[x]'; else mark='[ ]'; fi
+    cell="$mark $(gt_gauge_label "$s")"
+    cells+=("${cell:0:$((column - 1))}")
+  done < <(gt_gauge_steps)
+  rows=$(( (count + 1) / 2 ))
+  for (( row = 0; row < rows; row++ )); do
+    cell=${cells[row]}
+    if (( row + rows < count )); then
+      printf '%s%*s%s\n' "$cell" $((column - ${#cell})) '' "${cells[row + rows]}"
+    else
+      printf '%s\n' "$cell"
+    fi
+  done
+}
+
+# The last lines of a log as a terminal line can show them: the text after the last carriage return of a progress
+# line, without ANSI escape sequences and control characters, cut to the given width.
+gt_gauge_log_tail() {
+  local log=$1 count=$2 width=$3 line
+  (( count > 0 )) && [[ -r "$log" ]] || return 0
+  tail -n "$count" -- "$log" 2>/dev/null |
+    LC_ALL=C sed -E $'s/.*\r//; s/\x1b\\[[0-9;?]*[A-Za-z]//g; s/\t/ /g' | LC_ALL=C tr -d '\000-\010\013-\037\177' |
+    while IFS= read -r line; do printf '%s\n' "${line:0:$width}"; done
+}
+
+# The text of the gauge: position and elapsed times, the step list, the followed log and its last lines. It stays
+# within GAUGE_LINES lines of GAUGE_COLS characters, because the text box of the gauge shows no more.
+gt_gauge_text() {
+  local phase=$1 step=$2 started=$3 run_started=$4 log=$5 now count=0 index=0 p s total_min step_min
+  now=$(printf '%(%s)T' -1)
+  while read -r p s _; do
+    count=$((count + 1)); [[ "$p:$s" != "$phase:$step" ]] || index=$count
+  done < <(gt_gauge_steps)
+  total_min=$(( (now - run_started) / 60 )) step_min=$(( (now - started) / 60 ))
+  if (( index > 0 )); then
+    gt_text "Step $index of $count, $step_min min in this step, $total_min min in total" \
+      "Schritt $index von $count, $step_min min in diesem Schritt, insgesamt $total_min min"
+  else
+    gt_text "$total_min min in total" "Insgesamt $total_min min"
+  fi
+  printf '\n'
+  gt_gauge_step_list "$index" $((GAUGE_COLS / 2))
+  printf '\nLog: %s\n' "${log:0:$((GAUGE_COLS - 5))}"
+  gt_gauge_log_tail "$log" $((GAUGE_LINES - (count + 1) / 2 - 4)) "$GAUGE_COLS"
+}
+
 gt_gauge_feed() {
-  local phase step started total=0 done_weight=0 weight p s w found=no percent fraction log line minutes
-  local build_log
+  local phase step started total=0 done_weight=0 weight p s w found=no percent fraction log build_log run_started
   build_log="$(gt_path /var/lib/gt-install)/app-build.log"
-  while read -r p s w; do [[ " $GAUGE_PHASES " != *" $p "* ]] || total=$((total + w)); done < <(gt_gauge_weights)
+  run_started=$(printf '%(%s)T' -1)
+  while read -r p s w; do total=$((total + w)); done < <(gt_gauge_steps)
   (( total > 0 )) || total=1
   while [[ -e "$GAUGE_RUN" ]]; do
     if read -r phase step started < "$GAUGE_STATE" 2>/dev/null && [[ -n "${step:-}" ]]; then
       done_weight=0 weight=0 found=no
       while read -r p s w; do
-        [[ " $GAUGE_PHASES " == *" $p "* ]] || continue
         if [[ "$p:$s" == "$phase:$step" ]]; then weight=$w found=yes; break; fi
         done_weight=$((done_weight + w))
-      done < <(gt_gauge_weights)
+      done < <(gt_gauge_steps)
       [[ "$found" == yes ]] || done_weight=0
       fraction=0 log=$EXEC_LOG
       if [[ "$step" == build ]]; then fraction=$(gt_build_fraction "$build_log"); log=$build_log; fi
       percent=$(( (100 * done_weight + weight * fraction) / total ))
-      minutes=$(( ($(printf '%(%s)T' -1) - started) / 60 ))
-      line=$(tail -n 1 "$log" 2>/dev/null) || line=''
-      line=$(gt_safe "$line"); line=${line:0:$(( $(gt_wt_width) - 6 ))}
-      printf 'XXX\n%d\n%s (%s min)\n\n%s\nXXX\n' "$percent" "$(gt_gauge_label "$step")" "$minutes" "$line"
+      printf 'XXX\n%d\n%s\nXXX\n' "$percent" "$(gt_gauge_text "$phase" "$step" "$started" "$run_started" "$log")"
     fi
     sleep 1
   done
 }
 
+# Size of the gauge: the terminal height below the back title, at most 27 rows, of which whiptail gives the text box
+# all but five. whiptail sizes that box by the initial text, so the gauge starts with one blank line per row it is to
+# show later; an empty initial text would hide every line.
 gt_gauge_start() {
+  local height placeholder=' ' row
   [[ "$FRONTEND" == whiptail && -z "$GAUGE_PID" ]] || return 0
   case "$MODE" in
     --bootstrap) GAUGE_PHASES='core app web mail' ;;
@@ -423,10 +485,13 @@ gt_gauge_start() {
     *) return 0 ;;
   esac
   gt_tty_open || return 2
+  height=$((TERM_ROWS - 2)); (( height <= 27 )) || height=27
+  GAUGE_LINES=$((height - 5)) GAUGE_COLS=$(( $(gt_wt_width) - 6 ))
+  for (( row = 1; row < GAUGE_LINES; row++ )); do placeholder+=$'\n '; done
   GAUGE_STATE="$SCRATCH/gauge-state" GAUGE_RUN="$SCRATCH/gauge-run" EXEC_LOG="$SCRATCH/execution.log"
   : > "$GAUGE_STATE"; : > "$GAUGE_RUN"; : > "$EXEC_LOG"
   gt_gauge_feed | whiptail --backtitle "$(gt_text 'Grafioschtrader installation' 'Grafioschtrader-Installation')" \
-    --title "$(gt_text 'Installing' 'Installation läuft')" --gauge -- '' 10 "$(gt_wt_width)" 0 \
+    --title "$(gt_text 'Installing' 'Installation läuft')" --gauge -- "$placeholder" "$height" "$(gt_wt_width)" 0 \
     >&"$QUESTION_FD" 2>&1 &
   GAUGE_PID=$!
   # Step output would draw over the gauge; it goes to the execution log and is printed when the gauge ends.

@@ -239,3 +239,42 @@ defaults_for_report() {
   printf 'BUILD SUCCESS\n' >> "$SCRATCH/build.log"
   [ "$(gt_build_fraction "$SCRATCH/build.log")" -eq 100 ]
 }
+
+@test "the gauge text shows position, times, step list and cleaned log lines within its box" {
+  local log="$SCRATCH/build.log" now long line
+  local -a out
+  GAUGE_PHASES='core app web mail' GAUGE_LINES=16 GAUGE_COLS=70
+  long=$(printf 'x%.0s' {1..90})
+  printf 'older line\nnpm 10%%\rnpm 99%%\r\033[32madded 812 packages\033[0m\n%s\nBUILD\there\n' "$long" > "$log"
+  now=$(printf '%(%s)T' -1)
+  mapfile -t out < <(gt_gauge_text app build $((now - 360)) $((now - 840)) "$log")
+  [ "${#out[@]}" -eq 16 ]
+  [ "${out[0]}" = 'Step 14 of 17, 6 min in this step, 14 min in total' ]
+  [ -z "${out[1]}" ]
+  [ "${out[2]}" = "$(printf '%-35s%s' '[x] Base packages' '[x] Update scripts')" ]
+  [ "${out[6]}" = "$(printf '%-35s%s' '[x] DuckDNS' '[>] Build of frontend and backend')" ]
+  [ "${out[7]}" = "$(printf '%-35s%s' '[x] Node.js and build tools' '[ ] First start and migrations')" ]
+  [ "${out[10]}" = '[x] Encrypted configuration' ]
+  [ -z "${out[11]}" ]
+  [ "${out[12]}" = "Log: $log" ]
+  [ "${out[13]}" = 'added 812 packages' ]
+  [ "${out[14]}" = "${long:0:70}" ]
+  [ "${out[15]}" = 'BUILD here' ]
+  for line in "${out[@]}"; do [ "${#line}" -le 70 ]; done
+  LANG_CODE=de GAUGE_PHASES=core
+  mapfile -t out < <(gt_gauge_text other step "$now" $((now - 120)) "$log")
+  [ "${out[0]}" = 'Insgesamt 2 min' ]
+  [ "${out[2]}" = "$(printf '%-35s%s' '[ ] Basispakete' '[ ] Node.js und Build-Werkzeuge')" ]
+  [ "${out[5]}" = "$(printf '%-35s%s' '[ ] Dienstbenutzer' '[ ] Verschlüsselte Konfiguration')" ]
+  [ "${out[6]}" = '[ ] DuckDNS' ]
+  [ "${#out[@]}" -eq 13 ]
+}
+
+@test "the gauge reserves one text row per line it shows later" {
+  FRONTEND=whiptail TRANSCRIPT="$BATS_TEST_TMPDIR/transcript"
+  gt_gauge_start
+  [ -n "$GAUGE_PID" ]
+  gt_gauge_stop
+  [ "$GAUGE_LINES" -eq 22 ] && [ "$GAUGE_COLS" -eq 94 ]
+  grep -qF -- "--gauge -- $(printf ' %.0s' {1..43}) 27 100 0" "$WHIPTAIL_LOG"
+}
