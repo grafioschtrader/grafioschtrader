@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   class="c-exit-popup__logo c-logo--motif-alcon c-logo--colored"
+   id="sprite-logo-alcon"
+   viewBox="5 4 190 52.01"
+   version="1.1"
+   sodipodi:docname="markup-cropped (1).svg"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs9" />
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     showgrid="false"
+     inkscape:zoom="7.2368421"
+     inkscape:cx="95.069091"
+     inkscape:cy="26.047273"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="sprite-logo-alcon" />
+  <title
+     id="title2">logo-alcon</title>
+  <path
+     d="M194.3 27.3c-.5-1.8-1.2-3.4-2.3-4.8a11.7 11.7 0 0 0-4.2-3.4c-1.7-.9-3.8-1.3-6.2-1.3a13.61 13.61 0 0 0-6.7 1.8c-1 .5-1.8 1.2-2.5 2-.3.3-.5.6-.7.9v-3.7h-12.4v36.1H172V35.3c0-.9.1-1.8.4-2.7a6.12 6.12 0 0 1 2.8-3.7c.7-.4 1.5-.5 2.4-.5.9 0 1.7.2 2.3.5.6.3 1 .8 1.4 1.4.3.6.6 1.3.7 2.2.2.9.2 1.8.2 2.7v19.7H195V32.7c0-1.8-.2-3.6-.7-5.4zm-51.4 9.5a7.7 7.7 0 1 1-15.4 0 7.7 7.7 0 0 1 15.4 0zm-7.7-19.2a19.2 19.2 0 1 0 .01 38.41 19.2 19.2 0 0 0-.01-38.41zm-34.8 26.8a7.7 7.7 0 1 1 6.4-12l7.7-8.8a19 19 0 0 0-14.1-6.1 19.2 19.2 0 0 0 0 38.4c5.5 0 10.5-2.3 14-6l-7.5-9.1a7.68 7.68 0 0 1-6.5 3.6zM26.4 4L5 54.8h14.4l3.7-9.7h18.4l3.9 9.7H60L38.8 4H26.4zm11.3 30.3H26.9l5.4-14.7 5.4 14.7zM63.5 4h12.9v50.8H63.5z"
+     id="path4"
+     style="fill:#143489;fill-opacity:1" />
+</svg>

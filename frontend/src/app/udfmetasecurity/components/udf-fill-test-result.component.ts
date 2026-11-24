@@ -20,8 +20,7 @@ import { UDFFillTestResult } from '../model/udf.metadata.security';
           <ul>
             @for (m of testResultValue.mismatches; track $index) {
               <li>
-                <b>{{ m.name }}</b
-                >: {{ m.existing }} &rarr; {{ m.computed ?? '—' }}
+                <b>{{ m.name }}</b>: {{ m.existing }} &rarr; {{ m.computed ?? '—' }}
                 @if (m.reason) {
                   <i>({{ m.reason }})</i>
                 }
@@ -34,8 +33,7 @@ import { UDFFillTestResult } from '../model/udf.metadata.security';
           <ul>
             @for (s of testResultValue.samples; track $index) {
               <li>
-                <b>{{ s.name }}</b
-                >: {{ s.computed }}
+                <b>{{ s.name }}</b>: {{ s.computed }}
               </li>
             }
           </ul>

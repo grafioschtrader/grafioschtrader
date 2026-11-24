@@ -65,6 +65,7 @@ import { SpecialInvestmentInstruments } from '../../shared/types/special.investm
 import type { TenantLimit } from '../../shared/types/tenant.limit';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
+import { InstrumentLogoService } from '../../shared/securitycurrency/instrument-logo.service';
 import { WatchlistFilterSortStateService } from '../service/watchlist.filter.sort.state.service';
 import { WatchlistSelectionStateService } from '../service/watchlist.selection.state.service';
 import { WatchlistService } from '../service/watchlist.service';
@@ -83,6 +84,10 @@ import { WatchlistHelper } from './watchlist.helper';
 export abstract class WatchlistTable extends TableConfigBase implements AfterViewInit, OnDestroy, IGlobalMenuAttach {
   readonly id = input.required({ transform: numberAttribute });
 
+  protected tableFields(): ColumnConfig[] {
+    return this.fields;
+  }
+
   protected dialogService: DialogService = inject(DialogService);
   protected alarmSetupService: AlarmSetupService = inject(AlarmSetupService);
   protected timeSeriesQuotesService: TimeSeriesQuotesService = inject(TimeSeriesQuotesService);
@@ -94,6 +99,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   protected confirmationService: ConfirmationService = inject(ConfirmationService);
   protected messageToastService: MessageToastService = inject(MessageToastService);
   protected productIconService: ProductIconService = inject(ProductIconService);
+  protected instrumentLogoService: InstrumentLogoService = inject(InstrumentLogoService);
   protected changeDetectionStrategy: ChangeDetectorRef = inject(ChangeDetectorRef);
   private gpsGT: GlobalparameterGTService = inject(GlobalparameterGTService);
 
@@ -326,6 +332,15 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     }
     this.filterRowToggleable = true;
     this.frozenColumnsSelectable = true;
+    // The table template reads the logo inside a callback, so when an authenticated DB-SVG finishes loading its
+    // ObjectURL we raise the column revision so the OnPush host fills the cell.
+    effect(
+      () => {
+        this.instrumentLogoService.revision();
+        untracked(() => this.notifyViewChanged());
+      },
+      { injector: this.injector }
+    );
     this.multiSortMeta.push({ field: 'securitycurrency.name', order: 1 });
     this.rememberSelection();
   }
@@ -1160,6 +1175,18 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.tickerSymbol', true, true, {
       filterType: FilterType.likeDataType,
       width: 60
+    });
+    // Follows the ticker in every watchlist type and can be hidden in the column dialog. Resolved server-side on
+    // Security.resolvedLogo; currency pairs have no logo.
+    this.addColumn(DataType.String, 'companyLogo', 'LOGO', true, true, {
+      width: 56,
+      templateName: 'svgIcon',
+      fieldValueFN: (position: SecuritycurrencyPosition<Security | Currencypair>) => {
+        const securitycurrency = position.securitycurrency;
+        return 'resolvedLogo' in securitycurrency
+          ? this.instrumentLogoService.getLogoUrl(securitycurrency.resolvedLogo)
+          : null;
+      }
     });
     this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.currency', true, true, {
       filterType: FilterType.withOptions,

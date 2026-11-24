@@ -108,8 +108,9 @@ public final class WatchlistTreemapBuilder {
 
   private static List<Security> oneListingPerIsin(List<Security> stocks) {
     Set<String> seenIsin = new HashSet<>();
-    return stocks.stream().sorted(NEWEST_LISTING_FIRST).filter(
-        security -> security.getIsin() == null || security.getIsin().isBlank() || seenIsin.add(security.getIsin()))
+    return stocks.stream().sorted(NEWEST_LISTING_FIRST)
+        .filter(
+            security -> security.getIsin() == null || security.getIsin().isBlank() || seenIsin.add(security.getIsin()))
         .toList();
   }
 
@@ -171,9 +172,8 @@ public final class WatchlistTreemapBuilder {
         .computeIfAbsent(tile.security().getAssetClass().getIdAssetClass(), _ -> new ArrayList<>()).add(tile));
     List<WatchlistTreemapNode> nodes = new ArrayList<>();
     nodes.add(new WatchlistTreemapNode(ROOT_ID, null, WatchlistTreemapNodeType.ROOT, null, 0, totalCap(tiles),
-        weightedChange(tiles), null, null, null));
-    tilesByAssetclass.values().stream()
-        .sorted(Comparator.comparingDouble(WatchlistTreemapBuilder::totalCap).reversed())
+        weightedChange(tiles), null, null, null, null));
+    tilesByAssetclass.values().stream().sorted(Comparator.comparingDouble(WatchlistTreemapBuilder::totalCap).reversed())
         .forEach(group -> addGroup(nodes, group, input.language()));
     return nodes;
   }
@@ -182,13 +182,13 @@ public final class WatchlistTreemapBuilder {
     Assetclass assetclass = tiles.getFirst().security().getAssetClass();
     String groupId = GROUP_PREFIX + assetclass.getIdAssetClass();
     nodes.add(new WatchlistTreemapNode(groupId, ROOT_ID, WatchlistTreemapNodeType.GROUP,
-        groupLabel(assetclass, language), 0, totalCap(tiles), weightedChange(tiles), null, null, null));
+        groupLabel(assetclass, language), 0, totalCap(tiles), weightedChange(tiles), null, null, null, null));
     tiles.stream().sorted(Comparator.comparingDouble(Tile::capMC).reversed()).forEach(tile -> {
       Security security = tile.security();
       nodes.add(new WatchlistTreemapNode(SECURITY_PREFIX + security.getIdSecuritycurrency(), groupId,
           WatchlistTreemapNodeType.SECURITY, security.getName(), tile.capMC(), tile.capMC(),
           security.getSChangePercentage(), security.getIdSecuritycurrency(), security.getCurrency(),
-          security.getSTimestamp()));
+          security.getSTimestamp(), security.getResolvedLogo()));
     });
   }
 

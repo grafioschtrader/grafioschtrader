@@ -28,6 +28,7 @@ import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.ImportTransactionTemplate;
+import grafioschtrader.entities.InstrumentLogo;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.RiskFreeRateMapping;
 import grafioschtrader.entities.Security;
@@ -83,8 +84,8 @@ public abstract class LimitKeyConfig {
   public static final String ENTITY_NAME_HISTORYQUOTE_READ = "HistoryquoteRead";
 
   /**
-   * Pseudo entity name for the daily budget of tool calls of the MCP server. One call is one unit, whatever it reads; the
-   * reservation is made before the report runs, so a call that ends with an error still consumes its unit.
+   * Pseudo entity name for the daily budget of tool calls of the MCP server. One call is one unit, whatever it reads;
+   * the reservation is made before the report runs, so a call that ends with an error still consumes its unit.
    */
   public static final String ENTITY_NAME_MCP_TOOL_CALL = "McpToolCall";
 
@@ -174,6 +175,8 @@ public abstract class LimitKeyConfig {
   public static final LimitKey KEY_SECURITY = LimitKey.max(Security.class.getSimpleName(), OwnerScope.CREATOR);
   public static final LimitKey KEY_CURRENCYPAIR = LimitKey.max(Currencypair.class.getSimpleName(), OwnerScope.CREATOR);
   public static final LimitKey KEY_ASSETCLASS = LimitKey.max(Assetclass.class.getSimpleName(), OwnerScope.CREATOR);
+  public static final LimitKey KEY_INSTRUMENT_LOGO = LimitKey.max(InstrumentLogo.class.getSimpleName(),
+      OwnerScope.CREATOR);
   public static final LimitKey KEY_STOCKEXCHANGE = LimitKey.max(Stockexchange.class.getSimpleName(),
       OwnerScope.CREATOR);
   public static final LimitKey KEY_GTNET_SECURITY_IMPORT = LimitKey.max(ENTITY_NAME_GTNET_SECURITY_IMPORT,
@@ -356,6 +359,7 @@ public abstract class LimitKeyConfig {
 
     registerFlat(KEY_CURRENCYPAIR, Currencypair.class, 500, RULE_SHARED_DATA, "MAX_CURRENCYPAIR", true);
     registerFlat(KEY_ASSETCLASS, Assetclass.class, 200, RULE_SHARED_DATA, "MAX_ASSETCLASS", true);
+    registerFlat(KEY_INSTRUMENT_LOGO, InstrumentLogo.class, 100, RULE_SHARED_DATA, "MAX_INSTRUMENT_LOGO", true);
     registerFlat(KEY_STOCKEXCHANGE, Stockexchange.class, 100, RULE_SHARED_DATA, "MAX_STOCKEXCHANGE", true);
 
     // Counted through the staging table rather than a column on security, because nothing on the security itself

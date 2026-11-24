@@ -70,8 +70,8 @@ export interface PerformanceReportDialogData {
       <summary>{{ 'REPORT_SECTIONS' | translate }}</summary>
       @for (section of data.options.sections; track section.key) {
         <p>
-          <strong>{{ section.value | translate }}</strong
-          >: {{ 'gt.report.section.' + ('' + section.key).toLowerCase() | translate }}
+          <strong>{{ section.value | translate }}</strong>:
+          {{ 'gt.report.section.' + ('' + section.key).toLowerCase() | translate }}
         </p>
       }
     </details>

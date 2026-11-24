@@ -1,0 +1,724 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" viewBox="0 0 1194.6 250" enable-background="new 0 0 1194.6 250" xml:space="preserve">
+  <rect x="897.9" y="106.1" transform="rotate(-69.708 912.021 155.288)" fill="#B2B3AD" width="28.1" height="98.3"/>
+  <defs>
+    <path id="a" d="M842.8 127.9c0 7.6.7 17.1.7 17.1l17.5 6.5 9.7-26.3c2.6-16.6 19.8-35.2 39.5-35.2h.6V61.8h-1.1c-40 0-66.9 34-66.9 66.1"/>
+  </defs>
+  <clipPath id="b">
+    <use xlink:href="#a" overflow="visible"/>
+  </clipPath>
+  <linearGradient id="c" gradientUnits="userSpaceOnUse" x1="-6447.835" y1="3145.397" x2="-6446.154" y2="3145.397" gradientTransform="scale(-50.393 50.393) rotate(39.723 1118.52 10473.516)">
+    <stop offset="0" stop-color="#00c0e8"/>
+    <stop offset=".007" stop-color="#00c0e8"/>
+    <stop offset=".066" stop-color="#00bbe5"/>
+    <stop offset=".685" stop-color="#008aca"/>
+    <stop offset=".992" stop-color="#0077c0"/>
+    <stop offset="1" stop-color="#0077c0"/>
+  </linearGradient>
+  <polygon clip-path="url(#b)" fill="url(#c)" points="954.9,114.8 870.6,184.8 798.8,98.4 883,28.4"/>
+  <defs>
+    <path id="d" d="M953.2 185.5c0 20.4-19.2 36.4-42.1 36.4h-1.8V250h2.3c42.9 0 68.7-35 68.7-68.7 0-7.5-.3-9.8-1.2-13.8l-.6-2.6-15.6-5.8-9.7 26.4z"/>
+  </defs>
+  <clipPath id="e">
+    <use xlink:href="#d" overflow="visible"/>
+  </clipPath>
+  <linearGradient id="f" gradientUnits="userSpaceOnUse" x1="-6211.332" y1="3129.259" x2="-6209.65" y2="3129.259" gradientTransform="scale(55.34 -55.34) rotate(8.59 17763.218 43027.869)">
+    <stop offset="0" stop-color="#00c0e8"/>
+    <stop offset=".071" stop-color="#00c0e8"/>
+    <stop offset=".126" stop-color="#00bbe5"/>
+    <stop offset=".701" stop-color="#008aca"/>
+    <stop offset=".986" stop-color="#0077c0"/>
+    <stop offset="1" stop-color="#0077c0"/>
+  </linearGradient>
+  <polygon clip-path="url(#e)" fill="url(#f)" points="895.9,161.2 978.7,148.7 993.7,248 910.9,260.5"/>
+  <g>
+    <defs>
+      <path id="g" d="M843.3 195.4s9.7 53.8 66.9 54.6v-28.1c-34.7-.6-39.1-34-39.1-34l-27.8 7.5z"/>
+    </defs>
+    <clipPath id="i">
+      <use xlink:href="#g" overflow="visible"/>
+    </clipPath>
+    <defs>
+      <filter id="h" filterUnits="userSpaceOnUse" x="823.7" y="166.9" width="106" height="104.2">
+        <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/>
+      </filter>
+    </defs>
+    <mask maskUnits="userSpaceOnUse" x="823.7" y="166.9" width="106" height="104.2" id="m">
+      <g filter="url(#h)">
+        <defs>
+          <rect id="j" x="834.8" y="178.5" transform="rotate(-19.537 876.763 218.974)" width="83.8" height="80.9"/>
+        </defs>
+        <clipPath id="k" clip-path="url(#i)">
+          <use xlink:href="#j" overflow="visible"/>
+        </clipPath>
+        <linearGradient id="l" gradientUnits="userSpaceOnUse" x1="-6331.213" y1="3334.166" x2="-6329.532" y2="3334.166" gradientTransform="matrix(9.405 26.505 26.505 -9.405 -27960.322 199357.313)">
+          <stop offset="0" stop-color="#000"/>
+          <stop offset=".068" stop-color="#1e1e1e"/>
+          <stop offset=".295" stop-color="#7d7d7d"/>
+          <stop offset=".479" stop-color="#c3c3c3"/>
+          <stop offset=".611" stop-color="#eee"/>
+          <stop offset=".678" stop-color="#fff"/>
+          <stop offset=".937" stop-color="#fff"/>
+          <stop offset="1" stop-color="#fff"/>
+        </linearGradient>
+        <polygon clip-path="url(#k)" fill="url(#l)" points="917.9,133.4 962.6,259.4 835.6,304.5 790.9,178.5"/>
+      </g>
+    </mask>
+    <linearGradient id="n" gradientUnits="userSpaceOnUse" x1="-6331.213" y1="3334.166" x2="-6329.532" y2="3334.166" gradientTransform="matrix(9.405 26.505 26.505 -9.405 -27960.322 199357.313)">
+      <stop offset="0" stop-color="#00c0e8"/>
+      <stop offset=".678" stop-color="#00c0e8"/>
+      <stop offset=".937" stop-color="#00c0e8"/>
+      <stop offset="1" stop-color="#00c0e8"/>
+    </linearGradient>
+    <polygon clip-path="url(#i)" mask="url(#m)" fill="url(#n)" points="902.7,166.9 929.8,243.1 850.8,271.1 823.7,194.9"/>
+  </g>
+  <g>
+    <defs>
+      <path id="o" d="M910.2 61.8v28.1c36.9 0 40.5 32.5 40.5 32.5l28.1-7s-9.3-53.3-68.6-53.6z"/>
+    </defs>
+    <clipPath id="q">
+      <use xlink:href="#o" overflow="visible"/>
+    </clipPath>
+    <defs>
+      <filter id="p" filterUnits="userSpaceOnUse" x="889.4" y="38.2" width="110.2" height="107.7">
+        <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/>
+      </filter>
+    </defs>
+    <mask maskUnits="userSpaceOnUse" x="889.4" y="38.2" width="110.2" height="107.7" id="u">
+      <g filter="url(#p)">
+        <defs>
+          <rect id="r" x="901.4" y="51.3" transform="rotate(-21.705 944.408 92.099)" width="86.1" height="81.6"/>
+        </defs>
+        <clipPath id="s" clip-path="url(#q)">
+          <use xlink:href="#r" overflow="visible"/>
+        </clipPath>
+        <linearGradient id="t" gradientUnits="userSpaceOnUse" x1="-6323.84" y1="3321.014" x2="-6322.159" y2="3321.014" gradientTransform="scale(30.06 -30.06) rotate(-68.299 -5596.13 -3025.134)">
+          <stop offset="0" stop-color="#fff"/>
+          <stop offset=".017" stop-color="#fff"/>
+          <stop offset=".22" stop-color="#fff"/>
+          <stop offset=".297" stop-color="#eee"/>
+          <stop offset=".449" stop-color="#c3c3c3"/>
+          <stop offset=".66" stop-color="#7d7d7d"/>
+          <stop offset=".922" stop-color="#1e1e1e"/>
+          <stop offset="1" stop-color="#000"/>
+        </linearGradient>
+        <polygon clip-path="url(#s)" fill="url(#t)" points="984.5,0.4 1036.6,131.2 904.5,183.7 852.4,53"/>
+      </g>
+    </mask>
+    <linearGradient id="v" gradientUnits="userSpaceOnUse" x1="-6323.84" y1="3321.014" x2="-6322.159" y2="3321.014" gradientTransform="scale(30.06 -30.06) rotate(-68.299 -5596.13 -3025.134)">
+      <stop offset="0" stop-color="#00c0e8"/>
+      <stop offset=".017" stop-color="#00c0e8"/>
+      <stop offset=".22" stop-color="#00c0e8"/>
+      <stop offset="1" stop-color="#00c0e8"/>
+    </linearGradient>
+    <polygon clip-path="url(#q)" mask="url(#u)" fill="url(#v)" points="969.4,38.2 999.6,114.1 919.6,145.9 889.4,70.1"/>
+  </g>
+  <g>
+    <defs>
+      <path id="w" d="M768.2 108.7c8.6 8.3 14.9 19 17.9 30.9h28.7c-3.4-19.8-13.1-37.5-26.9-50.9l-19.7 20z"/>
+    </defs>
+    <clipPath id="x">
+      <use xlink:href="#w" overflow="visible"/>
+    </clipPath>
+    <linearGradient id="y" gradientUnits="userSpaceOnUse" x1="-6373.943" y1="2798.983" x2="-6372.262" y2="2798.983" gradientTransform="scale(-20.8455 20.8455) rotate(-59.808 -5634.118 -4105.345)">
+      <stop offset="0" stop-color="#0077c0"/>
+      <stop offset="1" stop-color="#007ec5"/>
+    </linearGradient>
+    <polygon clip-path="url(#x)" fill="url(#y)" points="780,159.9 746,101.6 803,68.5 836.9,126.8"/>
+    <defs>
+      <path id="z" d="M721 61.8l.2 28.1h.6c18.2 0 34.7 7.4 46.7 19.3l19.9-19.9c-17.1-17-40.6-27.5-66.6-27.5h-.8"/>
+    </defs>
+    <clipPath id="A">
+      <use xlink:href="#z" overflow="visible"/>
+    </clipPath>
+    <linearGradient id="B" gradientUnits="userSpaceOnUse" x1="-6480.506" y1="2955.87" x2="-6478.825" y2="2955.87" gradientTransform="scale(-30.013 30.013) rotate(-22.46 -10689.11 -14775.5)">
+      <stop offset="0" stop-color="#007ec5"/>
+      <stop offset="1" stop-color="#008ace"/>
+    </linearGradient>
+    <polygon clip-path="url(#A)" fill="url(#B)" points="778.6,133 704.3,102.2 730.9,38 805.2,68.7"/>
+    <g>
+      <defs>
+        <path id="C" d="M654.7 89.9l20 19.7c12-12.2 28.6-19.7 47.1-19.7V61.8c-26.2 0-50 10.8-67.1 28.1"/>
+      </defs>
+      <clipPath id="D">
+        <use xlink:href="#C" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="E" gradientUnits="userSpaceOnUse" x1="-6115.033" y1="3098.788" x2="-6113.352" y2="3098.788" gradientTransform="scale(30.3834 -30.3834) rotate(23.063 4555.084 16587.406)">
+        <stop offset="0" stop-color="#0095d1"/>
+        <stop offset="1" stop-color="#008ace"/>
+      </linearGradient>
+      <polygon clip-path="url(#D)" fill="url(#E)" points="637.5,69.1 711.6,37.6 739.1,102.3 665,133.8"/>
+    </g>
+    <g>
+      <defs>
+        <path id="F" d="M627.8 156.7l28.1-.2v-.6c0-18.2 7.4-34.7 19.3-46.7l-19.9-19.9c-17.2 17.3-27.8 41.1-27.5 67.4"/>
+      </defs>
+      <clipPath id="G">
+        <use xlink:href="#F" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="H" gradientUnits="userSpaceOnUse" x1="-6176.977" y1="2950.428" x2="-6175.296" y2="2950.428" gradientTransform="scale(29.8113 -29.8113) rotate(67.38 -861.176 6121.567)">
+        <stop offset="0" stop-color="#00a0d7"/>
+        <stop offset="1" stop-color="#0095d1"/>
+      </linearGradient>
+      <polygon clip-path="url(#G)" fill="url(#H)" points="603.6,146.8 634.6,72.4 699.1,99.3 668.1,173.6"/>
+    </g>
+    <g>
+      <defs>
+        <path id="I" d="M627.8 155.9c0 26.3 10.8 50 28.1 67.1l19.7-20c-12.2-12-19.7-28.6-19.7-47.1h-28.1z"/>
+      </defs>
+      <clipPath id="J">
+        <use xlink:href="#I" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="K" gradientUnits="userSpaceOnUse" x1="-6318.592" y1="3315.804" x2="-6316.911" y2="3315.804" gradientTransform="scale(30.1826 -30.1826) rotate(-66.774 -5668.356 -3154.559)">
+        <stop offset="0" stop-color="#00a0d7"/>
+        <stop offset="1" stop-color="#00acdc"/>
+      </linearGradient>
+      <polygon clip-path="url(#J)" fill="url(#K)" points="668.2,138.6 699.9,212.6 635.2,240.3 603.4,166.3"/>
+    </g>
+    <g>
+      <defs>
+        <path id="L" d="M655.3 222.4c17.2 17.2 41 27.8 67.4 27.6l-.2-28.1h-.6c-18.2 0-34.7-7.4-46.7-19.3l-19.9 19.8z"/>
+      </defs>
+      <clipPath id="M">
+        <use xlink:href="#L" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="N" gradientUnits="userSpaceOnUse" x1="-6193.352" y1="3229.381" x2="-6191.671" y2="3229.381" gradientTransform="scale(35.083 -35.083) rotate(-22.249 -11314.433 -14184.8)">
+        <stop offset="0" stop-color="#00acdc"/>
+        <stop offset=".349" stop-color="#26b6e0"/>
+        <stop offset=".779" stop-color="#50c0e3"/>
+        <stop offset="1" stop-color="#60c4e5"/>
+      </linearGradient>
+      <polygon clip-path="url(#M)" fill="url(#N)" points="665,179 739.4,209.4 713,273.8 638.6,243.4"/>
+    </g>
+    <g>
+      <defs>
+        <path id="O" d="M721.9 221.9V250c30.4 0 57.5-14.4 74.7-36.8l-22.3-17.1c-12.1 15.7-31.1 25.8-52.4 25.8"/>
+      </defs>
+      <clipPath id="Q">
+        <use xlink:href="#O" overflow="visible"/>
+      </clipPath>
+      <defs>
+        <filter id="P" filterUnits="userSpaceOnUse" x="695" y="158.9" width="128.3" height="128.2">
+          <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/>
+        </filter>
+      </defs>
+      <mask maskUnits="userSpaceOnUse" x="695" y="158.9" width="128.3" height="128.2" id="U">
+        <g filter="url(#P)">
+          <defs>
+            <rect id="R" x="714.1" y="177.3" transform="rotate(-47.78 759.146 223.036)" width="90.1" height="91.5"/>
+          </defs>
+          <clipPath id="S" clip-path="url(#Q)">
+            <use xlink:href="#R" overflow="visible"/>
+          </clipPath>
+          <linearGradient id="T" gradientUnits="userSpaceOnUse" x1="-6209.097" y1="3045.301" x2="-6207.416" y2="3045.301" gradientTransform="scale(48.9509 -48.9509) rotate(47.779 346.623 8545.937)">
+            <stop offset="0" stop-color="#fff"/>
+            <stop offset=".27" stop-color="#fff"/>
+            <stop offset=".333" stop-color="#f4f4f4"/>
+            <stop offset=".446" stop-color="#d5d5d5"/>
+            <stop offset=".595" stop-color="#a4a4a4"/>
+            <stop offset=".774" stop-color="#606060"/>
+            <stop offset=".978" stop-color="#0a0a0a"/>
+            <stop offset="1" stop-color="#000"/>
+          </linearGradient>
+          <polygon clip-path="url(#S)" fill="url(#T)" points="631.2,229.3 753,95.1 887.2,216.8 765.4,351"/>
+        </g>
+      </mask>
+      <linearGradient id="V" gradientUnits="userSpaceOnUse" x1="-6209.097" y1="3045.301" x2="-6207.416" y2="3045.301" gradientTransform="scale(48.9509 -48.9509) rotate(47.779 346.623 8545.938)">
+        <stop offset="0" stop-color="#60c4e5"/>
+        <stop offset=".27" stop-color="#60c4e5"/>
+        <stop offset="1" stop-color="#60c4e5"/>
+      </linearGradient>
+      <polygon clip-path="url(#Q)" mask="url(#U)" fill="url(#V)" points="695,225.7 755.6,158.9 823.3,220.4 762.8,287.1"/>
+    </g>
+    <rect x="716.5" y="139.7" fill="#B2B3AD" width="98.3" height="28.1"/>
+  </g>
+  <g>
+    <defs>
+      <path id="W" d="M140.4 108.7c8.6 8.3 14.9 19 17.9 30.9H187c-3.4-19.8-13.1-37.5-26.9-50.9l-19.7 20z"/>
+    </defs>
+    <clipPath id="X">
+      <use xlink:href="#W" overflow="visible"/>
+    </clipPath>
+    <linearGradient id="Y" gradientUnits="userSpaceOnUse" x1="-6367.807" y1="2809.529" x2="-6366.126" y2="2809.529" gradientTransform="scale(-20.8455 20.8455) rotate(-59.808 -5625.161 -4120.918)">
+      <stop offset="0" stop-color="#0077c0"/>
+      <stop offset="1" stop-color="#007ec5"/>
+    </linearGradient>
+    <polygon clip-path="url(#X)" fill="url(#Y)" points="152.2,159.9 118.3,101.6 175.2,68.5 209.1,126.8"/>
+    <defs>
+      <path id="Z" d="M93.3 61.8l.2 28.1h.6c18.2 0 34.7 7.4 46.7 19.3l19.9-19.9c-17.1-17-40.6-27.5-66.6-27.5h-.8"/>
+    </defs>
+    <clipPath id="aa">
+      <use xlink:href="#Z" overflow="visible"/>
+    </clipPath>
+    <linearGradient id="ab" gradientUnits="userSpaceOnUse" x1="-6472.675" y1="2959.107" x2="-6470.994" y2="2959.107" gradientTransform="scale(-30.013 30.013) rotate(-22.46 -10682.889 -14806.833)">
+      <stop offset="0" stop-color="#007ec5"/>
+      <stop offset="1" stop-color="#008ace"/>
+    </linearGradient>
+    <polygon clip-path="url(#aa)" fill="url(#ab)" points="150.9,133 76.6,102.2 103.1,38 177.4,68.7"/>
+    <g>
+      <defs>
+        <path id="ac" d="M27 89.9l20 19.7c12-12.2 28.6-19.7 47.1-19.7V61.8c-26.3 0-50 10.8-67.1 28.1"/>
+      </defs>
+      <clipPath id="ad">
+        <use xlink:href="#ac" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="ae" gradientUnits="userSpaceOnUse" x1="-6122.735" y1="3102.067" x2="-6121.054" y2="3102.067" gradientTransform="scale(30.3834 -30.3834) rotate(23.063 4548.939 16557.287)">
+        <stop offset="0" stop-color="#0095d1"/>
+        <stop offset="1" stop-color="#008ace"/>
+      </linearGradient>
+      <polygon clip-path="url(#ad)" fill="url(#ae)" points="9.7,69.1 83.8,37.6 111.3,102.3 37.3,133.8"/>
+    </g>
+    <g>
+      <defs>
+        <path id="af" d="M0 156.7l28.1-.2v-.6c0-18.2 7.4-34.7 19.3-46.7L27.6 89.4C10.4 106.6-.2 130.4 0 156.7"/>
+      </defs>
+      <clipPath id="ag">
+        <use xlink:href="#af" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="ah" gradientUnits="userSpaceOnUse" x1="-6180.259" y1="2958.303" x2="-6178.578" y2="2958.303" gradientTransform="scale(29.8113 -29.8113) rotate(67.38 -867.439 6112.172)">
+        <stop offset="0" stop-color="#00a0d7"/>
+        <stop offset="1" stop-color="#0095d1"/>
+      </linearGradient>
+      <polygon clip-path="url(#ag)" fill="url(#ah)" points="-24.1,146.8 6.8,72.4 71.3,99.3 40.4,173.6"/>
+    </g>
+    <g>
+      <defs>
+        <path id="ai" d="M0 155.9c0 26.3 10.8 50 28.1 67.1l19.7-20c-12.2-12-19.7-28.6-19.7-47.1H0z"/>
+      </defs>
+      <clipPath id="aj">
+        <use xlink:href="#ai" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="ak" gradientUnits="userSpaceOnUse" x1="-6321.915" y1="3308.061" x2="-6320.234" y2="3308.061" gradientTransform="scale(30.1826 -30.1826) rotate(-66.774 -5674.542 -3145.173)">
+        <stop offset="0" stop-color="#00a0d7"/>
+        <stop offset="1" stop-color="#00acdc"/>
+      </linearGradient>
+      <polygon clip-path="url(#aj)" fill="url(#ak)" points="40.4,138.6 72.2,212.6 7.4,240.3 -24.3,166.3"/>
+    </g>
+    <g>
+      <defs>
+        <path id="al" d="M27.6 222.4c17.2 17.2 41 27.8 67.4 27.6l-.2-28.1h-.6c-18.2 0-34.7-7.4-46.7-19.3l-19.9 19.8z"/>
+      </defs>
+      <clipPath id="am">
+        <use xlink:href="#al" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="an" gradientUnits="userSpaceOnUse" x1="-6200.063" y1="3226.636" x2="-6198.381" y2="3226.636" gradientTransform="scale(35.083 -35.083) rotate(-22.249 -11319.755 -14157.736)">
+        <stop offset="0" stop-color="#00acdc"/>
+        <stop offset=".349" stop-color="#26b6e0"/>
+        <stop offset=".779" stop-color="#50c0e3"/>
+        <stop offset="1" stop-color="#60c4e5"/>
+      </linearGradient>
+      <polygon clip-path="url(#am)" fill="url(#an)" points="37.2,179 111.6,209.4 85.3,273.8 10.9,243.4"/>
+    </g>
+    <g>
+      <defs>
+        <path id="ao" d="M94.1 221.9V250c30.4 0 57.5-14.4 74.7-36.8l-22.3-17.1c-12.1 15.7-31.1 25.8-52.4 25.8"/>
+      </defs>
+      <clipPath id="aq">
+        <use xlink:href="#ao" overflow="visible"/>
+      </clipPath>
+      <defs>
+        <filter id="ap" filterUnits="userSpaceOnUse" x="67.3" y="158.9" width="128.3" height="128.2">
+          <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/>
+        </filter>
+      </defs>
+      <mask maskUnits="userSpaceOnUse" x="67.3" y="158.9" width="128.3" height="128.2" id="au">
+        <g filter="url(#ap)">
+          <defs>
+            <rect id="ar" x="86.4" y="177.3" transform="rotate(-47.78 131.418 223.028)" width="90.1" height="91.5"/>
+          </defs>
+          <clipPath id="as" clip-path="url(#aq)">
+            <use xlink:href="#ar" overflow="visible"/>
+          </clipPath>
+          <linearGradient id="at" gradientUnits="userSpaceOnUse" x1="-6212.589" y1="3049.149" x2="-6210.908" y2="3049.149" gradientTransform="scale(48.9509 -48.9509) rotate(47.779 342.808 8537.325)">
+            <stop offset="0" stop-color="#fff"/>
+            <stop offset=".27" stop-color="#fff"/>
+            <stop offset=".333" stop-color="#f4f4f4"/>
+            <stop offset=".446" stop-color="#d5d5d5"/>
+            <stop offset=".595" stop-color="#a4a4a4"/>
+            <stop offset=".774" stop-color="#606060"/>
+            <stop offset=".978" stop-color="#0a0a0a"/>
+            <stop offset="1" stop-color="#000"/>
+          </linearGradient>
+          <polygon clip-path="url(#as)" fill="url(#at)" points="3.5,229.3 125.2,95.1 259.4,216.8 137.6,351"/>
+        </g>
+      </mask>
+      <linearGradient id="av" gradientUnits="userSpaceOnUse" x1="-6212.589" y1="3049.149" x2="-6210.908" y2="3049.149" gradientTransform="scale(48.9509 -48.9509) rotate(47.779 342.809 8537.326)">
+        <stop offset="0" stop-color="#60c4e5"/>
+        <stop offset=".27" stop-color="#60c4e5"/>
+        <stop offset="1" stop-color="#60c4e5"/>
+      </linearGradient>
+      <polygon clip-path="url(#aq)" mask="url(#au)" fill="url(#av)" points="67.3,225.7 127.8,158.9 195.6,220.4 135,287.1"/>
+    </g>
+    <rect x="88.7" y="139.7" fill="#B2B3AD" width="98.3" height="28.1"/>
+  </g>
+  <g>
+    <defs>
+      <path id="aw" d="M355.7 148.8h28.1-28.1z"/>
+    </defs>
+    <clipPath id="ay">
+      <use xlink:href="#aw" overflow="visible"/>
+    </clipPath>
+    <defs>
+      <filter id="ax" filterUnits="userSpaceOnUse" x="355.7" y="146.1" width="28.1" height="5.5">
+        <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/>
+      </filter>
+    </defs>
+    <mask maskUnits="userSpaceOnUse" x="355.7" y="146.1" width="28.1" height="5.5" id="aC">
+      <g filter="url(#ax)">
+        <defs>
+          <rect id="az" x="355.7" y="147.5" transform="matrix(.9952 -.09803 .09803 .9952 -12.81 36.958)" width="27.9" height="2.7"/>
+        </defs>
+        <clipPath id="aA" clip-path="url(#ay)">
+          <use xlink:href="#az" overflow="visible"/>
+        </clipPath>
+        <linearGradient id="aB" gradientUnits="userSpaceOnUse" x1="-6526.563" y1="3797.519" x2="-6524.882" y2="3797.519" gradientTransform="matrix(.8506 8.6659 8.6659 -.8506 -26988.935 59923.668)">
+          <stop offset="0" stop-color="#fff"/>
+          <stop offset="1" stop-color="#000"/>
+        </linearGradient>
+        <polygon clip-path="url(#aA)" fill="url(#aB)" points="383.5,143.4 384.3,151.5 355.9,154.3 355.1,146.2"/>
+      </g>
+    </mask>
+    <linearGradient id="aD" gradientUnits="userSpaceOnUse" x1="-6526.563" y1="3797.519" x2="-6524.882" y2="3797.519" gradientTransform="matrix(.8506 8.6659 8.6659 -.8506 -26988.935 59923.668)">
+      <stop offset="0" stop-color="#ef548e"/>
+      <stop offset="1" stop-color="#ef548e"/>
+    </linearGradient>
+    <polygon clip-path="url(#ay)" mask="url(#aC)" fill="url(#aD)" points="383.5,146.1 383.7,148.8 355.9,151.6 355.7,148.8"/>
+    <rect x="215.1" y="69.5" fill="#B2B3AD" width="28.1" height="98.3"/>
+    <rect x="355.7" y="148.8" fill="#B2B3AD" width="28.1" height="98.3"/>
+    <g>
+      <defs>
+        <path id="aE" d="M306.5 89.9c27.1.4 49.1 22 49.1 49.7v9.2h28.1v-9.2c0-43.2-34.6-77.4-77.2-77.8v28.1z"/>
+      </defs>
+      <clipPath id="aG">
+        <use xlink:href="#aE" overflow="visible"/>
+      </clipPath>
+      <defs>
+        <filter id="aF" filterUnits="userSpaceOnUse" x="306.5" y="61.8" width="77.2" height="87">
+          <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/>
+        </filter>
+      </defs>
+      <mask maskUnits="userSpaceOnUse" x="306.5" y="61.8" width="77.2" height="87" id="aI">
+        <g filter="url(#aF)">
+          <linearGradient id="aH" gradientUnits="userSpaceOnUse" x1="-6411.286" y1="3317.367" x2="-6409.605" y2="3317.367" gradientTransform="matrix(0 27.367 27.367 0 -90441.195 175560.39)">
+            <stop offset="0" stop-color="#fff"/>
+            <stop offset="1" stop-color="#000"/>
+          </linearGradient>
+          <rect x="306.5" y="61.8" clip-path="url(#aG)" fill="url(#aH)" width="77.2" height="87"/>
+        </g>
+      </mask>
+      <linearGradient id="aJ" gradientUnits="userSpaceOnUse" x1="-6411.286" y1="3317.367" x2="-6409.605" y2="3317.367" gradientTransform="matrix(0 27.367 27.367 0 -90441.195 175560.375)">
+        <stop offset="0" stop-color="#00a0d7"/>
+        <stop offset="1" stop-color="#00a0d7"/>
+      </linearGradient>
+      <rect x="306.5" y="61.8" clip-path="url(#aG)" mask="url(#aI)" fill="url(#aJ)" width="77.2" height="87"/>
+    </g>
+    <g>
+      <defs>
+        <path id="aK" d="M243.2 87.5v57c4.2-22.5 24.2-54.6 62.5-54.6h2.1V61.8h-2.1c-24.5 0-46.5 9.8-62.5 25.7"/>
+      </defs>
+      <clipPath id="aL">
+        <use xlink:href="#aK" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="aM" gradientUnits="userSpaceOnUse" x1="-6175.167" y1="3165.478" x2="-6173.485" y2="3165.478" gradientTransform="matrix(38.4342 0 0 -38.4342 237580.516 121765.656)">
+        <stop offset="0" stop-color="#0077c0"/>
+        <stop offset=".944" stop-color="#009ed6"/>
+        <stop offset="1" stop-color="#00a0d7"/>
+      </linearGradient>
+      <rect x="243.2" y="61.8" clip-path="url(#aL)" fill="url(#aM)" width="64.6" height="82.7"/>
+    </g>
+  </g>
+  <g>
+    <defs>
+      <path id="aN" d="M505.9 221.9V250c19.4 0 37.4-5.9 52.4-16l-15.7-23.3c-10.5 7.1-23.1 11.2-36.7 11.2"/>
+    </defs>
+    <clipPath id="aP">
+      <use xlink:href="#aN" overflow="visible"/>
+    </clipPath>
+    <defs>
+      <filter id="aO" filterUnits="userSpaceOnUse" x="496.3" y="197.9" width="71.6" height="64.8">
+        <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/>
+      </filter>
+    </defs>
+    <mask maskUnits="userSpaceOnUse" x="496.3" y="197.9" width="71.6" height="64.8" id="aT">
+      <g filter="url(#aO)">
+        <defs>
+          <rect id="aQ" x="501.8" y="204.7" transform="rotate(-14.557 532.102 230.317)" width="60.6" height="51.2"/>
+        </defs>
+        <clipPath id="aR" clip-path="url(#aP)">
+          <use xlink:href="#aQ" overflow="visible"/>
+        </clipPath>
+        <linearGradient id="aS" gradientUnits="userSpaceOnUse" x1="-6104.277" y1="3130.421" x2="-6102.596" y2="3130.421" gradientTransform="scale(28.3414 -28.3414) rotate(14.56 9241.727 25521.425)">
+          <stop offset="0" stop-color="#fff"/>
+          <stop offset=".27" stop-color="#fff"/>
+          <stop offset=".333" stop-color="#f4f4f4"/>
+          <stop offset=".446" stop-color="#d5d5d5"/>
+          <stop offset=".595" stop-color="#a4a4a4"/>
+          <stop offset=".774" stop-color="#606060"/>
+          <stop offset=".978" stop-color="#0a0a0a"/>
+          <stop offset="1" stop-color="#000"/>
+        </linearGradient>
+        <polygon clip-path="url(#aR)" fill="url(#aS)" points="480.5,202 563.3,180.5 583.6,258.7 500.8,280.2"/>
+      </g>
+    </mask>
+    <linearGradient id="aU" gradientUnits="userSpaceOnUse" x1="-6104.277" y1="3130.421" x2="-6102.596" y2="3130.421" gradientTransform="scale(28.3414 -28.3414) rotate(14.56 9241.726 25521.425)">
+      <stop offset="0" stop-color="#60c4e5"/>
+      <stop offset=".27" stop-color="#60c4e5"/>
+      <stop offset="1" stop-color="#60c4e5"/>
+    </linearGradient>
+    <polygon clip-path="url(#aP)" mask="url(#aT)" fill="url(#aU)" points="496.3,213.2 555,197.9 567.9,247.5 509.2,262.8"/>
+    <defs>
+      <path id="aV" d="M504.8 61.8l.2 28.1h.6c18.2 0 34.8 7.2 46.8 19.2l19.7-20.2c-17.1-17-40.5-27-66.5-27-.2-.1-.5-.1-.8-.1"/>
+    </defs>
+    <clipPath id="aW">
+      <use xlink:href="#aV" overflow="visible"/>
+    </clipPath>
+    <linearGradient id="aX" gradientUnits="userSpaceOnUse" x1="-6478.34" y1="2956.468" x2="-6476.659" y2="2956.468" gradientTransform="scale(-29.9081 29.9081) rotate(-22.459 -10685.966 -14787.748)">
+      <stop offset="0" stop-color="#007ec5"/>
+      <stop offset="1" stop-color="#008ace"/>
+    </linearGradient>
+    <polygon clip-path="url(#aW)" fill="url(#aX)" points="562.3,132.8 488.1,102.1 514.6,38 588.8,68.7"/>
+    <g>
+      <defs>
+        <path id="aY" d="M438.5 89.9l20 19.7c12-12.2 28.6-19.7 47.1-19.7V61.8c-26.2 0-50 10.8-67.1 28.1"/>
+      </defs>
+      <clipPath id="aZ">
+        <use xlink:href="#aY" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="ba" gradientUnits="userSpaceOnUse" x1="-6117.686" y1="3099.917" x2="-6116.005" y2="3099.917" gradientTransform="scale(30.3834 -30.3834) rotate(23.063 4552.967 16577.032)">
+        <stop offset="0" stop-color="#0095d1"/>
+        <stop offset="1" stop-color="#008ace"/>
+      </linearGradient>
+      <polygon clip-path="url(#aZ)" fill="url(#ba)" points="421.3,69.1 495.3,37.6 522.9,102.3 448.8,133.8"/>
+    </g>
+    <g>
+      <defs>
+        <path id="bb" d="M411.5 156.7l28.1-.2v-.6c0-18.2 7.4-34.7 19.3-46.7L439 89.3c-17.1 17.3-27.7 41.1-27.5 67.4"/>
+      </defs>
+      <clipPath id="bc">
+        <use xlink:href="#bb" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="bd" gradientUnits="userSpaceOnUse" x1="-6178.107" y1="2953.14" x2="-6176.427" y2="2953.14" gradientTransform="scale(29.8113 -29.8113) rotate(67.38 -863.333 6118.331)">
+        <stop offset="0" stop-color="#00a0d7"/>
+        <stop offset="1" stop-color="#0095d1"/>
+      </linearGradient>
+      <polygon clip-path="url(#bc)" fill="url(#bd)" points="387.4,146.8 418.4,72.4 482.9,99.3 451.9,173.6"/>
+    </g>
+    <g>
+      <defs>
+        <path id="be" d="M411.5 155.9c0 26.3 10.8 50 28.1 67.1l19.7-20c-12.2-12-19.7-28.6-19.7-47.1h-28.1z"/>
+      </defs>
+      <clipPath id="bf">
+        <use xlink:href="#be" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="-6319.736" y1="3313.137" x2="-6318.055" y2="3313.137" gradientTransform="scale(30.1826 -30.1826) rotate(-66.774 -5670.487 -3151.326)">
+        <stop offset="0" stop-color="#00a0d7"/>
+        <stop offset="1" stop-color="#00acdc"/>
+      </linearGradient>
+      <polygon clip-path="url(#bf)" fill="url(#bg)" points="451.9,138.6 483.7,212.6 419,240.3 387.2,166.3"/>
+    </g>
+    <g>
+      <defs>
+        <path id="bh" d="M439.1 222.4c17.2 17.2 41 27.8 67.4 27.6l-.2-28.1h-.6c-18.2 0-34.7-7.4-46.7-19.3l-19.9 19.8z"/>
+      </defs>
+      <clipPath id="bi">
+        <use xlink:href="#bh" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="bj" gradientUnits="userSpaceOnUse" x1="-6195.664" y1="3228.436" x2="-6193.982" y2="3228.436" gradientTransform="scale(35.083 -35.083) rotate(-22.249 -11316.266 -14175.478)">
+        <stop offset="0" stop-color="#00acdc"/>
+        <stop offset=".349" stop-color="#26b6e0"/>
+        <stop offset=".779" stop-color="#50c0e3"/>
+        <stop offset="1" stop-color="#60c4e5"/>
+      </linearGradient>
+      <polygon clip-path="url(#bi)" fill="url(#bj)" points="448.8,179 523.2,209.4 496.8,273.8 422.4,243.4"/>
+    </g>
+    <g>
+      <defs>
+        <path id="bk" d="M552 108.6c8.5 8.3 14.8 18.8 17.8 30.7.1.6 1.2 4.8 1.3 5.9.1.3.1.3.2 1.4.1.7.2 1.5.3 2.2h1.3V89.6c-.5-.5-.9-.9-1.4-1.3L552 108.6z"/>
+      </defs>
+      <clipPath id="bl">
+        <use xlink:href="#bk" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="bm" gradientUnits="userSpaceOnUse" x1="-6332.183" y1="2873.067" x2="-6330.502" y2="2873.067" gradientTransform="scale(-27.4442 27.4442) rotate(-66.949 -5344.917 -3332.949)">
+        <stop offset="0" stop-color="#0077c0"/>
+        <stop offset="1" stop-color="#007ec5"/>
+      </linearGradient>
+      <polygon clip-path="url(#bl)" fill="url(#bm)" points="555.2,156.4 530.2,97.5 569.7,80.7 594.8,139.6"/>
+    </g>
+    <rect x="571.6" y="148.8" fill="#B2B3AD" width="28.1" height="98.3"/>
+    <g>
+      <defs>
+        <rect id="bn" x="571.6" width="28.1" height="148.8"/>
+      </defs>
+      <clipPath id="bp">
+        <use xlink:href="#bn" overflow="visible"/>
+      </clipPath>
+      <defs>
+        <filter id="bo" filterUnits="userSpaceOnUse" x="571.6" y="0" width="28.1" height="148.8">
+          <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/>
+        </filter>
+      </defs>
+      <mask maskUnits="userSpaceOnUse" x="571.6" y="0" width="28.1" height="148.8" id="br">
+        <g filter="url(#bo)">
+          <linearGradient id="bq" gradientUnits="userSpaceOnUse" x1="-6298.483" y1="3035.304" x2="-6296.802" y2="3035.304" gradientTransform="matrix(0 -85.5822 -85.5822 0 260353.547 -538890.875)">
+            <stop offset="0" stop-color="#fff"/>
+            <stop offset=".218" stop-color="#fff"/>
+            <stop offset=".581" stop-color="#fff"/>
+            <stop offset=".619" stop-color="#f9f9f9"/>
+            <stop offset=".672" stop-color="#e7e7e7"/>
+            <stop offset=".733" stop-color="#cacaca"/>
+            <stop offset=".8" stop-color="#a2a2a2"/>
+            <stop offset=".872" stop-color="#6e6e6e"/>
+            <stop offset=".948" stop-color="#303030"/>
+            <stop offset="1" stop-color="#000"/>
+          </linearGradient>
+          <rect x="571.6" y="0" clip-path="url(#bp)" fill="url(#bq)" width="28.1" height="148.8"/>
+        </g>
+      </mask>
+      <linearGradient id="bs" gradientUnits="userSpaceOnUse" x1="-6298.483" y1="3035.304" x2="-6296.802" y2="3035.304" gradientTransform="matrix(0 -85.5822 -85.5822 0 260353.516 -538890.813)">
+        <stop offset="0" stop-color="#0077c0"/>
+        <stop offset=".218" stop-color="#0077c0"/>
+        <stop offset=".325" stop-color="#007dc3"/>
+        <stop offset=".465" stop-color="#008dcc"/>
+        <stop offset=".581" stop-color="#00a0d7"/>
+        <stop offset="1" stop-color="#00a0d7"/>
+      </linearGradient>
+      <rect x="571.6" y="0" clip-path="url(#bp)" mask="url(#br)" fill="url(#bs)" width="28.1" height="148.8"/>
+    </g>
+  </g>
+  <g>
+    <defs>
+      <path id="bt" d="M1101 221.9V250c19.4 0 37.5-5.9 52.4-16l-15.6-23.3c-10.5 7.1-23.2 11.2-36.8 11.2"/>
+    </defs>
+    <clipPath id="bv">
+      <use xlink:href="#bt" overflow="visible"/>
+    </clipPath>
+    <defs>
+      <filter id="bu" filterUnits="userSpaceOnUse" x="1091.4" y="197.9" width="71.6" height="64.8">
+        <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/>
+      </filter>
+    </defs>
+    <mask maskUnits="userSpaceOnUse" x="1091.4" y="197.9" width="71.6" height="64.8" id="bz">
+      <g filter="url(#bu)">
+        <defs>
+          <rect id="bw" x="1096.9" y="204.7" transform="rotate(-14.557 1127.23 230.275)" width="60.6" height="51.2"/>
+        </defs>
+        <clipPath id="bx" clip-path="url(#bv)">
+          <use xlink:href="#bw" overflow="visible"/>
+        </clipPath>
+        <linearGradient id="by" gradientUnits="userSpaceOnUse" x1="-6096.042" y1="3128.282" x2="-6094.361" y2="3128.282" gradientTransform="scale(28.3414 -28.3414) rotate(14.56 9247.972 25570.314)">
+          <stop offset="0" stop-color="#fff"/>
+          <stop offset=".27" stop-color="#fff"/>
+          <stop offset=".333" stop-color="#f4f4f4"/>
+          <stop offset=".446" stop-color="#d5d5d5"/>
+          <stop offset=".595" stop-color="#a4a4a4"/>
+          <stop offset=".774" stop-color="#606060"/>
+          <stop offset=".978" stop-color="#0a0a0a"/>
+          <stop offset="1" stop-color="#000"/>
+        </linearGradient>
+        <polygon clip-path="url(#bx)" fill="url(#by)" points="1075.7,202 1158.5,180.5 1178.8,258.7 1096,280.2"/>
+      </g>
+    </mask>
+    <linearGradient id="bA" gradientUnits="userSpaceOnUse" x1="-6096.042" y1="3128.282" x2="-6094.361" y2="3128.282" gradientTransform="scale(28.3414 -28.3414) rotate(14.56 9247.972 25570.314)">
+      <stop offset="0" stop-color="#60c4e5"/>
+      <stop offset=".27" stop-color="#60c4e5"/>
+      <stop offset="1" stop-color="#60c4e5"/>
+    </linearGradient>
+    <polygon clip-path="url(#bv)" mask="url(#bz)" fill="url(#bA)" points="1091.4,213.2 1150.1,197.9 1163,247.5 1104.3,262.8"/>
+    <defs>
+      <path id="bB" d="M1033.7 89.9l20 19.7c12-12.2 28.6-19.7 47.1-19.7V61.8c-26.3 0-50.1 10.8-67.1 28.1"/>
+    </defs>
+    <clipPath id="bC">
+      <use xlink:href="#bB" overflow="visible"/>
+    </clipPath>
+    <linearGradient id="bD" gradientUnits="userSpaceOnUse" x1="-6110.384" y1="3096.808" x2="-6108.703" y2="3096.808" gradientTransform="scale(30.3834 -30.3834) rotate(23.063 4558.793 16605.586)">
+      <stop offset="0" stop-color="#0095d1"/>
+      <stop offset="1" stop-color="#008ace"/>
+    </linearGradient>
+    <polygon clip-path="url(#bC)" fill="url(#bD)" points="1016.4,69.1 1090.5,37.6 1118,102.3 1044,133.8"/>
+    <g>
+      <defs>
+        <path id="bE" d="M1006.7 156.7l28.1-.2v-.6c0-18.2 7.4-34.7 19.3-46.7l-19.9-19.9c-17.2 17.3-27.7 41.1-27.5 67.4"/>
+      </defs>
+      <clipPath id="bF">
+        <use xlink:href="#bE" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="bG" gradientUnits="userSpaceOnUse" x1="-6174.997" y1="2945.674" x2="-6173.315" y2="2945.674" gradientTransform="scale(29.8113 -29.8113) rotate(67.38 -857.395 6127.238)">
+        <stop offset="0" stop-color="#00a0d7"/>
+        <stop offset="1" stop-color="#0095d1"/>
+      </linearGradient>
+      <polygon clip-path="url(#bF)" fill="url(#bG)" points="982.5,146.8 1013.5,72.4 1078,99.3 1047,173.6"/>
+    </g>
+    <g>
+      <defs>
+        <path id="bH" d="M1006.7 155.9c0 26.3 10.8 50 28.1 67.1l19.7-20c-12.2-12-19.7-28.6-19.7-47.1h-28.1z"/>
+      </defs>
+      <clipPath id="bI">
+        <use xlink:href="#bH" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="bJ" gradientUnits="userSpaceOnUse" x1="-6316.586" y1="3320.478" x2="-6314.905" y2="3320.478" gradientTransform="scale(30.1826 -30.1826) rotate(-66.774 -5664.622 -3160.224)">
+        <stop offset="0" stop-color="#00a0d7"/>
+        <stop offset="1" stop-color="#00acdc"/>
+      </linearGradient>
+      <polygon clip-path="url(#bI)" fill="url(#bJ)" points="1047.1,138.6 1078.8,212.6 1014.1,240.3 982.3,166.3"/>
+    </g>
+    <g>
+      <defs>
+        <path id="bK" d="M1034.2 222.4c17.2 17.2 41 27.8 67.4 27.6l-.2-28.1h-.6c-18.2 0-34.7-7.4-46.7-19.3l-19.9 19.8z"/>
+      </defs>
+      <clipPath id="bL">
+        <use xlink:href="#bK" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="bM" gradientUnits="userSpaceOnUse" x1="-6189.302" y1="3231.038" x2="-6187.621" y2="3231.038" gradientTransform="scale(35.083 -35.083) rotate(-22.249 -11311.22 -14201.137)">
+        <stop offset="0" stop-color="#00acdc"/>
+        <stop offset=".349" stop-color="#26b6e0"/>
+        <stop offset=".779" stop-color="#50c0e3"/>
+        <stop offset="1" stop-color="#60c4e5"/>
+      </linearGradient>
+      <polygon clip-path="url(#bL)" fill="url(#bM)" points="1043.9,179 1118.3,209.4 1091.9,273.8 1017.5,243.4"/>
+    </g>
+    <g>
+      <defs>
+        <path id="bN" d="M1099.9 61.8l.2 28.1h.6c18.1 0 34.6 7.3 46.6 19.2 10.4 10.4 17.5 24.3 19.2 39.8h1.4V89.7l-.2-.2c-.1-.1-.2-.2-.2-.3-17.1-16.8-40.9-27.4-66.7-27.4h-.9"/>
+      </defs>
+      <clipPath id="bO">
+        <use xlink:href="#bN" overflow="visible"/>
+      </clipPath>
+      <linearGradient id="bP" gradientUnits="userSpaceOnUse" x1="-6276.368" y1="3213.229" x2="-6274.686" y2="3213.229" gradientTransform="matrix(39.1159 38.653 38.653 -39.1159 122414.43 368370)">
+        <stop offset="0" stop-color="#008ace"/>
+        <stop offset="1" stop-color="#0077c0"/>
+      </linearGradient>
+      <polygon clip-path="url(#bO)" fill="url(#bP)" points="1133.5,27.8 1211.4,104.8 1134.3,182.8 1056.4,105.8"/>
+    </g>
+    <g>
+      <defs>
+        <rect id="bQ" x="1166.6" y="65.9" width="28.1" height="82.9"/>
+      </defs>
+      <clipPath id="bS">
+        <use xlink:href="#bQ" overflow="visible"/>
+      </clipPath>
+      <defs>
+        <filter id="bR" filterUnits="userSpaceOnUse" x="1166.6" y="65.9" width="28.1" height="82.9">
+          <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/>
+        </filter>
+      </defs>
+      <mask maskUnits="userSpaceOnUse" x="1166.6" y="65.9" width="28.1" height="82.9" id="bU">
+        <g filter="url(#bR)">
+          <linearGradient id="bT" gradientUnits="userSpaceOnUse" x1="-6276.908" y1="2975.343" x2="-6275.227" y2="2975.343" gradientTransform="matrix(0 -47.7197 -47.7197 0 143163.11 -299387.063)">
+            <stop offset="0" stop-color="#fff"/>
+            <stop offset=".793" stop-color="#fff"/>
+            <stop offset="1" stop-color="#000"/>
+          </linearGradient>
+          <rect x="1166.6" y="65.9" clip-path="url(#bS)" fill="url(#bT)" width="28.1" height="82.9"/>
+        </g>
+      </mask>
+      <linearGradient id="bV" gradientUnits="userSpaceOnUse" x1="-6276.908" y1="2975.343" x2="-6275.227" y2="2975.343" gradientTransform="matrix(0 -47.7197 -47.7197 0 143163.094 -299387.063)">
+        <stop offset="0" stop-color="#0077c0"/>
+        <stop offset=".212" stop-color="#0086c8"/>
+        <stop offset=".619" stop-color="#00adde"/>
+        <stop offset=".793" stop-color="#00c0e8"/>
+        <stop offset="1" stop-color="#00c0e8"/>
+      </linearGradient>
+      <rect x="1166.6" y="65.9" clip-path="url(#bS)" mask="url(#bU)" fill="url(#bV)" width="28.1" height="82.9"/>
+    </g>
+    <rect x="1166.6" y="148.8" fill="#B2B3AD" width="28.1" height="98.3"/>
+  </g>
+</svg>

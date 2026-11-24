@@ -12,7 +12,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { combineLatest, Observable, Subscription } from 'rxjs';
-import { startWith } from 'rxjs/operators';
+import { startWith, switchMap } from 'rxjs/operators';
 import { Stockexchange } from '../../entities/stockexchange';
 import { StockexchangeService } from '../../stockexchange/service/stockexchange.service';
 import { AssetclassService } from '../../assetclass/service/assetclass.service';
@@ -42,7 +42,10 @@ import { AppSettings } from '../../shared/app.settings';
 import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TabsModule } from '@openng/optimus-ui/tabs';
+import { SecurityLogoFieldComponent } from './security-logo-field.component';
+import { toSpecialInvestmentInstrumentName } from './instrument-logo.model';
 import { GtnetSecurityLookupDialogComponent } from '../../gtnet/component/gtnet-security-lookup-dialog.component';
 import { SecurityGtnetLookupDTO } from '../../gtnet/model/gtnet-security-lookup';
 import { GtnetSecurityLookupService } from '../../gtnet/service/gtnet-security-lookup.service';
@@ -90,6 +93,14 @@ export function isManualIssuerCountryChange(
         </p-tablist>
         <p-tabpanels>
           <p-tabpanel value="security">
+            <security-logo-field
+              [securityName]="currentSecurityName()"
+              [isin]="currentSecurityIsin()"
+              [productLink]="currentProductLink()"
+              [specialInvestmentInstrument]="currentSpecialInvestmentInstrument()"
+              [isTenantPrivate]="currentIsTenantPrivate()"
+              [dataLoaded]="dataLoaded()"
+              (logoChanged)="onLogoChanged()" />
             <dynamic-form
               [config]="config"
               [formConfig]="formConfig"
@@ -158,8 +169,10 @@ export function isManualIssuerCountryChange(
     SecurityHistoryquotePeriodEditTableComponent,
     GtnetSecurityLookupDialogComponent,
     SecurityLookupDialogComponent,
-    SecurityBondTermsComponent
-  ]
+    SecurityBondTermsComponent,
+    SecurityLogoFieldComponent
+  ],
+  providers: [DialogService]
 })
 export class SecurityEditComponent extends SecuritycurrencyEdit implements OnInit, CallbackValueChanged {
   protected readonly requireFormControl = requireFormControl;
@@ -173,6 +186,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private gtnetSecurityLookupService: GtnetSecurityLookupService = inject(GtnetSecurityLookupService);
 
   readonly bondTerms = viewChild(SecurityBondTermsComponent);
+  readonly logoField = viewChild.required(SecurityLogoFieldComponent);
   // Access child components
   readonly dynamicSplitForm = viewChild.required<DynamicFormComponent>('splitForm');
   readonly seetc = viewChild.required(SecuritysplitEditTableComponent);
@@ -209,8 +223,14 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     Security.canHaveSplitConnector(this.selectedAssetClass(), this.securityEditSupport.hasMarketValue ?? true)
   );
   readonly canEditBondTerms = computed(() => Security.isBondDirectInvestment(this.selectedAssetClass()));
+  readonly currentSpecialInvestmentInstrument = computed(() =>
+    toSpecialInvestmentInstrumentName(this.selectedAssetClass()?.specialInvestmentInstrument)
+  );
   readonly currentSecurityName = signal('');
   readonly currentSecurityCurrency = signal('');
+  readonly currentSecurityIsin = signal<string | null>(null);
+  readonly currentProductLink = signal<string | null>(null);
+  readonly currentIsTenantPrivate = signal<boolean>(false);
 
   /** Visibility flag for GTNet security lookup dialog */
   readonly visibleGtnetLookupDialog = signal(false);
@@ -433,9 +453,15 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     } else {
       security.simulationMetadata = null;
     }
-    this.securityService
-      .update(security)
-      .pipe(this.untilDialogClosed())
+    this.logoField()
+      .prepareLogoIdForSave()
+      .pipe(
+        switchMap((idInstrumentLogo) => {
+          security.idInstrumentLogo = idInstrumentLogo;
+          return this.securityService.update(security);
+        }),
+        this.untilDialogClosed()
+      )
       .subscribe({
         next: (newSecurity) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
@@ -485,7 +511,13 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.dynamicPeriodPriceForm().transferBusinessObjectToForm(historyquotePeriod);
   }
 
+  onLogoChanged(): void {
+    this.dynamicForm().form.markAsDirty();
+    this.dynamicForm().notifier.notify();
+  }
+
   override onHide(event: unknown) {
+    this.logoField().resetState();
     this.securityEditSupport.destroy();
     this.visibleGtnetLookupDialog.set(false);
     this.visibleSecurityLookupDialog.set(false);
@@ -493,6 +525,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.selectedAssetClass.set(null);
     this.currentSecurityName.set('');
     this.currentSecurityCurrency.set('');
+    this.currentSecurityIsin.set(null);
+    this.currentProductLink.set(null);
+    this.currentIsTenantPrivate.set(false);
     this.issuerCountryOverridden = false;
     this.lastIssuerCountryPrefill = null;
     super.onHide(event);
@@ -878,6 +913,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         this.dataLoaded.set(true);
         this.currentSecurityName.set(requireFormControl(this.configObject.name).value ?? '');
         this.currentSecurityCurrency.set(requireFormControl(this.configObject.currency).value ?? '');
+        this.currentSecurityIsin.set(requireFormControl(this.configObject.isin).value ?? null);
+        this.currentProductLink.set(requireFormControl(this.configObject.productLink).value ?? null);
+        this.currentIsTenantPrivate.set(!!isPrivatePaper);
         this.issuerCountryOverridden = !!(<Security>this.securityCurrencypairCallParam())?.issuerCountry;
         this.disableEnableInputForExisting();
         const assetClass = this.securityEditSupport.disableEnableFieldsOnAssetclass(
@@ -888,6 +926,10 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         this.applySimulationFieldAvailability(assetClass);
         this.prefillIssuerCountryFromIsin(requireFormControl(this.configObject.isin).value);
         this.securityEditSupport.setPrivatePaper(SecurityDerived.Security, isPrivatePaper, this.configObject);
+        this.logoField().initializeForEntity(
+          <Security>securityCurrencypairCallParamValue,
+          this.proposeChangeEntityWithEntity()
+        );
 
         // Check for accessible GTNet peers and show lookup button if available
         this.checkGtnetLookupAvailability();
@@ -961,7 +1003,16 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private valueChangedOnIssuerAndNameFields(): void {
     requireFormControl(this.configObject.isin)
       .valueChanges.pipe(this.untilDialogClosed())
-      .subscribe((isin) => this.prefillIssuerCountryFromIsin(isin));
+      .subscribe((isin) => {
+        this.currentSecurityIsin.set(isin ?? null);
+        this.prefillIssuerCountryFromIsin(isin);
+      });
+    requireFormControl(this.configObject.productLink)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((productLink) => this.currentProductLink.set(productLink ?? null));
+    requireFormControl(this.configObject.isTenantPrivate)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((isPrivate) => this.currentIsTenantPrivate.set(!!isPrivate));
     requireFormControl(this.configObject.issuerCountry)
       .valueChanges.pipe(this.untilDialogClosed())
       .subscribe((issuerCountry) => {

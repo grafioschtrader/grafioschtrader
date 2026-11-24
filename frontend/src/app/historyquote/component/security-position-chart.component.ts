@@ -330,7 +330,7 @@ export class SecurityPositionChartComponent implements IGlobalMenuAttach, OnDest
   callMeDeactivate(): void {}
 
   getHelpContextId(): string {
-    return HelpIds.HELP_WATCHLIST_HISTORYQUOTES_CHART;
+    return HelpIds.HELP_WATCHLIST_POSITION_CHART;
   }
 
   ngOnDestroy(): void {

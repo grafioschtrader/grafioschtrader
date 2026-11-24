@@ -108,3 +108,6 @@ GERMAN_TAX_COL_DETAIL
 gt.report.chart.scope.portfolio
 POSITION_EVENT_LETTER_FINANCE_COST
 ADMINISTRATOR
+# "Logo" is identical in English and German.
+LOGO
+id.instrument.logo

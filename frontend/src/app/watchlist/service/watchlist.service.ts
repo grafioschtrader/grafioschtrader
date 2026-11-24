@@ -66,12 +66,15 @@ export class WatchlistService
   }
 
   getWatchlistWithoutUpdate(idWatchlist: number): Observable<SecuritycurrencyGroup> {
-    return this.httpClient
-      .get<SecuritycurrencyGroup>(
-        `${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`,
-        this.getHeaders()
-      )
-      .pipe(catchError(this.handleError.bind(this)));
+    const { url, headers } = this.getWatchlistWithoutUpdateRequest(idWatchlist);
+    return this.httpClient.get<SecuritycurrencyGroup>(url, { headers }).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  getWatchlistWithoutUpdateRequest(idWatchlist: number) {
+    return {
+      url: `${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`,
+      headers: this.prepareHeaders()
+    } satisfies HttpResourceRequest;
   }
 
   getWatchlistWithUDFData(idWatchlist: number): Observable<SecuritycurrencyUDFGroup> {

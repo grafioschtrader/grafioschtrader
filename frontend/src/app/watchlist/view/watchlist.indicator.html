@@ -78,7 +78,9 @@
     <!-- Icon cell without drag-and-drop. The tooltip spells out what the icon means, the cell value itself is only the
          short yes or no the column sorts and filters on. -->
     <ng-template #svgIconCell let-row let-field="field" let-value="value">
-      @if (getDistributionIcon(row); as iconName) {
+      @if (field.field === 'companyLogo') { @if (value) {
+      <img class="watchlist-logo-preview" [src]="value" width="36" height="16" alt="" />
+      } } @else if (getDistributionIcon(row); as iconName) {
       <svg-icon
         [name]="iconName"
         [pTooltip]="'DISTRIBUTION_HEADER_TOOLTIP' | translate"

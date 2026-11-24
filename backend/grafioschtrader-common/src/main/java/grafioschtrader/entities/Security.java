@@ -28,6 +28,7 @@ import grafiosch.validation.AfterEqual;
 import grafiosch.validation.DateRange;
 import grafiosch.validation.WebUrl;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.dto.InstrumentLogoRefDto;
 import grafioschtrader.entities.projection.IFormulaInSecurity;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;
@@ -191,6 +192,11 @@ public class Security extends Securitycurrency<Security>
   @PropertyAlwaysUpdatable
   private Byte fundTaxClass;
 
+  @Schema(description = "Optional explicit reference to a shared instrument_logo entry; null uses automatic resolution")
+  @Column(name = "id_instrument_logo")
+  @PropertyAlwaysUpdatable
+  private Integer idInstrumentLogo;
+
   @Schema(description = """
       Certain instruments are short and may still be leveraged, this is mapped with this.
       Used, for example, to correctly calculate the equity ratio for the portfolio.""")
@@ -286,6 +292,11 @@ public class Security extends Securitycurrency<Security>
   @Schema(description = "Price for history quote period")
   @Transient
   private Double price;
+
+  @Schema(description = "Backend-resolved company or issuer logo metadata for display")
+  @Transient
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  private InstrumentLogoRefDto resolvedLogo;
 
   public Security() {
     super();
@@ -491,9 +502,8 @@ public class Security extends Securitycurrency<Security>
    */
   @JsonIgnore
   public boolean isSimulationCouponRateMissing() {
-    return getAssetClass() != null && isBondDirectInvestment()
-        && (simulationMetadata == null || simulationMetadata.getBondTerms() == null
-            || simulationMetadata.getBondTerms().getCouponRate() == null);
+    return getAssetClass() != null && isBondDirectInvestment() && (simulationMetadata == null
+        || simulationMetadata.getBondTerms() == null || simulationMetadata.getBondTerms().getCouponRate() == null);
   }
 
   @JsonIgnore
@@ -754,6 +764,22 @@ public class Security extends Securitycurrency<Security>
   @Override
   public boolean hasAdditionalRights(User user) {
     return this.getIdTenantPrivate() != null && this.getIdTenantPrivate().equals(user.getIdTenant());
+  }
+
+  public Integer getIdInstrumentLogo() {
+    return idInstrumentLogo;
+  }
+
+  public void setIdInstrumentLogo(Integer idInstrumentLogo) {
+    this.idInstrumentLogo = idInstrumentLogo;
+  }
+
+  public InstrumentLogoRefDto getResolvedLogo() {
+    return resolvedLogo;
+  }
+
+  public void setResolvedLogo(InstrumentLogoRefDto resolvedLogo) {
+    this.resolvedLogo = resolvedLogo;
   }
 
 }

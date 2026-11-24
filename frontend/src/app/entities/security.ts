@@ -8,6 +8,7 @@ import { Securitysplit } from './dividend.split';
 import { AssetclassType } from '../shared/types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../shared/types/special.investment.instruments';
 import { DistributionFrequency } from '../shared/types/distribution.frequency';
+import type { InstrumentLogoRefDto } from '../shared/securitycurrency/instrument-logo.model';
 
 export class Security extends Securitycurrency implements BaseID {
   currency?: string | null = null;
@@ -18,6 +19,8 @@ export class Security extends Securitycurrency implements BaseID {
   denomination?: number | null = null;
   stockexchange?: Stockexchange | null = null;
   productLink?: string | null = null;
+  idInstrumentLogo?: number | null = null;
+  resolvedLogo?: InstrumentLogoRefDto | null = null;
   idTenantPrivate?: number | null = null;
   activeFromDate: string | number | Date | null = null;
   activeToDate: string | number | Date | null = null;

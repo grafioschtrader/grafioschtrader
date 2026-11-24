@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   width="273.25104"
+   height="273.20969"
+   viewBox="0 0 218.60083 218.56775"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg2"
+   inkscape:version="0.48.5 r10040"
+   sodipodi:docname="260px_Tokai_Carbon_Logo.svg">
+  <defs
+     id="defs12" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1280"
+     inkscape:window-height="972"
+     id="namedview10"
+     showgrid="false"
+     fit-margin-top="5"
+     fit-margin-bottom="5"
+     fit-margin-right="5"
+     fit-margin-left="5"
+     inkscape:zoom="1"
+     inkscape:cx="98.949551"
+     inkscape:cy="159.87185"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <metadata
+     id="metadata4">
+Created by potrace 1.13, written by Peter Selinger 2001-2015
+<rdf:RDF>
+  <cc:Work
+     rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type
+       rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+    <dc:title></dc:title>
+  </cc:Work>
+</rdf:RDF>
+</metadata>
+  <g
+     transform="matrix(0.10000012,0,0,-0.10000012,-22.699209,239.74138)"
+     id="g6"
+     style="fill:#e5012c;fill-opacity:1;stroke:none">
+    <path
+       d="M 1130,2345 C 801,2283 525,2075 375,1775 293,1611 268,1503 267,1315 266,1011 356,786 563,573 886,240 1370,158 1785,364 c 325,162 538,465 581,829 l 6,58 -108,-3 -113,-1 -12,-87 C 2109,984 2027,838 1910,720 1805,613 1681,540 1534,498 1430,469 1219,466 1121,493 967,535 863,592 753,694 631,808 562,918 513,1077 c -49.08846,188.4502 -30.68094,407.8514 42,570 94,204 250,354 457,436 183,74 410,76 597,7 194,-73 362,-225 455,-414 42,-84 86,-202 86,-283 l 0,-23 -304,0 c -167,0 -311,3 -320,6 -9,3 -16,12 -16,20 0,8 47,108 105,224 57,115 101,212 96,215 -5,3 -60,-21 -123,-54 -62,-32 -273,-141 -468,-241 -195,-100 -364,-188 -375,-194 -16,-9 10,-12 125,-16 139,-5 145,-6 148,-26 2,-12 -29,-85 -69,-162 -80,-157 -92,-207 -64,-265 27,-57 73,-80 148,-75 54,4 101,23 367,146 168,78 313,151 323,163 21,20.5 33,67 23,76 -3,4 -62,-19 -129,-50 -153,-70 -178,-76 -206,-48 -12,12 -21,34 -21,50 0,43 65,165 95,179 19,9 150,12 457,12 l 431,0 -7,76 c -40,437 -356,809 -784,921 -122,32 -335,40 -452,18 z"
+       id="path8"
+       style="fill:#e5012c;fill-opacity:1"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cscccccccccccccccccscssscscsccccccccccsscscccc" />
+  </g>
+</svg>

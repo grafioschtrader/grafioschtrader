@@ -100,6 +100,9 @@ public interface RequestGTMappings {
   public static final String IMPORTTRANSACTIONTEMPLATE = "importtransactiontemplate";
   public static final String IMPORTTRANSACTIONTEMPLATE_MAP = RequestMappings.API + IMPORTTRANSACTIONTEMPLATE;
 
+  public static final String INSTRUMENT_LOGO = "instrumentlogo";
+  public static final String INSTRUMENT_LOGO_MAP = RequestMappings.API + INSTRUMENT_LOGO;
+
   public static final String BANKRUPTSECURITY = "bankruptsecurity";
   public static final String BANKRUPTSECURITY_MAP = RequestMappings.API + BANKRUPTSECURITY;
 

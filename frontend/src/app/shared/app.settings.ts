@@ -23,6 +23,7 @@ export class AppSettings {
   public static readonly IMPORT_TRANSACTION_PLATFORM = 'ImportTransactionPlatform';
   public static readonly IMPORT_TRANSACTION_POS = 'ImportTransactionPos';
   public static readonly IMPORT_TRANSACTION_TEMPLATE = 'ImportTransactionTemplate';
+  public static readonly INSTRUMENT_LOGO = 'InstrumentLogo';
 
   public static readonly PORTFOLIO = 'Portfolio';
 
@@ -79,6 +80,7 @@ export class AppSettings {
   public static readonly MULTIPLE_REQUEST_TO_ONE_KEY = 'multiplerequesttoone';
   public static readonly STOCKEXCHANGE_KEY = AppSettings.STOCKEXCHANGE.toLowerCase();
   public static readonly SECURITY_KEY = AppSettings.SECURITY.toLowerCase();
+  public static readonly INSTRUMENT_LOGO_KEY = AppSettings.INSTRUMENT_LOGO.toLowerCase();
   public static readonly SECURITY_SPLIT_KEY = AppSettings.SECURITY_SPLIT.toLowerCase();
   public static readonly SECURITYACCOUNT_KEY = AppSettings.SECURITYACCOUNT.toLowerCase();
   public static readonly TRADING_CALENDAR_GLOBAL_KEY = 'tradingcalendarglobal';

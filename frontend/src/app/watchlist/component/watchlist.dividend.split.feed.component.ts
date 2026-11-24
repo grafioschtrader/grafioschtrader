@@ -33,6 +33,7 @@ import { AlgoStrategyEditComponent } from '../../algo/component/algo-strategy-ed
 import { WatchlistAddEditPriceProblemInstrumentComponent } from './watchlist-add-edit-price-problem-instrument.component';
 import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
 import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-general-edit.component';
+import { WATCHLIST_LOGO_CELL_STYLE } from '../../shared/securitycurrency/instrument-logo.model';
 
 /**
  * Angular component for displaying and managing watchlist dividend and split feed data.
@@ -46,6 +47,7 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
       .cell-move {
         cursor: move !important;
       }
+      ${WATCHLIST_LOGO_CELL_STYLE}
 
       table {
         border: 1px solid #555;

@@ -189,6 +189,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Autowired
   private SecurityFundamentalJpaRepository securityFundamentalJpaRepository;
 
+  @Autowired
+  private InstrumentLogoJpaRepository instrumentLogoJpaRepository;
+
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
@@ -971,6 +974,10 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     Security cloneSecurity = null;
     if (security.getIdTenantPrivate() != null && !user.getIdTenant().equals(security.getIdTenantPrivate())) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+    if (security.getIdInstrumentLogo() != null
+        && !instrumentLogoJpaRepository.existsById(security.getIdInstrumentLogo())) {
+      throw new DataViolationException("id.instrument.logo", "gt.logo.not.found", null);
     }
     checkAssetclassAndSpezInstrumentForExisting(security, existingSecurity);
     checkStockexchangeCategoryForExisting(security, existingSecurity);

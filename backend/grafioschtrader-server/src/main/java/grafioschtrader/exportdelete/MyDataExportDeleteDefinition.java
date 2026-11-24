@@ -39,6 +39,7 @@ import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.ImportTransactionPosFailed;
 import grafioschtrader.entities.ImportTransactionTemplate;
+import grafioschtrader.entities.InstrumentLogo;
 import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.RiskFreeRateMapping;
@@ -412,6 +413,10 @@ public class MyDataExportDeleteDefinition {
           ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
       // Asset classes is fully exported but data owner must be changed too user
       new ExportDefinition(Assetclass.TABNAME, TENANT_USER.NONE, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
+      // Shared company/issuer logo catalog — exported before security so security.id_instrument_logo FKs hold on
+      // re-import; on account deletion rows stay shared and created_by is reassigned to the system user.
+      new ExportDefinition(InstrumentLogo.TABNAME, TENANT_USER.NONE, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
       new ExportDefinition(SecurityAction.TABNAME, TENANT_USER.NONE, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),

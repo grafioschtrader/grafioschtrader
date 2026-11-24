@@ -69,4 +69,5 @@ SELECT 0, x.entity_name, x.relation_entity_name, x.count_scope, x.owner_scope,
         UNION ALL SELECT 'MailSendRecv',              NULL,               NULL, 2, NULL,   2000
         UNION ALL SELECT 'ProposeUserTask',           NULL,               NULL, 2, NULL,    100
         UNION ALL SELECT 'ManagedClient',             NULL,               NULL, 0, NULL,     20
+        UNION ALL SELECT 'InstrumentLogo',            NULL,               NULL, 2, NULL,    100
   ) x;

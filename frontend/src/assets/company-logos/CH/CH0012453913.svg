@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg2"
+   width="246.10919"
+   height="39.482265"
+   viewBox="0 0 246.10919 39.482265"
+   sodipodi:docname="Temenos Logo 2022.svg"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs6">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath18">
+      <path
+         d="M 0,841.89 H 595.276 V 0 H 0 Z"
+         id="path16" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath26">
+      <path
+         d="m 45.355,801.144 h 41.953 v 6.73 H 45.355 Z"
+         id="path24" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath46">
+      <path
+         d="M 0,0 H 595.276 V 841.89 H 0 Z"
+         id="path44" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath64">
+      <path
+         d="M 0,841.89 H 595.276 V 0 H 0 Z"
+         id="path62" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath76">
+      <path
+         d="M 0,0 H 595.275 V 841.89 H 0 Z"
+         id="path74" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath86">
+      <path
+         d="M 0,369.518 H 368.859 V 841.89 H 0 Z"
+         id="path84" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath106">
+      <path
+         d="M 45.355,34.451 H 229.938 V 64.063 H 45.355 Z"
+         id="path104" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     showgrid="false"
+     inkscape:zoom="4.1020911"
+     inkscape:cx="104.09325"
+     inkscape:cy="21.574363"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g8" />
+  <g
+     id="g8"
+     inkscape:groupmode="layer"
+     inkscape:label="Temenos-Interim-Report-2022-0c2p2ni8i"
+     transform="matrix(1.3333333,0,0,-1.3333333,-60.473332,85.417331)">
+    <g
+       id="g100"
+       style="fill:#293276;fill-opacity:1">
+      <g
+         id="g102"
+         clip-path="url(#clipPath106)"
+         style="fill:#293276;fill-opacity:1">
+        <g
+           id="g108"
+           transform="translate(55.0929,58.2003)"
+           style="fill:#293276;fill-opacity:1">
+          <path
+             d="M 0,0 H 7.063 V -4.221 H 0 v -11.224 c 0,-2.18 1.358,-3.433 3.622,-3.433 1.087,0 2.219,0.278 3.034,0.742 v -4.546 c -1.358,-0.649 -3.215,-1.067 -4.935,-1.067 -4.845,0 -7.698,2.783 -7.698,7.515 V -4.221 H -9.739 V 0 h 3.762 V 5.863 H 0 Z m 81.686,-9.829 c 0.456,3.756 2.383,5.701 5.36,5.701 2.934,0 4.86,-1.945 5.273,-5.701 z m 16.416,0 H 98.1 c -0.619,6.537 -4.651,10.293 -11.054,10.293 -7.063,0 -11.229,-4.453 -11.229,-12.106 0,-7.607 4.166,-12.107 11.229,-12.107 6.021,0 10.136,3.106 11.078,8.404 h -5.833 c -0.685,-2.336 -2.574,-3.766 -5.245,-3.766 -2.963,0 -4.887,2.722 -5.347,6.491 h 16.486 v 0.978 c 0,0.602 -0.028,1.182 -0.08,1.744 z m -82.887,0 c 0.456,3.756 2.382,5.701 5.36,5.701 2.934,0 4.86,-1.945 5.273,-5.701 z m 16.416,0 H 31.628 C 31.01,-3.292 26.977,0.464 20.575,0.464 c -7.064,0 -11.229,-4.453 -11.229,-12.106 0,-7.607 4.165,-12.107 11.229,-12.107 6.021,0 10.136,3.106 11.077,8.404 H 25.82 c -0.685,-2.336 -2.574,-3.766 -5.245,-3.766 -2.964,0 -4.887,2.722 -5.347,6.491 h 16.486 v 0.978 c 0,0.602 -0.029,1.183 -0.08,1.744 z m 92.137,0.738 v -14.194 h -5.977 v 13.916 c 0,3.153 -1.63,5.009 -4.438,5.009 -3.169,0 -5.025,-2.365 -5.025,-6.308 v -12.617 h -5.977 V 0 h 5.977 v -5.893 l -0.008,-2.08 c 0.583,4.193 3.428,8.437 7.479,8.437 5.026,0 7.969,-3.526 7.969,-9.555 m -51.937,0.232 v -14.426 h -5.976 v 14.147 c 0,3.016 -1.585,4.778 -4.257,4.778 -2.988,0 -4.754,-2.273 -4.754,-6.076 v -12.849 h -5.977 v 14.147 c 0,3.016 -1.54,4.778 -4.211,4.778 -3.033,0 -4.8,-2.273 -4.8,-6.076 V -23.285 H 35.88 V 0 h 5.976 v -5.893 l -0.018,-2.08 c 0.562,4.201 3.409,8.437 7.445,8.437 4.182,0 6.855,-2.249 7.438,-6.357 l 0.076,-2.08 c 0.536,4.201 3.292,8.437 7.247,8.437 4.889,0 7.787,-3.433 7.787,-9.323 m 103.013,-7.236 c 0,-4.778 -3.848,-7.653 -10.323,-7.653 -6.52,0 -10.323,2.968 -10.323,8.024 h 5.569 c 0,-2.598 1.766,-4.128 4.754,-4.128 2.897,0 4.573,1.113 4.573,3.061 0,2.459 -2.671,2.922 -5.66,3.433 -3.939,0.649 -8.648,1.437 -8.648,6.771 0,4.406 3.622,7.051 9.735,7.051 6.067,0 9.69,-2.829 9.69,-7.654 h -5.57 c 0,2.459 -1.494,3.85 -4.12,3.85 -2.49,0 -3.985,-1.02 -3.985,-2.736 0,-2.087 2.491,-2.505 5.389,-3.015 4.029,-0.696 8.919,-1.531 8.919,-7.004 m -35.227,-2.783 c -3.623,0 -5.751,2.69 -5.751,7.235 0,4.547 2.128,7.283 5.751,7.283 3.622,0 5.75,-2.736 5.75,-7.283 0,-4.545 -2.128,-7.235 -5.75,-7.235 m 0,19.342 c -7.426,0 -11.864,-4.499 -11.864,-12.107 0,-7.606 4.438,-12.106 11.864,-12.106 7.425,0 11.817,4.5 11.817,12.106 0,7.608 -4.392,12.107 -11.817,12.107"
+             style="fill:#293276;fill-opacity:1;fill-rule:nonzero;stroke:none"
+             id="path110" />
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

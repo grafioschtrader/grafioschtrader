@@ -73,6 +73,7 @@ import grafioschtrader.repository.GTNetSupplierDetailLastJpaRepository;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
+import grafioschtrader.service.InstrumentLogoService;
 import grafioschtrader.task.exec.GTNetExchangeSyncTask;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SeasonalPeriodType;
@@ -122,6 +123,9 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
+  @Autowired
+  private InstrumentLogoService instrumentLogoService;
+
   @Operation(summary = "Returns a security by its Id", description = "Only public securities and the user private security will be returned", tags = {
       Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
@@ -129,6 +133,9 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Security security = securityJpaRepository
         .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(idSecuritycurrency, user.getIdTenant());
+    if (security != null) {
+      security.setResolvedLogo(instrumentLogoService.resolve(security));
+    }
     return new ResponseEntity<>(security, HttpStatus.OK);
   }
 
@@ -301,8 +308,8 @@ public class SecurityResource extends UpdateCreateResource<Security> {
       scope the chart was opened for. The SVG is checked strictly before it is rendered.
       """, tags = { Security.TABNAME })
   @PostMapping(value = "/chart/pdf", consumes = APPLICATION_JSON_VALUE)
-  public void getChartPdf(@Valid @RequestBody final SecurityChartPdfRequest request,
-      final HttpServletResponse response) throws Exception {
+  public void getChartPdf(@Valid @RequestBody final SecurityChartPdfRequest request, final HttpServletResponse response)
+      throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final SecurityChartPdfService.Result result = securityChartPdfService.generate(user.getIdTenant(), request,
         ClientClock.today());

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="56.909702"
+   height="31.047974"
+   viewBox="0 0 56.909702 31.047974"
+   fill="none"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="Eni_wordmark.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="8.1330275"
+     inkscape:cx="43.280316"
+     inkscape:cy="26.005076"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g3" />
+  <g
+     clip-path="url(#clip0_4411_7693)"
+     id="g3"
+     transform="translate(9.7656177e-4,-4.02661)">
+    <path
+       d="M 20.056831,25.876089 H 5.0720661 c 0.6996094,2.957543 3.1798136,4.932602 6.9203129,4.932602 2.414543,0 4.306278,-0.765237 5.834311,-2.333657 l 2.69736,3.098894 c -1.932122,2.293384 -4.950244,3.500655 -8.652943,3.500655 -7.2789092,0 -11.96906229,-4.725566 -11.87056156925,-11.229142 C 0.09146923,17.874768 5.0165013,13.11392 10.987163,13.060885 c 6.339355,-0.05559 10.984148,4.478031 10.984148,10.933565 0,1.608918 -0.606243,1.879086 -1.91448,1.879086 z M 5.0215606,22.105266 H 17.13213 c -0.439482,-2.833831 -2.725208,-5.018481 -6.023708,-5.018481 -3.2985319,0 -5.5488983,2.078579 -6.0868614,5.018481 z M 46.591389,22.479065 V 34.794206 H 41.56026 V 23.123142 c 0,-3.823858 -1.891735,-5.675207 -5.111902,-5.675207 -3.581427,0 -5.99597,2.172112 -5.99597,6.478389 v 10.86533 H 25.421259 V 13.303315 h 1.166885 c 2.328665,0 3.621813,1.242665 3.621813,2.775691 1.649306,-1.972508 4.265892,-3.018121 7.405286,-3.018121 5.149736,0 8.973595,2.937349 8.973595,9.415627 z M 50.791596,6.8932273 c 0,-1.6063109 1.300693,-2.8666173 3.058509,-2.8666173 1.757928,0 3.058621,1.1845261 3.058621,2.7529688 0,1.6820913 -1.262859,2.9828067 -3.058621,2.9828067 -1.795762,0 -3.058509,-1.2628362 -3.058509,-2.8666285 z m 0.522806,6.4100877 h 1.027863 c 2.490323,0 4.003266,0.924454 4.003266,2.657084 v 18.831255 h -5.031129 z"
+       fill="url(#paint1_linear_4411_7693)"
+       id="path3"
+       style="fill:url(#paint1_linear_4411_7693);stroke-width:1.10952" />
+  </g>
+  <defs
+     id="defs6">
+    <linearGradient
+       id="paint0_linear_4411_7693"
+       x1="61.944302"
+       y1="14.5003"
+       x2="101.496"
+       y2="37.3344"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0.2"
+         stop-color="#FAB600"
+         id="stop3" />
+      <stop
+         offset="0.8"
+         stop-color="#FFCC00"
+         id="stop4" />
+    </linearGradient>
+    <linearGradient
+       id="paint1_linear_4411_7693"
+       x1="50.405602"
+       y1="-0.139112"
+       x2="1.90343"
+       y2="48.363098"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.1095223,0,0,1.1095223,1.069553e-4,-0.44100349)">
+      <stop
+         offset="0.25"
+         stop-color="#FAB600"
+         id="stop5" />
+      <stop
+         offset="0.75"
+         stop-color="#FFCC00"
+         id="stop6" />
+    </linearGradient>
+    <clipPath
+       id="clip0_4411_7693">
+      <rect
+         width="103.449"
+         height="40"
+         fill="#ffffff"
+         id="rect6"
+         x="0"
+         y="0" />
+    </clipPath>
+  </defs>
+</svg>

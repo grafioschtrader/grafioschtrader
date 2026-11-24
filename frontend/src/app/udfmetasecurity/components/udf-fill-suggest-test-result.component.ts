@@ -33,8 +33,7 @@ import { UDFMetadataSecurityService } from '../service/udf.metadata.security.ser
           @let r = results().get(c.idSecuritycurrency);
           @if (r) {
             <li>
-              <b>{{ c.name }}</b
-              >: {{ 'UDF_FILL_TEST_LLM_' + r.outcome | translate }}
+              <b>{{ c.name }}</b>: {{ 'UDF_FILL_TEST_LLM_' + r.outcome | translate }}
               @if (r.value) {
                 &mdash; <i>{{ r.value }}</i>
               }

@@ -25,6 +25,7 @@ import { SecuritycurrencySearchAndSetDialogComponent } from './securitycurrency-
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { combineLatest, Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { Stockexchange } from '../../entities/stockexchange';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { Assetclass } from '../../entities/assetclass';
@@ -51,6 +52,9 @@ import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.ser
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
+import { Helper } from '../../lib/helper/helper';
+import { SecurityLogoFieldComponent } from '../../shared/securitycurrency/security-logo-field.component';
+import { toSpecialInvestmentInstrumentName } from '../../shared/securitycurrency/instrument-logo.model';
 
 /**
  * To create a derived instrument a base instrument is required. Additionally, a formula can be added. Prices depend on other instrument,
@@ -66,6 +70,14 @@ import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialo
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">
+      <security-logo-field
+        [securityName]="currentSecurityName()"
+        [isin]="null"
+        [productLink]="currentProductLink()"
+        [specialInvestmentInstrument]="currentSpecialInvestmentInstrument()"
+        [isTenantPrivate]="currentIsTenantPrivate()"
+        [dataLoaded]="dataLoaded()"
+        (logoChanged)="onLogoChanged()" />
       <dynamic-form
         [config]="formFields()"
         [formConfig]="formConfig"
@@ -74,7 +86,7 @@ import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialo
         (submitBt)="submit($event)" />
     </p-dialog>
   `,
-  imports: [TranslateModule, DialogModule, DynamicFormComponent],
+  imports: [TranslateModule, DialogModule, DynamicFormComponent, SecurityLogoFieldComponent],
   providers: [DialogService]
 })
 export class SecurityDerivedEditComponent extends SimpleFormEditBase implements OnInit {
@@ -92,6 +104,13 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
 
   // Access child components
   readonly dynamicForm = viewChild.required(DynamicFormComponent);
+  readonly logoField = viewChild.required(SecurityLogoFieldComponent);
+
+  readonly dataLoaded = signal(false);
+  readonly currentSecurityName = signal('');
+  readonly currentProductLink = signal<string | null>(null);
+  readonly currentSpecialInvestmentInstrument = signal<string | null>(null);
+  readonly currentIsTenantPrivate = signal<boolean>(false);
 
   readonly derivedData = 'DERIVED_DATA';
   supplementCriteria: SupplementCriteria;
@@ -243,9 +262,15 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
     }
     this.translateFormulaFromUserLanguage(security);
     this.setSecurityDerivedLinks(security);
-    this.securityService
-      .update(security)
-      .pipe(this.untilDialogClosed())
+    this.logoField()
+      .prepareLogoIdForSave()
+      .pipe(
+        switchMap((idInstrumentLogo) => {
+          security.idInstrumentLogo = idInstrumentLogo;
+          return this.securityService.update(security);
+        }),
+        this.untilDialogClosed()
+      )
       .subscribe({
         next: (newSecurity) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
@@ -262,7 +287,18 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
       });
   }
 
+  onLogoChanged(): void {
+    this.dynamicForm().form.markAsDirty();
+    this.dynamicForm().notifier.notify();
+  }
+
   override onHide(event: unknown): void {
+    this.logoField().resetState();
+    this.dataLoaded.set(false);
+    this.currentSecurityName.set('');
+    this.currentProductLink.set(null);
+    this.currentSpecialInvestmentInstrument.set(null);
+    this.currentIsTenantPrivate.set(false);
     this.securityEditSupport.destroy();
     this.pendingRender?.destroy();
     super.onHide(event);
@@ -318,10 +354,52 @@ export class SecurityDerivedEditComponent extends SimpleFormEditBase implements 
           this.form(),
           this.proposeChangeEntityWithEntity()
         );
+        this.valueChangedOnLogoFields();
+        this.syncLogoFieldInputs(securityCallParamValue);
+        this.dataLoaded.set(true);
+        this.logoField().initializeForEntity(securityCallParamValue, this.proposeChangeEntityWithEntity());
         securityCallParamValue &&
           this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[idxDerivedLinks]);
         this.disableEnableInputForExisting(!!securityCallParamValue);
       });
+  }
+
+  private valueChangedOnLogoFields(): void {
+    requireFormControl(this.configObject.name)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe((name) => this.currentSecurityName.set(name ?? ''));
+    if (this.configObject.productLink?.formControl) {
+      this.configObject.productLink.formControl.valueChanges
+        .pipe(this.untilDialogClosed())
+        .subscribe((productLink) => this.currentProductLink.set(productLink ?? null));
+    }
+    requireFormControl(this.configObject.assetClass)
+      .valueChanges.pipe(this.untilDialogClosed())
+      .subscribe(() => {
+        const assetClass = Helper.getReferencedDataObject(this.configObject.assetClass, null) as Assetclass | undefined;
+        this.currentSpecialInvestmentInstrument.set(
+          toSpecialInvestmentInstrumentName(assetClass?.specialInvestmentInstrument)
+        );
+      });
+    if (this.configObject.isTenantPrivate?.formControl) {
+      this.configObject.isTenantPrivate.formControl.valueChanges
+        .pipe(this.untilDialogClosed())
+        .subscribe((isPrivate) => this.currentIsTenantPrivate.set(!!isPrivate));
+    }
+  }
+
+  private syncLogoFieldInputs(existingSecurity: Security | null | undefined): void {
+    this.currentSecurityName.set(requireFormControl(this.configObject.name).value ?? '');
+    this.currentProductLink.set(this.configObject.productLink?.formControl?.value ?? null);
+    const assetClass = Helper.getReferencedDataObject(this.configObject.assetClass, null) as Assetclass | undefined;
+    this.currentSpecialInvestmentInstrument.set(
+      toSpecialInvestmentInstrumentName(
+        assetClass?.specialInvestmentInstrument ?? existingSecurity?.assetClass?.specialInvestmentInstrument
+      )
+    );
+    this.currentIsTenantPrivate.set(
+      !!(this.configObject.isTenantPrivate?.formControl?.value ?? existingSecurity?.idTenantPrivate != null)
+    );
   }
 
   private addInvestmentInstrumentFieldRow(): void {

@@ -39,6 +39,7 @@ import {
   indicatorTooltip
 } from '../model/watchlist-indicator.display';
 import { WatchlistIndicatorExpandedComponent } from './watchlist-indicator-expanded.component';
+import { WATCHLIST_LOGO_CELL_STYLE } from '../../shared/securitycurrency/instrument-logo.model';
 import { Currencypair } from '../../entities/currencypair';
 import { Security } from '../../entities/security';
 import type { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
@@ -49,6 +50,7 @@ import type { SecuritycurrencyPosition } from '../../entities/view/securitycurre
       .cell-move {
         cursor: move !important;
       }
+      ${WATCHLIST_LOGO_CELL_STYLE}
     `
   ],
   providers: [DialogService],

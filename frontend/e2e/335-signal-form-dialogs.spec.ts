@@ -275,26 +275,26 @@ test('connector inclusion and exclusion trees follow the selected geography', as
   await menu.getByRole('menuitem', { name: /^(Create|Erstellen).*Connector/i }).click();
   const dialog = page.locator('generic-connector-def-edit .p-dialog');
   const inclusions = dialog.locator('#geoInclusions');
-  await expect(inclusions).toBeVisible();
-  await inclusions.click();
-  const overlay = page.locator('.p-treeselect-overlay:visible');
-  const country = overlay.locator('.p-tree-node-content').first();
+  await inclusions.getByRole('button', { name: 'treeselect trigger' }).click();
+  const inclusionOverlay = inclusions.locator('.p-treeselect-overlay');
+  const country = inclusionOverlay.locator('.p-tree-node-content').first();
   const label = await country.locator('.p-tree-node-label').innerText();
   await country.locator('.p-checkbox').click();
-  await inclusions.click();
-  await expect(inclusions).toContainText(label);
+  await dialog.locator('.p-dialog-title').click();
+  await expect(inclusionOverlay).toBeHidden();
+  await expect(inclusions.locator('.p-treeselect-label')).toContainText(label);
   const exclusions = dialog.locator('#geoExclusions');
-  await exclusions.click();
-  const excludedCountry = page.locator('.p-treeselect-overlay:visible .p-tree-node-content').first();
-  await expect(excludedCountry).toContainText(label);
+  await exclusions.getByRole('button', { name: 'treeselect trigger' }).click();
+  const exclusionOverlay = exclusions.locator('.p-treeselect-overlay');
+  const excludedCountry = exclusionOverlay.getByRole('treeitem', { name: label, exact: true });
   await excludedCountry.locator('.p-checkbox').click();
-  await exclusions.click();
-  await expect(exclusions).toContainText(label);
+  await dialog.locator('.p-dialog-title').click();
+  await expect(exclusionOverlay).toBeHidden();
+  await expect(exclusions.locator('.p-treeselect-label')).toContainText(label);
   // Removing an inclusion removes its dependent exclusions as well.
   await inclusions.locator('.p-treeselect-clear-icon').click();
   await expect(inclusions.locator('.p-treeselect-label')).not.toContainText(label);
   await expect(exclusions.locator('.p-treeselect-label')).not.toContainText(label);
-  if (await page.locator('.p-treeselect-overlay:visible').count()) await inclusions.click();
   await close(dialog);
 });
 

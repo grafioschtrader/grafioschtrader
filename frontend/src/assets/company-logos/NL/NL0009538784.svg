@@ -1,0 +1,21 @@
+<svg id="nxp-logo" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 93 32" width="372" height="128">
+  <style type="text/css">
+    .nxpsvglogoN {
+fill: #fca600;
+    }
+    .nxpsvglogoP {
+fill: #69ca00;
+    }
+    .nxpsvglogoX {
+fill: #0eafe0;
+    }
+  </style>
+  <title id="nxpLogoTitle">NXP</title>
+  <polyline class="nxpsvglogoN" points="26,0 26,19.3 9.7,0 0,0 0,32 9.7,32 9.7,12.7 26,32 35.7,16 26,0 "></polyline>
+  <path class="nxpsvglogoX" d="M53.4,32l-6.5-10.6L40.4,32H28.9l9.7-16L28.9,0h11.4l6.5,10.6L53.4,0h11.4l-9.7,16l9.7,16H53.4z"></path>
+  <path
+    class="nxpsvglogoP"
+    d="M81.6,0H67.8l-9.7,16l9.7,16l0,0v-7.1h16.3c6.8,0,8.9-5.5,8.9-10.2v-3.8C93,4.7,90.8,0,81.6,0 M84,12.9
+ c0,1.9-0.9,4.1-3.1,4.1h-13V7.9H80c2.9,0,4,1.2,4,3.4C84,11.3,84,12.9,84,12.9z"
+  ></path>
+</svg>

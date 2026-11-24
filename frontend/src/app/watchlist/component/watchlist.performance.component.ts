@@ -1,4 +1,4 @@
-import { signal, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { computed, signal, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TimeFrame, WatchlistTable, WatchListType } from './watchlist.table';
 import { TranslateModule } from '@ngx-translate/core';
@@ -38,6 +38,7 @@ import { AlgoStrategyEditComponent } from '../../algo/component/algo-strategy-ed
 import { WatchlistAddEditPriceProblemInstrumentComponent } from './watchlist-add-edit-price-problem-instrument.component';
 import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
 import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-general-edit.component';
+import { WATCHLIST_LOGO_CELL_STYLE } from '../../shared/securitycurrency/instrument-logo.model';
 
 /**
  * Shows the performance watchlist. It has no special function implemented.
@@ -49,6 +50,7 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
       .cell-move {
         cursor: move !important;
       }
+      ${WATCHLIST_LOGO_CELL_STYLE}
       /* An inline block with its own small line height: lines of the position values that wrap stay close together
          instead of taking the line height of the heading. */
       .position-header {

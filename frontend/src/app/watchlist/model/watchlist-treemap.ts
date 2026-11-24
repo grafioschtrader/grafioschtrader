@@ -1,3 +1,5 @@
+import type { InstrumentLogoRefDto } from '../../shared/securitycurrency/instrument-logo.model';
+
 /**
  * Market map of the stocks of a watchlist. Built by the backend as a flat node list; the client only maps it to a
  * Plotly treemap trace.
@@ -39,6 +41,8 @@ export interface WatchlistTreemapNode {
   currency: string | null;
   /** Stock nodes only: time of the price. */
   timestamp: string | null;
+  /** Stock nodes only: resolved company or issuer logo, null when none applies. */
+  resolvedLogo: InstrumentLogoRefDto | null;
 }
 
 /**

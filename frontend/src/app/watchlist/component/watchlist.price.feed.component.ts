@@ -41,6 +41,7 @@ import { AlgoStrategyEditComponent } from '../../algo/component/algo-strategy-ed
 import { WatchlistAddEditPriceProblemInstrumentComponent } from './watchlist-add-edit-price-problem-instrument.component';
 import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
 import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-general-edit.component';
+import { WATCHLIST_LOGO_CELL_STYLE } from '../../shared/securitycurrency/instrument-logo.model';
 
 /**
  * Angular component for monitoring and managing price data feed reliability in watchlists.
@@ -62,6 +63,7 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
       .cell-move {
         cursor: move !important;
       }
+      ${WATCHLIST_LOGO_CELL_STYLE}
     `
   ],
   providers: [DialogService],

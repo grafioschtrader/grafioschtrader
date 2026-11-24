@@ -68,6 +68,7 @@ import grafioschtrader.service.CostBasisMethodService;
 import grafioschtrader.service.GTNetLastpriceService;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.service.IndexPriceRoundingService;
+import grafioschtrader.service.InstrumentLogoService;
 import grafioschtrader.service.PriceFreshnessService;
 import grafioschtrader.service.WatchlistPriceUpdateService;
 import grafioschtrader.service.WatchlistPriceUpdateService.PriceUpdateClaim;
@@ -129,6 +130,9 @@ public class WatchlistReport {
 
   @Autowired
   private IndexPriceRoundingService indexPriceRoundingService;
+
+  @Autowired
+  private InstrumentLogoService instrumentLogoService;
 
   @Autowired
   private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
@@ -979,9 +983,11 @@ public class WatchlistReport {
   private <S extends Securitycurrency<S>> List<SecuritycurrencyPosition<S>> createSecuritycurrencyPositionList(
       final List<S> securitycurrencyList) {
     final List<SecuritycurrencyPosition<S>> securityPositionList = new ArrayList<>();
+    final List<Security> securities = new ArrayList<>();
     securitycurrencyList.stream().forEach(securitycurrency -> {
       final SecuritycurrencyPosition<S> securitycurrencyPosition = new SecuritycurrencyPosition<>(securitycurrency);
-      if (securitycurrency instanceof Security) {
+      if (securitycurrency instanceof Security security) {
+        securities.add(security);
         this.securityJpaRepository
             .setSecuritycurrencyHistoricalDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
         this.securityJpaRepository
@@ -998,6 +1004,9 @@ public class WatchlistReport {
       securityPositionList.add(securitycurrencyPosition);
 
     });
+    if (!securities.isEmpty()) {
+      instrumentLogoService.attachResolvedLogos(securities);
+    }
     return securityPositionList;
   }
 

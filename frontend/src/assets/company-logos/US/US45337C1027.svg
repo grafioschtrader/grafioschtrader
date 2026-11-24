@@ -1,0 +1,44 @@
+<svg height="259.2549223334021" id="svg3624" inkscape:version="0.92.0 r15299" sodipodi:docname="incyte.svg" version="1.1" viewBox="0 0 16.108992 10.827763" width="385.7207381057934" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg">
+  <defs id="defs3618">
+    <filter id="grey1">
+      <feColorMatrix id="grey1f" type="saturate" values="0"/>
+    </filter>
+    <filter id="grey2">
+      <feColorMatrix id="grey2f" type="saturate" values="0"/>
+    </filter>
+    <filter id="grey3">
+      <feColorMatrix id="grey3f" type="saturate" values="0"/>
+    </filter>
+    <filter id="grey4">
+      <feColorMatrix id="grey4f" type="saturate" values="0"/>
+    </filter>
+    <filter height="2.5" id="innershadow" width="2.5">
+      <feGaussianBlur id="feGaussianBlur3636" in="SourceAlpha" result="blur" stdDeviation="15"/>
+      <feOffset dx="0" dy="0" id="feOffset3638"/>
+      <feComposite id="feComposite3640" in2="SourceAlpha" k1="0" k2="-1" k3="1" k4="0" operator="arithmetic" result="shadowDiff"/>
+      <feFlood flood-color="#000000" flood-opacity="0.75" id="feFlood3642"/>
+      <feComposite id="feComposite3644" in2="shadowDiff" operator="in"/>
+      <feComposite id="feComposite3646" in2="SourceGraphic" operator="over" result="firstfilter"/>
+      <feGaussianBlur id="feGaussianBlur3648" in="firstfilter" result="blur2" stdDeviation="15"/>
+      <feOffset dx="-0" dy="-0" id="feOffset3650"/>
+      <feComposite id="feComposite3652" in2="firstfilter" k1="0" k2="-1" k3="1" k4="0" operator="arithmetic" result="shadowDiff"/>
+      <feFlood flood-color="#000000" flood-opacity="0.75" id="feFlood3654"/>
+      <feComposite id="feComposite3656" in2="shadowDiff" operator="in"/>
+      <feComposite id="feComposite3658" in2="firstfilter" operator="over"/>
+    </filter>
+    <clipPath clipPathUnits="userSpaceOnUse" id="clipPath4042">
+      <path d="M 113.929,92.958 H 69.015 V 63.015 h 44.914 z" id="path4040" inkscape:connector-curvature="0"/>
+    </clipPath>
+  </defs>
+  <g transform="translate(-107.40611,-171.62091)">
+    <g id="g4552" transform="translate(0.13229615,-0.13230249)">
+      <path d="m 115.20995,177.73621 c -0.28963,0.13406 -0.43744,0.16722 -0.67133,0.16722 -0.32808,0 -0.64664,-0.25224 -0.64664,-0.64806 0,-0.41275 0.30233,-0.66075 0.66604,-0.66075 0.19967,0 0.38382,0.0353 0.57044,0.13406 0.0187,0.0113 0.0342,0.0141 0.0342,-0.008 v -0.43532 c -0.0794,-0.0293 -0.36689,-0.10125 -0.66957,-0.10125 -0.71049,0 -1.2065,0.46037 -1.2065,1.07138 0,0.60996 0.4886,1.06998 1.22696,1.06998 0.35348,0 0.62971,-0.078 0.72813,-0.12488 v -0.45227 c 0,-0.0222 -0.0194,-0.0222 -0.0317,-0.012" id="path4026" inkscape:connector-curvature="0" style="fill:#2f63b6;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.35277778"/>
+      <path d="m 119.88814,177.02677 c 0.005,-0.13406 0.13511,-0.4639 0.46673,-0.4639 0.39123,0 0.46601,0.3429 0.46601,0.4639 z m 1.38395,0.6791 c -0.25682,0.14287 -0.50306,0.21449 -0.81668,0.21449 -0.43921,0 -0.58138,-0.30551 -0.58138,-0.48437 h 1.52047 v -0.13758 c 0,-0.64135 -0.38558,-1.11301 -1.03963,-1.11301 -0.68263,0 -1.08656,0.45966 -1.08656,1.06997 0,0.62018 0.48824,1.07103 1.16134,1.07103 0.46144,0 0.76165,-0.12559 0.88089,-0.17215 v -0.43639 c 0,-0.0222 -0.024,-0.0222 -0.0384,-0.012" id="path4030" inkscape:connector-curvature="0" style="fill:#2f63b6;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.35277778"/>
+      <path d="m 109.51083,178.2569 h 0.57651 v -2.97123 h -0.57651 z" id="path4034" inkscape:connector-curvature="0" style="fill:#2f63b6;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.35277778"/>
+      <path d="m 118.94869,177.83637 c -0.19015,0.0864 -0.42016,0.096 -0.50906,0.03 -0.0596,-0.0441 -0.0868,-0.12136 -0.0868,-0.22931 v -0.95709 h 0.61983 v -0.40428 c 0,0 -0.57115,0 -0.61983,0 v -0.72637 c 0,-0.0152 -0.0155,-0.0201 -0.0282,-0.0162 l -0.57045,0.28223 c 0.38947,1.6383 -0.0536,3.43429 -1.33173,4.71275 -1.95933,1.95898 -5.13645,1.95898 -7.09613,0 -1.95932,-1.95968 -1.95932,-5.13679 0,-7.09612 1.27988,-1.27988 3.0787,-1.72261 4.71841,-1.33033 l 0.01,-0.037 c -1.76177,-0.47025 -3.71933,-0.0148 -5.10187,1.36737 -2.06234,2.06234 -2.06234,5.40667 0,7.46936 2.06269,2.06269 5.40703,2.06269 7.46972,3.6e-4 0.78634,-0.78635 1.27247,-1.75895 1.45909,-2.77566 0.0173,0.0208 0.0367,0.0402 0.0579,0.0579 0.18768,0.15628 0.63606,0.18838 1.03576,0.0815 v -0.42192 c 0,-0.0124 -0.0173,-0.0138 -0.0265,-0.007" id="path4046" inkscape:connector-curvature="0" style="fill:#2f63b6;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.35277778"/>
+      <path d="m 121.70388,173.43265 c -2.06269,-2.06269 -5.40667,-2.06269 -7.46972,0 -0.86642,0.86642 -1.36807,1.95968 -1.50636,3.08822 -0.12982,-0.21908 -0.37712,-0.33938 -0.73766,-0.33938 -0.26282,0 -0.54645,0.14888 -0.71578,0.30198 0,-0.0681 0,-0.20778 0,-0.20778 h -0.5267 v 1.9812 h 0.57679 v -1.32998 c 0.0889,-0.0963 0.3168,-0.31291 0.55316,-0.31291 0.2353,0 0.38135,0.16334 0.38135,0.33302 v 1.30987 h 0.58914 c -0.2854,-1.56563 0.17568,-3.24027 1.38606,-4.45065 1.95968,-1.95968 5.13645,-1.95968 7.09613,0 1.95968,1.95898 1.95968,5.13645 -3.5e-4,7.09577 -1.27918,1.27988 -3.07799,1.72262 -4.71805,1.33068 l -0.01,0.037 c 1.76177,0.4699 3.71933,0.0148 5.10187,-1.36772 2.06234,-2.06234 2.06234,-5.40667 0,-7.46936" id="path4050" inkscape:connector-curvature="0" style="fill:#2f63b6;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.35277778"/>
+      <path d="m 117.07439,176.2757 -0.54505,1.06645 -0.53304,-1.06645 h -0.58561 l 0.8382,1.61537 -0.75636,1.48025 h 0.57467 l 1.58186,-3.09562 h -0.57467" id="path4054" inkscape:connector-curvature="0" style="fill:#2f63b6;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.35277778"/>
+    </g>
+  </g>
+  <style id="style3626">.Graphic_x0020_Style{fill:none;stroke:#fff;stroke-width:2;stroke-miterlimit:10}#menu_svg .st0{fill:#fff}#menu_svg .st1{font-family:Lato-Heavy}#menu_svg .st2{font-size:14.8595px}</style>
+</svg>

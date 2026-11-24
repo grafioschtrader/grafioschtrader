@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42.716 20.235">
+  <defs><style>.AVY__svg-avery-logo__box{fill: #df1e36}.AVY__svg-avery-logo__text{fill: #204199}</style></defs>
+  <path class="AVY__svg-avery-logo__box logo-box__top" d="M19.571,0l.821,5.492H19.369L18.72,1.15,3.116,3.482l.305,2.041L3.2,5.941,2.625,7.035l-.658-4.4L19.571,0"/>
+  <path class="AVY__svg-avery-logo__box logo-box__bottom" d="M3.573,13.382H4.6l.853,5.7,15.6-2.332-.314-2.1H21.76L22.2,17.6,4.6,20.235,3.573,13.382"/>
+  <path class="AVY__svg-avery-logo__text avery__a" d="M5.054,8.7l1.171,2.222H3.883L5.054,8.7M3.946,6.334,0,13.824H2.357l.677-1.285H7.073l.677,1.285h2.357L6.162,6.334Z"/>
+  <path class="AVY__svg-avery-logo__text avery__v" d="M13.032,11.021l2.383-4.687h2.4L14,13.824H12.06L8.25,6.334h2.4l2.384,4.687"/>
+  <path class="AVY__svg-avery-logo__text avery__e" d="M20.375,10.862v1.2h4.7v1.762H18.324V6.334h6.694V8.1H20.375V9.228h3.577v1.634H20.375"/>
+  <path class="AVY__svg-avery-logo__text avery__r" d="M31.959,9.036c0,.544-.406.886-1.11.886H28.664V8.128h2.174c.694,0,1.121.3,1.121.887v.021m2.083-.128V8.887a2.315,2.315,0,0,0-.663-1.74,3.263,3.263,0,0,0-2.435-.812H26.592v7.488h2.072V11.546h1.725l1.519,2.277H34.3L32.5,11.2a2.365,2.365,0,0,0,1.538-2.3"/>
+  <path class="AVY__svg-avery-logo__text avery__y" d="M40.356,6.334h2.36l-4.333,7.488h-2.36l1.265-2.187-3.06-5.3h2.36l1.883,3.259,1.885-3.259"/>
+</svg>
