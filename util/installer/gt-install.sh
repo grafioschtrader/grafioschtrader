@@ -4061,6 +4061,10 @@ gt_core_configure() {
   gt_core_publish properties "$SCRATCH/application.config" "$CORE_REPO/$target/application.properties" 600 \
     "$original" || return 2
   PROPERTIES=([server.address]=127.0.0.1 [spring.mail.properties.mail.smtp.starttls.required]="$starttls")
+  # Demo hosts opt in by configuring both the refresh schedule and the target email patterns.
+  PROPERTIES[gt.demo.account.tenant.copy]=-
+  PROPERTIES[g.demo.account.pattern.de]='(?!)'
+  PROPERTIES[g.demo.account.pattern.en]='(?!)'
   PROPERTIES[server.forward-headers-strategy]=none
   PROPERTIES[g.security.login.trusted-proxies]='127.0.0.1,::1'
   if [[ "${ANSWER[TLS_SOURCE]:-}" == proxy && -n "${ANSWER[TLS_PROXY_FROM]:-}" ]]; then
