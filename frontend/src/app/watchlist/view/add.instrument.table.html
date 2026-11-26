@@ -50,8 +50,8 @@
       {{selectedSecuritycurrencies.length}} {{'SELECTED_FROM' | translate}} {{securitycurrencyList.length}} {{"ALLOWED"
       | translate}}: @for (tenantLimit of tenantLimits(); track tenantLimit.msgKey) {
       <span
-        [style.color]='selectedSecuritycurrencies.length>
-                                            tenantLimit.limit - tenantLimit.actual? "red": "green"'>
+        [class.gt-loss]="selectedSecuritycurrencies.length> tenantLimit.limit - tenantLimit.actual"
+        [class.gt-gain]="!(selectedSecuritycurrencies.length> tenantLimit.limit - tenantLimit.actual)">
         {{tenantLimit.limit - tenantLimit.actual - selectedSecuritycurrencies.length}},</span
       >
       }

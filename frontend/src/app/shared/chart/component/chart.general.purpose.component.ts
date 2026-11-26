@@ -127,6 +127,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
     const chartElement = this.chartElement();
     plotly.purge(chartElement.nativeElement);
 
+    PlotlyHelper.applyThemeToLayout(chartData.layout, PlotlyHelper.getThemeSurface(chartElement.nativeElement));
     if (chartData.legendTooltipMap) {
       plotly
         .newPlot(chartElement.nativeElement, chartData.data, chartData.layout, chartData.options)

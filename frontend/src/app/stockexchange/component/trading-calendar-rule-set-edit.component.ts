@@ -71,7 +71,7 @@ import { TradingCalendarRuleSetPreviewComponent } from './trading-calendar-rule-
           </p-button>
         </div>
         @if (previewError(); as previewErrorValue) {
-          <div class="text-red-600">{{ previewErrorValue }}</div>
+          <div class="text-danger-emphasis">{{ previewErrorValue }}</div>
         } @else {
           <trading-calendar-rule-set-preview [closures]="previewClosures()" />
         }

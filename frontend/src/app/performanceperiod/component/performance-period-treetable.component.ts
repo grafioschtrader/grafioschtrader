@@ -69,7 +69,8 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                   @case ('greenRed') {
                     <span
                       [pTooltip]="getCellTooltip(rowData, field) ?? undefined"
-                      [style.color]="isValueByPathMinusWithEmptyColor(rowData, field) ? 'red' : 'green'">
+                      [class.gt-loss]="isValueByPathMinusWithEmptyColor(rowData, field)"
+                      [class.gt-gain]="!isValueByPathMinusWithEmptyColor(rowData, field)">
                       {{ getValueByPath(rowData, field) }}
                     </span>
                   }
@@ -101,7 +102,8 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                             null
                           )
                         "
-                        [style.color]="isFooterValueMinus(field) ? 'red' : 'green'">
+                        [class.gt-loss]="isFooterValueMinus(field)"
+                        [class.gt-gain]="!isFooterValueMinus(field)">
                         {{
                           getValueColumnTotal(
                             field,
@@ -134,11 +136,11 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
   styles: [
     `
       .cell-holiday {
-        background-color: greenyellow !important;
+        background-color: var(--gt-cell-holiday-bg) !important;
       }
 
       .cell-data-missing {
-        background-color: orange !important;
+        background-color: var(--gt-cell-missing-bg) !important;
       }
 
       /*

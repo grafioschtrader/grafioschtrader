@@ -38,12 +38,12 @@ import { TradingPlatformPlanService } from '../service/trading.platform.plan.ser
           <div>{{ 'STATUS' | translate }}: {{ 'FX_STATUS_' + quote.status | translate }}</div>
         }
         @if (quote.error) {
-          <div class="text-red-600">{{ quote.error }}</div>
+          <div class="text-danger-emphasis">{{ quote.error }}</div>
         }
       </div>
     }
     @if (requestFailed()) {
-      <div class="text-red-600">{{ 'FX_PREVIEW_FAILED' | translate }}</div>
+      <div class="text-danger-emphasis">{{ 'FX_PREVIEW_FAILED' | translate }}</div>
     }
   `
 })

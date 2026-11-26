@@ -64,7 +64,7 @@ import { BaseSettings } from '../../base.settings';
       .nested-table-container {
         margin-bottom: 1rem;
         padding: 0.5rem;
-        background-color: rgba(0, 0, 0, 0.02);
+        background-color: color-mix(in srgb, var(--p-text-color) 4%, transparent);
         border-radius: 4px;
       }
       .nested-table-header {

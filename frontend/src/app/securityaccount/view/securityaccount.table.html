@@ -128,7 +128,7 @@
             } @case ('greenRed') {
             <span
               [pTooltip]="getCellTooltip(el, field) ?? undefined"
-              [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
+              [class.gt-loss]="isValueByPathMinus(el, field)"
               tooltipPosition="top">
               {{ getValueByPath(el, field) }}
             </span>
@@ -176,8 +176,7 @@
             [colSpan]="field.columnGroupConfigs && field.columnGroupConfigs[0].colspan ? field.columnGroupConfigs[0].colspan: null"
             [style]="getGroupCellStyle(field, groupChangeIndexMap.get(rowIndex))">
             @switch (field.templateName) { @case ('greenRed') {
-            <span
-              [style.color]='isColumnTotalByRowIndexMinus(field, 0, groupChangeIndexMap, rowIndex)? "red": "inherit"'>
+            <span [class.gt-loss]="isColumnTotalByRowIndexMinus(field, 0, groupChangeIndexMap, rowIndex)">
               {{ getValueColumnTotalByRowIndex(field, 0, groupChangeIndexMap, rowIndex) }}
             </span>
             } @default { {{ getValueColumnTotalByRowIndex(field, 0, groupChangeIndexMap, rowIndex) }} } }
@@ -202,7 +201,7 @@
             [style]="getGrandCellStyle(field)"
             class="row-total">
             @switch (field.templateName) { @case ('greenRed') {
-            <span [style.color]='isValueColumnTotalMinus(field, 1, securityPositionSummary, null)? "red": "inherit"'>
+            <span [class.gt-loss]="isValueColumnTotalMinus(field, 1, securityPositionSummary, null)">
               {{ getValueColumnTotal(field, 1, securityPositionSummary, null) }}
             </span>
             } @default {

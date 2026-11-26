@@ -1,5 +1,5 @@
 import { AppSettings } from '../../shared/app.settings';
-import { Component, computed, input, effect, untracked } from '@angular/core';
+import { Component, computed, input, effect, inject, untracked } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -9,6 +9,8 @@ import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { ThemeService } from '../../lib/theme/theme.service';
+import { HeatmapColors } from '../../shared/helper/heatmap.colors';
 import {
   SeasonalColumnStat,
   SeasonalPeriodType,
@@ -73,6 +75,7 @@ import {
   imports: [FormsModule, TranslateModule, TableModule]
 })
 export class SeasonalityTableComponent extends TableConfigBase {
+  private readonly themeService = inject(ThemeService);
   readonly result = input<SeasonalReturnsResult | null>();
 
   /** A new columns reference re-renders the header and body templates of the OnPush p-table after a rebuild. */
@@ -146,10 +149,10 @@ export class SeasonalityTableComponent extends TableConfigBase {
     return row.periodReturns[field.userValue];
   }
 
-  /** Diverging background color for a return cell; null for the non-numeric year column. */
+  /** Diverging background color for a return cell; null for the year column, a missing value and exactly zero. */
   getBackgroundColor(row: SeasonalYearRow, field: ColumnConfig): string | null {
     const value = this.cellValue(row, field);
-    return value == null ? null : this.colorForValue(value, field.field === 'annualReturn');
+    return value == null || value === 0 ? null : this.colorForValue(value, field.field === 'annualReturn');
   }
 
   /** Formats a footer statistic through the GT formatting pipeline; blank for null. */
@@ -190,7 +193,7 @@ export class SeasonalityTableComponent extends TableConfigBase {
   }
 
   private colorForValue(value: number, isAnnual: boolean): string {
-    const positive = value >= 0;
+    const positive = value > 0;
     const sorted = isAnnual
       ? positive
         ? this.colorScale().annualPos
@@ -201,10 +204,7 @@ export class SeasonalityTableComponent extends TableConfigBase {
     // Rank within the same-sign group (empirical CDF): the most extreme value reaches full intensity, the bulk gets
     // spread across the mid-range — independent of the absolute magnitude of outliers.
     const t = this.rankFraction(sorted, Math.abs(value));
-    const hue = positive ? 120 : 0;
-    const saturation = Math.round(t * 70);
-    const lightness = Math.round(100 - t * 45);
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    return HeatmapColors.seasonalityCellBackground(positive, t, this.themeService.isDark());
   }
 
   /** Fraction of values in the ascending-sorted group not greater than the magnitude (0..1). */

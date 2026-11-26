@@ -1,4 +1,6 @@
-import { Component, effect, input, OnDestroy, untracked } from '@angular/core';
+import { ThemeService } from '../../lib/theme/theme.service';
+import { HeatmapColors } from '../../shared/helper/heatmap.colors';
+import { Component, effect, inject, input, OnDestroy, untracked } from '@angular/core';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { FeeModelComparisonDetail } from '../../entities/fee.model.comparison';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
@@ -114,12 +116,14 @@ export class FeeModelComparisonTableComponent extends TableConfigBase implements
    * Returns background color style for the relativeError column using a green-yellow-red gradient.
    * 0% error = green, ~25% = yellow, 50%+ = red.
    */
+  private readonly themeService = inject(ThemeService);
+
   readonly getCellStyle = (row: FeeModelComparisonDetail, field: ColumnConfig): { [key: string]: string } | null => {
     if (field.field === 'relativeError' && row.relativeError != null) {
       const absError = Math.abs(row.relativeError);
       const maxError = 50;
       const hue = Math.max(0, 120 - (Math.min(absError, maxError) / maxError) * 120);
-      return { 'background-color': `hsl(${hue}, 70%, 85%)` };
+      return { 'background-color': HeatmapColors.scaleCellBackground(hue, this.themeService.isDark()) };
     }
     return null;
   };

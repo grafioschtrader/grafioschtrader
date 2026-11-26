@@ -292,7 +292,7 @@ export interface TreeTableCellEditEvent {
                     } @else if (field.templateName === 'greenRed') {
                       <span
                         [pTooltip]="getValue(rowData, field)"
-                        [style.color]="isNegativeValue(rowData, field) ? 'red' : 'inherit'"
+                        [class.gt-loss]="isNegativeValue(rowData, field)"
                         tooltipPosition="top">
                         {{ getValue(rowData, field) }}
                       </span>

@@ -25,6 +25,21 @@ export interface PlotlyLegend {
   font: { family?: string; size?: number; color?: string };
 }
 
+/**
+ * Colors of the active scheme that the shared chart chrome uses. They are read from the Optimus custom properties at
+ * draw time, so a chart drawn after a scheme change uses the new colors.
+ */
+export interface PlotlyThemeSurface {
+  /** Default text color, inherited by axis labels, titles and the legend. */
+  textColor: string;
+  /** Secondary text, for annotations and auxiliary labels. */
+  mutedColor: string;
+  /** Grid, axis and zero lines. */
+  gridColor: string;
+  /** Background of the content area behind the transparent chart, for borders that must match it. */
+  surfaceBg: string;
+}
+
 export interface ChartTrace {
   x: (string | number)[];
   y: number[];
@@ -154,6 +169,13 @@ export class PlotlyHelper {
     });
   }
 
+  /**
+   * Legend placed below the plot area. Its text color is not set, so it inherits `font.color` of the layout, which
+   * {@link applyThemeToLayout} sets for the active scheme.
+   *
+   * @param fontSize - Font size of the legend entries
+   * @returns The partial legend layout
+   */
   public static getLegendUnderChart(fontSize: number): Partial<PlotlyLegend> {
     return {
       xanchor: 'left',
@@ -163,9 +185,58 @@ export class PlotlyHelper {
       x: 0, // play with it
       font: {
         family: 'sans-serif',
-        size: fontSize,
-        color: '#000'
+        size: fontSize
       }
     };
+  }
+
+  /**
+   * Reads the chart colors of the active scheme from the Optimus custom properties. Called at draw time, after Plotly has
+   * been loaded, so a lazily loaded chart uses the scheme that is active then.
+   *
+   * @param element - Element whose computed style is read; the document root when omitted
+   * @returns The colors, with the light scheme's values as fallback for a property that is not defined
+   */
+  public static getThemeSurface(element?: Element | null): PlotlyThemeSurface {
+    const style = getComputedStyle(element ?? document.documentElement);
+    const read = (name: string, fallback: string): string => style.getPropertyValue(name).trim() || fallback;
+    return {
+      textColor: read('--p-text-color', '#334155'),
+      mutedColor: read('--p-text-muted-color', '#64748b'),
+      gridColor: read('--p-content-border-color', '#e2e8f0'),
+      surfaceBg: read('--p-content-background', '#ffffff')
+    };
+  }
+
+  /**
+   * Applies the scheme to the chrome shared by all charts: transparent paper and plot background, so the chart shows
+   * the page behind it, the default font color, and grid, axis and zero line colors of the default and every further x
+   * and y axis. It
+   * sets no tick, title or trace color: those inherit the font color unless the producer of the figure chose a
+   * deliberate accent, which stays untouched.
+   *
+   * @param layout - The Plotly layout; modified in place
+   * @param surface - The colors of the active scheme
+   * @returns The same layout, for chaining
+   */
+  public static applyThemeToLayout<T extends object>(layout: T, surface: PlotlyThemeSurface): T {
+    const target = layout as Record<string, any>;
+    target['paper_bgcolor'] = 'rgba(0,0,0,0)';
+    target['plot_bgcolor'] = 'rgba(0,0,0,0)';
+    target['font'] = { ...(target['font'] ?? {}), color: surface.textColor };
+    // Without an explicit axis Plotly draws its light default grid, so the two default axes always get the colors.
+    target['xaxis'] ??= {};
+    target['yaxis'] ??= {};
+    for (const key of Object.keys(target)) {
+      if (/^[xy]axis\d*$/.test(key) && target[key] && typeof target[key] === 'object') {
+        target[key] = {
+          ...target[key],
+          gridcolor: surface.gridColor,
+          linecolor: surface.gridColor,
+          zerolinecolor: surface.gridColor
+        };
+      }
+    }
+    return layout;
   }
 }

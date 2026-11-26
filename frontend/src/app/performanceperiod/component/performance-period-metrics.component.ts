@@ -27,7 +27,7 @@ import { PerformancePeriodMetrics } from '../model/performance.period';
                   {{ field.headerTranslated }}
                 </div>
                 <div class="col-4 text-end">
-                  <span [style.color]="isValueByPathMinus(metrics(), field) ? 'red' : 'inherit'">
+                  <span [class.gt-loss]="isValueByPathMinus(metrics(), field)">
                     {{ getValueByPath(metrics(), field) }}
                   </span>
                 </div>

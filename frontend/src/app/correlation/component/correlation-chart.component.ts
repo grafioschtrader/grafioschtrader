@@ -223,6 +223,7 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
               return;
             }
             this.plotly = plotly;
+            PlotlyHelper.applyThemeToLayout(layout, PlotlyHelper.getThemeSurface(this.chartElement().nativeElement));
             plotly.react(this.chartElement().nativeElement, data, layout, this.plotlyConfig).then(() => {
               const chartElement = this.chartElement();
               if (

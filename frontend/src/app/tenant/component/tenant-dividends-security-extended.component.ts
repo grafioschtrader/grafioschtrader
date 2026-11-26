@@ -1,3 +1,5 @@
+import { ThemeService } from '../../lib/theme/theme.service';
+import { HeatmapColors } from '../../shared/helper/heatmap.colors';
 import { requireInitialized } from '../../lib/helper/required-state';
 import { finalize, Subscription } from 'rxjs';
 import { linkedSignal, DestroyRef, inject, signal, Component, OnInit, output, input } from '@angular/core';
@@ -232,6 +234,8 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
     this.idTenant = this.gps.requireIdTenant();
   }
 
+  private readonly themeService = inject(ThemeService);
+
   /** Translated reason texts for the name-cell background colors, keyed by NLS key. */
   private readonly nameColorReasons = signal<{ [key: string]: string }>({});
 
@@ -319,13 +323,13 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
       return color ? { ...widthStyle, 'background-color': color } : widthStyle;
     }
     if (field.field === 'security.isin' && row.taxYearCorrectionNearby) {
-      return { ...widthStyle, 'background-color': 'hsl(54, 100%, 78%)' }; // yellow — correction this or previous year
+      return { ...widthStyle, 'background-color': 'var(--gt-tint-yellow-bg)' }; // correction this or previous year
     }
     if (field.field === 'taxableAmountMC' && row.taxYearCorrectionType === 'TAXABLE_AMOUNT') {
-      return { ...widthStyle, 'background-color': 'hsl(120, 60%, 82%)' }; // green — this value overrides ICTax
+      return { ...widthStyle, 'background-color': 'var(--gt-tint-green-bg)' }; // this value overrides ICTax
     }
     if (field.field === 'ictaxTotalPaymentValueChf' && row.taxYearCorrectionType === 'DIRECT_VALUE') {
-      return { ...widthStyle, 'background-color': 'hsl(54, 100%, 78%)' }; // yellow — manually entered override
+      return { ...widthStyle, 'background-color': 'var(--gt-tint-yellow-bg)' }; // manually entered override
     }
     if (
       field.field === 'ictaxTotalPaymentValueChf' &&
@@ -333,7 +337,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
       row.ictaxTotalPaymentValueChf !== 0 &&
       (row.taxableAmountMC == null || row.taxableAmountMC === 0)
     ) {
-      return { ...widthStyle, 'background-color': 'hsl(0, 70%, 80%)' }; // no taxable amount -> darkest red
+      return { ...widthStyle, 'background-color': 'var(--gt-tint-red-bg)' }; // no taxable amount -> strongest red
     }
     if (
       field.field === 'ictaxTotalPaymentValueChf' &&
@@ -349,10 +353,9 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
       const maxDeviation = 0.2; // +/-20% = full shade
       const intensity = Math.min(Math.abs(deviation), maxDeviation) / maxDeviation;
       const hue = deviation > 0 ? 0 : 120; // 0 = red (ictax higher), 120 = green (lower)
-      const lightness = 95 - intensity * 15; // 95% (subtle) -> 80% (strong)
       return {
         ...widthStyle,
-        'background-color': `hsl(${hue}, 70%, ${lightness}%)`
+        'background-color': HeatmapColors.deviationCellBackground(hue, intensity, this.themeService.isDark())
       };
     }
     return widthStyle;
@@ -450,13 +453,13 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   private getNameCellColor(row: SecurityDividendsPosition): string | null {
     switch (this.getNameColorReasonKey(row)) {
       case 'BOND_REDEEMED_MATURITY_YEAR':
-        return '#FFD39B'; // Burlywood 1 — bond redeemed at/after maturity
+        return 'var(--gt-tint-orange-bg)'; // bond redeemed at/after maturity
       case 'POSITION_ZERO_START_END_YEAR':
-        return 'LightPink'; // balance 0 at beginning and end of the year
+        return 'var(--gt-tint-pink-bg)'; // balance 0 at beginning and end of the year
       case 'POSITION_SOLD_OUT_YEAR':
-        return 'hsl(54, 100%, 78%)'; // yellow — position fully sold this year
+        return 'var(--gt-tint-yellow-bg)'; // position fully sold this year
       case 'POSITION_OPENED_YEAR':
-        return 'hsl(120, 60%, 82%)'; // green — position opened this year (0 -> X)
+        return 'var(--gt-tint-green-bg)'; // position opened this year (0 -> X)
       default:
         return null;
     }

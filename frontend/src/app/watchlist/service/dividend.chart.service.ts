@@ -188,6 +188,8 @@ export class DividendChartService {
    * text names the date as well.
    */
   private createSplitTrace(s: DividendChartSeries, splitText: string): object {
+    // Muted text of the active scheme, readable on the transparent chart in both schemes.
+    const muted = PlotlyHelper.getThemeSurface().mutedColor;
     const x: (string | null)[] = [];
     const y: (number | null)[] = [];
     const text: string[] = [];
@@ -210,10 +212,10 @@ export class DividendChartService {
       hovertext,
       hoverinfo: 'text',
       textposition: 'top center',
-      textfont: { size: 10, color: '#7f7f7f' },
+      textfont: { size: 10, color: muted },
       cliponaxis: false,
       yaxis: 'y3',
-      line: { dash: 'dot', width: 1, color: '#7f7f7f' }
+      line: { dash: 'dot', width: 1, color: muted }
     };
   }
 

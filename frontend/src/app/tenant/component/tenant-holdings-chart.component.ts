@@ -36,6 +36,7 @@ import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
 import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { TenantHoldingsChartService } from '../service/tenant.holdings.chart.service';
 import { HoldingsTreemapChart } from './holdings.treemap.chart';
+import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 
 /**
  * The charts the user can choose from. The keys are also their translation keys.
@@ -217,6 +218,10 @@ export class TenantHoldingsChartComponent
             (plotly) => {
               if (!this.destroyed && version === this.drawVersion) {
                 this.plotly = plotly;
+                PlotlyHelper.applyThemeToLayout(
+                  figure.layout,
+                  PlotlyHelper.getThemeSurface(this.chartElement().nativeElement)
+                );
                 plotly.newPlot(this.chartElement().nativeElement, figure.data, figure.layout, this.plotlyConfig);
               }
             },

@@ -94,7 +94,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
                         aria-hidden="true"></i>
                     }
                     @case ('greenRed') {
-                      <span [style.color]="isValueByPathMinus(rowData, field) ? 'red' : 'inherit'">
+                      <span [class.gt-loss]="isValueByPathMinus(rowData, field)">
                         {{ getValueByPath(rowData, field) }}
                       </span>
                     }

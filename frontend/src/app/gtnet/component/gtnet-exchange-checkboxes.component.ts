@@ -71,7 +71,7 @@ export interface CheckboxToggleEvent {
         align-items: center;
         gap: 0.5rem;
         padding: 0.5rem;
-        border-right: 1px solid var(--surface-border);
+        border-right: 1px solid var(--p-content-border-color);
         padding-right: 0.75rem;
         margin-right: 0.75rem;
       }

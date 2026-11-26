@@ -157,7 +157,7 @@ import { StrategyDetailComponent } from './strategy-detail.component';
         margin-left: 1rem;
       }
       .readiness-blocking {
-        color: red;
+        color: var(--gt-loss-color);
       }
     `
   ],

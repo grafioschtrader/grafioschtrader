@@ -67,7 +67,7 @@ export interface ColumnVisibilityOwner {
       .column-visibility-frozen {
         padding-bottom: 1rem;
         margin-bottom: 0.5rem;
-        border-bottom: 1px solid var(--surface-border);
+        border-bottom: 1px solid var(--p-content-border-color);
       }
       .column-visibility-frozen p-slider {
         display: block;
@@ -81,7 +81,7 @@ export interface ColumnVisibilityOwner {
         display: flex;
         align-items: center;
         padding: 0.5rem 0;
-        border-bottom: 1px solid var(--surface-border);
+        border-bottom: 1px solid var(--p-content-border-color);
       }
       .column-visibility-item:last-child {
         border-bottom: none;

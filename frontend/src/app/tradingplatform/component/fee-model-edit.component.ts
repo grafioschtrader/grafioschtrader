@@ -105,7 +105,7 @@ import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
             </div>
           }
           @if (result.error) {
-            <div class="text-red-600 mt-2"><strong>Error:</strong> {{ result.error }}</div>
+            <div class="text-danger-emphasis mt-2"><strong>Error:</strong> {{ result.error }}</div>
           }
         }
       </p-fieldset>

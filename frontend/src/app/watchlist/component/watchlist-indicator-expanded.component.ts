@@ -14,7 +14,7 @@ import {
 } from '../model/watchlist-indicator';
 import {
   indicatorField,
-  indicatorMarkStyle,
+  indicatorMarkClass,
   indicatorNeedsMark,
   indicatorTooltip
 } from '../model/watchlist-indicator.display';
@@ -90,7 +90,7 @@ interface ExpandedIndicatorGroup {
                 </span>
                 <span
                   class="indicator-value"
-                  [style]="markStyle(indicator)"
+                  [class]="markClass(indicator)"
                   [pTooltip]="tooltip(indicator)"
                   tooltipPosition="top">
                   @if (indicator.column.resultType === 'BOOLEAN') {
@@ -136,8 +136,8 @@ export class WatchlistIndicatorExpandedComponent extends ShowRecordConfigBase {
     return (this.position() as unknown as Record<string, unknown>)[indicator.cc.field];
   }
 
-  markStyle(indicator: ExpandedIndicator): { [key: string]: string } | null {
-    return indicatorMarkStyle(indicator.column, this.value(indicator));
+  markClass(indicator: ExpandedIndicator): string | null {
+    return indicatorMarkClass(indicator.column, this.value(indicator));
   }
 
   needsMark(indicator: ExpandedIndicator): boolean {

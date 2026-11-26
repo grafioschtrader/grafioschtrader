@@ -3,8 +3,14 @@ html {
 }
 
 .p-datatable-scrollable td.p-datatable-frozen-column {
-  background: #fff;
-  color: #000;
+  background: var(--p-datatable-row-background);
+  color: var(--p-text-color);
+}
+
+/* A frozen cell of a selected row shows the selection like the rest of the row. */
+.p-datatable-scrollable tr.p-datatable-row-selected > td.p-datatable-frozen-column {
+  background: #2563eb;
+  color: #ffffff;
 }
 
 /* Ensure table headers stay below dropdown menus and overlays */
@@ -177,12 +183,12 @@ label {
 }
 
 .rowgroup-total {
-  background: lightgoldenrodyellow !important;
+  background: var(--gt-rowgroup-total-bg) !important;
 }
 
 .blank_row {
   height: 12px !important; /* overwrites any other rules */
-  background-color: #ffffff;
+  background-color: var(--p-content-background);
 }
 
 /**
@@ -197,7 +203,7 @@ label {
 }
 
 .p-rowgroup-footer {
-  background: lightgoldenrodyellow;
+  background: var(--gt-rowgroup-total-bg);
 }
 
 .fullChart {
@@ -266,7 +272,7 @@ label {
 }
 
 select option:disabled {
-  color: #dedcdc;
+  color: var(--p-text-muted-color);
 }
 
 /**
@@ -277,7 +283,7 @@ select option:disabled {
   margin: auto;
   height: 34px;
   width: 100px;
-  border: 2px dotted #0782d0;
+  border: 2px dotted var(--p-primary-color);
   border-radius: 8px;
 }
 
@@ -285,12 +291,12 @@ select option:disabled {
   margin: auto;
   height: 34px;
   width: 200px;
-  border: 2px dotted #0782d0;
+  border: 2px dotted var(--p-primary-color);
   border-radius: 8px;
 }
 
 .content-trans {
-  color: #0782d0;
+  color: var(--p-primary-color);
   height: 34px;
   width: 100%;
   display: flex;
@@ -309,12 +315,12 @@ select option:disabled {
 
 .p-datatable .p-datatable-tbody > tr:nth-child(even).p-contextmenu-selected {
   background: transparent;
-  color: #222222;
+  color: var(--p-text-color);
 }
 
 .p-datatable .p-contextmenu-selected {
   background: transparent;
-  color: #222222;
+  color: var(--p-text-color);
 }
 
 /**
@@ -365,7 +371,7 @@ table th input {
   float: left;
   min-width: 300px;
   width: 50%;
-  border: 2px solid darkgray;
+  border: 2px solid var(--p-content-border-color);
 }
 
 /* A column of the two-column expanded row that stacks several boxes, like .leftRight2Table without its border. */
@@ -376,7 +382,7 @@ table th input {
 }
 
 .nestedTableBorder {
-  border: 2px solid darkgray;
+  border: 2px solid var(--p-content-border-color);
 }
 
 /**
@@ -439,7 +445,7 @@ table th input {
   gap: 0.25rem 1.25rem;
   padding: 0.35rem 0.5rem;
   margin-bottom: 0.35rem;
-  border: 1px solid var(--p-content-border-color, #dee2e6);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 4px;
 }
 
@@ -449,7 +455,16 @@ table th input {
 
 .rebalancing-breach {
   font-weight: bold;
-  color: red;
+  color: var(--gt-loss-color);
+}
+
+/* tippy.js ships no stylesheet here; the legend tooltips of the charts use these overlay colors. */
+.tippy-box {
+  background: var(--p-overlay-popover-background);
+  color: var(--p-overlay-popover-color);
+  border: 1px solid var(--p-overlay-popover-border-color);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
 }
 
 .drop-import-template {

@@ -34,7 +34,7 @@ import { WatchlistIndicatorColumnsDialogComponent } from './watchlist-indicator-
 import { SecuritycurrencyIndicatorGroup, WatchlistIndicatorColumn } from '../model/watchlist-indicator';
 import {
   indicatorField,
-  indicatorMarkStyle,
+  indicatorMarkClass,
   indicatorNeedsMark,
   indicatorTooltip
 } from '../model/watchlist-indicator.display';
@@ -209,10 +209,16 @@ export class WatchlistIndicatorComponent extends WatchlistTable implements OnIni
     position: SecuritycurrencyPosition<Security | Currencypair>,
     field: ColumnConfig
   ): { [key: string]: string } | null {
+    // Indicator columns are marked with a class, see priceCellClass.
+    return this.definitions.has(field.field) ? null : super.priceCellStyle(position, field);
+  }
+
+  override priceCellClass(
+    position: SecuritycurrencyPosition<Security | Currencypair>,
+    field: ColumnConfig
+  ): string | null {
     const column = this.definitions.get(field.field);
-    const value = position[field.field as keyof typeof position];
-    if (!column || typeof value !== 'number') return super.priceCellStyle(position, field);
-    return indicatorMarkStyle(column, value);
+    return column ? indicatorMarkClass(column, position[field.field as keyof typeof position]) : null;
   }
   protected override updateAllPrice(): void {
     this.loading.set(true);

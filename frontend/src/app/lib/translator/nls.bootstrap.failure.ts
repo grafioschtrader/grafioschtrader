@@ -1,3 +1,35 @@
+/** Static colors of the overlay; it can appear before any component exists, so it cannot rely on the theme tokens. */
+interface NlsFailurePalette {
+  page: string;
+  card: string;
+  border: string;
+  text: string;
+  buttonText: string;
+  button: string;
+  buttonBorder: string;
+}
+
+const NLS_FAILURE_PALETTES: Record<'light' | 'dark', NlsFailurePalette> = {
+  light: {
+    page: '#f5f5f5',
+    card: '#fff',
+    border: '#d0d0d0',
+    text: '#222',
+    buttonText: '#fff',
+    button: '#0b5ed7',
+    buttonBorder: '#0a58ca'
+  },
+  dark: {
+    page: '#18181b',
+    card: '#27272a',
+    border: '#3f3f46',
+    text: '#f4f4f5',
+    buttonText: '#fff',
+    button: '#2563eb',
+    buttonBorder: '#3b82f6'
+  }
+};
+
 /**
  * Blocking error screen shown when the user interface texts cannot be loaded from the server.
  *
@@ -10,6 +42,8 @@
  * screen that reports their absence cannot itself depend on them.
  */
 export function showNlsBootstrapFailure(onRetry?: () => void): void {
+  // The pre-paint script of index.html has already set the scheme on <html>.
+  const p = NLS_FAILURE_PALETTES[document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light'];
   const overlay = document.createElement('div');
   overlay.id = 'gt-nls-failure';
   overlay.setAttribute('role', 'alertdialog');
@@ -20,8 +54,8 @@ export function showNlsBootstrapFailure(onRetry?: () => void): void {
     'display:flex',
     'align-items:center',
     'justify-content:center',
-    'background:#f5f5f5',
-    'color:#222',
+    'background:' + p.page,
+    'color:' + p.text,
     "font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
   ].join(';');
 
@@ -30,8 +64,8 @@ export function showNlsBootstrapFailure(onRetry?: () => void): void {
     'max-width:34rem',
     'margin:1rem',
     'padding:1.75rem 2rem',
-    'background:#fff',
-    'border:1px solid #d0d0d0',
+    'background:' + p.card,
+    'border:1px solid ' + p.border,
     'border-radius:6px',
     'box-shadow:0 2px 10px rgba(0,0,0,.12)',
     'text-align:center',
@@ -57,9 +91,9 @@ export function showNlsBootstrapFailure(onRetry?: () => void): void {
     'padding:.55rem 1.4rem',
     'font-size:1rem',
     'cursor:pointer',
-    'color:#fff',
-    'background:#0b5ed7',
-    'border:1px solid #0a58ca',
+    'color:' + p.buttonText,
+    'background:' + p.button,
+    'border:1px solid ' + p.buttonBorder,
     'border-radius:4px'
   ].join(';');
   button.addEventListener('click', () => (onRetry ? onRetry() : location.reload()));

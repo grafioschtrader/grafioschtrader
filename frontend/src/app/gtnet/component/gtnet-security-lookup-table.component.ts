@@ -122,7 +122,7 @@ import { AppSettings } from '../../shared/app.settings';
     `
       .connector-expansion {
         padding: 0.5rem 1rem;
-        background-color: var(--surface-ground);
+        background-color: var(--p-content-hover-background);
       }
       .connector-boxes {
         display: flex;
@@ -130,12 +130,12 @@ import { AppSettings } from '../../shared/app.settings';
         gap: 1rem;
       }
       .connector-box {
-        border: 1px solid var(--surface-border);
+        border: 1px solid var(--p-content-border-color);
         border-radius: 4px;
         min-width: 200px;
         max-width: 300px;
         padding: 0.5rem;
-        background-color: var(--surface-card);
+        background-color: var(--p-content-background);
       }
       .connector-box legend {
         font-weight: bold;
@@ -149,7 +149,7 @@ import { AppSettings } from '../../shared/app.settings';
       }
       .connector-label {
         font-size: 0.85rem;
-        color: var(--text-color-secondary);
+        color: var(--p-text-muted-color);
       }
       .connector-value {
         font-size: 0.9rem;

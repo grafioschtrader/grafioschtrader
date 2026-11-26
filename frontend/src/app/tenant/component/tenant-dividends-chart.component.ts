@@ -45,6 +45,7 @@ import {
 } from '../../entities/view/securitydividends/security.dividends.chart';
 import { IdsAccounts } from '../model/ids.accounts';
 import { TenantDividendsChartService } from '../service/tenant.dividends.chart.service';
+import { PlotlyHelper, PlotlyThemeSurface } from '../../shared/chart/plotly.helper';
 
 /**
  * The charts the user can choose from. The keys are also their translation keys.
@@ -69,15 +70,10 @@ const CHART_NEEDS_YEAR: { [key in IncomeChartType]: boolean } = {
 };
 
 /**
- * Categorical series colors in their fixed order, plus the chart chrome. The order is the colorblind safety
- * mechanism, so a series keeps its slot and slots are never cycled.
+ * Categorical series colors in their fixed order. The order is the colorblind safety mechanism, so a series keeps its
+ * slot and slots are never cycled. The chrome colors come from the active scheme, see {@link PlotlyThemeSurface}.
  */
 const SERIES = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
-const SURFACE = '#fcfcfb';
-const GRID = '#e1e0d9';
-const BASELINE = '#c3c2b7';
-const MUTED = '#898781';
-const TEXT_SECONDARY = '#52514e';
 const SEQUENTIAL_BLUE: [number, string][] = [
   [0, '#cde2fb'],
   [0.25, '#86b6ef'],
@@ -157,6 +153,8 @@ export class TenantDividendsChartComponent
 
   /** True when the shown chart refers to one year; the year is then chosen in the dividends table. */
   private readonly selectedChartType = signal(IncomeChartType.INCOME_CHART_MONTHLY);
+  /** Chrome colors of the scheme active when the current figure was built. */
+  private surface: PlotlyThemeSurface = PlotlyHelper.getThemeSurface();
   readonly chartNeedsYear = computed(() => CHART_NEEDS_YEAR[this.selectedChartType()]);
   private readRequest?: Subscription;
 
@@ -326,6 +324,7 @@ export class TenantDividendsChartComponent
     }
     const chartType: IncomeChartType = requireFormControl(this.configObject.chartType).value;
     this.selectedChartType.set(chartType);
+    this.surface = PlotlyHelper.getThemeSurface(this.chartElement().nativeElement);
     const figure = this.buildFigure(chartType, this.selectedYear);
     this.noDataTextKey.set(figure ? null : CHART_NEEDS_YEAR[chartType] ? 'NO_INCOME_IN_YEAR' : 'NO_DATA_AVAILABLE');
     const version = ++this.drawVersion;
@@ -338,6 +337,7 @@ export class TenantDividendsChartComponent
             (plotly) => {
               if (!this.destroyed && version === this.drawVersion) {
                 this.plotly = plotly;
+                PlotlyHelper.applyThemeToLayout(figure.layout, this.surface);
                 plotly.newPlot(this.chartElement().nativeElement, figure.data, figure.layout, this.plotlyConfig);
               }
             },
@@ -458,7 +458,7 @@ export class TenantDividendsChartComponent
           SERIES[6]
         ),
         mode: 'lines+markers',
-        marker: { size: 8, color: SERIES[6], line: { width: 2, color: SURFACE } }
+        marker: { size: 8, color: SERIES[6], line: { width: 2, color: this.surface.surfaceBg } }
       }
     ];
     return { data, layout: this.createLayout('INCOME_CHART_INCOME_COST', null, 'relative') };
@@ -499,13 +499,13 @@ export class TenantDividendsChartComponent
         direction: 'clockwise',
         labels: groups.map((g) => g.name),
         values: groups.map((g) => g.total),
-        marker: { colors: groups.map((_, i) => SERIES[i]), line: { color: SURFACE, width: 2 } },
+        marker: { colors: groups.map((_, i) => SERIES[i]), line: { color: this.surface.surfaceBg, width: 2 } },
         textinfo: 'percent',
         hovertemplate: `%{label}<br>%{value:${this.numberFormat()}} ${this.chartData.mainCurrency} (%{percent})<extra></extra>`
       }
     ];
     const layout = this.createLayout('INCOME_CHART_ASSETCLASS_SHARE', String(year), null);
-    layout.legend = { orientation: 'v', x: 1.02, y: 0.5, font: { color: TEXT_SECONDARY } };
+    layout.legend = { orientation: 'v', x: 1.02, y: 0.5, font: { color: this.surface.textColor } };
     return { data, layout };
   }
 
@@ -535,7 +535,7 @@ export class TenantDividendsChartComponent
       }
     ];
     const layout = this.createLayout('INCOME_CHART_HEATMAP', null, null);
-    layout.yaxis = { type: 'category', autorange: 'reversed', gridcolor: GRID };
+    layout.yaxis = { type: 'category', autorange: 'reversed', gridcolor: this.surface.gridColor };
     layout.hovermode = 'closest';
     return { data, layout };
   }
@@ -553,13 +553,15 @@ export class TenantDividendsChartComponent
     const data = iys.map((iy) => {
       let sum = 0;
       const cumulated = iy.netIncomeMonthMC.map((v) => (sum += v));
-      const color = iy.year === year ? SERIES[0] : iy.year === year - 1 ? SERIES[1] : BASELINE;
+      const color = iy.year === year ? SERIES[0] : iy.year === year - 1 ? SERIES[1] : this.surface.mutedColor;
       const trace = this.lineRaw(String(iy.year), this.monthNames, cumulated, color);
       trace.line.width = iy.year === year ? 3 : 2;
       return trace;
     });
     // Draw the highlighted years last, so they lie above the muted lines.
-    data.sort((a, b) => Number(a.line.color !== BASELINE) - Number(b.line.color !== BASELINE));
+    data.sort(
+      (a, b) => Number(a.line.color !== this.surface.mutedColor) - Number(b.line.color !== this.surface.mutedColor)
+    );
     return { data, layout: this.createLayout('INCOME_CHART_CUMULATIVE', String(year), null) };
   }
 
@@ -612,7 +614,7 @@ export class TenantDividendsChartComponent
       x,
       y,
       opacity,
-      marker: { color, line: { color: SURFACE, width: 2 } },
+      marker: { color, line: { color: this.surface.surfaceBg, width: 2 } },
       hovertemplate: `%{y:${this.numberFormat()}} ${this.chartData.mainCurrency}`
     };
   }
@@ -646,19 +648,24 @@ export class TenantDividendsChartComponent
       barcornerradius: 4,
       bargap: 0.3,
       hovermode: 'x unified',
-      paper_bgcolor: SURFACE,
-      plot_bgcolor: SURFACE,
-      font: { color: TEXT_SECONDARY },
+      paper_bgcolor: this.surface.surfaceBg,
+      plot_bgcolor: this.surface.surfaceBg,
+      font: { color: this.surface.textColor },
       margin: { t: 50, l: 80, r: 20, b: 40 },
-      xaxis: { type: 'category', showgrid: false, linecolor: BASELINE, tickfont: { color: MUTED } },
+      xaxis: {
+        type: 'category',
+        showgrid: false,
+        linecolor: this.surface.mutedColor,
+        tickfont: { color: this.surface.mutedColor }
+      },
       yaxis: {
         title: { text: this.chartData.mainCurrency },
-        gridcolor: GRID,
-        zerolinecolor: BASELINE,
-        tickfont: { color: MUTED },
+        gridcolor: this.surface.gridColor,
+        zerolinecolor: this.surface.mutedColor,
+        tickfont: { color: this.surface.mutedColor },
         separatethousands: true
       },
-      legend: { orientation: 'h', x: 0, y: -0.12, yanchor: 'top', font: { color: TEXT_SECONDARY } }
+      legend: { orientation: 'h', x: 0, y: -0.12, yanchor: 'top', font: { color: this.surface.textColor } }
     };
   }
 }

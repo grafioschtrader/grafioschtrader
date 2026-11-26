@@ -24,7 +24,6 @@ import { UpperCaseDirective } from './upper-case.directive';
       <p-inputgroup>
         <input
           #input
-          [style.background-color]="'white'"
           [class.required-input]="isRequired"
           class="p-inputtext"
           [type]="

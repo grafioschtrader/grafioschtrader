@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 
 import { Year } from './model/year';
 import { Range } from './model/range';
@@ -7,6 +7,8 @@ import { LocaleSettings } from './Interface/locale.settings';
 import { DisabledDate } from './Interface/disabled.date';
 import { DayOfWeek } from './model/day.of.week';
 import { MonthlyCalendarComponent } from './month-calendar/monthly-calendar.component';
+import { ThemeService } from '../theme/theme.service';
+import { ThemeHelper } from '../theme/theme.helper';
 
 @Component({
   selector: 'ng-fullyearcalendar-lib',
@@ -61,7 +63,21 @@ export class FullyearcalendarLibComponent {
       (dayOfWeek: DayOfWeek) => this.locale().dayNamesMin[Year.getDayNumberByDayOfWeek(dayOfWeek)]
     )
   );
-  readonly year = computed(() => this.buildYear(this.yearCalendarData()));
+  /**
+   * Display colors of the semantic color keys in the dark scheme. The callers keep their keys in the data, because
+   * they identify marked days by comparing them; only the rendering resolves a key to a color of the active scheme.
+   * Keys without an entry are shown as they are.
+   */
+  private static readonly DARK_DISPLAY_COLORS: Readonly<Record<string, string>> = {
+    yellow: '#b59b1d',
+    lime: '#2e7d32',
+    red: '#b91c1c',
+    blue: '#1d4ed8'
+  };
+
+  private readonly themeService = inject(ThemeService);
+  /** Rebuilt when the data or the color scheme changes. */
+  readonly year = computed(() => this.buildYear(this.yearCalendarData(), this.themeService.isDark()));
   private colorBgToFgColor: Map<string, string> = new Map();
 
   isDisabled(date: Date | null | undefined, disabledDays: DisabledDate[] | undefined): boolean {
@@ -84,14 +100,31 @@ export class FullyearcalendarLibComponent {
     this.daySelect.emit(day);
   }
 
+  /**
+   * Text color for a day on a range color: black or white, whichever reaches the higher WCAG contrast.
+   *
+   * @param backgroundColor - Any valid CSS color
+   * @returns `#000000` or `#ffffff`
+   */
   getForegroundColorByBackgroundColor(backgroundColor: string): string {
     let foregroundColor = this.colorBgToFgColor.get(backgroundColor);
     if (!foregroundColor) {
       const rgb = this.convertColorToRGBA(backgroundColor);
-      foregroundColor = rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114 > 186 ? 'black' : 'white';
+      foregroundColor = ThemeHelper.contrastingForeground([rgb[0], rgb[1], rgb[2]]);
       this.colorBgToFgColor.set(backgroundColor, foregroundColor);
     }
     return foregroundColor;
+  }
+
+  /**
+   * Resolves the color key of a range to the color shown in the active scheme.
+   *
+   * @param colorKey - The color stored with the range, `gray` when it has none
+   * @param isDark - Whether the dark scheme is active
+   * @returns The display color
+   */
+  static displayColor(colorKey: string, isDark: boolean): string {
+    return (isDark && FullyearcalendarLibComponent.DARK_DISPLAY_COLORS[colorKey]) || colorKey;
   }
 
   /**
@@ -114,7 +147,7 @@ export class FullyearcalendarLibComponent {
     return ctx.getImageData(0, 0, 1, 1).data;
   }
 
-  private buildYear(val: YearCalendarData): Year {
+  private buildYear(val: YearCalendarData, isDark: boolean): Year {
     const year = new Year(val.year);
     for (const m of year.months) {
       for (const w of m.weeks) {
@@ -124,7 +157,7 @@ export class FullyearcalendarLibComponent {
           if (val.dates && val.dates.length > 0) {
             for (const d of val.dates) {
               if (date >= d.start && date <= d.end) {
-                const backgroundColor = d.color ? d.color : 'gray';
+                const backgroundColor = FullyearcalendarLibComponent.displayColor(d.color ? d.color : 'gray', isDark);
                 const range = new Range(
                   d,
                   date,

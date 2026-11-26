@@ -63,6 +63,7 @@ import {
 import { PositionEventKind, PositionEventTrace, positionEventTraces } from '../model/security.chart.series';
 import { TimeSeriesParam } from '../model/time.series.param';
 import { TimeSeriesQuotesService } from '../service/time.series.quotes.service';
+import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 
 /** The charts of one position the user can choose from, in the order of the select; the keys are their text keys. */
 enum SecurityPositionChartType {
@@ -532,6 +533,7 @@ export class SecurityPositionChartComponent implements IGlobalMenuAttach, OnDest
    */
   private plot(plotly: PlotlyInstance, figure: PositionFigure, includeZero: boolean): void {
     const element = this.chartElement().nativeElement;
+    PlotlyHelper.applyThemeToLayout(figure.layout, PlotlyHelper.getThemeSurface(element));
     // The trace and layout builders describe only the attributes they set, so they are passed untyped
     plotly.newPlot(element, figure.data as Data[], figure.layout as Partial<Layout>, this.plotlyConfig).then((gd) =>
       gd.on('plotly_relayout', (event) =>

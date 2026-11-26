@@ -42,7 +42,7 @@
           @switch (field.templateName) { @case ('greenRed') {
           <span
             [pTooltip]="getValueByPath(el, field)"
-            [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
+            [class.gt-loss]="isValueByPathMinus(el, field)"
             tooltipPosition="top">
             {{ getValueByPath(el, field) }}
           </span>

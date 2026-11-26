@@ -77,7 +77,7 @@
             @switch (field.templateName) { @case ('greenRed') {
             <span
               [pTooltip]="getValueByPath(el, field)"
-              [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
+              [class.gt-loss]="isValueByPathMinus(el, field)"
               tooltipPosition="top">
               {{getValueByPath(el, field)}}
             </span>
@@ -99,8 +99,7 @@
             [style.width.px]="field.width"
             class="row-total">
             @switch (field.templateName) { @case ('greenRed') {
-            <span
-              [style.color]='isValueColumnTotalMinus(field, 0, accountPositionGroupSummary, null)? "red": "inherit"'>
+            <span [class.gt-loss]="isValueColumnTotalMinus(field, 0, accountPositionGroupSummary, null)">
               {{getValueColumnTotal(field, 0, accountPositionGroupSummary, null)}}
             </span>
             } @default {

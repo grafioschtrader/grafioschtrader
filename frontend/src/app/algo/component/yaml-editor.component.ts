@@ -20,6 +20,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { BaseService } from '../../lib/login/service/base.service';
 import { BaseSettings } from '../../lib/base.settings';
+import { ThemeService } from '../../lib/theme/theme.service';
 
 export interface YamlDiagnostic {
   category: string;
@@ -41,7 +42,10 @@ export interface YamlDiagnostic {
   selector: 'yaml-editor',
   imports: [TranslateModule],
   template: `
-    <div #editorContainer [style.height]="height()" style="border: 1px solid #dee2e6; border-radius: 4px;"></div>
+    <div
+      #editorContainer
+      [style.height]="height()"
+      style="border: 1px solid var(--p-content-border-color); border-radius: 4px;"></div>
     @if (format()) {
       <button type="button" class="btn btn-secondary mt-2" [disabled]="validating" (click)="validateForSubmit()">
         {{ 'YAML_VALIDATE' | translate }}
@@ -49,7 +53,7 @@ export interface YamlDiagnostic {
     }
     <div aria-live="polite" class="mt-2">
       @for (error of diagnostics(); track $index) {
-        <div role="alert" class="text-red-600">
+        <div role="alert" class="text-danger-emphasis">
           {{ error.category === 'REQUEST' ? (error.message | translate) : error.message }}
           @if (error.line) {
             <span>{{ 'YAML_LOCATION' | translate: { line: error.line, column: error.column } }}</span>
@@ -116,6 +120,22 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
       },
       { injector: this.renderInjector }
     );
+    // setTheme restyles the existing editor, so unsaved text and the cursor position stay.
+    effect(
+      () => {
+        const theme = this.monacoTheme();
+        untracked(() => {
+          const monaco = (window as any).monaco;
+          if (this.editor && monaco) monaco.editor.setTheme(theme);
+        });
+      },
+      { injector: this.renderInjector }
+    );
+  }
+
+  /** Monaco theme matching the active color scheme. */
+  private monacoTheme(): 'vs' | 'vs-dark' {
+    return this.themeService.isDark() ? 'vs-dark' : 'vs';
   }
 
   private invalidateValidation(): void {
@@ -199,6 +219,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
   }>();
 
   private readonly renderInjector = inject(Injector);
+  private readonly themeService = inject(ThemeService);
   private _value = '';
   private editor: any;
   private validationTimer: any;
@@ -259,7 +280,7 @@ export class YamlEditorComponent extends BaseService implements AfterViewInit, O
     this.editor = monaco.editor.create(this.editorContainer().nativeElement, {
       value: this._value,
       language: 'yaml',
-      theme: 'vs',
+      theme: this.monacoTheme(),
       minimap: { enabled: false },
       wordWrap: 'on',
       lineNumbers: 'on',

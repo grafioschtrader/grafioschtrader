@@ -17,7 +17,8 @@
         <!-- An empty cell must keep the normal colour. isValueByPathMinus coerces a missing value to zero, so without
              the emptiness check a field the connector does not deliver would be painted green as if it were a gain. -->
         <span
-          [style.color]="!getValueByPath(content, field) ? 'inherit' : (isValueByPathMinus(content, field) ? 'red' : 'green')">
+          [class.gt-loss]="!!getValueByPath(content, field) && isValueByPathMinus(content, field)"
+          [class.gt-gain]="!!getValueByPath(content, field) && !isValueByPathMinus(content, field)">
           {{getValueByPath(content, field)}}
         </span>
         } @case ('long') { @if (!!(field.dataType === DataType.String)) {

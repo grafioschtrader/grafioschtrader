@@ -57,3 +57,5 @@ SERVER_ONLINE
 # --- Deliberate: the German term for a WebAuthn passkey is the English word.
 PASSKEYS
 USER_PASSKEY
+# --- Deliberate: the theme option that follows the operating system is called "System" in German too.
+THEME_SYSTEM

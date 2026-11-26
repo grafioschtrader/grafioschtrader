@@ -33,7 +33,7 @@ interface SubscriptionFormModel {
         }
       </dl>
       @if (noticeKey(); as notice) {
-        <p class="bg-info">{{ notice | translate }}</p>
+        <p class="bg-info-subtle text-info-emphasis">{{ notice | translate }}</p>
       }
       <signal-dynamic-form
         [config]="config"

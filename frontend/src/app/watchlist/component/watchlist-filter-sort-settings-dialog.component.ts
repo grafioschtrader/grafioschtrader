@@ -113,7 +113,7 @@ export interface WatchlistFilterSortSettingsData {
         align-items: center;
         gap: 0.5rem;
         padding: 0.15rem 0;
-        border-bottom: 1px solid var(--surface-border);
+        border-bottom: 1px solid var(--p-content-border-color);
       }
 
       .entry-scope {

@@ -79,7 +79,7 @@ import { ProcessedActionData } from '../../types/processed.action.data';
           [showFilter]="false"
           (dataChanged)="onTreeTableDataChanged($event)" />
       } @else {
-        <div style="padding: 1rem; text-align: center; color: #888;">
+        <div style="padding: 1rem; text-align: center; color: var(--p-text-muted-color);">
           {{ 'NO_DATA_FOUND' | translate }}
         </div>
       }

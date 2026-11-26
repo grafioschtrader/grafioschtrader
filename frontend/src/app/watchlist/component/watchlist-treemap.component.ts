@@ -33,6 +33,7 @@ import { InstrumentLogoService } from '../../shared/securitycurrency/instrument-
 import { WatchlistTreemap, WatchlistTreemapNode } from '../model/watchlist-treemap';
 import { WatchlistService } from '../service/watchlist.service';
 import { WatchlistTreemapChart } from './watchlist.treemap.chart';
+import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 
 /**
  * Market map of a watchlist: the stocks are grouped by the sub category of their asset class, the area of a tile is the
@@ -249,6 +250,10 @@ export class WatchlistTreemapComponent implements OnDestroy, IGlobalMenuAttach {
             if (!this.destroyed && version === this.drawVersion) {
               this.plotly = plotly;
               this.hoveredNode = null;
+              PlotlyHelper.applyThemeToLayout(
+                figure.layout,
+                PlotlyHelper.getThemeSurface(this.chartElement().nativeElement)
+              );
               plotly
                 .newPlot(this.chartElement().nativeElement, figure.data, figure.layout, this.plotlyConfig)
                 .then((element) => {

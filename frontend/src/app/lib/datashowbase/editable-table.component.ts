@@ -259,7 +259,9 @@ export interface ValidationErrorEvent<T> {
                               }
                             " />
                         } @else if (field.templateName === 'greenRed') {
-                          <span [style.color]="isNegativeValue(rowData, field) ? 'red' : 'green'">
+                          <span
+                            [class.gt-loss]="isNegativeValue(rowData, field)"
+                            [class.gt-gain]="!isNegativeValue(rowData, field)">
                             {{ getValue(rowData, field) }}
                           </span>
                         } @else if (field.templateName === 'check') {

@@ -38,7 +38,6 @@
               "node_modules/@openng/icons/openng-icons.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
               "node_modules/flag-icons/css/flag-icons.min.css",
-              "src/assets/theme.css",
               "src/styles.css",
               "src/app/lib/styles.css"
             ],
@@ -135,7 +134,6 @@
               "node_modules/normalize.css/normalize.css",
               "node_modules/@openng/icons/openng-icons.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
-              "src/assets/theme.css",
               "src/styles.css",
               "src/app/lib/styles.css",
               "src/grafiosch-host/styles.css"

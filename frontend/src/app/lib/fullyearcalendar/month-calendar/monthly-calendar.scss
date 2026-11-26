@@ -24,19 +24,22 @@
   }
 
   .disabledHeaderDay {
-    color: red;
+    color: var(--gt-loss-color);
   }
 
+  /* Background and text change together, so a day of any range color stays readable while hovered. */
   .day:hover {
-    background: lightgray !important;
+    background: var(--p-content-hover-background) !important;
+    color: var(--p-text-color) !important;
     border: 0;
     border-radius: 3px;
   }
 
   .caltooltip .tooltiptext {
     visibility: hidden;
-    background-color: rgba(230, 222, 222, 0.986);
-    color: rgb(27, 26, 26);
+    background-color: var(--p-overlay-popover-background);
+    color: var(--p-overlay-popover-color);
+    border: 1px solid var(--p-overlay-popover-border-color);
     text-align: center;
     border-radius: 4px;
     padding: 4px;
@@ -47,7 +50,7 @@
   }
 
   .daydisabled {
-    color: gray;
+    color: var(--p-text-muted-color);
     font-weight: normal;
   }
 

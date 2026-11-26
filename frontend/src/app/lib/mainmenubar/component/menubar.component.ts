@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, effect, inject, signal, untracked } from '@angular/core';
 import { SETTINGS_MENU_EXTENSIONS } from '../service/settings-menu-extensions';
 import { LoginService } from '../../login/service/log-in.service';
 import { ActivePanelService } from '../service/active.panel.service';
@@ -28,6 +28,8 @@ import { ManagedClientsTableDialogComponent } from '../../manageclient/component
 import { ShareReadAccessDynamicDialogComponent } from '../../manageclient/component/share-read-access-dynamic-dialog.component';
 import { SharedViewersTableDialogComponent } from '../../manageclient/component/shared-viewers-table-dialog.component';
 import { GlobalSessionNames } from '../../global.session.names';
+import { ThemeService } from '../../theme/theme.service';
+import { ThemeMode } from '../../theme/theme.helper';
 
 /**
  * Represents the menubar of GT
@@ -39,6 +41,13 @@ import { GlobalSessionNames } from '../../global.session.names';
   providers: [DialogService]
 })
 export class MenubarComponent implements OnInit, OnDestroy {
+  private static readonly THEME_MODES: ReadonlyArray<{ mode: ThemeMode; key: string }> = [
+    { mode: 'system', key: 'THEME_SYSTEM' },
+    { mode: 'light', key: 'THEME_LIGHT' },
+    { mode: 'dark', key: 'THEME_DARK' }
+  ];
+  private static readonly THEME_ACTIVE = 'THEME_ACTIVE';
+
   translateService = inject(TranslateService);
   mainDialogService = inject(MainDialogService);
   private messageToastService = inject(MessageToastService);
@@ -53,12 +62,24 @@ export class MenubarComponent implements OnInit, OnDestroy {
   private dialogService = inject(DialogService);
   private personalDataZipName = inject(PERSONAL_DATA_ZIP_NAME);
   private settingsExtensions = inject(SETTINGS_MENU_EXTENSIONS, { optional: true });
+  private readonly themeService = inject(ThemeService);
 
   menuItems: MenuItem[] = new Array<MenuItem>(4);
   private subscriptionViewSizeChanged?: Subscription;
+  /** The appearance submenu; created with the settings menu, which exists only after login. */
+  private themeItem?: MenuItem;
+  /** Translated labels of the appearance entries, loaded once; null until the translation has arrived. */
+  private readonly themeLabels = signal<Record<string, string> | null>(null);
 
   constructor() {
     this.activePanelService.topMenuItems.set(this.menuItems);
+    // Clicks, a change in another tab and the initial mode all take this path. The entries are rebuilt as new objects
+    // and the menu is republished, because the OnPush menubar does not see a change inside an existing item.
+    effect(() => {
+      const mode = this.themeService.mode();
+      const labels = this.themeLabels();
+      untracked(() => this.refreshThemeItems(mode, labels));
+    });
   }
 
   ngOnInit() {
@@ -97,7 +118,8 @@ export class MenubarComponent implements OnInit, OnDestroy {
       {
         label: 'SIGN_IN_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.SignInSecurity)
-      }
+      },
+      this.createThemeItem()
     ];
     const accountOperationsAvailable = !this.isInManagedClient();
     for (const extension of this.settingsExtensions ?? []) {
@@ -238,6 +260,36 @@ export class MenubarComponent implements OnInit, OnDestroy {
       closable: true,
       closeOnEscape: true
     });
+  }
+
+  /**
+   * Creates the appearance submenu. The appearance is a preference of the browser, not a write to the tenant, so it is
+   * offered regardless of managed-client and read-only state. Its entries are added by {@link refreshThemeItems}.
+   */
+  private createThemeItem(): MenuItem {
+    this.themeItem = { label: 'THEME', items: [] };
+    this.translateService
+      .get([...MenubarComponent.THEME_MODES.map((m) => m.key), MenubarComponent.THEME_ACTIVE])
+      .subscribe((labels: Record<string, string>) => this.themeLabels.set(labels));
+    return this.themeItem;
+  }
+
+  /**
+   * Rebuilds the three appearance entries. The entry of the stored mode is marked with a check icon and carries the
+   * translated "active" text as title, which assistive technology exposes as the item's description; with a dark
+   * operating system and mode `system`, `System` stays marked.
+   */
+  private refreshThemeItems(mode: ThemeMode, labels: Record<string, string> | null): void {
+    if (!this.themeItem || !labels) {
+      return;
+    }
+    this.themeItem.items = MenubarComponent.THEME_MODES.map((m): MenuItem => ({
+      label: labels[m.key],
+      icon: m.mode === mode ? 'pi pi-check' : 'pi pi-fw',
+      ...(m.mode === mode ? { title: labels[MenubarComponent.THEME_ACTIVE] } : {}),
+      command: () => this.themeService.setMode(m.mode)
+    }));
+    this.refreshTopMenu();
   }
 
   /** Publishes a fresh array reference so the Optimus menubar picks up structural changes. */

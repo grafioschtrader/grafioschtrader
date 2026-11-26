@@ -99,7 +99,7 @@ import { GTNetExchangeLogService } from '../service/gtnet-exchange-log.service';
       .no-data {
         padding: 1rem;
         text-align: center;
-        color: #666;
+        color: var(--p-text-muted-color);
         font-style: italic;
       }
       .mt-3 {

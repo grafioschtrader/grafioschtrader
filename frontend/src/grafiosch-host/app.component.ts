@@ -2,32 +2,13 @@ import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Optimus } from '@openng/optimus-ui/config';
-import Aura from '@openng/optimus-ui-themes/aura';
-import { definePreset } from '@openng/optimus-ui-themes';
 
 import { GlobalSessionNames } from '../app/lib/global.session.names';
 import { LoginService } from '../app/lib/login/service/log-in.service';
 import { MessageToastComponent } from '../app/lib/message/message.toast.component';
+import { CompactPreset } from '../app/lib/theme/compact.preset';
+import { ThemeService } from '../app/lib/theme/theme.service';
 import { GrafioschSettings } from './grafiosch.settings';
-
-/**
- * Compact Optimus preset. It only narrows the default paddings so tables and menus have the same density as in
- * Grafioschtrader; the component tokens are the ones that actually decide the spacing, a component level CSS rule
- * would lose the cascade.
- */
-const GrafioschPreset = definePreset(Aura, {
-  components: {
-    button: { root: { paddingX: '0.25rem', paddingY: '0.25rem' } },
-    inputtext: { root: { paddingX: '0rem', paddingY: '0rem' } },
-    menubar: { root: { padding: '0rem 0rem' } },
-    select: { root: { paddingX: '0rem', paddingY: '0rem' } },
-    tree: { root: { padding: '0.5rem' }, node: { padding: '0rem 0rem' } },
-    treetable: {
-      headerCell: { padding: '0rem 0rem' },
-      bodyCell: { padding: '0rem 0rem', gap: '0rem' }
-    }
-  }
-});
 
 /**
  * Root of the standalone Grafiosch application. It is the consumer that proves {@code src/app/lib} runs without any
@@ -45,14 +26,25 @@ const GrafioschPreset = definePreset(Aura, {
   imports: [RouterOutlet, MessageToastComponent]
 })
 export class GrafioschAppComponent {
+  // Injected for its constructor, which applies the stored color scheme to the document at bootstrap.
+  private readonly themeService = inject(ThemeService);
+
   constructor() {
     const translateService = inject(TranslateService);
     const optimusConfig = inject(Optimus);
 
     translateService.addLangs(['en', 'de']);
     translateService.setDefaultLang(GrafioschSettings.DEFAULT_LANGUAGE);
-    localStorage.setItem(GlobalSessionNames.EXTERNAL_HELP_URL, GrafioschSettings.HELP_URL_BASE);
+    try {
+      localStorage.setItem(GlobalSessionNames.EXTERNAL_HELP_URL, GrafioschSettings.HELP_URL_BASE);
+    } catch {
+      // A disabled or full storage must not abort the bootstrap.
+    }
     LoginService.setGlobalLang(translateService, optimusConfig);
-    optimusConfig.theme.set({ preset: GrafioschPreset });
+    optimusConfig.theme.set({
+      // The library host has no deltas of its own: it shows the shared compact density with Aura's colors.
+      preset: CompactPreset,
+      options: { darkModeSelector: ThemeService.DARK_MODE_SELECTOR }
+    });
   }
 }

@@ -152,6 +152,7 @@ export interface CellMark {
   template: `
     @let expandedRowTemplateValue = expandedRowTemplate();
     @let cellMarkFnValue = cellMarkFn();
+    @let cellClassFnValue = cellClassFn();
     @let footerValueFnValue = footerValueFn();
     @let footerNegativeFnValue = footerNegativeFn();
     <!-- Signal queries are read once here, not per cell: every cell view created from a projected template marks
@@ -457,7 +458,9 @@ export interface CellMark {
                   [style.left]="frozenLeft(slot)"
                   [style]="getMergedCellStyle(rowData, field)"
                   [style.max-width.px]="field.width"
-                  [class]="getCellClass(field)">
+                  [class]="
+                    toClassString(getCellClass(field), cellClassFnValue ? cellClassFnValue(rowData, field) : null)
+                  ">
                   <!-- Optional mark before the content, for example for an automatically filled value -->
                   @if (cellMarkFnValue) {
                     @if (cellMarkFnValue(rowData, field); as mark) {
@@ -486,7 +489,7 @@ export interface CellMark {
                   } @else if (field.templateName === 'greenRed') {
                     <span
                       [pTooltip]="getCellTooltip(rowData, field)"
-                      [style.color]="isNegativeValue(rowData, field) ? 'red' : 'inherit'"
+                      [class.gt-loss]="isNegativeValue(rowData, field)"
                       tooltipPosition="top">
                       {{ getValue(rowData, field) }}
                     </span>
@@ -586,7 +589,7 @@ export interface CellMark {
                     [class]="getCellClass(field)"
                     [style.max-width.px]="field.width"
                     [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
-                    <span [style.color]="footerNegativeFnValue && footerNegativeFnValue(field) ? 'red' : null">
+                    <span [class.gt-loss]="footerNegativeFnValue && footerNegativeFnValue(field)">
                       {{ footerValueFnValue(field) }}
                     </span>
                   </td>
@@ -997,6 +1000,12 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
    * Optional function returning a small mark shown before the content of a cell, with a tooltip. Returns null for a
    * cell without mark. Used for example to flag values that were filled automatically.
    */
+  /**
+   * Custom function adding CSS classes to individual table cells, such as the semantic `gt-gain` / `gt-loss` text
+   * colors. Unlike an inline style from {@link cellStyleFn}, a class lets the selection color of a selected row win.
+   */
+  readonly cellClassFn = input<(row: T, field: ColumnConfig) => string | null>();
+
   readonly cellMarkFn = input<(row: T, field: ColumnConfig) => CellMark | null>();
 
   // ============================================================================

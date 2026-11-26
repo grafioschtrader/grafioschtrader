@@ -37,7 +37,7 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
         </div>
       }
       @if (decisionText(); as decisionTextValue) {
-        <p class="bg-info">{{ decisionTextValue }}</p>
+        <p class="bg-info-subtle text-info-emphasis">{{ decisionTextValue }}</p>
       }
       @if (proposals().length === 0) {
         <p>{{ 'UDF_FILL_PROPOSALS_NONE' | translate }}</p>

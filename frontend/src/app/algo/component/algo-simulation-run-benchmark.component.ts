@@ -260,13 +260,19 @@ export class AlgoSimulationRunBenchmarkComponent implements OnDestroy {
             plotly.newPlot(
               returnsElement,
               benchmarkTraces(result.comparison, names, RETURN_FIELDS),
-              this.layout(this.translateService.instant('RETURNS_PERCENT'), true),
+              PlotlyHelper.applyThemeToLayout(
+                this.layout(this.translateService.instant('RETURNS_PERCENT'), true),
+                PlotlyHelper.getThemeSurface(returnsElement)
+              ),
               config
             );
             plotly.newPlot(
               wealthElement,
               benchmarkTraces(result.comparison, names, WEALTH_FIELDS),
-              this.layout(`${this.translateService.instant('WEALTH')} ${result.comparison.mainCurrency}`, false),
+              PlotlyHelper.applyThemeToLayout(
+                this.layout(`${this.translateService.instant('WEALTH')} ${result.comparison.mainCurrency}`, false),
+                PlotlyHelper.getThemeSurface(wealthElement)
+              ),
               config
             );
           },

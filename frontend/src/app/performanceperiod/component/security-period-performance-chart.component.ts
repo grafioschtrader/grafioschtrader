@@ -235,6 +235,7 @@ export class SecurityPeriodPerformanceChartComponent implements IGlobalMenuAttac
   /** Draws the figure; a new plot drops the listeners of the previous one, so the click is registered again. */
   private plot(plotly: PlotlyInstance, result: SecurityPeriodPerformance, figure: SecurityPerformanceFigure): void {
     const element = this.chartElement().nativeElement;
+    PlotlyHelper.applyThemeToLayout(figure.layout, PlotlyHelper.getThemeSurface(element));
     plotly
       .newPlot(element, figure.data, figure.layout, this.plotlyConfig)
       .then(() =>
@@ -279,7 +280,12 @@ export class SecurityPeriodPerformanceChartComponent implements IGlobalMenuAttac
       holdingDays: this.translateService.instant('HOLDING_DAYS'),
       share: this.translateService.instant('SECURITY_PERIOD_SHARE')
     };
-    const treemap = securityPerformanceTreemap(result.rows, texts, format);
+    const treemap = securityPerformanceTreemap(
+      result.rows,
+      texts,
+      format,
+      PlotlyHelper.getThemeSurface(this.chartElement().nativeElement).surfaceBg
+    );
     const subtitle =
       `${texts.gains}: ${format.amount(treemap.gainsMC)} · ${texts.losses}: ${format.amount(-treemap.lossesMC)} · ` +
       `${this.translateService.instant('BALANCE')}: ${format.amount(result.totals.gainPeriodMC)}`;

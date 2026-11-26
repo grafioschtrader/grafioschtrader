@@ -20,7 +20,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                 {{ field.headerTranslated }}
               </div>
               <div class="col-3 text-end">
-                <span [style.color]="isValueByPathMinus(phad, field) ? 'red' : 'inherit'">
+                <span [class.gt-loss]="isValueByPathMinus(phad, field)">
                   {{ getValueByPath(phad, field) }}
                 </span>
               </div>

@@ -124,12 +124,14 @@ export interface SecurityPerformanceTreemap {
  * @param rows Rows of the response
  * @param texts Translated labels
  * @param format Formatting of amounts and days
+ * @param surfaceBg Background of the content area in the active scheme, used for the tile borders
  * @returns The trace, the security of every node, the sums of both branches and the number of rows left out
  */
 export function securityPerformanceTreemap(
   rows: SecurityPeriodPerformanceRow[],
   texts: SecurityPerformanceTreemapTexts,
-  format: SecurityPerformanceChartFormat
+  format: SecurityPerformanceChartFormat,
+  surfaceBg = '#ffffff'
 ): SecurityPerformanceTreemap {
   const withGain = rows.filter((row): row is GainRow => row.gainPeriodMC != null);
   const gains = withGain.filter((row) => row.gainPeriodMC > 0);
@@ -151,8 +153,8 @@ export function securityPerformanceTreemap(
       values: nodes.map((node) => node.value),
       branchvalues: 'remainder',
       sort: true,
-      // Plotly draws the borders in the paper color, which is transparent here; white matches the holdings treemap
-      marker: { colors: nodes.map((node) => node.color), line: { color: '#ffffff', width: 1 } },
+      // Plotly draws the borders in the paper color, which is transparent here; the content background separates tiles
+      marker: { colors: nodes.map((node) => node.color), line: { color: surfaceBg, width: 1 } },
       customdata: nodes.map((node) => [node.amount, node.days]),
       texttemplate: '%{label}<br>%{customdata[0]}',
       hovertemplate:

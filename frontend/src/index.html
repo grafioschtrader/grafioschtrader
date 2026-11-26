@@ -7,6 +7,25 @@
 
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script>
+      (function () {
+        var m = null,
+          dark = false;
+        try {
+          m = localStorage.getItem('gt.theme');
+        } catch (e) {}
+        if (m === 'dark') {
+          dark = true;
+        } else if (m !== 'light') {
+          try {
+            dark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          } catch (e) {}
+        }
+        var t = dark ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-bs-theme', t);
+        document.documentElement.style.colorScheme = t;
+      })();
+    </script>
   </head>
   <body>
     <app-root>Loading...</app-root>

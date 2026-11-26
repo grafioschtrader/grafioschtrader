@@ -94,12 +94,12 @@ import { Helper } from '../../lib/helper/helper';
         gap: 1rem;
       }
       .lookup-source {
-        color: var(--text-color-secondary);
+        color: var(--p-text-muted-color);
         font-size: 0.85rem;
       }
       .lookup-label {
         min-width: 220px;
-        color: var(--text-color-secondary);
+        color: var(--p-text-muted-color);
       }
     `
   ]

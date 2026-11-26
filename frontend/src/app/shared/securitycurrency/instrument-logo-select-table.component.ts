@@ -89,7 +89,7 @@ import { InstrumentLogoService } from './instrument-logo.service';
         border-radius: 3px;
         background: #ffffff;
         object-fit: contain;
-        border: 1px solid var(--surface-border, #dee2e6);
+        border: 1px solid var(--p-content-border-color);
       }
     `
   ]

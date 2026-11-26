@@ -102,7 +102,7 @@ import { InstrumentLogoService } from './instrument-logo.service';
         gap: 0.6rem;
         margin: 0 0.75rem 0.5rem 0.75rem;
         padding: 0.35rem 0.6rem;
-        border: 1px solid var(--surface-border, #dee2e6);
+        border: 1px solid var(--p-content-border-color);
         border-radius: 4px;
       }
 
@@ -119,13 +119,13 @@ import { InstrumentLogoService } from './instrument-logo.service';
         height: 32px;
         padding: 2px 4px;
         border-radius: 4px;
-        border: 1px solid var(--surface-border, #ced4da);
+        border: 1px solid var(--p-content-border-color);
         background: #ffffff;
         cursor: pointer;
       }
 
       .security-logo-badge:hover {
-        border-color: var(--primary-color, #0d6efd);
+        border-color: var(--p-primary-color);
       }
 
       .security-logo-badge-readonly {
@@ -134,7 +134,7 @@ import { InstrumentLogoService } from './instrument-logo.service';
       }
 
       .security-logo-badge-readonly:hover {
-        border-color: var(--surface-border, #ced4da);
+        border-color: var(--p-content-border-color);
       }
 
       .security-logo-badge img {
@@ -152,7 +152,7 @@ import { InstrumentLogoService } from './instrument-logo.service';
 
       .security-logo-meta {
         font-size: 0.82rem;
-        color: var(--text-color-secondary, #6c757d);
+        color: var(--p-text-muted-color);
       }
 
       .security-logo-proposal {
@@ -172,7 +172,7 @@ import { InstrumentLogoService } from './instrument-logo.service';
       .security-logo-sublabel {
         font-size: 0.75rem;
         font-weight: 600;
-        color: var(--text-color-secondary, #6c757d);
+        color: var(--p-text-muted-color);
       }
     `
   ]

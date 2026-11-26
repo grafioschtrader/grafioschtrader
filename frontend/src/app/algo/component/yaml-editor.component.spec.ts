@@ -3,6 +3,7 @@ import { DestroyableInjector, Injector, runInInjectionContext } from '@angular/c
 import { Subject, throwError } from 'rxjs';
 import { YamlEditorComponent } from './yaml-editor.component';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ThemeService } from '../../lib/theme/theme.service';
 
 let injectors: DestroyableInjector[];
 beforeEach(() => {
@@ -12,7 +13,12 @@ afterEach(() => injectors.forEach((injector) => injector.destroy()));
 
 /** Supplies the context required by outputs while keeping schema and validation tests free of rendering. */
 function createEditor(http: HttpClient | null = null): YamlEditorComponent {
-  const injector = Injector.create({ providers: [{ provide: HttpClient, useValue: http }] });
+  const injector = Injector.create({
+    providers: [
+      { provide: HttpClient, useValue: http },
+      { provide: ThemeService, useValue: { isDark: () => false } }
+    ]
+  });
   injectors.push(injector);
   return runInInjectionContext(injector, () => new YamlEditorComponent());
 }

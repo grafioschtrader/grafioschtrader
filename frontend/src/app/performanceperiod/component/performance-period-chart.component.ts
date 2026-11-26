@@ -44,6 +44,7 @@ import {
 } from '../model/performance-period.chart';
 import type { PerformancePeriod } from '../model/performance.period';
 import { PerformancePeriodChartService } from '../service/performance-period-chart.service';
+import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 
 /** The select of the chart mode. */
 interface ChartModeFormModel {
@@ -227,6 +228,7 @@ export class PerformancePeriodChartComponent implements IGlobalMenuAttach, OnDes
           (plotly) => {
             if (!this.destroyed && version === this.drawVersion) {
               this.plotly = plotly;
+              PlotlyHelper.applyThemeToLayout(layout, PlotlyHelper.getThemeSurface(this.chartElement().nativeElement));
               plotly.newPlot(this.chartElement().nativeElement, data, layout, this.plotlyConfig);
             }
           },

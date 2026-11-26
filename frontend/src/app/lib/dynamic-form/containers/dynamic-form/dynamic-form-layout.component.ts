@@ -75,7 +75,7 @@ export interface FieldTemplateContext {
         @if (hasVisibleLabel(configValue)) {
           <label
             [title]="configValue.labelTitle !== undefined ? configValue.labelTitle : ''"
-            [style.color]="configValue.labelTitle !== undefined ? 'red' : null"
+            [class.gt-loss]="configValue.labelTitle !== undefined"
             [for]="configValue.field"
             class="small-padding form-label dynamic-form-label">
             {{
@@ -109,7 +109,7 @@ export interface FieldTemplateContext {
           }
         }
         @if (configValue.labelShowText) {
-          <div class="bg-info" [innerHTML]="configValue.labelShowText"></div>
+          <div class="bg-info-subtle text-info-emphasis" [innerHTML]="configValue.labelShowText"></div>
         }
       </div>
     </div>

@@ -190,7 +190,7 @@ const DRAFT_ROW_KEY = '__DRAFT__';
       }
 
       .logo-drop-zone {
-        border: 2px dashed var(--surface-border, #adb5bd);
+        border: 2px dashed var(--p-content-border-color);
         border-radius: 6px;
         padding: 0.75rem 1rem;
         text-align: center;
@@ -202,7 +202,7 @@ const DRAFT_ROW_KEY = '__DRAFT__';
 
       .logo-drop-zone:hover,
       .logo-drop-zone-active {
-        border-color: var(--primary-color, #0d6efd);
+        border-color: var(--p-primary-color);
         background-color: rgba(13, 110, 253, 0.06);
       }
 

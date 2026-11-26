@@ -15,21 +15,25 @@ export function indicatorField(idWatchlistIndicatorColumn: number): `ind_${numbe
 }
 
 /**
- * Style of an indicator value against the lower and upper mark of its column. A neutral column highlights the
- * background, the other two colour the text green or red depending on which mark counts as positive.
+ * CSS class of an indicator value against the lower and upper mark of its column. A neutral column highlights the
+ * background, the other two colour the text as gain or loss depending on which mark counts as positive. The classes
+ * resolve to colours of the active scheme and yield to the selection colour of a selected row.
  *
  * @param column - the indicator column with its marks
  * @param value - the cell value; only numbers are marked
- * @returns the style, or null when the value lies between the marks or is not a number
+ * @returns the class, or null when the value lies between the marks or is not a number
  */
-export function indicatorMarkStyle(column: WatchlistIndicatorColumn, value: unknown): { [key: string]: string } | null {
+export function indicatorMarkClass(
+  column: WatchlistIndicatorColumn,
+  value: unknown
+): 'gt-gain' | 'gt-loss' | 'gt-mark-neutral' | null {
   if (typeof value !== 'number') return null;
   const low = column.lowerMark != null && value <= column.lowerMark;
   const high = column.upperMark != null && value >= column.upperMark;
   if (!low && !high) return null;
-  if (column.markColors === 'NEUTRAL') return { 'background-color': 'rgba(234, 179, 8, 0.30)' };
+  if (column.markColors === 'NEUTRAL') return 'gt-mark-neutral';
   const positive = column.markColors === 'LOW_POSITIVE_HIGH_NEGATIVE' ? low : high;
-  return { color: positive ? 'green' : 'red' };
+  return positive ? 'gt-gain' : 'gt-loss';
 }
 
 /**

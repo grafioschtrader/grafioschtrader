@@ -28,7 +28,7 @@ import type { BenchmarkNotice, PerformanceBenchmarkResult } from '../model/perfo
                 {{ field.headerTranslated }}
               </div>
               <div class="col-6 text-end">
-                <span [style.color]="isValueByPathMinus(result, field) ? 'red' : 'inherit'">
+                <span [class.gt-loss]="isValueByPathMinus(result, field)">
                   {{ getValueByPath(result, field) }}
                 </span>
               </div>
@@ -49,7 +49,7 @@ import type { BenchmarkNotice, PerformanceBenchmarkResult } from '../model/perfo
                   {{ field.headerTranslated }}
                 </div>
                 <div class="col-6 text-end">
-                  <span [style.color]="isValueByPathMinus(result, field) ? 'red' : 'inherit'">
+                  <span [class.gt-loss]="isValueByPathMinus(result, field)">
                     {{ getValueByPath(result, field) }}
                   </span>
                 </div>
@@ -69,7 +69,7 @@ import type { BenchmarkNotice, PerformanceBenchmarkResult } from '../model/perfo
                     {{ field.headerTranslated }}
                   </div>
                   <div class="col-6 text-end">
-                    <span [style.color]="isValueByPathMinus(result, field) ? 'red' : 'inherit'">
+                    <span [class.gt-loss]="isValueByPathMinus(result, field)">
                       {{ getValueByPath(result, field) }}
                     </span>
                   </div>

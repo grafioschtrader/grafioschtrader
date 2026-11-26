@@ -50,7 +50,7 @@ import { WATCHLIST_LOGO_CELL_STYLE } from '../../shared/securitycurrency/instrum
       ${WATCHLIST_LOGO_CELL_STYLE}
 
       table {
-        border: 1px solid #555;
+        border: 1px solid var(--p-content-border-color);
       }
     `
   ],

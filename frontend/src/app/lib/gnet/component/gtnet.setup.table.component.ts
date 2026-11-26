@@ -88,11 +88,13 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
         {{ 'GT_NET_NET_AND_MESSAGE' | translate }}
         @if (!gtNetMyEntryId()) {
           <div>
-            <span style="color:red; font-size: 80%">{{ 'GT_NET_COMM_REQUIREMENT' | translate }}</span>
+            <span class="gt-loss" style="font-size: 80%">{{ 'GT_NET_COMM_REQUIREMENT' | translate }}</span>
           </div>
         } @else if (entityList().length === 1) {
           <div>
-            <span style="color:blue; font-size: 80%">{{ 'GT_NET_COMM_REQUIREMENT_REMOTE' | translate }}</span>
+            <span style="color: var(--gt-accent-text-color); font-size: 80%">{{
+              'GT_NET_COMM_REQUIREMENT_REMOTE' | translate
+            }}</span>
           </div>
         }
       </h4>
@@ -170,17 +172,17 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
         width: 1.6rem;
         height: 1.6rem;
         padding: 0;
-        border: 1px solid #c2610f;
+        border: 1px solid var(--gt-warning-color);
         border-radius: 50%;
-        background: #fdf0e3;
-        color: #a8500c;
+        background: color-mix(in srgb, var(--gt-warning-color) 12%, transparent);
+        color: var(--gt-warning-color);
         cursor: pointer;
         font-size: 0.85rem;
         line-height: 1;
       }
       .reconnect-flag:hover:not(:disabled) {
-        background: #c2610f;
-        color: #ffffff;
+        background: var(--gt-warning-color);
+        color: var(--p-content-background);
       }
       .reconnect-flag:disabled {
         cursor: default;

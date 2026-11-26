@@ -1616,6 +1616,7 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     ];
     config.displaylogo = false;
     plotly.purge(this.chartElement().nativeElement);
+    PlotlyHelper.applyThemeToLayout(layout, PlotlyHelper.getThemeSurface(element));
     plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
     element.on('plotly_afterplot', this.attachTooltip.bind(this));
     element.on('plotly_relayout', () => this.shapeController.onRelayout());

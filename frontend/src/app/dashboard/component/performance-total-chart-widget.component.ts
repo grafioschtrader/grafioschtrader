@@ -38,6 +38,7 @@ import {
   performanceTotalChartTraces,
   shadowLabel
 } from '../model/performance.total.chart.plot';
+import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 
 /**
  * Dashboard card drawing the total value of the client, or of one of its portfolios, next to the invested capital.
@@ -279,7 +280,8 @@ export class PerformanceTotalChartWidgetComponent
           // A newer result replaces the pending one, so only the latest chart is drawn
           if (!this.destroyed && chart === this.chart()) {
             this.plotly = plotly;
-            plotly.react(element, this.traces(chart.points), this.layout(), this.plotlyConfig);
+            const layout = PlotlyHelper.applyThemeToLayout(this.layout(), PlotlyHelper.getThemeSurface(element));
+            plotly.react(element, this.traces(chart.points), layout, this.plotlyConfig);
           }
         },
         () => {}

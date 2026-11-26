@@ -58,7 +58,7 @@ import { UDFFillSuggestTestResultComponent } from './udf-fill-suggest-test-resul
       (onHide)="onHide($event)"
       [modal]="true">
       @if (fillStatusText(); as fillStatusTextValue) {
-        <p class="bg-info">{{ fillStatusTextValue }}</p>
+        <p class="bg-info-subtle text-info-emphasis">{{ fillStatusTextValue }}</p>
       }
       @if (isLLMWithoutKeys()) {
         <p-message severity="warn" [text]="'UDF_FILL_LLM_NO_KEYS' | translate" />

@@ -88,10 +88,10 @@ import { CorrelationSetEditComponent } from './correlation-set-edit.component';
         </p>
       }
       @if (nonOverlappingDates()) {
-        <p style="color:tomato;">{{ 'NON_OVERLAPPING_DATES' | translate }}</p>
+        <p class="gt-loss">{{ 'NON_OVERLAPPING_DATES' | translate }}</p>
       }
       @if (dividendMissingNames(); as dividendMissingNamesValue) {
-        <p style="color:tomato;">{{ 'CORRELATION_DIVIDEND_MISSING' | translate }} {{ dividendMissingNamesValue }}</p>
+        <p class="gt-loss">{{ 'CORRELATION_DIVIDEND_MISSING' | translate }} {{ dividendMissingNamesValue }}</p>
       }
       <correlation-table [childToParent]="this" />
     </div>

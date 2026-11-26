@@ -7,7 +7,6 @@ import { Optimus } from '@openng/optimus-ui/config';
 import { AppSettings } from './shared/app.settings';
 import { Subscription } from 'rxjs';
 import { NavigationStart, Router } from '@angular/router';
-import Aura from '@openng/optimus-ui-themes/aura';
 import { definePreset } from '@openng/optimus-ui-themes';
 import { Security } from './entities/security';
 import { AuditHelper } from './lib/helper/audit.helper';
@@ -18,8 +17,13 @@ import { BaseSettings } from './lib/base.settings';
 import { GlobalSessionNames } from './lib/global.session.names';
 import { UDFSpecialTypeRegistry } from './lib/udfmeta/model/udf.special.type.registry';
 import { UDFSpecialType } from './udfmetasecurity/model/udf.metadata.security';
+import { ThemeService } from './lib/theme/theme.service';
+import { CompactPreset } from './lib/theme/compact.preset';
 
-const MyPreset = definePreset(Aura, {
+/**
+ * Grafioschtrader's preset: the shared compact density with blue as primary color.
+ */
+const MyPreset = definePreset(CompactPreset, {
   semantic: {
     primary: {
       50: '{blue.50}',
@@ -33,88 +37,6 @@ const MyPreset = definePreset(Aura, {
       800: '{blue.800}',
       900: '{blue.900}',
       950: '{blue.950}'
-    }
-  },
-  components: {
-    button: {
-      root: {
-        paddingX: '0.25rem',
-        paddingY: '0.25rem'
-      }
-    },
-    datatable: {
-      row: {
-        selectedBackground: '{blue.600}',
-        selectedColor: '#ffffff'
-      }
-    },
-    inputtext: {
-      root: {
-        paddingX: '0rem',
-        paddingY: '0rem'
-      }
-    },
-    textarea: {
-      root: {
-        paddingX: '0.1rem',
-        paddingY: '0rem'
-      }
-    },
-    menubar: {
-      root: {
-        padding: '0rem 0rem'
-      }
-    },
-    multiselect: {
-      root: {
-        paddingX: '0rem',
-        paddingY: '0rem'
-      }
-    },
-    select: {
-      root: {
-        paddingX: '0rem',
-        paddingY: '0rem'
-      }
-    },
-    tabs: {
-      tab: {
-        borderWidth: '1px 1px 1px 1px'
-      },
-      tabpanel: {
-        padding: '0.rem 0rem 0rem 0rem'
-      }
-    },
-    tree: {
-      root: {
-        padding: '0.5rem'
-      },
-      node: {
-        padding: '0rem 0rem'
-      },
-      nodeToggleButton: {
-        size: '0.5rem'
-      }
-    },
-    treetable: {
-      header: {
-        background: '#efefef'
-      },
-      headerCell: {
-        padding: '0rem 0rem'
-      },
-      bodyCell: {
-        padding: '0rem 0rem',
-        gap: '0rem'
-      },
-      footerCell: {
-        // Aura defaults to 0.75rem 1rem here. Without this the total row of a tree table is twice as
-        // high as a data row and its right aligned figures sit 16px further left than the values above.
-        padding: '0rem 0rem'
-      },
-      nodeToggleButton: {
-        size: '1rem'
-      }
     }
   }
 });
@@ -133,6 +55,8 @@ const MyPreset = definePreset(Aura, {
 })
 export class AppComponent implements OnDestroy {
   private router = inject(Router);
+  // Injected for its constructor, which applies the stored color scheme to the document at bootstrap.
+  private readonly themeService = inject(ThemeService);
 
   private readonly subscription: Subscription;
 
@@ -145,7 +69,11 @@ export class AppComponent implements OnDestroy {
     // this language will be used as a fallback when a translation isn't found in the current language
     translateService.setDefaultLang(AppSettings.DEFAULT_LANGUAGE);
     // TODO Move it to the session storage.
-    localStorage.setItem(GlobalSessionNames.EXTERNAL_HELP_URL, AppSettings.HELP_URL_BASE);
+    try {
+      localStorage.setItem(GlobalSessionNames.EXTERNAL_HELP_URL, AppSettings.HELP_URL_BASE);
+    } catch {
+      // A disabled or full storage must not abort the bootstrap.
+    }
     LoginService.setGlobalLang(translateService, optimusConfig);
     this.initializeOptimusStyles(optimusConfig);
     AuditHelper.setCustomOwnershipCheck((entity: any, userId: number) => {
@@ -175,7 +103,7 @@ export class AppComponent implements OnDestroy {
   }
 
   private initializeOptimusStyles(optimusConfig: Optimus): void {
-    optimusConfig.theme.set({ preset: MyPreset });
+    optimusConfig.theme.set({ preset: MyPreset, options: { darkModeSelector: ThemeService.DARK_MODE_SELECTOR } });
   }
 
   ngOnDestroy(): void {

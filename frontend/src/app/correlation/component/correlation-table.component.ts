@@ -33,6 +33,8 @@ import { TableModule } from '@openng/optimus-ui/table';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { InstrumentStatisticsResultComponent } from '../../shared/securitycurrency/instrument-statistics-result.component';
 import { CorrelationAddInstrumentDialogComponent } from './correlation-add-instrument-dialog.component';
+import { ThemeService } from '../../lib/theme/theme.service';
+import { HeatmapColors } from '../../shared/helper/heatmap.colors';
 
 /**
  * This component serves as the main table view for correlation sets, displaying securities and currency pairs
@@ -175,6 +177,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   /** Limit instruments per correlation set */
   readonly tenantLimits = signal<TenantLimit[] | null>(null);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly themeService = inject(ThemeService);
   private limitRequest?: Subscription;
 
   /** List of securities and currencies in the correlation set */
@@ -441,7 +444,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     if (field.userValue != null) {
       const value = this.getCorrelation(dataobject, field, null);
       if (value == null) return null;
-      return 'hsl(' + (value + 1) * 58 + ',100%, 50%)';
+      return HeatmapColors.correlationCellBackground(value, this.themeService.isDark());
     }
     return null;
   }

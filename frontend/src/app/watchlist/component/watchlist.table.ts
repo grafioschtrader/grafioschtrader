@@ -298,6 +298,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     this.ownerHighlightFn(row, field);
   readonly cellStyle = (row: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig) =>
     this.priceCellStyle(row, field);
+  readonly cellClass = (row: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig) =>
+    this.priceCellClass(row, field);
   readonly markCell = (row: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig) =>
     this.cellMark(row, field);
   readonly negativeValue = (row: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig) =>
@@ -657,6 +659,18 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       }
       return WatchlistTable.redRamp(days, WatchlistTable.MAX_HISTORY_START_GAP_DAYS);
     }
+    return null;
+  }
+
+  /**
+   * CSS classes of a cell, for colours that must follow the scheme and yield to the selection colour of a selected row.
+   * The base table needs none; a watchlist type with semantic cell colours overrides it.
+   *
+   * @param position - Row of the table
+   * @param field - Column configuration of the cell
+   * @returns Space separated class names, or null when the cell needs none
+   */
+  priceCellClass(position: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig): string | null {
     return null;
   }
 

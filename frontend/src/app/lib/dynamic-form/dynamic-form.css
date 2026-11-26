@@ -7,7 +7,7 @@
   align-items: center; /* Center vertically */
   width: 20px; /* Default size: 20x20 */
   height: 20px;
-  border: 2px solid #000;
+  border: 2px solid var(--p-form-field-border-color);
   border-radius: 4px;
   font-size: 14px; /* Adjust font size for small size */
   font-weight: bold;
@@ -28,17 +28,17 @@
 
 /* Style for the "false" state */
 .tri-state-checkbox[data-state='false'] {
-  background-color: #fff;
+  background-color: var(--p-form-field-background);
 }
 
 /* Style for the "true" state */
 .tri-state-checkbox[data-state='true'] {
-  background-color: #d4edda;
+  background-color: var(--gt-tristate-true-bg);
 }
 
 /* Style for the "indeterminate" state */
 .tri-state-checkbox[data-state='indeterminate'] {
-  background-color: #f8d7da;
+  background-color: var(--gt-tristate-indet-bg);
 }
 
 /* Focus styling */

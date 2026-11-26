@@ -52,7 +52,7 @@
         @for (phf of positionHeaderFields(); track phf.field) {
         <span class="position-header-value">
           {{ phf.headerTranslated }}:
-          <span [style.color]="isValueByPathMinus(selectedSecuritycurrencyPosition(), phf) ? 'red' : 'inherit'">
+          <span [class.gt-loss]="isValueByPathMinus(selectedSecuritycurrencyPosition(), phf)">
             {{ getValueByPath(selectedSecuritycurrencyPosition(), phf) }}
           </span>
         </span>

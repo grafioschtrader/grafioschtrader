@@ -47,6 +47,9 @@ import { FilterType } from '../../datashowbase/filter.type';
 /**
  * It shows the messages in a tree table.
  */
+/** State of a GTNet message that is highlighted in the message tree. */
+export type GTNetMessageState = 'failed' | 'awaitingOwn' | 'awaitingRemote';
+
 @Component({
   selector: 'gtnet-message-treetable',
   imports: [
@@ -145,7 +148,12 @@ import { FilterType } from '../../datashowbase/filter.type';
             }
           </ng-template>
           <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
-            <tr [ttSelectableRow]="rowNode" [style.background-color]="getPendingBackgroundColor(rowData)">
+            @let messageState = getMessageState(rowData);
+            <tr
+              [ttSelectableRow]="rowNode"
+              [class.gt-msg-failed]="messageState === 'failed'"
+              [class.gt-msg-awaiting-own]="messageState === 'awaitingOwn'"
+              [class.gt-msg-awaiting-remote]="messageState === 'awaitingRemote'">
               @if (canAdministerGTNet) {
                 <td style="width: 40px; text-align: center;">
                   @if (rowData.canDelete && !rowData.replyTo) {
@@ -167,12 +175,21 @@ import { FilterType } from '../../datashowbase/filter.type';
                     [style.width.px]="field.width">
                     @if (i === 0) {
                       <p-treeTableToggler [rowNode]="rowNode" />
+                      @if (messageState) {
+                        @let display = MESSAGE_STATE_DISPLAY[messageState];
+                        <i
+                          [class]="display.icon"
+                          class="me-1"
+                          [pTooltip]="display.key | translate"
+                          tooltipPosition="top"
+                          [attr.aria-label]="display.key | translate"></i>
+                      }
                     }
                     @switch (field.templateName) {
                       @case ('greenRed') {
                         <span
                           [pTooltip]="getValueByPath(rowData, field)"
-                          [style.color]="isValueByPathMinus(rowData, field) ? 'red' : 'inherit'"
+                          [class.gt-loss]="isValueByPathMinus(rowData, field)"
                           tooltipPosition="top">
                           {{ getValueByPath(rowData, field) }}
                         </span>
@@ -611,22 +628,29 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     }
   }
 
+  /** Icon and text of each message state; the state is shown by the row color and by this icon with its tooltip. */
+  protected readonly MESSAGE_STATE_DISPLAY: Record<GTNetMessageState, { icon: string; key: string }> = {
+    failed: { icon: 'pi pi-exclamation-triangle', key: 'GT_NET_MSG_DELIVERY_FAILED' },
+    awaitingOwn: { icon: 'pi pi-reply', key: 'GT_NET_MSG_AWAITING_OWN_ANSWER' },
+    awaitingRemote: { icon: 'pi pi-clock', key: 'GT_NET_MSG_AWAITING_REMOTE_ANSWER' }
+  };
+
   /**
-   * Returns the background color for messages based on their status:
-   * - red: delivery failed (all targets are terminally unavailable or the message expired)
-   * - greenyellow: incoming pending requests (I need to answer)
-   * - yellow: outgoing pending requests (awaiting answer from recipient)
+   * Returns the state of a message that needs attention, in this precedence:
+   * - failed: delivery failed (all targets are terminally unavailable or the message expired)
+   * - awaitingOwn: incoming pending request, this instance has to answer
+   * - awaitingRemote: outgoing pending request, the answer of the recipient is outstanding
    * - null: normal state
    */
-  getPendingBackgroundColor(rowData: GTNetMessage): string | null {
+  getMessageState(rowData: GTNetMessage): GTNetMessageState | null {
     if (rowData.deliveryStatus === DeliveryStatus.FAILED || rowData.deliveryStatus === 'FAILED') {
-      return 'red';
+      return 'failed';
     }
     if (hasGTNetMessageId(rowData) && this.incomingPendingIds()?.has(rowData.idGtNetMessage)) {
-      return 'greenyellow';
+      return 'awaitingOwn';
     }
     if (hasGTNetMessageId(rowData) && this.outgoingPendingIds()?.has(rowData.idGtNetMessage)) {
-      return 'yellow';
+      return 'awaitingRemote';
     }
     return null;
   }
