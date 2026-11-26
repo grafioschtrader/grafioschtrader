@@ -148,6 +148,12 @@ public class MyDataExportDeleteDefinition {
   private static String SECURITYACCOUNT_SELDEL = String.format(
       "sa.* FROM %s sa, %s sc WHERE sc.id_tenant = ? AND sc.id_securitycash_account = sa.id_securitycash_account",
       Securityaccount.TABNAME, Securitycashaccount.TABNAME);
+  // Benchmark instruments of the period performance comparison: the one of the client view and those of the portfolios.
+  // An instrument referenced only here must still travel with the export, or the re-import would leave the columns
+  // tenant.id_benchmark and portfolio.id_benchmark pointing at nothing.
+  private static final String BENCHMARK_IDS = "SELECT t.id_benchmark FROM tenant t WHERE t.id_tenant = ? "
+      + "AND t.id_benchmark IS NOT NULL UNION SELECT p.id_benchmark FROM portfolio p WHERE p.id_tenant = ? "
+      + "AND p.id_benchmark IS NOT NULL";
   private static String SECURITY_SELECT = """
       s.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency
       WHERE w.id_tenant = ? UNION SELECT s.* FROM security s WHERE s.id_tenant_private = ? UNION SELECT DISTINCT s.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
@@ -166,11 +172,14 @@ public class MyDataExportDeleteDefinition {
       JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency
       WHERE tas.id_tenant = ? AND sc.dtype = 'S'
       UNION SELECT s.* FROM watchlist_indicator_column wic JOIN security s ON s.id_securitycurrency = wic.id_benchmark WHERE wic.id_tenant = ?
+      UNION SELECT s.* FROM security s WHERE s.id_securitycurrency IN (%3$s)
+      UNION SELECT s1.* FROM security_derived_link sdl JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
+      WHERE sdl.id_securitycurrency IN (%3$s)
       UNION SELECT s.* FROM %2$s JOIN security s ON s.id_securitycurrency = o.id_securitycurrency
       UNION SELECT s1.* FROM %2$s JOIN security_derived_link sdl ON o.id_securitycurrency = sdl.id_securitycurrency
       JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency
       WHERE sc.dtype = 'S'"""
-      .formatted(ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM);
+      .formatted(ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM, BENCHMARK_IDS);
   private static String SECURITY_DELETE = String.format("FROM %s WHERE id_tenant_private = ?", Security.TABNAME);
   private static String SECURITY_DERIVED_LINK = String.format(
       """
@@ -179,8 +188,10 @@ public class MyDataExportDeleteDefinition {
           UNION SELECT sdl.* FROM security s JOIN securitycurrency sc ON s.id_securitycurrency = sc.id_securitycurrency
           JOIN security_derived_link sdl ON sdl.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
           UNION SELECT sdl.* FROM %4$s JOIN security_derived_link sdl ON sdl.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?
-          UNION SELECT sdl.* FROM %5$s JOIN security_derived_link sdl ON sdl.id_securitycurrency = o.id_securitycurrency""",
-      Watchlist.TABNAME, Watchlist.TABNAME_SEC_CUR, Security.TABNAME, ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM);
+          UNION SELECT sdl.* FROM %5$s JOIN security_derived_link sdl ON sdl.id_securitycurrency = o.id_securitycurrency
+          UNION SELECT sdl.* FROM security_derived_link sdl WHERE sdl.id_securitycurrency IN (%6$s)""",
+      Watchlist.TABNAME, Watchlist.TABNAME_SEC_CUR, Security.TABNAME, ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM,
+      BENCHMARK_IDS);
   private static String SECURITYSPLIT_SELECT = String.format(
       """
           DISTINCT ss.* FROM %s ss JOIN watchlist_sec_cur ws ON ws.id_securitycurrency = ss.id_securitycurrency JOIN %s w ON w.id_watchlist = ws.id_watchlist
@@ -211,10 +222,13 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT sc.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
       JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency WHERE tas.id_tenant = ? AND sc.dtype = 'S'
       UNION SELECT sc.* FROM watchlist_indicator_column wic JOIN securitycurrency sc ON sc.id_securitycurrency = wic.id_benchmark WHERE wic.id_tenant = ? AND sc.dtype = 'S'
+      UNION SELECT sc.* FROM securitycurrency sc WHERE sc.dtype = 'S' AND sc.id_securitycurrency IN (%3$s)
+      UNION SELECT sc.* FROM security_derived_link sdl JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency
+      WHERE sc.dtype = 'S' AND sdl.id_securitycurrency IN (%3$s)
       UNION SELECT sc.* FROM %2$s JOIN securitycurrency sc ON sc.id_securitycurrency = o.id_securitycurrency
       UNION SELECT sc.* FROM %2$s JOIN security_derived_link sdl ON o.id_securitycurrency = sdl.id_securitycurrency
       JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency WHERE sc.dtype = 'S'"""
-      .formatted(ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM);
+      .formatted(ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM, BENCHMARK_IDS);
   private static String SECURITYCURRENCY_DELETE = "FROM securitycurrency WHERE id_securitycurrency = ?";
   private static String PRIVATE_SECURITY_IDS = "SELECT id_securitycurrency FROM security WHERE id_tenant_private = ?";
   private static String PRIVATE_SECURITY_TASK_DELETE = """
@@ -245,10 +259,13 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT c.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
       JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency WHERE tas.id_tenant = ?
       UNION SELECT cp.* FROM watchlist_indicator_column wic JOIN currencypair cp ON cp.id_securitycurrency = wic.id_benchmark WHERE wic.id_tenant = ?
+      UNION SELECT cp.* FROM currencypair cp WHERE cp.id_securitycurrency IN (%4$s)
+      UNION SELECT cp.* FROM security_derived_link sdl JOIN currencypair cp ON cp.id_securitycurrency = sdl.id_link_securitycurrency
+      WHERE sdl.id_securitycurrency IN (%4$s)
       UNION SELECT c.* FROM %2$s JOIN security_derived_link sdl ON o.id_securitycurrency = sdl.id_securitycurrency
       JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency
       UNION SELECT c.* FROM %3$s JOIN currencypair c ON c.id_securitycurrency = oc.id_currency_pair"""
-      .formatted(ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM, ORDER_CURRENCYPAIR_FROM);
+      .formatted(ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM, ORDER_CURRENCYPAIR_FROM, BENCHMARK_IDS);
   private static String SECURITYCURRENCY_C_SELECT = """
       sc.* FROM currencypair c1, securitycurrency sc, (SELECT DISTINCT s.currency as fromcurrency, e.currency as tocurrency
       FROM tenant e, portfolio p, securitycashaccount sc, transaction t, security s WHERE e.id_tenant = ? AND e.id_tenant = p.id_portfolio
@@ -275,10 +292,13 @@ public class MyDataExportDeleteDefinition {
       JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency
       WHERE tas.id_tenant = ?
       UNION SELECT sc.* FROM watchlist_indicator_column wic JOIN securitycurrency sc ON sc.id_securitycurrency = wic.id_benchmark WHERE wic.id_tenant = ? AND sc.dtype = 'C'
+      UNION SELECT sc.* FROM securitycurrency sc WHERE sc.dtype = 'C' AND sc.id_securitycurrency IN (%4$s)
+      UNION SELECT sc.* FROM security_derived_link sdl JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency
+      WHERE sc.dtype = 'C' AND sdl.id_securitycurrency IN (%4$s)
       UNION SELECT sc.* FROM %2$s JOIN security_derived_link sdl ON o.id_securitycurrency = sdl.id_securitycurrency
       JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency
       UNION SELECT sc.* FROM %3$s JOIN securitycurrency sc ON sc.id_securitycurrency = oc.id_currency_pair"""
-      .formatted(ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM, ORDER_CURRENCYPAIR_FROM);
+      .formatted(ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM, ORDER_CURRENCYPAIR_FROM, BENCHMARK_IDS);
   private static String HISTORYQUOTE_SELECT = """
       DISTINCT h.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency JOIN historyquote h ON s.id_securitycurrency = h.id_securitycurrency
       WHERE t.id_tenant = ? AND s.active_to_date < now() + interval 1 month
@@ -313,11 +333,14 @@ public class MyDataExportDeleteDefinition {
       JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency JOIN historyquote_legacy hl ON hl.id_securitycurrency = sc.id_securitycurrency
       WHERE tas.id_tenant = ? AND sc.dtype = 'S'
       UNION SELECT hl.* FROM watchlist_indicator_column wic JOIN historyquote_legacy hl ON hl.id_securitycurrency = wic.id_benchmark WHERE wic.id_tenant = ?
+      UNION SELECT hl.* FROM historyquote_legacy hl WHERE hl.id_securitycurrency IN (%3$s)
+      UNION SELECT hl.* FROM security_derived_link sdl JOIN historyquote_legacy hl ON hl.id_securitycurrency = sdl.id_link_securitycurrency
+      WHERE sdl.id_securitycurrency IN (%3$s)
       UNION SELECT hl.* FROM %2$s JOIN historyquote_legacy hl ON hl.id_securitycurrency = o.id_securitycurrency
       UNION SELECT hl.* FROM %2$s JOIN security_derived_link sdl ON o.id_securitycurrency = sdl.id_securitycurrency
       JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency JOIN historyquote_legacy hl ON hl.id_securitycurrency = sc.id_securitycurrency
       WHERE sc.dtype = 'S'"""
-      .formatted(ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM);
+      .formatted(ALGO_SECURITY_FROM, ORDER_IMPORT_SECURITY_FROM, BENCHMARK_IDS);
   // Restricted the same way as the history quote periods: a marker names a security, so exporting the whole table
   // would reference instruments the dump does not carry and the re-import would fail on the foreign key.
   private static String BANKRUPT_SECURITY_SELECT = """

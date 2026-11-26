@@ -1,5 +1,6 @@
 package grafioschtrader.reportviews.dashboard;
 
+import grafioschtrader.reportviews.performance.BenchmarkNotice;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -38,7 +39,13 @@ public final class LastSessionsPerformancePayload {
       @Schema(description = """
           Translation key explaining why the card has no rows, null when it has some. A client that holds nothing yet,
           or one whose price history does not reach two usable sessions, is an ordinary state and not a fault; the
-          reader is told so rather than being left with a blank card.""") String reasonKey, List<Session> sessions) {
+          reader is told so rather than being left with a blank card.""") String reasonKey, List<Session> sessions,
+      @Schema(description = """
+          Time-weighted return in percent linked from baseDate over the listed sessions; daily percentages are never
+          summed""") Double twrPercent,
+      @Schema(description = "Name of the stored benchmark, null without one") String benchmarkName,
+      @Schema(description = "Return of the benchmark in percent from baseDate to the last listed session") Double benchmarkReturnPercent,
+      @Schema(description = "Notices of the benchmark comparison; empty without a benchmark") List<BenchmarkNotice> notices) {
   }
 
   @Schema(description = """
@@ -64,6 +71,12 @@ public final class LastSessionsPerformancePayload {
           Cash account interest of this session, contained in the result for the same reason as the fee and carrying the
           same currency revaluation.""") double interestCashaccountRealMC, @Schema(description = """
           True when at least one held instrument had no price of its own on this session and was valued with a filled
-          one. The figures of such a session are an estimate rather than a market result.""") boolean substitute) {
+          one. The figures of such a session are an estimate rather than a market result.""") boolean substitute,
+      @Schema(description = """
+          Time-weighted return of the session in percent, deposits at the start and withdrawals at the end of the
+          session; null when the session had no capital""") Double twrPercent,
+      @Schema(description = """
+          Return of the benchmark in main currency over the session in percent; null when neither its price nor its
+          exchange rate has a newer observation than the session before""") Double benchmarkReturnPercent) {
   }
 }

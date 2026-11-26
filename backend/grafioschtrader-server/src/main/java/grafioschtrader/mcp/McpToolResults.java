@@ -5,7 +5,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import grafioschtrader.mcp.McpToolExecutor.RowCount;
+import grafioschtrader.reportviews.performance.BenchmarkMetrics;
+import grafioschtrader.reportviews.performance.BenchmarkNotice;
 import grafioschtrader.reportviews.performance.PerformancePeriodMetrics;
+import grafioschtrader.reportviews.performance.ShadowPortfolioResult;
 
 /**
  * The compact answers of the reading tools. The tools never hand out the report objects themselves: those carry
@@ -107,7 +110,8 @@ public final class McpToolResults {
 
   public record PeriodPerformance(LocalDate dateFrom, LocalDate dateTo, String timeZone, String mainCurrency,
       Integer idPortfolio, String periodSplit, PeriodTotals firstDay, PeriodTotals lastDay, PeriodTotals difference,
-      PerformancePeriodMetrics metrics, List<PeriodWindowRow> periods) implements RowCount {
+      PerformancePeriodMetrics metrics, PeriodBenchmark benchmark, List<PeriodWindowRow> periods)
+      implements RowCount {
     @Override
     public int rowCount() {
       return periods.size();
@@ -119,7 +123,17 @@ public final class McpToolResults {
       double dividendRealMC, double interestCashaccountRealMC, double feeRealMC, double accumulateReduceMC) {
   }
 
-  public record PeriodWindowRow(LocalDate startDate, LocalDate endDate, Double gainPeriodMC, Double twrPercent) {
+  public record PeriodWindowRow(LocalDate startDate, LocalDate endDate, Double gainPeriodMC, Double twrPercent,
+      Double benchmarkTwrPercent, Double excessTwrPercent) {
+  }
+
+  /**
+   * Comparison with the benchmark, without the daily chart points. Both returns are linked over the same days; the
+   * difference is in percentage points.
+   */
+  public record PeriodBenchmark(Integer idSecuritycurrency, String name, String currency, String source,
+      String mainCurrency, String fxPair, String returnBasis, LocalDate effectiveFrom, LocalDate effectiveTo,
+      List<BenchmarkNotice> notices, BenchmarkMetrics metrics, ShadowPortfolioResult shadow) {
   }
 
   // ---------------------------------------------------------------------------------------------------------------

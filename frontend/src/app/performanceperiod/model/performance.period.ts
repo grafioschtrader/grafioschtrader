@@ -16,6 +16,8 @@ export interface PerformancePeriod {
   periodWindows: PeriodWindow[];
   /** Return, risk and cost figures of the whole period; null while no holdings exist. */
   metrics: PerformancePeriodMetrics | null;
+  /** Comparison with the benchmark of the request, the portfolio or the tenant; absent or null without a benchmark. */
+  benchmark?: PerformanceBenchmarkResult | null;
 }
 
 export interface PeriodWindow {
@@ -28,13 +30,19 @@ export interface PeriodWindow {
    * the window holds no step, for example only holidays or days with missing prices.
    */
   twrPercent: number | null;
+  /** Benchmark return over the same intervals as the portfolio, null when the window is not covered. */
+  benchmarkTwrPercent?: number | null;
+  /** Portfolio return minus benchmark return in percentage points, null whenever benchmarkTwrPercent is null. */
+  excessTwrPercent?: number | null;
+  /** Why a comparison cell is empty; absent when the report has no benchmark. */
+  benchmarkCoverage?: BenchmarkCoverage | null;
   periodStepList: (PeriodStepMissingHoliday | PeriodStep)[];
 }
 
 export class PeriodWindowWithField {
   constructor(
     public showField: {
-      [K in keyof PeriodStep]: NonNullable<PeriodStep[K]> extends number ? K : never;
+      [K in keyof PeriodStep]-?: NonNullable<PeriodStep[K]> extends number ? K : never;
     }[keyof PeriodStep],
     public periodWindow: PeriodWindow
   ) {}
@@ -66,6 +74,12 @@ export interface PeriodStep extends PeriodStepMissingHoliday {
   twrPercent: number | null;
   /** Whether the step covers exactly one trading day or exactly one month; only such steps are ranked best or worst. */
   complete: boolean;
+  /** Benchmark return from baseDate to lastDate over the same intervals as the portfolio, null when not covered. */
+  benchmarkTwrPercent?: number | null;
+  /** Portfolio return minus benchmark return in percentage points, null whenever benchmarkTwrPercent is null. */
+  excessTwrPercent?: number | null;
+  /** Why a comparison cell is empty; absent when the report has no benchmark. */
+  benchmarkCoverage?: BenchmarkCoverage | null;
 }
 
 export enum HolidayMissing {
@@ -168,4 +182,112 @@ export interface PerformancePeriodMetrics {
   feeRatioPercent: number | null;
   /** Fee ratio scaled linearly to 365 days; null below 360 calendar days. */
   feeRatioAnnualizedPercent: number | null;
+}
+
+/** Coverage of a window or step by the benchmark comparison; the names are NLS keys. */
+export type BenchmarkCoverage = 'BENCHMARK_COVERED' | 'BENCHMARK_PARTIAL' | 'BENCHMARK_NONE';
+
+/** A condition of the comparison decided on the server; the code is an NLS key, the parameters its placeholders. */
+export interface BenchmarkNotice {
+  code: string;
+  /** Named placeholder values; dates are ISO strings, a parameter named leg is an NLS key itself. */
+  parameters: Record<string, string>;
+}
+
+/**
+ * Figures of the comparison of the portfolio with its benchmark over exactly the same intervals. Mirrors the backend
+ * grafioschtrader.reportviews.performance.BenchmarkMetrics. Percentages are in percent, differences in percentage
+ * points; a figure that cannot be determined is null.
+ */
+export interface BenchmarkMetrics {
+  portfolioTwrPercent: number | null;
+  benchmarkTwrPercent: number | null;
+  excessReturnPercent: number | null;
+  portfolioTwrAnnualizedPercent: number | null;
+  benchmarkTwrAnnualizedPercent: number | null;
+  excessReturnAnnualizedPercent: number | null;
+  includedIntervals: number;
+  /** Intervals of the risk sample: common, regular and observed on both ends for price and exchange rate. */
+  riskObservations: number;
+  benchmarkVolatilityAnnualizedPercent: number | null;
+  /** Deepest decline of the benchmark, negative, 0 without a decline. */
+  benchmarkMaxDrawdownPercent: number | null;
+  trackingErrorPercent: number | null;
+  /** Dimensionless. */
+  informationRatio: number | null;
+  /** Dimensionless. */
+  beta: number | null;
+  /** Dimensionless, between -1 and 1. */
+  correlation: number | null;
+  jensenAlphaAnnualizedPercent: number | null;
+  upCapturePercent: number | null;
+  downCapturePercent: number | null;
+}
+
+/** One valuation date of the cumulative comparison chart; null values are gaps. */
+export interface BenchmarkChartPoint {
+  date: string;
+  portfolioTwrPercent: number | null;
+  benchmarkTwrPercent: number | null;
+  /** Value of the portfolio in main currency inside the comparison span, null outside it. */
+  portfolioValueMC: number | null;
+  /** Value of the shadow portfolio, null outside the span and after a shortfall. */
+  shadowValueMC: number | null;
+}
+
+/**
+ * The deposits and withdrawals of the portfolio invested in the benchmark instead. Mirrors the backend
+ * grafioschtrader.reportviews.performance.ShadowPortfolioResult. After a shortfall only valueStartMC and shortfallDate
+ * are set.
+ */
+export interface ShadowPortfolioResult {
+  valueStartMC: number | null;
+  valueEndMC: number | null;
+  gainMC: number | null;
+  /** Portfolio value minus shadow value at the end; positive means the portfolio did better. */
+  differenceMC: number | null;
+  mwrPercent: number | null;
+  mwrAnnualizedPercent: number | null;
+  /** NLS key of the outcome of the internal rate of return search, null when it was not run. */
+  mwrStatus: string | null;
+  shortfallDate: string | null;
+}
+
+/**
+ * Comparison of the period performance with a benchmark. Mirrors the backend
+ * grafioschtrader.reportviews.performance.PerformanceBenchmarkResult. Without usable benchmark data it still carries
+ * the identity and the notices, while metrics is null and chart is empty.
+ */
+export interface PerformanceBenchmarkResult {
+  idSecuritycurrency: number;
+  name: string;
+  currency: string;
+  /** NLS key of the origin: BENCHMARK_SOURCE_REQUEST, _PORTFOLIO, _TENANT or _PARENT_TENANT. */
+  source: string;
+  mainCurrency: string;
+  fxPair: string | null;
+  fxInverse: boolean;
+  /** NLS key of what the benchmark return contains. */
+  returnBasis: string;
+  requestedFrom: string;
+  requestedTo: string;
+  effectiveFrom: string | null;
+  effectiveTo: string | null;
+  lastInstrumentDate: string | null;
+  lastRateDate: string | null;
+  notices: BenchmarkNotice[];
+  metrics: BenchmarkMetrics | null;
+  /** The shadow portfolio; null without a comparison span. */
+  shadow: ShadowPortfolioResult | null;
+  chart: BenchmarkChartPoint[];
+}
+
+/** The effective stored benchmark of a scope, as GET /api/performancebenchmark delivers it. */
+export interface PerformanceBenchmarkView {
+  idPortfolio: number | null;
+  idSecuritycurrency: number;
+  name: string;
+  currency: string;
+  /** NLS key: stored with the portfolio or inherited from the tenant. */
+  source: string;
 }

@@ -100,16 +100,23 @@ public class GTMcpReadTools {
       withdrawals), gainMC and totalGainMC, dividendRealMC, interestCashaccountRealMC, feeRealMC. metrics holds the \
       time-weighted return twrPercent, the money-weighted return mwrPercent, the maximum drawdown, the annualized \
       volatility and the fee ratio, all in percentage points; a figure that cannot be determined is null. periods \
-      splits the range into weeks or years with their gain and time-weighted return. The range must lie within the \
+      splits the range into weeks or years with their gain and time-weighted return. benchmark compares the range \
+      with the benchmark stored for the portfolio or the tenant, or with idBenchmark: identity, return basis, the \
+      dates both sides were compared on, notices, and metrics with portfolioTwrPercent, benchmarkTwrPercent and \
+      excessReturnPercent (percentage points); every period carries benchmarkTwrPercent and excessTwrPercent, null \
+      when it is not completely covered. benchmark is null without a benchmark. The range must lie within the \
       trading days for which prices exist. """ + MC_RULE, annotations = @McpAnnotations(readOnlyHint = true,
       destructiveHint = false, openWorldHint = false))
   public CallToolResult periodPerformance(
       @McpToolParam(description = "First day yyyy-MM-dd") String dateFrom,
       @McpToolParam(description = "Last day yyyy-MM-dd") String dateTo,
       @McpToolParam(required = false, description = "week or year (default)") String periodSplit,
-      @McpToolParam(required = false, description = "Restrict to one portfolio") Integer idPortfolio) {
+      @McpToolParam(required = false, description = "Restrict to one portfolio") Integer idPortfolio,
+      @McpToolParam(required = false, description = """
+          Benchmark instrument id, a security or currency pair; 0 for no comparison; omitted for the benchmark \
+          stored for the portfolio or tenant""") Integer idBenchmark) {
     return executor.execute("period_performance", true,
-        caller -> service.periodPerformance(caller, dateFrom, dateTo, periodSplit, idPortfolio));
+        caller -> service.periodPerformance(caller, dateFrom, dateTo, periodSplit, idPortfolio, idBenchmark));
   }
 
   @McpTool(name = "dividends", description = """

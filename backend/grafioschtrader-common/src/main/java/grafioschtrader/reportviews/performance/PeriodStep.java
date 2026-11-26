@@ -3,8 +3,10 @@ package grafioschtrader.reportviews.performance;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
+import grafioschtrader.types.BenchmarkCoverage;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -60,6 +62,27 @@ public class PeriodStep extends PeriodStepMissingHoliday {
       steps are ranked as best or worst step.""")
   public boolean complete;
 
+  @Schema(description = """
+      Return of the benchmark from baseDate to lastDate in percent, linked over the same intervals as the portfolio
+      return of the comparison. Null without a benchmark or when the step is not covered by the comparison span.""")
+  public Double benchmarkTwrPercent;
+
+  @Schema(description = """
+      Portfolio return minus benchmark return of the step over the common intervals, in percentage points. Null
+      whenever benchmarkTwrPercent is null.""")
+  public Double excessTwrPercent;
+
+  @Schema(description = "Whether the step has a benchmark comparison; null when the report has no benchmark")
+  public BenchmarkCoverage benchmarkCoverage;
+
+  /** Index of the holding the step is measured from. */
+  @JsonIgnore
+  private int baseIndex;
+
+  /** Index of the holding of the step. */
+  @JsonIgnore
+  private int stepIndex;
+
   /**
    * Constructs a new period step with complete financial performance data.
    *
@@ -90,6 +113,32 @@ public class PeriodStep extends PeriodStepMissingHoliday {
     this.baseDate = baseDate;
     this.twrPercent = twrPercent;
     this.complete = complete;
+  }
+
+  /**
+   * Remembers the holdings the step is measured between, so that the benchmark comparison can be linked over the same
+   * intervals once the benchmark is aligned.
+   *
+   * @param baseIndex index of the holding the step is measured from
+   * @param stepIndex index of the holding of the step
+   */
+  public void registerIndexes(int baseIndex, int stepIndex) {
+    this.baseIndex = baseIndex;
+    this.stepIndex = stepIndex;
+  }
+
+  /**
+   * Fills the benchmark comparison of the step.
+   *
+   * @param comparison the comparison of the report with its benchmark
+   */
+  void fillBenchmark(BenchmarkComparison comparison) {
+    benchmarkCoverage = comparison.coverage(baseIndex, stepIndex);
+    Double benchmark = comparison.benchmarkReturn(baseIndex, stepIndex);
+    Double portfolio = comparison.portfolioReturn(baseIndex, stepIndex);
+    benchmarkTwrPercent = PerformancePeriodMetrics.percent(benchmark);
+    excessTwrPercent = benchmark == null || portfolio == null ? null
+        : PerformancePeriodMetrics.percent(portfolio - benchmark);
   }
 
   @Schema(description = "Combined total of investment gains and margin gains in main currency")

@@ -26,7 +26,6 @@ import grafiosch.entities.UDFDataShared;
 import grafiosch.entities.UDFMetadataSubscription;
 import grafiosch.entities.User;
 import grafiosch.exportdelete.MySqlDeleteMyData;
-import grafiosch.repository.UDFDataJpaRepository;
 import grafiosch.repository.UDFMetadataSubscriptionJpaRepository;
 import grafiosch.security.JwtTokenHandler;
 import grafiosch.security.UserAuthentication;
@@ -72,8 +71,6 @@ class UDFSharedFillTest {
   private UDFMetadataSecurityJpaRepository fields;
   @Autowired
   private UDFMetadataSubscriptionJpaRepository subscriptions;
-  @Autowired
-  private UDFDataJpaRepository data;
   @Autowired
   private UDFFillTaskQueue queue;
   @Autowired

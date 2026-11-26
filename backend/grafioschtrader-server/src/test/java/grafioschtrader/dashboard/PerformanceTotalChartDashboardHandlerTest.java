@@ -3,12 +3,16 @@ package grafioschtrader.dashboard;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,13 +22,23 @@ import org.springframework.web.server.ResponseStatusException;
 import grafiosch.entities.User;
 import grafioschtrader.entities.HoldDailyTotal;
 import grafioschtrader.entities.Tenant;
+import grafioschtrader.reports.BenchmarkSeriesLoader;
+import grafioschtrader.reports.BenchmarkSeriesLoader.LoadedBenchmark;
 import grafioschtrader.reportviews.dashboard.PerformanceTotalChartPayload.PerformanceTotalChart;
 import grafioschtrader.reportviews.dashboard.PerformanceTotalChartPayload.Sampling;
+import grafioschtrader.reportviews.performance.BenchmarkDescriptor;
+import grafioschtrader.reportviews.performance.BenchmarkSeries;
+import grafioschtrader.reportviews.performance.BenchmarkSeries.Quote;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
+import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldDailyTotalJpaRepository;
 import grafioschtrader.repository.HoldDailyTotalJpaRepositoryCustom.HoldDailyTotalSeries;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
+import grafioschtrader.service.PerformanceBenchmarkService;
+import grafioschtrader.service.PerformanceBenchmarkService.ResolvedBenchmark;
+import grafioschtrader.types.BenchmarkReturnBasis;
+import grafioschtrader.types.BenchmarkSource;
 import grafioschtrader.types.DashboardChartRange;
 import grafioschtrader.types.TenantKindType;
 import tools.jackson.databind.JsonNode;
@@ -40,8 +54,11 @@ class PerformanceTotalChartDashboardHandlerTest {
   private final HoldDailyTotalJpaRepository holdDailyTotals = mock(HoldDailyTotalJpaRepository.class);
   private final TenantJpaRepository tenants = mock(TenantJpaRepository.class);
   private final PortfolioJpaRepository portfolios = mock(PortfolioJpaRepository.class);
+  private final PerformanceBenchmarkService benchmarks = mock(PerformanceBenchmarkService.class);
+  private final BenchmarkSeriesLoader benchmarkLoader = mock(BenchmarkSeriesLoader.class);
+  private final HoldCashaccountDepositJpaRepository deposits = mock(HoldCashaccountDepositJpaRepository.class);
   private final PerformanceTotalChartDashboardHandler handler = new PerformanceTotalChartDashboardHandler(
-      holdDailyTotals, tenants, portfolios, mapper);
+      holdDailyTotals, tenants, portfolios, mapper, benchmarks, benchmarkLoader, deposits);
   private final User user = mock(User.class);
   private final Tenant tenant = new Tenant();
 
@@ -116,6 +133,41 @@ class PerformanceTotalChartDashboardHandlerTest {
     assertThat(monthly.sampling()).isEqualTo(Sampling.MONTH);
     assertThat(monthly.rows()).hasSizeLessThanOrEqualTo(PerformanceTotalChartDashboardHandler.MAX_POINTS);
     assertThat(monthly.rows().getLast()).isSameAs(twentyYears.getLast());
+  }
+
+  @Test
+  @DisplayName("The shadow line is calculated on the daily rows, a weekly point carries the value of its own day")
+  void shadowValuesBeforeSampling() {
+    List<HoldDailyTotal> fiveYears = rows(5 * 261);
+    when(holdDailyTotals.getSeries(any(), any(), any(), any()))
+        .thenReturn(new HoldDailyTotalSeries(fiveYears, fiveYears.getLast().getHoldDate().plusDays(1)));
+    when(benchmarks.resolve(tenant, null, null))
+        .thenReturn(Optional.of(new ResolvedBenchmark(null, BenchmarkSource.BENCHMARK_SOURCE_TENANT)));
+    // The benchmark gains 0.1 % per trading day; the client neither deposits nor withdraws
+    when(benchmarkLoader.load(any(), eq("CHF"), any())).thenAnswer(invocation -> {
+      List<LocalDate> dates = invocation.getArgument(2);
+      List<Quote> quotes = new ArrayList<>();
+      for (int i = 0; i < dates.size(); i++) {
+        quotes.add(new Quote(dates.get(i), level(i)));
+      }
+      return new LoadedBenchmark(new BenchmarkDescriptor(1, "Index", "CHF", BenchmarkSource.BENCHMARK_SOURCE_TENANT,
+          "CHF", null, false, BenchmarkReturnBasis.AS_SUPPLIED, List.of()),
+          BenchmarkSeries.align(new BenchmarkSeries.Input(dates, quotes, null, "CHF", "CHF")));
+    });
+
+    PerformanceTotalChart chart = handler.chart(user, json("{\"range\":\"CHART_RANGE_MAX\"}"));
+    assertThat(chart.sampling()).isEqualTo(Sampling.WEEK);
+    assertThat(chart.benchmarkName()).isEqualTo("Index");
+    assertThat(chart.benchmarkStartDate()).isEqualTo(START);
+    for (var point : List.of(chart.points().get(10), chart.points().getLast())) {
+      int day = fiveYears.indexOf(fiveYears.stream().filter(r -> r.getHoldDate().equals(point.date())).findFirst()
+          .orElseThrow());
+      assertThat(point.shadowValueMC()).isCloseTo(1510.0 * level(day) / level(0), within(0.01));
+    }
+  }
+
+  private static double level(int tradingDay) {
+    return 100 * Math.pow(1.001, tradingDay);
   }
 
   /** Consecutive weekdays from {@link #START}, each with the same figures. */

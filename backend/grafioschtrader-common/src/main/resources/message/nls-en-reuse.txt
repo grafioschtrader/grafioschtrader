@@ -111,3 +111,6 @@ ADMINISTRATOR
 # "Logo" is identical in English and German.
 LOGO
 id.instrument.logo
+gt.report.benchmark.column
+BENCHMARK_RETURN_PERCENT
+BENCHMARK_BETA

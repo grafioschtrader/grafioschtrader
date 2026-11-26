@@ -1,5 +1,6 @@
 package grafioschtrader.reportviews.dashboard;
 
+import grafioschtrader.reportviews.performance.BenchmarkNotice;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -43,12 +44,18 @@ public final class PerformanceTotalChartPayload {
       @Schema(description = """
           Translation key explaining why the chart has no points, null when it has some. A client whose daily values
           have not been computed yet, or which held nothing in the period, is an ordinary state and not a fault.""") String reasonKey,
-      List<Point> points) {
+      List<Point> points,
+      @Schema(description = "Name of the stored benchmark the shadow line follows, null without one") String benchmarkName,
+      @Schema(description = "First day of the shadow line, the first day the benchmark covers; null without a line") @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT) LocalDate benchmarkStartDate,
+      @Schema(description = "Notices of the benchmark comparison; empty without a benchmark") List<BenchmarkNotice> notices) {
   }
 
   @Schema(description = "One point of the chart, the close of a trading day")
   public record Point(@JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT) LocalDate date,
       @Schema(description = "Total value: cash balance, securities and the result of closed margin positions") double totalBalanceMC,
-      @Schema(description = "Invested capital: deposits less withdrawals accumulated up to this day") double investedCapitalMC) {
+      @Schema(description = "Invested capital: deposits less withdrawals accumulated up to this day") double investedCapitalMC,
+      @Schema(description = """
+          Value of the shadow portfolio: the same deposits and withdrawals invested in the benchmark from
+          benchmarkStartDate on. Null without a benchmark, before that day and after a shortfall.""") Double shadowValueMC) {
   }
 }

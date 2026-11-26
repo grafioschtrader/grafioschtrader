@@ -27,19 +27,26 @@ import grafiosch.common.ClientClock;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.common.ReturnSeries;
+import grafioschtrader.common.ReturnSeries.Convention;
+import grafioschtrader.common.ReturnSeries.ValuationPoint;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.reports.BenchmarkSeriesLoader.LoadedBenchmark;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.dashboard.LastSessionsPerformancePayload.LastSessions;
 import grafioschtrader.reportviews.dashboard.LastSessionsPerformancePayload.Session;
+import grafioschtrader.reportviews.performance.BenchmarkSeries;
 import grafioschtrader.reportviews.performance.FirstAndMissingTradingDays;
 import grafioschtrader.reportviews.performance.IDailyExternalFlow;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
 import grafioschtrader.reportviews.performance.PerformancePeriod;
+import grafioschtrader.reportviews.performance.PerformancePeriodMetrics;
 import grafioschtrader.reportviews.performance.PeriodHoldingAndDiff;
+import grafioschtrader.reportviews.performance.ValuationPoints;
 import grafioschtrader.reportviews.performance.WeekYear;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
@@ -49,6 +56,9 @@ import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
+import grafioschtrader.service.PerformanceBenchmarkService;
+import grafioschtrader.service.PerformanceBenchmarkService.ResolvedBenchmark;
+import grafioschtrader.service.RiskFreeRateService;
 
 /**
  * Service component responsible for generating period performance reports for portfolios and tenants.
@@ -121,6 +131,15 @@ public class PerformanceReport {
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
+
+  @Autowired
+  private PerformanceBenchmarkService performanceBenchmarkService;
+
+  @Autowired
+  private BenchmarkSeriesLoader benchmarkSeriesLoader;
+
+  @Autowired
+  private RiskFreeRateService riskFreeRateService;
 
   /**
    * Cache for trading day metadata with 2-minute expiration to improve performance. Maps portfolio/tenant keys to their
@@ -419,10 +438,19 @@ public class PerformanceReport {
    */
   public PerformancePeriod getPeriodPerformanceByTenant(LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit)
       throws Exception {
+    return getPeriodPerformanceByTenant(dateFrom, dateTo, periodSplit, null);
+  }
 
+  /**
+   * Period performance of the tenant of the current user, compared with a benchmark.
+   *
+   * @param requestedBenchmark null for the stored benchmark, 0 for none, otherwise the id of the instrument
+   */
+  public PerformancePeriod getPeriodPerformanceByTenant(LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit,
+      Integer requestedBenchmark) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return getPeriodPerformanceByTenant(user.getIdTenant(), user.getLocaleStr(), ClientClock.today(), dateFrom, dateTo,
-        periodSplit);
+        periodSplit, true, requestedBenchmark);
   }
 
   /** Same period calculation for background callers, without a request or security context. */
@@ -434,10 +462,25 @@ public class PerformanceReport {
   /** Calendar-year strips may include a short first year; date and ownership validation always apply. */
   public PerformancePeriod getPeriodPerformanceByTenant(Integer idTenant, String localeStr, LocalDate today,
       LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit, boolean validateSplit) throws Exception {
+    return getPeriodPerformanceByTenant(idTenant, localeStr, today, dateFrom, dateTo, periodSplit, validateSplit,
+        null);
+  }
+
+  /**
+   * Period performance of a tenant, compared with a benchmark. The benchmark is resolved before any history is loaded,
+   * so an unreadable requested instrument is refused before the expensive queries run.
+   *
+   * @param requestedBenchmark null for the stored benchmark, 0 for none, otherwise the id of the instrument
+   */
+  public PerformancePeriod getPeriodPerformanceByTenant(Integer idTenant, String localeStr, LocalDate today,
+      LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit, boolean validateSplit, Integer requestedBenchmark)
+      throws Exception {
     FirstAndMissingTradingDays firstAndMissingTradingDays = this.getFirstAndMissingTradingDaysByTenant(idTenant, today);
     checkInputParam(firstAndMissingTradingDays, localeStr, dateFrom, dateTo, validateSplit ? periodSplit : null,
         () -> holdSecurityaccountSecurityRepository.getCurrencypairsWithoutAnyQuoteByTenant(idTenant));
     final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
+    final BenchmarkRequest benchmarkRequest = new BenchmarkRequest(
+        performanceBenchmarkService.resolve(tenant, null, requestedBenchmark), tenant.getCurrency());
     FlowsAndFees flowsAndFees = loadFlowsAndFees(idTenant, tenant.getCurrency(), tenant.isFeeInterestFxAtCutOffDate(),
         dateTo, today,
         () -> holdCashaccountDepositJpaRepository.getDailyExternalFlowsByTenant(idTenant, dateFrom, dateTo),
@@ -448,7 +491,8 @@ public class PerformanceReport {
         holdSecurityaccountSecurityRepository.getPeriodHoldingsByTenant(idTenant, dateFrom, dateTo), dateFrom,
         firstAndMissingTradingDays,
         () -> holdSecurityaccountSecurityRepository.getPeriodHoldingZeroBaseByTenant(idTenant, dateFrom));
-    return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit, flowsAndFees);
+    return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit, flowsAndFees,
+        benchmarkRequest);
   }
 
   /**
@@ -473,9 +517,19 @@ public class PerformanceReport {
    */
   public PerformancePeriod getPeriodPerformanceByPortfolio(Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo,
       WeekYear periodSplit) throws Exception {
+    return getPeriodPerformanceByPortfolio(idPortfolio, dateFrom, dateTo, periodSplit, null);
+  }
+
+  /**
+   * Period performance of a portfolio of the current user, compared with a benchmark.
+   *
+   * @param requestedBenchmark null for the stored benchmark, 0 for none, otherwise the id of the instrument
+   */
+  public PerformancePeriod getPeriodPerformanceByPortfolio(Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo,
+      WeekYear periodSplit, Integer requestedBenchmark) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return getPeriodPerformanceByPortfolio(user.getIdTenant(), user.getLocaleStr(), ClientClock.today(), idPortfolio,
-        dateFrom, dateTo, periodSplit);
+        dateFrom, dateTo, periodSplit, true, requestedBenchmark);
   }
 
   /** Portfolio-scoped calculation with explicit authorization scope and calendar day. */
@@ -489,12 +543,27 @@ public class PerformanceReport {
   public PerformancePeriod getPeriodPerformanceByPortfolio(Integer idTenant, String localeStr, LocalDate today,
       Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit, boolean validateSplit)
       throws Exception {
+    return getPeriodPerformanceByPortfolio(idTenant, localeStr, today, idPortfolio, dateFrom, dateTo, periodSplit,
+        validateSplit, null);
+  }
+
+  /**
+   * Period performance of a portfolio, compared with a benchmark. The benchmark is resolved before any history is
+   * loaded, so an unreadable requested instrument is refused before the expensive queries run.
+   *
+   * @param requestedBenchmark null for the stored benchmark, 0 for none, otherwise the id of the instrument
+   */
+  public PerformancePeriod getPeriodPerformanceByPortfolio(Integer idTenant, String localeStr, LocalDate today,
+      Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit, boolean validateSplit,
+      Integer requestedBenchmark) throws Exception {
     FirstAndMissingTradingDays firstAndMissingTradingDays = this.getFirstAndMissingTradingDaysByPortfolio(idTenant,
         idPortfolio, today);
     checkInputParam(firstAndMissingTradingDays, localeStr, dateFrom, dateTo, validateSplit ? periodSplit : null,
         () -> holdSecurityaccountSecurityRepository.getCurrencypairsWithoutAnyQuoteByPortfolio(idPortfolio));
     final Portfolio portfolio = portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio);
     final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
+    final BenchmarkRequest benchmarkRequest = new BenchmarkRequest(
+        performanceBenchmarkService.resolve(tenant, portfolio, requestedBenchmark), portfolio.getCurrency());
     FlowsAndFees flowsAndFees = loadFlowsAndFees(idTenant, portfolio.getCurrency(),
         tenant.isFeeInterestFxAtCutOffDate(), dateTo, today,
         () -> holdCashaccountDepositJpaRepository.getDailyExternalFlowsByPortfolio(idPortfolio, dateFrom, dateTo),
@@ -505,7 +574,8 @@ public class PerformanceReport {
         holdSecurityaccountSecurityRepository.getPeriodHoldingsByPortfolio(idPortfolio, dateFrom, dateTo), dateFrom,
         firstAndMissingTradingDays,
         () -> holdSecurityaccountSecurityRepository.getPeriodHoldingZeroBaseByPortfolio(idPortfolio, dateFrom));
-    return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit, flowsAndFees);
+    return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit, flowsAndFees,
+        benchmarkRequest);
   }
 
   /**
@@ -642,11 +712,13 @@ public class PerformanceReport {
    * @param periodHoldings             list of daily holding snapshots for the period
    * @param periodSplit                aggregation level (weekly or yearly)
    * @param flowsAndFees               dated external flows and fees of the period for the relative figures
+   * @param benchmarkRequest           the resolved benchmark and the main currency it is converted into
    * @return structured performance analysis
    * @throws Exception if data processing encounters errors
    */
   private PerformancePeriod getPeriodPerformance(FirstAndMissingTradingDays firstAndMissingTradingDays,
-      List<IPeriodHolding> periodHoldings, WeekYear periodSplit, FlowsAndFees flowsAndFees) throws Exception {
+      List<IPeriodHolding> periodHoldings, WeekYear periodSplit, FlowsAndFees flowsAndFees,
+      BenchmarkRequest benchmarkRequest) throws Exception {
     PeriodHoldingAndDiff firstDayTotals = new PeriodHoldingAndDiff();
     PeriodHoldingAndDiff lastDayTotals = new PeriodHoldingAndDiff();
     if (!periodHoldings.isEmpty()) {
@@ -658,6 +730,8 @@ public class PerformanceReport {
     if (!periodHoldings.isEmpty()) {
       periodPerformance.createPeriodWindows(firstAndMissingTradingDays, periodHoldings, flowsAndFees.dailyFlows(),
           flowsAndFees.feesMC(), flowsAndFees.skippedFees());
+      benchmarkRequest.resolved().ifPresent(
+          resolved -> attachBenchmark(periodPerformance, resolved, benchmarkRequest.mainCurrency()));
     }
     return periodPerformance;
   }
@@ -694,8 +768,10 @@ public class PerformanceReport {
     FirstAndMissingTradingDays firstAndMissingTradingDays = idPortfolio == null
         ? getFirstAndMissingTradingDaysByTenant(idTenant, ClientClock.today())
         : getFirstAndMissingTradingDaysByPortfolio(idTenant, idPortfolio);
-    String currency = idPortfolio == null ? tenantJpaRepository.getReferenceById(idTenant).getCurrency()
-        : portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio).getCurrency();
+    Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
+    Portfolio portfolio = idPortfolio == null ? null
+        : portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio);
+    String currency = portfolio == null ? tenant.getCurrency() : portfolio.getCurrency();
 
     List<LocalDate> usableSessions = lastUsableSessions(firstAndMissingTradingDays, sessions + 1);
     if (usableSessions.size() < 2) {
@@ -713,18 +789,64 @@ public class PerformanceReport {
         ? holdSecurityaccountSecurityRepository.getFilledQuoteDaysByTenant(idTenant, dateFrom, dateTo)
         : holdSecurityaccountSecurityRepository.getFilledQuoteDaysByPortfolio(idPortfolio, dateFrom, dateTo);
 
+    List<IDailyExternalFlow> dailyFlows = idPortfolio == null
+        ? holdCashaccountDepositJpaRepository.getDailyExternalFlowsByTenant(idTenant, dateFrom, dateTo)
+        : holdCashaccountDepositJpaRepository.getDailyExternalFlowsByPortfolio(idPortfolio, dateFrom, dateTo);
+    // The same valuation points as the period performance report; regularity only steers volatility
+    List<ValuationPoint> points = ValuationPoints.of(periodHoldings, dailyFlows, (_, _) -> true);
+    ReturnSeries series = ReturnSeries.of(points, Convention.REPORT);
+    LoadedBenchmark benchmark = performanceBenchmarkService.resolve(tenant, portfolio, null)
+        .map(r -> benchmarkSeriesLoader.load(r, currency, points.stream().map(ValuationPoint::date).toList()))
+        .orElse(null);
+
     List<Session> rows = new ArrayList<>();
     for (int i = 1; i < periodHoldings.size(); i++) {
-      rows.add(session(periodHoldings.get(i - 1), periodHoldings.get(i), filledQuoteDays));
+      rows.add(session(periodHoldings.get(i - 1), periodHoldings.get(i), filledQuoteDays,
+          PerformancePeriodMetrics.percent(series.intervalReturn(i)),
+          PerformancePeriodMetrics.percent(sessionBenchmarkReturn(benchmark, i))));
     }
     // A shorter history than asked for is normal rather than an error, so the surplus is dropped instead of refused.
     if (rows.size() > sessions) {
       rows = new ArrayList<>(rows.subList(rows.size() - sessions, rows.size()));
     }
-    LocalDate baseDate = periodHoldings.get(periodHoldings.size() - rows.size() - 1).getDate();
+    int baseIndex = periodHoldings.size() - rows.size() - 1;
+    int lastIndex = periodHoldings.size() - 1;
+    LocalDate baseDate = periodHoldings.get(baseIndex).getDate();
     return new LastSessions(currency, idPortfolio, baseDate, sumOf(rows, Session::totalGainMC),
         sumOf(rows, Session::totalBalanceChangeMC), sumOf(rows, Session::externalCashTransferMC),
-        sumOf(rows, Session::feeRealMC), sumOf(rows, Session::interestCashaccountRealMC), null, rows);
+        sumOf(rows, Session::feeRealMC), sumOf(rows, Session::interestCashaccountRealMC), null, rows,
+        PerformancePeriodMetrics.percent(series.linked(baseIndex, lastIndex)),
+        benchmark == null ? null : benchmark.descriptor().name(),
+        PerformancePeriodMetrics.percent(levelReturn(benchmark, baseIndex, lastIndex)),
+        benchmark == null ? List.of() : benchmark.allNotices());
+  }
+
+  /**
+   * Return of the benchmark over one session. A level carried from an earlier session is no return of this one, so the
+   * figure is empty unless the price or the exchange rate was observed on the session, or the level moved, which only
+   * a newer observation can cause.
+   */
+  private static Double sessionBenchmarkReturn(LoadedBenchmark benchmark, int i) {
+    Double ratio = levelReturn(benchmark, i - 1, i);
+    if (ratio == null) {
+      return null;
+    }
+    BenchmarkSeries.Result aligned = benchmark.aligned();
+    boolean converted = benchmark.descriptor().fxPair() != null;
+    boolean observed = aligned.instrumentObserved()[i] || converted && aligned.rateObserved()[i];
+    return observed || ratio != 0 ? ratio : null;
+  }
+
+  /** Ratio of two benchmark levels minus one, null when either lies outside the comparison span. */
+  private static Double levelReturn(LoadedBenchmark benchmark, int from, int to) {
+    if (benchmark == null || !benchmark.hasSpan()) {
+      return null;
+    }
+    BenchmarkSeries.Result aligned = benchmark.aligned();
+    if (from < aligned.k() || to > aligned.e()) {
+      return null;
+    }
+    return aligned.levels()[to] / aligned.levels()[from] - 1;
   }
 
   /**
@@ -736,7 +858,8 @@ public class PerformanceReport {
    * result in the difference, where a reader would read it as a deposit.
    * </p>
    */
-  private Session session(IPeriodHolding before, IPeriodHolding current, Set<LocalDate> filledQuoteDays) {
+  private Session session(IPeriodHolding before, IPeriodHolding current, Set<LocalDate> filledQuoteDays,
+      Double twrPercent, Double benchmarkReturnPercent) {
     double totalBalanceMC = totalBalanceMC(current);
     return new Session(current.getDate(), totalBalanceMC,
         DataBusinessHelper.roundStandard(totalBalanceMC - totalBalanceMC(before)),
@@ -745,7 +868,7 @@ public class PerformanceReport {
         DataBusinessHelper.roundStandard(current.getFeeRealMC() - before.getFeeRealMC()),
         DataBusinessHelper
             .roundStandard(current.getInterestCashaccountRealMC() - before.getInterestCashaccountRealMC()),
-        filledQuoteDays.contains(current.getDate()));
+        filledQuoteDays.contains(current.getDate()), twrPercent, benchmarkReturnPercent);
   }
 
   private static double totalBalanceMC(IPeriodHolding periodHolding) {
@@ -762,7 +885,8 @@ public class PerformanceReport {
   }
 
   private static LastSessions emptyLastSessions(String currency, Integer idPortfolio, String reasonKey) {
-    return new LastSessions(currency, idPortfolio, null, 0d, 0d, 0d, 0d, 0d, reasonKey, List.of());
+    return new LastSessions(currency, idPortfolio, null, 0d, 0d, 0d, 0d, 0d, reasonKey, List.of(), null, null, null,
+        List.of());
   }
 
   /**
@@ -909,6 +1033,34 @@ public class PerformanceReport {
    * @param dailyFlows net external flow per calendar day of the scope, ascending by date
    * @param feesMC     separately booked fees of the period in main currency, a charge is positive
    */
+  /**
+   * Loads the benchmark on the valuation dates of the report and attaches the comparison.
+   *
+   * @param periodPerformance the report, whose windows already exist
+   * @param resolved          the resolved benchmark
+   * @param mainCurrency      currency of the report
+   */
+  private void attachBenchmark(PerformancePeriod periodPerformance, ResolvedBenchmark resolved, String mainCurrency) {
+    ReturnSeries series = periodPerformance.getReturnSeries();
+    List<LocalDate> dates = new ArrayList<>(series.size());
+    for (int i = 0; i < series.size(); i++) {
+      dates.add(series.date(i));
+    }
+    LoadedBenchmark loaded = benchmarkSeriesLoader.load(resolved, mainCurrency, dates);
+    periodPerformance.attachBenchmark(loaded.descriptor(), loaded.aligned(),
+        loaded.hasSpan() ? riskFreeRateService.rateLookup(mainCurrency, dates.getFirst(), dates.getLast()) : null);
+  }
+
+
+  /**
+   * The benchmark of a report, resolved before the history is loaded.
+   *
+   * @param resolved     the benchmark, empty when none resolves
+   * @param mainCurrency currency of the report
+   */
+  private record BenchmarkRequest(Optional<ResolvedBenchmark> resolved, String mainCurrency) {
+  }
+
   private record FlowsAndFees(List<IDailyExternalFlow> dailyFlows, double feesMC, int skippedFees) {
   }
 

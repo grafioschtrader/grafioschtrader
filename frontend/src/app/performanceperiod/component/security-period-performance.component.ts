@@ -17,6 +17,7 @@ import { metadata, SchemaPathTree } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MenuItem } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { Subscription, finalize } from 'rxjs';
 import moment from 'moment';
@@ -49,12 +50,20 @@ import {
   syncStoredDateTo
 } from '../model/performance-range';
 import type { SecurityPeriodPerformance } from '../model/security-period-performance';
+import type { PerformanceBenchmarkView } from '../model/performance.period';
+import { PerformanceBenchmarkService } from '../service/performance-benchmark.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { benchmarkNoticeTexts } from '../../dashboard/model/benchmark.notice.text';
+import { SecuritycurrencySearchAndSetDialogComponent } from '../../securitycurrency/component/securitycurrency-search-and-set-dialog.component';
+import { SupplementCriteria } from '../../securitycurrency/model/supplement.criteria';
 import { SecurityPeriodPerformanceTableComponent } from './security-period-performance-table.component';
 
 /** The two date fields of the form. */
 interface SecurityPeriodFormModel {
   dateFrom: Date | null;
   dateTo: Date | null;
+  benchmarkName: string | null;
 }
 
 /**
@@ -91,6 +100,14 @@ interface SecurityPeriodFormModel {
           <p-progressBar mode="indeterminate" [style]="{ height: '6px' }" />
         </div>
       }
+      @if (result()?.benchmark; as benchmark) {
+        <p class="mb-1">
+          {{ 'BENCHMARK_TWR_PERCENT' | translate }}: {{ benchmark.name }} ({{ benchmark.source | translate }})
+        </p>
+        @for (notice of noticeTexts(); track $index) {
+          <p class="mb-1 fst-italic">{{ notice }}</p>
+        }
+      }
       @if (result(); as calculated) {
         <security-period-performance-table
           [result]="calculated"
@@ -99,6 +116,7 @@ interface SecurityPeriodFormModel {
       }
     </div>
   `,
+  providers: [DialogService],
   imports: [TranslateModule, ProgressBarModule, SignalDynamicFormComponent, SecurityPeriodPerformanceTableComponent]
 })
 export class SecurityPeriodPerformanceComponent implements IGlobalMenuAttach, OnDestroy {
@@ -110,6 +128,9 @@ export class SecurityPeriodPerformanceComponent implements IGlobalMenuAttach, On
   private readonly router = inject(Router);
   private readonly chartService = inject(SecurityPeriodPerformanceChartService);
   private readonly injector = inject(Injector);
+  private readonly benchmarkService = inject(PerformanceBenchmarkService);
+  private readonly dialogService = inject(DialogService);
+  private readonly messageToastService = inject(MessageToastService);
 
   private readonly form = viewChild<SignalDynamicFormComponent<SecurityPeriodFormModel>>('form');
   private readonly table = viewChild(SecurityPeriodPerformanceTableComponent);
@@ -127,8 +148,38 @@ export class SecurityPeriodPerformanceComponent implements IGlobalMenuAttach, On
   readonly config: FieldFormGroup[] = [
     DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'dateFrom', true, { usedLayoutColumns: 4 }),
     DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'dateTo', true, { usedLayoutColumns: 4 }),
+    DynamicFieldHelper.createFieldInputButtonHeqF(
+      DataType.String,
+      'benchmarkName',
+      () => this.searchBenchmark(),
+      false,
+      // With the two dates taking 8 of 12 columns, 6 columns start a line of its own, as in the period performance
+      { usedLayoutColumns: 6 }
+    ),
+    // Saving belongs to the field, so it stands behind it rather than in the menu; read-only users cannot store
+    DynamicFieldHelper.createFunctionButtonFieldName(
+      'saveBenchmark',
+      'SAVE_AS_DEFAULT_BENCHMARK',
+      () => this.saveAsDefaultBenchmark(),
+      { buttonInForm: true, usedLayoutColumns: 2, disabled: true, invisible: this.gps.isReadOnlyUser() }
+    ),
     DynamicFieldHelper.createSubmitButton('APPLY')
   ];
+
+  /** Stored benchmark of the scope as the server resolves it, null when none is stored or inherited. */
+  private readonly storedBenchmark = signal<PerformanceBenchmarkView | null>(null);
+  /** Benchmark chosen for the next calculation only: undefined uses the stored one, 0 compares none. */
+  private readonly requestBenchmark = signal<number | undefined>(undefined);
+  private readonly requestBenchmarkName = signal<string | null>(null);
+
+  /** The notices of the benchmark comparison, translated with their dates formatted for the user. */
+  readonly noticeTexts = computed(() =>
+    benchmarkNoticeTexts(
+      this.result()?.benchmark?.notices,
+      (key, parameters) => this.translateService.instant(key, parameters),
+      (date) => AppHelper.getDateByFormat(this.gps, date)
+    )
+  );
 
   readonly days = signal<FirstAndMissingTradingDays | null>(null);
   readonly result = signal<SecurityPeriodPerformance | null>(null);
@@ -164,6 +215,7 @@ export class SecurityPeriodPerformanceComponent implements IGlobalMenuAttach, On
   };
 
   private calendarRequest?: Subscription;
+  private benchmarkRequest?: Subscription;
   private resultRequest?: Subscription;
   private menuRequest?: Subscription;
 
@@ -179,6 +231,20 @@ export class SecurityPeriodPerformanceComponent implements IGlobalMenuAttach, On
       const dateFrom = (form?.value('dateFrom') as Date | null | undefined) ?? null;
       const dateTo = (form?.value('dateTo') as Date | null | undefined) ?? null;
       untracked(() => this.datesChanged(dateFrom, dateTo));
+    });
+    effect(() => {
+      const form = this.form();
+      const text = this.benchmarkText();
+      // Only an instrument chosen for this report and not yet stored can be saved
+      const savable = !!this.requestBenchmark();
+      // The form builds its fields after the first render; this effect runs again once the field exists
+      const ready = !!form?.hasField('benchmarkName');
+      untracked(() => {
+        if (ready && form) {
+          form.setValue('benchmarkName', text);
+        }
+        form?.setButtonState('saveBenchmark', { disabled: !savable });
+      });
     });
     effect(() => {
       const result = this.result();
@@ -205,7 +271,10 @@ export class SecurityPeriodPerformanceComponent implements IGlobalMenuAttach, On
       return;
     }
     this.menuRequest?.unsubscribe();
-    const showMenu: MenuItem[] = [{ label: 'SHOW_CHART', command: () => this.showChart() }];
+    const showMenu: MenuItem[] = [
+      { label: 'SHOW_CHART', command: () => this.showChart() },
+      { label: 'HIDE_BENCHMARK_FOR_REPORT', command: () => this.hideBenchmarkForReport() }
+    ];
     this.menuRequest = TranslateHelper.translateMenuItems$(showMenu, this.translateService)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((translated) => this.activePanelService.activatePanel(this, { showMenu: translated }));
@@ -236,7 +305,12 @@ export class SecurityPeriodPerformanceComponent implements IGlobalMenuAttach, On
     this.resultRequest?.unsubscribe();
     this.loading.set(true);
     this.resultRequest = this.holdingService
-      .getSecurityPeriodPerformance(this.idPortfolio(), this.isoDate(dateFrom), this.isoDate(dateTo))
+      .getSecurityPeriodPerformance(
+        this.idPortfolio(),
+        this.isoDate(dateFrom),
+        this.isoDate(dateTo),
+        this.requestBenchmark()
+      )
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => {
@@ -257,6 +331,14 @@ export class SecurityPeriodPerformanceComponent implements IGlobalMenuAttach, On
     this.resultRequest?.unsubscribe();
     this.result.set(this.chartService.takeOverForScope(idPortfolio));
     this.days.set(null);
+    this.requestBenchmark.set(undefined);
+    this.requestBenchmarkName.set(null);
+    this.storedBenchmark.set(null);
+    this.benchmarkRequest?.unsubscribe();
+    this.benchmarkRequest = this.benchmarkService
+      .getBenchmark(idPortfolio)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((stored) => this.storedBenchmark.set(stored));
     this.loading.set(true);
     this.calendarRequest = this.holdingService
       .getFirstAndMissingTradingDays(idPortfolio)
@@ -298,6 +380,64 @@ export class SecurityPeriodPerformanceComponent implements IGlobalMenuAttach, On
       }
     }
     syncStoredDateTo(sessionStorage, GlobalGTSessionNames.PERFORMANCE_DATE_TO, dateTo, days);
+  }
+
+  /** What the benchmark field shows: the choice for the next calculation, otherwise the stored benchmark. */
+  private benchmarkText(): string | null {
+    const requested = this.requestBenchmark();
+    if (requested === 0) {
+      return this.translateService.instant('NO_BENCHMARK');
+    }
+    if (requested !== undefined) {
+      return this.requestBenchmarkName();
+    }
+    const stored = this.storedBenchmark();
+    return stored ? `${stored.name} (${this.translateService.instant(stored.source)})` : null;
+  }
+
+  /** Lets the user choose any security or currency pair as benchmark of the next calculation. */
+  private searchBenchmark(): void {
+    const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
+      header: this.translateService.instant('BENCHMARK_NAME'),
+      width: '720px',
+      modal: true,
+      closable: true,
+      closeOnEscape: true,
+      focusOnShow: false,
+      data: { supplementCriteria: new SupplementCriteria(false, false) }
+    });
+    if (!ref) return;
+    ref.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((instrument) => {
+      if (instrument) {
+        this.requestBenchmarkName.set(instrument.name ?? instrument.fromCurrency + '/' + instrument.toCurrency);
+        this.requestBenchmark.set(instrument.idSecuritycurrency);
+      }
+    });
+  }
+
+  /** Stores the chosen instrument as default of the scope; the next calculation uses it like any stored benchmark. */
+  private saveAsDefaultBenchmark(): void {
+    const idBenchmark = this.requestBenchmark();
+    const idPortfolio = this.idPortfolio();
+    if (!idBenchmark) return;
+    this.benchmarkService
+      .assignBenchmark(idPortfolio, idBenchmark)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((stored) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'BENCHMARK_DEFAULT_SAVED');
+        // A scope changed while the request ran keeps its own stored benchmark
+        if (idPortfolio === this.idPortfolio()) {
+          this.requestBenchmark.set(undefined);
+          this.requestBenchmarkName.set(null);
+          this.storedBenchmark.set(stored);
+        }
+      });
+  }
+
+  /** The next calculation compares no benchmark; the stored default stays as it is. */
+  private hideBenchmarkForReport(): void {
+    this.requestBenchmarkName.set(null);
+    this.requestBenchmark.set(0);
   }
 
   private isoDate(date: Date): string {

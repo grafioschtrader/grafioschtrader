@@ -14,6 +14,8 @@ export interface SecurityPerformanceChartTexts {
   gain: string;
   twr: string;
   holdingDays: string;
+  /** Label of the benchmark return, with the benchmark name; without it the tooltip carries no benchmark line. */
+  benchmark?: string;
 }
 
 /** Formatting by GT's data types, supplied by the caller so the tooltip reads like the table. */
@@ -76,12 +78,14 @@ export function securityPerformanceChartPoints(
         row.name,
         format.amount(row.gainPeriodMC),
         format.percent(row.twrPercent),
-        format.days(row.holdingDays)
+        format.days(row.holdingDays),
+        row.benchmarkTwrPercent == null ? '–' : format.percent(row.benchmarkTwrPercent) + ' %'
       ]) as unknown as ScatterData['customdata'],
       hovertemplate:
         '<b>%{customdata[0]}</b><br>' +
         `${texts.gain}: %{customdata[1]}<br>` +
         `${texts.twr}: %{customdata[2]} %<br>` +
+        (texts.benchmark ? `${texts.benchmark}: %{customdata[4]}<br>` : '') +
         `${texts.holdingDays}: %{customdata[3]}<extra></extra>`
     },
     idsSecuritycurrency: shown.map((row) => row.idSecuritycurrency),

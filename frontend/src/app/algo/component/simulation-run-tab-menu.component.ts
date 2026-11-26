@@ -7,8 +7,8 @@ import { TabItem } from '../../lib/types/tab.item';
 import { AppSettings } from '../../shared/app.settings';
 
 /**
- * Tabs of a simulation environment in the navigation tree: the historical replay with its progress and figures, and the
- * strategy hierarchy the latest replay was submitted with. The active tab is kept when another environment is chosen.
+ * Tabs of a simulation environment in the navigation tree: the historical replay with its progress and figures, the
+ * strategy hierarchy the latest replay was submitted with, and the comparison of the replay with a benchmark. The active tab is kept when another environment is chosen.
  */
 @Component({
   template: `
@@ -47,7 +47,8 @@ export class SimulationRunTabMenuComponent extends BaseTabMenuComponent implemen
   protected initializeTabs(): TabItem[] {
     return [
       { label: 'SIMULATION_RUN', route: AppSettings.SIMULATION_RUN_KEY, icon: '' },
-      { label: 'SIMULATION_RUN_SETTINGS', route: AppSettings.SIMULATION_RUN_SETTINGS_KEY, icon: '' }
+      { label: 'SIMULATION_RUN_SETTINGS', route: AppSettings.SIMULATION_RUN_SETTINGS_KEY, icon: '' },
+      { label: 'SIMULATION_RUN_BENCHMARK', route: AppSettings.SIMULATION_RUN_BENCHMARK_KEY, icon: '' }
     ];
   }
 

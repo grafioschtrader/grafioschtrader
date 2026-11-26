@@ -125,6 +125,9 @@ export class SecurityPeriodPerformanceTableComponent extends TableConfigBase {
     this.addMainCurrencyColumn('gainPeriodMC', 'GAIN_PERIOD', true);
     this.addPercentColumn('twrSecurityCurrencyPercent', 'TWR_SECURITY_CURRENCY_PERCENT', false);
     this.addPercentColumn('twrPercent', 'TWR_POSITION_PERCENT', true);
+    // Shown only for a result with a benchmark; the tooltip of an empty cell says why the row has no comparison
+    this.addPercentColumn('benchmarkTwrPercent', 'BENCHMARK_TWR_PERCENT', false, this.benchmarkCellTooltip);
+    this.addPercentColumn('excessTwrPercent', 'EXCESS_TWR_PERCENT', false, this.benchmarkCellTooltip, false);
     this.addColumn(DataType.String, 'remark', 'SECURITY_PERIOD_REMARK', true, true, {
       translateValues: TranslateValue.NORMAL,
       width: 220
@@ -160,6 +163,9 @@ export class SecurityPeriodPerformanceTableComponent extends TableConfigBase {
 
   private applyResult(result: SecurityPeriodPerformance): void {
     this.fields
+      .filter((field) => field.field === 'benchmarkTwrPercent' || field.field === 'excessTwrPercent')
+      .forEach((field) => (field.visible = !!result.benchmark));
+    this.fields
       .filter((field) => this.mainCurrencyColumns.includes(field.field))
       .forEach((field) => {
         field.headerSuffix = result.mainCurrency;
@@ -185,9 +191,25 @@ export class SecurityPeriodPerformanceTableComponent extends TableConfigBase {
     });
   }
 
-  private addPercentColumn(field: string, headerKey: string, visible: boolean): void {
+  /** Why a row has no benchmark comparison; nothing for a compared row. */
+  private readonly benchmarkCellTooltip = (row: SecurityPeriodPerformanceRow): string | undefined =>
+    row.benchmarkCoverage && row.benchmarkCoverage !== 'BENCHMARK_COVERED'
+      ? this.translateService.instant(row.benchmarkCoverage)
+      : undefined;
+
+  /**
+   * A difference of two returns is in percentage points, which its label says, so it gets no percent sign.
+   */
+  private addPercentColumn(
+    field: string,
+    headerKey: string,
+    visible: boolean,
+    cellTooltipFN?: (row: SecurityPeriodPerformanceRow) => string | undefined,
+    percentSuffix = true
+  ): void {
     this.addColumn(DataType.Numeric, field, headerKey, visible, true, {
-      headerSuffix: '%',
+      cellTooltipFN,
+      headerSuffix: percentSuffix ? '%' : undefined,
       maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
       filterType: FilterType.likeDataType,
       templateName: GREEN_RED

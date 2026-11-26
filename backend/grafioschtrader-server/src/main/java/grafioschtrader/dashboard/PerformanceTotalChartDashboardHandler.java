@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,17 +22,31 @@ import grafiosch.dto.DashboardDtos.Payload;
 import grafiosch.dynamic.model.DynamicModelHelper;
 import grafiosch.entities.User;
 import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.common.MoneyWeightedReturn.DatedFlow;
+import grafioschtrader.common.ReturnSeries.Convention;
+import grafioschtrader.common.ReturnSeries.ValuationPoint;
 import grafioschtrader.dto.PerformanceTotalChartConfig;
 import grafioschtrader.entities.HoldDailyTotal;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Tenant;
+import grafioschtrader.reports.BenchmarkSeriesLoader;
+import grafioschtrader.reports.BenchmarkSeriesLoader.LoadedBenchmark;
 import grafioschtrader.reportviews.dashboard.PerformanceTotalChartPayload.PerformanceTotalChart;
 import grafioschtrader.reportviews.dashboard.PerformanceTotalChartPayload.Point;
 import grafioschtrader.reportviews.dashboard.PerformanceTotalChartPayload.Sampling;
+import grafioschtrader.reportviews.performance.BenchmarkNotice;
+import grafioschtrader.reportviews.performance.BenchmarkSeries;
+import grafioschtrader.reportviews.performance.IDailyExternalFlow;
+import grafioschtrader.reportviews.performance.ShadowPortfolio;
+import grafioschtrader.reportviews.performance.ValuationPoints;
+import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldDailyTotalJpaRepository;
 import grafioschtrader.repository.HoldDailyTotalJpaRepositoryCustom.HoldDailyTotalSeries;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
+import grafioschtrader.service.PerformanceBenchmarkService;
+import grafioschtrader.service.PerformanceBenchmarkService.ResolvedBenchmark;
+import grafioschtrader.types.BenchmarkNoticeCode;
 import grafioschtrader.types.DashboardChartRange;
 import grafioschtrader.types.TenantKindType;
 import tools.jackson.databind.JsonNode;
@@ -73,13 +88,21 @@ public class PerformanceTotalChartDashboardHandler implements DashboardWidgetHan
   private final TenantJpaRepository tenantJpaRepository;
   private final PortfolioJpaRepository portfolioJpaRepository;
   private final ObjectMapper mapper;
+  private final PerformanceBenchmarkService performanceBenchmarkService;
+  private final BenchmarkSeriesLoader benchmarkSeriesLoader;
+  private final HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
   public PerformanceTotalChartDashboardHandler(HoldDailyTotalJpaRepository holdDailyTotalJpaRepository,
-      TenantJpaRepository tenantJpaRepository, PortfolioJpaRepository portfolioJpaRepository, ObjectMapper mapper) {
+      TenantJpaRepository tenantJpaRepository, PortfolioJpaRepository portfolioJpaRepository, ObjectMapper mapper,
+      PerformanceBenchmarkService performanceBenchmarkService, BenchmarkSeriesLoader benchmarkSeriesLoader,
+      HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository) {
     this.holdDailyTotalJpaRepository = holdDailyTotalJpaRepository;
     this.tenantJpaRepository = tenantJpaRepository;
     this.portfolioJpaRepository = portfolioJpaRepository;
     this.mapper = mapper;
+    this.performanceBenchmarkService = performanceBenchmarkService;
+    this.benchmarkSeriesLoader = benchmarkSeriesLoader;
+    this.holdCashaccountDepositJpaRepository = holdCashaccountDepositJpaRepository;
   }
 
   @Override
@@ -142,8 +165,9 @@ public class PerformanceTotalChartDashboardHandler implements DashboardWidgetHan
     DashboardChartRange range = DashboardChartRange.fromName(config.path(RANGE).asString());
     Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
     String currency = tenant.getCurrency();
+    Portfolio portfolio = null;
     if (idPortfolio != null) {
-      Portfolio portfolio = portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio);
+      portfolio = portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio);
       if (portfolio == null) {
         DashboardLayoutRepository.invalid("DASHBOARD_INVALID");
       }
@@ -152,12 +176,57 @@ public class PerformanceTotalChartDashboardHandler implements DashboardWidgetHan
     if (tenant.getTenantKindType() == TenantKindType.SIMULATION_COPY) {
       // The update task covers main clients only, so a simulation environment never gets any daily values.
       return new PerformanceTotalChart(currency, idPortfolio, range.name(), RANGES, Sampling.DAY, null, false,
-          REASON_SIMULATION, List.of());
+          REASON_SIMULATION, List.of(), null, null, List.of());
     }
     LocalDate today = ClientClock.today();
     HoldDailyTotalSeries series = holdDailyTotalJpaRepository.getSeries(idTenant, idPortfolio, range.fromDate(today),
         today);
-    return toChart(currency, idPortfolio, range, series);
+    BenchmarkOverlay overlay = null;
+    if (series.rows().size() > 1) {
+      // Without a stored benchmark nothing more is read
+      final String mainCurrency = currency;
+      overlay = performanceBenchmarkService.resolve(tenant, portfolio, null)
+          .map(resolved -> overlay(resolved, mainCurrency, idTenant, idPortfolio, series.rows())).orElse(null);
+    }
+    return toChart(currency, idPortfolio, range, series, overlay);
+  }
+
+  /**
+   * Calculates the shadow portfolio on the daily rows, before they are sampled, so that a weekly or monthly point
+   * carries the value of its own day rather than a value calculated from sampled flows.
+   */
+  private BenchmarkOverlay overlay(ResolvedBenchmark resolved, String mainCurrency, Integer idTenant,
+      Integer idPortfolio, List<HoldDailyTotal> rows) {
+    LocalDate from = rows.getFirst().getHoldDate();
+    LocalDate to = rows.getLast().getHoldDate();
+    List<IDailyExternalFlow> dailyFlows = idPortfolio == null
+        ? holdCashaccountDepositJpaRepository.getDailyExternalFlowsByTenant(idTenant, from, to)
+        : holdCashaccountDepositJpaRepository.getDailyExternalFlowsByPortfolio(idPortfolio, from, to);
+    // The regularity of an interval only steers volatility, which the card does not show
+    List<ValuationPoint> points = ValuationPoints.of(rows, dailyFlows, (_, _) -> true);
+    List<LocalDate> dates = points.stream().map(ValuationPoint::date).toList();
+    LoadedBenchmark loaded = benchmarkSeriesLoader.load(resolved, mainCurrency, dates);
+    List<BenchmarkNotice> notices = loaded.allNotices();
+    Map<LocalDate, Double> shadowValues = new HashMap<>();
+    LocalDate startDate = null;
+    if (loaded.hasSpan()) {
+      BenchmarkSeries.Result aligned = loaded.aligned();
+      List<DatedFlow> datedFlows = dailyFlows.stream().map(f -> new DatedFlow(f.getFlowDate(), f.getFlowMC()))
+          .toList();
+      ShadowPortfolio.Result shadow = ShadowPortfolio.calculate(points, aligned.levels(), aligned.k(), aligned.e(),
+          Convention.REPORT, datedFlows);
+      for (int i = 0; i < dates.size(); i++) {
+        if (shadow.values()[i] != null) {
+          shadowValues.put(dates.get(i), shadow.values()[i]);
+        }
+      }
+      startDate = dates.get(aligned.k());
+      if (shadow.summary() != null && shadow.summary().shortfallDate() != null) {
+        notices.add(BenchmarkNotice.of(BenchmarkNoticeCode.BENCHMARK_SHADOW_SHORTFALL, "date",
+            shadow.summary().shortfallDate()));
+      }
+    }
+    return new BenchmarkOverlay(loaded.descriptor().name(), startDate, notices, shadowValues);
   }
 
   /**
@@ -166,19 +235,39 @@ public class PerformanceTotalChartDashboardHandler implements DashboardWidgetHan
    */
   static PerformanceTotalChart toChart(String currency, Integer idPortfolio, DashboardChartRange range,
       HoldDailyTotalSeries series) {
+    return toChart(currency, idPortfolio, range, series, null);
+  }
+
+  /**
+   * Same as {@link #toChart(String, Integer, DashboardChartRange, HoldDailyTotalSeries)} with the shadow line of a
+   * benchmark.
+   *
+   * @param overlay the shadow values per day of the stored benchmark, null without one
+   */
+  static PerformanceTotalChart toChart(String currency, Integer idPortfolio, DashboardChartRange range,
+      HoldDailyTotalSeries series, BenchmarkOverlay overlay) {
     List<HoldDailyTotal> rows = series.rows();
+    String benchmarkName = overlay == null ? null : overlay.name();
+    LocalDate benchmarkStartDate = overlay == null ? null : overlay.startDate();
+    List<BenchmarkNotice> notices = overlay == null ? List.of() : overlay.notices();
     if (rows.isEmpty()) {
       return new PerformanceTotalChart(currency, idPortfolio, range.name(), RANGES, Sampling.DAY, null,
           series.recalcFromDate() == null, series.recalcFromDate() == null ? REASON_PENDING : REASON_NO_DATA,
-          List.of());
+          List.of(), benchmarkName, benchmarkStartDate, notices);
     }
     LocalDate newestDate = rows.getLast().getHoldDate();
     boolean recalcPending = series.recalcFromDate() == null || !series.recalcFromDate().isAfter(newestDate);
     Sampled sampled = sample(rows);
     List<Point> points = sampled.rows().stream().map(r -> new Point(r.getHoldDate(), r.getTotalBalanceMC(),
-        DataBusinessHelper.roundStandard(r.getExternalCashTransferMC()))).toList();
+        DataBusinessHelper.roundStandard(r.getExternalCashTransferMC()), shadowValue(overlay, r.getHoldDate())))
+        .toList();
     return new PerformanceTotalChart(currency, idPortfolio, range.name(), RANGES, sampled.sampling(), newestDate,
-        recalcPending, null, points);
+        recalcPending, null, points, benchmarkName, benchmarkStartDate, notices);
+  }
+
+  private static Double shadowValue(BenchmarkOverlay overlay, LocalDate date) {
+    Double value = overlay == null ? null : overlay.shadowValues().get(date);
+    return value == null ? null : DataBusinessHelper.roundStandard(value);
   }
 
   /**
@@ -218,5 +307,17 @@ public class PerformanceTotalChartDashboardHandler implements DashboardWidgetHan
 
   /** The rows a chart keeps, with their spacing. */
   record Sampled(List<HoldDailyTotal> rows, Sampling sampling) {
+  }
+
+  /**
+   * The shadow line of the stored benchmark.
+   *
+   * @param name         name of the benchmark
+   * @param startDate    first day the benchmark covers, null without a comparison span
+   * @param notices      notices of the comparison
+   * @param shadowValues shadow value per day, absent outside the span and after a shortfall
+   */
+  record BenchmarkOverlay(String name, LocalDate startDate, List<BenchmarkNotice> notices,
+      Map<LocalDate, Double> shadowValues) {
   }
 }

@@ -2,6 +2,7 @@ import { requireFormControl } from '../../lib/dynamic-form/models/form-control-a
 import {
   AfterViewInit,
   Component,
+  computed,
   ElementRef,
   inject,
   NgZone,
@@ -31,7 +32,12 @@ import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
 import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { PerformanceTotalChart, PerformanceTotalChartPoint } from '../model/performance.total.chart';
-import { performanceTotalChartLayout, performanceTotalChartTraces } from '../model/performance.total.chart.plot';
+import { benchmarkNoticeTexts } from '../model/benchmark.notice.text';
+import {
+  performanceTotalChartLayout,
+  performanceTotalChartTraces,
+  shadowLabel
+} from '../model/performance.total.chart.plot';
 
 /**
  * Dashboard card drawing the total value of the client, or of one of its portfolios, next to the invested capital.
@@ -73,6 +79,9 @@ import { performanceTotalChartLayout, performanceTotalChartTraces } from '../mod
             · {{ 'DASHBOARD_TOTAL_CHART_' + shown.sampling | translate }}
           }
         </small>
+        @for (notice of noticeTexts(); track $index) {
+          <small class="d-block fst-italic">{{ notice }}</small>
+        }
       }
     </div>
   `,
@@ -124,6 +133,15 @@ export class PerformanceTotalChartWidgetComponent
   private readonly amountField = ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'value', '');
   private readonly plotlyConfig: any;
   private texts: { [key: string]: string } = {};
+
+  /** The notices of the benchmark comparison, translated with their dates formatted like the rest of the card. */
+  readonly noticeTexts = computed(() =>
+    benchmarkNoticeTexts(
+      this.chart()?.notices,
+      (key, parameters) => this.translateService.instant(key, parameters),
+      (date) => this.getValueByPath({ date }, this.dateField)
+    )
+  );
   private settingsSubscription?: Subscription;
   private resizeObserver?: ResizeObserver;
   private viewReady = false;
@@ -145,7 +163,7 @@ export class PerformanceTotalChartWidgetComponent
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.plotlyConfig = { ...PlotlyLocales.setPlotyLocales(this.gps), responsive: false, displaylogo: false };
     this.translateService
-      .get(['TOTAL_BALANCE', 'INVESTED_CAPITAL', 'DIFFERENCE'])
+      .get(['TOTAL_BALANCE', 'INVESTED_CAPITAL', 'DIFFERENCE', 'SHADOW_VALUE'])
       .subscribe((texts) => (this.texts = texts));
 
     effect(() => {
@@ -283,7 +301,8 @@ export class PerformanceTotalChartWidgetComponent
       {
         totalBalance: this.texts['TOTAL_BALANCE'],
         investedCapital: this.texts['INVESTED_CAPITAL'],
-        difference: this.texts['DIFFERENCE']
+        difference: this.texts['DIFFERENCE'],
+        shadow: shadowLabel(this.texts['SHADOW_VALUE'], this.chart()?.benchmarkName)
       },
       { date: (point) => this.getValueByPath(point, this.dateField), amount: (value) => this.formatAmount(value) }
     );

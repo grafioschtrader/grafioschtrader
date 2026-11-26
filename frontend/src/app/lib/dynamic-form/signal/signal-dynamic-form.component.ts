@@ -158,7 +158,8 @@ const SERVER_ERROR = 'server';
                 <i class="pi pi-question" pButtonIcon></i>
               </p-button>
             }
-            <div class="ms-auto">
+            <!-- Wraps long labels onto further lines with a vertical gap instead of letting them collide. -->
+            <div class="ms-auto d-flex flex-wrap justify-content-end row-gap-2">
               @for (field of built.buttons; track field) {
                 @if (!(buttonState(field).invisible ?? field.invisible)) {
                   <signalDynamicField [config]="field" [formConfig]="formConfig()" />
@@ -364,6 +365,18 @@ export class SignalDynamicFormComponent<TModel extends object = SignalFormModel>
     const state = config ? this.fieldOf(config)?.() : undefined;
     if (!config || !state) throw new Error(`Signal form has no field "${name}".`);
     state.value.set(toModelValue(config, value));
+  }
+
+  /**
+   * Whether the form has built the data field. The fields are built after the form received its configuration, so code
+   * that sets a value from an effect asks this first; reading it in the effect runs the effect again once the form is
+   * built.
+   *
+   * @param name - Field name
+   */
+  hasField(name: string): boolean {
+    const config = this.built()?.entries.find((e) => e.config.field === name)?.config;
+    return !!config && !!this.fieldOf(config)?.();
   }
 
   isFieldActive(name: string): boolean {

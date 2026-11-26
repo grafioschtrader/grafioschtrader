@@ -170,7 +170,8 @@
 			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 
-		<!-- Jackson 2 bridge for SpringDoc compatibility with Jackson 3 -->
+		<!-- Jackson 2 bridge for SpringDoc compatibility with Jackson 3; also provides the Jackson 2 ObjectMapper bean
+		     injected by UserChartShapeJpaRepositoryImpl. springdoc 3.2 runs on Jackson 3 and no longer needs it. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-jackson2</artifactId>
@@ -292,6 +293,13 @@
 
 		<dependency>
 			<groupId>tools.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+		</dependency>
+
+		<!-- Jackson 2 YAMLMapper of the fee, tax, calendar and custody YAML classes, version from the jackson-2-bom
+		     of the Boot BOM. Declared because the code uses it directly; swagger-core drops it with springdoc 3.2. -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-yaml</artifactId>
 		</dependency>
 

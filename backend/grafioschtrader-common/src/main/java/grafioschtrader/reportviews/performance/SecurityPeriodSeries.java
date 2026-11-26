@@ -16,6 +16,7 @@ import java.util.function.Function;
 import grafioschtrader.common.ReturnSeries;
 import grafioschtrader.common.ReturnSeries.Convention;
 import grafioschtrader.common.ReturnSeries.ValuationPoint;
+import grafioschtrader.types.BenchmarkCoverage;
 import grafioschtrader.types.SecurityPeriodRemark;
 
 //@formatter:off
@@ -105,9 +106,18 @@ public final class SecurityPeriodSeries {
    * @param flows            the flows of the security; flows outside the period are ignored
    * @param rateOfDay        closing rate from the security currency into the main currency, 1 for a security in the
    *                         main currency, null when the rate of the day is missing
+   * @param benchmarkLevel   level of the benchmark in main currency on a trading day, null where the comparison does
+   *                         not cover the day; the function itself is null without a benchmark
    */
   public record Input(LocalDate dateFrom, LocalDate dateTo, List<LocalDate> tradingDays, boolean marginInstrument,
-      List<DailyValue> dailyValues, List<Span> spans, List<Flow> flows, Function<LocalDate, Double> rateOfDay) {
+      List<DailyValue> dailyValues, List<Span> spans, List<Flow> flows, Function<LocalDate, Double> rateOfDay,
+      Function<LocalDate, Double> benchmarkLevel) {
+
+    /** Input without benchmark. */
+    public Input(LocalDate dateFrom, LocalDate dateTo, List<LocalDate> tradingDays, boolean marginInstrument,
+        List<DailyValue> dailyValues, List<Span> spans, List<Flow> flows, Function<LocalDate, Double> rateOfDay) {
+      this(dateFrom, dateTo, tradingDays, marginInstrument, dailyValues, spans, flows, rateOfDay, null);
+    }
   }
 
   /**
@@ -125,10 +135,14 @@ public final class SecurityPeriodSeries {
    * @param twr                 time-weighted return in main currency as a ratio
    * @param twrSecurityCurrency time-weighted return in security currency as a ratio
    * @param remark              cause of missing figures, null for a complete row
+   * @param benchmarkTwr        return of the benchmark over exactly the intervals that produced {@code twr}, as a
+   *                            ratio; null without a benchmark, without {@code twr} or when an interval is not
+   *                            covered
+   * @param benchmarkCoverage   whether the row has a benchmark comparison; null without a benchmark
    */
   public record Result(int holdingDays, Double unitsStart, Double unitsEnd, Double valueStartMC, Double valueEndMC,
       Double inflowMC, Double outflowMC, Double gainPeriod, Double gainPeriodMC, Double twr, Double twrSecurityCurrency,
-      SecurityPeriodRemark remark) {
+      SecurityPeriodRemark remark, Double benchmarkTwr, BenchmarkCoverage benchmarkCoverage) {
   }
 
   /** Inflow and outflow of one placement day in both currencies; the outflows are positive amounts. */
@@ -171,7 +185,8 @@ public final class SecurityPeriodSeries {
     Double outflowMC = placed.missingRate() ? null : placed.outflowMC();
     if (!endpointsValued) {
       return new Result(holdingDays, unitsStart, unitsEnd, null, null, inflowMC, outflowMC, null, null, null, null,
-          SecurityPeriodRemark.MISSING_VALUATION);
+          SecurityPeriodRemark.MISSING_VALUATION, null,
+          input.benchmarkLevel() == null ? null : BenchmarkCoverage.BENCHMARK_NONE);
     }
     DailyValue start = values.get(input.dateFrom());
     DailyValue end = values.get(input.dateTo());
@@ -186,16 +201,55 @@ public final class SecurityPeriodSeries {
     boolean negativeUnits = input.dailyValues().stream().anyMatch(DailyValue::negativeUnits);
     Double twrSecurityCurrency = null;
     Double twr = null;
+    ReturnSeries seriesMC = null;
     if (!input.marginInstrument() && !negativeUnits) {
       twrSecurityCurrency = ReturnSeries.of(points(grid, values, placed, false), Convention.REPORT).totalReturn();
       if (!placed.missingRate()) {
-        twr = ReturnSeries.of(points(grid, values, placed, true), Convention.REPORT).totalReturn();
+        seriesMC = ReturnSeries.of(points(grid, values, placed, true), Convention.REPORT);
+        twr = seriesMC.totalReturn();
       }
+    }
+    Double benchmarkTwr = null;
+    BenchmarkCoverage benchmarkCoverage = null;
+    if (input.benchmarkLevel() != null) {
+      benchmarkTwr = twr == null ? null : benchmarkReturn(seriesMC, grid, input.benchmarkLevel());
+      benchmarkCoverage = benchmarkTwr == null ? (twr == null ? BenchmarkCoverage.BENCHMARK_NONE
+          : BenchmarkCoverage.BENCHMARK_PARTIAL) : BenchmarkCoverage.BENCHMARK_COVERED;
     }
     SecurityPeriodRemark remark = remark(input.marginInstrument(), placed.missingRate(), negativeUnits,
         twrSecurityCurrency);
     return new Result(holdingDays, unitsStart, unitsEnd, valueStartMC, valueEndMC, inflowMC, outflowMC, gainPeriod,
-        gainPeriodMC, twr, twrSecurityCurrency, remark);
+        gainPeriodMC, twr, twrSecurityCurrency, remark, benchmarkTwr, benchmarkCoverage);
+  }
+
+  /**
+   * Links the benchmark over exactly the intervals of the grid in which the position had a usable capital base, so a
+   * position sold in March and bought back in October is compared over the same days. Intervals without capital are
+   * skipped on both sides. A single usable interval without a covered, positive benchmark level at both ends leaves the
+   * comparison empty rather than comparing a shorter benchmark span with the whole holding period.
+   *
+   * @param seriesMC the main-currency series that produced the return of the position
+   * @param grid     the grid days of that series
+   * @param level    benchmark level per day, null where the comparison does not cover the day
+   * @return the benchmark return as a ratio, null without a usable interval or with an uncovered one
+   */
+  private static Double benchmarkReturn(ReturnSeries seriesMC, List<LocalDate> grid,
+      Function<LocalDate, Double> level) {
+    double product = 1;
+    int intervals = 0;
+    for (int i = 1; i < grid.size(); i++) {
+      if (!seriesMC.isUsable(i)) {
+        continue;
+      }
+      Double before = level.apply(grid.get(i - 1));
+      Double after = level.apply(grid.get(i));
+      if (before == null || after == null || before <= 0 || after <= 0) {
+        return null;
+      }
+      product *= after / before;
+      intervals++;
+    }
+    return intervals == 0 ? null : product - 1;
   }
 
   /** Picks the first remark that applies, in the order of {@link SecurityPeriodRemark}. */
@@ -263,7 +317,7 @@ public final class SecurityPeriodSeries {
       Double rate = input.rateOfDay().apply(day);
       missingRate |= rate == null;
       double amountMC = rate == null ? 0 : amount * rate;
-      DayFlow dayFlow = byDay.computeIfAbsent(day, d -> new DayFlow());
+      DayFlow dayFlow = byDay.computeIfAbsent(day, _ -> new DayFlow());
       if (amount > 0) {
         dayFlow.inflowSC += amount;
         dayFlow.inflowMC += amountMC;

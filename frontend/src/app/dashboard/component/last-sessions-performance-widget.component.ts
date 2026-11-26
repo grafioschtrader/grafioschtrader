@@ -28,6 +28,8 @@ import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { AppSettings } from '../../shared/app.settings';
+import { benchmarkNoticeTexts } from '../model/benchmark.notice.text';
 import { LastSessionsPerformance } from '../model/last.sessions.performance';
 import { LastSessionsPerformanceTableComponent } from './last-sessions-performance-table.component';
 
@@ -59,8 +61,20 @@ import { LastSessionsPerformanceTableComponent } from './last-sessions-performan
               <strong>{{ totalField.headerTranslated }}:</strong> {{ getValueByPath(performance, totalField) }}
             </span>
           }
+          @if (performance.benchmarkName) {
+            <span class="me-3">
+              <strong>{{ performance.benchmarkName }}:</strong>
+              {{ getValueByPath(performance, benchmarkReturnField) }}
+            </span>
+          }
         </div>
-        <last-sessions-performance-table [sessions]="rows()" [currency]="performance.currency" />
+        <last-sessions-performance-table
+          [sessions]="rows()"
+          [currency]="performance.currency"
+          [benchmarkName]="performance.benchmarkName" />
+        @for (notice of noticeTexts(); track $index) {
+          <small class="d-block fst-italic">{{ notice }}</small>
+        }
         <small class="d-block">{{ 'DASHBOARD_LAST_SESSIONS_NOTE' | translate }}</small>
       }
     }
@@ -81,6 +95,24 @@ export class LastSessionsPerformanceWidgetComponent
   /** Newest session first: a card is read from the top and the last session is what the reader came for. */
   readonly rows = computed(() => [...(this.performance()?.sessions ?? [])].reverse());
   totalFields: ColumnConfig[] = [];
+  /** Linked return of the benchmark over the listed sessions, labelled with the benchmark name in the template. */
+  readonly benchmarkReturnField = ShowRecordConfigBase.createColumnConfig(
+    DataType.NumericShowZero,
+    'benchmarkReturnPercent',
+    null,
+    true,
+    true,
+    { fixedFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION }
+  );
+  /** The notices of the benchmark comparison, translated with their dates formatted like the rest of the card. */
+  readonly noticeTexts = computed(() =>
+    benchmarkNoticeTexts(
+      this.performance()?.notices,
+      (key, parameters) => this.translateService.instant(key, parameters),
+      (date) => this.getValueByPath({ date }, this.dateField)
+    )
+  );
+  private readonly dateField = ShowRecordConfigBase.createColumnConfig(DataType.DateString, 'date', null);
   config: FieldConfig[];
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig = { labelColumns: 3, nonModal: true };
@@ -101,7 +133,10 @@ export class LastSessionsPerformanceWidgetComponent
       this.performance();
       this.form();
       untracked(() => {
-        this.totalFields.forEach((field) => (field.fixedCurrency = this.performance()?.currency));
+        // A percentage carries no currency
+        this.totalFields
+          .filter((field) => field.headerSuffix !== '%')
+          .forEach((field) => (field.fixedCurrency = this.performance()?.currency));
         this.showChosenPortfolio();
       });
     });
@@ -186,13 +221,21 @@ export class LastSessionsPerformanceWidgetComponent
         'totalBalanceChangeMC',
         'DASHBOARD_LAST_SESSIONS_BALANCE_CHANGE'
       ),
-      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'externalCashTransferMC', 'EXTERNAL_CASH_TRANSFER')
+      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'externalCashTransferMC', 'EXTERNAL_CASH_TRANSFER'),
+      ShowRecordConfigBase.createColumnConfig(DataType.NumericShowZero, 'twrPercent', 'TWR_PERCENT', true, true, {
+        headerSuffix: '%',
+        fixedFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION
+      })
     ];
     this.translateService
       .get(this.totalFields.map((field) => field.headerKey).filter((key) => key != null))
       .subscribe((translations) => {
         this.totalFields.forEach(
-          (field) => (field.headerTranslated = field.headerKey == null ? undefined : translations[field.headerKey])
+          (field) =>
+            (field.headerTranslated =
+              field.headerKey == null
+                ? undefined
+                : translations[field.headerKey] + (field.headerSuffix ? ' ' + field.headerSuffix : ''))
         );
         this.notifyViewChanged();
       });

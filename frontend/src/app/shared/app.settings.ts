@@ -150,6 +150,8 @@ export class AppSettings {
   public static readonly DEPOT_CASH_CHART = 'depotcashchart';
   /** Lower display area route of the charts of the view "Performance by security". */
   public static readonly SECURITY_PERFORMANCE_CHART = 'securityperformancechart';
+  /** Lower display area route of the chart of the view "Period performance". */
+  public static readonly PERFORMANCE_PERIOD_CHART = 'performanceperiodchart';
   public static readonly CHART_GENERAL_PURPOSE = 'chartgeneralpurpose';
   /** Chart id of the equity curve of a completed historical replay. */
   public static readonly SIMULATION_EQUITY_KEY = 'simulationequity';
@@ -174,6 +176,7 @@ export class AppSettings {
   public static readonly SIMULATION_RUN_KEY = 'simulationrun';
   public static readonly SIMULATION_RUN_TAB_MENU_KEY = 'replayTabMenu';
   public static readonly SIMULATION_RUN_SETTINGS_KEY = 'replaysettings';
+  public static readonly SIMULATION_RUN_BENCHMARK_KEY = 'replaybenchmark';
   public static readonly STANDING_ORDER_KEY = AppSettings.STANDING_ORDER.toLowerCase();
   public static readonly STANDING_ORDER_TAB_KEY = 'standingordertabmenu';
   public static readonly TENANT_STANDING_ORDER_CASHACCOUNT = 'tenantstandingordercashaccount';
@@ -223,6 +226,7 @@ export class AppSettings {
   public static readonly REALIZED_GAINS_SECURITYACCOUNTS = 'realized_gains_securityaccounts';
   public static readonly DEPOT_CASH_CHART_TYPE = 'depotcash_chart_type';
   public static readonly SECURITY_PERFORMANCE_CHART_TYPE = 'securityperformance_chart_type';
+  public static readonly PERFORMANCE_PERIOD_CHART_MODE = 'performanceperiod_chart_mode';
   public static readonly SECURITY_POSITION_CHART_TYPE = 'securityposition_chart_type';
   public static readonly WATCHLIST_PERFORMANCE_TIMEFRAME_STORE = 'u_watchlist_performance_timeframe_1';
   public static readonly WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE = 'u_watchlist_performance_include_dividends';

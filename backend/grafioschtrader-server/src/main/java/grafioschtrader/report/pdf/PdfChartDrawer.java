@@ -192,6 +192,66 @@ public final class PdfChartDrawer {
     stream.restoreGraphicsState();
   }
 
+  /**
+   * Two bars per label on one zero axis, for example the return of the portfolio and that of its benchmark. A missing
+   * value leaves its bar out; the legend above the chart names both series.
+   *
+   * @param writer the document
+   * @param r      the chart area
+   * @param labels one label per slot
+   * @param first  values of the first series, drawn left in the first palette colour
+   * @param second values of the second series, drawn right in the second palette colour
+   * @param names  legend texts of the two series
+   * @param format formatter of the axis labels
+   */
+  public static void pairedBarChart(PdfDocumentWriter writer, Rect r, List<String> labels, List<Double> first,
+      List<Double> second, List<String> names, Function<Double, String> format) throws IOException {
+    List<Double> all = new java.util.ArrayList<>(first);
+    all.addAll(second);
+    Scale scale = scale(all, true);
+    axes(writer, r, scale, format);
+    if (labels.isEmpty()) {
+      return;
+    }
+    float slot = r.width() / labels.size();
+    float zero = y(r, scale, 0);
+    PDPageContentStream stream = writer.stream();
+    stream.saveGraphicsState();
+    float lastLabelEnd = -Float.MAX_VALUE;
+    for (int i = 0; i < labels.size(); i++) {
+      float x = r.x() + slot * i;
+      List<Double> values = List.of(nanIfNull(first.get(i)), nanIfNull(second.get(i)));
+      for (int s = 0; s < 2; s++) {
+        Double value = values.get(s);
+        if (finite(value)) {
+          float end = y(r, scale, value);
+          stream.setNonStrokingColor(PALETTE[s]);
+          stream.addRect(x + slot * (.14f + s * .36f), Math.min(zero, end), slot * .34f,
+              Math.max(.6f, Math.abs(end - zero)));
+          stream.fill();
+        }
+      }
+      String label = labels.get(i);
+      float labelWidth = writer.measure(label, 7, false);
+      if (!label.isEmpty() && x > lastLabelEnd + 4 && x + labelWidth <= r.x() + r.width()) {
+        writer.text(label, x, r.y() - 16, 7, false);
+        lastLabelEnd = x + labelWidth;
+      }
+    }
+    for (int s = 0; s < 2; s++) {
+      float legendY = r.y() + r.height() + 16 + s * 14;
+      stream.setNonStrokingColor(PALETTE[s]);
+      stream.addRect(r.x(), legendY - 4, 22, 8);
+      stream.fill();
+      writer.text(names.get(s), r.x() + 28, legendY - 3, 8, false);
+    }
+    stream.restoreGraphicsState();
+  }
+
+  private static Double nanIfNull(Double value) {
+    return value == null ? Double.NaN : value;
+  }
+
   /** Signed allocation bars; negative values keep their sign and share one zero axis. */
   public static void horizontalBarChart(PdfDocumentWriter writer, Rect r, List<String> labels, List<Double> values,
       Function<Double, String> format) throws IOException {

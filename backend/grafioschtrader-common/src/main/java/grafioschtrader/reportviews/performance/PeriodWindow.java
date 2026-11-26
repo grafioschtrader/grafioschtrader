@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
 import grafioschtrader.common.ReturnSeries;
+import grafioschtrader.types.BenchmarkCoverage;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -52,6 +53,20 @@ public class PeriodWindow {
       Time-weighted return of the window in percent, chained from the base of its first step to its last step. Null
       when the window has no step, for example when it consists only of holidays or days with missing prices.""")
   public Double twrPercent;
+
+  @Schema(description = """
+      Return of the benchmark over the window in percent, linked over the same intervals as the portfolio return of the
+      comparison. Null without a benchmark or when the window is not covered by the comparison span; twrPercent is
+      unchanged in every case.""")
+  public Double benchmarkTwrPercent;
+
+  @Schema(description = """
+      Portfolio return minus benchmark return of the window over the common intervals, in percentage points. Null
+      whenever benchmarkTwrPercent is null.""")
+  public Double excessTwrPercent;
+
+  @Schema(description = "Whether the window has a benchmark comparison; null when the report has no benchmark")
+  public BenchmarkCoverage benchmarkCoverage;
 
   /** Index of the holding the first step of this window is measured from; null while no step was added. */
   @JsonIgnore
@@ -105,14 +120,17 @@ public class PeriodWindow {
    * @param baseDate               date of the valuation the step is measured from
    * @param twrPercent             time-weighted return of the step in percent, may be null
    * @param complete               whether the step covers exactly one trading day or one month
+   * @return the added step
    */
-  public void addPeriodStep(WeekYear weekYear, LocalDate localDate, double externalCashTransferMC, double gainMC,
-      double marginCloseGainMC, double cashBalanceMC, double securitiesMC, double totalBalanceMC, int missingDayCount,
-      LocalDate baseDate, Double twrPercent, boolean complete) {
+  public PeriodStep addPeriodStep(WeekYear weekYear, LocalDate localDate, double externalCashTransferMC,
+      double gainMC, double marginCloseGainMC, double cashBalanceMC, double securitiesMC, double totalBalanceMC,
+      int missingDayCount, LocalDate baseDate, Double twrPercent, boolean complete) {
     int offset = (int) (weekYear == WeekYear.WM_WEEK ? ChronoUnit.DAYS.between(startDate, localDate)
         : ChronoUnit.MONTHS.between(startDate, localDate));
-    periodStepList.set(offset, new PeriodStep(localDate, externalCashTransferMC, gainMC, marginCloseGainMC,
-        cashBalanceMC, securitiesMC, totalBalanceMC, missingDayCount, baseDate, twrPercent, complete));
+    PeriodStep periodStep = new PeriodStep(localDate, externalCashTransferMC, gainMC, marginCloseGainMC, cashBalanceMC,
+        securitiesMC, totalBalanceMC, missingDayCount, baseDate, twrPercent, complete);
+    periodStepList.set(offset, periodStep);
+    return periodStep;
   }
 
   /**
@@ -139,6 +157,26 @@ public class PeriodWindow {
     if (firstBaseIndex != null) {
       twrPercent = PerformancePeriodMetrics.percent(series.linked(firstBaseIndex, lastStepIndex));
     }
+  }
+
+  /**
+   * Fills the benchmark comparison of the window and of every step in it. A window without any step stays uncovered.
+   *
+   * @param comparison the comparison of the report with its benchmark
+   */
+  void fillBenchmark(BenchmarkComparison comparison) {
+    if (firstBaseIndex == null) {
+      benchmarkCoverage = BenchmarkCoverage.BENCHMARK_NONE;
+    } else {
+      benchmarkCoverage = comparison.coverage(firstBaseIndex, lastStepIndex);
+      Double benchmark = comparison.benchmarkReturn(firstBaseIndex, lastStepIndex);
+      Double portfolio = comparison.portfolioReturn(firstBaseIndex, lastStepIndex);
+      benchmarkTwrPercent = PerformancePeriodMetrics.percent(benchmark);
+      excessTwrPercent = benchmark == null || portfolio == null ? null
+          : PerformancePeriodMetrics.percent(portfolio - benchmark);
+    }
+    periodStepList.stream().filter(PeriodStep.class::isInstance).map(PeriodStep.class::cast)
+        .forEach(periodStep -> periodStep.fillBenchmark(comparison));
   }
 
   /**

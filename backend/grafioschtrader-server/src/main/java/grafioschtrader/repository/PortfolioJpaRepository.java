@@ -26,6 +26,19 @@ public interface PortfolioJpaRepository extends JpaRepository<Portfolio, Integer
 
   Portfolio findByIdTenantAndIdPortfolio(Integer idTenant, Integer idPortfolio);
 
+  /**
+   * Sets the benchmark of a portfolio, restricted to the portfolios of the given tenant. The only write path of the
+   * column; a save of the portfolio itself never copies it.
+   *
+   * @param idTenant    the tenant of the authenticated user
+   * @param idPortfolio the portfolio
+   * @param idBenchmark the benchmark instrument, null to inherit the benchmark of the tenant again
+   * @return the number of updated rows, 0 when the portfolio does not belong to the tenant
+   */
+  @Modifying(clearAutomatically = true)
+  @Query("UPDATE Portfolio p SET p.idBenchmark = ?3 WHERE p.idPortfolio = ?2 AND p.idTenant = ?1")
+  int updateIdBenchmark(Integer idTenant, Integer idPortfolio, Integer idBenchmark);
+
   @Query(nativeQuery = true)
   List<Integer> getExistingTransactionOnSecurityaccount(Integer idTenant);
 

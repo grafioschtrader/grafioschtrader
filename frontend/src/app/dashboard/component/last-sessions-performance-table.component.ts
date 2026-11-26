@@ -2,6 +2,7 @@ import { Component, input, effect, untracked } from '@angular/core';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { AppSettings } from '../../shared/app.settings';
 import { LastSessionsRow } from '../model/last.sessions.performance';
 
 /**
@@ -43,6 +44,9 @@ export class LastSessionsPerformanceTableComponent extends TableConfigBase {
   /** Currency of every amount; the card reports one currency for the whole client or portfolio. */
   readonly currency = input<string>();
 
+  /** Name of the stored benchmark; without one the benchmark column is hidden. */
+  readonly benchmarkName = input<string | null>();
+
   /** Height at which the table starts to scroll, so a card cannot grow past its neighbours. */
   readonly scrollHeight = input('220px');
 
@@ -65,6 +69,19 @@ export class LastSessionsPerformanceTableComponent extends TableConfigBase {
       width: 110,
       templateName: 'greenRed'
     });
+    // Percentages arrive in percent; an empty cell is a session without capital or without a newer benchmark price
+    this.addColumn(DataType.NumericShowZero, 'twrPercent', 'TWR_PERCENT', true, false, {
+      width: 80,
+      headerSuffix: '%',
+      fixedFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
+      templateName: 'greenRed'
+    });
+    this.addColumn(DataType.NumericShowZero, 'benchmarkReturnPercent', 'BENCHMARK_RETURN_PERCENT', false, false, {
+      width: 80,
+      headerSuffix: '%',
+      fixedFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
+      templateName: 'greenRed'
+    });
     this.addColumn(DataType.Numeric, 'totalBalanceChangeMC', 'DASHBOARD_LAST_SESSIONS_BALANCE_CHANGE', true, false, {
       width: 110,
       templateName: 'greenRed'
@@ -77,6 +94,13 @@ export class LastSessionsPerformanceTableComponent extends TableConfigBase {
     this.addColumn(DataType.Numeric, 'totalBalanceMC', 'TOTAL_BALANCE', true, false, { width: 120 });
     this.prepareTableAndTranslate();
 
+    effect(() => {
+      const benchmarkName = this.benchmarkName();
+      untracked(() => {
+        this.requireColumnConfigByField('benchmarkReturnPercent').visible = !!benchmarkName;
+        this.notifyViewChanged();
+      });
+    });
     effect(() => {
       this.currency();
       untracked(() => {

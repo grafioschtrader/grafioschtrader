@@ -29,6 +29,10 @@ public class PerformanceReportRequest extends PerformanceReportSettings {
   public WeekYear periodSplit;
   @Schema(description = "Portfolio belonging to the context tenant, or null for the whole tenant")
   public Integer idPortfolio;
+  @Schema(description = """
+      Benchmark of this document only, never remembered: absent for the stored benchmark of the portfolio or tenant, 0
+      for none, otherwise the id of the instrument. Both period calculations of the document use it.""")
+  public Integer idBenchmark;
   @Size(max = 2000)
   @DynamicFormField(uiOrder = "10", labelKey = "REPORT_COMMENT")
   @Schema(description = "Comment for this document only; never remembered")

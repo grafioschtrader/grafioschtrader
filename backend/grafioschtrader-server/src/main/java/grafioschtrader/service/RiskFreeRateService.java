@@ -2,8 +2,10 @@ package grafioschtrader.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -78,5 +80,30 @@ public class RiskFreeRateService {
       series.put(h.getDate(), h.getClose());
     }
     return series;
+  }
+
+  /**
+   * The annual rate of a currency known on any date of a range, carried forward from the latest quote on or before it.
+   * The rates are read once: the series of the range and the seed in force on its first day, so that a calculation at
+   * the start of the range uses the rate known then.
+   *
+   * @param currencyIso ISO 4217 currency code
+   * @param from        first date the lookup is asked for
+   * @param to          last date the lookup is asked for
+   * @return the lookup, returning null for a date before the first known rate; null when the currency has no rate
+   */
+  public Function<LocalDate, Double> rateLookup(String currencyIso, LocalDate from, LocalDate to) {
+    TreeMap<LocalDate, Double> rates = getRateSeries(currencyIso, from, to);
+    Double seed = getRateOnDate(currencyIso, from);
+    if (seed != null) {
+      rates.putIfAbsent(from, seed);
+    }
+    if (rates.isEmpty()) {
+      return null;
+    }
+    return day -> {
+      Map.Entry<LocalDate, Double> entry = rates.floorEntry(day);
+      return entry == null ? null : entry.getValue();
+    };
   }
 }

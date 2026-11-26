@@ -1,8 +1,9 @@
-import { HttpResourceRequest } from '@angular/common/http';
+import { HttpParams, HttpResourceRequest } from '@angular/common/http';
 import { Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { BaseSettings } from '../../lib/base.settings';
+import type { ReplayBenchmarkComparison } from '../model/replay-benchmark';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import {
   SimulationRunEquityPoint,
@@ -62,6 +63,24 @@ export class AlgoSimulationRunService extends AuthServiceWithLogout<SimulationRu
   }
 
   /** The equity curve of the latest run; empty when the environment was never replayed or the run did not complete. */
+  /**
+   * Compares the completed replay with a benchmark, calculated by the server on every request. Without idBenchmark the
+   * stored benchmark of the environment or of its main client is used; 0 compares none.
+   *
+   * @param idTenant - The simulation environment
+   * @param idBenchmark - Benchmark for this request only
+   * @returns the comparison, null when the replay has no completed curve or no benchmark resolves (HTTP 204)
+   */
+  benchmarkComparison(idTenant: number, idBenchmark?: number): Observable<ReplayBenchmarkComparison | null> {
+    const params = idBenchmark != null ? new HttpParams().set('idBenchmark', '' + idBenchmark) : new HttpParams();
+    return this.httpClient
+      .get<ReplayBenchmarkComparison | null>(`${this.endpoint}/${idTenant}/run/benchmark`, {
+        ...this.getHeaders(),
+        params
+      })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   equitySeries(idTenant: number): Observable<SimulationRunEquityPoint[]> {
     return this.httpClient
       .get<SimulationRunEquityPoint[]>(`${this.endpoint}/${idTenant}/run/equity`, this.getHeaders())

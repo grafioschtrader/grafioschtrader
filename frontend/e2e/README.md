@@ -195,6 +195,22 @@ transactions of that security, which the spec aborts.
 
 Run with `npx playwright test e2e/495-security-period-performance.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## Period performance benchmark (497-*)
+
+`497-performance-benchmark.spec.ts` drives the benchmark of the period performance in the client view as `alledit`.
+The trading days and the calculation are served by `page.route` (`performanceDates` and `periodResult` of
+`performance-notification.helpers.ts`, extended by a benchmark comparison), so no valuation data is needed; the stored
+benchmark goes through the real endpoint `/api/performancebenchmark`. It chooses USD/CHF in the instrument search for
+one report and checks the request parameter `idBenchmark`, the comparison fieldset and the two benchmark rows of the
+tree, saves the choice as default with the button behind the field (`PUT`), reloads and expects the field to name the
+source, hides the benchmark for one report (`idBenchmark=0`) and removes the default again. The spec owns only `tenant.id_benchmark` of
+`alledit`: it deletes it through REST at the start and in `finally`, so it reruns against a populated database. Two
+traps: the instrument search keeps its own submit button in the DOM after it closed, so the spec scopes the submit of
+the view to its form; and the `performance-period-benchmark` host element always exists, so an absent comparison is
+asserted on its fieldset.
+
+Run with `npx playwright test e2e/497-performance-benchmark.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## MCP OAuth consent notification (500-*)
 
 `500-mcp-oauth-consent-notification.spec.ts` opens the consent page `/oauth/authorize` an MCP client sends the user

@@ -86,6 +86,13 @@ public class Portfolio extends TenantBaseID implements Serializable {
   @PropertyAlwaysUpdatable
   private Byte taxWithholding;
 
+  @Schema(description = """
+      Benchmark instrument of the period performance comparison of this portfolio, a security or a currency pair.
+      Null inherits the benchmark of the tenant. It is written only by the benchmark endpoint, never by a save of the
+      portfolio itself, which is why it carries no update annotation.""")
+  @Column(name = "id_benchmark")
+  private Integer idBenchmark;
+
   @Schema(description = "The security accounts and cash accounts in this portfolio.")
   @OneToMany(mappedBy = "portfolio", orphanRemoval = true, fetch = FetchType.EAGER)
   private List<Securitycashaccount> securitycashaccountList;
@@ -131,6 +138,14 @@ public class Portfolio extends TenantBaseID implements Serializable {
 
   public void setTaxWithholding(TaxWithholding taxWithholding) {
     this.taxWithholding = taxWithholding == null ? null : taxWithholding.getValue();
+  }
+
+  public Integer getIdBenchmark() {
+    return idBenchmark;
+  }
+
+  public void setIdBenchmark(Integer idBenchmark) {
+    this.idBenchmark = idBenchmark;
   }
 
   @Override

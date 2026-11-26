@@ -1,5 +1,6 @@
 package grafioschtrader.reportviews.performance;
 
+import grafioschtrader.types.BenchmarkCoverage;
 import grafioschtrader.types.SecurityPeriodRemark;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -35,5 +36,10 @@ public record SecurityPeriodPerformanceRow(
         Time-weighted return of the position in percent in main currency, from close to close over the days it was
         held. Purchases count from the previous close, sales and income at the close""") Double twrPercent,
     @Schema(description = "Time-weighted return of the position in percent in security currency") Double twrSecurityCurrencyPercent,
-    @Schema(description = "Cause of missing figures, null for a complete row") SecurityPeriodRemark remark) {
+    @Schema(description = "Cause of missing figures, null for a complete row") SecurityPeriodRemark remark,
+    @Schema(description = """
+        Return of the benchmark in percent over exactly the days on which the position held capital; null without a
+        benchmark, without twrPercent or when one of those days is not covered by the comparison""") Double benchmarkTwrPercent,
+    @Schema(description = "twrPercent minus benchmarkTwrPercent in percentage points") Double excessTwrPercent,
+    @Schema(description = "Why a comparison is empty; null without a benchmark") BenchmarkCoverage benchmarkCoverage) {
 }

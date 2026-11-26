@@ -208,6 +208,9 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
     assertError(toolResult("cashaccount_transactions", Map.of("idCashaccount", foreignCashaccount, "year", 2024)),
         "NOT_OWNED");
     assertError(toolResult("dividends", Map.of("idsCashaccount", List.of(foreignCashaccount))), "NOT_OWNED");
+    // A benchmark id that names no readable instrument is refused before the report is calculated
+    assertError(toolResult("period_performance",
+        Map.of("dateFrom", "2024-01-02", "dateTo", "2024-12-31", "idBenchmark", Integer.MAX_VALUE)), "NOT_OWNED");
     assertError(toolResult("find_instrument", Map.of("text", "a")), "INVALID_ARGUMENT");
   }
 

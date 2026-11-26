@@ -114,38 +114,43 @@ public class HoldingResource {
     }
   }
 
-  @Operation(summary = "Return of the period income report according to time period and period breakdown.", description = "", tags = {
-      RequestGTMappings.HOLDING })
+  @Operation(summary = "Return of the period income report according to time period and period breakdown.", description = """
+      Without idBenchmark the stored benchmark of the portfolio or of the tenant is compared; idBenchmark 0 compares
+      none, any other value compares that instrument for this request only.""", tags = { RequestGTMappings.HOLDING })
   @GetMapping(value = "/{dateFrom}/{dateTo}/{periodSplit}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<PerformancePeriod> getPeriodPerformance(
       @PathVariable() @DateTimeFormat(iso = ISO.DATE) final LocalDate dateFrom,
       @PathVariable() @DateTimeFormat(iso = ISO.DATE) final LocalDate dateTo,
-      @PathVariable() final WeekYear periodSplit, @RequestParam(required = false) final Integer idPortfolio)
-      throws Exception {
+      @PathVariable() final WeekYear periodSplit, @RequestParam(required = false) final Integer idPortfolio,
+      @RequestParam(required = false) final Integer idBenchmark) throws Exception {
     if (idPortfolio != null) {
       return new ResponseEntity<>(
-          performanceReport.getPeriodPerformanceByPortfolio(idPortfolio, dateFrom, dateTo, periodSplit), HttpStatus.OK);
-    } else {
-      return new ResponseEntity<>(performanceReport.getPeriodPerformanceByTenant(dateFrom, dateTo, periodSplit),
+          performanceReport.getPeriodPerformanceByPortfolio(idPortfolio, dateFrom, dateTo, periodSplit, idBenchmark),
           HttpStatus.OK);
+    } else {
+      return new ResponseEntity<>(
+          performanceReport.getPeriodPerformanceByTenant(dateFrom, dateTo, periodSplit, idBenchmark), HttpStatus.OK);
     }
   }
 
   @Operation(summary = "Period performance per security: absolute gain and time-weighted return of every security", description = """
       Both dates must be valuation days of the client or portfolio, as for the period performance; the start date is
-      the excluded base. Without idPortfolio the whole client is calculated in the tenant currency.""", tags = {
+      the excluded base. Without idPortfolio the whole client is calculated in the tenant currency. Without
+      idBenchmark every row is compared with the stored benchmark over its own holding days; 0 compares none.""", tags = {
       RequestGTMappings.HOLDING })
   @GetMapping(value = "/securityperformance/{dateFrom}/{dateTo}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPeriodPerformance> getSecurityPeriodPerformance(
       @PathVariable() @DateTimeFormat(iso = ISO.DATE) final LocalDate dateFrom,
       @PathVariable() @DateTimeFormat(iso = ISO.DATE) final LocalDate dateTo,
-      @RequestParam(required = false) final Integer idPortfolio) throws Exception {
+      @RequestParam(required = false) final Integer idPortfolio,
+      @RequestParam(required = false) final Integer idBenchmark) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final LocalDate today = ClientClock.today();
     return new ResponseEntity<>(idPortfolio == null
-        ? securityPeriodPerformanceReport.getByTenant(user.getIdTenant(), user.getLocaleStr(), today, dateFrom, dateTo)
+        ? securityPeriodPerformanceReport.getByTenant(user.getIdTenant(), user.getLocaleStr(), today, dateFrom, dateTo,
+            idBenchmark)
         : securityPeriodPerformanceReport.getByPortfolio(user.getIdTenant(), user.getLocaleStr(), today, idPortfolio,
-            dateFrom, dateTo),
+            dateFrom, dateTo, idBenchmark),
         HttpStatus.OK);
   }
 

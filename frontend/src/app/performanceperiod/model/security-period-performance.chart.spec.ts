@@ -44,10 +44,11 @@ describe('securityPerformanceChartPoints', () => {
     expect(marker.size).toEqual([26, 16.5, 7]);
     expect(marker.color[1]).not.toBe(marker.color[0]);
     expect(points.trace.customdata).toEqual([
-      ['S1', '500', '12', '360'],
-      ['S2', '-40', '-8', '90'],
-      ['S4', '15', '3', '0']
+      ['S1', '500', '12', '360', '–'],
+      ['S2', '-40', '-8', '90', '–'],
+      ['S4', '15', '3', '0', '–']
     ]);
+    expect(points.trace.hovertemplate).not.toContain('customdata[4]');
   });
 });
 

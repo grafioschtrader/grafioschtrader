@@ -10,6 +10,7 @@ import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.repository.CashaccountJpaRepository;
+import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
@@ -28,14 +29,34 @@ public class McpInstrumentAccess {
   private final PortfolioJpaRepository portfolioJpaRepository;
   private final SecurityaccountJpaRepository securityaccountJpaRepository;
   private final CashaccountJpaRepository cashaccountJpaRepository;
+  private final CurrencypairJpaRepository currencypairJpaRepository;
 
   public McpInstrumentAccess(SecurityJpaRepository securityJpaRepository,
       PortfolioJpaRepository portfolioJpaRepository, SecurityaccountJpaRepository securityaccountJpaRepository,
-      CashaccountJpaRepository cashaccountJpaRepository) {
+      CashaccountJpaRepository cashaccountJpaRepository, CurrencypairJpaRepository currencypairJpaRepository) {
     this.securityJpaRepository = securityJpaRepository;
     this.portfolioJpaRepository = portfolioJpaRepository;
     this.securityaccountJpaRepository = securityaccountJpaRepository;
     this.cashaccountJpaRepository = cashaccountJpaRepository;
+    this.currencypairJpaRepository = currencypairJpaRepository;
+  }
+
+  /**
+   * Checks an explicitly requested benchmark of the period performance: a security the tenant may see, as
+   * {@link #requireVisibleSecurity}, or any currency pair, the same rule the report applies. The caller handles an
+   * absent id and the value 0 (no benchmark) before, because neither names an instrument.
+   *
+   * @param caller             the caller, whose home tenant decides the visibility
+   * @param idSecuritycurrency the id passed by the client, a positive number
+   * @param parameter          the name of the tool parameter, for the error
+   */
+  public void requireVisibleBenchmark(McpCaller caller, Integer idSecuritycurrency, String parameter) {
+    boolean visible = idSecuritycurrency != null && idSecuritycurrency > 0
+        && (securityJpaRepository.findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(idSecuritycurrency,
+            caller.idTenant()) != null || currencypairJpaRepository.existsById(idSecuritycurrency));
+    if (!visible) {
+      throw McpToolException.notOwned(parameter);
+    }
   }
 
   /**

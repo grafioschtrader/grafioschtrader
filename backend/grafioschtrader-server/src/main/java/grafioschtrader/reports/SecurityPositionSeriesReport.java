@@ -96,6 +96,9 @@ public class SecurityPositionSeriesReport {
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
+  private ClosingRateLoader closingRateLoader;
+
+  @Autowired
   private SecurityPositionReplay securityPositionReplay;
 
   @Autowired
@@ -378,24 +381,7 @@ public class SecurityPositionSeriesReport {
 
   /** Closing rates from the security currency into the main currency, from a pair of either direction. */
   private Map<LocalDate, Double> closingRates(String currency, String mainCurrency, LocalDate from, LocalDate to) {
-    Map<LocalDate, Double> rates = new HashMap<>();
-    if (currency.equals(mainCurrency)) {
-      return rates;
-    }
-    for (Object[] r : historyquoteJpaRepository.getClosesOfCurrencyPairsInPeriod(List.of(currency), mainCurrency, from,
-        to)) {
-      rates.put(toLocalDate(r[1]), number(r[2]));
-    }
-    if (rates.isEmpty()) {
-      for (Object[] r : historyquoteJpaRepository.getClosesOfCurrencyPairsInPeriod(List.of(mainCurrency), currency,
-          from, to)) {
-        double close = number(r[2]);
-        if (close != 0) {
-          rates.put(toLocalDate(r[1]), 1 / close);
-        }
-      }
-    }
-    return rates;
+    return closingRateLoader.closingRates(currency, mainCurrency, from, to);
   }
 
   private Set<LocalDate> sessions(Security security, Phase phase, LocalDate today) {

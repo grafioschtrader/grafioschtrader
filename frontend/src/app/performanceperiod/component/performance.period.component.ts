@@ -3,8 +3,11 @@ import type { PanelClickEvent } from '../../lib/mainmenubar/component/iglobal.me
 import {
   afterNextRender,
   computed,
+  effect,
+  input,
   Injector,
   signal,
+  untracked,
   Component,
   DestroyRef,
   OnDestroy,
@@ -36,28 +39,43 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { MenuItem } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { Subscription } from 'rxjs';
 import moment from 'moment';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { DYNAMIC_FORM_IMPORTS } from '../../lib/dynamic-form/dynamic-form.imports';
-import { PerformancePeriod } from '../model/performance.period';
+import { PerformancePeriod, PerformanceBenchmarkView } from '../model/performance.period';
 import { AppSettings } from '../../shared/app.settings';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ChartDataService } from '../../shared/chart/service/chart.data.service';
-import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { Router } from '@angular/router';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { GlobalGTSessionNames } from '../../shared/global.gt.session.names';
 import { BaseSettings } from '../../lib/base.settings';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { SecuritycurrencySearchAndSetDialogComponent } from '../../securitycurrency/component/securitycurrency-search-and-set-dialog.component';
+import { SupplementCriteria } from '../../securitycurrency/model/supplement.criteria';
 
 import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { TenantPerformanceFromToDiffComponent } from './performance-period-from-to-diff.component';
 import { TenantPerformanceTreetableComponent } from './performance-period-treetable.component';
 import { PerformancePeriodMetricsComponent } from './performance-period-metrics.component';
+import { PerformancePeriodBenchmarkComponent } from './performance-period-benchmark.component';
 import { PerformanceReportDialogService } from '../service/performance-report-dialog.service';
+import { PerformanceBenchmarkService } from '../service/performance-benchmark.service';
+import { PerformancePeriodChartService } from '../service/performance-period-chart.service';
+
+/** Source NLS key of a benchmark stored with the portfolio itself. */
+const SOURCE_PORTFOLIO = 'BENCHMARK_SOURCE_PORTFOLIO';
+/** Source NLS key of the benchmark stored with the tenant. */
+const SOURCE_TENANT = 'BENCHMARK_SOURCE_TENANT';
 
 /**
- * Performance over a certain period for a tenant or portfolio.
+ * Performance over a certain period for a tenant or portfolio, optionally compared with a benchmark.
+ *
+ * The benchmark field shows the stored benchmark of the scope as the server resolves it. Choosing another instrument
+ * or hiding the benchmark applies to the next calculation only. The button behind the field saves a chosen instrument
+ * as default of the scope; it is one of the few actions offered outside the menu, because it belongs to the field.
  */
 @Component({
   template: `
@@ -90,26 +108,38 @@ import { PerformanceReportDialogService } from '../service/performance-report-di
 
       <performance-period-metrics [metrics]="performancePeriod()?.metrics ?? null" />
 
+      <performance-period-benchmark [benchmark]="performancePeriod()?.benchmark ?? null" />
+
       <performance-period-treetable [performancePeriod]="performancePeriod()" />
     </div>
   `,
+  providers: [DialogService],
   imports: [
     TranslateModule,
     ...DYNAMIC_FORM_IMPORTS,
     ProgressBarModule,
     TenantPerformanceFromToDiffComponent,
     PerformancePeriodMetricsComponent,
+    PerformancePeriodBenchmarkComponent,
     TenantPerformanceTreetableComponent
   ]
 })
 export class PerformancePeriodComponent extends FormBase implements OnInit, OnDestroy, IGlobalMenuAttach {
   private router: Router = inject(Router);
-  private activatedRoute: ActivatedRoute = inject(ActivatedRoute);
   private activePanelService: ActivePanelService = inject(ActivePanelService);
   private holdingService: HoldingService = inject(HoldingService);
   private gps: GlobalparameterService = inject(GlobalparameterService);
-  private chartDataService: ChartDataService = inject(ChartDataService);
+  private chartService = inject(PerformancePeriodChartService);
+  private benchmarkService = inject(PerformanceBenchmarkService);
+  private messageToastService = inject(MessageToastService);
+  private dialogService = inject(DialogService);
   public translateService: TranslateService = inject(TranslateService);
+
+  /** Portfolio of the route; absent for the tab of the client. */
+  readonly id = input<number | null, unknown>(null, {
+    transform: (value: unknown) => (value == null || value === '' ? null : Number(value))
+  });
+  readonly idPortfolio = computed(() => this.id());
 
   // Access the form
   readonly form = viewChild.required(DynamicFormComponent);
@@ -139,35 +169,66 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   );
   private readonly renderInjector = inject(Injector);
   private calculationRequest?: Subscription;
+  private calendarRequest?: Subscription;
+  private benchmarkRequest?: Subscription;
   private menuRequest?: Subscription;
   readonly loading = signal(false);
   readonly reportDialogService = inject(PerformanceReportDialogService);
   readonly menuItems = signal<MenuItem[]>([]);
-  chartData: ReturnType<typeof PlotlyHelper.initializeChartTrace>[] = [];
-  private subscriptionRequestFromChart?: Subscription;
-  private idPortfolio: number | null = null;
   private reportWindow?: PerformanceWindowDef;
+  /** Benchmark of the displayed calculation as the PDF dialog names it. */
+  private reportBenchmarkLabel?: string;
+  /** Stored benchmark of the scope as the server resolves it, null when none is stored or inherited. */
+  private storedBenchmark: PerformanceBenchmarkView | null = null;
+  /** Benchmark chosen for the next calculation: undefined uses the stored one, 0 compares none. */
+  private requestBenchmark?: number;
+  private requestBenchmarkName: string | null = null;
+  private formReady = false;
   private destroyRef = inject(DestroyRef);
 
   constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, null, false);
     this.formConfig.labelColumns = 2;
-
     this.publishMenu();
+    effect(() => {
+      const idPortfolio = this.idPortfolio();
+      untracked(() => this.scopeChanged(idPortfolio));
+    });
   }
 
   ngOnInit(): void {
-    const id = this.activatedRoute.snapshot.paramMap.get('id');
-    this.idPortfolio = id == null ? null : +id;
     this.createInputFormDefinition();
-    this.loading.set(true);
-    afterNextRender(() => this.initializeDateRange(), { injector: this.renderInjector });
   }
 
-  private initializeDateRange(): void {
-    this.holdingService
-      .getFirstAndMissingTradingDays(this.idPortfolio)
+  /**
+   * A new portfolio of the route, or the client view: the calculation of the previous scope and its request-local
+   * benchmark are discarded, and the dates and the stored benchmark of the new scope are loaded once the form exists.
+   */
+  private scopeChanged(idPortfolio: number | null): void {
+    this.calculationRequest?.unsubscribe();
+    this.performancePeriod.set(null);
+    this.reportWindow = undefined;
+    this.requestBenchmark = undefined;
+    this.requestBenchmarkName = null;
+    this.storedBenchmark = null;
+    this.chartService.clearOtherScope(idPortfolio);
+    this.publishMenu();
+    this.loading.set(true);
+    afterNextRender(
+      () => {
+        this.formReady = true;
+        this.initializeDateRange(idPortfolio);
+        this.loadStoredBenchmark(idPortfolio);
+      },
+      { injector: this.renderInjector }
+    );
+  }
+
+  private initializeDateRange(idPortfolio: number | null): void {
+    this.calendarRequest?.unsubscribe();
+    this.calendarRequest = this.holdingService
+      .getFirstAndMissingTradingDays(idPortfolio)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (famtd: FirstAndMissingTradingDays) => {
@@ -180,6 +241,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
           );
           const bounds = performanceRangeBounds(famtd);
           if (famtd.secondEverTradingDay && range && bounds) {
+            FormHelper.disableEnableFieldConfigs(false, this.config);
             this.firstAndMissingTradingDays.set(famtd);
             requireFormControl(this.configObject.dateFrom).setValue(range.dateFrom);
             requireFormControl(this.configObject.dateTo).setValue(range.dateTo);
@@ -196,6 +258,19 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
           }
         },
         error: () => this.loading.set(false)
+      });
+  }
+
+  /** Reads the stored benchmark of the scope; a superseded read of another scope is cancelled. */
+  private loadStoredBenchmark(idPortfolio: number | null): void {
+    this.benchmarkRequest?.unsubscribe();
+    this.benchmarkRequest = this.benchmarkService
+      .getBenchmark(idPortfolio)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((stored) => {
+        this.storedBenchmark = stored;
+        this.showBenchmarkInField();
+        this.publishMenu();
       });
   }
 
@@ -245,9 +320,10 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   }
 
   submit(value: { [name: string]: any }): void {
-    const draft: Partial<PerformanceWindowDef> = { idPortfolio: this.idPortfolio };
+    const idPortfolio = this.idPortfolio();
+    const draft: Partial<PerformanceWindowDef> = { idPortfolio };
     this.form().cleanMaskAndTransferValuesToBusinessObject(draft, true);
-    const pWD = performanceWindowFromDraft(draft);
+    const pWD = performanceWindowFromDraft({ ...draft, idBenchmark: this.requestBenchmark });
     if (!pWD) {
       this.configObject.submit.disabled = false;
       return;
@@ -260,10 +336,11 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
       .subscribe({
         next: (periodPerformance) => {
           this.performancePeriod.set(periodPerformance);
+          this.chartService.publish(idPortfolio, periodPerformance);
           this.configObject.submit.disabled = false;
           this.reportWindow = { ...pWD };
+          this.reportBenchmarkLabel = this.benchmarkLabel(periodPerformance);
           this.publishMenu();
-          this.changeToOpenChart();
           this.loading.set(false);
         },
         error: () => {
@@ -276,7 +353,6 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   ngOnDestroy(): void {
     this.dateFromSubscribe?.unsubscribe();
     this.dateToSubscribe?.unsubscribe();
-    this.subscriptionRequestFromChart?.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
 
@@ -290,7 +366,9 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
           label: 'PDF_REPORT' + BaseSettings.DIALOG_MENU_SUFFIX,
           disabled: !this.reportWindow,
           command: () => this.openPdfReport()
-        }
+        },
+        { separator: true },
+        ...this.benchmarkMenuItems()
       ],
       this.translateService
     )
@@ -301,11 +379,50 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
       });
   }
 
+  /**
+   * The benchmark actions. Hiding applies to the next calculation only and is open to a read-only user as well; the
+   * actions that change a stored default are offered only to a user who may write.
+   */
+  private benchmarkMenuItems(): MenuItem[] {
+    const items: MenuItem[] = [
+      {
+        label: 'HIDE_BENCHMARK_FOR_REPORT',
+        disabled: this.requestBenchmark === 0 || (!this.storedBenchmark && this.requestBenchmark === undefined),
+        command: () => this.hideBenchmarkForReport()
+      }
+    ];
+    if (this.gps.isReadOnlyUser()) {
+      return items;
+    }
+    if (this.idPortfolio() != null) {
+      items.push({
+        label: 'USE_TENANT_BENCHMARK',
+        disabled: this.storedBenchmark?.source !== SOURCE_PORTFOLIO,
+        command: () => this.clearDefaultBenchmark()
+      });
+    } else {
+      items.push({
+        label: 'REMOVE_TENANT_BENCHMARK',
+        disabled: this.storedBenchmark?.source !== SOURCE_TENANT,
+        command: () => this.clearDefaultBenchmark()
+      });
+    }
+    return items;
+  }
+
   /** The dialog uses the dates of the displayed calculation, not the possibly edited form values. */
   private openPdfReport(): void {
     if (this.reportWindow) {
-      this.reportDialogService.open(this.reportWindow, this.destroyRef);
+      this.reportDialogService.open(this.reportWindow, this.destroyRef, this.reportBenchmarkLabel);
     }
+  }
+
+  /** The benchmark the calculation was compared with and its source, or the note that none was compared. */
+  private benchmarkLabel(period: PerformancePeriod): string {
+    const benchmark = period.benchmark;
+    return benchmark
+      ? `${benchmark.name} (${this.translateService.instant(benchmark.source)})`
+      : this.translateService.instant('NO_BENCHMARK');
   }
 
   private createInputFormDefinition(): void {
@@ -315,6 +432,20 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
       DynamicFieldHelper.createFieldSelectStringHeqF('periodSplit', true, {
         usedLayoutColumns: 4
       }),
+      DynamicFieldHelper.createFieldInputButtonHeqF(
+        DataType.String,
+        'benchmarkName',
+        () => this.searchBenchmark(),
+        false,
+        { usedLayoutColumns: 6 }
+      ),
+      // Saving belongs to the field, so it stands behind it rather than in the menu; read-only users cannot store
+      DynamicFieldHelper.createFunctionButtonFieldName(
+        'saveBenchmark',
+        'SAVE_AS_DEFAULT_BENCHMARK',
+        () => this.saveAsDefaultBenchmark(),
+        { buttonInForm: true, usedLayoutColumns: 2, disabled: true, invisible: this.gps.isReadOnlyUser() }
+      ),
       DynamicFieldHelper.createSubmitButton('APPLY')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -327,6 +458,92 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
           ...['WM_WEEK', 'WM_YEAR'].map((key) => new ValueKeyHtmlSelectOptions(key, labels[key]))
         ];
       });
+  }
+
+  /** Lets the user choose any security or currency pair as benchmark of the next calculation. */
+  private searchBenchmark(): void {
+    const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
+      header: this.translateService.instant('BENCHMARK_NAME'),
+      width: '720px',
+      modal: true,
+      closable: true,
+      closeOnEscape: true,
+      focusOnShow: false,
+      data: { supplementCriteria: new SupplementCriteria(false, false) }
+    });
+    if (!ref) return;
+    ref.onClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((instrument) => {
+      if (instrument) {
+        this.requestBenchmark = instrument.idSecuritycurrency;
+        this.requestBenchmarkName = instrument.name ?? instrument.fromCurrency + '/' + instrument.toCurrency;
+        this.showBenchmarkInField();
+        this.publishMenu();
+      }
+    });
+  }
+
+  private hideBenchmarkForReport(): void {
+    this.requestBenchmark = 0;
+    this.requestBenchmarkName = null;
+    this.showBenchmarkInField();
+    this.publishMenu();
+  }
+
+  /** Stores the chosen instrument as default of the scope, then shows what the server resolves from then on. */
+  private saveAsDefaultBenchmark(): void {
+    const idBenchmark = this.requestBenchmark;
+    const idPortfolio = this.idPortfolio();
+    if (!idBenchmark) return;
+    this.benchmarkService
+      .assignBenchmark(idPortfolio, idBenchmark)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((stored) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'BENCHMARK_DEFAULT_SAVED');
+        this.storedBenchmarkWritten(idPortfolio, stored);
+      });
+  }
+
+  /** Removes the default of exactly this scope; a portfolio then inherits the benchmark of the tenant again. */
+  private clearDefaultBenchmark(): void {
+    const idPortfolio = this.idPortfolio();
+    this.benchmarkService
+      .clearBenchmark(idPortfolio)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'BENCHMARK_DEFAULT_REMOVED');
+        this.requestBenchmark = undefined;
+        this.requestBenchmarkName = null;
+        this.loadStoredBenchmark(idPortfolio);
+      });
+  }
+
+  private storedBenchmarkWritten(idPortfolio: number | null, stored: PerformanceBenchmarkView): void {
+    if (idPortfolio !== this.idPortfolio()) return;
+    this.storedBenchmark = stored;
+    this.requestBenchmark = undefined;
+    this.requestBenchmarkName = null;
+    this.showBenchmarkInField();
+    this.publishMenu();
+  }
+
+  /** The field shows the request-local choice when there is one, otherwise the stored benchmark of the scope. */
+  private showBenchmarkInField(): void {
+    if (!this.formReady || !this.configObject.benchmarkName) return;
+    let text: string | null;
+    if (this.requestBenchmark === 0) {
+      text = this.translateService.instant('NO_BENCHMARK');
+    } else if (this.requestBenchmark !== undefined) {
+      text = this.requestBenchmarkName;
+    } else {
+      text = this.storedBenchmark
+        ? `${this.storedBenchmark.name} (${this.translateService.instant(this.storedBenchmark.source)})`
+        : null;
+    }
+    requireFormControl(this.configObject.benchmarkName).setValue(text);
+    // Only an instrument chosen for this report and not yet stored can be saved
+    if (this.configObject.saveBenchmark) {
+      this.configObject.saveBenchmark.disabled = !this.requestBenchmark;
+    }
   }
 
   private setMinDateForToDate(dateFrom: Date): void {
@@ -345,11 +562,8 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     const days = this.firstAndMissingTradingDays();
     const options = this.configObject.periodSplit.valueKeyHtmlOptions;
     if (!days || !options) return;
-    const pWD: Partial<PerformanceWindowDef> = { idPortfolio: this.idPortfolio };
+    const pWD: Partial<PerformanceWindowDef> = { idPortfolio: this.idPortfolio() };
     this.form().cleanMaskAndTransferValuesToBusinessObject(pWD, true);
-    // const dateFrom = this.configObject.dateFrom.formControl.value;
-    // const dateTo = this.configObject.dateTo.formControl.value;
-    // const period = this.configObject.periodSplit.formControl.value;
     const disabled: any[] = [];
     if (pWD.dateFrom && pWD.dateTo) {
       if (moment(pWD.dateTo).diff(pWD.dateFrom, 'months', true) < days.minIncludeMonthLimit) {
@@ -369,78 +583,11 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     }
   }
 
-  private changeToOpenChart(): void {
-    if (this.subscriptionRequestFromChart) {
-      this.prepareCharDataAndSentToChart();
-    } else {
-      const urlPattern = new RegExp(`.*\/\/${AppSettings.MAIN_BOTTOM}.*\/${AppSettings.PERFORMANCE_KEY}\\\)`);
-      urlPattern.test(this.router.url) && this.prepareCharDataAndSentToChart();
-    }
-  }
-
+  /** Opens the chart of this view in the lower display area; it follows every calculation of the view. */
   private navigateToChartRoute(): void {
-    !this.subscriptionRequestFromChart && this.prepareChartDataWithRequest();
     this.router.navigate([
       BaseSettings.MAINVIEW_KEY + '/',
-      {
-        outlets: {
-          mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.PERFORMANCE_KEY]
-        }
-      }
+      { outlets: { [AppSettings.MAIN_BOTTOM]: [AppSettings.PERFORMANCE_PERIOD_CHART] } }
     ]);
-  }
-
-  private prepareChartDataWithRequest(): void {
-    this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((id) => {
-        if (id === AppSettings.PERFORMANCE_KEY) {
-          this.prepareCharDataAndSentToChart();
-        }
-      });
-  }
-
-  private prepareCharDataAndSentToChart(): void {
-    const period = this.performancePeriod();
-    if (!period) return;
-    this.chartData = [];
-    const pcdds = period.performanceChartDayDiff;
-    for (let i = 0; i < pcdds.length; i++) {
-      const pcdd = pcdds[i];
-      Object.keys(pcdd)
-        .filter((key, tIndex) => key !== 'date')
-        .forEach((key, tIndex) => {
-          let trace: ReturnType<typeof PlotlyHelper.initializeChartTrace>;
-          if (i === 0) {
-            // Create the trace
-            trace = PlotlyHelper.initializeChartTrace(key, 'scatter', 'lines');
-            this.translateService
-              .get(AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(key))
-              .pipe(takeUntilDestroyed(this.destroyRef))
-              .subscribe((translated) => (trace.name = translated));
-            this.chartData.push(trace);
-          } else {
-            trace = this.chartData[tIndex];
-          }
-          trace.x.push(pcdd.date);
-          trace.y.push(pcdd[key as Exclude<keyof typeof pcdd, 'date'>]);
-        });
-    }
-
-    this.chartDataService.sentToChart({
-      data: this.chartData,
-      layout: {
-        legend: PlotlyHelper.getLegendUnderChart(12),
-        hovermode: 'closest',
-        xaxis: {
-          autorange: true,
-          rangeslider: { range: [pcdds[0].date, pcdds[pcdds.length - 1].date] },
-          type: 'date'
-        }
-      },
-      options: {
-        modeBarButtonsToRemove: ['hoverCompareCartesian', 'hoverClosestCartesian']
-      }
-    });
   }
 }

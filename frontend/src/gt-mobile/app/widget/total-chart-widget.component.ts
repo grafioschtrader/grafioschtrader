@@ -1,6 +1,7 @@
 import {
   afterRenderEffect,
   Component,
+  computed,
   DestroyRef,
   ElementRef,
   inject,
@@ -14,9 +15,11 @@ import type { Config, Data, Layout } from 'plotly.js';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DashboardResult } from '../../../app/lib/dashboard/dashboard.types';
 import { PerformanceTotalChart } from '../../../app/dashboard/model/performance.total.chart';
+import { benchmarkNoticeTexts } from '../../../app/dashboard/model/benchmark.notice.text';
 import {
   performanceTotalChartLayout,
-  performanceTotalChartTraces
+  performanceTotalChartTraces,
+  shadowLabel
 } from '../../../app/dashboard/model/performance.total.chart.plot';
 import { PlotlyInstance, PlotlyLoaderService } from '../../../app/shared/chart/plotly.loader';
 import { PlotlyLocales } from '../../../app/shared/plotlylocale/plotly.locales';
@@ -57,6 +60,9 @@ import { MobileFormatService } from '../service/mobile.format.service';
           · {{ 'DASHBOARD_TOTAL_CHART_' + shown.sampling | translate }}
         }
       </p>
+      @for (notice of noticeTexts(); track $index) {
+        <p class="widget-note">{{ notice }}</p>
+      }
     }
   `,
   styles: [
@@ -79,6 +85,15 @@ export class TotalChartWidgetComponent {
   private readonly dashboardService = inject(MobileDashboardService);
   private readonly translateService = inject(TranslateService);
   private readonly plotlyLoader = inject(PlotlyLoaderService);
+
+  /** The notices of the benchmark comparison, translated with their dates formatted for the phone. */
+  protected readonly noticeTexts = computed(() =>
+    benchmarkNoticeTexts(
+      this.chart()?.notices,
+      (key, parameters) => this.translateService.instant(key, parameters),
+      (date) => this.format.date(date)
+    )
+  );
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly plotElement = viewChild.required<ElementRef<HTMLDivElement>>('plot');
 
@@ -144,7 +159,8 @@ export class TotalChartWidgetComponent {
       {
         totalBalance: this.translateService.instant('TOTAL_BALANCE'),
         investedCapital: this.translateService.instant('INVESTED_CAPITAL'),
-        difference: this.translateService.instant('DIFFERENCE')
+        difference: this.translateService.instant('DIFFERENCE'),
+        shadow: shadowLabel(this.translateService.instant('SHADOW_VALUE'), chart.benchmarkName)
       },
       {
         date: (point) => this.format.date(point.date),

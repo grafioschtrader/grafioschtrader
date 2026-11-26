@@ -173,6 +173,27 @@ public final class ReturnSeries {
     return points.get(index).value();
   }
 
+  /**
+   * Whether the interval ending at the given index has a usable capital base. A comparison with a benchmark links both
+   * sides over exactly these intervals.
+   *
+   * @param index index of the valuation point that ends the interval
+   * @return false for index 0, which has no interval, and for an interval without capital
+   */
+  public boolean isUsable(int index) {
+    return index > 0 && usable[index];
+  }
+
+  /**
+   * Return {@code g_i - 1} of the interval ending at the given index.
+   *
+   * @param index index of the valuation point that ends the interval
+   * @return the return as a ratio, null when the interval is not usable
+   */
+  public Double intervalReturn(int index) {
+    return isUsable(index) ? factor[index] - 1 : null;
+  }
+
   /** Whether the interval ending at the given index is regular; the first point has no interval. */
   public boolean isRegular(int index) {
     return index > 0 && points.get(index).regular();

@@ -39,6 +39,7 @@ import grafioschtrader.entities.UDFDataFill.UDFDataFillKey;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.entities.WatchlistIndicatorColumn;
+import grafioschtrader.service.PerformanceBenchmarkService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -74,6 +75,9 @@ public class CopyTenantService {
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
+
+  @Autowired
+  private PerformanceBenchmarkService performanceBenchmarkService;
 
   /**
    * Copies all data from the source user's tenant to the target user's tenant. Existing data in the target tenant is
@@ -146,6 +150,10 @@ public class CopyTenantService {
       Integer idPortfolio = portfolio.getId();
       portfolio.setIdTenant(targetIdTenant);
       portfolio.setIdPortfolio(null);
+      // A private instrument of the source must not become visible to the target through its benchmark
+      if (!performanceBenchmarkService.isReadable(portfolio.getIdBenchmark(), targetIdTenant)) {
+        portfolio.setIdBenchmark(null);
+      }
       portfolio.setSecuritycashaccountList(new ArrayList<>());
       em.persist(portfolio);
       portfolioMap.put(idPortfolio, portfolio);
@@ -545,6 +553,9 @@ public class CopyTenantService {
     Tenant targetTenant = em.find(Tenant.class, targetIdTenant);
     // The copy must calculate as its source does, whether or not there is a performance watchlist
     targetTenant.setCostBasisMethod(sourceTenant.getCostBasisMethod());
+    targetTenant.setIdBenchmark(performanceBenchmarkService.isReadable(sourceTenant.getIdBenchmark(), targetIdTenant)
+        ? sourceTenant.getIdBenchmark()
+        : null);
     Watchlist watchlist = watchlistMap.get(sourceTenant.getIdWatchlistPerformance());
     if (watchlist != null) {
       targetTenant.setIdWatchlistPerformance(watchlist.getIdWatchlist());

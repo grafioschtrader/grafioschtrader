@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -70,6 +71,7 @@ public class PerformanceReportPdfService {
   public byte[] generate(ReportContext context, PerformanceReportRequest request) throws Exception {
     validation.request(context, request);
     ReportData data = load(context, request);
+    omitBenchmarkWithoutComparison(request, data);
     Map<String, Integer> precision = parameters.getCurrencyPrecision();
     ReportFormatter formatter = new ReportFormatter(context.language(), context.numberFormat(), messages,
         currency -> precision.getOrDefault(currency, 2));
@@ -101,6 +103,23 @@ public class PerformanceReportPdfService {
     }
   }
 
+  /**
+   * Leaves the benchmark section out of the contents and the body when no benchmark resolved for the document, so a
+   * preset that contains it still works for a client without benchmark. A document left without any content section
+   * is refused like an empty selection.
+   */
+  private static void omitBenchmarkWithoutComparison(PerformanceReportRequest request, ReportData data) {
+    if (request.sections.contains(PerformanceReportSection.BENCHMARK_COMPARISON)
+        && (data.period() == null || data.period().getBenchmark() == null)) {
+      Set<PerformanceReportSection> sections = new LinkedHashSet<>(request.sections);
+      sections.remove(PerformanceReportSection.BENCHMARK_COMPARISON);
+      if (sections.stream().noneMatch(PerformanceReportSection::isContent)) {
+        throw PerformanceReportValidation.invalid("gt.report.content.required");
+      }
+      request.sections = sections;
+    }
+  }
+
   private ReportData load(ReportContext context, PerformanceReportRequest request) throws Exception {
     Tenant tenant = tenants.findById(context.idTenant())
         .orElseThrow(() -> new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH));
@@ -119,14 +138,14 @@ public class PerformanceReportPdfService {
             : performance.getFirstAndMissingTradingDaysByPortfolio(context.idTenant(), context.idPortfolio(),
                 context.today());
     PerformancePeriod period = request.hasPeriod()
-        ? period(context, request.dateFrom, request.dateTo, request.periodSplit, true)
+        ? period(context, request.dateFrom, request.dateTo, request.periodSplit, true, request.idBenchmark)
         : null;
     PerformancePeriod annual = null;
     if (request.sections.contains(PerformanceReportSection.ANNUAL_RETURNS)) {
       LocalDate from = annualFrom(request.dateTo, request.annualYears, days);
       if (from.isBefore(request.dateTo)) {
         annual = from.equals(request.dateFrom) && request.periodSplit == WeekYear.WM_YEAR ? period
-            : period(context, from, request.dateTo, WeekYear.WM_YEAR, false);
+            : period(context, from, request.dateTo, WeekYear.WM_YEAR, false, request.idBenchmark);
       }
     }
     HoldingsData statement = null;
@@ -180,13 +199,17 @@ public class PerformanceReportPdfService {
         + request.dateTo.format(DateTimeFormatter.BASIC_ISO_DATE) + suffix + ".pdf";
   }
 
+  /**
+   * One period calculation of the document. The main range and the range of the annual returns get the same requested
+   * benchmark, so both resolve the same instrument; each aligns it on its own valuation dates.
+   */
   private PerformancePeriod period(ReportContext context, LocalDate from, LocalDate to, WeekYear split,
-      boolean validateSplit) throws Exception {
+      boolean validateSplit, Integer requestedBenchmark) throws Exception {
     return context.idPortfolio() == null
         ? performance.getPeriodPerformanceByTenant(context.idTenant(), context.numberFormat().toLanguageTag(),
-            context.today(), from, to, split, validateSplit)
+            context.today(), from, to, split, validateSplit, requestedBenchmark)
         : performance.getPeriodPerformanceByPortfolio(context.idTenant(), context.numberFormat().toLanguageTag(),
-            context.today(), context.idPortfolio(), from, to, split, validateSplit);
+            context.today(), context.idPortfolio(), from, to, split, validateSplit, requestedBenchmark);
   }
 
   /** Last usable year-end base, bounded by the scope's first valuation. */

@@ -15,6 +15,7 @@ custody:
       creditAmount: 90
       creditEligibility: 'instrument != "FOREX" && instrument != "CFD"'
     - validFrom: "2024-01-01"
+      validTo: "2026-12-31"
       status: VERIFIED
       source: "https://www.postfinance.ch/content/dam/pfch/doc/480_499/482_22_en.pdf"
       note: "CHF 72 a year including VAT since January 2024, billed as CHF 18 at the start of each quarter. Credits expire each quarter; eligible online trades only, never corporate actions or taxes. Offline-only instruments require an account eligibility override."
@@ -27,3 +28,17 @@ custody:
       amount: '18'
       creditAmount: 18
       creditEligibility: 'instrument != "FOREX" && instrument != "CFD"'
+    - validFrom: "2027-01-01"
+      status: VERIFIED
+      source: "https://www.postfinance.ch/de/privat/anlegen/loesungen/online-trading/e-trading/neue-preise-konditionen-ab-1-januar-2027.html"
+      note: "Since January 2027 CHF 18, 24, 30 or 36 a quarter for an average custody value up to CHF 100,000, 250,000, 1 million or above, charged at quarter end; the trading credits are gone. PostFinance averages the last days of the three months before the quarter end (December to February for the first quarter); the model takes the month ends of the billed quarter and charges a third of the tier fee of each."
+      currency: CHF
+      valuation: MONTHLY
+      observationDay: 0
+      billingMonths: 3
+      collection: END
+      billingDay: 0
+      dayCount: ACTUAL_ACTUAL
+      closingPolicy: ACCRUED
+      amount: 'IF(accountValue <= 100000, 72, IF(accountValue <= 250000, 96, IF(accountValue <= 1000000, 120, 144)))'
+      minimum: 18

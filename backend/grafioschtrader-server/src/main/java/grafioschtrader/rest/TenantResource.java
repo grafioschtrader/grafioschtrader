@@ -43,6 +43,8 @@ import grafioschtrader.repository.SimulationTenantService;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.AlgoHistoricalReplayService;
 import grafioschtrader.service.FxObservationService;
+import grafioschtrader.service.ReplayBenchmarkComparison;
+import grafioschtrader.service.ReplayBenchmarkService;
 import grafioschtrader.service.SimulationRunEquityPoint;
 import grafioschtrader.service.SimulationRunEventWindow;
 import grafioschtrader.service.SimulationRunSettingsDto;
@@ -77,6 +79,9 @@ public class TenantResource extends TenantBaseResource<Tenant> {
 
   @Autowired
   private AlgoHistoricalReplayService replayService;
+
+  @Autowired
+  private ReplayBenchmarkService replayBenchmarkService;
 
   @Autowired
   private grafioschtrader.service.AlgoMonitoringService monitoring;
@@ -179,6 +184,19 @@ public class TenantResource extends TenantBaseResource<Tenant> {
   public ResponseEntity<List<SimulationRunEquityPoint>> getSimulationRunEquity(
       @Parameter(description = "ID of the simulation tenant", required = true) @PathVariable Integer idTenant) {
     return ResponseEntity.ok(replayService.equitySeries(idTenant));
+  }
+
+  @Operation(summary = "Comparison of the completed historical replay with a benchmark", description = """
+      Calculated on request from the stored equity curve: the linked returns of the replay and the benchmark over the
+      same days, the relative risk, the shadow portfolio and a chart. Without idBenchmark the stored benchmark of the
+      environment is used, otherwise that of its main client; 0 compares none. No content when the replay has no
+      completed curve or no benchmark resolves.""", tags = { TenantBase.TABNAME })
+  @GetMapping(value = "/simulation/{idTenant}/run/benchmark", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<ReplayBenchmarkComparison> getSimulationRunBenchmark(
+      @Parameter(description = "ID of the simulation tenant", required = true) @PathVariable Integer idTenant,
+      @Parameter(description = "Benchmark for this request only; 0 for none") @RequestParam(required = false) Integer idBenchmark) {
+    return replayBenchmarkService.compare(idTenant, idBenchmark).map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.noContent().build());
   }
 
   @Operation(summary = "Audit trail of the historical replay, newest day first", tags = { TenantBase.TABNAME })

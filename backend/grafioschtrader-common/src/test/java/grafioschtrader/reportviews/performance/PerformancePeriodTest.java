@@ -288,4 +288,50 @@ class PerformancePeriodTest {
     double rowSum = steps(windows.get(2)).stream().mapToDouble(PeriodStep::getTotalGainMC).sum();
     assertEquals(windows.get(2).gainPeriodMC, rowSum, 1e-9);
   }
+
+  @Test
+  @DisplayName("Benchmark from the Monday of week 2: week 1 uncovered, week 2 partial, steps from Tuesday compared")
+  void benchmarkFillsOnlyCoveredWindowsAndSteps() {
+    List<LocalDate> dates = weekdays(LocalDate.of(2025, 2, 28), LocalDate.of(2025, 3, 14), Set.of());
+    List<IPeriodHolding> holdings = new ArrayList<>();
+    double value = 1000;
+    for (LocalDate date : dates) {
+      holdings.add(new Holding(date, 0, value, 0, 1000));
+      value *= 1.01;
+    }
+    PerformancePeriod period = report(WeekYear.WM_WEEK, holdings, List.of(), Set.of(), Set.of());
+    List<BenchmarkSeries.Quote> quotes = List.of(new BenchmarkSeries.Quote(LocalDate.of(2025, 3, 10), 100),
+        new BenchmarkSeries.Quote(LocalDate.of(2025, 3, 11), 102),
+        new BenchmarkSeries.Quote(LocalDate.of(2025, 3, 12), 103),
+        new BenchmarkSeries.Quote(LocalDate.of(2025, 3, 13), 104),
+        new BenchmarkSeries.Quote(LocalDate.of(2025, 3, 14), 105));
+    BenchmarkSeries.Result aligned = BenchmarkSeries
+        .align(new BenchmarkSeries.Input(dates, quotes, null, "CHF", "CHF"));
+    BenchmarkDescriptor descriptor = new BenchmarkDescriptor(1, "Index", "CHF",
+        grafioschtrader.types.BenchmarkSource.BENCHMARK_SOURCE_TENANT, "CHF", null, false,
+        grafioschtrader.types.BenchmarkReturnBasis.AS_SUPPLIED, List.of());
+    period.attachBenchmark(descriptor, aligned);
+
+    // Window 0 is the week of Friday 28 February, which holds only the excluded base
+    PeriodWindow week1 = period.getPeriodWindows().get(1);
+    PeriodWindow week2 = period.getPeriodWindows().get(2);
+    assertEquals(grafioschtrader.types.BenchmarkCoverage.BENCHMARK_NONE, week1.benchmarkCoverage);
+    assertEquals(grafioschtrader.types.BenchmarkCoverage.BENCHMARK_PARTIAL, week2.benchmarkCoverage);
+    assertNull(week2.benchmarkTwrPercent, "week 2 starts from the Friday before the first benchmark price");
+    assertEquals(pct(1.01 * 1.01 * 1.01 * 1.01 * 1.01 - 1), week2.twrPercent, "the portfolio figure is unchanged");
+
+    PeriodStep monday = steps(week2).get(0);
+    PeriodStep tuesday = steps(week2).get(1);
+    assertNull(monday.benchmarkTwrPercent);
+    assertEquals(pct(0.02), tuesday.benchmarkTwrPercent);
+    assertEquals(pct(0.01 - 0.02), tuesday.excessTwrPercent);
+
+    PerformanceBenchmarkResult result = period.getBenchmark();
+    assertEquals(LocalDate.of(2025, 3, 10), result.effectiveFrom());
+    assertEquals(LocalDate.of(2025, 3, 14), result.effectiveTo());
+    assertEquals(pct(0.05), result.metrics().benchmarkTwrPercent());
+    assertEquals(pct(Math.pow(1.01, 4) - 1), result.metrics().portfolioTwrPercent());
+    assertTrue(result.notices().stream()
+        .anyMatch(n -> n.code() == grafioschtrader.types.BenchmarkNoticeCode.BENCHMARK_START_LATER));
+  }
 }

@@ -45,12 +45,21 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
       .pipe(map(parseTradingDays), catchError(this.handleError.bind(this)));
   }
 
+  /**
+   * Loads the period performance. A request-local benchmark is sent only when one was chosen; 0 is a choice too and
+   * compares none, which is why the parameter is tested against null rather than for truthiness.
+   */
   getPeriodPerformance(performanceWindowDef: PerformanceWindowDef): Observable<PerformancePeriod> {
+    const options = this.getOptionsWithIdPortfolio(performanceWindowDef.idPortfolio);
+    const params =
+      performanceWindowDef.idBenchmark != null
+        ? options.params.set('idBenchmark', '' + performanceWindowDef.idBenchmark)
+        : options.params;
     return this.httpClient
       .get<PerformancePeriod>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/${performanceWindowDef.dateFrom}/${performanceWindowDef.dateTo}` +
           `/${performanceWindowDef.periodSplit}`,
-        this.getOptionsWithIdPortfolio(performanceWindowDef.idPortfolio)
+        { headers: options.headers, params }
       )
       .pipe(catchError(this.handleError.bind(this)));
   }
@@ -66,12 +75,16 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
   getSecurityPeriodPerformance(
     idPortfolio: number | null,
     dateFrom: string,
-    dateTo: string
+    dateTo: string,
+    idBenchmark?: number
   ): Observable<SecurityPeriodPerformance> {
+    // 0 is a choice too and compares none, so the parameter is tested against null rather than for truthiness
+    const options = this.getOptionsWithIdPortfolio(idPortfolio);
+    const params = idBenchmark != null ? options.params.set('idBenchmark', '' + idBenchmark) : options.params;
     return this.httpClient
       .get<SecurityPeriodPerformance>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/securityperformance/${dateFrom}/${dateTo}`,
-        this.getOptionsWithIdPortfolio(idPortfolio)
+        { headers: options.headers, params }
       )
       .pipe(catchError(this.handleError.bind(this)));
   }

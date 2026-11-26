@@ -56,6 +56,18 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   Optional<Historyquote> findFirstByIdSecuritycurrencyAndDateLessThanEqualOrderByDateDesc(Integer idSecuritycurrency,
       LocalDate date);
 
+  /**
+   * The latest quote of one instrument on or before a date among the given creation types. The benchmark comparison
+   * uses it as the seed value of a period, restricted to reliable quotes so that a filled row never serves as one.
+   *
+   * @param idSecuritycurrency the security or currency pair
+   * @param createTypes        byte values of the accepted {@code HistoryquoteCreateType}s
+   * @param date               last date considered, inclusive
+   * @return the quote, empty when the instrument has none of these types up to the date
+   */
+  Optional<Historyquote> findFirstByIdSecuritycurrencyAndCreateTypeInAndDateLessThanEqualOrderByDateDesc(
+      Integer idSecuritycurrency, Collection<Byte> createTypes, LocalDate date);
+
   List<Historyquote> findByIdSecuritycurrencyOrderByDateAsc(Integer idSecuritycurrency);
 
   /**

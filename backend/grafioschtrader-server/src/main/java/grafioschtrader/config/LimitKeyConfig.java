@@ -44,6 +44,7 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.entities.WatchlistIndicatorColumn;
+import grafioschtrader.service.PerformanceBenchmarkService;
 import jakarta.persistence.EntityManager;
 
 /**
@@ -420,6 +421,8 @@ public abstract class LimitKeyConfig {
     LimitKeyRegistry.registerCudPseudoEntityName(ENTITY_NAME_AI_REQUEST, AIRequestLog.class);
     LimitKeyRegistry.registerCudPseudoEntityName("WatchlistIndicatorColumn", WatchlistIndicatorColumn.class);
     LimitKeyRegistry.registerCudPseudoEntityName("TenantAIProvider", grafioschtrader.entities.TenantAIProvider.class);
+    // Benchmark assignments write a column of tenant or portfolio, so the budget stands for no table of its own.
+    LimitKeyRegistry.registerCudPseudoEntityName(PerformanceBenchmarkService.ENTITY_NAME, Portfolio.class);
     LimitKeyRegistry.registerReadPseudoEntityName(ENTITY_NAME_HISTORYQUOTE_READ, Historyquote.class);
     // The tool calls read the tenant's portfolios, which is what the administration shows the budget as.
     LimitKeyRegistry.registerReadPseudoEntityName(ENTITY_NAME_MCP_TOOL_CALL, Portfolio.class);

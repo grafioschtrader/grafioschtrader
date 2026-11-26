@@ -71,7 +71,8 @@ import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-fi
               <i class="pi pi-question" pButtonIcon></i>
             </p-button>
           }
-          <div class="ms-auto">
+          <!-- Wraps long labels onto further lines with a vertical gap instead of letting them collide. -->
+          <div class="ms-auto d-flex flex-wrap justify-content-end row-gap-2">
             @for (field of buttons; track field) {
               @if (!field.invisible) {
                 <dynamicField [config]="field" [formConfig]="formConfig()" [group]="form" />

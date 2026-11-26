@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -92,6 +93,19 @@ public class PerformancePeriod {
 
   @JsonIgnore
   private ReturnSeries returnSeries;
+
+  /** Valuation points of the time-weighted series with their flows, reused by the shadow portfolio. */
+  @JsonIgnore
+  private List<ValuationPoint> valuationPoints = List.of();
+
+  /** Dated external flows of the period, reused by the money-weighted return of the shadow portfolio. */
+  @JsonIgnore
+  private List<DatedFlow> datedFlows = List.of();
+
+  @Schema(description = """
+      Comparison with the benchmark of the request, the portfolio or the tenant; null when no benchmark resolves or the
+      period holds no valuation.""")
+  private PerformanceBenchmarkResult benchmark;
 
   @JsonIgnore
   private List<Double> externalCashTransfers = List.of();
@@ -184,8 +198,10 @@ public class PerformancePeriod {
   /** Builds the screen figures and records fee bookings omitted for lack of an exchange rate. */
   public void createPeriodWindows(FirstAndMissingTradingDays firstAndMissingTradingDays,
       List<IPeriodHolding> periodHoldings, List<IDailyExternalFlow> dailyFlows, double feesMC, int skippedFees) {
-    ReturnSeries series = ReturnSeries.of(toValuationPoints(periodHoldings, dailyFlows, firstAndMissingTradingDays),
-        Convention.REPORT);
+    valuationPoints = ValuationPoints.of(periodHoldings, dailyFlows,
+        (from, to) -> noExpectedTradingDayBetween(from, to, firstAndMissingTradingDays));
+    datedFlows = dailyFlows.stream().map(f -> new DatedFlow(f.getFlowDate(), f.getFlowMC())).toList();
+    ReturnSeries series = ReturnSeries.of(valuationPoints, Convention.REPORT);
     returnSeries = series;
     externalCashTransfers = periodHoldings.stream().map(IPeriodHolding::getExternalCashTransferMC).toList();
     if (periodSplit == WeekYear.WM_WEEK) {
@@ -198,41 +214,8 @@ public class PerformancePeriod {
     createMetrics(firstAndMissingTradingDays, periodHoldings, dailyFlows, feesMC, series, skippedFees);
   }
 
-  /**
-   * Turns the daily holdings into the valuation points of the time-weighted series. The value includes the open result
-   * of margin positions. The net flow of an interval comes from the cumulative external cash transfer of the holdings;
-   * the dated flows only tell how much of it was withdrawn, so that the withdrawals count as flowed at the end and the
-   * rest as flowed at the start of the interval.
-   */
-  private List<ValuationPoint> toValuationPoints(List<IPeriodHolding> periodHoldings,
-      List<IDailyExternalFlow> dailyFlows, FirstAndMissingTradingDays fmtd) {
-    List<ValuationPoint> points = new ArrayList<>(periodHoldings.size());
-    int flowIndex = 0;
-    for (int i = 0; i < periodHoldings.size(); i++) {
-      IPeriodHolding periodHolding = periodHoldings.get(i);
-      LocalDate date = periodHolding.getDate();
-      if (i == 0) {
-        points.add(new ValuationPoint(date, totalValue(periodHolding), 0, 0, true));
-        continue;
-      }
-      LocalDate dateBefore = periodHoldings.get(i - 1).getDate();
-      double outflow = 0;
-      for (; flowIndex < dailyFlows.size() && !dailyFlows.get(flowIndex).getFlowDate().isAfter(date); flowIndex++) {
-        IDailyExternalFlow flow = dailyFlows.get(flowIndex);
-        if (flow.getFlowDate().isAfter(dateBefore) && flow.getFlowMC() < 0) {
-          outflow -= flow.getFlowMC();
-        }
-      }
-      double netFlow = periodHolding.getExternalCashTransferMC()
-          - periodHoldings.get(i - 1).getExternalCashTransferMC();
-      points.add(new ValuationPoint(date, totalValue(periodHolding), Math.max(0, netFlow + outflow), outflow,
-          noExpectedTradingDayBetween(dateBefore, date, fmtd)));
-    }
-    return points;
-  }
-
   private static double totalValue(IPeriodHolding periodHolding) {
-    return periodHolding.getCashBalanceMC() + periodHolding.getSecuritiesMC() + periodHolding.getMarginCloseGainMC();
+    return ValuationPoints.totalValue(periodHolding);
   }
 
   /** An expected trading day is a weekday that is no holiday of the held instruments. */
@@ -281,9 +264,8 @@ public class PerformancePeriod {
       List<IDailyExternalFlow> dailyFlows, double feesMC, ReturnSeries series, int skippedFees) {
     IPeriodHolding first = periodHoldings.getFirst();
     IPeriodHolding last = periodHoldings.getLast();
-    List<DatedFlow> flows = dailyFlows.stream().map(f -> new DatedFlow(f.getFlowDate(), f.getFlowMC())).toList();
     MoneyWeightedReturn.Result mwr = MoneyWeightedReturn.solve(first.getDate(), totalValue(first), last.getDate(),
-        totalValue(last), flows);
+        totalValue(last), datedFlows);
     int expectedSessions = 0;
     for (LocalDate date = first.getDate().plusDays(1); !date.isAfter(last.getDate()); date = date.plusDays(1)) {
       if (isExpectedTradingDay(date, fmtd)) {
@@ -369,7 +351,7 @@ public class PerformancePeriod {
               IPeriodHolding pHDayBefore = periodHoldings.get(lastIndex);
               LocalDate baseDate = pHDayBefore.getDate();
               periodWindow.registerStepIndexes(lastIndex, phIndex);
-              periodWindow.addPeriodStep(weekYear, weekDay,
+              PeriodStep periodStep = periodWindow.addPeriodStep(weekYear, weekDay,
                   DataBusinessHelper.roundStandard(
                       periodHolding.getExternalCashTransferMC() - pHDayBefore.getExternalCashTransferMC()),
                   DataBusinessHelper.roundStandard(periodHolding.getGainMC() - pHDayBefore.getGainMC()),
@@ -382,6 +364,7 @@ public class PerformancePeriod {
                   missingDayCountFromDayToDay, baseDate,
                   PerformancePeriodMetrics.percent(series.linked(lastIndex, phIndex)),
                   isCompleteStep(weekYear, baseDate, weekDay, firstAndMissingTradingDays));
+              periodStep.registerIndexes(lastIndex, phIndex);
               lastIndex = phIndex;
               int columnIndex = (weekYear == WeekYear.WM_WEEK) ? weekDay.getDayOfWeek().getValue() - 1
                   : weekDay.getMonthValue() - 1;
@@ -470,6 +453,39 @@ public class PerformancePeriod {
 
   public PerformancePeriodMetrics getMetrics() {
     return metrics;
+  }
+
+  public PerformanceBenchmarkResult getBenchmark() {
+    return benchmark;
+  }
+
+  /**
+   * Attaches the comparison with a benchmark after the windows were created. The windows and steps receive their
+   * comparison when the benchmark has a span, the portfolio figures of the report stay unchanged in every case.
+   *
+   * @param descriptor identity, conversion, return basis and the notices found while loading the benchmark
+   * @param aligned    the benchmark aligned on the valuation dates of {@link #getReturnSeries()}, null when it could
+   *                   not be loaded at all, for example without a currency pair
+   */
+  public void attachBenchmark(BenchmarkDescriptor descriptor, BenchmarkSeries.Result aligned) {
+    attachBenchmark(descriptor, aligned, null);
+  }
+
+  /**
+   * Same as {@link #attachBenchmark(BenchmarkDescriptor, BenchmarkSeries.Result)}, with the risk-free rate of the main
+   * currency for Jensen's alpha.
+   *
+   * @param annualRate the annual risk-free rate known on a date, null without rates
+   */
+  public void attachBenchmark(BenchmarkDescriptor descriptor, BenchmarkSeries.Result aligned,
+      Function<LocalDate, Double> annualRate) {
+    BenchmarkResultFactory.Built built = BenchmarkResultFactory.build(descriptor, aligned, returnSeries,
+        valuationPoints, datedFlows, firstDayTotals.getDate(), lastDayTotals.getDate(),
+        new BenchmarkResultFactory.Settings(Convention.REPORT, ReturnSeries.MIN_ANNUALIZATION_DAYS, annualRate));
+    if (built.comparison() != null) {
+      periodWindows.forEach(periodWindow -> periodWindow.fillBenchmark(built.comparison()));
+    }
+    benchmark = built.result();
   }
 
   /**

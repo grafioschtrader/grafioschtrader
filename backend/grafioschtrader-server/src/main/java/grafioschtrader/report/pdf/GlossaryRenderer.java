@@ -37,6 +37,13 @@ public class GlossaryRenderer implements SectionRenderer {
       writer.paragraph(f.text("gt.report.glossary.risk"));
       writer.paragraph(f.text("gt.report.glossary.fees"));
     }
+    if (data.period() != null && data.period().getBenchmark() != null
+        && (sections.contains(PerformanceReportSection.BENCHMARK_COMPARISON)
+            || sections.contains(PerformanceReportSection.ANNUAL_RETURNS)
+            || sections.contains(PerformanceReportSection.PERIOD_WINDOWS))) {
+      writer.paragraph(f.text("gt.report.glossary.benchmark"));
+      writer.paragraph(f.text("gt.report.glossary.benchmark.basis"));
+    }
     if (sections.contains(PerformanceReportSection.INCOME_COSTS)) {
       writer.paragraph(f.text("gt.report.recorded.costs.method"));
       writer.paragraph(f.text("gt.report.recorded.cost.ratio.method"));

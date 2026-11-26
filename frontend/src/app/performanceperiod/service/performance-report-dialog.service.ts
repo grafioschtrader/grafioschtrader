@@ -52,8 +52,10 @@ export class PerformanceReportDialogService {
    *
    * @param window - Either the period of a performance calculation or a reporting date, with the optional portfolio
    * @param destroyRef - Lifetime of the calling view, which cancels a pending metadata request
+   * @param benchmarkLabel - Benchmark of the displayed calculation as the summary of the dialog names it; absent for a
+   * statement without period
    */
-  open(window: PerformanceReportScope, destroyRef: DestroyRef): void {
+  open(window: PerformanceReportScope, destroyRef: DestroyRef, benchmarkLabel?: string): void {
     if (this.opening()) {
       return;
     }
@@ -83,6 +85,7 @@ export class PerformanceReportDialogService {
               settings,
               formDefinition,
               window: { ...window },
+              benchmarkLabel,
               scope: tenant.tenantName + (portfolio ? ' / ' + portfolio.name : ''),
               currency: portfolio?.currency || tenant.currency
             }

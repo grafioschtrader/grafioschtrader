@@ -26,7 +26,6 @@ import grafioschtrader.reportviews.germantax.GermanTaxSum;
 import grafioschtrader.reportviews.germantax.GermanTaxYearReport;
 import grafioschtrader.reportviews.germantax.GermanTaxYearReport.PortfolioAssignment;
 import grafioschtrader.tax.germany.GermanTaxMarketData.Distribution;
-import grafioschtrader.tax.germany.GermanTaxMarketData.PricePoint;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.FundTaxClass;
 import grafioschtrader.types.SecurityActionRole;

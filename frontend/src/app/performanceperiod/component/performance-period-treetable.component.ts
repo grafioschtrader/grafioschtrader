@@ -6,6 +6,7 @@ import {
   PerformancePeriod,
   PeriodStep,
   PeriodStepMissingHoliday,
+  PeriodWindow,
   PeriodWindowWithField
 } from '../model/performance.period';
 import { TreeNode } from '@openng/optimus-ui/api';
@@ -197,6 +198,8 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
   readonly TOTAL_SECURITIES_MC = 'securitiesMC';
   readonly MARGIN_CLOSE_GAIN_MC = 'marginCloseGainMC';
   readonly TWR_PERCENT = 'twrPercent';
+  readonly BENCHMARK_TWR_PERCENT = 'benchmarkTwrPercent';
+  readonly EXCESS_TWR_PERCENT = 'excessTwrPercent';
   /** Field path of the column with the time-weighted return of a window. */
   readonly WINDOW_TWR_FIELD = 'periodWindow.twrPercent';
 
@@ -222,7 +225,14 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
 
   private initializeFields(): void {
     this.translateService
-      .get(['CASH_BALANCE', AppSettings.SECURITY.toUpperCase(), 'MARGIN_CLOSE_GAIN', 'TWR_PERCENT'])
+      .get([
+        'CASH_BALANCE',
+        AppSettings.SECURITY.toUpperCase(),
+        'MARGIN_CLOSE_GAIN',
+        'TWR_PERCENT',
+        'BENCHMARK_TWR_PERCENT',
+        'EXCESS_TWR_PERCENT'
+      ])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((texts) => this.translatedTexts.set(texts));
     this.addColumnFeqH(DataType.String, 'period', true, false, {
@@ -262,6 +272,12 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
       case this.TWR_PERCENT:
         colVal = this.translatedTexts()['TWR_PERCENT'] + ' %';
         break;
+      case this.BENCHMARK_TWR_PERCENT:
+        colVal = this.translatedTexts()['BENCHMARK_TWR_PERCENT'] + ' %';
+        break;
+      case this.EXCESS_TWR_PERCENT:
+        colVal = this.translatedTexts()['EXCESS_TWR_PERCENT'];
+        break;
 
       default:
         if (this.performancePeriod()?.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
@@ -283,15 +299,39 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
   }
 
   /**
-   * Shows the time-weighted return of the window in the window row only; the child rows leave the column empty.
+   * Shows the time-weighted return of the window in the window row. The benchmark rows show the benchmark return and
+   * the difference of the window in the same column; the other child rows leave it empty.
    *
    * @param dataobject Row of the tree table
    * @param field Column configuration of the return column
    * @param valueField Already formatted return of the window
-   * @returns The formatted return for the window row, otherwise null
+   * @returns The formatted value of the row, otherwise null
    */
   getTwrColumn(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number | null {
-    return dataobject.showField === this.GAIN_MC ? valueField : null;
+    if (dataobject.showField === this.GAIN_MC) {
+      return valueField;
+    }
+    const value = this.windowBenchmarkValue(dataobject);
+    return value == null
+      ? null
+      : AppHelper.numberFormat(this.gps, value, field.maxFractionDigits, field.minFractionDigits);
+  }
+
+  /** The benchmark return or the difference of the window for the two benchmark rows, undefined for every other row. */
+  private windowBenchmarkValue(dataobject: PeriodWindowWithField): number | null | undefined {
+    switch (dataobject.showField) {
+      case this.BENCHMARK_TWR_PERCENT:
+        return dataobject.periodWindow.benchmarkTwrPercent;
+      case this.EXCESS_TWR_PERCENT:
+        return dataobject.periodWindow.excessTwrPercent;
+      default:
+        return undefined;
+    }
+  }
+
+  /** Whether a row shows a benchmark figure, whose empty cells are explained by the coverage of the comparison. */
+  private isBenchmarkRow(dataobject: PeriodWindowWithField): boolean {
+    return dataobject.showField === this.BENCHMARK_TWR_PERCENT || dataobject.showField === this.EXCESS_TWR_PERCENT;
   }
 
   /**
@@ -320,6 +360,9 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
    * @returns The tooltip text
    */
   getCellTooltip(dataobject: PeriodWindowWithField, field: ColumnConfig): string | null {
+    if (this.isBenchmarkRow(dataobject)) {
+      return this.benchmarkCellTooltip(dataobject, field);
+    }
     if (dataobject.showField === this.TWR_PERCENT && !isNaN(<any>field.field)) {
       const psmh = <PeriodStep>dataobject.periodWindow.periodStepList[+field.field];
       if (psmh.hasOwnProperty(this.TWR_PERCENT)) {
@@ -329,6 +372,33 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
           AppHelper.getDateByFormat(this.gps, psmh.lastDate)
         );
       }
+    }
+    return this.getValueByPath(dataobject, field);
+  }
+
+  /**
+   * Tooltip of a benchmark cell: the span of the step for a value, the reason of the coverage for an empty cell.
+   *
+   * @param dataobject Row of the tree table
+   * @param field Column configuration of the cell
+   * @returns The tooltip text
+   */
+  private benchmarkCellTooltip(dataobject: PeriodWindowWithField, field: ColumnConfig): string | null {
+    const isStep = !isNaN(<any>field.field);
+    const target = isStep ? dataobject.periodWindow.periodStepList[+field.field] : dataobject.periodWindow;
+    if (!target.hasOwnProperty(this.TWR_PERCENT) && isStep) {
+      return null;
+    }
+    const value = (<PeriodStep>target)[dataobject.showField];
+    const coverage = (<PeriodStep>target).benchmarkCoverage;
+    if (value == null) {
+      return coverage ? this.translateService.instant(coverage) : null;
+    }
+    if (isStep) {
+      const step = <PeriodStep>target;
+      return (
+        AppHelper.getDateByFormat(this.gps, step.baseDate) + ' - ' + AppHelper.getDateByFormat(this.gps, step.lastDate)
+      );
     }
     return this.getValueByPath(dataobject, field);
   }
@@ -402,6 +472,10 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
   }
 
   isValueByPathMinusWithEmptyColor(dataobject: PeriodWindowWithField, field: ColumnConfig): boolean {
+    if (field.field === this.WINDOW_TWR_FIELD && this.isBenchmarkRow(dataobject)) {
+      const value = this.windowBenchmarkValue(dataobject);
+      return value != null && value < 0;
+    }
     if (
       isNaN(<any>field.field) &&
       (field.dataType === DataType.Numeric || field.dataType === DataType.NumericShowZero)
@@ -458,6 +532,16 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
     }
   }
 
+  /** The child rows with the benchmark return and the difference of each step, shown only with a benchmark. */
+  private benchmarkNodes(periodWindow: PeriodWindow): TreeNode[] {
+    return [this.BENCHMARK_TWR_PERCENT, this.EXCESS_TWR_PERCENT].map((showField) => ({
+      data: new PeriodWindowWithField(<'benchmarkTwrPercent' | 'excessTwrPercent'>showField, periodWindow),
+      children: [],
+      expanded: false,
+      leaf: true
+    }));
+  }
+
   private createPeriodNodes(period: PerformancePeriod | null): TreeNode[] {
     const tn: TreeNode[] = [];
     if (period) {
@@ -476,6 +560,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
             expanded: false,
             leaf: true
           },
+          ...(period.benchmark ? this.benchmarkNodes(periodWindow) : []),
           {
             data: new PeriodWindowWithField(this.CASH_BALANCE_MC, periodWindow),
             children: [],

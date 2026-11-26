@@ -14,6 +14,23 @@ export interface SecurityPeriodPerformance {
   totals: SecurityPeriodPerformanceTotals;
   /** Rows without gainPeriodMC; when greater than 0 the totals are a partial total. */
   omittedRows: number;
+  /** The benchmark every row is compared with over its own holding days; null without a benchmark. */
+  benchmark: SecurityPeriodBenchmark | null;
+}
+
+/** Identity, conversion and return basis of the benchmark of the view, with the notices of its comparison. */
+export interface SecurityPeriodBenchmark {
+  idSecuritycurrency: number;
+  name: string;
+  currency: string;
+  /** NLS key of the origin. */
+  source: string;
+  mainCurrency: string;
+  fxPair: string | null;
+  fxInverse: boolean;
+  /** NLS key of what the benchmark return contains. */
+  returnBasis: string;
+  notices: { code: string; parameters: Record<string, string> }[];
 }
 
 /** Sums of the main currency amounts over the rows that carry them. */
@@ -54,4 +71,10 @@ export interface SecurityPeriodPerformanceRow {
   twrPercent: number | null;
   twrSecurityCurrencyPercent: number | null;
   remark: SecurityPeriodRemark | null;
+  /** Benchmark return in percent over exactly the days the position held capital; null when not comparable. */
+  benchmarkTwrPercent?: number | null;
+  /** twrPercent minus benchmarkTwrPercent in percentage points. */
+  excessTwrPercent?: number | null;
+  /** Why the comparison of the row is empty; null without a benchmark. */
+  benchmarkCoverage?: 'BENCHMARK_COVERED' | 'BENCHMARK_PARTIAL' | 'BENCHMARK_NONE' | null;
 }

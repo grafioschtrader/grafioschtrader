@@ -46,6 +46,7 @@ import grafioschtrader.mcp.McpToolResults.Holdings;
 import grafioschtrader.mcp.McpToolResults.InstrumentItem;
 import grafioschtrader.mcp.McpToolResults.InstrumentSearch;
 import grafioschtrader.mcp.McpToolResults.Page;
+import grafioschtrader.mcp.McpToolResults.PeriodBenchmark;
 import grafioschtrader.mcp.McpToolResults.PeriodPerformance;
 import grafioschtrader.mcp.McpToolResults.PeriodTotals;
 import grafioschtrader.mcp.McpToolResults.PeriodWindowRow;
@@ -66,6 +67,7 @@ import grafioschtrader.reports.SecurityPositionSummaryReport;
 import grafioschtrader.reportviews.account.AccountPositionGrandSummary;
 import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
 import grafioschtrader.reportviews.account.CashaccountPositionSummary;
+import grafioschtrader.reportviews.performance.PerformanceBenchmarkResult;
 import grafioschtrader.reportviews.performance.PerformancePeriod;
 import grafioschtrader.reportviews.performance.PeriodHoldingAndDiff;
 import grafioschtrader.reportviews.performance.WeekYear;
@@ -330,7 +332,7 @@ public class McpReadToolService {
   // ---------------------------------------------------------------------------------------------------------------
 
   public PeriodPerformance periodPerformance(McpCaller caller, String dateFromStr, String dateToStr,
-      String periodSplit, Integer idPortfolio) throws Exception {
+      String periodSplit, Integer idPortfolio, Integer idBenchmark) throws Exception {
     LocalDate dateFrom = parseRequiredDate("dateFrom", dateFromStr);
     LocalDate dateTo = parseRequiredDate("dateTo", dateToStr);
     if (dateTo.isBefore(dateFrom)) {
@@ -338,24 +340,38 @@ public class McpReadToolService {
     }
     String split = requireOneOf("periodSplit", periodSplit == null ? "year" : periodSplit, PERIOD_SPLITS);
     WeekYear weekYear = split.equals("week") ? WeekYear.WM_WEEK : WeekYear.WM_YEAR;
+    // Absent means the stored benchmark and 0 means none; only another value names an instrument to check
+    if (idBenchmark != null && idBenchmark != 0) {
+      access.requireVisibleBenchmark(caller, idBenchmark, "idBenchmark");
+    }
     String currency;
     PerformancePeriod period;
     if (idPortfolio == null) {
       currency = tenantJpaRepository.getReferenceById(caller.idTenant()).getCurrency();
       period = performanceReport.getPeriodPerformanceByTenant(caller.idTenant(), caller.localeStr(), caller.today(),
-          dateFrom, dateTo, weekYear);
+          dateFrom, dateTo, weekYear, true, idBenchmark);
     } else {
       currency = access.requireOwnPortfolio(caller, idPortfolio, "idPortfolio").getCurrency();
       period = performanceReport.getPeriodPerformanceByPortfolio(caller.idTenant(), caller.localeStr(),
-          caller.today(), idPortfolio, dateFrom, dateTo, weekYear);
+          caller.today(), idPortfolio, dateFrom, dateTo, weekYear, true, idBenchmark);
     }
     int precision = globalparametersService.getPrecisionForCurrency(currency);
     List<PeriodWindowRow> windows = period.getPeriodWindows().stream()
-        .map(w -> new PeriodWindowRow(w.startDate, w.endDate, roundNullable(w.gainPeriodMC, precision), w.twrPercent))
+        .map(w -> new PeriodWindowRow(w.startDate, w.endDate, roundNullable(w.gainPeriodMC, precision), w.twrPercent,
+            w.benchmarkTwrPercent, w.excessTwrPercent))
         .toList();
     return new PeriodPerformance(dateFrom, dateTo, caller.zoneId().getId(), currency, idPortfolio, split,
         toPeriodTotals(period.getFirstDayTotals(), precision), toPeriodTotals(period.getLastDayTotals(), precision),
-        toPeriodTotals(period.getDifference(), precision), period.getMetrics(), windows);
+        toPeriodTotals(period.getDifference(), precision), period.getMetrics(),
+        toPeriodBenchmark(period.getBenchmark()), windows);
+  }
+
+  /** The comparison without its daily chart points, the name capped like every other text of the data. */
+  private static PeriodBenchmark toPeriodBenchmark(PerformanceBenchmarkResult b) {
+    return b == null ? null
+        : new PeriodBenchmark(b.idSecuritycurrency(), cap(b.name()), b.currency(), b.source().name(), b.mainCurrency(),
+            b.fxPair(), b.returnBasis().name(), b.effectiveFrom(), b.effectiveTo(), b.notices(), b.metrics(),
+            b.shadow());
   }
 
   private static PeriodTotals toPeriodTotals(PeriodHoldingAndDiff p, int precision) {

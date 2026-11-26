@@ -1,0 +1,82 @@
+# ============================================================================
+# Migros Bank Standard, Transaktionen über E-Banking
+# Stand: 1. Januar 2027
+# ============================================================================
+# Quelle: https://www.migrosbank.ch/dam/downloads/de/broschuere/preis-broschuere
+#   («Anpassung Konditionen ab 1. Januar 2027», Aktien und andere Anlagen)
+# - Bis 31.12.2026 Pauschale CHF 40 je Transaktion im In- und Ausland.
+# - Ab 1.1.2027 nach Volumen und Handelsplatz (Inland / Ausland):
+#     bis 1'000: 5 / 15, bis 5'000: 10 / 20, bis 15'000: 20 / 30,
+#     bis 25'000: 30 / 40, darüber: 40 / 50
+# - Zuschlag ab CHF 100'000 unverändert: 0.020 % Inland, 0.100 % Ausland.
+# - Zu jeder Gebühr kommt die geschätzte Ausführungsgebühr der Börse
+#   (~0.015 %); der Inland-Zuschlag ab 100'000 ist darin mit 0.035 %
+#   zusammengefasst, der Ausland-Zuschlag mit 0.12 %.
+# - Die Stufen gelten für das Volumen in CHF; das Modell vergleicht den
+#   Handelswert in der Währung des Titels.
+# - Über Beraterinnen, Berater oder die Börsenhotline gilt weiterhin die
+#   Pauschale von CHF 40; dieser Kanal ist nicht abgebildet.
+# ============================================================================
+
+periods:
+
+  # ==========================================================================
+  # BIS 31.12.2026
+  # ==========================================================================
+  - validFrom: "1900-01-01"
+    validTo: "2026-12-31"
+    rules:
+      # Schweizer Börse ab CHF 100'000 (offizieller Zuschlag + Ausführungsgebühr)
+      - name: "Börsenplatz Schweiz ab CHF 100'000"
+        condition: 'tradeValue >= 100000 && mic == "XSWX"'
+        expression: "40.0 + tradeValue * 0.00035"
+
+      # Schweizer Börse unter CHF 100'000 (Pauschale + Ausführungsgebühr Börse ~0.015%)
+      - name: "Börsenplatz Schweiz"
+        condition: 'mic == "XSWX"'
+        expression: "40.0 + tradeValue * 0.00015"
+
+      # Ausland ab CHF 100'000 (offizieller Zuschlag + Ausführungsgebühr)
+      - name: "Börsenplatz Ausland ab CHF 100'000"
+        condition: "tradeValue >= 100000"
+        expression: "40.0 + tradeValue * 0.0012"
+
+      # Standard-Pauschale (inkl. geschätzte Ausführungsgebühr Ausland ~0.015%)
+      - name: "Standard E-Banking Pauschale"
+        condition: "true"
+        expression: "40.0 + tradeValue * 0.00015"
+
+  # ==========================================================================
+  # AB 1.1.2027
+  # ==========================================================================
+  - validFrom: "2027-01-01"
+    rules:
+      # Inland ab CHF 100'000 (höchste Stufe + Zuschlag + Ausführungsgebühr)
+      - name: "Börsenplatz Schweiz ab CHF 100'000"
+        condition: 'tradeValue >= 100000 && (mic == "XSWX" || mic == "XBRN")'
+        expression: "40.0 + tradeValue * 0.00035"
+
+      # Inland nach Volumen (+ Ausführungsgebühr Börse ~0.015%)
+      - name: "Börsenplatz Schweiz"
+        condition: 'mic == "XSWX" || mic == "XBRN"'
+        expression: >-
+          IF(tradeValue <= 1000, 5.0,
+          IF(tradeValue <= 5000, 10.0,
+          IF(tradeValue <= 15000, 20.0,
+          IF(tradeValue <= 25000, 30.0,
+          40.0)))) + tradeValue * 0.00015
+
+      # Ausland ab CHF 100'000 (höchste Stufe + Zuschlag + Ausführungsgebühr)
+      - name: "Börsenplatz Ausland ab CHF 100'000"
+        condition: "tradeValue >= 100000"
+        expression: "50.0 + tradeValue * 0.0012"
+
+      # Ausland nach Volumen (+ geschätzte Ausführungsgebühr ~0.015%)
+      - name: "Börsenplatz Ausland"
+        condition: "true"
+        expression: >-
+          IF(tradeValue <= 1000, 15.0,
+          IF(tradeValue <= 5000, 20.0,
+          IF(tradeValue <= 15000, 30.0,
+          IF(tradeValue <= 25000, 40.0,
+          50.0)))) + tradeValue * 0.00015

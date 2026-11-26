@@ -375,6 +375,15 @@ export const APP_ROUTES: Routes = [
         canActivate: [authGuard]
       },
       {
+        path: AppSettings.PERFORMANCE_PERIOD_CHART,
+        loadComponent: () =>
+          import('./performanceperiod/component/performance-period-chart.component').then(
+            (m) => m.PerformancePeriodChartComponent
+          ),
+        outlet: AppSettings.MAIN_BOTTOM,
+        canActivate: [authGuard]
+      },
+      {
         path: AppSettings.SECURITY_PERFORMANCE_CHART,
         loadComponent: () =>
           import('./performanceperiod/component/security-period-performance-chart.component').then(
@@ -412,6 +421,14 @@ export const APP_ROUTES: Routes = [
             loadComponent: () =>
               import('./algo/component/algo-simulation-run-settings.component').then(
                 (m) => m.AlgoSimulationRunSettingsComponent
+              ),
+            canActivate: [authGuard]
+          },
+          {
+            path: AppSettings.SIMULATION_RUN_BENCHMARK_KEY + '/:id',
+            loadComponent: () =>
+              import('./algo/component/algo-simulation-run-benchmark.component').then(
+                (m) => m.AlgoSimulationRunBenchmarkComponent
               ),
             canActivate: [authGuard]
           }

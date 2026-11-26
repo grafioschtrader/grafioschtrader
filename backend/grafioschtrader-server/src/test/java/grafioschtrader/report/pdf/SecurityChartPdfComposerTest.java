@@ -35,7 +35,7 @@ class SecurityChartPdfComposerTest {
 
   private static ReportFormatter formatter(Locale language) {
     return new ReportFormatter(language, Locale.forLanguageTag("de-CH"), PerformanceReportSampleWriterTest.messages(),
-        currency -> 2);
+        _ -> 2);
   }
 
   private static PDDocument chart() throws Exception {

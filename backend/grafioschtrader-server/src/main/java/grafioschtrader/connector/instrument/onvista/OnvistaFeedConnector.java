@@ -1,6 +1,12 @@
 package grafioschtrader.connector.instrument.onvista;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -11,12 +17,20 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import grafiosch.BaseConstants;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.securitysearch.OnvistaSecuritySearch;
 import grafioschtrader.dto.CurrencypairLookupData;
@@ -34,7 +48,8 @@ import tools.jackson.databind.json.JsonMapper;
  * exported with an accuracy of two decimal places. Currency is disabled because
  * for currency it is not useful.
  *
- * It produces Server returned HTTP response code: 429 (Too many requests)
+ * onvista limits bursts of requests (HTTP 429 or the body {"ERROR": "TOO_MANY_REQUESTS"});
+ * a limited request is repeated after a wait.
  *
  * Regex pattern recognition for checking the URL extension is not implemented.
  * However, the URL extension is checked with a connection to the connector.
@@ -42,8 +57,21 @@ import tools.jackson.databind.json.JsonMapper;
 @Component
 public class OnvistaFeedConnector extends BaseFeedConnector {
 
+  private static final Logger log = LoggerFactory.getLogger(OnvistaFeedConnector.class);
+
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final int MAX_YEAR_DOWNLOAD = 5;
+  /** Parameters the connector sets itself and therefore removes from a stored URL extension, in lower case. */
+  private static final Set<String> PERIOD_PARAMETERS = Set.of("range", "startdate");
+  private static final int HTTP_TOO_MANY_REQUESTS = 429;
+  private static final String ERROR_TOO_MANY_REQUESTS = "TOO_MANY_REQUESTS";
+  /** Repetitions of a request onvista answered with its rate limit; the waits add up to 5 + 10 + 20 + 40 seconds. */
+  private static final int MAX_RATE_LIMIT_RETRIES = 4;
+  private static final Duration FIRST_RATE_LIMIT_WAIT = Duration.ofSeconds(5);
+  private static final Duration MAX_RATE_LIMIT_WAIT = Duration.ofSeconds(60);
+  private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
+  private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder().connectTimeout(REQUEST_TIMEOUT)
+      .followRedirects(HttpClient.Redirect.NORMAL).build();
   private static MonthToString[] monthToStrings;
   private static final ObjectMapper objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
@@ -113,8 +141,28 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
 
   private String getSecurityHistoricalDownloadLink(final String productUrlPart, final LocalDate startRange,
       String timeSpan) {
-    return "https://api.onvista.de/api/v1/instruments/" + productUrlPart + "&startDate="
+    return "https://api.onvista.de/api/v1/instruments/" + withoutPeriodParameters(productUrlPart) + "&startDate="
         + DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT).format(startRange) + "&range=" + timeSpan;
+  }
+
+  /**
+   * Removes the parameters {@code range} and {@code startDate} from a stored URL extension, because the connector sets
+   * both itself. onvista honours the first occurrence of a repeated parameter: an extension ending in
+   * {@code &range=M1} made every request return a single month instead of five years, so a full load of a long history
+   * became some two hundred requests and ended in HTTP 429.
+   *
+   * @param productUrlPart the URL extension, e.g. {@code STOCK/82840/eod_history?idNotation=161766&range=M1}
+   * @return the extension without these parameters, e.g. {@code STOCK/82840/eod_history?idNotation=161766}
+   */
+  static String withoutPeriodParameters(String productUrlPart) {
+    int queryStart = productUrlPart.indexOf('?');
+    if (queryStart < 0) {
+      return productUrlPart;
+    }
+    String query = Arrays.stream(productUrlPart.substring(queryStart + 1).split("&"))
+        .filter(p -> !p.isEmpty() && !PERIOD_PARAMETERS.contains(p.split("=", 2)[0].toLowerCase(Locale.ROOT)))
+        .collect(Collectors.joining("&"));
+    return productUrlPart.substring(0, queryStart + 1) + query;
   }
 
   @Override
@@ -124,7 +172,9 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   }
 
   /**
-   * Synchronized is introduced to avoid the response 429 (Too many requests)
+   * Reads the history in pieces of at most five years, each piece starting the day after the last quote of the previous
+   * one. A single failing piece fails the whole load, so each request repeats a rate-limit answer, see
+   * {@link #readQuotes(String)}.
    */
   private List<Historyquote> getHistoricalData(String productUrlPart, final LocalDate from, final LocalDate to)
       throws Exception {
@@ -154,7 +204,7 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
       final LocalDate to, List<Historyquote> historyquotes) throws Exception {
 
     String url = getSecurityHistoricalDownloadLink(productUrlPart, startRange, timeSpan);
-    final Quotes quotes = objectMapper.readValue(new URI(url).toURL().openStream(), Quotes.class);
+    final Quotes quotes = readQuotes(url);
     for (int i = 0; i < quotes.datetimeLast.length; i++) {
       LocalDate date = Instant.ofEpochSecond(quotes.datetimeLast[i]).atZone(ZoneId.systemDefault()).toLocalDate();
       if (!to.isBefore(date)) {
@@ -170,7 +220,69 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
     }
   }
 
+  /**
+   * Requests one piece of the history. onvista signals its rate limit either with HTTP 429 or with HTTP 200 and the
+   * body {@code {"ERROR": "TOO_MANY_REQUESTS"}}; both are repeated after a wait that doubles each time, or after the
+   * {@code Retry-After} of the answer, at most {@link #MAX_RATE_LIMIT_RETRIES} times.
+   *
+   * @param url the complete request URL
+   * @return the quotes of the piece, never with a missing date array
+   * @throws IOException          when onvista still limits after the last repetition, answers with another error or
+   *                              without quotes
+   * @throws InterruptedException when the waiting thread is interrupted
+   */
+  private Quotes readQuotes(String url) throws IOException, InterruptedException {
+    HttpRequest request = HttpRequest.newBuilder(URI.create(url)).timeout(REQUEST_TIMEOUT)
+        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).GET().build();
+    Duration wait = FIRST_RATE_LIMIT_WAIT;
+    for (int attempt = 0;; attempt++) {
+      HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+      Quotes quotes = response.statusCode() == HttpURLConnection.HTTP_OK
+          ? objectMapper.readValue(response.body(), Quotes.class)
+          : null;
+      boolean rateLimited = response.statusCode() == HTTP_TOO_MANY_REQUESTS
+          || quotes != null && ERROR_TOO_MANY_REQUESTS.equals(quotes.error);
+      if (!rateLimited) {
+        return checkedQuotes(url, response.statusCode(), quotes);
+      }
+      if (attempt >= MAX_RATE_LIMIT_RETRIES) {
+        throw new IOException("onvista still answers with too many requests after " + MAX_RATE_LIMIT_RETRIES
+            + " repetitions for URL: " + url);
+      }
+      Duration retryAfter = retryAfter(response).orElse(wait);
+      log.info("onvista rate limit, request {} repeated in {} s: {}", attempt + 1, retryAfter.toSeconds(), url);
+      Thread.sleep(retryAfter);
+      wait = wait.multipliedBy(2);
+    }
+  }
+
+  private static Quotes checkedQuotes(String url, int statusCode, Quotes quotes) throws IOException {
+    if (statusCode != HttpURLConnection.HTTP_OK) {
+      throw new IOException("onvista answered with HTTP " + statusCode + " for URL: " + url);
+    }
+    if (quotes.error != null) {
+      throw new IOException("onvista answered with error " + quotes.error + " for URL: " + url);
+    }
+    if (quotes.datetimeLast == null) {
+      throw new IOException("onvista answered without quotes for URL: " + url);
+    }
+    return quotes;
+  }
+
+  /** The {@code Retry-After} seconds of an answer, capped at {@link #MAX_RATE_LIMIT_WAIT}. */
+  private static Optional<Duration> retryAfter(HttpResponse<String> response) {
+    try {
+      return response.headers().firstValue("Retry-After").map(v -> Duration.ofSeconds(Long.parseLong(v.trim())))
+          .filter(d -> !d.isNegative()).map(d -> d.compareTo(MAX_RATE_LIMIT_WAIT) > 0 ? MAX_RATE_LIMIT_WAIT : d);
+    } catch (NumberFormatException _) {
+      // An HTTP date instead of seconds; the doubling wait applies.
+      return Optional.empty();
+    }
+  }
+
   private static class Quotes {
+    @JsonProperty("ERROR")
+    public String error;
     public long[] datetimeLast;
     public double[] first;
     public double[] last;

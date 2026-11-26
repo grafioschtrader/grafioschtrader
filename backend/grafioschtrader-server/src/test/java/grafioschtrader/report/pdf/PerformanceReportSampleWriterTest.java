@@ -31,6 +31,8 @@ import grafioschtrader.dto.PerformanceReportRequest;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.reports.PerformanceReport;
+import grafioschtrader.reportviews.performance.BenchmarkDescriptor;
+import grafioschtrader.reportviews.performance.BenchmarkSeries;
 import grafioschtrader.reportviews.performance.FirstAndMissingTradingDays;
 import grafioschtrader.reportviews.performance.IDailyExternalFlow;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
@@ -40,6 +42,8 @@ import grafioschtrader.reportviews.performance.WeekYear;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.BenchmarkReturnBasis;
+import grafioschtrader.types.BenchmarkSource;
 import grafioschtrader.types.PerformanceReportPreset;
 import jakarta.validation.Validation;
 
@@ -147,8 +151,9 @@ class PerformanceReportSampleWriterTest {
 
   static List<SectionRenderer> renderers() {
     return List.of(new CoverRenderer(), new PerformanceSummaryRenderer(), new PerformanceChartsRenderer(),
-        new AnnualReturnsRenderer(), new PeriodWindowsRenderer(), new RiskCostMetricsRenderer(), new GlossaryRenderer(),
-        new HoldingsRenderer(), new AllocationRenderer(), new IncomeCostsRenderer(), new TransactionsRenderer());
+        new AnnualReturnsRenderer(), new PeriodWindowsRenderer(), new RiskCostMetricsRenderer(),
+        new BenchmarkComparisonRenderer(), new GlossaryRenderer(), new HoldingsRenderer(), new AllocationRenderer(),
+        new IncomeCostsRenderer(), new TransactionsRenderer());
   }
 
   static PerformanceReportPdfService service(PerformanceReport performance, TenantJpaRepository tenants,
@@ -186,7 +191,7 @@ class PerformanceReportSampleWriterTest {
     when(tenants.findById(7)).thenReturn(java.util.Optional.of(tenant));
     when(performance.getFirstAndMissingTradingDaysByTenant(eq(7), any()))
         .thenReturn(days(request.dateFrom, request.dateTo));
-    when(performance.getPeriodPerformanceByTenant(eq(7), anyString(), any(), any(), any(), any(), anyBoolean()))
+    when(performance.getPeriodPerformanceByTenant(eq(7), anyString(), any(), any(), any(), any(), anyBoolean(), any()))
         .thenReturn(period);
     SecurityContextHolder.clearContext();
     org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
@@ -364,6 +369,97 @@ class PerformanceReportSampleWriterTest {
         }
       }
     }
+  }
+
+  @Test
+  @DisplayName("With a benchmark the detail report adds the comparison section, the annual columns and the glossary")
+  void benchmarkComparisonSamples() throws Exception {
+    List<IPeriodHolding> holdings = new ArrayList<>();
+    List<BenchmarkSeries.Quote> quotes = new ArrayList<>();
+    int index = 0;
+    for (LocalDate date = FROM; !date.isAfter(TO); date = date.plusDays(1)) {
+      if (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+        continue;
+      }
+      holdings.add(new Holding(date, 25000, 75000 + index * 33, 0, 100000));
+      quotes.add(new BenchmarkSeries.Quote(date, 1000 + index * 0.5));
+      index++;
+    }
+    var period = period(WeekYear.WM_YEAR, holdings, List.of(), 0);
+    List<LocalDate> dates = new ArrayList<>();
+    for (int i = 0; i < period.getReturnSeries().size(); i++) {
+      dates.add(period.getReturnSeries().date(i));
+    }
+    period.attachBenchmark(
+        new BenchmarkDescriptor(1, "World Index", "CHF", BenchmarkSource.BENCHMARK_SOURCE_TENANT, "CHF", null, false,
+            BenchmarkReturnBasis.AS_SUPPLIED, List.of()),
+        BenchmarkSeries.align(new BenchmarkSeries.Input(dates, quotes, null, "CHF", "CHF")));
+    Path dir = Path.of("target/performance-report-samples");
+    Files.createDirectories(dir);
+    for (String language : List.of("de", "en")) {
+      byte[] pdf = generate(period, request(language, PerformanceReportPreset.PERFORMANCE_DETAIL));
+      Files.write(dir.resolve("performance_detail_benchmark_" + language + ".pdf"), pdf);
+      try (PDDocument document = Loader.loadPDF(pdf)) {
+        String text = new PDFTextStripper().getText(document);
+        assertTrue(text.contains(language.equals("de") ? "Benchmark-Vergleich" : "Benchmark comparison"), text);
+        assertTrue(text.contains("World Index"), text);
+        assertTrue(text.contains(language.equals("de") ? "Diff. (Pp.)" : "Diff. (pp)"), text);
+        assertTrue(text.contains(language.equals("de") ? "Renditebasis der Benchmark" : "Return basis of the benchmark"),
+            text);
+        // One contents link more than without benchmark: the comparison section is listed on the cover
+        assertEquals(7, document.getPage(0).getAnnotations().size());
+      }
+    }
+  }
+
+  @Test
+  @DisplayName("Large amounts still fit the period breakdown when a benchmark adds its rows, by year and by week")
+  void largeAmountsWithBenchmark() throws Exception {
+    for (WeekYear split : WeekYear.values()) {
+      List<IPeriodHolding> holdings = new ArrayList<>();
+      List<BenchmarkSeries.Quote> quotes = new ArrayList<>();
+      int index = 0;
+      for (LocalDate date = FROM; !date.isAfter(TO); date = date.plusDays(1)) {
+        if (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+          continue;
+        }
+        // Daily and monthly swings of several hundred thousand fill the slot cells of both layouts
+        double securities = 9_000_000 + (index % 2 == 0 ? 345_678.9 : 0) + ((index / 21) % 2 == 0 ? 345_678.9 : 0);
+        holdings.add(new Holding(date, 25000, securities, 0, 100000));
+        quotes.add(new BenchmarkSeries.Quote(date, 1000 + index * 0.5));
+        index++;
+      }
+      var period = period(split, holdings, List.of(), 0);
+      List<LocalDate> dates = new ArrayList<>();
+      for (int i = 0; i < period.getReturnSeries().size(); i++) {
+        dates.add(period.getReturnSeries().date(i));
+      }
+      period.attachBenchmark(
+          new BenchmarkDescriptor(1, "World Index", "CHF", BenchmarkSource.BENCHMARK_SOURCE_TENANT, "CHF", null, false,
+              BenchmarkReturnBasis.AS_SUPPLIED, List.of()),
+          BenchmarkSeries.align(new BenchmarkSeries.Input(dates, quotes, null, "CHF", "CHF")));
+      // Only the section under test: the stub answers every period request with this one period
+      var request = request("de", PerformanceReportPreset.CUSTOM);
+      request.sections = Set.of(grafioschtrader.types.PerformanceReportSection.COVER,
+          grafioschtrader.types.PerformanceReportSection.PERIOD_WINDOWS);
+      request.periodSplit = split;
+      try (PDDocument document = Loader.loadPDF(generate(period, request))) {
+        assertTrue(new PDFTextStripper().getText(document).contains("Benchmark %"), split.name());
+      }
+    }
+  }
+
+  @Test
+  @DisplayName("Without a benchmark a document of only the comparison section is refused like an empty selection")
+  void benchmarkSectionAloneWithoutBenchmark() throws Exception {
+    List<IPeriodHolding> holdings = List.of(new Holding(FROM, 100, 0, 0, 100), new Holding(TO, 110, 0, 0, 100));
+    var period = period(WeekYear.WM_YEAR, holdings, List.of(), 0);
+    var request = request("en", PerformanceReportPreset.CUSTOM);
+    request.sections = Set.of(grafioschtrader.types.PerformanceReportSection.COVER,
+        grafioschtrader.types.PerformanceReportSection.BENCHMARK_COMPARISON);
+    var exception = assertThrows(Exception.class, () -> generate(period, request));
+    assertTrue(String.valueOf(exception.getMessage()).contains("gt.report.content.required")
+        || exception.toString().contains("content.required"), exception.toString());
   }
 
   @Test

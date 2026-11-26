@@ -8,13 +8,14 @@ import org.junit.platform.suite.api.Suite;
  *
  * <p>
  * {@link PortfolioResourceTest} runs first because its fixtures can consume trading platform plans created by
- * Playwright spec 045. Transaction creation remains deferred to {@link ResourceTestSuite_50}, after Playwright spec 095
- * has initialized the required currency pairs.
+ * Playwright spec 045. {@link PerformanceBenchmarkResourceTest} needs those portfolios and leaves no benchmark behind.
+ * Transaction creation remains deferred to {@link ResourceTestSuite_50}, after Playwright spec 095 has initialized the
+ * required currency pairs.
  */
 @Suite
-@SelectClasses({ PortfolioResourceTest.class, CostBasisMethodResourceTest.class, GermanTaxHelpResourceTest.class,
-    WatchlistResourceTest.class, UDFSharingResourceTest.class, TaskDataChangeResourceTest.class,
-    EntityLimitRoleResourceTest.class })
+@SelectClasses({ PortfolioResourceTest.class, CostBasisMethodResourceTest.class, PerformanceBenchmarkResourceTest.class,
+    GermanTaxHelpResourceTest.class, WatchlistResourceTest.class, UDFSharingResourceTest.class,
+    TaskDataChangeResourceTest.class, EntityLimitRoleResourceTest.class })
 public class ResourceTestSuite_25 {
 
 }

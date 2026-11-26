@@ -4,12 +4,15 @@ import { PerformanceTotalChart, PerformanceTotalChartPoint } from './performance
 /** Line colors in a fixed order, the same first two slots the other charts of GT use. */
 const TOTAL_COLOR = '#2a78d6';
 const INVESTED_COLOR = '#eb6834';
+const SHADOW_COLOR = '#1baa7d';
 
 /** Translated legend and tooltip labels of the chart. */
 export interface PerformanceTotalChartTexts {
   totalBalance: string;
   investedCapital: string;
   difference: string;
+  /** Label of the shadow line, with the name of the benchmark; without it no shadow line is drawn. */
+  shadow?: string;
 }
 
 /** Formatting by GT's data types, supplied by the caller so the chart reads like the tables around it. */
@@ -27,9 +30,9 @@ export interface PerformanceTotalChartSurface {
 }
 
 /**
- * The two lines of the total-value chart, shared by the dashboard card of the desktop and the mobile application.
- * The total value carries the tooltip for both lines, so a reader sees the day, both values and their difference in
- * one place.
+ * The lines of the total-value chart, shared by the dashboard card of the desktop and the mobile application: total
+ * value, invested capital and, with a benchmark, the shadow portfolio. The total value carries the tooltip for all
+ * lines, so a reader sees the day, the values and their difference in one place.
  *
  * @param points Points of the chart, oldest first
  * @param texts Translated labels
@@ -42,13 +45,15 @@ export function performanceTotalChartTraces(
   format: PerformanceTotalChartFormat
 ): Partial<ScatterData>[] {
   const x = points.map((p) => p.date);
+  const withShadow = !!texts.shadow && points.some((p) => p.shadowValueMC != null);
   const customdata = points.map((p) => [
     format.date(p),
     format.amount(p.totalBalanceMC),
     format.amount(p.investedCapitalMC),
-    format.amount(p.totalBalanceMC - p.investedCapitalMC)
+    format.amount(p.totalBalanceMC - p.investedCapitalMC),
+    p.shadowValueMC == null ? '–' : format.amount(p.shadowValueMC)
   ]);
-  return [
+  const traces: Partial<ScatterData>[] = [
     {
       type: 'scatter',
       mode: 'lines',
@@ -61,7 +66,9 @@ export function performanceTotalChartTraces(
         '%{customdata[0]}<br>' +
         `${texts.totalBalance}: %{customdata[1]}<br>` +
         `${texts.investedCapital}: %{customdata[2]}<br>` +
-        `${texts.difference}: %{customdata[3]}<extra></extra>`
+        `${texts.difference}: %{customdata[3]}` +
+        (withShadow ? `<br>${texts.shadow}: %{customdata[4]}` : '') +
+        '<extra></extra>'
     },
     {
       type: 'scatter',
@@ -73,6 +80,31 @@ export function performanceTotalChartTraces(
       hoverinfo: 'skip'
     }
   ];
+  if (withShadow) {
+    // A null value stays a gap: no shadow before its first covered day and after a shortfall
+    traces.push({
+      type: 'scatter',
+      mode: 'lines',
+      name: texts.shadow,
+      x,
+      y: points.map((p) => p.shadowValueMC ?? null),
+      connectgaps: false,
+      line: { color: SHADOW_COLOR, width: 2, dash: 'dot' },
+      hoverinfo: 'skip'
+    });
+  }
+  return traces;
+}
+
+/**
+ * Label of the shadow line: the translated name of the line followed by the benchmark name.
+ *
+ * @param label Translated name of the shadow line
+ * @param benchmarkName Name of the benchmark, absent without one
+ * @returns the label, undefined without a benchmark so that no shadow line is drawn
+ */
+export function shadowLabel(label: string, benchmarkName: string | null | undefined): string | undefined {
+  return benchmarkName ? `${label} (${benchmarkName})` : undefined;
 }
 
 /**

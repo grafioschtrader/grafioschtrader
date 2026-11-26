@@ -254,7 +254,10 @@ export class SecurityPeriodPerformanceChartComponent implements IGlobalMenuAttac
       title: `${this.translateService.instant('PERFORMANCE_SECURITIES')}: ${this.periodText(result)}`,
       gain: this.translateService.instant('GAIN_PERIOD'),
       twr: this.translateService.instant('TWR_POSITION_PERCENT'),
-      holdingDays: this.translateService.instant('HOLDING_DAYS')
+      holdingDays: this.translateService.instant('HOLDING_DAYS'),
+      benchmark: result.benchmark
+        ? `${this.translateService.instant('BENCHMARK_TWR_PERCENT')} (${result.benchmark.name})`
+        : undefined
     };
     const points = securityPerformanceChartPoints(result.rows, texts, this.chartFormat(result));
     const notShown = points.notShown

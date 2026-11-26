@@ -88,6 +88,9 @@ public interface RequestGTMappings {
   public static final String HOLDING = "holding";
   public static final String HOLDING_MAP = RequestMappings.API + HOLDING;
 
+  public static final String PERFORMANCE_BENCHMARK = "performancebenchmark";
+  public static final String PERFORMANCE_BENCHMARK_MAP = RequestMappings.API + PERFORMANCE_BENCHMARK;
+
   public static final String IMPORTTRANSACTION_PLATFORM = "importtransactionplatform";
   public static final String IMPORTTRANSACTION_PLATFORM_MAP = RequestMappings.API + IMPORTTRANSACTION_PLATFORM;
 

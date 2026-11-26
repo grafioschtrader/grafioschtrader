@@ -1,0 +1,430 @@
+# ============================================================================
+# PostFinance E-Trading Gebührenmodell
+# Stand: 1. Januar 2027
+# ============================================================================
+# Periode bis 31.12.2026 (kalibriert):
+#   - Basierend auf 749 verglichenen Transaktionen (2006–2023).
+#   - Transaktionen mit Depotgebühren-Gutschrift (Anfang Jahr/Quartal)
+#     sowie 2024/2025-Daten wurden bei der Kalibrierung ausgeschlossen.
+#   - SIX-Gebühren enthalten neben der Courtage auch Börsengebühren
+#     (Umsatzabgabe, SIX Trading Fee etc.).
+#   - Bei Obligationen können Stückzinsen den Abrechnungsbetrag über die
+#     nächste Tarifstufe heben – dies ist modellbedingt nicht abbildbar.
+# Periode ab 1.1.2027:
+#   - Quelle: https://www.postfinance.ch/de/privat/anlegen/loesungen/online-trading/e-trading/neue-preise-konditionen-ab-1-januar-2027.html
+#   - Offizielle Courtage 2027 plus derselbe Zuschlag je Tarifstufe, den die
+#     kalibrierte Periode über der Courtage 2024–2026 trägt (Börsengebühren,
+#     Umsatzabgabe). Bei den Auslandbörsen unter 10'000 gilt der Zuschlag der
+#     Stufe 5'000–10'000 (+5), bestätigt durch US-Käufe 2026.
+#   - Swiss DOTS und Obligationen OTC sind unverändert.
+#   - Fonds: Ausgabekommission 0.75 % statt 1 %, höchstens 1'000.
+#   - Sparpläne: 0.5 % statt 1 %, die Mindestgebühr von 1 entfällt.
+#   - Die Trading Credits entfallen; die Depotgebühr steht im Abschnitt custody.
+# ============================================================================
+
+periods:
+
+  # ==========================================================================
+  # BIS 31.12.2026
+  # ==========================================================================
+  - validFrom: "1900-01-01"
+    validTo: "2026-12-31"
+    rules:
+
+      # ==========================================================================
+      # FONDS
+      # ==========================================================================
+      - name: "Fonds Zeichnung (Subscription)"
+        condition: 'instrument == "MUTUAL_FUND" && tradeDirection == 0'
+        expression: "MAX(20.0, MIN(1000.0, tradeValue * 0.01))"
+
+      - name: "Fonds Rücknahme (Redemption)"
+        condition: 'instrument == "MUTUAL_FUND" && tradeDirection == 1'
+        expression: "0.0"
+
+      # ==========================================================================
+      # SPARPLÄNE
+      # ==========================================================================
+      - name: "Sparplan Ausführung"
+        condition: 'instrument == "PENSION_FUNDS"'
+        expression: "MAX(1.0, tradeValue * 0.01)"
+
+      # ==========================================================================
+      # OBLIGATIONEN OTC
+      # ==========================================================================
+      - name: "Obligationen OTC"
+        condition: 'assetclass == "FIXED_INCOME" && mic == "OTCB"'
+        expression: "MAX(50.0, tradeValue * 0.0025)"
+
+      # ==========================================================================
+      # BÖRSENPLATZ-GRUPPE 1: SIX Swiss Exchange, BX Swiss (CHF)
+      # MICs: XSWX, XBRN
+      # --------------------------------------------------------------------------
+      # Kalibriert auf Basis von ~500 Transaktionen. Enthält Courtage plus
+      # Börsengebühren. Typische Ist-Werte pro Stufe:
+      #   ≤ 5'000:   ~27–29      ≤ 20'000:  ~72–73
+      #   ≤ 10'000:  ~37–38.50   ≤ 30'000:  ~97–101
+      #   ≤ 15'000:  ~52–53.50   ≤ 50'000:  ~132–135
+      # ==========================================================================
+      - name: "SIX Swiss Exchange / BX Swiss"
+        condition: 'mic == "XSWX" || mic == "XBRN"'
+        expression: >-
+          IF(tradeValue <= 500, 8.0,
+          IF(tradeValue <= 1000, 15.0,
+          IF(tradeValue <= 5000, 28.0,
+          IF(tradeValue <= 10000, 38.0,
+          IF(tradeValue <= 15000, 53.0,
+          IF(tradeValue <= 20000, 73.0,
+          IF(tradeValue <= 30000, 100.0,
+          IF(tradeValue <= 50000, 135.0,
+          IF(tradeValue <= 100000, 185.0,
+          IF(tradeValue <= 150000, 265.0,
+          330.0))))))))))
+
+      # ==========================================================================
+      # BÖRSENPLATZ-GRUPPE 2: SIX Structured Products, Off-exchange Switzerland
+      # MICs: XSTX, OFCH
+      # ==========================================================================
+      - name: "SIX Structured Products / Off-exchange CH"
+        condition: 'mic == "XSTX" || mic == "OFCH"'
+        expression: >-
+          IF(tradeValue <= 1000, 15.0,
+          IF(tradeValue <= 5000, 25.0,
+          IF(tradeValue <= 10000, 38.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 70.0,
+          IF(tradeValue <= 30000, 95.0,
+          95.0))))))
+
+      # ==========================================================================
+      # BÖRSENPLATZ-GRUPPE 3: Swiss DOTS (CHF)
+      # MIC: SDOT
+      # ==========================================================================
+      - name: "Swiss DOTS"
+        condition: 'mic == "SDOT"'
+        expression: >-
+          IF(tradeValue <= 1000, 9.0,
+          IF(tradeValue <= 5000, 12.0,
+          IF(tradeValue <= 10000, 20.0,
+          IF(tradeValue <= 50000, 28.0,
+          36.0))))
+
+      # ==========================================================================
+      # BÖRSENPLATZ-GRUPPE 4: Europäische Börsen (EUR)
+      # MICs: XFRA, XETR, XPAR, XAMS, XBRU, XCSE, XSTO, XHEL, XMIL, XMAD, XWBO
+      # --------------------------------------------------------------------------
+      # Kalibriert: Mindestgebühr 35 CHF, konsistent über alle Transaktionen.
+      #   ≤ 5'000:  immer 35    ≤ 10'000: 40    ≤ 15'000: 50
+      # ==========================================================================
+      - name: "Europäische Börsen (EUR)"
+        condition: >-
+          mic == "XFRA" || mic == "XETR" || mic == "XPAR" ||
+          mic == "XAMS" || mic == "XBRU" || mic == "XCSE" ||
+          mic == "XSTO" || mic == "XHEL" || mic == "XMIL" ||
+          mic == "XMAD" || mic == "XWBO"
+        expression: >-
+          IF(tradeValue <= 5000, 35.0,
+          IF(tradeValue <= 10000, 40.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          IF(tradeValue <= 50000, 120.0,
+          IF(tradeValue <= 100000, 180.0,
+          IF(tradeValue <= 150000, 260.0,
+          320.0))))))))
+
+      # ==========================================================================
+      # BÖRSENPLATZ-GRUPPE 5: EUWAX, Off-exchange Germany (EUR)
+      # MICs: XSTU, OFDE
+      # ==========================================================================
+      - name: "EUWAX / Off-exchange DE"
+        condition: 'mic == "XSTU" || mic == "OFDE"'
+        expression: >-
+          IF(tradeValue <= 1000, 15.0,
+          IF(tradeValue <= 5000, 25.0,
+          IF(tradeValue <= 10000, 35.0,
+          IF(tradeValue <= 15000, 45.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          90.0))))))
+
+      # ==========================================================================
+      # BÖRSENPLATZ-GRUPPE 6: London Stock Exchange (GBP)
+      # MIC: XLON
+      # ==========================================================================
+      - name: "London Stock Exchange (GBP)"
+        condition: 'mic == "XLON"'
+        expression: >-
+          IF(tradeValue <= 5000, 35.0,
+          IF(tradeValue <= 10000, 40.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          IF(tradeValue <= 50000, 120.0,
+          IF(tradeValue <= 100000, 180.0,
+          IF(tradeValue <= 150000, 260.0,
+          320.0))))))))
+
+      # ==========================================================================
+      # BÖRSENPLATZ-GRUPPE 7: NYSE, NASDAQ, NYSE American (USD)
+      # MICs: XNYS, XNAS, XASE
+      # --------------------------------------------------------------------------
+      # Kalibriert: ≤ 5'000 → 35 (beobachtet bei TV 3'000–3'600)
+      # ==========================================================================
+      - name: "US-Börsen (USD)"
+        condition: 'mic == "XNYS" || mic == "XNAS" || mic == "XASE"'
+        expression: >-
+          IF(tradeValue <= 5000, 35.0,
+          IF(tradeValue <= 10000, 40.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          IF(tradeValue <= 50000, 120.0,
+          IF(tradeValue <= 100000, 180.0,
+          IF(tradeValue <= 150000, 260.0,
+          320.0))))))))
+
+      # ==========================================================================
+      # BÖRSENPLATZ-GRUPPE 8: Toronto TSX, TSX Venture (CAD)
+      # MICs: XTSE, XTSX
+      # ==========================================================================
+      - name: "Kanadische Börsen (CAD)"
+        condition: 'mic == "XTSE" || mic == "XTSX"'
+        expression: >-
+          IF(tradeValue <= 5000, 35.0,
+          IF(tradeValue <= 10000, 40.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          IF(tradeValue <= 50000, 120.0,
+          IF(tradeValue <= 100000, 180.0,
+          IF(tradeValue <= 150000, 260.0,
+          320.0))))))))
+
+      # ==========================================================================
+      # AUFFANGREGEL (Fallback)
+      # ==========================================================================
+      - name: "Standard (unbekannter Börsenplatz)"
+        condition: "true"
+        expression: >-
+          IF(tradeValue <= 5000, 35.0,
+          IF(tradeValue <= 10000, 40.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          IF(tradeValue <= 50000, 120.0,
+          IF(tradeValue <= 100000, 180.0,
+          IF(tradeValue <= 150000, 260.0,
+          320.0))))))))
+
+  # ==========================================================================
+  # AB 1.1.2027
+  # ==========================================================================
+  - validFrom: "2027-01-01"
+    rules:
+
+      # ========================================================================
+      # FONDS
+      # ========================================================================
+      - name: "Fonds Zeichnung (Subscription)"
+        condition: 'instrument == "MUTUAL_FUND" && tradeDirection == 0'
+        expression: "MAX(20.0, MIN(1000.0, tradeValue * 0.0075))"
+
+      - name: "Fonds Rücknahme (Redemption)"
+        condition: 'instrument == "MUTUAL_FUND" && tradeDirection == 1'
+        expression: "0.0"
+
+      # ========================================================================
+      # SPARPLÄNE
+      # ========================================================================
+      - name: "Sparplan Ausführung"
+        condition: 'instrument == "PENSION_FUNDS"'
+        expression: "tradeValue * 0.005"
+
+      # ========================================================================
+      # OBLIGATIONEN OTC
+      # ========================================================================
+      - name: "Obligationen OTC"
+        condition: 'assetclass == "FIXED_INCOME" && mic == "OTCB"'
+        expression: "MAX(50.0, tradeValue * 0.0025)"
+
+      # ========================================================================
+      # BÖRSENPLATZ-GRUPPE 1: SIX Swiss Exchange, BX Swiss (CHF)
+      # MICs: XSWX, XBRN
+      # ------------------------------------------------------------------------
+      # Courtage 2027: 3 / 6 / 12 / 20 / 28 / 40 / 60 / 80 / 105 / 160 / 220 / 280
+      # Zuschlag:      2 / 3 /  8 /  8 /  8 / 13 / 13 / 20 /  30 /  25 /  25 /  30
+      # ========================================================================
+      - name: "SIX Swiss Exchange / BX Swiss"
+        condition: 'mic == "XSWX" || mic == "XBRN"'
+        expression: >-
+          IF(tradeValue <= 500, 5.0,
+          IF(tradeValue <= 1000, 9.0,
+          IF(tradeValue <= 2000, 20.0,
+          IF(tradeValue <= 5000, 28.0,
+          IF(tradeValue <= 10000, 36.0,
+          IF(tradeValue <= 15000, 53.0,
+          IF(tradeValue <= 20000, 73.0,
+          IF(tradeValue <= 30000, 100.0,
+          IF(tradeValue <= 50000, 135.0,
+          IF(tradeValue <= 100000, 185.0,
+          IF(tradeValue <= 150000, 245.0,
+          310.0)))))))))))
+
+      # ========================================================================
+      # BÖRSENPLATZ-GRUPPE 2: SIX Structured Products, Off-exchange Switzerland
+      # MICs: XSTX, OFCH
+      # ------------------------------------------------------------------------
+      # Courtage 2027: 9 / 9 / 15 / 20 / 30 / 40 / 60 / 80 / 80
+      # Zuschlag:      3 / 3 /  5 /  5 /  8 / 10 / 10 / 15 / 15
+      # ========================================================================
+      - name: "SIX Structured Products / Off-exchange CH"
+        condition: 'mic == "XSTX" || mic == "OFCH"'
+        expression: >-
+          IF(tradeValue <= 1000, 12.0,
+          IF(tradeValue <= 2000, 20.0,
+          IF(tradeValue <= 5000, 25.0,
+          IF(tradeValue <= 10000, 38.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 70.0,
+          95.0))))))
+
+      # ========================================================================
+      # BÖRSENPLATZ-GRUPPE 3: Swiss DOTS (CHF), unverändert
+      # MIC: SDOT
+      # ========================================================================
+      - name: "Swiss DOTS"
+        condition: 'mic == "SDOT"'
+        expression: >-
+          IF(tradeValue <= 1000, 9.0,
+          IF(tradeValue <= 5000, 12.0,
+          IF(tradeValue <= 10000, 20.0,
+          IF(tradeValue <= 50000, 28.0,
+          36.0))))
+
+      # ========================================================================
+      # BÖRSENPLATZ-GRUPPE 4: Europäische Börsen (EUR)
+      # MICs: XFRA, XETR, XPAR, XAMS, XBRU, XCSE, XSTO, XHEL, XMIL, XMAD,
+      #       XWBO/XVIE (Wien), XOSL
+      # ------------------------------------------------------------------------
+      # Courtage 2027: 9 / 15 / 20 / 25 / 30 / 40 / 60 / 80 / 105 / 160 / 220 / 280
+      # Zuschlag:      5 /  5 /  5 /  5 /  5 / 10 /  5 / 10 /  15 /  20 /  20 /  20
+      # Dieselbe Tabelle gilt für London (GBP), USA (USD) und Kanada (CAD).
+      # ========================================================================
+      - name: "Europäische Börsen (EUR)"
+        condition: >-
+          mic == "XFRA" || mic == "XETR" || mic == "XPAR" ||
+          mic == "XAMS" || mic == "XBRU" || mic == "XCSE" ||
+          mic == "XSTO" || mic == "XHEL" || mic == "XMIL" ||
+          mic == "XMAD" || mic == "XWBO" || mic == "XVIE" ||
+          mic == "XOSL"
+        expression: >-
+          IF(tradeValue <= 500, 14.0,
+          IF(tradeValue <= 1000, 20.0,
+          IF(tradeValue <= 2000, 25.0,
+          IF(tradeValue <= 5000, 30.0,
+          IF(tradeValue <= 10000, 35.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          IF(tradeValue <= 50000, 120.0,
+          IF(tradeValue <= 100000, 180.0,
+          IF(tradeValue <= 150000, 240.0,
+          300.0)))))))))))
+
+      # ========================================================================
+      # BÖRSENPLATZ-GRUPPE 5: EUWAX, Off-exchange Germany (EUR)
+      # MICs: XSTU, OFDE
+      # ------------------------------------------------------------------------
+      # Courtage 2027: 9 / 9 / 15 / 20 / 30 / 40 / 60 / 80 / 80
+      # Zuschlag:      3 / 3 /  5 /  5 /  5 /  5 /  5 / 10 / 10
+      # ========================================================================
+      - name: "EUWAX / Off-exchange DE"
+        condition: 'mic == "XSTU" || mic == "OFDE"'
+        expression: >-
+          IF(tradeValue <= 1000, 12.0,
+          IF(tradeValue <= 2000, 20.0,
+          IF(tradeValue <= 5000, 25.0,
+          IF(tradeValue <= 10000, 35.0,
+          IF(tradeValue <= 15000, 45.0,
+          IF(tradeValue <= 20000, 65.0,
+          90.0))))))
+
+      # ========================================================================
+      # BÖRSENPLATZ-GRUPPE 6: London Stock Exchange (GBP)
+      # MIC: XLON
+      # ========================================================================
+      - name: "London Stock Exchange (GBP)"
+        condition: 'mic == "XLON"'
+        expression: >-
+          IF(tradeValue <= 500, 14.0,
+          IF(tradeValue <= 1000, 20.0,
+          IF(tradeValue <= 2000, 25.0,
+          IF(tradeValue <= 5000, 30.0,
+          IF(tradeValue <= 10000, 35.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          IF(tradeValue <= 50000, 120.0,
+          IF(tradeValue <= 100000, 180.0,
+          IF(tradeValue <= 150000, 240.0,
+          300.0)))))))))))
+
+      # ========================================================================
+      # BÖRSENPLATZ-GRUPPE 7: NYSE, NASDAQ, NYSE American (USD)
+      # MICs: XNYS, XNAS, XASE
+      # ========================================================================
+      - name: "US-Börsen (USD)"
+        condition: 'mic == "XNYS" || mic == "XNAS" || mic == "XASE"'
+        expression: >-
+          IF(tradeValue <= 500, 14.0,
+          IF(tradeValue <= 1000, 20.0,
+          IF(tradeValue <= 2000, 25.0,
+          IF(tradeValue <= 5000, 30.0,
+          IF(tradeValue <= 10000, 35.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          IF(tradeValue <= 50000, 120.0,
+          IF(tradeValue <= 100000, 180.0,
+          IF(tradeValue <= 150000, 240.0,
+          300.0)))))))))))
+
+      # ========================================================================
+      # BÖRSENPLATZ-GRUPPE 8: Toronto TSX, TSX Venture (CAD)
+      # MICs: XTSE, XTSX
+      # ========================================================================
+      - name: "Kanadische Börsen (CAD)"
+        condition: 'mic == "XTSE" || mic == "XTSX"'
+        expression: >-
+          IF(tradeValue <= 500, 14.0,
+          IF(tradeValue <= 1000, 20.0,
+          IF(tradeValue <= 2000, 25.0,
+          IF(tradeValue <= 5000, 30.0,
+          IF(tradeValue <= 10000, 35.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          IF(tradeValue <= 50000, 120.0,
+          IF(tradeValue <= 100000, 180.0,
+          IF(tradeValue <= 150000, 240.0,
+          300.0)))))))))))
+
+      # ========================================================================
+      # AUFFANGREGEL (Fallback)
+      # ========================================================================
+      - name: "Standard (unbekannter Börsenplatz)"
+        condition: "true"
+        expression: >-
+          IF(tradeValue <= 500, 14.0,
+          IF(tradeValue <= 1000, 20.0,
+          IF(tradeValue <= 2000, 25.0,
+          IF(tradeValue <= 5000, 30.0,
+          IF(tradeValue <= 10000, 35.0,
+          IF(tradeValue <= 15000, 50.0,
+          IF(tradeValue <= 20000, 65.0,
+          IF(tradeValue <= 30000, 90.0,
+          IF(tradeValue <= 50000, 120.0,
+          IF(tradeValue <= 100000, 180.0,
+          IF(tradeValue <= 150000, 240.0,
+          300.0)))))))))))

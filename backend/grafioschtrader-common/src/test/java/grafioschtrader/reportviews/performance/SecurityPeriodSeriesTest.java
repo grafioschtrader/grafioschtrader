@@ -18,6 +18,7 @@ import grafioschtrader.reportviews.performance.SecurityPeriodSeries.Flow;
 import grafioschtrader.reportviews.performance.SecurityPeriodSeries.Input;
 import grafioschtrader.reportviews.performance.SecurityPeriodSeries.Result;
 import grafioschtrader.reportviews.performance.SecurityPeriodSeries.Span;
+import grafioschtrader.types.BenchmarkCoverage;
 import grafioschtrader.types.SecurityPeriodRemark;
 
 /**
@@ -33,7 +34,7 @@ class SecurityPeriodSeriesTest {
   private static final LocalDate WED = MON.plusDays(2);
   private static final LocalDate THU = MON.plusDays(3);
   private static final LocalDate FRI = MON.plusDays(4);
-  private static final Function<LocalDate, Double> MAIN_CURRENCY = d -> 1.0;
+  private static final Function<LocalDate, Double> MAIN_CURRENCY = _ -> 1.0;
 
   private static List<LocalDate> weekdays(LocalDate from, LocalDate to) {
     List<LocalDate> days = new ArrayList<>();
@@ -263,5 +264,26 @@ class SecurityPeriodSeriesTest {
     assertEquals(SecurityPeriodRemark.NEGATIVE_UNITS, r.remark());
     assertNull(r.twr());
     assertEquals(-210, r.gainPeriodMC(), EPS);
+  }
+
+  @Test
+  @DisplayName("Sold Tuesday, bought back Thursday: the benchmark jump on the day without capital counts nowhere")
+  void benchmarkSkipsTheDaysWithoutCapital() {
+    // Tuesday the whole position is sold at 110, Wednesday nothing is held, Thursday 50 are invested again
+    List<DailyValue> values = List.of(held(MON, 1, 100), held(THU, 1, 50), held(FRI, 1, 55));
+    List<Flow> flows = List.of(flow(TUE, -110), flow(THU, 50));
+    List<Span> spans = List.of(new Span(MON, TUE), new Span(THU, null));
+    Map<LocalDate, Double> levels = Map.of(MON, 100.0, TUE, 101.0, WED, 150.0, THU, 151.0, FRI, 160.0);
+    Result r = SecurityPeriodSeries.calculate(new Input(MON, FRI, weekdays(MON, FRI), false, values, spans, flows,
+        MAIN_CURRENCY, levels::get));
+    assertEquals(1.1 * 1.0 * 1.1 - 1, r.twr(), EPS);
+    assertEquals(101.0 / 100 * 151.0 / 150 * 160.0 / 151 - 1, r.benchmarkTwr(), EPS);
+    assertEquals(BenchmarkCoverage.BENCHMARK_COVERED, r.benchmarkCoverage());
+
+    Map<LocalDate, Double> withoutMonday = Map.of(TUE, 101.0, WED, 150.0, THU, 151.0, FRI, 160.0);
+    Result uncovered = SecurityPeriodSeries.calculate(new Input(MON, FRI, weekdays(MON, FRI), false, values, spans,
+        flows, MAIN_CURRENCY, withoutMonday::get));
+    assertNull(uncovered.benchmarkTwr(), "a held interval without benchmark empties the comparison of the row");
+    assertEquals(BenchmarkCoverage.BENCHMARK_PARTIAL, uncovered.benchmarkCoverage());
   }
 }

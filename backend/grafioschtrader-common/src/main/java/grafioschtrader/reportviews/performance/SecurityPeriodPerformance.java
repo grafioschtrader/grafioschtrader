@@ -18,7 +18,8 @@ public record SecurityPeriodPerformance(
     @Schema(description = """
         One row per security, ordered by gainPeriodMC descending with nulls last, then by name""") List<SecurityPeriodPerformanceRow> rows,
     @Schema(description = "Sums of the main currency amounts over the rows that carry them") Totals totals,
-    @Schema(description = "Number of rows without gainPeriodMC; when greater than 0 the totals are a partial total") int omittedRows) {
+    @Schema(description = "Number of rows without gainPeriodMC; when greater than 0 the totals are a partial total") int omittedRows,
+    @Schema(description = "The benchmark the rows are compared with, with its notices; null without a benchmark") BenchmarkDescriptor benchmark) {
 
   @Schema(description = "Sums of the main currency amounts over the rows that carry them, calculated unrounded")
   public record Totals(

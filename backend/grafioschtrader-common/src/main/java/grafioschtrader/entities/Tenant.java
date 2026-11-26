@@ -192,6 +192,13 @@ public class Tenant extends TenantBase implements Serializable {
   @Column(name = "disposal_cost_estimate")
   private boolean disposalCostEstimate = true;
 
+  @Schema(description = """
+      Benchmark instrument of the period performance comparison of the client view and default of every portfolio
+      without its own benchmark, a security or a currency pair. It is written only by the benchmark endpoint, so
+      updateThis does not copy it.""")
+  @Column(name = "id_benchmark")
+  private Integer idBenchmark;
+
   @JsonCreator
   public Tenant() {
   }
@@ -268,6 +275,14 @@ public class Tenant extends TenantBase implements Serializable {
 
   public void setIdParentTenant(Integer idParentTenant) {
     this.idParentTenant = idParentTenant;
+  }
+
+  public Integer getIdBenchmark() {
+    return idBenchmark;
+  }
+
+  public void setIdBenchmark(Integer idBenchmark) {
+    this.idBenchmark = idBenchmark;
   }
 
   public Integer getIdAlgoTop() {

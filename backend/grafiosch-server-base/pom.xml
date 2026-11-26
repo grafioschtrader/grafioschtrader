@@ -68,6 +68,13 @@
 	        <version>0.40.2</version>
 		</dependency>
 
+		<!-- Jackson 2 for NlsPayloadService and UDFFieldsHelper, version from the jackson-2-bom of the Boot BOM.
+		     Declared because the code uses it directly; swagger-core drops it with springdoc 3.2 (Jackson 3). -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
 		<!-- Passkeys: relying party operations of Spring Security on webauthn4j, version from the Boot BOM -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>

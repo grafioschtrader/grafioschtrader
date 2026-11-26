@@ -32,6 +32,8 @@ import {
 
 export interface PerformanceReportDialogData {
   window: PerformanceReportScope;
+  /** Benchmark of the displayed calculation, with its source or the note that none is compared. */
+  benchmarkLabel?: string;
   scope: string;
   currency: string;
   settings: PerformanceReportSettings | null;
@@ -52,6 +54,9 @@ export interface PerformanceReportDialogData {
         {{ 'gt.report.valuation.base' | translate }}: {{ dateFrom }}<br />
         {{ 'gt.report.booking.range' | translate }}: {{ bookingFrom }} – {{ dateTo }} ·
         {{ data.window.periodSplit | translate }}
+        @if (data.benchmarkLabel) {
+          <br />{{ 'BENCHMARK_NAME' | translate }}: {{ data.benchmarkLabel }}
+        }
       </p>
     }
     @if (droppedSections) {
