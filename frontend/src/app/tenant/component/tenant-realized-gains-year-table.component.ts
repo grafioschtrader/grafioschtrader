@@ -45,9 +45,9 @@ export class TenantRealizedGainsYearTableComponent extends TableConfigBase {
     this.addColumn(DataType.String, 'year', 'YEAR', true, false);
     this.addColumn(DataType.Numeric, 'yearGainMC', 'REALIZED_YEAR_GAIN', true, false);
     this.addColumn(DataType.Numeric, 'yearLossMC', 'REALIZED_YEAR_LOSS', true, false);
-    this.addColumn(DataType.Numeric, 'yearNetMC', 'REALIZED_YEAR_NET', true, false);
+    this.addColumn(DataType.Numeric, 'yearNetMC', 'REALIZED_YEAR_NET', true, false, { gainLossColor: true });
     this.addColumn(DataType.NumericInteger, 'saleCount', 'REALIZED_SALE_COUNT', true, false);
-    this.addColumn(DataType.Numeric, 'systemNetMC', 'REALIZED_SYSTEM_NET', true, false);
+    this.addColumn(DataType.Numeric, 'systemNetMC', 'REALIZED_SYSTEM_NET', true, false, { gainLossColor: true });
     this.addColumn(DataType.NumericInteger, 'systemBookingCount', 'REALIZED_SYSTEM_COUNT', true, false);
     this.addColumn(DataType.Boolean, 'incomplete', 'REALIZED_INCOMPLETE', true, false);
     this.multiSortMeta.push({ field: 'year', order: -1 });

@@ -66,23 +66,27 @@ export class LastSessionsPerformanceTableComponent extends TableConfigBase {
       cellTooltipFN: this.sessionTooltip.bind(this)
     });
     this.addColumn(DataType.Numeric, 'totalGainMC', 'TOTAL_GAIN', true, false, {
+      gainLossColor: true,
       width: 110,
       templateName: 'greenRed'
     });
     // Percentages arrive in percent; an empty cell is a session without capital or without a newer benchmark price
     this.addColumn(DataType.NumericShowZero, 'twrPercent', 'TWR_PERCENT', true, false, {
+      gainLossColor: true,
       width: 80,
       headerSuffix: '%',
       fixedFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
       templateName: 'greenRed'
     });
     this.addColumn(DataType.NumericShowZero, 'benchmarkReturnPercent', 'BENCHMARK_RETURN_PERCENT', false, false, {
+      gainLossColor: true,
       width: 80,
       headerSuffix: '%',
       fixedFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
       templateName: 'greenRed'
     });
     this.addColumn(DataType.Numeric, 'totalBalanceChangeMC', 'DASHBOARD_LAST_SESSIONS_BALANCE_CHANGE', true, false, {
+      gainLossColor: true,
       width: 110,
       templateName: 'greenRed'
     });

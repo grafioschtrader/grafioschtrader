@@ -75,6 +75,7 @@ export function isManualIssuerCountryChange(
       [visible]="visibleEditSecurityDialog()"
       [style]="{ width: '600px' }"
       [resizable]="false"
+      [focusOnShow]="false"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">

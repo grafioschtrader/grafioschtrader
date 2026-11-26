@@ -34,6 +34,7 @@ import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
 import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 import { CorrelationChartService } from '../service/correlation-chart.service';
+import { ThemeService } from '../../lib/theme/theme.service';
 import { buildCorrelationFigure, CorrelationChartType } from './correlation-chart';
 
 /** Selectable rolling correlations with daily percentage price developments in a shared Plotly figure. */
@@ -116,10 +117,16 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
   private plotly?: PlotlyInstance;
   private renderVersion = 0;
   private plotlyConfig: any;
+  private readonly themeService = inject(ThemeService);
+  /** Figure last drawn and its revision; the revision only changes with the figure, so redraws keep the view state. */
+  private drawnFigure?: object;
+  private figureRevision = 0;
 
   constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
+    // drawChart uses Plotly.react with the colors of the active scheme, so it restyles a mounted chart in place.
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => this.plotly && this.drawChart());
 
     effect(() => {
       this.chartInput();
@@ -211,8 +218,13 @@ export class CorrelationChartComponent extends FormBase implements OnInit, After
       this.plotly?.purge(this.chartElement().nativeElement);
       return;
     }
+    if (figure !== this.drawnFigure) {
+      this.drawnFigure = figure;
+      this.figureRevision++;
+    }
     const layout = structuredClone(figure.layout);
     const data = structuredClone(figure.data);
+    layout.uirevision = this.figureRevision;
     PlotlyHelper.translateLayout(this.translateService, layout);
     // Allow Angular to unhide the plot before Plotly measures its container.
     this.pendingRender = afterNextRender(

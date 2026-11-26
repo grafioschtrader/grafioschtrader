@@ -164,11 +164,19 @@ export class DividendChartService {
       hovertemplate: `%{x|%Y-%m-%d}: %{y:${DividendChartService.percentFormat()}} %<extra></extra>`
     };
     const data: object[] = [bars, yieldLine];
-    if (s.splits.length > 0) {
-      data.push(this.createSplitTrace(s, t.SPLIT));
+    const splitTrace = s.splits.length > 0 ? this.createSplitTrace(s, t.SPLIT) : null;
+    if (splitTrace) {
+      data.push(splitTrace);
     }
     return {
       data,
+      // The split labels and lines use the muted text color of the active scheme.
+      applyTheme: (_data, surface) => {
+        if (splitTrace) {
+          splitTrace.textfont.color = surface.mutedColor;
+          splitTrace.line.color = surface.mutedColor;
+        }
+      },
       layout: {
         title: { text: `${s.name} – ${t.DIVIDEND_METRICS_CHART}` },
         xaxis: { type: 'date' },
@@ -187,8 +195,15 @@ export class DividendChartService {
    * with its factor only; the labels alternate between two heights, so neighbouring splits do not overlap. The hover
    * text names the date as well.
    */
-  private createSplitTrace(s: DividendChartSeries, splitText: string): object {
-    // Muted text of the active scheme, readable on the transparent chart in both schemes.
+  private createSplitTrace(
+    s: DividendChartSeries,
+    splitText: string
+  ): {
+    textfont: { size: number; color: string };
+    line: { dash: string; width: number; color: string };
+    [key: string]: unknown;
+  } {
+    // Muted text of the active scheme; the chart recolors it through ChartData.applyTheme when the scheme changes.
     const muted = PlotlyHelper.getThemeSurface().mutedColor;
     const x: (string | null)[] = [];
     const y: (number | null)[] = [];

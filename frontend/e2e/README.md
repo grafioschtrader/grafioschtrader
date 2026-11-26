@@ -221,6 +221,21 @@ Every request is held, because the page is loaded a second time after the login 
 registered client and creates no authorization. Run with
 `npx playwright test e2e/500-mcp-oauth-consent-notification.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## Color schemes (507-* and lib/047-*)
+
+`lib/047-theme-switch.spec.ts` switches the library host through `Settings → Theme`: `Dark` sets
+`data-bs-theme="dark"`, stores `gt.theme` in `localStorage`, darkens Bootstrap and the Optimus menu overlay and
+survives a reload; `System` with an emulated dark color scheme yields dark, stays the marked entry and follows a
+change of the emulated scheme without a reload.
+
+`507-dark-mode.spec.ts` runs as `alledit` on HP (HPQ) in the `_USA` watchlist of spec 090. It switches the scheme
+through the menu, then opens the price chart, draws two shapes, zooms and hides the first legend entry, switches dark
+and light and checks that range, legend and shapes are unchanged, the grid color follows the scheme and no request
+reaches `/api/userchartshape`; one undo removes exactly the second shape, and the chart PDF is exported while dark.
+The last test checks that the watchlist's green cells carry the computed `--gt-gain-color` of each scheme. Drawings
+left by an aborted run are counted, not assumed absent; the spec deletes HPQ's drawings through the REST endpoint at
+its end and restores the mode `system`. Both specs only read shared data.
+
 ## HTTP authentication (445-* and lib/005-*)
 
 `445-auth-http-interceptor.spec.ts` and `lib/005-auth-http-interceptor.spec.ts` run the shared scenarios in

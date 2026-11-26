@@ -27,6 +27,7 @@ import grafioschtrader.dto.SpinOffPreviewDto.Candidate;
 import grafioschtrader.dto.SpinOffPreviewDto.Decision;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityAction;
 import grafioschtrader.entities.SecurityActionApplication;
 import grafioschtrader.entities.Securitysplit;
@@ -151,25 +152,7 @@ public class SpinOffApplyService {
     if (legs.stream().anyMatch(Transaction::isSimulationOpening)) {
       throw new GeneralNotTranslatedWithArgumentsException("gt.simulation.opening.protected", null);
     }
-    Integer childId = action.getSecurityNew().getId();
-    var childTransactions = transactions.findByIdTenantAndIdSecurity(tenant, childId);
-    Optional<LocalDate> blockingTrade = legs.stream()
-        .filter(leg -> leg.getSecurityActionRole() == SecurityActionRole.SPIN_OFF_CHILD)
-        .flatMap(leg -> childTransactions.stream()
-            .filter(t -> Objects.equals(leg.getIdSecurityaccount(), t.getIdSecurityaccount())
-                && !Objects.equals(t.getIdSecurityActionApp(), application.getId())
-                && Transaction.CALC_ORDER.compare(t, leg) > 0))
-        .map(Transaction::getTransactionDate).min(Comparator.naturalOrder());
-    Optional<LocalDate> blockingAction = applications.findByIdTenant(tenant).stream()
-        .filter(a -> !a.isReversed() && !a.getId().equals(application.getId()))
-        .map(SecurityActionApplication::getSecurityAction)
-        .filter(other -> childId.equals(other.getSecurityOld().getId())
-            || (other.getSecurityNew() != null && childId.equals(other.getSecurityNew().getId())))
-        .map(SecurityAction::getActionDate).min(Comparator.naturalOrder());
-    blockingTrade.or(() -> blockingAction).ifPresent(date -> {
-      throw new DataViolationException("action.date", "gt.security.action.spinoff.reverse.blocked",
-          new Object[] { date });
-    });
+    requireNoDependentBooking(action, application, tenant, legs);
 
     application.setIdTransactionSell(null);
     application.setIdTransactionBuy(null);
@@ -178,6 +161,43 @@ public class SpinOffApplyService {
     transactions.deleteAll(legs);
     actions.incrementAppliedCount(id, -1);
     scheduleRebuild(tenant);
+  }
+
+  /**
+   * Refuses the reversal while something depends on the child purchase: a later booking of the child in the same
+   * security account that does not belong to this application, such as the cash settlement of a fraction, or another
+   * active application of a security action dated on or after the spin-off that involves the child. A security action
+   * dated before the spin-off, for example an ISIN change that created the child, does not depend on it. The message
+   * names the date, the child and, for a booking, the security account.
+   */
+  private void requireNoDependentBooking(SecurityAction action, SecurityActionApplication application,
+      Integer tenant, List<Transaction> legs) {
+    Security child = action.getSecurityNew();
+    Integer childId = child.getId();
+    var childTransactions = transactions.findByIdTenantAndIdSecurity(tenant, childId);
+    Optional<Transaction> blockingTrade = legs.stream()
+        .filter(leg -> leg.getSecurityActionRole() == SecurityActionRole.SPIN_OFF_CHILD)
+        .flatMap(leg -> childTransactions.stream()
+            .filter(t -> Objects.equals(leg.getIdSecurityaccount(), t.getIdSecurityaccount())
+                && !Objects.equals(t.getIdSecurityActionApp(), application.getId())
+                && Transaction.CALC_ORDER.compare(t, leg) > 0))
+        .min(Comparator.comparing(Transaction::getTransactionDate));
+    if (blockingTrade.isPresent()) {
+      Transaction trade = blockingTrade.get();
+      var account = accounts.findByIdSecuritycashAccountAndIdTenant(trade.getIdSecurityaccount(), tenant);
+      throw new DataViolationException("action.date", "gt.security.action.spinoff.reverse.blocked",
+          new Object[] { trade.getTransactionDate(), child.getName(), account == null ? "" : account.getName() });
+    }
+    applications.findByIdTenant(tenant).stream()
+        .filter(a -> !a.isReversed() && !a.getId().equals(application.getId()))
+        .map(SecurityActionApplication::getSecurityAction)
+        .filter(other -> !other.getActionDate().isBefore(action.getActionDate()))
+        .filter(other -> childId.equals(other.getSecurityOld().getId())
+            || (other.getSecurityNew() != null && childId.equals(other.getSecurityNew().getId())))
+        .map(SecurityAction::getActionDate).min(Comparator.naturalOrder()).ifPresent(date -> {
+          throw new DataViolationException("action.date", "gt.security.action.spinoff.reverse.blocked.action",
+              new Object[] { date, child.getName() });
+        });
   }
 
   private Optional<SecurityActionApplication> requireUnapplied(Integer id, Integer tenant) {
@@ -283,20 +303,28 @@ public class SpinOffApplyService {
         .sorted(Transaction.CALC_ORDER).toList();
   }
 
-  private boolean manuallyRecorded(List<Transaction> parent, List<Transaction> child, double n, double m,
+  /**
+   * Tells whether the tenant appears to have recorded the spin-off of an account by own bookings, so that the preview
+   * proposes to skip it. Either sign is enough: a purchase of the child over the allotted units (within one unit for a
+   * settled fraction), as an import of the bank's delivery statement creates it, or a sale of the parent units followed
+   * by their repurchase. The candidates come from the window around the action date and exclude system bookings.
+   */
+  static boolean manuallyRecorded(List<Transaction> parent, List<Transaction> child, double n, double m,
       List<Securitysplit> parentSplits, List<Securitysplit> childSplits, LocalDate date) {
+    boolean childRecorded = child.stream()
+        .anyMatch(t -> t.getIdSecurityTransfer() == null && t.getUnits() != null
+            && t.getTransactionType() == TransactionType.ACCUMULATE
+            && Math.abs(unitsOnDate(t, childSplits, date) - m) <= 1);
+    if (childRecorded) {
+      return true;
+    }
     List<Transaction> matchingParent = parent.stream().filter(trade -> trade.getIdSecurityTransfer() == null
         && trade.getUnits() != null && DataBusinessHelper.round(unitsOnDate(trade, parentSplits, date) - n) == 0)
         .toList();
     Optional<LocalDateTime> sale = matchingParent.stream().filter(t -> t.getTransactionType() == TransactionType.REDUCE)
         .map(Transaction::getTransactionTime).min(Comparator.naturalOrder());
-    return sale.isPresent()
-        && matchingParent.stream().anyMatch(
-            t -> t.getTransactionType() == TransactionType.ACCUMULATE && !t.getTransactionTime().isBefore(sale.get()))
-        && child.stream()
-            .anyMatch(t -> t.getIdSecurityTransfer() == null && t.getUnits() != null
-                && t.getTransactionType() == TransactionType.ACCUMULATE
-                && Math.abs(unitsOnDate(t, childSplits, date) - m) <= 1);
+    return sale.isPresent() && matchingParent.stream().anyMatch(
+        t -> t.getTransactionType() == TransactionType.ACCUMULATE && !t.getTransactionTime().isBefore(sale.get()));
   }
 
   private Candidate candidate(Transaction trade, boolean child) {

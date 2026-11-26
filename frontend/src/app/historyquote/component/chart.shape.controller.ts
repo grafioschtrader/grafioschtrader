@@ -6,6 +6,7 @@ import { ConfirmationService } from '@openng/optimus-ui/api';
 import { UserChartShapeService } from '../service/user.chart.shape.service';
 
 import type { PlotlyInstance } from '../../shared/chart/plotly.loader';
+import { ChartShapeRelayout } from '../model/chart-shape-relayout';
 
 /**
  * Owns the freehand drawings a user places on a time series chart: lines, paths, circles and rectangles
@@ -127,11 +128,15 @@ export class ChartShapeController {
 
   /**
    * Handles a Plotly relayout event: records the new shape state in the history and schedules a save.
-   * A relayout that this controller itself caused through undo or redo is saved but not recorded again,
-   * otherwise stepping back through the history would immediately append the state stepped back to.
+   * Only a relayout that touches the shapes counts; zoom, pan, autoscale and redraws for a new color scheme are
+   * ignored, and so is a state equal to the current history entry. A relayout that this controller itself caused
+   * through undo or redo is saved but not recorded again, otherwise stepping back through the history would
+   * immediately append the state stepped back to.
+   *
+   * @param eventData the payload of the `plotly_relayout` event
    */
-  public onRelayout(): void {
-    if (this.idSecuritycurrency == null) {
+  public onRelayout(eventData?: Record<string, unknown>): void {
+    if (this.idSecuritycurrency == null || !ChartShapeRelayout.touchesShapes(eventData)) {
       return;
     }
     const shapes = this.chartNativeElement?.layout?.shapes;
@@ -141,6 +146,9 @@ export class ChartShapeController {
     if (this.isProgrammaticRelayout) {
       this.isProgrammaticRelayout = false;
     } else {
+      if (ChartShapeRelayout.sameShapes(shapes, this.getCurrentShapes())) {
+        return;
+      }
       this.shapeHistory = this.shapeHistory.slice(0, this.shapeHistoryIndex + 1);
       this.shapeHistory.push(JSON.parse(JSON.stringify(shapes)));
       this.shapeHistoryIndex = this.shapeHistory.length - 1;

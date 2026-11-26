@@ -37,6 +37,7 @@ import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.l
 import { TenantHoldingsChartService } from '../service/tenant.holdings.chart.service';
 import { HoldingsTreemapChart } from './holdings.treemap.chart';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { ThemeService } from '../../lib/theme/theme.service';
 
 /**
  * The charts the user can choose from. The keys are also their translation keys.
@@ -114,10 +115,12 @@ export class TenantHoldingsChartComponent
   /** Raised by every draw, so a draw still waiting for the library is dropped when a newer one follows. */
   private drawVersion = 0;
   private subscriptions: Subscription[] = [];
+  private readonly themeService = inject(ThemeService);
 
   constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => this.restyleForTheme());
 
     effect(() => {
       const input = this.chartInput();
@@ -207,7 +210,8 @@ export class TenantHoldingsChartComponent
     if (!this.formReady || !this.chartInput()) {
       return;
     }
-    const figure = this.buildFigure(requireFormControl(this.configObject.chartType).value);
+    const chartType = requireFormControl(this.configObject.chartType).value;
+    const figure = this.buildFigure(chartType);
     const version = ++this.drawVersion;
     this.plotly?.purge(this.chartElement().nativeElement);
     if (figure) {
@@ -218,6 +222,7 @@ export class TenantHoldingsChartComponent
             (plotly) => {
               if (!this.destroyed && version === this.drawVersion) {
                 this.plotly = plotly;
+                figure.layout.uirevision = chartType;
                 PlotlyHelper.applyThemeToLayout(
                   figure.layout,
                   PlotlyHelper.getThemeSurface(this.chartElement().nativeElement)
@@ -229,6 +234,13 @@ export class TenantHoldingsChartComponent
           ),
         { injector: this.renderInjector }
       );
+    }
+  }
+
+  /** Redraws the shown chart in the colors of the new scheme, keeping zoom and hidden legend entries. */
+  private restyleForTheme(): void {
+    if (this.plotly && !this.destroyed) {
+      PlotlyHelper.restyleForTheme(this.plotly, this.chartElement().nativeElement, this.plotlyConfig);
     }
   }
 

@@ -38,6 +38,7 @@ import { DataType } from '../dynamic-form/models/data.type';
 import { Helper } from '../helper/helper';
 import { BaseLocale } from '../dynamic-form/models/base.locale';
 import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
+import { GainLossColor } from './gain-loss-color';
 
 /**
  * Event data emitted when a row edit operation occurs.
@@ -261,7 +262,7 @@ export interface ValidationErrorEvent<T> {
                         } @else if (field.templateName === 'greenRed') {
                           <span
                             [class.gt-loss]="isNegativeValue(rowData, field)"
-                            [class.gt-gain]="!isNegativeValue(rowData, field)">
+                            [class.gt-gain]="isGainValue(rowData, field)">
                             {{ getValue(rowData, field) }}
                           </span>
                         } @else if (field.templateName === 'check') {
@@ -1238,6 +1239,21 @@ export class EditableTableComponent<T extends object = any> {
     }
     const value = this.getValue(row, field);
     return value != null && String(value).startsWith('-');
+  }
+
+  /**
+   * Determines if a value is shown in the gain color: only in a column marked with `gainLossColor`, for a value that is
+   * neither negative nor displayed as zero.
+   *
+   * @param row - Row data object
+   * @param field - Column configuration
+   * @returns True if value should be colored green
+   */
+  isGainValue(row: T, field: ColumnConfig): boolean {
+    return (
+      field.gainLossColor === true &&
+      GainLossColor.isGain(field, this.getValue(row, field), this.isNegativeValue(row, field))
+    );
   }
 
   // ============================================================================

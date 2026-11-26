@@ -20,6 +20,7 @@ import { AppSettings } from '../../shared/app.settings';
 
 import { TreeTableModule } from '@openng/optimus-ui/treetable';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { GainLossColor } from '../../lib/datashowbase/gain-loss-color';
 
 /**
  * Shows a tree table with periodic windows on the first column, which can be week or year.
@@ -70,7 +71,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                     <span
                       [pTooltip]="getCellTooltip(rowData, field) ?? undefined"
                       [class.gt-loss]="isValueByPathMinusWithEmptyColor(rowData, field)"
-                      [class.gt-gain]="!isValueByPathMinusWithEmptyColor(rowData, field)">
+                      [class.gt-gain]="isCellGain(rowData, field)">
                       {{ getValueByPath(rowData, field) }}
                     </span>
                   }
@@ -103,7 +104,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                           )
                         "
                         [class.gt-loss]="isFooterValueMinus(field)"
-                        [class.gt-gain]="!isFooterValueMinus(field)">
+                        [class.gt-gain]="isFooterGain(field)">
                         {{
                           getValueColumnTotal(
                             field,
@@ -243,6 +244,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
       columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]
     });
     this.addColumn(DataType.Numeric, 'periodWindow.gainPeriodMC', 'TOTAL', true, false, {
+      gainLossColor: true,
       fieldValueFN: this.getLastColumn.bind(this),
       templateName: 'greenRed',
       columnGroupConfigs: [new ColumnGroupConfig(null, null, this.getGrandTotal.bind(this))]
@@ -252,6 +254,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
       maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
       fieldValueFN: this.getTwrColumn.bind(this),
       templateName: 'greenRed',
+      gainLossColor: true,
       columnGroupConfigs: [new ColumnGroupConfig(null, null, this.getTotalTwr.bind(this))]
     });
     this.translateHeadersAndColumns();
@@ -461,6 +464,21 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
    * @param field Column configuration of the footer cell
    * @returns True when the displayed total is negative
    */
+  /** Green for a positive result in a gain/loss column, judged on the displayed value like every other table. */
+  isCellGain(dataobject: PeriodWindowWithField, field: ColumnConfig): boolean {
+    return GainLossColor.isGain(
+      field,
+      this.getValueByPath(dataobject, field),
+      this.isValueByPathMinusWithEmptyColor(dataobject, field)
+    );
+  }
+
+  /** Green for a positive footer total in a gain/loss column. */
+  isFooterGain(field: ColumnConfig): boolean {
+    const total = this.getValueColumnTotal(field, 0, this.performancePeriod()?.sumPeriodColSteps, null);
+    return GainLossColor.isGain(field, total, this.isFooterValueMinus(field));
+  }
+
   isFooterValueMinus(field: ColumnConfig): boolean {
     if (field.field === this.WINDOW_TWR_FIELD) {
       const value = this.performancePeriod()?.metrics?.twrPercent;
@@ -513,6 +531,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
             this.insertColumn(i, DataType.Numeric, fieldName, calendarLang.dayNamesShort[i], true, false, {
               fieldValueFN: this.getDataValue.bind(this),
               templateName: 'greenRed',
+              gainLossColor: true,
               headerTranslated: calendarLang.dayNamesShort[i]
             });
             this.fields[i].columnGroupConfigs = [new ColumnGroupConfig(fieldName)];
@@ -524,6 +543,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase {
             this.insertColumn(i + 1, DataType.Numeric, fieldName, calendarLang.monthNamesShort[i], true, false, {
               fieldValueFN: this.getDataValue.bind(this),
               templateName: 'greenRed',
+              gainLossColor: true,
               headerTranslated: calendarLang.monthNamesShort[i]
             });
             this.fields[i + 1].columnGroupConfigs = [new ColumnGroupConfig(fieldName)];

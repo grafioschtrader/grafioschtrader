@@ -71,8 +71,18 @@ test('statistics tables render their delayed data with translated headers and re
   await expect(years.locator('h5')).toHaveText(/Return per calendar year|Rendite pro Kalenderjahr/);
   await expect(years.locator('th').first()).toHaveText(/Calendar year|Kalenderjahr/);
   await expect(years.locator('th').nth(2)).toContainText('CHF %');
+  const expectedLossColor = await page.evaluate(() => {
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--gt-loss-color)';
+    document.body.appendChild(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+  });
+  expect(expectedLossColor).not.toBe(await page.evaluate(() => getComputedStyle(document.body).color));
   const negativeYear = years.locator('tbody tr').filter({ hasText: '2024' }).locator('span').nth(1);
-  await expect(negativeYear).toHaveCSS('color', 'rgb(255, 0, 0)');
+  await expect(negativeYear).toHaveClass(/\bgt-loss\b/);
+  await expect(negativeYear).toHaveCSS('color', expectedLossColor);
 
   const annualised = result.locator('instrument-annualised-return-table');
   await expect(annualised.locator('tbody tr')).toHaveCount(1);
@@ -84,5 +94,7 @@ test('statistics tables render their delayed data with translated headers and re
   await expect(summary).toContainText(/Monthly|Monatliche/);
   await expect(summary).toContainText(/Maximum loss in %|Maximaler Verlust in %/);
   await expect(summary.locator('th').nth(2)).toContainText('CHF');
-  await expect(summary.getByText(/-4[.,]25/)).toHaveCSS('color', 'rgb(255, 0, 0)');
+  const negativeSummary = summary.getByText(/-4[.,]25/);
+  await expect(negativeSummary).toHaveClass(/\bgt-loss\b/);
+  await expect(negativeSummary).toHaveCSS('color', expectedLossColor);
 });

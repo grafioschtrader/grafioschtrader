@@ -40,6 +40,7 @@ import { ConnectorAlternative, CurrencypairLookupSelection } from '../../securit
       header="{{ 'CURRENCYPAIR' | translate }}"
       [visible]="visibleEditCurrencypairDialog()"
       [style]="{ width: '600px' }"
+      [focusOnShow]="false"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">

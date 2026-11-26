@@ -27,7 +27,9 @@ import { PerformancePeriodMetrics } from '../model/performance.period';
                   {{ field.headerTranslated }}
                 </div>
                 <div class="col-4 text-end">
-                  <span [class.gt-loss]="isValueByPathMinus(metrics(), field)">
+                  <span
+                    [class.gt-loss]="isValueByPathMinus(metrics(), field)"
+                    [class.gt-gain]="isGainByPath(metrics(), field)">
                     {{ getValueByPath(metrics(), field) }}
                   </span>
                 </div>
@@ -76,6 +78,7 @@ export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase {
     this.addPercentField('twrAnnualizedPercent', this.PERFORMANCE_RETURN);
     this.addPercentField('mwrPercent', this.PERFORMANCE_RETURN);
     this.addPercentField('mwrAnnualizedPercent', this.PERFORMANCE_RETURN);
+    this.markGainLossColumns('twrPercent', 'twrAnnualizedPercent', 'mwrPercent', 'mwrAnnualizedPercent');
     this.addPercentField('maxDrawdownPercent', this.PERFORMANCE_RETURN);
 
     this.addFieldPropertyFeqH(DataType.DateString, 'drawdownPeakDate', { fieldsetName: this.PERFORMANCE_RISK });
@@ -86,6 +89,7 @@ export class PerformancePeriodMetricsComponent extends SingleRecordConfigBase {
     this.addPercentField('bestStepPercent', this.PERFORMANCE_RISK);
     this.addFieldPropertyFeqH(DataType.DateString, 'bestStepDate', { fieldsetName: this.PERFORMANCE_RISK });
     this.addPercentField('worstStepPercent', this.PERFORMANCE_RISK);
+    this.markGainLossColumns('bestStepPercent', 'worstStepPercent');
     this.addFieldPropertyFeqH(DataType.DateString, 'worstStepDate', { fieldsetName: this.PERFORMANCE_RISK });
 
     this.addFieldPropertyFeqH(DataType.NumericShowZero, 'averageCapitalMC', { fieldsetName: this.PERFORMANCE_COST });

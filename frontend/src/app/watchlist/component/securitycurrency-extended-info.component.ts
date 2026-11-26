@@ -85,7 +85,8 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sChangePercentage', 'DAILY_CHANGE', {
       fieldsetName: this.QUOTATION_DATA,
       headerSuffix: '%',
-      templateName: 'greenRed'
+      templateName: 'greenRed',
+      gainLossColor: true
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sPrevClose', 'DAY_BEFORE_CLOSE', {
       fieldsetName: this.QUOTATION_DATA,

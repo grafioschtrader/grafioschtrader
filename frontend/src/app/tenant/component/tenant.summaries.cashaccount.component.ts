@@ -146,6 +146,7 @@ export class TenantSummariesCashaccountComponent
     );
     this.columnConfigs.push(
       this.addColumnFeqH(DataType.Numeric, 'gainLossCurrencyMC', true, false, {
+        gainLossColor: true,
         templateName: 'greenRed',
         columnGroupConfigs: [
           new ColumnGroupConfig('groupGainLossCurrencyMC'),
@@ -155,6 +156,7 @@ export class TenantSummariesCashaccountComponent
     );
     this.columnConfigs.push(
       this.addColumnFeqH(DataType.Numeric, 'gainLossSecurities', true, false, {
+        gainLossColor: true,
         templateName: 'greenRed',
         columnGroupConfigs: [
           new ColumnGroupConfig('groupGainLossSecuritiesMC'),

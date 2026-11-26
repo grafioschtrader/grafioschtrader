@@ -61,13 +61,16 @@ export class TenantRealizedGainsSaleTableComponent extends TableConfigBase {
       currencyPrecisionField: 'securityCurrency'
     });
     this.addColumn(DataType.Numeric, 'gainLoss', 'REALIZED_GAIN_LOSS', true, false, {
+      gainLossColor: true,
       currencyPrecisionField: 'securityCurrency'
     });
-    this.addColumn(DataType.Numeric, 'gainLossPercentage', 'REALIZED_GAIN_LOSS_PERCENTAGE', true, false);
+    this.addColumn(DataType.Numeric, 'gainLossPercentage', 'REALIZED_GAIN_LOSS_PERCENTAGE', true, false, {
+      gainLossColor: true
+    });
     this.addColumn(DataType.Numeric, 'exchangeRate', 'EXCHANGE_RATE', true, false, {
       maxFractionDigits: this.gps.getMaxFractionDigits()
     });
-    this.addColumn(DataType.Numeric, 'gainLossMC', 'REALIZED_GAIN_LOSS_MC', true, false);
+    this.addColumn(DataType.Numeric, 'gainLossMC', 'REALIZED_GAIN_LOSS_MC', true, false, { gainLossColor: true });
     this.addColumn(DataType.String, 'costBasisMethod', 'COST_BASIS_METHOD', true, false, {
       translateValues: TranslateValue.NORMAL
     });

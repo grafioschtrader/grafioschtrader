@@ -13,6 +13,7 @@ import java.util.Set;
 
 import grafiosch.common.DataHelper;
 import grafioschtrader.entities.Security;
+import grafioschtrader.instrument.SpinOffCostDistribution;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.germantax.GermanTaxDetail;
@@ -552,10 +553,10 @@ public class GermanTaxLotEngine {
     }
 
     /**
-     * Divides the euro cost and the applied advance lump sums of every parent lot. Each child part is rounded to the
-     * cent and the last parent lot with a cost takes the remainder, so the child lots add up to exactly the allocated
-     * share of the parent's cost. A lot of cost 0 stays 0. Child units the parent lots do not cover become an
-     * incomplete lot.
+     * Divides the euro cost and the applied advance lump sums of every parent lot. The allocated share of the parent's
+     * cost is spread over the lots in cents by {@link SpinOffCostDistribution}, so the child lots add up to it exactly
+     * and no parent lot is left with a negative cost. A lot of cost 0 stays 0. Child units the parent lots do not cover
+     * become an incomplete lot.
      */
     private void spinOffCostSplit(Transaction sale, Transaction child, GermanTaxSpinOff info,
         Classification parentCl, Classification childCl) {
@@ -576,23 +577,16 @@ public class GermanTaxLotEngine {
       final Book childBook = book(child.getIdSecurityaccount(), child.getSecurity());
       final double parentUnits = unitsOf(sale);
       final double childUnits = unitsOf(child);
-      final double childTotal = money(q * parentLots.stream().mapToDouble(lot -> lot.costEur).sum());
-      int lastWithCost = -1;
-      for (int i = 0; i < parentLots.size(); i++) {
-        if (parentLots.get(i).costEur != 0.0) {
-          lastWithCost = i;
-        }
-      }
-      double handedOver = 0.0;
+      final double[] lotCosts = parentLots.stream().mapToDouble(lot -> Math.max(lot.costEur, 0.0)).toArray();
+      final double[] childCosts = SpinOffCostDistribution.distribute(
+          money(q * parentLots.stream().mapToDouble(lot -> lot.costEur).sum()), lotCosts, lotCosts, 2);
       double coveredUnits = 0.0;
       for (int i = 0; i < parentLots.size(); i++) {
         final GermanTaxLot lot = parentLots.get(i);
-        final double childCost = lot.costEur == 0.0 ? 0.0
-            : i == lastWithCost ? childTotal - handedOver : money(q * lot.costEur);
+        final double childCost = childCosts[i];
         final double childPreliminary = lot.preliminaryEur * q;
         final double units = parentUnits > EPS ? lot.units / parentUnits * childUnits : 0.0;
         final GermanTaxLot derived = lot.deriveSpinOff(units, childCost, childPreliminary);
-        handedOver += childCost;
         coveredUnits += units;
         lot.costEur -= childCost;
         lot.preliminaryEur -= childPreliminary;

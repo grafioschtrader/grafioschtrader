@@ -119,6 +119,7 @@ export class SecurityPeriodPerformanceTableComponent extends TableConfigBase {
     this.addMainCurrencyColumn('inflowMC', 'POSITION_INFLOW', false);
     this.addMainCurrencyColumn('outflowMC', 'POSITION_OUTFLOW', false);
     this.addColumn(DataType.Numeric, 'gainPeriod', 'GAIN_PERIOD_SECURITY_CURRENCY', false, true, {
+      gainLossColor: true,
       currencyPrecisionField: 'currency',
       templateName: GREEN_RED
     });
@@ -128,6 +129,10 @@ export class SecurityPeriodPerformanceTableComponent extends TableConfigBase {
     // Shown only for a result with a benchmark; the tooltip of an empty cell says why the row has no comparison
     this.addPercentColumn('benchmarkTwrPercent', 'BENCHMARK_TWR_PERCENT', false, this.benchmarkCellTooltip);
     this.addPercentColumn('excessTwrPercent', 'EXCESS_TWR_PERCENT', false, this.benchmarkCellTooltip, false);
+    // Results of the period: positive values green, negative values red.
+    ['gainPeriodMC', 'twrSecurityCurrencyPercent', 'twrPercent', 'benchmarkTwrPercent', 'excessTwrPercent'].forEach(
+      (field) => (this.requireColumnConfigByField(field).gainLossColor = true)
+    );
     this.addColumn(DataType.String, 'remark', 'SECURITY_PERIOD_REMARK', true, true, {
       translateValues: TranslateValue.NORMAL,
       width: 220

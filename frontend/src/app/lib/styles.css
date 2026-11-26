@@ -30,6 +30,7 @@
   --gt-tint-orange-bg: #ffd39b;
   --gt-tint-pink-bg: #ffb6c1;
   --gt-tint-red-bg: hsl(0, 70%, 80%);
+  --gt-chart-rangeslider-bg: #ffffff;
 }
 
 [data-bs-theme='dark'] {
@@ -58,6 +59,9 @@
   --gt-tint-orange-bg: #5c3d10;
   --gt-tint-pink-bg: #5c2236;
   --gt-tint-red-bg: #6f2020;
+  /* Plotly darkens the part of the range slider outside the selection with a fixed black mask; on a lighter strip
+     than the page that mask stays visible. */
+  --gt-chart-rangeslider-bg: #52525b;
 }
 
 /* Sign of a value: positive values green, negative values red. */

@@ -102,6 +102,28 @@ class GermanTaxLotEngineTest {
         GermanTaxKeys.WARN_SALE_FROM_INCOMPLETE_LOT);
   }
 
+  // 50 lots of one unit at 0.03 EUR, 20 %: 0.30 EUR move to the child. Rounding each lot's 0.006 to a cent would hand
+  // over 0.01 from 49 lots and -0.19 from the last; the cents must instead go to 30 lots, so 49 parent units cost 1.17
+  @Test
+  @DisplayName("Spin-off as cost split of many small lots: the cents go to the largest remainders, no lot is negative")
+  void spinOffCostSplitOfManySmallLots() {
+    Security parent = stock("EUR");
+    Security child = stock("EUR");
+    Cashaccount eur = cashaccount("EUR");
+    List<Transaction> transactions = new ArrayList<>();
+    for (int i = 0; i < 50; i++) {
+      transactions.add(buy(DEPOT_A, parent, eur, 1, 0.03, LocalDateTime.of(2020, 1, 1, 10, 0).plusDays(i)));
+    }
+    transactions.addAll(List.of(spinOffLegs(parent, child, eur, 50, 50)));
+    transactions.add(sell(DEPOT_A, parent, eur, 49, 1, at(2026, 6)));
+
+    GermanTaxYearReport report = runWithSpinOff(SpinOffTaxTreatmentDe.COST_SPLIT, 2026,
+        transactions.toArray(Transaction[]::new));
+
+    assertThat(report.details).singleElement().satisfies(sale -> assertThat(sale.costEur).isEqualTo(1.17,
+        within(EXACT)));
+  }
+
   // 103 parent units at 4:1 give 25.75 child units; a third of 100 units at 10 leaves a remainder of one cent
   @Test
   @DisplayName("Spin-off: the warning names the fraction 0.75 and the child lot keeps the exact allotted units")

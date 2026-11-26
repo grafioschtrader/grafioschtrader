@@ -32,6 +32,7 @@ import { BaseLocale } from '../dynamic-form/models/base.locale';
 import { GlobalSessionNames } from '../global.session.names';
 import { BaseSettings } from '../base.settings';
 import { toClassString } from '../helper/css-class.helper';
+import { GainLossColor } from './gain-loss-color';
 
 /** Represents one item in the first (group) header row */
 interface HeaderGroupItem {
@@ -490,6 +491,7 @@ export interface CellMark {
                     <span
                       [pTooltip]="getCellTooltip(rowData, field)"
                       [class.gt-loss]="isNegativeValue(rowData, field)"
+                      [class.gt-gain]="isGainValue(rowData, field)"
                       tooltipPosition="top">
                       {{ getValue(rowData, field) }}
                     </span>
@@ -589,8 +591,12 @@ export interface CellMark {
                     [class]="getCellClass(field)"
                     [style.max-width.px]="field.width"
                     [style]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
-                    <span [class.gt-loss]="footerNegativeFnValue && footerNegativeFnValue(field)">
-                      {{ footerValueFnValue(field) }}
+                    @let footerText = footerValueFnValue(field);
+                    @let footerNegative = !!footerNegativeFnValue && footerNegativeFnValue(field);
+                    <span
+                      [class.gt-loss]="footerNegative"
+                      [class.gt-gain]="isFooterGain(field, footerText, footerNegative)">
+                      {{ footerText }}
                     </span>
                   </td>
                 }
@@ -1578,5 +1584,32 @@ export class ConfigurableTableComponent<T = any> implements AfterViewChecked, On
     }
     const value = this.getValue(row, field);
     return value != null && String(value).startsWith('-');
+  }
+
+  /**
+   * Determines if a footer total is shown in the gain color, by the same rule as a cell.
+   *
+   * @param field - Column configuration
+   * @param text - The displayed total
+   * @param negative - Whether the total is shown in the loss color
+   * @returns True if the total should be colored green
+   */
+  isFooterGain(field: ColumnConfig, text: string, negative: boolean): boolean {
+    return GainLossColor.isGain(field, text, negative);
+  }
+
+  /**
+   * Determines if a value is shown in the gain color: only in a column marked with `gainLossColor`, for a value that is
+   * neither negative nor displayed as zero.
+   *
+   * @param row - Row data object
+   * @param field - Column configuration
+   * @returns True if value should be colored green
+   */
+  isGainValue(row: T, field: ColumnConfig): boolean {
+    return (
+      field.gainLossColor === true &&
+      GainLossColor.isGain(field, this.getValue(row, field), this.isNegativeValue(row, field))
+    );
   }
 }

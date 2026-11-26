@@ -489,6 +489,31 @@ periodic `ApplicationRef.tick()`.
   properties of `FieldConfig` change in place. The fields of the signal form inherit `config`, `formConfig` and
   `field` (its `FieldTree`) from `SignalBaseInputComponent` and read display state from its `view()`.
 
+## Color schemes (light, dark, system)
+
+Both desktop hosts switch the scheme with one attribute, `data-bs-theme="light" | "dark"` on `<html>`, written by
+`ThemeService` (`lib/theme/theme.service.ts`); Bootstrap, Optimus (`darkModeSelector`) and every custom dark rule key
+on it. `gt-mobile` follows the device and is not affected.
+
+- **No hard-coded color in a style, template or style object.** Use the Optimus custom properties
+  (`--p-text-color`, `--p-text-muted-color`, `--p-content-background`, `--p-content-border-color`, …) or the semantic
+  `--gt-*` tokens in `lib/styles.css`, which are defined for both schemes and checked to reach WCAG 4.5:1 against the
+  text they carry. A new colored text/background pair gets a token with a light and a dark value; a computed color
+  (heatmap) takes `ThemeService.isDark()` and is unit-tested for contrast like `shared/helper/heatmap.colors.ts`.
+  Instrument logos keep their white badge on purpose.
+- **Gain and loss colors follow the meaning of a column.** A column holding a result or a change (gain, return,
+  daily change) passes `gainLossColor: true`; its positive values get `gt-gain`, negative ones `gt-loss`. Balances,
+  values, quantities, prices and fees keep `templateName: 'greenRed'` without the flag and show only negatives red.
+  Templates that render values themselves use `isGainByPath` / `isGainText`, never a literal `'red'` or `'green'`.
+  Inside a selected row the selection color wins (`lib/styles.css`).
+- **A new Plotly host** calls `PlotlyHelper.applyThemeToLayout(layout, PlotlyHelper.getThemeSurface(element))` before
+  drawing and registers `PlotlyHelper.effectOnThemeChange(themeService.isDark, …)` that calls
+  `PlotlyHelper.restyleForTheme`, which redraws from the chart element's own data and layout, so zoom, hidden series
+  and drawings survive. Producer accents that depend on the scheme go through `ChartData.applyTheme` or are rebuilt
+  from the surface. Print figures stay light (`buildPrintFigure`).
+- Optimus density lives in `lib/theme/compact.preset.ts`, shared by both hosts; set paddings and sizes there as
+  tokens, not as component CSS.
+
 ## Component Separation: Form Inputs + Table
 
 **CRITICAL**: Never combine form inputs (dropdowns, checkboxes, etc.) and a data table into a single monolithic component. Always split them:

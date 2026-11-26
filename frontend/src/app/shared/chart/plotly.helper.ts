@@ -1,6 +1,6 @@
 import { TranslateService } from '@ngx-translate/core';
 import { Helper } from '../../lib/helper/helper';
-import { ElementRef } from '@angular/core';
+import { CreateEffectOptions, effect, EffectRef, ElementRef, Signal, untracked } from '@angular/core';
 import tippy from 'tippy.js';
 
 export interface ChartData {
@@ -9,6 +9,11 @@ export interface ChartData {
   options: any;
   legendTooltipMap: Map<string, string>;
   callBackFN?: (traceIndex: number, dataPointIndex: number) => void;
+  /**
+   * Recolors the producer's own accents in the traces for a color scheme, for example muted labels. Called before every
+   * draw and when the scheme changes, so a mounted chart follows the scheme without asking its producer for new data.
+   */
+  applyTheme?: (data: any, surface: PlotlyThemeSurface) => void;
 }
 
 /**
@@ -38,6 +43,8 @@ export interface PlotlyThemeSurface {
   gridColor: string;
   /** Background of the content area behind the transparent chart, for borders that must match it. */
   surfaceBg: string;
+  /** Background of a range slider, on which Plotly's black mask marks the part outside the selection. */
+  rangesliderBg: string;
 }
 
 export interface ChartTrace {
@@ -191,6 +198,59 @@ export class PlotlyHelper {
   }
 
   /**
+   * Creates an effect that calls `redraw` whenever the color scheme changes after the effect was created. The first run,
+   * which coincides with the initial draw of the chart, is skipped. `redraw` runs untracked, so the signals it reads do
+   * not become dependencies.
+   *
+   * @param isDark - The scheme signal, normally `ThemeService.isDark`
+   * @param redraw - Updates the mounted chart for the new scheme
+   * @param options - Effect options, for example an injector when called outside an injection context
+   * @returns The effect, destroyed with its injection context
+   */
+  public static effectOnThemeChange(
+    isDark: Signal<boolean>,
+    redraw: () => void,
+    options?: CreateEffectOptions
+  ): EffectRef {
+    let initial = true;
+    return effect(() => {
+      isDark();
+      if (initial) {
+        initial = false;
+        return;
+      }
+      untracked(redraw);
+    }, options);
+  }
+
+  /**
+   * Redraws a mounted chart in the colors of the active scheme with `Plotly.react`. By default it reuses the data and
+   * layout held by the chart element: Plotly keeps working on the objects it was given, so they carry the current zoom,
+   * pan, hidden legend entries and ranges set by `relayout`, which therefore all survive the redraw.
+   *
+   * @param plotly - The loaded Plotly instance of the chart
+   * @param element - The chart element; nothing happens when no plot is drawn in it
+   * @param config - The Plotly configuration the chart was drawn with; passing it avoids a full redraw
+   * @param figure - Data and layout to draw instead of those held by the element
+   * @returns True when a plot was redrawn
+   */
+  public static restyleForTheme(
+    plotly: { react: (...args: any[]) => Promise<any> },
+    element: HTMLElement & { data?: any; layout?: any },
+    config?: any,
+    figure?: { data: any; layout: any }
+  ): boolean {
+    const data = figure?.data ?? element.data;
+    const layout = figure?.layout ?? element.layout;
+    if (!data || !layout) {
+      return false;
+    }
+    PlotlyHelper.applyThemeToLayout(layout, PlotlyHelper.getThemeSurface(element));
+    plotly.react(element, data, layout, config);
+    return true;
+  }
+
+  /**
    * Reads the chart colors of the active scheme from the Optimus custom properties. Called at draw time, after Plotly has
    * been loaded, so a lazily loaded chart uses the scheme that is active then.
    *
@@ -204,7 +264,8 @@ export class PlotlyHelper {
       textColor: read('--p-text-color', '#334155'),
       mutedColor: read('--p-text-muted-color', '#64748b'),
       gridColor: read('--p-content-border-color', '#e2e8f0'),
-      surfaceBg: read('--p-content-background', '#ffffff')
+      surfaceBg: read('--p-content-background', '#ffffff'),
+      rangesliderBg: read('--gt-chart-rangeslider-bg', '#ffffff')
     };
   }
 
@@ -235,6 +296,10 @@ export class PlotlyHelper {
           linecolor: surface.gridColor,
           zerolinecolor: surface.gridColor
         };
+        const rangeslider = target[key].rangeslider;
+        if (rangeslider && typeof rangeslider === 'object') {
+          target[key].rangeslider = { ...rangeslider, bgcolor: surface.rangesliderBg, bordercolor: surface.gridColor };
+        }
       }
     }
     return layout;

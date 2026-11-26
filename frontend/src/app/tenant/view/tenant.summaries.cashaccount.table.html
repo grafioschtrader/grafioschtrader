@@ -62,6 +62,7 @@
             <span
               [pTooltip]="getCellTooltip(el, field) ?? undefined"
               [class.gt-loss]="isValueByPathMinus(el, field)"
+              [class.gt-gain]="isGainByPath(el, field)"
               tooltipPosition="top">
               {{ getValueByPath(el, field) }}
             </span>
@@ -79,7 +80,9 @@
                   || columnConfig.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
             [style]="getGroupCellStyle(columnConfig, groupChangeIndexMap().get(rowIndex))">
             @switch (columnConfig.templateName) { @case ('greenRed') {
-            <span [class.gt-loss]="isColumnTotalByRowIndexMinus(columnConfig, 0, groupChangeIndexMap(), rowIndex)">
+            <span
+              [class.gt-loss]="isColumnTotalByRowIndexMinus(columnConfig, 0, groupChangeIndexMap(), rowIndex)"
+              [class.gt-gain]="isGainText(columnConfig, getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap(), rowIndex), isColumnTotalByRowIndexMinus(columnConfig, 0, groupChangeIndexMap(), rowIndex))">
               {{ getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap(), rowIndex) }}
             </span>
             } @default { {{ getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap(), rowIndex) }} } }
@@ -102,7 +105,9 @@
             [style]="getGrandCellStyle(field)"
             class="row-total">
             @switch (field.templateName) { @case ('greenRed') {
-            <span [class.gt-loss]="isValueColumnTotalMinus(field, 1, accountPositionGrandSummary(), null)">
+            <span
+              [class.gt-loss]="isValueColumnTotalMinus(field, 1, accountPositionGrandSummary(), null)"
+              [class.gt-gain]="isGainText(field, getValueColumnTotal(field, 1, accountPositionGrandSummary(), null), isValueColumnTotalMinus(field, 1, accountPositionGrandSummary(), null))">
               {{ getValueColumnTotal(field, 1, accountPositionGrandSummary(), null) }}
             </span>
             } @default {

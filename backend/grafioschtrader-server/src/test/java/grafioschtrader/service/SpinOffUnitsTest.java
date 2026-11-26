@@ -56,6 +56,18 @@ class SpinOffUnitsTest {
         List.of(shares, repurchase, systemSale), userSale, userSale.getSecurity())).doesNotThrowAnyException();
   }
 
+  // An imported bank statement books the delivery of the 25 child units but no sale and repurchase of the parent
+  @Test
+  void proposesSkipForAnImportedChildDeliveryWithoutTheParentPair() {
+    var delivery = trade(TransactionType.ACCUMULATE, 25, EX_DATE.plusDays(1), 1);
+    var unrelated = trade(TransactionType.ACCUMULATE, 10, EX_DATE.plusDays(1), 2);
+
+    assertThat(SpinOffApplyService.manuallyRecorded(List.of(), List.of(delivery), 100, 25, List.of(), List.of(),
+        EX_DATE)).isTrue();
+    assertThat(SpinOffApplyService.manuallyRecorded(List.of(), List.of(unrelated), 100, 25, List.of(), List.of(),
+        EX_DATE)).isFalse();
+  }
+
   private static Transaction trade(TransactionType type, double units, LocalDate date, int id) {
     Transaction t = new Transaction();
     var security = new Security();

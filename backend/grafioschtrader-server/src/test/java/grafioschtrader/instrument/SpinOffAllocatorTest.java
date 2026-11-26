@@ -179,6 +179,26 @@ class SpinOffAllocatorTest {
         within(1e-8));
   }
 
+  // 50 savings plan lots of 0.03 USD and 20 %: 0.30 USD move. Each lot's share of 0.006 must not be rounded on its
+  // own, else 49 lots hand over 0.01 each and the last one -0.19, which leaves that parent lot at 0.22.
+  @Test
+  void manySmallLotsHandOverTheRoundedTotalWithoutANegativeLot() {
+    var summary = new SecurityPositionSummary("USD", parent, precision);
+    for (int i = 0; i < 50; i++) {
+      summary.addToLedger(trade(parent, A.plusDays(i), 1, 0.03, 100 + i, TransactionType.ACCUMULATE), 1, 0.03, null);
+    }
+
+    var allocation = SpinOffAllocator.allocate(summary, childLeg(), CostBasisMethod.FIFO, 50, 12.5, 0.2, 1, 1.0, 2,
+        2);
+
+    assertThat(allocation.allocatedCost()).isEqualTo(0.30);
+    assertThat(allocation.childLots()).extracting(lot -> lot.cost).allSatisfy(cost -> assertThat(cost).isIn(0.0, 0.01));
+    assertThat(allocation.childLots().stream().mapToDouble(lot -> lot.cost).sum()).isCloseTo(0.30, within(1e-9));
+    assertThat(allocation.childLots().subList(0, 30)).extracting(lot -> lot.cost).containsOnly(0.01);
+    assertThat(allocation.parentLotsAfter()).extracting(lot -> lot.cost)
+        .allSatisfy(cost -> assertThat(cost).isBetween(0.02 - 1e-9, 0.03 + 1e-9));
+  }
+
   @Test
   void averageCostAllocatesTheAccountsProportionalShareOfTheScope() {
     var pooled = new SecurityPositionSummary("USD", parent, precision);

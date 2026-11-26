@@ -46,6 +46,7 @@ import {
 import { IdsAccounts } from '../model/ids.accounts';
 import { TenantDividendsChartService } from '../service/tenant.dividends.chart.service';
 import { PlotlyHelper, PlotlyThemeSurface } from '../../shared/chart/plotly.helper';
+import { ThemeService } from '../../lib/theme/theme.service';
 
 /**
  * The charts the user can choose from. The keys are also their translation keys.
@@ -155,6 +156,9 @@ export class TenantDividendsChartComponent
   private readonly selectedChartType = signal(IncomeChartType.INCOME_CHART_MONTHLY);
   /** Chrome colors of the scheme active when the current figure was built. */
   private surface: PlotlyThemeSurface = PlotlyHelper.getThemeSurface();
+  private readonly themeService = inject(ThemeService);
+  /** True while a figure is drawn in the chart element, so a scheme change can redraw it in place. */
+  private figureShown = false;
   readonly chartNeedsYear = computed(() => CHART_NEEDS_YEAR[this.selectedChartType()]);
   private readRequest?: Subscription;
 
@@ -184,6 +188,7 @@ export class TenantDividendsChartComponent
   constructor() {
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => this.restyleForTheme());
     const monthFormat = new Intl.DateTimeFormat(this.gps.getLocale(), { month: 'short' });
     this.monthNames = Array.from({ length: 12 }, (_, i) => monthFormat.format(new Date(2000, i, 1)));
 
@@ -328,6 +333,7 @@ export class TenantDividendsChartComponent
     const figure = this.buildFigure(chartType, this.selectedYear);
     this.noDataTextKey.set(figure ? null : CHART_NEEDS_YEAR[chartType] ? 'NO_INCOME_IN_YEAR' : 'NO_DATA_AVAILABLE');
     const version = ++this.drawVersion;
+    this.figureShown = false;
     this.plotly?.purge(this.chartElement().nativeElement);
     if (figure) {
       // Wait until the chart element is no longer hidden, otherwise Plotly measures a zero size.
@@ -337,7 +343,9 @@ export class TenantDividendsChartComponent
             (plotly) => {
               if (!this.destroyed && version === this.drawVersion) {
                 this.plotly = plotly;
+                figure.layout.uirevision = this.uirevision(chartType);
                 PlotlyHelper.applyThemeToLayout(figure.layout, this.surface);
+                this.figureShown = true;
                 plotly.newPlot(this.chartElement().nativeElement, figure.data, figure.layout, this.plotlyConfig);
               }
             },
@@ -353,6 +361,30 @@ export class TenantDividendsChartComponent
     if (!this.noDataTextKey() && chartElement.nativeElement.data) {
       this.plotly?.Plots.resize(chartElement.nativeElement);
     }
+  }
+
+  /**
+   * Rebuilds the shown chart with the colors of the new scheme, because the chart chrome and marker borders of this
+   * figure are taken from the surface, and updates it in place, keeping zoom and hidden legend entries.
+   */
+  private restyleForTheme(): void {
+    if (!this.plotly || !this.figureShown || this.destroyed || !this.initializedChartData) {
+      return;
+    }
+    const chartType: IncomeChartType = requireFormControl(this.configObject.chartType).value;
+    const element = this.chartElement().nativeElement;
+    this.surface = PlotlyHelper.getThemeSurface(element);
+    const figure = this.buildFigure(chartType, this.selectedYear);
+    if (figure) {
+      figure.layout.uirevision = this.uirevision(chartType);
+      PlotlyHelper.applyThemeToLayout(figure.layout, this.surface);
+      this.plotly.react(element, figure.data, figure.layout, this.plotlyConfig);
+    }
+  }
+
+  /** Stable for one chart type and year, so redrawing the same chart keeps its view state. */
+  private uirevision(chartType: IncomeChartType): string {
+    return chartType + '_' + (this.selectedYear ?? '');
   }
 
   private buildFigure(chartType: IncomeChartType, year: number | null): { data: any[]; layout: any } | null {

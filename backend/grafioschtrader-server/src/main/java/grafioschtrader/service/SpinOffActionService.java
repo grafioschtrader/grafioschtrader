@@ -2,6 +2,7 @@ package grafioschtrader.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -144,7 +145,10 @@ public class SpinOffActionService {
     return saved;
   }
 
-  /** Returns the allocation using the first common price day in the eleven-day window. */
+  /**
+   * Returns the allocation using the first day in the eleven-day window on which the parent and the child have a close
+   * and the exchange rate from the child's to the parent's currency is known.
+   */
   @Transactional(readOnly = true)
   public SpinOffAllocationProposalDto proposeAllocation(Integer parentId, Integer childId, LocalDate actionDate,
       Integer fromFactor, Integer toFactor) {
@@ -165,7 +169,8 @@ public class SpinOffActionService {
       if (childClose != null && positive(quote.getClose())) {
         Double fx = childToParentRate(child.getCurrency(), parent.getCurrency(), quote.getDate());
         if (fx == null) {
-          return NO_PROPOSAL;
+          // A missing exchange rate on this day does not rule out a later common day of the window.
+          continue;
         }
         double parentPrice = quote.getClose() * splitFactor(parentId, actionDate);
         double childPrice = childClose * splitFactor(childId, actionDate);
@@ -208,13 +213,9 @@ public class SpinOffActionService {
     }
     validateAllocation(request);
     String note = request.getNote();
-    if (!Objects.equals(stored.getCostAllocation(), request.getCostAllocation())
-        || !Objects.equals(stored.getCostAllocationSource(), request.getCostAllocationSource())
-        || stored.getTaxTreatmentDe() != request.getTaxTreatmentDe()
-        || !Objects.equals(stored.getCostAllocationDe(), request.getCostAllocationDe())) {
-      String entry = "%s: allocation %s -> %s (%s)".formatted(ClientClock.today(), stored.getCostAllocation(),
-          request.getCostAllocation(), Objects.toString(request.getCostAllocationSource(), ""));
-      note = StringUtils.hasText(note) ? note + "\n" + entry : entry;
+    String allocationChange = describeAllocationChange(stored, request);
+    if (allocationChange != null) {
+      note = StringUtils.hasText(note) ? note + "\n" + allocationChange : allocationChange;
     }
     String historyChange = takeOverHistoryBasis(stored, request);
     if (historyChange != null) {
@@ -268,6 +269,29 @@ public class SpinOffActionService {
       return null;
     }
     return "%s: history %s -> %s".formatted(ClientClock.today(), before, describeHistoryBasis(stored));
+  }
+
+  /**
+   * Describes the changed allocation fields as one note line. The source is not repeated, because it is stored in its
+   * own field and would fill the note after a few corrections.
+   *
+   * @return the note line, null when no allocation field changed
+   */
+  private static String describeAllocationChange(SecurityAction stored, SecurityAction request) {
+    List<String> changes = new ArrayList<>();
+    if (!Objects.equals(stored.getCostAllocation(), request.getCostAllocation())) {
+      changes.add("allocation %s -> %s".formatted(stored.getCostAllocation(), request.getCostAllocation()));
+    }
+    if (stored.getTaxTreatmentDe() != request.getTaxTreatmentDe()) {
+      changes.add("DE %s -> %s".formatted(stored.getTaxTreatmentDe(), request.getTaxTreatmentDe()));
+    }
+    if (!Objects.equals(stored.getCostAllocationDe(), request.getCostAllocationDe())) {
+      changes.add("DE allocation %s -> %s".formatted(stored.getCostAllocationDe(), request.getCostAllocationDe()));
+    }
+    if (!Objects.equals(stored.getCostAllocationSource(), request.getCostAllocationSource())) {
+      changes.add("source changed");
+    }
+    return changes.isEmpty() ? null : ClientClock.today() + ": " + String.join(", ", changes);
   }
 
   private static String describeHistoryBasis(SecurityAction action) {

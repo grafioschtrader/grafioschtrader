@@ -7,6 +7,7 @@ import { AppHelper } from '../helper/app.helper';
 import { Helper } from '../helper/helper';
 import { TranslateHelper } from '../helper/translate.helper';
 import { GlobalparameterService } from '../services/globalparameter.service';
+import { GainLossColor } from './gain-loss-color';
 
 /**
  * Abstract base class that provides foundational functionality for displaying data in non-editable
@@ -250,7 +251,9 @@ export abstract class ShowRecordConfigBase {
       cc.translateValues = optionalParams.translateValues;
       cc.headerPrefix = optionalParams.headerPrefix;
       cc.headerGroupKey = optionalParams.headerGroupKey;
-      cc.templateName = optionalParams.templateName ? optionalParams.templateName : '';
+      cc.gainLossColor = optionalParams.gainLossColor;
+      // A gain/loss column needs the sign coloring of the 'greenRed' template unless it brings its own template.
+      cc.templateName = optionalParams.templateName || (optionalParams.gainLossColor ? 'greenRed' : '');
       cc.maxFractionDigits = optionalParams.maxFractionDigits;
       cc.minFractionDigits = optionalParams.minFractionDigits;
       cc.currencyPrecisionField = optionalParams.currencyPrecisionField;
@@ -353,6 +356,16 @@ export abstract class ShowRecordConfigBase {
   }
 
   /** Accesses a column that the concrete view must have configured before using it. */
+  /**
+   * Marks already defined columns as results or changes, whose positive values are shown green and negative values red.
+   * For columns created by helper methods that do not pass `gainLossColor` themselves.
+   *
+   * @param fields - Field names of columns defined before
+   */
+  markGainLossColumns(...fields: string[]): void {
+    fields.forEach((field) => (this.requireColumnConfigByField(field).gainLossColor = true));
+  }
+
   requireColumnConfigByField(field: string): ColumnConfig {
     const column = this.getColumnConfigByField(field);
     if (!column) throw new Error(`Column "${field}" has not been configured.`);
@@ -399,6 +412,34 @@ export abstract class ShowRecordConfigBase {
    */
   isValueByPathMinus(dataobject: any, field: ColumnConfig): boolean {
     return +Helper.getValueByPath(dataobject, field.field) < 0;
+  }
+
+  /**
+   * Checks if a displayed value, for example a group or grand total, is shown in the gain color: only for a column
+   * marked with `gainLossColor`, a value that is not negative and does not display as zero. For templates that render
+   * values themselves; the table components decide the same way.
+   *
+   * @param field - The column configuration
+   * @param text - The displayed value
+   * @param negative - Whether the value is shown in the loss color
+   * @returns True if the value gets the class `gt-gain`
+   */
+  isGainText(field: ColumnConfig, text: string | number | null | undefined, negative: boolean): boolean {
+    return GainLossColor.isGain(field, text, negative);
+  }
+
+  /**
+   * Checks if a value accessed by the field path is shown in the gain color, see {@link isGainText}.
+   *
+   * @param dataobject - The object containing the data
+   * @param field - The column configuration containing the field path
+   * @returns True if the value gets the class `gt-gain`
+   */
+  isGainByPath(dataobject: any, field: ColumnConfig): boolean {
+    return (
+      field.gainLossColor === true &&
+      GainLossColor.isGain(field, this.getValueByPath(dataobject, field), this.isValueByPathMinus(dataobject, field))
+    );
   }
 
   /**

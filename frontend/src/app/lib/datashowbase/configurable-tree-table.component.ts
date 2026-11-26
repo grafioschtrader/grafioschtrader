@@ -28,6 +28,7 @@ import { ColumnConfig, EditInputType } from './column.config';
 import { DataType } from '../dynamic-form/models/data.type';
 import { BaseLocale } from '../dynamic-form/models/base.locale';
 import { Helper } from '../helper/helper';
+import { GainLossColor } from './gain-loss-color';
 
 /**
  * Event data emitted when a tree table cell edit operation completes or is cancelled.
@@ -293,6 +294,7 @@ export interface TreeTableCellEditEvent {
                       <span
                         [pTooltip]="getValue(rowData, field)"
                         [class.gt-loss]="isNegativeValue(rowData, field)"
+                        [class.gt-gain]="isGainValue(rowData, field)"
                         tooltipPosition="top">
                         {{ getValue(rowData, field) }}
                       </span>
@@ -1033,6 +1035,21 @@ export class ConfigurableTreeTableComponent implements AfterViewChecked, OnDestr
     }
     const value = this.getValue(row, field);
     return value != null && String(value).startsWith('-');
+  }
+
+  /**
+   * Determines if a value is shown in the gain color: only in a column marked with `gainLossColor`, for a value that is
+   * neither negative nor displayed as zero.
+   *
+   * @param row - Row data object
+   * @param field - Column configuration
+   * @returns True if value should be colored green
+   */
+  isGainValue(row: any, field: ColumnConfig): boolean {
+    return (
+      field.gainLossColor === true &&
+      GainLossColor.isGain(field, this.getValue(row, field), this.isNegativeValue(row, field))
+    );
   }
 
   /**

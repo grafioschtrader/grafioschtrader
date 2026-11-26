@@ -64,6 +64,7 @@ import { PositionEventKind, PositionEventTrace, positionEventTraces } from '../m
 import { TimeSeriesParam } from '../model/time.series.param';
 import { TimeSeriesQuotesService } from '../service/time.series.quotes.service';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { ThemeService } from '../../lib/theme/theme.service';
 
 /** The charts of one position the user can choose from, in the order of the select; the keys are their text keys. */
 enum SecurityPositionChartType {
@@ -284,12 +285,19 @@ export class SecurityPositionChartComponent implements IGlobalMenuAttach, OnDest
   /** Set once the first chart has loaded the library; cleanup never triggers the import. */
   private plotly?: PlotlyInstance;
   private destroyed = false;
+  private readonly themeService = inject(ThemeService);
   /** Raised by every draw, so a draw still waiting for the library is dropped when a newer one follows. */
   private drawVersion = 0;
 
   constructor() {
     TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
     this.translateOptions(Object.values(SecurityPositionChartType), this.chartTypeOptions);
+    // The chart element holds the current ranges, including the value axis set to follow the visible window.
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => {
+      if (this.plotly && !this.destroyed) {
+        PlotlyHelper.restyleForTheme(this.plotly, this.chartElement().nativeElement, this.plotlyConfig);
+      }
+    });
     this.translateOptions(Object.values(PerformanceBasis), this.basisOptions);
     reportResourceErrors(this.seriesResource, this.holdingService);
     effect(() => {

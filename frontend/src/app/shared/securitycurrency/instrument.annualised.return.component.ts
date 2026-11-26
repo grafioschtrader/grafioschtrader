@@ -35,11 +35,13 @@ export class InstrumentAnnualisedReturnComponent extends TableConfigBase impleme
   ngOnInit(): void {
     this.addColumnFeqH(DataType.String, 'numberOfYears', true, false);
     this.addColumn(DataType.Numeric, 'performanceAnnualised', 'PERFORMANCE', true, false, {
+      gainLossColor: true,
       templateName: 'greenRed',
       headerSuffix: '%'
     });
     const mainCurrency = this.mainCurrency();
     this.addColumn(DataType.Numeric, 'performanceAnnualisedMC', 'PERFORMANCE', true, false, {
+      gainLossColor: true,
       templateName: 'greenRed',
       headerSuffix: (mainCurrency ? mainCurrency + ' ' : '') + '%'
     });

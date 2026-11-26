@@ -43,6 +43,7 @@
           <span
             [pTooltip]="getValueByPath(el, field)"
             [class.gt-loss]="isValueByPathMinus(el, field)"
+            [class.gt-gain]="isGainByPath(el, field)"
             tooltipPosition="top">
             {{ getValueByPath(el, field) }}
           </span>

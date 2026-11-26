@@ -94,6 +94,25 @@ class SpinOffAllocationTest {
   }
 
   @Test
+  void movesToTheNextCommonDayWhenTheExchangeRateIsMissing() {
+    child.setCurrency("CHF");
+    LocalDate nextDay = EX_DATE.plusDays(1);
+    when(quotes.findByIdSecuritycurrencyAndDateBetweenOrderByDate(1, EX_DATE, END))
+        .thenReturn(List.of(new Historyquote(1, EX_DATE, 64), new Historyquote(3, nextDay, 64)));
+    when(quotes.findByIdSecuritycurrencyAndDateBetweenOrderByDate(2, EX_DATE, END))
+        .thenReturn(List.of(new Historyquote(2, EX_DATE, 48), new Historyquote(4, nextDay, 48)));
+    Currencypair pair = new Currencypair("CHF", "USD");
+    when(pairs.findByFromCurrencyAndToCurrencyOrToCurrencyAndFromCurrency("CHF", "USD")).thenReturn(List.of(pair));
+    when(pairs.getHistoricalClosePriceForDate(pair, nextDay)).thenReturn(1.25);
+
+    var result = service.proposeAllocation(1, 2, EX_DATE, 4, 1);
+
+    assertThat(result.priceDate()).isEqualTo(nextDay);
+    assertThat(result.fxChildToParent()).isEqualTo(1.25);
+    assertThat(result.proposedAllocation()).isCloseTo(15.0 / 79, within(1e-10));
+  }
+
+  @Test
   void reportsNoProposalWhenThereIsNoCommonPriceDay() {
     when(quotes.findByIdSecuritycurrencyAndDateBetweenOrderByDate(2, EX_DATE, END))
         .thenReturn(List.of(new Historyquote(2, EX_DATE.plusDays(1), 48)));

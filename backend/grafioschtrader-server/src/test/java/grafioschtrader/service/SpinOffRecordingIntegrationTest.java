@@ -267,24 +267,29 @@ class SpinOffRecordingIntegrationTest {
   }
 
   @Test
-  void proposesSkipOnlyForTheCompleteManualPatternAndRejectsStaleUnits() throws Exception {
+  void proposesSkipForAManualPatternOrAnImportedDeliveryAndRejectsStaleUnits() throws Exception {
     Tenant tenant = testTenant();
     Account manual = account(tenant, "Manual");
-    Account simple = account(tenant, "Plain child purchase");
+    Account imported = account(tenant, "Imported child delivery");
+    Account simple = account(tenant, "Unrelated child purchase");
     SecurityAction action = actionWithPrices();
     Security child = action.getSecurityNew();
-    for (Account account : List.of(manual, simple)) {
+    for (Account account : List.of(manual, imported, simple)) {
       booking(account, parent, TransactionType.ACCUMULATE, 100, 58, EX_DATE.minusMonths(4));
-      booking(account, child, TransactionType.ACCUMULATE, 25, 48, EX_DATE);
     }
     booking(manual, parent, TransactionType.REDUCE, 100, 76, EX_DATE);
     booking(manual, parent, TransactionType.ACCUMULATE, 100, 64, EX_DATE);
+    booking(manual, child, TransactionType.ACCUMULATE, 25, 48, EX_DATE);
+    booking(imported, child, TransactionType.ACCUMULATE, 25, 48, EX_DATE);
+    booking(simple, child, TransactionType.ACCUMULATE, 10, 48, EX_DATE);
     var preview = resource.previewSpinOff(action.getId());
     assertThat(preview.accounts()).extracting(row -> row.idSecurityaccount() + ":" + row.decision())
-        .containsExactly(manual.security().getId() + ":SKIP", simple.security().getId() + ":BOOK");
+        .containsExactly(manual.security().getId() + ":SKIP", imported.security().getId() + ":SKIP",
+            simple.security().getId() + ":BOOK");
     assertViolation(
         () -> resource.applySecurityAction(action.getId(),
             List.of(new SpinOffDecisionDto(manual.security().getId(), 100.0, Decision.SKIP),
+                new SpinOffDecisionDto(imported.security().getId(), 100.0, Decision.SKIP),
                 new SpinOffDecisionDto(simple.security().getId(), 99.0, Decision.BOOK))),
         "gt.security.action.spinoff.preview.stale");
   }

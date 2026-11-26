@@ -163,6 +163,32 @@ describe('buildPrintFigure', () => {
     expect(traces[0]['opacity']).toBe(0.75);
   });
 
+  it('prints grid, axis and legend of a dark screen layout in light colors and keeps ranges and accents', () => {
+    const darkLayout = {
+      ...layout,
+      legend: { orientation: 'h', font: { size: 10, color: '#ffffff' } },
+      xaxis: { ...layout.xaxis, gridcolor: '#3f3f46', linecolor: '#3f3f46', zerolinecolor: '#3f3f46' },
+      yaxis: { range: [90, 130], gridcolor: '#3f3f46' },
+      yaxis2: { overlaying: 'y', side: 'right', tickfont: { color: 'rgb(148, 103, 189)' }, gridcolor: '#3f3f46' }
+    };
+    const traces = markerTraces();
+
+    const figure = buildPrintFigure(traces, darkLayout, numberTransactionMarkers(traces, darkLayout.xaxis.range));
+
+    for (const axis of ['xaxis', 'yaxis', 'yaxis2']) {
+      expect(figure.layout[axis].gridcolor).toBe('#e1e0d9');
+      expect(figure.layout[axis].zerolinecolor).toBe('#e1e0d9');
+    }
+    expect(figure.layout['xaxis'].linecolor).toBe('#e1e0d9');
+    expect(figure.layout['xaxis'].range).toEqual(['2024-04-01', '2024-12-31']);
+    expect(figure.layout['yaxis'].range).toEqual([90, 130]);
+    expect(figure.layout['yaxis2'].tickfont.color).toBe('rgb(148, 103, 189)');
+    expect(figure.layout['legend']).toEqual({ orientation: 'h', font: { size: 10, color: '#2a3f5f' } });
+    expect(figure.layout['paper_bgcolor']).toBe('#ffffff');
+    expect(figure.data[2]['text']).toEqual(['1']);
+    expect(darkLayout.yaxis.gridcolor).toBe('#3f3f46');
+  });
+
   it('draws no numbers when none are asked for', () => {
     const figure = buildPrintFigure(markerTraces(), layout, null);
 

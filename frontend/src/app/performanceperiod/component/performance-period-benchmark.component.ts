@@ -28,7 +28,7 @@ import type { BenchmarkNotice, PerformanceBenchmarkResult } from '../model/perfo
                 {{ field.headerTranslated }}
               </div>
               <div class="col-6 text-end">
-                <span [class.gt-loss]="isValueByPathMinus(result, field)">
+                <span [class.gt-loss]="isValueByPathMinus(result, field)" [class.gt-gain]="isGainByPath(result, field)">
                   {{ getValueByPath(result, field) }}
                 </span>
               </div>
@@ -49,7 +49,9 @@ import type { BenchmarkNotice, PerformanceBenchmarkResult } from '../model/perfo
                   {{ field.headerTranslated }}
                 </div>
                 <div class="col-6 text-end">
-                  <span [class.gt-loss]="isValueByPathMinus(result, field)">
+                  <span
+                    [class.gt-loss]="isValueByPathMinus(result, field)"
+                    [class.gt-gain]="isGainByPath(result, field)">
                     {{ getValueByPath(result, field) }}
                   </span>
                 </div>
@@ -69,7 +71,9 @@ import type { BenchmarkNotice, PerformanceBenchmarkResult } from '../model/perfo
                     {{ field.headerTranslated }}
                   </div>
                   <div class="col-6 text-end">
-                    <span [class.gt-loss]="isValueByPathMinus(result, field)">
+                    <span
+                      [class.gt-loss]="isValueByPathMinus(result, field)"
+                      [class.gt-gain]="isGainByPath(result, field)">
                       {{ getValueByPath(result, field) }}
                     </span>
                   </div>
@@ -133,6 +137,14 @@ export class PerformancePeriodBenchmarkComponent extends SingleRecordConfigBase 
     this.addPercentField('metrics.portfolioTwrAnnualizedPercent', 'PORTFOLIO_TWR_ANNUALIZED_PERCENT');
     this.addPercentField('metrics.benchmarkTwrAnnualizedPercent', 'BENCHMARK_TWR_ANNUALIZED_PERCENT');
     this.addPercentField('metrics.excessReturnAnnualizedPercent', 'EXCESS_RETURN_ANNUALIZED_PERCENT', false);
+    this.markGainLossColumns(
+      'metrics.portfolioTwrPercent',
+      'metrics.benchmarkTwrPercent',
+      'metrics.excessReturnPercent',
+      'metrics.portfolioTwrAnnualizedPercent',
+      'metrics.benchmarkTwrAnnualizedPercent',
+      'metrics.excessReturnAnnualizedPercent'
+    );
     this.addFieldProperty(DataType.NumericShowZero, 'metrics.includedIntervals', 'INCLUDED_INTERVALS', {
       fieldsetName,
       maxFractionDigits: 0
@@ -157,6 +169,7 @@ export class PerformancePeriodBenchmarkComponent extends SingleRecordConfigBase 
     this.addRatioField('metrics.beta', 'BENCHMARK_BETA');
     this.addRatioField('metrics.correlation', 'BENCHMARK_CORRELATION');
     this.addPercentField('metrics.jensenAlphaAnnualizedPercent', 'JENSEN_ALPHA_ANNUALIZED_PERCENT', true, fieldsetName);
+    this.markGainLossColumns('metrics.jensenAlphaAnnualizedPercent');
     this.addPercentField('metrics.upCapturePercent', 'UP_CAPTURE_PERCENT', true, fieldsetName);
     this.addPercentField('metrics.downCapturePercent', 'DOWN_CAPTURE_PERCENT', true, fieldsetName);
     this.addPercentField(
@@ -188,6 +201,12 @@ export class PerformancePeriodBenchmarkComponent extends SingleRecordConfigBase 
     this.addFieldProperty(DataType.NumericShowZero, 'shadow.differenceMC', 'SHADOW_DIFFERENCE_MC', { fieldsetName });
     this.addPercentField('shadow.mwrPercent', 'MWR_PERCENT', true, fieldsetName);
     this.addPercentField('shadow.mwrAnnualizedPercent', 'MWR_ANNUALIZED_PERCENT', true, fieldsetName);
+    this.markGainLossColumns(
+      'shadow.gainMC',
+      'shadow.differenceMC',
+      'shadow.mwrPercent',
+      'shadow.mwrAnnualizedPercent'
+    );
     this.addFieldProperty(DataType.String, 'shadow.mwrStatus', 'MWR_STATUS', {
       fieldsetName,
       translateValues: TranslateValue.NORMAL

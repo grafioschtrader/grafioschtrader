@@ -34,6 +34,7 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { AppSettings } from '../../shared/app.settings';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { ThemeService } from '../../lib/theme/theme.service';
 import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
 import type { SecurityPeriodPerformance } from '../model/security-period-performance';
@@ -144,11 +145,13 @@ export class SecurityPeriodPerformanceChartComponent implements IGlobalMenuAttac
   /** Set once the first chart has loaded the library; cleanup never triggers the import. */
   private plotly?: PlotlyInstance;
   private destroyed = false;
+  private readonly themeService = inject(ThemeService);
   /** Raised by every draw, so a draw still waiting for the library is dropped when a newer one follows. */
   private drawVersion = 0;
 
   constructor() {
     TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => this.restyleForTheme());
     const chartTypes = Object.values(SecurityPerformanceChartType);
     this.translateService
       .get(chartTypes)
@@ -233,6 +236,25 @@ export class SecurityPeriodPerformanceChartComponent implements IGlobalMenuAttac
   }
 
   /** Draws the figure; a new plot drops the listeners of the previous one, so the click is registered again. */
+  /**
+   * Redraws the mounted chart in the colors of the new scheme. The treemap separates its tiles with the content
+   * background, so its border color follows the scheme as well.
+   */
+  private restyleForTheme(): void {
+    const element = this.chartElement().nativeElement as HTMLElement & { data?: unknown[] };
+    if (!this.plotly || this.destroyed || !element.data) {
+      return;
+    }
+    const surfaceBg = PlotlyHelper.getThemeSurface(element).surfaceBg;
+    for (const trace of element.data as { type?: string; marker?: { line?: { color?: string } } }[]) {
+      const line = trace.type === 'treemap' ? trace.marker?.line : undefined;
+      if (line) {
+        line.color = surfaceBg;
+      }
+    }
+    PlotlyHelper.restyleForTheme(this.plotly, element, this.plotlyConfig);
+  }
+
   private plot(plotly: PlotlyInstance, result: SecurityPeriodPerformance, figure: SecurityPerformanceFigure): void {
     const element = this.chartElement().nativeElement;
     PlotlyHelper.applyThemeToLayout(figure.layout, PlotlyHelper.getThemeSurface(element));

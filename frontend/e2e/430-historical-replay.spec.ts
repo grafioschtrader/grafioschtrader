@@ -36,6 +36,7 @@ const OWNER = 'alledit';
 const RX = {
   algoRoot: /^(Rule-based Trading|Regelbasierter Handel|ALGO_OVERVIEW)/,
   startRun: /(Start replay|Wiederholung starten|SIMULATION_RUN_START)/i,
+  runSettings: /^(Replay settings|Einstellungen der Wiederholung|SIMULATION_RUN_SETTINGS)$/,
   completed: /(Completed|Abgeschlossen|COMPLETED)/,
   applyTaxModels: /(Apply simulation tax models|Simulationssteuermodelle anwenden|APPLY_TAX_MODELS)/,
   generateBondCoupons: /(Generate regular bond coupons|Regelmässige Anleihencoupons erzeugen|GENERATE_BOND_COUPONS)/
@@ -317,7 +318,7 @@ test.describe('historical replay', () => {
       await gate;
       await route.fulfill({ response: settings });
     });
-    await page.locator('p-tabs').getByRole('tab').last().click();
+    await page.locator('p-tabs').getByRole('tab', { name: RX.runSettings }).click();
     await expect.poll(() => settingsArrived).toBe(true);
     const frozen = page.locator('algo-simulation-run-settings');
     await expect(frozen.locator('tbody tr')).toHaveCount(0);

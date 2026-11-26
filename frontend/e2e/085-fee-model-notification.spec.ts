@@ -200,9 +200,9 @@ for (const mode of ['plan', 'account'] as const) {
       }
       await page.route(endpoint, (route) => route.abort('failed'), { times: 1 });
       await button.click();
-      await expect(fx.locator('.text-red-600')).toBeVisible();
+      await expect(fx.locator('.text-danger-emphasis')).toBeVisible();
       await button.click();
-      await expect(fx.locator('.text-red-600')).toHaveCount(0);
+      await expect(fx.locator('.text-danger-emphasis')).toHaveCount(0);
       await expect(fx.locator('[aria-live]')).toContainText('Notification FX');
       const abandoned = await holdResponse(page, endpoint);
       try {

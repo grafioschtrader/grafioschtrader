@@ -39,6 +39,7 @@ import {
   shadowLabel
 } from '../model/performance.total.chart.plot';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { ThemeService } from '../../lib/theme/theme.service';
 
 /**
  * Dashboard card drawing the total value of the client, or of one of its portfolios, next to the invested capital.
@@ -150,9 +151,12 @@ export class PerformanceTotalChartWidgetComponent
   private readonly plotlyLoader = inject(PlotlyLoaderService);
   /** Set once the chart has loaded the library; cleanup never triggers the import. */
   private plotly?: PlotlyInstance;
+  private readonly themeService = inject(ThemeService);
 
   constructor() {
     super();
+    // The layout reads the colors of the active scheme, so a redraw with the same chart restyles it in place.
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => this.plotly && this.drawPlot());
     this.config = [
       DynamicFieldHelper.createFieldSelectNumber('idPortfolio', 'DASHBOARD_TOTAL_CHART_PORTFOLIO', false, {
         usedLayoutColumns: 6
@@ -281,6 +285,8 @@ export class PerformanceTotalChartWidgetComponent
           if (!this.destroyed && chart === this.chart()) {
             this.plotly = plotly;
             const layout = PlotlyHelper.applyThemeToLayout(this.layout(), PlotlyHelper.getThemeSurface(element));
+            // Stable for one portfolio and range, so a redraw of the same chart keeps zoom and hidden traces.
+            layout.uirevision = `${chart.idPortfolio ?? ''}_${chart.range ?? ''}`;
             plotly.react(element, this.traces(chart.points), layout, this.plotlyConfig);
           }
         },

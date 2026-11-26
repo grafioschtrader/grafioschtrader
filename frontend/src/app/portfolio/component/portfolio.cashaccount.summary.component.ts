@@ -208,6 +208,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
 
     this.columnConfigs.push(
       this.addColumnFeqH(DataType.Numeric, 'gainLossCurrencyMC', true, false, {
+        gainLossColor: true,
         templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupGainLossCurrencyMC')]
       })
@@ -215,6 +216,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
 
     this.columnConfigs.push(
       this.addColumnFeqH(DataType.Numeric, 'gainLossSecuritiesMC', true, false, {
+        gainLossColor: true,
         templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecuritiesMC')]
       })

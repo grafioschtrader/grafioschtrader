@@ -34,6 +34,7 @@ import { WatchlistTreemap, WatchlistTreemapNode } from '../model/watchlist-treem
 import { WatchlistService } from '../service/watchlist.service';
 import { WatchlistTreemapChart } from './watchlist.treemap.chart';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { ThemeService } from '../../lib/theme/theme.service';
 
 /**
  * Market map of a watchlist: the stocks are grouped by the sub category of their asset class, the area of a tile is the
@@ -157,6 +158,7 @@ export class WatchlistTreemapComponent implements OnDestroy, IGlobalMenuAttach {
   /** Set once the first chart has loaded the library; cleanup never triggers the import. */
   private plotly?: PlotlyInstance;
   private destroyed = false;
+  private readonly themeService = inject(ThemeService);
   /** Raised by every draw, so a draw still waiting for the library is dropped when a newer one follows. */
   private drawVersion = 0;
   private refreshLogoPreview?: () => void;
@@ -167,6 +169,12 @@ export class WatchlistTreemapComponent implements OnDestroy, IGlobalMenuAttach {
 
   constructor() {
     reportResourceErrors(this.treemap, this.watchlistService);
+    // The white logo badges stay white in both schemes; only the chrome follows the scheme.
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => {
+      if (this.plotly && !this.destroyed) {
+        PlotlyHelper.restyleForTheme(this.plotly, this.chartElement().nativeElement, this.plotlyConfig);
+      }
+    });
     effect(() => {
       if (!this.treemap.isLoading() && this.treemap.hasValue()) {
         const loaded = this.treemap.value();

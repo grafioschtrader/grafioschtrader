@@ -40,6 +40,7 @@ import {
 import { SecuritycurrencySearchAndSetDialogComponent } from '../../securitycurrency/component/securitycurrency-search-and-set-dialog.component';
 import { SupplementCriteria } from '../../securitycurrency/model/supplement.criteria';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { ThemeService } from '../../lib/theme/theme.service';
 import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
 import type { ReplayBenchmarkComparison } from '../model/replay-benchmark';
@@ -150,9 +151,18 @@ export class AlgoSimulationRunBenchmarkComponent implements OnDestroy {
   private request?: Subscription;
   private plotly?: PlotlyInstance;
   private destroyed = false;
+  private readonly themeService = inject(ThemeService);
+  private readonly plotlyConfig = { ...PlotlyLocales.setPlotyLocales(this.gps), displaylogo: false };
 
   constructor() {
     TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => {
+      const plotly = this.plotly;
+      if (!plotly || this.destroyed) return;
+      for (const element of [this.returnsChart()?.nativeElement, this.wealthChart()?.nativeElement]) {
+        if (element) PlotlyHelper.restyleForTheme(plotly, element, this.plotlyConfig);
+      }
+    });
     effect(() => {
       const idTenant = this.id();
       untracked(() => {
@@ -256,7 +266,7 @@ export class AlgoSimulationRunBenchmarkComponent implements OnDestroy {
               return;
             }
             this.plotly = plotly;
-            const config = { ...PlotlyLocales.setPlotyLocales(this.gps), displaylogo: false };
+            const config = this.plotlyConfig;
             plotly.newPlot(
               returnsElement,
               benchmarkTraces(result.comparison, names, RETURN_FIELDS),

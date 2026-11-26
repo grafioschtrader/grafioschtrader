@@ -64,12 +64,14 @@ export class HoldingMoversTreetableComponent extends TreeTableConfigBase {
       cellTooltipFN: this.instrumentTooltip.bind(this)
     });
     this.addColumn(DataType.Numeric, 'changePercentage', 'DASHBOARD_MOVERS_CHANGE_PERCENTAGE', true, false, {
+      gainLossColor: true,
       width: 90,
       templateName: 'greenRed',
       headerSuffix: '%',
       maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION
     });
     this.addColumn(DataType.Numeric, 'amountMC', 'DASHBOARD_MOVERS_AMOUNT', true, false, {
+      gainLossColor: true,
       width: 110,
       templateName: 'greenRed'
     });

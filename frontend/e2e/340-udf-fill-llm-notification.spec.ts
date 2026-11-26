@@ -183,7 +183,7 @@ test.describe('UDF fill by language model notification', () => {
     await decided.arrived;
     decided.release();
     await reloaded.arrived;
-    await expect(dialog.locator('p.bg-info')).toContainText('1');
+    await expect(dialog.locator('p.bg-info-subtle')).toContainText('1');
     await expect(dialog.locator('.proposal-row')).toHaveCount(2);
     reloaded.release();
     await expect(dialog.locator('.proposal-row')).toHaveCount(1);

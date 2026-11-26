@@ -21,6 +21,7 @@ import { ChartData, PlotlyHelper } from '../plotly.helper';
 import { PlotlyLocales } from '../../plotlylocale/plotly.locales';
 import { PlotlyInstance, PlotlyLoaderService } from '../plotly.loader';
 import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
+import { ThemeService } from '../../../lib/theme/theme.service';
 
 /**
  * This general purpose chart does not have a certain layout, it can be a pie or other type of chart. After the
@@ -53,12 +54,15 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   private subscriptionChartDataChanged?: Subscription;
   private chartData?: Partial<ChartData>;
   private readonly plotlyLoader = inject(PlotlyLoaderService);
+  private readonly themeService = inject(ThemeService);
+  private plotly?: PlotlyInstance;
   private destroyed = false;
   constructor() {
     effect(() => {
       const id = this.id();
       untracked(() => this.chartDataService.requestDataForChart(id));
     });
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => this.restyleForTheme());
   }
 
   ngOnInit(): void {
@@ -124,10 +128,11 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   private plot(plotly: PlotlyInstance): void {
     const chartData = this.chartData;
     if (!chartData) return;
+    this.plotly = plotly;
     const chartElement = this.chartElement();
     plotly.purge(chartElement.nativeElement);
 
-    PlotlyHelper.applyThemeToLayout(chartData.layout, PlotlyHelper.getThemeSurface(chartElement.nativeElement));
+    this.applyTheme(chartData);
     if (chartData.legendTooltipMap) {
       plotly
         .newPlot(chartElement.nativeElement, chartData.data, chartData.layout, chartData.options)
@@ -139,6 +144,27 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
     if (chartData.callBackFN) {
       PlotlyHelper.registerPlotlyClick(chartElement.nativeElement, chartData.callBackFN);
     }
+  }
+
+  /**
+   * Applies the active scheme to the producer's accents and the layout chrome. The layout keeps a stable `uirevision`
+   * (the chart id), so a later `Plotly.react` with the same data set retains zoom and legend state.
+   */
+  private applyTheme(chartData: Partial<ChartData>): void {
+    const surface = PlotlyHelper.getThemeSurface(this.chartElement().nativeElement);
+    chartData.applyTheme?.(chartData.data, surface);
+    chartData.layout ??= {};
+    chartData.layout.uirevision ??= this.id();
+    PlotlyHelper.applyThemeToLayout(chartData.layout, surface);
+  }
+
+  /** Redraws the mounted chart in the colors of the new scheme, keeping zoom and hidden legend entries. */
+  private restyleForTheme(): void {
+    const chartData = this.chartData;
+    const plotly = this.plotly;
+    if (!chartData || !plotly || this.destroyed) return;
+    this.applyTheme(chartData);
+    plotly.react(this.chartElement().nativeElement, chartData.data, chartData.layout, chartData.options);
   }
 
   private attachTooltip(): void {

@@ -18,6 +18,8 @@ export const PRINT_FIGURE_SIZE = { width: 700, height: 420 } as const;
 /** Print colours: the PDF is white paper whatever theme the screen uses. */
 const PRINT_BACKGROUND = '#ffffff';
 const PRINT_TEXT = '#2a3f5f';
+/** Grid, axis and zero lines in print; the screen layout carries the colors of the active scheme. */
+const PRINT_GRID = '#e1e0d9';
 
 /** Marker of a transaction in the chart and the number printed at it and in the table of the PDF. */
 export interface TransactionNumber {
@@ -162,6 +164,22 @@ export function buildPrintFigure(
   printLayout['paper_bgcolor'] = PRINT_BACKGROUND;
   printLayout['plot_bgcolor'] = PRINT_BACKGROUND;
   printLayout['font'] = { ...printLayout['font'], color: PRINT_TEXT };
+  printLayout['legend'] = {
+    ...printLayout['legend'],
+    font: { ...printLayout['legend']?.font, color: PRINT_TEXT }
+  };
+  // Lines in print colors on every axis; ranges and accents such as the tick color of the holdings axis stay.
+  Object.keys(printLayout)
+    .filter((key) => /^[xy]axis\d*$/.test(key) && printLayout[key] && typeof printLayout[key] === 'object')
+    .forEach(
+      (key) =>
+        (printLayout[key] = {
+          ...printLayout[key],
+          gridcolor: PRINT_GRID,
+          linecolor: PRINT_GRID,
+          zerolinecolor: PRINT_GRID
+        })
+    );
   // The range slider is an operating element of the screen and would take a third of the small figure.
   printLayout['xaxis'] = { ...printLayout['xaxis'], rangeslider: { visible: false } };
   return { data: printData, layout: printLayout };

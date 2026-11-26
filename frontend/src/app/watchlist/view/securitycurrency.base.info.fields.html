@@ -14,11 +14,11 @@
         [class]="field.templateName !== 'long' ? 'col-md-7 nopadding wrap'
               : 'col-12 nopadding wrap'">
         @switch (field.templateName) { @case ('greenRed') {
-        <!-- An empty cell must keep the normal colour. isValueByPathMinus coerces a missing value to zero, so without
-             the emptiness check a field the connector does not deliver would be painted green as if it were a gain. -->
+        <!-- An empty cell keeps the normal colour: isValueByPathMinus coerces a missing value to zero, hence the emptiness
+             check for red; green needs a field marked with gainLossColor and a displayed value above zero. -->
         <span
           [class.gt-loss]="!!getValueByPath(content, field) && isValueByPathMinus(content, field)"
-          [class.gt-gain]="!!getValueByPath(content, field) && !isValueByPathMinus(content, field)">
+          [class.gt-gain]="isGainByPath(content, field)">
           {{getValueByPath(content, field)}}
         </span>
         } @case ('long') { @if (!!(field.dataType === DataType.String)) {

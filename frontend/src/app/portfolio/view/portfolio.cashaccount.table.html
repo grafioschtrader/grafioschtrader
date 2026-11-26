@@ -78,6 +78,7 @@
             <span
               [pTooltip]="getValueByPath(el, field)"
               [class.gt-loss]="isValueByPathMinus(el, field)"
+              [class.gt-gain]="isGainByPath(el, field)"
               tooltipPosition="top">
               {{getValueByPath(el, field)}}
             </span>
@@ -99,7 +100,9 @@
             [style.width.px]="field.width"
             class="row-total">
             @switch (field.templateName) { @case ('greenRed') {
-            <span [class.gt-loss]="isValueColumnTotalMinus(field, 0, accountPositionGroupSummary, null)">
+            <span
+              [class.gt-loss]="isValueColumnTotalMinus(field, 0, accountPositionGroupSummary, null)"
+              [class.gt-gain]="isGainText(field, getValueColumnTotal(field, 0, accountPositionGroupSummary, null), isValueColumnTotalMinus(field, 0, accountPositionGroupSummary, null))">
               {{getValueColumnTotal(field, 0, accountPositionGroupSummary, null)}}
             </span>
             } @default {

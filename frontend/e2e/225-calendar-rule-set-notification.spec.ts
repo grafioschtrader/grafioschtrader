@@ -241,9 +241,9 @@ test('preview replaces obsolete year and YAML responses, recovers from failure a
     await expect(preview).not.toContainText('Notification closure');
     await page.route(endpoint, (route) => route.abort('failed'), { times: 1 });
     await previous.click();
-    await expect(dialog.locator('p-fieldset .text-red-600')).toBeVisible();
+    await expect(dialog.locator('p-fieldset .text-danger-emphasis')).toBeVisible();
     await next.click();
-    await expect(dialog.locator('p-fieldset .text-red-600')).toHaveCount(0);
+    await expect(dialog.locator('p-fieldset .text-danger-emphasis')).toHaveCount(0);
     await expect(preview).toContainText('Current closure');
     const abandoned = await holdResponse(page, endpoint);
     try {

@@ -126,6 +126,13 @@ export interface ColumnConfig extends BaseFieldDefinition {
    */
   templateName?: string;
 
+  /**
+   * Marks a column whose content is a result or a change, such as a gain, a return or a daily change. Its positive values
+   * are shown green and its negative values red. Other `'greenRed'` columns, for example balances and fees, show only
+   * their negative values red. See {@link GainLossColor}.
+   */
+  gainLossColor?: boolean;
+
   /** Minimum number of decimal places to display for numeric values */
   minFractionDigits?: number;
 
@@ -221,6 +228,9 @@ export interface OptionalParams {
 
   /** Template identifier for conditional display logic */
   templateName?: string;
+
+  /** Result or change column: positive values green, negative values red; implies `templateName: 'greenRed'`. */
+  gainLossColor?: boolean;
 
   /** Maximum decimal places for numeric display */
   maxFractionDigits?: number;

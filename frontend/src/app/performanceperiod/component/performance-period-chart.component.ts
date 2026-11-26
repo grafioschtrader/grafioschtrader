@@ -45,6 +45,7 @@ import {
 import type { PerformancePeriod } from '../model/performance.period';
 import { PerformancePeriodChartService } from '../service/performance-period-chart.service';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { ThemeService } from '../../lib/theme/theme.service';
 
 /** The select of the chart mode. */
 interface ChartModeFormModel {
@@ -129,9 +130,15 @@ export class PerformancePeriodChartComponent implements IGlobalMenuAttach, OnDes
   private destroyed = false;
   /** Raised by every draw, so a draw still waiting for the library is dropped when a newer one follows. */
   private drawVersion = 0;
+  private readonly themeService = inject(ThemeService);
 
   constructor() {
     TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config, false);
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => {
+      if (this.plotly && !this.destroyed) {
+        PlotlyHelper.restyleForTheme(this.plotly, this.chartElement().nativeElement, this.plotlyConfig);
+      }
+    });
     this.loadTexts();
     effect(() => {
       const chartMode = this.form()?.value('chartMode') as string | null | undefined;
@@ -228,6 +235,7 @@ export class PerformancePeriodChartComponent implements IGlobalMenuAttach, OnDes
           (plotly) => {
             if (!this.destroyed && version === this.drawVersion) {
               this.plotly = plotly;
+              layout.uirevision = mode;
               PlotlyHelper.applyThemeToLayout(layout, PlotlyHelper.getThemeSurface(this.chartElement().nativeElement));
               plotly.newPlot(this.chartElement().nativeElement, data, layout, this.plotlyConfig);
             }

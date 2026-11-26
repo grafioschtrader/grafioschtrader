@@ -409,6 +409,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     for (const part of ['Realized', 'Income', 'Unrealized']) {
       const field = `${part.toLowerCase()}GainLossSecurity`;
       this.addColumnFeqH(DataType.Numeric, field, false, true, {
+        gainLossColor: true,
         currencyPrecisionField: 'security.currency',
         columnGroupConfigs: [
           new ColumnGroupConfig(`group${part}GainLossSecurity`, null, null, { currencyPrecisionField: 'currency' })
@@ -416,6 +417,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
       });
       this.internalColumnConfigs.push(
         this.addColumn(DataType.Numeric, `${field}MC`, `${part.toUpperCase()}_GAIN_LOSS_SECURITY_MC`, true, true, {
+          gainLossColor: true,
           columnGroupConfigs: [
             new ColumnGroupConfig(`group${part}GainLossSecurityMC`),
             new ColumnGroupConfig(`grand${part}GainLossSecurityMC`)
@@ -486,6 +488,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     });
 
     this.addColumnFeqH(DataType.Numeric, 'gainLossSecurity', true, false, {
+      gainLossColor: true,
       currencyPrecisionField: 'security.currency',
       columnGroupConfigs: [
         new ColumnGroupConfig('groupGainLossSecurity', null, null, { currencyPrecisionField: 'currency' })
@@ -494,6 +497,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
     this.internalColumnConfigs.push(
       this.addColumnFeqH(DataType.Numeric, 'gainLossSecurityMC', true, true, {
+        gainLossColor: true,
         columnGroupConfigs: [
           new ColumnGroupConfig('groupGainLossSecurityMC'),
           new ColumnGroupConfig('grandGainLossSecurityMC')
@@ -503,6 +507,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.addGainComponentColumns();
     this.internalColumnConfigs.push(
       this.addColumnFeqH(DataType.Numeric, 'gainLossCurrencyMC', true, true, {
+        gainLossColor: true,
         columnGroupConfigs: [
           new ColumnGroupConfig('groupGainLossCurrencyMC'),
           new ColumnGroupConfig('grandGainLossCurrencyMC')

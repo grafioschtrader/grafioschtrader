@@ -20,7 +20,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                 {{ field.headerTranslated }}
               </div>
               <div class="col-3 text-end">
-                <span [class.gt-loss]="isValueByPathMinus(phad, field)">
+                <span [class.gt-loss]="isValueByPathMinus(phad, field)" [class.gt-gain]="isGainByPath(phad, field)">
                   {{ getValueByPath(phad, field) }}
                 </span>
               </div>
@@ -65,6 +65,7 @@ export class TenantPerformanceFromToDiffComponent extends SingleRecordConfigBase
     this.addFieldPropertyFeqH(DataType.Numeric, 'gainMC');
     this.addFieldPropertyFeqH(DataType.Numeric, 'marginCloseGainMC');
     this.addFieldPropertyFeqH(DataType.Numeric, 'totalGainMC');
+    this.markGainLossColumns('securitiesAndMarginGainMC', 'gainMC', 'marginCloseGainMC', 'totalGainMC');
     this.translateHeadersAndColumns();
     this.translateService
       .get('DIFFERENCE')

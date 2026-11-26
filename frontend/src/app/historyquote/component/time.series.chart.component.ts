@@ -57,6 +57,7 @@ import {
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { AppSettings } from '../../shared/app.settings';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { ThemeService } from '../../lib/theme/theme.service';
 import { PlotlyInstance, PlotlyLoaderService } from '../../shared/chart/plotly.loader';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
@@ -287,6 +288,9 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
   /** Set once the first chart has loaded the library; indicator toggles and cleanup never trigger the import. */
   private plotly?: PlotlyInstance;
   private destroyed = false;
+  private readonly themeService = inject(ThemeService);
+  /** Configuration of the drawn plot; a redraw for a new color scheme passes it again to avoid a full redraw. */
+  private plotConfig?: object;
   /** Raised by every plot, so a plot still waiting for the library is dropped when a newer one follows. */
   private plotVersion = 0;
 
@@ -329,6 +333,13 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       ).pipe(map((responses) => ({ responses, securities: params.securities })))
   });
   constructor() {
+    // The chart element holds the current ranges, hidden traces and drawn shapes, so they all survive the redraw;
+    // the shape controller ignores the resulting relayout because it does not touch the shapes.
+    PlotlyHelper.effectOnThemeChange(this.themeService.isDark, () => {
+      if (this.plotly && !this.destroyed) {
+        PlotlyHelper.restyleForTheme(this.plotly, this.chartElement().nativeElement, this.plotConfig);
+      }
+    });
     const gps = this.gps;
     const translateService = this.translateService;
     const confirmationService = inject(ConfirmationService);
@@ -1615,11 +1626,12 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       ...this.shapeController.getModeBarButtons()
     ];
     config.displaylogo = false;
+    this.plotConfig = config;
     plotly.purge(this.chartElement().nativeElement);
     PlotlyHelper.applyThemeToLayout(layout, PlotlyHelper.getThemeSurface(element));
     plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
     element.on('plotly_afterplot', this.attachTooltip.bind(this));
-    element.on('plotly_relayout', () => this.shapeController.onRelayout());
+    element.on('plotly_relayout', (eventData: Record<string, unknown>) => this.shapeController.onRelayout(eventData));
 
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {

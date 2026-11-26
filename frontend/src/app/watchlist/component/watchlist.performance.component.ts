@@ -171,21 +171,25 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumn(DataType.Numeric, 'securitycurrency.sChangePercentage', 'DAILY_CHANGE', true, true, {
       headerSuffix: '%',
       templateName: 'greenRed',
+      gainLossColor: true,
       filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'ytdChangePercentage', 'YTD', true, true, {
       headerSuffix: '%',
       templateName: 'greenRed',
+      gainLossColor: true,
       filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'timeFrameChangePercentage', 'TIME_FRAME', true, true, {
       headerSuffix: '%',
       templateName: 'greenRed',
+      gainLossColor: true,
       filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'timeFrameAnnualChangePercentage', 'TIME_FRAME_ANNUAL', true, true, {
       headerSuffix: '%',
       templateName: 'greenRed',
+      gainLossColor: true,
       filterType: FilterType.likeDataType
     });
     // Marks a distributing security whose changes lack dividend data although dividends are included
@@ -202,6 +206,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumnFeqH(DataType.Numeric, 'positionGainLossPercentage', true, true, {
       headerSuffix: '%',
       templateName: 'greenRed',
+      gainLossColor: true,
       filterType: FilterType.likeDataType,
       cellTooltipFN: this.costBasisCellTooltip
     });
@@ -217,6 +222,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumn(DataType.Numeric, 'positionGainLossPercentageMC', 'POSITION_GAIN_LOSS_PERCENTAGE_MC', false, true, {
       headerSuffix: '%',
       templateName: 'greenRed',
+      gainLossColor: true,
       filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE', true, true, {
@@ -341,14 +347,16 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     const fields = [
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'units', 'HOLDING'),
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'valueSecurity', 'VALUE_SECURITY'),
-      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'positionGainLoss', 'POSITION_GAIN_LOSS'),
+      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'positionGainLoss', 'POSITION_GAIN_LOSS', true, true, {
+        gainLossColor: true
+      }),
       ShowRecordConfigBase.createColumnConfig(
         DataType.Numeric,
         'positionGainLossPercentage',
         'POSITION_GAIN_LOSS_PERCENTAGE',
         true,
         true,
-        { headerSuffix: '%' }
+        { headerSuffix: '%', gainLossColor: true }
       ),
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'valueSecurityMC', 'VALUE_SECURITY_MC', true, true, {
         headerSuffix: currency
@@ -359,7 +367,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
         'POSITION_GAIN_LOSS_MC',
         true,
         true,
-        { headerSuffix: currency }
+        { headerSuffix: currency, gainLossColor: true }
       ),
       ShowRecordConfigBase.createColumnConfig(
         DataType.Numeric,
@@ -367,7 +375,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
         'POSITION_GAIN_LOSS_PERCENTAGE_MC',
         true,
         true,
-        { headerSuffix: currency ? '% ' + currency : '%' }
+        { headerSuffix: currency ? '% ' + currency : '%', gainLossColor: true }
       )
     ];
     this.translateHeaders(

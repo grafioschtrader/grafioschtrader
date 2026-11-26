@@ -455,7 +455,10 @@ CREATE TABLE `tenant` (
   `report_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`report_settings`)),
   `disposal_cost_estimate` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Tenant opt-out of the disposal cost estimate; effective only while gt.disposal.cost.estimate is 1',
   `cost_basis_method` tinyint(4) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id_tenant`)
+  `id_benchmark` int(11) DEFAULT NULL COMMENT 'Benchmark of the client view and default of its portfolios',
+  PRIMARY KEY (`id_tenant`),
+  KEY `FK_Tenant_Benchmark` (`id_benchmark`),
+  CONSTRAINT `FK_Tenant_Benchmark` FOREIGN KEY (`id_benchmark`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

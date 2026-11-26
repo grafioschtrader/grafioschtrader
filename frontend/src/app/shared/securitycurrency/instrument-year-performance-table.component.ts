@@ -32,11 +32,13 @@ export class InstrumentYearPerformanceTableComponent extends TableConfigBase imp
   ngOnInit(): void {
     this.addColumn(DataType.String, 'year', 'CALENDAR', true, false);
     this.addColumn(DataType.Numeric, 'performanceYear', 'PERFORMANCE', true, false, {
+      gainLossColor: true,
       templateName: 'greenRed',
       headerSuffix: '%'
     });
     const mainCurrency = this.mainCurrency();
     this.addColumn(DataType.Numeric, 'performanceYearMC', 'PERFORMANCE', true, false, {
+      gainLossColor: true,
       templateName: 'greenRed',
       headerSuffix: (mainCurrency ? mainCurrency + ' ' : '') + '%'
     });

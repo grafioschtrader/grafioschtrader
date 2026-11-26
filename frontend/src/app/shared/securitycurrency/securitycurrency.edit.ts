@@ -130,6 +130,11 @@ export abstract class SecuritycurrencyEdit extends FormBase {
     );
   }
 
+  /**
+   * Enables the form, transfers an existing instrument or proposal and focuses the given control. The dialog owns this
+   * initial focus, so its p-dialog sets [focusOnShow]="false": Optimus' delayed focus of the first focusable element
+   * would otherwise blur the field again, mark it touched and show "required" before the user typed anything.
+   */
   protected prepareExistingSecuritycurrency(focusControl: FieldConfig): void {
     this.dynamicForm().setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
