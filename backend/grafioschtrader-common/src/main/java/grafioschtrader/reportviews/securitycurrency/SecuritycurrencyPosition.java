@@ -81,6 +81,11 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> implements 
       This can be useful to indicate that an instrument has a transaction, split or dividend without already loading it.""")
   public boolean watchlistSecurityHasEver;
 
+  @Schema(description = """
+      True when the tenant ever held the security, with an open or closed transaction. Unlike watchlistSecurityHasEver
+      it keeps this meaning in every watchlist view; the context menu disables the security position chart when false.""")
+  public boolean hadPosition;
+
   @Schema(description = "Youngest historical data")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate youngestHistoryDate;

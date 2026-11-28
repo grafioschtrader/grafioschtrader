@@ -48,13 +48,14 @@ public class WatchlistTreemapReport {
    *
    * @param securities        the securities of the watchlist with current prices
    * @param currencypairCount the number of currency pairs of the watchlist, which never get a tile
+   * @param heldIds           the securities the tenant ever held, with an open or closed transaction
    * @param mainCurrency      the main currency of the tenant
    * @param language          the language of the user
    * @param today             the calendar day of the client
    * @return the market map, never null
    */
-  public WatchlistTreemap calculate(List<Security> securities, int currencypairCount, String mainCurrency,
-      Language language, LocalDate today) {
+  public WatchlistTreemap calculate(List<Security> securities, int currencypairCount, Set<Integer> heldIds,
+      String mainCurrency, Language language, LocalDate today) {
     List<Security> stocks = securities.stream().filter(security -> isActiveDirectStock(security, today)).toList();
     int notApplicableCount = securities.size() - stocks.size() + currencypairCount;
     if (stocks.isEmpty()) {
@@ -65,8 +66,8 @@ public class WatchlistTreemapReport {
     Map<Integer, Amount> marketCaps = loadMarketCaps(ids, today);
     LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
     return WatchlistTreemapBuilder.build(new WatchlistTreemapBuilder.Input(stocks, shares, marketCaps,
-        loadRates(stocks, marketCaps, mainCurrency, today), loadCloses(stocks, today, now), mainCurrency, language,
-        notApplicableCount, now));
+        loadRates(stocks, marketCaps, mainCurrency, today), loadCloses(stocks, today, now), heldIds, mainCurrency,
+        language, notApplicableCount, now));
   }
 
   private static boolean isActiveDirectStock(Security security, LocalDate today) {

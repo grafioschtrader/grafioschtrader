@@ -46,8 +46,8 @@ class CompareHoldingWithOtherSummaryTest {
   @Disabled
   void tenantCompareSummaryTest() {
     DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    LocalDate fromDate = LocalDate.parse("2025-08-10", format);
-    LocalDate toDate = LocalDate.parse("2026-02-27", format);
+    LocalDate fromDate = LocalDate.parse("2026-01-07", format);
+    LocalDate toDate = LocalDate.parse("2026-11-24", format);
     Integer idTenant = 7;
 
     List<IPeriodHolding> totalsOverPeriodList = holdSecurityaccountSecurityRepository

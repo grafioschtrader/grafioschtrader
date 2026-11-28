@@ -27,5 +27,8 @@ public record WatchlistTreemapNode(
     @Schema(description = "Stock nodes only") Integer idSecuritycurrency,
     @Schema(description = "Stock nodes only: currency of the listing, used by the price chart of the context menu") String currency,
     @Schema(description = "Stock nodes only: UTC time of the price") @JsonFormat(pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT) LocalDateTime timestamp,
-    @Schema(description = "Stock nodes only: backend-resolved company or issuer logo metadata") InstrumentLogoRefDto resolvedLogo) {
+    @Schema(description = "Stock nodes only: backend-resolved company or issuer logo metadata") InstrumentLogoRefDto resolvedLogo,
+    @Schema(description = """
+        Stock nodes only: whether the tenant ever held the stock, with an open or closed transaction. The context menu
+        disables the security position chart when false.""") Boolean hadPosition) {
 }

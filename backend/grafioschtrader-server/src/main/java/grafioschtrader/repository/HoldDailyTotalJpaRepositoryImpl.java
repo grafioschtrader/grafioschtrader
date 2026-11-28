@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.entities.HoldDailyTotal;
 import grafioschtrader.entities.HoldDailyTotalState;
@@ -35,25 +36,34 @@ public class HoldDailyTotalJpaRepositoryImpl implements HoldDailyTotalJpaReposit
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
+  /**
+   * The marker is read before the rows and in the same read-only transaction. Read the other way round, outside a
+   * transaction, a run of the task committing in between would pair outdated rows with an already advanced marker.
+   */
   @Override
+  @Transactional(readOnly = true)
   public HoldDailyTotalSeries getSeries(Integer idTenant, Integer idPortfolio, LocalDate fromDate, LocalDate toDate) {
+    LocalDate recalcFromDate = getRecalcFromDate(idTenant);
     List<HoldDailyTotal> rows = idPortfolio == null
         ? holdDailyTotalJpaRepository.findByIdTenantAndIdPortfolioIsNullAndHoldDateBetweenOrderByHoldDate(idTenant,
             fromDate, toDate)
         : holdDailyTotalJpaRepository.findByIdTenantAndIdPortfolioAndHoldDateBetweenOrderByHoldDate(idTenant,
             idPortfolio, fromDate, toDate);
-    return new HoldDailyTotalSeries(rows, getRecalcFromDate(idTenant));
+    return new HoldDailyTotalSeries(rows, recalcFromDate);
   }
 
+  /** Marker first, then the row, in one read-only transaction, for the reason given at {@link #getSeries}. */
   @Override
+  @Transactional(readOnly = true)
   public HoldDailyTotalValue getLastOnOrBefore(Integer idTenant, Integer idPortfolio, LocalDate date) {
+    LocalDate recalcFromDate = getRecalcFromDate(idTenant);
     HoldDailyTotal row = (idPortfolio == null
         ? holdDailyTotalJpaRepository
             .findFirstByIdTenantAndIdPortfolioIsNullAndHoldDateLessThanEqualOrderByHoldDateDesc(idTenant, date)
         : holdDailyTotalJpaRepository
             .findFirstByIdTenantAndIdPortfolioAndHoldDateLessThanEqualOrderByHoldDateDesc(idTenant, idPortfolio, date))
                 .orElse(null);
-    return new HoldDailyTotalValue(row, getRecalcFromDate(idTenant));
+    return new HoldDailyTotalValue(row, recalcFromDate);
   }
 
   @Override

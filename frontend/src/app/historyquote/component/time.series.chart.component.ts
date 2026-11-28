@@ -1206,6 +1206,11 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
     );
   }
 
+  /** Whether the single shown security has a transaction in the scope of the chart; call after canExportPdf(). */
+  private hasTransactions(): boolean {
+    return (<SecurityTransactionSummary>this.loadedData[0].nameSecuritycurrency).transactionPositionList.length > 0;
+  }
+
   /**
    * Opens the dialog of the chart PDF. The dialog gets the scope the chart was opened for, so the table of the PDF lists
    * the transactions of exactly the securities account, the portfolio or the tenant the markers come from.
@@ -1326,10 +1331,11 @@ export class TimeSeriesChartComponent implements AfterViewInit, OnDestroy, IGlob
       disabled: !this.canExportPdf(),
       command: () => this.openChartPdfDialog()
     });
-    // The position of the same security in the same scope; the PDF condition is exactly "one security shown".
+    // The position of the same security in the same scope; the PDF condition is exactly "one security shown". The
+    // markers come from the same scope, so without any transaction there is no position to show.
     menuItems.push({
       label: 'SECURITY_POSITION_CHART',
-      disabled: !this.canExportPdf(),
+      disabled: !this.canExportPdf() || !this.hasTransactions(),
       command: () =>
         this.timeSeriesQuotesService.showChartOfSecurity(AppSettings.SECURITY_POSITION_CHART, this.seriesParams[0])
     });

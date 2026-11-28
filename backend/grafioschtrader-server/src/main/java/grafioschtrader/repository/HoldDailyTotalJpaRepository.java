@@ -47,6 +47,12 @@ public interface HoldDailyTotalJpaRepository
   List<HoldDailyTotal> findByIdTenantAndIdPortfolioAndHoldDateBetweenOrderByHoldDate(Integer idTenant,
       Integer idPortfolio, LocalDate fromDate, LocalDate toDate);
 
+  /** The first stored day of the tenant total, where the computation of the task started. */
+  Optional<HoldDailyTotal> findFirstByIdTenantAndIdPortfolioIsNullOrderByHoldDate(Integer idTenant);
+
+  /** The first stored day of a portfolio, where the computation of the task started. */
+  Optional<HoldDailyTotal> findFirstByIdTenantAndIdPortfolioOrderByHoldDate(Integer idTenant, Integer idPortfolio);
+
   Optional<HoldDailyTotal> findFirstByIdTenantAndIdPortfolioIsNullAndHoldDateLessThanEqualOrderByHoldDateDesc(
       Integer idTenant, LocalDate date);
 
@@ -71,8 +77,14 @@ public interface HoldDailyTotalJpaRepository
    * - ?1 - the tenant, applied to hold_securityaccount_security and hold_cashaccount_balance
    * - ?2 - the time of the previous scan; only prices with a younger create_modify_time are considered
    *
-   * Each of the five branches joins one id column of a hold table to historyquote, so that the lookup uses the
-   * unique key (id_securitycurrency, date) instead of scanning the price table by its timestamp.
+   * The changed prices are selected first, in a grouped derived table, and only then joined to the five hold periods
+   * (the security and the two currency pair columns of the security holdings, the two of the cash balances). The
+   * grouping forces MariaDB to materialize that small set. Joining each hold period to historyquote first, through the
+   * unique key (id_securitycurrency, date), read every price of every held instrument and took 23 s for a tenant with
+   * twenty years of history, against 0.7 s for one pass over the price table.
+   *
+   * The performance report calls this as well, to tell which stored days a back-filled price has made outdated since
+   * the last run of the task.
    *
    * @param idTenant    the tenant
    * @param checkedTime the time of the previous scan

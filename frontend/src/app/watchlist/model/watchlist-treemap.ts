@@ -43,6 +43,8 @@ export interface WatchlistTreemapNode {
   timestamp: string | null;
   /** Stock nodes only: resolved company or issuer logo, null when none applies. */
   resolvedLogo: InstrumentLogoRefDto | null;
+  /** Stock nodes only: whether the tenant ever held the stock; false disables the security position chart. */
+  hadPosition: boolean | null;
 }
 
 /**

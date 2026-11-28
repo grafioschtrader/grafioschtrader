@@ -461,8 +461,11 @@ public class WatchlistReport {
     entityManager.clear();
     var securities = createSecuritycurrencyPositionList(prices.securities);
     securities.forEach(p -> replaceLastPriceByHistoryquote(closes, p));
+    Set<Integer> heldIds = Arrays.stream(watchlistJpaRepository
+        .watchlistSecuritiesHasOpenOrClosedTransactionForThisTenant(idWatchlist, user.getIdTenant())).boxed()
+        .collect(Collectors.toSet());
     return treemapReport.calculate(securities.stream().map(p -> p.securitycurrency).toList(),
-        prices.currencypairs.size(), tenantJpaRepository.getReferenceById(user.getIdTenant()).getCurrency(),
+        prices.currencypairs.size(), heldIds, tenantJpaRepository.getReferenceById(user.getIdTenant()).getCurrency(),
         user.getLanguage(), today);
   }
 
@@ -649,10 +652,11 @@ public class WatchlistReport {
   private <T extends Securitycurrency<T>> void markWatchlistSecurityHasEverTransactionTenant(
       final int[] watchlistSecuritesHasTransactionIds,
       final List<SecuritycurrencyPosition<T>> securitycurrencyPositionList) {
-    securitycurrencyPositionList
-        .forEach(securitycurrencyPosition -> securitycurrencyPosition.watchlistSecurityHasEver = Arrays.binarySearch(
-            watchlistSecuritesHasTransactionIds,
-            securitycurrencyPosition.securitycurrency.getIdSecuritycurrency().intValue()) >= 0);
+    securitycurrencyPositionList.forEach(securitycurrencyPosition -> {
+      securitycurrencyPosition.hadPosition = Arrays.binarySearch(watchlistSecuritesHasTransactionIds,
+          securitycurrencyPosition.securitycurrency.getIdSecuritycurrency().intValue()) >= 0;
+      securitycurrencyPosition.watchlistSecurityHasEver = securitycurrencyPosition.hadPosition;
+    });
   }
 
   /**

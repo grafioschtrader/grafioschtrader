@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -146,7 +147,7 @@ class WatchlistTreemapBuilderTest {
 
   private WatchlistTreemap build(Security... stocks) {
     return WatchlistTreemapBuilder.build(
-        new Input(List.of(stocks), shares, marketCaps, rates, closes, "CHF", Language.GERMAN, 0, NOW));
+        new Input(List.of(stocks), shares, marketCaps, rates, closes, Set.of(), "CHF", Language.GERMAN, 0, NOW));
   }
 
   private static WatchlistTreemapNode node(WatchlistTreemap treemap, String id) {

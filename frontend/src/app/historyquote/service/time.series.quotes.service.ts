@@ -62,7 +62,8 @@ export class TimeSeriesQuotesService {
       // Securities only, also those without market value, which are valued with their period prices.
       menuItems.push({
         label: 'SECURITY_POSITION_CHART',
-        command: (e) => this.showEodChartTable(AppSettings.SECURITY_POSITION_CHART, true)
+        command: (e) => this.showEodChartTable(AppSettings.SECURITY_POSITION_CHART, true),
+        disabled: this.optionalParameters.hadPosition === false
       });
     }
     if (!this.optionalParameters.noMarketValue) {
@@ -146,4 +147,9 @@ export interface OptionalParameters {
   noMarketValue?: boolean | null;
   /** Leaves out the transaction receipts of a security, for views that offer only the price history. */
   noTransactionReceipts?: boolean | null;
+  /**
+   * Whether the tenant ever held the security. False disables the security position chart, which would only show that
+   * there is no holding. Null or absent when the calling view does not know it; the entry then stays enabled.
+   */
+  hadPosition?: boolean | null;
 }

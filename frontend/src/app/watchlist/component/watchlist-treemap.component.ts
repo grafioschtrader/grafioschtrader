@@ -216,7 +216,8 @@ export class WatchlistTreemapComponent implements OnDestroy, IGlobalMenuAttach {
     event.stopPropagation();
     const version = ++this.menuVersion;
     const menuItems = this.timeSeriesQuotesService.getMenuItems(node.idSecuritycurrency, node.currency, false, {
-      noTransactionReceipts: true
+      noTransactionReceipts: true,
+      hadPosition: node.hadPosition
     });
     TranslateHelper.translateMenuItems$(menuItems, this.translateService).subscribe((translated) => {
       if (this.destroyed || version !== this.menuVersion) {

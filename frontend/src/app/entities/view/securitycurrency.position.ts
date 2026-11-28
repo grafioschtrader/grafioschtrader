@@ -28,6 +28,11 @@ export interface SecuritycurrencyPosition<T extends Securitycurrency> {
   splitUrl: string | null;
   isUsedElsewhere: boolean;
   watchlistSecurityHasEver: boolean;
+  /**
+   * The tenant ever held the security, with an open or closed transaction. Unlike watchlistSecurityHasEver it keeps
+   * this meaning in every watchlist view, the dividend/split feed included.
+   */
+  hadPosition: boolean;
   youngestHistoryDate: string | null;
   /** Oldest stored historical price date, meaningful when held against activeFromDate of the security. */
   oldestHistoryDate: string | null;

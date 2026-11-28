@@ -141,6 +141,9 @@ public class PerformanceReport {
   @Autowired
   private RiskFreeRateService riskFreeRateService;
 
+  @Autowired
+  private PeriodHoldingsLoader periodHoldingsLoader;
+
   /**
    * Cache for trading day metadata with 2-minute expiration to improve performance. Maps portfolio/tenant keys to their
    * corresponding trading day information.
@@ -488,8 +491,7 @@ public class PerformanceReport {
         () -> historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdTenant(idTenant),
         () -> currencypairJpaRepository.getAllCurrencypairsForTenantByTenant(idTenant));
     List<IPeriodHolding> periodHoldings = prependZeroBaseHolding(
-        holdSecurityaccountSecurityRepository.getPeriodHoldingsByTenant(idTenant, dateFrom, dateTo), dateFrom,
-        firstAndMissingTradingDays,
+        periodHoldingsLoader.load(idTenant, null, dateFrom, dateTo), dateFrom, firstAndMissingTradingDays,
         () -> holdSecurityaccountSecurityRepository.getPeriodHoldingZeroBaseByTenant(idTenant, dateFrom));
     return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit, flowsAndFees,
         benchmarkRequest);
@@ -571,8 +573,7 @@ public class PerformanceReport {
         () -> historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdPortfolio(idPortfolio),
         () -> currencypairJpaRepository.getAllCurrencypairsForPortfolioByPortfolio(idPortfolio));
     List<IPeriodHolding> periodHoldings = prependZeroBaseHolding(
-        holdSecurityaccountSecurityRepository.getPeriodHoldingsByPortfolio(idPortfolio, dateFrom, dateTo), dateFrom,
-        firstAndMissingTradingDays,
+        periodHoldingsLoader.load(idTenant, idPortfolio, dateFrom, dateTo), dateFrom, firstAndMissingTradingDays,
         () -> holdSecurityaccountSecurityRepository.getPeriodHoldingZeroBaseByPortfolio(idPortfolio, dateFrom));
     return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit, flowsAndFees,
         benchmarkRequest);
@@ -779,9 +780,7 @@ public class PerformanceReport {
     }
     LocalDate dateFrom = usableSessions.getFirst();
     LocalDate dateTo = usableSessions.getLast();
-    List<IPeriodHolding> periodHoldings = idPortfolio == null
-        ? holdSecurityaccountSecurityRepository.getPeriodHoldingsByTenant(idTenant, dateFrom, dateTo)
-        : holdSecurityaccountSecurityRepository.getPeriodHoldingsByPortfolio(idPortfolio, dateFrom, dateTo);
+    List<IPeriodHolding> periodHoldings = periodHoldingsLoader.load(idTenant, idPortfolio, dateFrom, dateTo);
     if (periodHoldings.size() < 2) {
       return emptyLastSessions(currency, idPortfolio, REASON_NO_HOLDINGS);
     }

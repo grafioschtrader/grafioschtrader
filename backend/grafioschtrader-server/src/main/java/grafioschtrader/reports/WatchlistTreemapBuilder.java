@@ -64,14 +64,15 @@ public final class WatchlistTreemapBuilder {
    * @param marketCaps         market capitalisation stated by the data source per security
    * @param ratesToMain        rate into the main currency per foreign currency; a currency without rate is absent
    * @param closes             close of the newest opened session as UTC time per security; absent when unknown
+   * @param heldIds            securities the tenant ever held, with an open or closed transaction
    * @param mainCurrency       main currency of the tenant
    * @param language           language of the labels of the groups
    * @param notApplicableCount instruments of the watchlist that are no active direct stocks
    * @param now                the current time in UTC
    */
   public record Input(List<Security> stocks, Map<Integer, Double> shares, Map<Integer, Amount> marketCaps,
-      Map<String, Double> ratesToMain, Map<Integer, LocalDateTime> closes, String mainCurrency, Language language,
-      int notApplicableCount, LocalDateTime now) {
+      Map<String, Double> ratesToMain, Map<Integer, LocalDateTime> closes, Set<Integer> heldIds, String mainCurrency,
+      Language language, int notApplicableCount, LocalDateTime now) {
   }
 
   private record Tile(Security security, double capMC) {
@@ -172,23 +173,25 @@ public final class WatchlistTreemapBuilder {
         .computeIfAbsent(tile.security().getAssetClass().getIdAssetClass(), _ -> new ArrayList<>()).add(tile));
     List<WatchlistTreemapNode> nodes = new ArrayList<>();
     nodes.add(new WatchlistTreemapNode(ROOT_ID, null, WatchlistTreemapNodeType.ROOT, null, 0, totalCap(tiles),
-        weightedChange(tiles), null, null, null, null));
+        weightedChange(tiles), null, null, null, null, null));
     tilesByAssetclass.values().stream().sorted(Comparator.comparingDouble(WatchlistTreemapBuilder::totalCap).reversed())
-        .forEach(group -> addGroup(nodes, group, input.language()));
+        .forEach(group -> addGroup(nodes, group, input));
     return nodes;
   }
 
-  private static void addGroup(List<WatchlistTreemapNode> nodes, List<Tile> tiles, Language language) {
+  private static void addGroup(List<WatchlistTreemapNode> nodes, List<Tile> tiles, Input input) {
     Assetclass assetclass = tiles.getFirst().security().getAssetClass();
     String groupId = GROUP_PREFIX + assetclass.getIdAssetClass();
     nodes.add(new WatchlistTreemapNode(groupId, ROOT_ID, WatchlistTreemapNodeType.GROUP,
-        groupLabel(assetclass, language), 0, totalCap(tiles), weightedChange(tiles), null, null, null, null));
+        groupLabel(assetclass, input.language()), 0, totalCap(tiles), weightedChange(tiles), null, null, null, null,
+        null));
     tiles.stream().sorted(Comparator.comparingDouble(Tile::capMC).reversed()).forEach(tile -> {
       Security security = tile.security();
       nodes.add(new WatchlistTreemapNode(SECURITY_PREFIX + security.getIdSecuritycurrency(), groupId,
           WatchlistTreemapNodeType.SECURITY, security.getName(), tile.capMC(), tile.capMC(),
           security.getSChangePercentage(), security.getIdSecuritycurrency(), security.getCurrency(),
-          security.getSTimestamp(), security.getResolvedLogo()));
+          security.getSTimestamp(), security.getResolvedLogo(),
+          input.heldIds().contains(security.getIdSecuritycurrency())));
     });
   }
 

@@ -34,7 +34,7 @@ import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.grou
 import type { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
 import { Watchlist } from '../../entities/watchlist';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
-import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
+import { OptionalParameters, TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { CellMark, ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -1355,9 +1355,10 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
 
     if (securitycurrencyPosition && securitycurrencyPosition.securitycurrency.idSecuritycurrency != null) {
       const isCurrencypair = securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist;
-      const optionalParameters = {
+      const optionalParameters: OptionalParameters = {
         noMarketValue:
-          !isCurrencypair && (<Security>securitycurrencyPosition.securitycurrency).stockexchange?.noMarketValue
+          !isCurrencypair && (<Security>securitycurrencyPosition.securitycurrency).stockexchange?.noMarketValue,
+        hadPosition: securitycurrencyPosition.hadPosition
       };
       menuItems = this.timeSeriesQuotesService.getMenuItems(
         securitycurrencyPosition.securitycurrency.idSecuritycurrency,
